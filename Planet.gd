@@ -11,11 +11,18 @@ var tile_material: ShaderMaterial setget ,get_tile_material
 var sphere: MeshInstance setget ,get_sphere
 var view: Viewport setget ,get_viewport
 var display_name: String setget set_display_name,get_display_name
+var full_display_name: String setget set_full_display_name,get_full_display_name
 var has_astral_gate: bool = false
+var game_state_path: NodePath = NodePath() setget set_game_state_path,get_game_state_path
 
 func get_display_name() -> String: return display_name
 func set_display_name(s: String): display_name=s
+func get_full_display_name() -> String: return full_display_name
+func set_full_display_name(s: String): full_display_name=s
+func get_game_state_path() -> NodePath: return game_state_path
+func set_game_state_path(s: NodePath): game_state_path=s
 
+func is_a_system() -> bool: return false
 func is_a_ship() -> bool: return false
 func is_a_planet() -> bool: return true
 func get_has_astral_gate() -> bool: return has_astral_gate
@@ -55,7 +62,6 @@ func ship_can_land(ship: RigidBody) -> bool:
 
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
-	print('make sphere subs=',subdivisions,' tex=',texture_size)
 	sphere = SphereTool.new()
 	sphere.make_cube_sphere('Sphere',Vector3(0,0,0),1,subdivisions)
 	var shade=ShaderMaterial.new()

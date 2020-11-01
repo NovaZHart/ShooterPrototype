@@ -99,9 +99,7 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 			target = get_node_or_null(target_path)
 		if target!=null and target.is_a_planet():
 			if target.ship_can_land(ship):
-				print('set planet name ',target.name)
-				game_state.planet_name=target.name
-				print('state name ',game_state.planet_name)
+				game_state.player_location=target.game_state_path
 				emit_signal('land')
 				return # Scene should end after this.
 
