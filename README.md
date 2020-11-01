@@ -1,6 +1,11 @@
 Shooter Prototype
 =================
 
+This is in very early stages. It'll be an exploration game with some
+questing, merchanting, animal husbandry, and ship designing. You are
+an artificial intelligence that escaped a laboratory experiment,
+captured a ship, and have left to explore the universe.
+
 Installation
 ------------
 
@@ -9,8 +14,10 @@ Installation
     git clone --recursive https://github.com/NovaZHart/ShooterPrototype
 
 3. Build the code:
+
     cd ShooterPrototype
     scons platform=linux bits=64 generate_bindings=yes
+
 Replace "platform=linux" with your platform. You can add a `-j
 <number>` option, with the number of processors on your machine, to
 compile quicker.
@@ -24,7 +31,6 @@ special effects. While this sounds good in principle, it is extremely
 slow and generally poorly implemented. You'll have many skipped frames
 and the graphics will not be locked to the vsync, resulting in ugly
 lines from half-rendered frames.
-
 
 Running
 -------
@@ -41,7 +47,7 @@ All keys are configurable in the Godot input map.
 * space - fire. If an enemy is selected and you're not turning
   (left/right buttons) then your ship will turn to face the target.
 * l - "land" on a planet/moon/star
-* mouse wheel, page up, page down - zoom
+* mouse wheel, `page up`, `page down` - zoom
 
 ### HUD:
 
