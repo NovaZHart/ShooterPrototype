@@ -16,6 +16,11 @@ func _ready():
 	anchor_right=0
 	anchor_top=0
 	anchor_bottom=0
+	text = game_state.stored_console
+	game_state.connect('console_append',self,'append_bbcode')
+
+func _exit_tree():
+	game_state.stored_console += text
 
 func _process(var _delta: float) -> void:
 	var window_size: Vector2 = get_tree().root.size

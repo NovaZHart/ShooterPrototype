@@ -8,7 +8,6 @@ var planet = null
 signal jump_complete
 
 func _ready():
-	$Console.add_text("\n".repeat(16))
 	var system_name = game_state.system.display_name
 	var planet_info = game_state.get_planet_info_or_null()
 	if planet_info==null:
@@ -21,7 +20,7 @@ func _ready():
 	planet.translation = Vector3(0,0,0)
 	add_child(planet)
 	camera_and_label(system_name,planet_name)
-	$Console.add_text("Reached destination "+planet_name+" in the "+system_name+" system\n")
+	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
 	$SpaceBackground.rotate_x(PI/2-0.575959)
 	$SpaceBackground.center_view(130,90,100)
 	if planet.has_astral_gate:
@@ -60,7 +59,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	else:
 		$LocationLabel.text=planet_info.full_display_name()
 	camera_and_label(system_info.display_name,planet.display_name)
-	$Console.add_text("Jumped to "+planet_info.display_name+" in the " \
+	game_state.print_to_console("Jumped to "+planet_info.display_name+" in the " \
 		+system_info.display_name+" system.\n")
 	emit_signal('jump_complete')
 

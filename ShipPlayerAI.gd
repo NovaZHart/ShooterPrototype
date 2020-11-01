@@ -20,7 +20,6 @@ enum { AUTO_NOTHING=0, AUTO_INTERCEPT_TARGET=1, AUTO_EVADE=2, AUTO_LAND=4 }
 
 var autopilot_orders = AUTO_NOTHING
 
-signal console
 signal land
 
 func ensure_ship_ai():

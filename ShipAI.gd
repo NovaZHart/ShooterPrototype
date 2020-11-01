@@ -21,7 +21,6 @@ var distant_objects: Array
 var got_near_objects: bool = false
 var got_distant_objects: bool = false
 
-signal console
 signal land
 
 func set_target_path(var target):
@@ -147,7 +146,7 @@ func evade(var state: PhysicsDirectBodyState, var ship, var _system: Spatial) ->
 		react_vector = react_vector.rotated(Vector3(0,1,0),PI/4.0 * exp(-tock*tock/40))
 #		s += "Pulsating react vector.\n"
 	
-	#emit_signal('console',s)
+	#game_state.print_to_console(s)
 	
 	ship.request_velocity(state,react_vector*ship.max_speed,true,false)
 

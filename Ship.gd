@@ -34,7 +34,6 @@ var enemy_ship_mask: int setget ,get_enemy_mask
 
 signal shoot
 signal ai_step
-signal console
 signal die
 signal hp_changed
 
@@ -363,7 +362,7 @@ func request_stop(var destination: Vector3,
 	if distance < 0.03 and speed < 0.1:
 		state.linear_velocity = Vector3(0,0,0)
 		state.angular_velocity = Vector3(0,0,0)
-		#emit_signal('console','reached destination')
+		#game_state.print_to_console('reached destination')
 		return
 #	var s: String = ''
 	
@@ -410,7 +409,7 @@ func request_stop(var destination: Vector3,
 	else:
 #		s += 'head to destination\n'
 		request_velocity(state,towards_destination.normalized()*max_speed,false,false) # prefer_reverse)
-	#emit_signal('console',s)
+	#game_state.print_to_console('console',s)
 
 func request_velocity(var state: PhysicsDirectBodyState, \
 		var velocity_goal: Vector3,var prioritize_speed: bool, \

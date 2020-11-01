@@ -15,7 +15,6 @@ var tick: int = 0
 var solar_system: Array = []
 var player_ship: RigidBody
 
-signal console
 signal place_minimap
 signal fill_minimap
 signal player_hp_changed
@@ -82,9 +81,6 @@ func land_player():
 func emit_player_hp_changed(var ship):
 	emit_signal('player_hp_changed',ship)
 
-func send_to_console(var s: String):
-	emit_signal('console',s)
-
 func add_projectile(var proj: Node):
 	$Projectiles.add_child(proj)
 	var _discard=proj.connect('body_entered',self,'shot_hit',[$Projectiles.get_path_to(proj)])
@@ -143,9 +139,7 @@ func next_target(var last_target: NodePath, var list: Node,
 func spawn_ship(var ship,var _is_player: bool = false):
 	var _discard
 	ship.connect('shoot',self,'add_projectile')
-	ship.connect('console',self,'send_to_console')
 	_discard = ship.connect('die',self,'ship_died',[ship])
-	_discard = ship.ai.connect('console',self,'send_to_console')
 	_discard = ship.connect('ai_step',ship.ai,'ai_step',[ship,self])
 	ship.can_sleep=false
 	$Ships.add_child(ship)
@@ -191,7 +185,7 @@ func set_zoom(zoom: float,ratio: float=-1) -> float:
 func ship_died(_damage: int, ship: Node):
 	if player_ship != null and \
 			ship.get_instance_id() == player_ship.get_instance_id():
-		emit_signal('console','YOU DIED!  8-(')
+		game_state.print_to_console('YOU DIED!  8-(')
 		player_ship.visible = false
 		player_ship.collision_layer = 0
 		player_ship.collision_mask = 0

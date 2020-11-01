@@ -7,6 +7,18 @@ var known_systems: Dictionary = {}
 var system  setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 
+var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
+
+signal console_append
+
+func print_to_console(s: String):
+	if s.ends_with('\n'):
+		emit_signal('console_append',s)
+	else:
+		emit_signal('console_append',s+'\n')
+func set_stored_console(s: String): stored_console=s
+func get_stored_console() -> String: return stored_console
+
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
 
