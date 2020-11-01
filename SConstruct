@@ -14,6 +14,8 @@ opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
 opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'bin/'))
 opts.Add(PathVariable('sphere_target_name', 'The spheretool library name.', 'libspheretool', PathVariable.PathAccept))
 
+SConscript(['godot-cpp/SConstruct'])
+
 # Local dependency paths, adapt them to your setup
 godot_headers_path = "godot-cpp/godot_headers/"
 cpp_bindings_path = "godot-cpp/"
