@@ -170,10 +170,18 @@ func coward_ai(state: PhysicsDirectBodyState, var ship, system: Spatial):
 
 func attacker_ai(var state: PhysicsDirectBodyState, var ship, var system: Spatial):
 	var target = null
-	if not target_path.is_empty():
+
+	if tick%1800==0:
+		# Every 30 seconds, re-evaluate choice of targets
+		target_path = NodePath()
+		target = null
+	elif not target_path.is_empty():
 		target = get_node_or_null(target_path)
 	if target != null and not target.is_alive():
 		target = null
+	if target != null and not target.is_a_ship():
+		target = null
+
 	if target != null:
 		ship.request_move_to_attack(state,target)
 	else:
