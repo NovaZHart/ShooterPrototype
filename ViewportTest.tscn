@@ -1,0 +1,57 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://CubePlanetTiles.shader" type="Shader" id=1]
+
+[sub_resource type="ShaderMaterial" id=1]
+resource_local_to_scene = true
+shader = ExtResource( 1 )
+shader_param/perlin_seed = 9
+shader_param/perlin_cubes = 8
+shader_param/perlin_type = 1
+shader_param/normal_scale = 0.1
+
+[sub_resource type="ViewportTexture" id=2]
+flags = 2
+viewport_path = NodePath("Viewport")
+
+[sub_resource type="SpatialMaterial" id=3]
+resource_local_to_scene = true
+albedo_texture = SubResource( 2 )
+uv1_offset = Vector3( 0, 0, -1 )
+
+[sub_resource type="QuadMesh" id=4]
+resource_local_to_scene = true
+size = Vector2( 9, 9 )
+
+[sub_resource type="Environment" id=5]
+ambient_light_color = Color( 0.988235, 0.988235, 0.988235, 1 )
+
+[node name="ViewportTest" type="Spatial"]
+
+[node name="Viewport" type="Viewport" parent="."]
+size = Vector2( 1024, 1024 )
+transparent_bg = true
+disable_3d = true
+keep_3d_linear = true
+usage = 0
+render_target_update_mode = 3
+
+[node name="ColorRect" type="ColorRect" parent="Viewport"]
+material = SubResource( 1 )
+margin_right = 1024.0
+margin_bottom = 1024.0
+size_flags_horizontal = 0
+size_flags_vertical = 0
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.30285, 3.59953, -0.0625315 )
+material_override = SubResource( 3 )
+cast_shadow = 0
+mesh = SubResource( 4 )
+material/0 = null
+
+[node name="Camera" type="Camera" parent="MeshInstance"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 6.88803 )
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource( 5 )

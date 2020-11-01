@@ -1,0 +1,70 @@
+[gd_scene load_steps=11 format=2]
+
+[ext_resource path="res://ResizingButton.gd" type="Script" id=1]
+[ext_resource path="res://SystemList.gd" type="Script" id=2]
+[ext_resource path="res://ResizingLabel.gd" type="Script" id=3]
+[ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=4]
+
+[sub_resource type="DynamicFont" id=1]
+size = 14
+font_data = ExtResource( 4 )
+
+[sub_resource type="Theme" id=2]
+default_font = SubResource( 1 )
+
+[sub_resource type="DynamicFont" id=3]
+font_data = ExtResource( 4 )
+
+[sub_resource type="Theme" id=4]
+default_font = SubResource( 3 )
+
+[sub_resource type="DynamicFont" id=5]
+font_data = ExtResource( 4 )
+
+[sub_resource type="Theme" id=6]
+default_font = SubResource( 5 )
+
+[node name="SystemSelector" type="Node2D"]
+
+[node name="SystemList" type="ItemList" parent="."]
+margin_left = 8.0
+margin_top = 88.0
+margin_right = 232.0
+margin_bottom = 328.0
+theme = SubResource( 2 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 56.0
+margin_right = 232.0
+margin_bottom = 88.0
+theme = SubResource( 4 )
+text = "Astral Gate Destinations"
+align = 1
+valign = 1
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="JumpButton" type="Button" parent="."]
+margin_left = 88.0
+margin_top = 336.0
+margin_right = 152.0
+margin_bottom = 362.0
+theme = SubResource( 6 )
+disabled = true
+text = "Jump"
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="astral_jump" from="SystemList" to="JumpButton" method="_on_SystemList_astral_jump"]
+[connection signal="item_activated" from="SystemList" to="SystemList" method="_on_item_activated"]
+[connection signal="item_selected" from="SystemList" to="SystemList" method="_on_item_selected"]
+[connection signal="selectable_item_selected" from="SystemList" to="JumpButton" method="_on_SystemList_selectable_item_selected"]
+[connection signal="pressed" from="JumpButton" to="SystemList" method="_on_JumpButton_pressed"]
