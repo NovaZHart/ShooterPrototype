@@ -36,18 +36,21 @@ lines from half-rendered frames.
 Running
 -------
 
-All keys are configurable in the Godot input map.
+Once you've imported the project, press `Function-5` (`F5`) to start
+the main scene (`Main.tscn`).
+
+Details are below. All keys are configurable in the Godot input map.
 
 ### In space:
 
-* left/right/up/down - maneuver
-* e - select enemy (cycles through enemies)
-* p - select planet, moon, or star (cycles through them)
-* i - intercept and attack enemy, or fly to planet/moon/star
-* v - evade enemies and fly far, far, away
-* space - fire. If an enemy is selected and you're not turning
+* `left`/`right`/`up`/`down` - maneuver
+* `e` - select enemy (cycles through enemies)
+* `p` - select planet, moon, or star (cycles through them)
+* `i` - intercept and attack enemy, or fly to planet/moon/star
+* `v` - evade enemies and fly far, far, away
+* `space` - fire. If an enemy is selected and you're not turning
   (left/right buttons) then your ship will turn to face the target.
-* l - "land" on a planet/moon/star
+* `l` - "land" on a planet/moon/star
 * mouse wheel, `page up`, `page down` - zoom
 
 ### HUD:
@@ -82,6 +85,6 @@ All keys are configurable in the Godot input map.
 1. `p` to select the star
 2. `l` to "land" on the star
 3. There will be a menu to the left of destinations. The current location is grayed-out.
-4. To jump, either: double-click on a destination, or click once on it and press "Jump."
+4. To jump, either: double-click on a destination, or click on it once and press the "Jump" button.
 5. The star and its name (upper-left corner) will change. A message in the console will tell you the jump was successful.
 6. `d` to depart
