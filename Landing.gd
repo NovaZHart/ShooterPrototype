@@ -1,9 +1,11 @@
 extends Node
 
 onready var SystemSelector = preload('res://SystemSelector.tscn')
+onready var ServiceSelector = preload('res://ServiceSelector.tscn')
 
 var tick: int = 0
 var planet = null
+var current_service: NodePath
 
 signal jump_complete
 
@@ -29,6 +31,26 @@ func _ready():
 		var _discard = system_list.connect('astral_jump',self,'astral_jump')
 		_discard = connect('jump_complete',system_list,'update_selectability')
 		add_child(selector)
+	elif not planet_info.services.empty():
+		var selector = ServiceSelector.instance()
+		var service_list = selector.get_node('ServiceList')
+		var _discard = service_list.connect('service_activated',self,'activate_service')
+		add_child(selector)
+
+func activate_service(_service_name: String,var service):
+	if not service.is_available():
+		return
+	var service_node = get_node_or_null(current_service)
+	if service_node!=null:
+		service_node.queue_free()
+	service_node = service.create()
+	if service.will_change_scene():
+		return # create() already changed the scene
+	if service_node!=null:
+		add_child(service_node)
+		current_service = get_path_to(service_node)
+	else:
+		current_service = NodePath()
 
 func camera_and_label(system_name: String,planet_name: String):
 	if system_name == planet_name:

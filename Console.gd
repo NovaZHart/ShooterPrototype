@@ -17,7 +17,7 @@ func _ready():
 	anchor_top=0
 	anchor_bottom=0
 	text = game_state.stored_console
-	game_state.connect('console_append',self,'append_bbcode')
+	var _discard = game_state.connect('console_append',self,'append_bbcode')
 
 func _exit_tree():
 	game_state.stored_console += text

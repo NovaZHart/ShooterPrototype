@@ -1,4 +1,4 @@
-extends Button
+extends ItemList
 
 var starting_left: float
 var starting_right: float
@@ -6,6 +6,8 @@ var starting_top: float
 var starting_bottom: float
 var starting_font_size: float
 const min_font_size: float = 9.0
+
+signal service_activated
 
 func _ready():
 	starting_left=margin_left
@@ -16,7 +18,25 @@ func _ready():
 	anchor_right=0
 	anchor_top=0
 	anchor_bottom=0
-	
+	var planet_info = game_state.get_planet_info_or_null()
+	var service_names = [] if planet_info==null else planet_info.services
+	var i=0
+	for service_name in service_names:
+		var service = game_state.services.get(service_name,null)
+		if service == null:
+			continue
+		add_item(service.service_title)
+		set_item_metadata(i,[service_name,service])
+		i+=1
+	update_selectability()
+
+func update_selectability():
+	for i in range(get_item_count()):
+		var name_and_object = get_item_metadata(i)
+		var available = name_and_object[1].is_available()
+		set_item_disabled(i,not available)
+		set_item_selectable(i,available)
+
 func _process(var _delta: float) -> void:
 	var window_size: Vector2 = get_tree().root.size
 	var project_height: int = ProjectSettings.get_setting("display/window/size/height")
@@ -30,8 +50,7 @@ func _process(var _delta: float) -> void:
 	
 	theme.default_font.size=max(min_font_size,14*min(scale[0],scale[1]))
 
-func _on_list_select(_index):
-	disabled=false
-
-func _on_list_activate(_meta1,_meta2):
-	disabled=true
+func _on_item_selected(index: int):
+	if is_item_selectable(index):
+		var name_and_object = get_item_metadata(index)
+		emit_signal('service_activated',name_and_object[0],name_and_object[1])

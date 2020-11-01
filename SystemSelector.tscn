@@ -63,8 +63,8 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-[connection signal="astral_jump" from="SystemList" to="JumpButton" method="_on_SystemList_astral_jump"]
+[connection signal="astral_jump" from="SystemList" to="JumpButton" method="_on_list_activate"]
 [connection signal="item_activated" from="SystemList" to="SystemList" method="_on_item_activated"]
 [connection signal="item_selected" from="SystemList" to="SystemList" method="_on_item_selected"]
-[connection signal="selectable_item_selected" from="SystemList" to="JumpButton" method="_on_SystemList_selectable_item_selected"]
+[connection signal="selectable_item_selected" from="SystemList" to="JumpButton" method="_on_list_select"]
 [connection signal="pressed" from="JumpButton" to="SystemList" method="_on_JumpButton_pressed"]

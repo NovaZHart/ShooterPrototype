@@ -1,0 +1,46 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://ServiceList.gd" type="Script" id=2]
+[ext_resource path="res://ResizingLabel.gd" type="Script" id=3]
+[ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=4]
+
+[sub_resource type="DynamicFont" id=1]
+size = 14
+font_data = ExtResource( 4 )
+
+[sub_resource type="Theme" id=2]
+default_font = SubResource( 1 )
+
+[sub_resource type="DynamicFont" id=3]
+font_data = ExtResource( 4 )
+
+[sub_resource type="Theme" id=4]
+default_font = SubResource( 3 )
+
+[node name="ServiceSelector" type="Node2D"]
+
+[node name="ServiceList" type="ItemList" parent="."]
+margin_left = 8.0
+margin_top = 88.0
+margin_right = 232.0
+margin_bottom = 328.0
+theme = SubResource( 2 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Title" type="Label" parent="."]
+margin_left = 8.0
+margin_top = 56.0
+margin_right = 232.0
+margin_bottom = 88.0
+theme = SubResource( 4 )
+text = "Available Here"
+align = 1
+valign = 1
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="item_selected" from="ServiceList" to="ServiceList" method="_on_item_selected"]

@@ -40,11 +40,12 @@ var orbit_radius: float = 0.0
 var orbit_period: float = 0.0
 var orbit_start: float = 0.0
 var has_astral_gate: bool = false
+var services: Array = []
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return true
 
-func _init(node_name: String,me: Dictionary,base: Dictionary):
+func _init(node_name: String,me: Dictionary,base: Dictionary,services_: Array=[]):
 	name = node_name
 	object_type = get_it(me,base,'object_type',PLANET)
 	template_name = get_it(me,base,'template_name','none')
@@ -57,6 +58,7 @@ func _init(node_name: String,me: Dictionary,base: Dictionary):
 	orbit_period = get_it(me,base,'orbit_period',0.0)
 	orbit_start = get_it(me,base,'orbit_start',0.0)
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
+	services = services_
 
 func add_planet(var p):
 	add_child(p)

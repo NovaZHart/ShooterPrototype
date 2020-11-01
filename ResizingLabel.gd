@@ -5,7 +5,13 @@ var starting_right: float
 var starting_top: float
 var starting_bottom: float
 var starting_font_size: float
-const min_font_size: float = 9.0
+var min_font_size: float = 9.0 setget set_min_font_size,get_min_font_size
+var font_size_goal: float = 14.0 setget set_font_size_goal,get_font_size_goal
+
+func set_min_font_size(s: float): min_font_size=s
+func get_min_font_size(): return min_font_size
+func set_font_size_goal(s: float): font_size_goal=s
+func get_font_size_goal(): return font_size_goal
 
 func _ready():
 	starting_left=margin_left
@@ -28,4 +34,4 @@ func _process(var _delta: float) -> void:
 	margin_top = floor(starting_top*scale[1])
 	margin_bottom = ceil(starting_bottom*scale[1])
 	
-	theme.default_font.size=max(min_font_size,14*min(scale[0],scale[1]))
+	theme.default_font.size=max(min_font_size,font_size_goal*min(scale[0],scale[1]))

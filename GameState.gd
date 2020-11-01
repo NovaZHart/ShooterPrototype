@@ -2,11 +2,12 @@ extends Node
 
 var SystemInfo = preload('res://SystemInfo.gd')
 var PlanetInfo = preload('res://PlanetInfo.gd')
+var PlanetServices = preload('res://PlanetServices.gd')
 
 var known_systems: Dictionary = {}
 var system  setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
-
+var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 
 signal console_append
@@ -67,7 +68,7 @@ func make_test_systems():
 				PlanetInfo.new('storm', {
 					'display_name':'Storm', 'shader_seed':321321321,
 					'orbit_radius':70, 'orbit_period':300, 'size':3,
-				},PlanetInfo.ocean_planet)
+				},PlanetInfo.ocean_planet,['missing'])
 			)
 		)
 	)
@@ -86,7 +87,7 @@ func make_test_systems():
 				PlanetInfo.new('pearl',{
 					'display_name':'Pearl', 'shader_seed':913,
 					'orbit_radius':105, 'orbit_period':1092, 'size':4,
-				},PlanetInfo.ice_planet)
+				},PlanetInfo.ice_planet,['test','alttest'])
 			) \
 		)
 	)
@@ -94,4 +95,8 @@ func make_test_systems():
 	player_location = get_path_to(system)
 
 func _init():
+	services['test'] = PlanetServices.ChildInstanceService.new(
+		'Service Text',preload('res://TestService.tscn'))
+	services['alttest'] = PlanetServices.ChildInstanceService.new(
+		'Service Button',preload('res://AltTestService.tscn'))
 	make_test_systems()
