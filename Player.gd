@@ -165,7 +165,9 @@ func init_system():
 	clear()
 	game_state.system.fill_system(self,999,60,150)
 	player_ship=make_player_ship()
-	var planet: Spatial = $Planets.get_node_or_null(game_state.player_location)
+	var planet_info = game_state.get_planet_info_or_null()
+	var node_name = '' if planet_info==null else planet_info.make_unique_name()
+	var planet: Spatial = $Planets.get_node_or_null(node_name)
 	if planet!=null:
 		player_ship.translation.x = planet.translation.x
 		player_ship.translation.z = planet.translation.z
