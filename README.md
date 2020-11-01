@@ -11,16 +11,17 @@ Installation
 
 1. Install Godot
 2. Get the code:
-    git clone --recursive https://github.com/NovaZHart/ShooterPrototype
+
+       git clone --recursive https://github.com/NovaZHart/ShooterPrototype
 
 3. Build the code:
 
-    cd ShooterPrototype
-    scons platform=linux bits=64 generate_bindings=yes
+       cd ShooterPrototype
+       scons platform=linux bits=64 generate_bindings=yes
 
-Replace "platform=linux" with your platform. You can add a `-j
-<number>` option, with the number of processors on your machine, to
-compile quicker.
+   Replace "platform=linux" with your platform. You can add a `-j
+   <number>` option, with the number of processors on your machine, to
+   compile quicker.
 
 4. Import into Godot: start Godot, press the "import"
    button, and select the `ShooterPrototype/project.godot` file.
