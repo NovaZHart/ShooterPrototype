@@ -157,7 +157,7 @@ func approach_destination(var destination: Vector3,
 	ship.request_velocity(state,towards_destination.normalized()*ship.max_speed,false,true)
 
 func coward_ai(state: PhysicsDirectBodyState, var ship, system: Spatial):
-	var _discard = get_collisions(state.get_space(),state,system)
+	var _discard = get_collisions(state.get_space_state(),state,system)
 	make_threat_vector(ship,0.5)
 	if threat_vector.length() > threat_threshold:
 		evade(state,ship,system)

@@ -1,4 +1,4 @@
-extends Spatial
+extends KinematicBody
 
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
@@ -97,7 +97,12 @@ func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
 
 func place_sphere(sphere_scale: float, sphere_translation: Vector3):
 	sphere.scale = Vector3(sphere_scale,sphere_scale,sphere_scale)
+	$CollisionShape.shape.radius = sphere_scale*2
 	translation = sphere_translation
+
+func _init():
+	collision_mask = 0
+	collision_layer = 1<<28
 
 func _process(var _delta) -> void:
 	if have_sent_texture: return

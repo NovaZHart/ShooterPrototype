@@ -19,6 +19,9 @@ signal place_minimap
 signal fill_minimap
 signal player_hp_changed
 
+func get_main_camera():
+	return $TopCamera
+
 func clear():
 	for proj in $Projectiles.get_children():
 		proj.queue_free()
