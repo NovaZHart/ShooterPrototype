@@ -41,6 +41,7 @@ var orbit_period: float = 0.0
 var orbit_start: float = 0.0
 var has_astral_gate: bool = false
 var services: Array = []
+var description: String = ''
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return true
@@ -58,6 +59,7 @@ func _init(node_name: String,me: Dictionary,base: Dictionary,services_: Array=[]
 	orbit_period = get_it(me,base,'orbit_period',0.0)
 	orbit_start = get_it(me,base,'orbit_start',0.0)
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
+	description = get_it(me,base,'description','')
 	services = services_
 
 func add_planet(var p):

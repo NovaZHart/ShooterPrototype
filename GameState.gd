@@ -68,7 +68,8 @@ func make_test_systems():
 				PlanetInfo.new('storm', {
 					'display_name':'Storm', 'shader_seed':321321321,
 					'orbit_radius':70, 'orbit_period':300, 'size':3,
-				},PlanetInfo.ocean_planet,['missing'])
+					'description':'Description of Storm planet.',
+				},PlanetInfo.ocean_planet,['info','missing'])
 			)
 		)
 	)
@@ -81,13 +82,14 @@ func make_test_systems():
 				PlanetInfo.new('hellscape',{
 					'display_name':'Hellscape', 'shader_seed':391,
 					'orbit_radius':40, 'orbit_period':91, 'size':2,
-				},PlanetInfo.fiery_rock)
+				},PlanetInfo.fiery_rock,['info'])
 			) \
 			.add_planet(
 				PlanetInfo.new('pearl',{
 					'display_name':'Pearl', 'shader_seed':913,
 					'orbit_radius':105, 'orbit_period':1092, 'size':4,
-				},PlanetInfo.ice_planet,['test','alttest'])
+					'description':'Description of Pearl planet.',
+				},PlanetInfo.ice_planet,['info','test','alttest'])
 			) \
 		)
 	)
@@ -99,4 +101,6 @@ func _init():
 		'Service Text',preload('res://TestService.tscn'))
 	services['alttest'] = PlanetServices.ChildInstanceService.new(
 		'Service Button',preload('res://AltTestService.tscn'))
+	services['info'] = PlanetServices.PlanetDescription.new(
+		'Planet Description',preload('res://PlanetDescription.tscn'))
 	make_test_systems()

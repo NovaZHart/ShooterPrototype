@@ -8,6 +8,7 @@ var ui_shoot: bool
 
 var alive: bool = true setget set_alive, is_alive
 var tick: int
+var print_console_land: bool = false
 
 var ship_ai = null
 
@@ -63,6 +64,7 @@ func _process(var _delta: float) -> void:
 	
 	if Input.is_action_just_released('ui_land'):
 		autopilot_orders = AUTO_LAND|AUTO_INTERCEPT_TARGET
+		print_console_land=true
 	if Input.is_action_just_released('ui_evade'):
 		autopilot_orders = AUTO_EVADE
 		ensure_ship_ai()
@@ -76,7 +78,8 @@ func _process(var _delta: float) -> void:
 		request_next_enemy=true
 	elif Input.is_action_just_released('ui_next_planet'):
 		request_next_planet=true
-
+		if autopilot_orders & AUTO_LAND:
+			print_console_land=true
 func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> void:
 	if not alive:
 		return
@@ -101,6 +104,9 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 				game_state.player_location=target.game_state_path
 				emit_signal('land')
 				return # Scene should end after this.
+		if print_console_land:
+			game_state.print_to_console('Landing on '+target.display_name)
+			print_console_land=false
 
 	var should_auto_target: bool = target!=null
 	

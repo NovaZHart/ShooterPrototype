@@ -87,6 +87,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 
 func _process(delta):
 	if Input.is_action_just_released('ui_depart'):
+		game_state.print_to_console('Departing '+$LocationLabel.text)
 		var _discard=get_tree().change_scene('res://Main.tscn')
 	else:
 		planet.rotate_y(0.4*delta)

@@ -21,3 +21,17 @@ class ChildInstanceService extends Service:
 		return resource.instance()
 	func _init(title: String,resource_: PackedScene).(title):
 		resource = resource_
+
+class PlanetDescription extends ChildInstanceService:
+	func is_available() -> bool:
+		var info = game_state.get_planet_info_or_null()
+		return not info==null and not info.description.empty()
+	func create() -> Node:
+		var info = game_state.get_planet_info_or_null()
+		var scene = resource.instance()
+		var desc = '' if info==null else info.description
+		if not desc.empty():
+			scene.set_description(desc)
+		return scene
+	func _init(title: String,resource: PackedScene).(title,resource):
+		pass
