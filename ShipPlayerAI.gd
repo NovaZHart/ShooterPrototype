@@ -25,6 +25,7 @@ enum { AUTO_NOTHING=0, AUTO_INTERCEPT_TARGET=1, AUTO_EVADE=2, AUTO_LAND=4 }
 var autopilot_orders = AUTO_NOTHING
 
 signal land
+signal target_changed
 
 func ensure_ship_ai():
 	if ship_ai==null:
@@ -126,13 +127,16 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 	if target!=null:
 		# Position was selected by mouse location.
 		target_path=target.get_path()
+		emit_signal('target_changed',target_path)
 		print_console_target=true
 	elif request_next_planet:
 		target_path = system.next_planet(target_path)
+		emit_signal('target_changed',target_path)
 		request_next_planet=false
 		print_console_target=true
 	elif request_next_enemy:
 		target_path = system.next_enemy(target_path,ship.enemy)
+		emit_signal('target_changed',target_path)
 		request_next_enemy=false
 		print_console_target=true
 	
@@ -140,12 +144,14 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		target = get_node_or_null(target_path)
 		if target == null:
 			target_path=NodePath() # can't intercept a dead target
+			emit_signal('target_changed',target_path)
 	
 	if autopilot_orders&AUTO_LAND:
 		if target==null or not target.is_a_planet():
 			target_path = system.nearest_planet(target_path,ship.translation)
 			target = get_node_or_null(target_path)
 			if target!=null and target.is_a_planet():
+				emit_signal('target_changed',target_path)
 				print_console_target=true
 		if target!=null and target.is_a_planet():
 			if target.ship_can_land(ship):

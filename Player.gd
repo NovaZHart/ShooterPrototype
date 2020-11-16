@@ -4,10 +4,14 @@ const Ship = preload('res://Ship.tscn')
 const Planet = preload('res://Planet.tscn')
 const ShipAI = preload('res://ShipAI.gd')
 const ShipPlayerAI = preload('res://ShipPlayerAI.gd')
+const TargetDisplay = preload('res://TargetDisplay.tscn')
 
 # Note: cyclic dependency Landing->Main->Player->Landing
 var Landing = preload('res://Landing.tscn')
 
+var target_change_mutex: Mutex = Mutex.new()
+var player_target_path: NodePath
+var new_target_path: NodePath
 var ui_zoom: float = 0
 var ui_scroll: float = 0
 var shot_counter: int = 0
@@ -18,6 +22,7 @@ var player_ship: RigidBody
 signal place_minimap
 signal fill_minimap
 signal player_hp_changed
+signal player_target_deselect
 
 func get_main_camera():
 	return $TopCamera
@@ -139,6 +144,29 @@ func next_target(var last_target: NodePath, var list: Node,
 	#    so we send the first target.
 	return first_target
 
+func disconnect_target_info():
+	player_target_path=NodePath()
+
+func player_target_changed(target_path: NodePath):
+	new_target_path=target_path
+
+func update_target_display():
+	var target_path=new_target_path
+	if target_path.is_empty():
+		return
+	new_target_path=NodePath()
+	game_state.print_to_console('target: '+str(target_path))
+	target_change_mutex.lock()
+	emit_signal('player_target_deselect',self)
+	var target=get_node_or_null(target_path)
+	if target==null:
+		player_target_path=NodePath()
+	player_target_path=target_path
+	var info = TargetDisplay.instance()
+	var _discard=self.connect('player_target_deselect',info,'player_target_deselect')
+	target.add_child(info)
+	target_change_mutex.unlock()
+
 func spawn_ship(var ship,var _is_player: bool = false):
 	var _discard
 	ship.connect('shoot',self,'add_projectile')
@@ -161,6 +189,7 @@ func make_player_ship():
 	ship.ai=ShipPlayerAI.new()
 	_discard = ship.connect('hp_changed',self,'emit_player_hp_changed')
 	_discard = ship.ai.connect('land',self,'land_player')
+	_discard = ship.ai.connect('target_changed',self,'player_target_changed')
 	spawn_ship(ship)
 	return ship
 
@@ -218,6 +247,7 @@ func center_view() -> void:
 
 func _process(delta):
 	game_state.system.process_space(self,delta)
+	update_target_display()
 	ui_zoom = Input.get_action_strength("ui_page_up")-Input.get_action_strength("ui_page_down")
 	if Input.is_action_just_released("wheel_up"):
 		ui_scroll=3

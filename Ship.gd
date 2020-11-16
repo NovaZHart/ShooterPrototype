@@ -10,6 +10,7 @@ var enemy: int = 0 setget , get_enemy
 var rotation_torque: float = 70
 var max_angular_velocity: float = 2
 
+var combined_aabb=null setget ,get_combined_aabb
 var thrust: float = 20
 var reverse_thrust: float = 7
 var velocity: Vector3 = Vector3()
@@ -104,6 +105,7 @@ func receive_damage(var amount: float):
 		emit_signal('hp_changed',self)
 		return
 	structure = 0
+	emit_signal('hp_changed',self)
 	emit_signal('die',amount)
 
 func is_a_ship() -> bool: return true
@@ -482,6 +484,22 @@ func request_velocity(var state: PhysicsDirectBodyState, \
 #		s += 'turn (-none-)\n'
 		state.angular_velocity = Vector3(0,0,0)
 #	return s
+
+func recurse_combine_aabb(node: Node):
+	var result: AABB = AABB()
+	if node is VisualInstance:
+		result = node.get_aabb()
+	for child in node.get_children():
+		result=result.merge(recurse_combine_aabb(child))
+	return result
+
+func get_combined_aabb():
+	if combined_aabb==null:
+		var result: AABB = AABB()
+		for child in get_children():
+			result=result.merge(recurse_combine_aabb(child))
+		combined_aabb=result
+	return combined_aabb
 
 func _integrate_forces(var state: PhysicsDirectBodyState):
 	if ! is_alive():

@@ -6,6 +6,7 @@ var CubePlanetTiles = preload("res://CubePlanetTiles.shader")
 var simple_planet_shader = load('SimplePlanet.shader')
 var simple_sun_shader = load('SimpleSun.shader')
 
+var combined_aabb setget ,get_combined_aabb
 var sphere_material: ShaderMaterial setget ,get_sphere_material
 var tile_material: ShaderMaterial setget ,get_tile_material
 var sphere: MeshInstance setget ,get_sphere
@@ -99,6 +100,12 @@ func place_sphere(sphere_scale: float, sphere_translation: Vector3):
 	sphere.scale = Vector3(sphere_scale,sphere_scale,sphere_scale)
 	$CollisionShape.shape.radius = sphere_scale*2
 	translation = sphere_translation
+
+func get_combined_aabb():
+	if combined_aabb==null:
+		combined_aabb=sphere.get_transformed_aabb()
+		assert(combined_aabb!=null)
+	return combined_aabb
 
 func _init():
 	collision_mask = 0
