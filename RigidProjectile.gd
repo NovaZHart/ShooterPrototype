@@ -2,14 +2,19 @@ extends RigidBody
 
 var team: int = 1 setget set_team,get_team
 var enemy: int = 0 setget ,get_enemy
+export var damage: float = 50 setget set_damage,get_damage
+export var threat: float = 9 setget set_threat,get_threat
 
-func get_damage() -> int: return 50
+func get_threat() -> float: return threat
+func set_threat(f: float): threat=f
+func get_damage() -> float: return damage
+func set_damage(f: float): damage=f
 func is_a_ship() -> bool: return false
 func is_a_planet() -> bool: return false
 func is_a_projectile() -> bool: return true
 func is_immobile() -> bool: return false
 func get_velocity() -> Vector3: return linear_velocity
-func threat_at_time(var _t: float) -> float: return 9.0
+func threat_at_time(var _t: float) -> float: return threat
 func get_team(): return team
 func get_enemy(): return enemy
 func receive_damage(_f: float): pass

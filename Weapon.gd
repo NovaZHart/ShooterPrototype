@@ -1,6 +1,6 @@
 extends Timer
 
-onready var Projectile = preload("res://Projectile.tscn")
+export var Projectile: PackedScene #= preload("res://Projectile.tscn")
 
 signal shoot
 

@@ -1,37 +1,33 @@
 extends RigidBody
 
-onready var Projectile = preload("res://Projectile.tscn")
-onready var Weapon = preload("res://Weapon.tscn")
-
 var ai setget set_ai,get_ai
 var team: int = 1 setget set_team, get_team
 var enemy: int = 0 setget , get_enemy
 
-var rotation_torque: float = 70
-var max_angular_velocity: float = 2
+export var rotation_torque: float = 70
+export var max_angular_velocity: float = 2
 
 var combined_aabb=null setget ,get_combined_aabb
-var thrust: float = 20
-var reverse_thrust: float = 7
+export var thrust: float = 20
+export var reverse_thrust: float = 7
 var velocity: Vector3 = Vector3()
-var max_speed: float = 30 setget ,get_max_speed
+export var max_speed: float = 30 setget ,get_max_speed
 var tick: int = 0
 var ai_shoot: bool = false
 var minimap_heading: Object = null setget ,get_minimap_heading
 var minimap_velocity: Object = null setget ,get_minimap_velocity
 var minimap_location: Object = null setget ,get_minimap_location
-var weapon
 
-var max_shields = 100 setget set_max_shields,get_max_shields
-var max_hull = 200 setget set_max_hull,get_max_hull
-var max_structure = 400 setget set_max_structure,get_max_structure
+export var max_shields: float = 100 setget set_max_shields,get_max_shields
+export var max_hull: float = 200 setget set_max_hull,get_max_hull
+export var max_structure: float = 400 setget set_max_structure,get_max_structure
 
-var shields = max_shields setget set_shields,get_shields
-var hull = max_hull setget set_hull,get_hull
-var structure = max_structure setget set_structure,get_structure
+export var shields: float = max_shields setget set_shields,get_shields
+export var hull: float = max_hull setget set_hull,get_hull
+export var structure: float = max_structure setget set_structure,get_structure
 
-var shield_heal = 20 setget set_shield_heal,get_shield_heal
-var hull_heal = 10 setget set_hull_heal,get_hull_heal
+export var shield_heal: float = 20 setget set_shield_heal,get_shield_heal
+export var hull_heal: float = 10 setget set_hull_heal,get_hull_heal
 
 var enemy_mask: int setget ,get_enemy_mask
 var enemy_ship_mask: int setget ,get_enemy_mask
@@ -126,7 +122,12 @@ func get_ai(): return ai
 func get_max_speed() -> float: return max_speed
 func get_enemy_mask() -> int: return enemy_ship_mask|collision_mask
 func get_enemy_ship_mask() -> int: return enemy_ship_mask
-func threat_at_time(t: float) -> float: return weapon.threat_at_time(t)*5 + 10
+func threat_at_time(t: float) -> float:
+	var result=0
+	for child in get_children():
+		if child.has_method('threat_at_time'):
+			result = max(result,child.threat_at_time(t)*5 + 10)
+	return result
 func get_team(): return team
 func get_enemy(): return enemy
 
@@ -178,9 +179,10 @@ func _init():
 	set_team(0)
 
 func _ready():
-	weapon=Weapon.instance()
-	weapon.connect('shoot',self,'pass_shoot_signal')
-	add_child(weapon)
+	#weapon=Weapon.instance()
+	for child in get_children():
+		if child.has_signal('shoot'):
+			child.connect('shoot',self,'pass_shoot_signal')
 #	make_transforms(Vector3(100,50,100),Vector3(20,50,20))
 
 func pass_shoot_signal(var shot: Node):
@@ -208,10 +210,21 @@ func slow_heal(var delta):
 
 func _physics_process(var delta):
 	slow_heal(delta)
-	if weapon != null and ai_shoot:
-		weapon.shoot(translation+delta*linear_velocity,rotation[1]+delta*angular_velocity[1],linear_velocity,team)
+	if ai_shoot:
+		for child in get_children():
+			if child.has_method('shoot'):
+				child.shoot(translation+delta*linear_velocity,rotation[1]+delta*angular_velocity[1],linear_velocity,team)
+
+func get_first_weapon_or_null():
+	for child in get_children():
+		if child.has_method('shoot'):
+			return child
+	return null
 
 func aim_forward(var state: PhysicsDirectBodyState,var target) -> Vector3:
+	var weapon = get_first_weapon_or_null()
+	if weapon==null:
+		return Vector3()
 	var my_pos: Vector3 = get_position()
 	var tgt_pos: Vector3 = target.get_position()
 	var dp: Vector3 = tgt_pos - my_pos
@@ -280,6 +293,9 @@ func auto_fire(state: PhysicsDirectBodyState, target):
 	auto_target(state,target,true)
 
 func auto_target(state: PhysicsDirectBodyState, target, always_fire: bool):
+	var weapon = get_first_weapon_or_null()
+	if weapon==null:
+		return
 	if not target.is_a_ship():
 		if always_fire:
 			request_primary_fire(state)
@@ -439,8 +455,11 @@ func request_velocity(var state: PhysicsDirectBodyState, \
 	# FIXME: include gravity in this equation
 	var my_velocity = state.linear_velocity
 	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
+	var weapon
 	if include_weapon:
-		my_velocity += weapon.initial_projectile_speed()*heading
+		weapon = get_first_weapon_or_null()
+		if weapon!=null:
+			my_velocity += weapon.initial_projectile_speed()*heading
 	var velocity_error: Vector3 = velocity_goal-my_velocity
 	var needed_thrust: Vector3 = (velocity_error)/(state.step*state.inverse_mass)
 	var goal_norm: Vector3 = velocity_goal.normalized()
@@ -454,7 +473,7 @@ func request_velocity(var state: PhysicsDirectBodyState, \
 #		velocity_error[0], velocity_error[1], velocity_error[2] ]
 	
 	var new_velocity: Vector3 = state.linear_velocity
-	if include_weapon:
+	if include_weapon and weapon!=null:
 		new_velocity += weapon.initial_projectile_speed()*heading
 	
 	if velocity_error.length()<0.001:
