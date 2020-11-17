@@ -30,6 +30,9 @@ var shields = max_shields setget set_shields,get_shields
 var hull = max_hull setget set_hull,get_hull
 var structure = max_structure setget set_structure,get_structure
 
+var shield_heal = 20 setget set_shield_heal,get_shield_heal
+var hull_heal = 10 setget set_hull_heal,get_hull_heal
+
 var enemy_mask: int setget ,get_enemy_mask
 var enemy_ship_mask: int setget ,get_enemy_mask
 
@@ -40,6 +43,11 @@ signal hp_changed
 
 func is_alive():
 	return structure > 0
+
+func get_shield_heal() -> float: return shield_heal
+func set_shield_heal(f: float): shield_heal=f
+func get_hull_heal() -> float: return hull_heal
+func set_hull_heal(f: float): hull_heal=f
 
 func get_shields() -> float: return shields
 func set_shields(f: float):  shields = f
@@ -187,7 +195,19 @@ func clear_ai():
 #	ai_rotate = rotate * rotation_torque
 #	ai_shoot = shoot
 
+func slow_heal(var delta):
+	var healed=false
+	if shield_heal>0 and shields<max_shields:
+		shields = min(shields+shield_heal*delta,max_shields)
+		healed=true
+	if hull_heal>0 and hull<max_hull:
+		hull = min(hull+hull_heal*delta,max_hull)
+		healed=true
+	if healed:
+		emit_signal('hp_changed',self)
+
 func _physics_process(var delta):
+	slow_heal(delta)
 	if weapon != null and ai_shoot:
 		weapon.shoot(translation+delta*linear_velocity,rotation[1]+delta*angular_velocity[1],linear_velocity,team)
 
