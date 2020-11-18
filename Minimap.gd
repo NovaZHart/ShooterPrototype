@@ -178,6 +178,6 @@ func _draw():
 	
 	for cross in crosshairs:
 		draw_crosshairs(cross[0],minimap_radius,cross[1])
-		
-	draw_minimap_line(minimap_radius, minimap_center)
+	
+	#draw_minimap_line(minimap_radius, minimap_center)
 

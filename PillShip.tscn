@@ -1,6 +1,7 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://Ship.gd" type="Script" id=1]
+[ext_resource path="res://Weapon.tscn" type="PackedScene" id=2]
 
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.447059, 0.317647, 0.67451, 1 )
@@ -31,7 +32,7 @@ radius = 2.08801
 
 [node name="PillShip" type="RigidBody"]
 script = ExtResource( 1 )
-max_angular_velocity = 2.5
+max_angular_velocity = 1.7
 thrust = 15.0
 reverse_thrust = 6.0
 max_speed = 25.0
@@ -75,3 +76,5 @@ shape = SubResource( 8 )
 [node name="BodyCollision" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 0.423, 0, 0, 0 )
 shape = SubResource( 9 )
+
+[node name="Weapon" parent="." instance=ExtResource( 2 )]
