@@ -165,24 +165,25 @@ func set_team(var new_team: int):
 	collision_layer = 1 << (2*team)
 	collision_mask = 1 << (2*enemy+1)
 	enemy_ship_mask = (1<<(2*enemy))
-	if team != 0:
-		max_speed *= 0.7
-		thrust *= 0.7
-		max_angular_velocity *= 0.7
-	else:
-		max_speed *= 1.5
-		thrust *= 1.5
-		max_angular_velocity *= 1.2
-		rotation_torque *= 2
 
 func _init():
+	gravity_scale=0
+	axis_lock_linear_y=true
+	axis_lock_angular_x=true
+	axis_lock_angular_z=true
 	set_team(0)
 
-func _ready():
-	#weapon=Weapon.instance()
-	for child in get_children():
+func init_children(node: Node):
+	for child in node.get_children():
 		if child.has_signal('shoot'):
 			child.connect('shoot',self,'pass_shoot_signal')
+		if child is VisualInstance:
+			child.layers=4
+		if child.get_child_count()>0:
+			init_children(child)
+
+func _enter_tree():
+	init_children(self)
 #	make_transforms(Vector3(100,50,100),Vector3(20,50,20))
 
 func pass_shoot_signal(var shot: Node):

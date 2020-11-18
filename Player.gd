@@ -1,6 +1,6 @@
 extends Spatial
 
-const Ship = preload('res://Ship.tscn')
+const WideShip = preload('res://WideShip.tscn')
 const Planet = preload('res://Planet.tscn')
 const ShipAI = preload('res://ShipAI.gd')
 const ShipPlayerAI = preload('res://ShipPlayerAI.gd')
@@ -180,7 +180,7 @@ func spawn_planet(var planet):
 
 func make_player_ship():
 	var _discard
-	var ship=Ship.instance()
+	var ship=WideShip.instance()
 	ship.name='player'
 	ship.translation[1]=5
 	ship.set_team(0)

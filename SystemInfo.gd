@@ -1,6 +1,7 @@
 extends Node
 
 const Ship = preload('res://Ship.tscn')
+const PillShip = preload('res://PillShip.tscn')
 const Planet = preload('res://Planet.tscn')
 const ShipAI = preload('res://ShipAI.gd')
 
@@ -8,9 +9,9 @@ var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':30, 'ships':[ [2, Ship], [1, Ship] ], 'team':1 },
-	{ 'frequency':30, 'ships':[ [1, Ship] ], 'team':0 },
-	{ 'frequency':120, 'ships':[ [4, Ship] ], 'team':0 },
+	{ 'frequency':100, 'ships':[ [2, PillShip], [1, PillShip] ], 'team':1 },
+	{ 'frequency':50, 'ships':[ [1, Ship] ], 'team':0 },
+	{ 'frequency':50, 'ships':[ [4, Ship] ], 'team':0 },
 ]
 
 var fleets: Array = default_fleets
@@ -77,7 +78,7 @@ func spawn_fleet(var system, var fleet: Array,team: int):
 
 func process_space(var system,var delta):
 	for fleet in fleets:
-		if rng.randf_range(0.0,1.0) < delta/fleet['frequency']:
+		if rng.randf_range(0.0,1.0) < delta*fleet['frequency']/1800:
 			spawn_fleet(system,fleet['ships'],fleet['team'])
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float):

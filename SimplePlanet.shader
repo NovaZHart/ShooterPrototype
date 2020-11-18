@@ -95,3 +95,7 @@ void fragment() {
 		ALBEDO=vec3(len,len,len)*color_scaling+color_addition;
 	}
 }
+
+void light() {
+    DIFFUSE_LIGHT += clamp(dot(NORMAL, LIGHT), 0.0, 1.0) * ALBEDO;
+}

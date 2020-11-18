@@ -1,0 +1,59 @@
+[gd_scene load_steps=9 format=2]
+
+[ext_resource path="res://Ship.gd" type="Script" id=1]
+[ext_resource path="res://Weapon.tscn" type="PackedScene" id=2]
+
+[sub_resource type="SpatialMaterial" id=4]
+albedo_color = Color( 0.898039, 0.811765, 0.811765, 1 )
+
+[sub_resource type="CapsuleMesh" id=1]
+material = SubResource( 4 )
+
+[sub_resource type="CubeMesh" id=2]
+
+[sub_resource type="SpatialMaterial" id=5]
+albedo_color = Color( 0.560784, 0.160784, 0.160784, 1 )
+
+[sub_resource type="SphereMesh" id=6]
+
+[sub_resource type="CylinderShape" id=3]
+height = 1.0
+
+[node name="WideShip" type="RigidBody"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0 )
+mass = 3.0
+script = ExtResource( 1 )
+rotation_torque = 90.0
+thrust = 60.0
+reverse_thrust = 9.0
+max_speed = 55.0
+max_shields = 300.0
+max_hull = 600.0
+max_structure = 1200.0
+shield_heal = 30.0
+hull_heal = 20.0
+
+[node name="Body" type="MeshInstance" parent="."]
+mesh = SubResource( 1 )
+material/0 = null
+
+[node name="Engine" type="MeshInstance" parent="Body"]
+transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, -0.875, -0.25, -0.869565 )
+mesh = SubResource( 2 )
+material/0 = SubResource( 5 )
+
+[node name="Engine2" type="MeshInstance" parent="Body"]
+transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, -0.875, -0.25, 0.869565 )
+mesh = SubResource( 2 )
+material/0 = SubResource( 5 )
+
+[node name="MeshInstance" type="MeshInstance" parent="Body"]
+transform = Transform( 0.606218, 0.5, 0, -0.35, 0.866025, 0, 0, 0, 0.5, 0.25, 0.25, 0 )
+mesh = SubResource( 6 )
+material/0 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 1.1, 0, 0, 0, 10, 0, 0, 0, 1.5, 0, 0, 0 )
+shape = SubResource( 3 )
+
+[node name="Weapon" parent="." instance=ExtResource( 2 )]
