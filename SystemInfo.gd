@@ -1,6 +1,7 @@
 extends Node
 
 const Ship = preload('res://Ship.tscn')
+const BigShip = preload('res://BigShip.tscn')
 const PillShip = preload('res://PillShip.tscn')
 const Planet = preload('res://Planet.tscn')
 const ShipAI = preload('res://ShipAI.gd')
@@ -9,12 +10,13 @@ var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':100, 'ships':[ [2, PillShip], [1, PillShip] ], 'team':1 },
-	{ 'frequency':50, 'ships':[ [1, Ship] ], 'team':0 },
-	{ 'frequency':50, 'ships':[ [4, Ship] ], 'team':0 },
+	{ 'frequency':100, 'ships':[ [3, PillShip] ], 'team':1 },
+	{ 'frequency':30, 'ships':[ [1, PillShip], [1, BigShip] ], 'team':1 },
+	{ 'frequency':30, 'ships':[ [5, Ship] ], 'team':0 },
+	{ 'frequency':200, 'ships':[ [1, Ship] ], 'team':0 },
 ]
 
-const team_maximums: Array = [ 20,10 ]
+const team_maximums: Array = [ 12,10 ]
 
 var fleets: Array = default_fleets
 

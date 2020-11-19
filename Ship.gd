@@ -276,7 +276,7 @@ static func rendezvous_time(var target_location: Vector3,
 	var c: float = target_location.dot(target_location)
 	var descriminant = b*b - 4*a*c
 	
-	if descriminant<0:
+	if descriminant<0 or abs(a)<1e-4:
 		return NAN
 	
 	var d1 = (-b + descriminant)/(2.0*a)
@@ -302,8 +302,7 @@ func auto_fire(state: PhysicsDirectBodyState, target):
 		return
 	var aim: Vector3 = aim_forward(weapon,state,target).normalized()
 	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
-	if aim.dot(heading)>-99:
-		request_heading(state,aim)
+	request_heading(state,aim)
 	request_primary_fire(state)
 
 func check_target_lock(state: PhysicsDirectBodyState, point1: Vector3,

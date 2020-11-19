@@ -1,7 +1,8 @@
-[gd_scene load_steps=12 format=2]
+[gd_scene load_steps=13 format=2]
 
 [ext_resource path="res://Ship.gd" type="Script" id=1]
 [ext_resource path="res://ProjectileWeapon.tscn" type="PackedScene" id=2]
+[ext_resource path="res://AreaProjectile.tscn" type="PackedScene" id=3]
 
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.447059, 0.317647, 0.67451, 1 )
@@ -44,12 +45,14 @@ hull_heal = 5.0
 
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 0.221603, 0, 0, 0, 0.271922, 0.699, 0, -1.11 )
+Projectile = ExtResource( 3 )
 projectile_lifetime = 1.0
 projectile_speed = 80.0
 wait_time = 0.15
 
 [node name="ProjectileWeapon2" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 0.221603, 0, 0, 0, 0.271922, 0.699, 0, 1.11 )
+Projectile = ExtResource( 3 )
 projectile_lifetime = 1.0
 projectile_speed = 80.0
 wait_time = 0.15
