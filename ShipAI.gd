@@ -1,6 +1,7 @@
 extends Node
 
 var tick: int = 0
+var tick_at_last_shot: int = 0
 
 var target_path: NodePath setget set_target_path,get_target_path
 
@@ -10,16 +11,13 @@ var use_forward_engines: bool = false
 
 # For threat detection:
 var near_shape: CylinderShape
-var far_shape: CylinderShape
 var threat_vector: Vector3 = Vector3(0,0,0)
 var nearby_enemy_ships: Array
 var threat_threshold = 0.01
 var shape_radius: float = 70.0
 var target_search_radius: float = 1000.0
 var near_objects: Array
-var distant_objects: Array
 var got_near_objects: bool = false
-var got_distant_objects: bool = false
 
 signal land
 
@@ -31,9 +29,7 @@ func get_target_path() -> NodePath:
 
 func clear_data():
 	got_near_objects=false
-	got_distant_objects=false
 	near_objects=[]
-	distant_objects=[]
 	nearby_enemy_ships=[]
 
 func apply_ship_transform(var scale: Vector3, var origin: Vector3, var ship) -> Transform:
@@ -67,9 +63,6 @@ func _ready():
 	near_shape = CylinderShape.new()
 	near_shape.radius = shape_radius
 	near_shape.height = 10
-	far_shape = CylinderShape.new()
-	far_shape.radius = target_search_radius
-	far_shape.height = 10
 
 func get_collisions(var space: PhysicsDirectSpaceState, var _state: PhysicsDirectBodyState, var ship):
 	if not got_near_objects!=null:
@@ -81,19 +74,8 @@ func get_collisions(var space: PhysicsDirectSpaceState, var _state: PhysicsDirec
 		got_near_objects=true
 	return near_objects
 
-func get_distant_enemy_ships(var space: PhysicsDirectSpaceState,
-		var _state: PhysicsDirectBodyState, var ship):
-	if not got_distant_objects:
-		var query = PhysicsShapeQueryParameters.new()
-		query.collision_mask = ship.enemy_ship_mask
-		query.transform = ship.transform
-		query.set_shape(far_shape)
-		distant_objects = space.intersect_shape(query) # (query,state.linear_velocity)
-		got_distant_objects = true
-	return distant_objects
-
-func pick_nearest_target(var space: PhysicsDirectSpaceState,
-		var state: PhysicsDirectBodyState, var ship):
+func pick_nearest_target(_space: PhysicsDirectSpaceState,
+		_state: PhysicsDirectBodyState, ship, system: Spatial):
 	var ship_position: Vector3 = ship.get_position()
 	
 	var target_object = null
@@ -111,23 +93,17 @@ func pick_nearest_target(var space: PhysicsDirectSpaceState,
 		return target_object
 	
 	# No nearby targets, so expand to the full search radius
-	var des = get_distant_enemy_ships(space,state,ship)
-	for info in des:
-		var obj=info['collider']
-		if not obj.is_a_ship() or not obj.is_alive():
-			continue
-		var dist = (obj.get_position()-ship_position).length()
-		if dist<target_distance:
-			target_object = obj
+	var near_path = system.nearest_enemy(target_path,ship.translation,ship.enemy)
+	target_object = get_node_or_null(near_path)
 	
 	if target_object!=null:
-		target_path=target_object.get_path()
+		target_path=near_path
 	
 	return target_object
 
-func fight(var state: PhysicsDirectBodyState, var ship, var _system: Spatial) -> bool:
+func fight(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> bool:
 	var space: PhysicsDirectSpaceState = state.get_space_state()
-	var target = pick_nearest_target(space,state,ship)
+	var target = pick_nearest_target(space,state,ship,system)
 	if target == null:
 		return false
 	ship.request_move_to_attack(state,target)
@@ -171,12 +147,18 @@ func coward_ai(state: PhysicsDirectBodyState, var ship, system: Spatial):
 func attacker_ai(var state: PhysicsDirectBodyState, var ship, var system: Spatial):
 	var target = null
 
-	if tick%1800==0:
-		# Every 30 seconds, re-evaluate choice of targets
-		target_path = NodePath()
-		target = null
-	elif not target_path.is_empty():
+	if not target_path.is_empty():
 		target = get_node_or_null(target_path)
+	if tick-tick_at_last_shot>600:
+		# After 10 seconds without firing, reevaluate target
+		target=null
+	if target != null and tick%1200==0:
+		# After 20 seconds, if ship is out of range, reevaluate target
+		var weapon_range = ship.get_weapon_range()
+		var target_distance = Vector2(ship.translation.x,ship.translation.z). \
+			distance_to(Vector2(target.translation.x,target.translation.z))
+		if target_distance > 1.5*weapon_range:
+			target = null
 	if target != null and not target.is_alive():
 		target = null
 	if target != null and not target.is_a_ship():
@@ -188,6 +170,8 @@ func attacker_ai(var state: PhysicsDirectBodyState, var ship, var system: Spatia
 		target_path = NodePath()
 		if not fight(state,ship,system):
 			ship.request_stop(Vector3(0,0,0),state,system)
+	if ship.ai_shoot:
+		tick_at_last_shot=tick
 
 func landing_ai(var state: PhysicsDirectBodyState, var ship,
 		var system: Spatial, var destination: Vector3):
@@ -198,6 +182,9 @@ func landing_ai(var state: PhysicsDirectBodyState, var ship,
 		ship.request_stop(destination,state,system)
 
 func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> void:
-	attacker_ai(state,ship,system)
+	if ship.shields<=0 and ship.hull<=0 and ship.structure<0.5*ship.max_structure:
+		coward_ai(state,ship,system)
+	else:
+		attacker_ai(state,ship,system)
 	clear_data()
 	tick += 1

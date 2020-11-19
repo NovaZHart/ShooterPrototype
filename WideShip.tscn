@@ -1,7 +1,8 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://Ship.gd" type="Script" id=1]
-[ext_resource path="res://Weapon.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ProjectileWeapon.tscn" type="PackedScene" id=2]
+[ext_resource path="res://StrongRigidProjectile.tscn" type="PackedScene" id=3]
 
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.898039, 0.811765, 0.811765, 1 )
@@ -56,4 +57,15 @@ material/0 = null
 transform = Transform( 1.1, 0, 0, 0, 10, 0, 0, 0, 1.5, 0, 0, 0 )
 shape = SubResource( 6 )
 
-[node name="Weapon" parent="." instance=ExtResource( 2 )]
+[node name="MiddleWeapon" parent="." instance=ExtResource( 2 )]
+transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0, -0.232, 0 )
+Projectile = ExtResource( 3 )
+projectile_lifetime = 1.25
+projectile_speed = 120.0
+wait_time = 0.5
+
+[node name="LeftWeapon" parent="." instance=ExtResource( 2 )]
+transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0.761861, -0.232318, -1.12217 )
+
+[node name="RightWeapon" parent="." instance=ExtResource( 2 )]
+transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0.762, -0.232, 1.122 )

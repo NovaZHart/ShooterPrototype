@@ -22,9 +22,9 @@ export var max_shields: float = 100 setget set_max_shields,get_max_shields
 export var max_hull: float = 200 setget set_max_hull,get_max_hull
 export var max_structure: float = 400 setget set_max_structure,get_max_structure
 
-export var shields: float = max_shields setget set_shields,get_shields
-export var hull: float = max_hull setget set_hull,get_hull
-export var structure: float = max_structure setget set_structure,get_structure
+var shields: float = max_shields setget set_shields,get_shields
+var hull: float = max_hull setget set_hull,get_hull
+var structure: float = max_structure setget set_structure,get_structure
 
 export var shield_heal: float = 20 setget set_shield_heal,get_shield_heal
 export var hull_heal: float = 10 setget set_hull_heal,get_hull_heal
@@ -173,6 +173,13 @@ func _init():
 	axis_lock_angular_z=true
 	set_team(0)
 
+func get_weapon_range() -> float:
+	var max_range = 0
+	for child in get_children():
+		if child.has_method('get_weapon_range'):
+			max_range = max(max_range,child.get_weapon_range())
+	return max_range
+
 func init_children(node: Node):
 	for child in node.get_children():
 		if child.has_signal('shoot'):
@@ -214,7 +221,9 @@ func _physics_process(var delta):
 	if ai_shoot:
 		for child in get_children():
 			if child.has_method('shoot'):
-				child.shoot(translation+delta*linear_velocity,rotation[1]+delta*angular_velocity[1],linear_velocity,team)
+				child.shoot(translation+delta*linear_velocity, \
+					rotation[1]+delta*angular_velocity[1],linear_velocity, \
+					angular_velocity[1],team)
 
 func get_first_weapon_or_null():
 	for child in get_children():
@@ -222,15 +231,14 @@ func get_first_weapon_or_null():
 			return child
 	return null
 
-func aim_forward(var state: PhysicsDirectBodyState,var target) -> Vector3:
-	var weapon = get_first_weapon_or_null()
+func aim_forward(var weapon,var state: PhysicsDirectBodyState,var target) -> Vector3:
 	if weapon==null:
 		return Vector3()
 	var my_pos: Vector3 = get_position()
 	var tgt_pos: Vector3 = target.get_position()
 	var dp: Vector3 = tgt_pos - my_pos
 	var dv: Vector3 = target.get_velocity() - state.linear_velocity
-	var t: float = rendezvous_time(dp,dv,weapon.initial_projectile_speed())
+	var t: float = rendezvous_time(dp,dv,weapon.projectile_speed)
 	if is_nan(t):
 		return tgt_pos - my_pos
 	t = min(t,weapon.get_projectile_lifetime())
@@ -283,46 +291,57 @@ static func rendezvous_time(var target_location: Vector3,
 
 func request_move_to_attack(var state: PhysicsDirectBodyState, var target):
 	move_to_attack(state,target)
-	auto_target(state,target,false)
+	auto_target(state,target)
 
 func auto_fire(state: PhysicsDirectBodyState, target):
 	if not target.is_a_ship():
 		request_primary_fire(state)
 		return
-	var aim: Vector3 = aim_forward(state,target)
-	request_heading(state,aim.normalized())
-	auto_target(state,target,true)
+	var weapon = get_first_weapon_or_null()
+	if weapon==null:
+		return
+	var aim: Vector3 = aim_forward(weapon,state,target).normalized()
+	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
+	if aim.dot(heading)>-99:
+		request_heading(state,aim)
+	request_primary_fire(state)
 
-func auto_target(state: PhysicsDirectBodyState, target, always_fire: bool):
+func check_target_lock(state: PhysicsDirectBodyState, point1: Vector3,
+		point2: Vector3, target) -> Dictionary:
+	target.collision_mask |= 1<<30
+	var space: PhysicsDirectSpaceState = state.get_space_state()
+	var result: Dictionary = space.intersect_ray(point1, point2, [])
+	target.collision_mask ^= 1<<30
+	return result
+
+func auto_target(state: PhysicsDirectBodyState, target):
 	var weapon = get_first_weapon_or_null()
 	if weapon==null:
 		return
 	if not target.is_a_ship():
-		if always_fire:
-			request_primary_fire(state)
 		return
 	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
 	var p: Vector3 = target.get_position()
-	var dp: Vector3 = target.get_position() - get_position()
+	var dp: Vector3 = p - get_position()
 	var dv: Vector3 = target.get_velocity() - state.linear_velocity
 	dp += dv*state.step
-	dv = heading*weapon.initial_projectile_speed() - dv
+	dv = heading*weapon.projectile_speed - dv
 	dv *= weapon.get_projectile_lifetime()
-	target.collision_mask |= 1<<30
-	var space: PhysicsDirectSpaceState = state.get_space_state()
 	var point1 = dp-dv+p
 	var point2 = dp+p
 	point1[1]=5
 	point2[1]=5
-	var result: Dictionary = space.intersect_ray(point1, point2, [self])
-	if always_fire or not result.empty():
+	var result: Dictionary = check_target_lock(state,point1,point2,target)
+	if not result.empty():
 		request_primary_fire(state)
-	target.collision_mask ^= 1<<30
 
 func move_to_attack(var state: PhysicsDirectBodyState, var target):
 	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
 	var dp: Vector3 = target.get_position() - get_position()
-	var aim: Vector3 = aim_forward(state,target)
+	var weapon = get_first_weapon_or_null()
+	if weapon==null:
+		return
+	var aim: Vector3 = aim_forward(weapon,state,target)
 	request_heading(state,aim.normalized())
 	
 	# Get the circle the ship would make while turning at maximum speed:
@@ -460,7 +479,7 @@ func request_velocity(var state: PhysicsDirectBodyState, \
 	if include_weapon:
 		weapon = get_first_weapon_or_null()
 		if weapon!=null:
-			my_velocity += weapon.initial_projectile_speed()*heading
+			my_velocity += weapon.projectile_speed*heading
 	var velocity_error: Vector3 = velocity_goal-my_velocity
 	var needed_thrust: Vector3 = (velocity_error)/(state.step*state.inverse_mass)
 	var goal_norm: Vector3 = velocity_goal.normalized()
@@ -475,7 +494,7 @@ func request_velocity(var state: PhysicsDirectBodyState, \
 	
 	var new_velocity: Vector3 = state.linear_velocity
 	if include_weapon and weapon!=null:
-		new_velocity += weapon.initial_projectile_speed()*heading
+		new_velocity += weapon.projectile_speed*heading
 	
 	if velocity_error.length()<0.001:
 		state.linear_velocity = velocity_goal

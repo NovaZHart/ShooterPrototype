@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://Ship.gd" type="Script" id=1]
-[ext_resource path="res://Weapon.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ProjectileWeapon.tscn" type="PackedScene" id=2]
+[ext_resource path="res://WeakRigidProjectile.tscn" type="PackedScene" id=3]
 
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.431373, 0.643137, 0.470588, 1 )
@@ -21,6 +22,17 @@ points = PoolVector3Array( 0, 1, 1, 0, 1, -1, 0, 1, 1, 0, 1, -1, -1, -1, 1, 1, -
 [node name="Ship2" type="RigidBody"]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0 )
 script = ExtResource( 1 )
+max_shields = 50.0
+max_hull = 50.0
+max_structure = 100.0
+shield_heal = 10.0
+hull_heal = 15.0
+
+[node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1.04308e-07, 0.8, 1.09278e-08, 0, -3.49691e-08, 0.25, 0.25, -3.33786e-07, -5.32905e-15, 1.06842, 0, 0 )
+Projectile = ExtResource( 3 )
+projectile_lifetime = 0.5
+wait_time = 0.15
 
 [node name="BodyMiddle" type="MeshInstance" parent="."]
 transform = Transform( 2.08616e-07, 1, 2.18557e-08, 0, -4.37114e-08, 0.5, 0.5, -4.17233e-07, -1.06581e-14, 0.493, 0, 0 )
@@ -45,7 +57,5 @@ mesh = SubResource( 4 )
 material/0 = null
 
 [node name="Bounds" type="CollisionShape" parent="."]
-transform = Transform( -2.38419e-07, 0.9, 9.61651e-08, 0, -3.93403e-08, 2.2, 1.3, 1.78814e-07, 2.13163e-14, 0.493, 0, 0 )
+transform = Transform( -2.62261e-07, 0.99, 1.05782e-07, 0, -3.93403e-08, 2.2, 1.49174, 2.05187e-07, 2.44603e-14, 0.493, 0, 0 )
 shape = SubResource( 5 )
-
-[node name="Weapon" parent="." instance=ExtResource( 2 )]

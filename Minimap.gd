@@ -100,12 +100,10 @@ func draw_map_bounds(var _viewport_size: Vector2,var radius: float,var center: V
 	draw_arc(center,radius,0,2*PI,80,border_color,1.5,true)
 
 func place_center(var where: Vector2,var minimap_radius: float,var minimap_center: Vector2):
-	var map_scaled = Vector2(
-		(where[0]-map_center[0])/map_radius,
-		(where[1]-map_center[1])/map_radius)
-	var minimap_scaled = map_scaled*minimap_radius
-	if minimap_scaled.length() > minimap_radius*0.95:
-		minimap_scaled = minimap_scaled.normalized()*minimap_radius*0.95
+	var minimap_scaled = (where-map_center)/map_radius*minimap_radius
+	var outside=minimap_radius*0.95
+	if minimap_scaled.length() > outside:
+		minimap_scaled = minimap_scaled.normalized()*outside
 	return minimap_scaled + minimap_center
 
 func scale_radius(var what: float,var minimap_radius: float):
@@ -172,9 +170,12 @@ func _draw():
 			draw_requested_heading(ship,loc,minimap_radius,minimap_center)
 		draw_circle(loc,ship['scale'],ship['color'])
 	
+	var outside=minimap_radius*0.95
 	for projectile in projectile_layer: # location, color
-		var loc = place_center(projectile['location'],minimap_radius,minimap_center)
-		draw_circle(loc,1,projectile['color'])
+		var minimap_scaled = (projectile['location']-map_center)/map_radius*minimap_radius
+		if minimap_scaled.length() > outside:
+			continue
+		draw_circle(minimap_center+minimap_scaled,1,projectile['color'])
 	
 	for cross in crosshairs:
 		draw_crosshairs(cross[0],minimap_radius,cross[1])

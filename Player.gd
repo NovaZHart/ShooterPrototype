@@ -91,13 +91,15 @@ func emit_player_hp_changed(var ship):
 
 func add_projectile(var proj: Node):
 	$Projectiles.add_child(proj)
-	var _discard=proj.connect('body_entered',self,'shot_hit',[$Projectiles.get_path_to(proj)])
 
 func next_planet(var last_target: NodePath) -> NodePath:
 	return next_target(last_target,$Planets,null)
 
 func nearest_planet(var last_target: NodePath, var rel: Vector3) -> NodePath:
 	return nearest_target(last_target,$Planets,null,rel)
+
+func nearest_enemy(var last_target: NodePath, var rel: Vector3, var target_team) -> NodePath:
+	return nearest_target(last_target,$Ships,target_team,rel)
 
 func next_enemy(var last_target: NodePath, var target_team) -> NodePath:
 	return next_target(last_target,$Ships,target_team)
@@ -216,6 +218,13 @@ func set_zoom(zoom: float,ratio: float=-1) -> float:
 	$TopCamera.size = ratio
 	return ratio
 
+func ship_count_by_team(team: int):
+	var count=0
+	for ship in $Ships.get_children():
+		if team==ship.team:
+			count+=1
+	return count
+
 func ship_died(_damage: int, ship: Node):
 	if player_ship != null and \
 			ship.get_instance_id() == player_ship.get_instance_id():
@@ -227,15 +236,6 @@ func ship_died(_damage: int, ship: Node):
 		player_ship.ai.alive = false
 	else:
 		ship.queue_free()
-
-func shot_hit(body: Node, shot: NodePath) -> void:
-	var node=$Projectiles.get_node_or_null(shot)
-	if node==null:
-		return
-	node.queue_free()
-	var damage = node.get_damage()
-	if damage>0:
-		body.receive_damage(damage)
 
 func center_view() -> void:
 	var x: float = player_ship.translation.x
