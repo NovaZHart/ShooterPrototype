@@ -157,7 +157,6 @@ func update_target_display():
 	if target_path.is_empty():
 		return
 	new_target_path=NodePath()
-	game_state.print_to_console('target: '+str(target_path))
 	target_change_mutex.lock()
 	emit_signal('player_target_deselect',self)
 	var target=get_node_or_null(target_path)
@@ -197,7 +196,7 @@ func make_player_ship():
 
 func init_system():
 	clear()
-	game_state.system.fill_system(self,999,60,150)
+	game_state.system.fill_system(self,999,60,50)
 	player_ship=make_player_ship()
 	var planet_info = game_state.get_planet_info_or_null()
 	var node_name = '' if planet_info==null else planet_info.make_unique_name()
