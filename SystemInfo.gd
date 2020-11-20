@@ -64,17 +64,17 @@ func astral_gate_path() -> NodePath:
 func spawn_ship(var system,var ship_scene,team: int,a: float,r: float,s: float):
 	var ship=ship_scene.instance()
 	ship.name=name+'-ship-'+String(increment_counter())
-	var x = r*sin(a) + rng.randf()*s
-	var z = r*cos(a) + rng.randf()*s
+	var x = r*sin(a) + 2*(rng.randf()-0.5)*s
+	var z = r*cos(a) + 2*(rng.randf()-0.5)*s
 	ship.set_identity()
-	ship.rotate(Vector3(0,1,0),-a)
-	ship.translate_object_local(Vector3(x,5,z))
+	ship.rotation=Vector3(0,-a,0)
+	ship.translation=Vector3(x,5,z)
 	ship.set_team(team)
 	ship.ai=ShipAI.new()
 	system.spawn_ship(ship)
 
 func spawn_fleet(var system, var fleet: Array,team: int):
-	var radius = 60*sqrt(rng.randf())+20
+	var radius = 100*rng.randf()
 	var angle = rng.randf()*2*PI
 	for num_ship in fleet:
 		for _n in range(num_ship[0]):
