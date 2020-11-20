@@ -225,10 +225,12 @@ func _physics_process(var delta):
 					rotation[1]+delta*angular_velocity[1],linear_velocity, \
 					angular_velocity[1],team)
 
-func get_first_weapon_or_null():
+func get_first_weapon_or_null(allow_non_turret: bool,allow_turret: bool):
 	for child in get_children():
 		if child.has_method('shoot'):
-			return child
+			var turret=child.is_a_turret()
+			if (turret and allow_turret) or (allow_non_turret and not turret):
+				return child
 	return null
 
 func aim_forward(var weapon,var state: PhysicsDirectBodyState,var target) -> Vector3:
@@ -297,11 +299,10 @@ func auto_fire(state: PhysicsDirectBodyState, target):
 	if not target.is_a_ship():
 		request_primary_fire(state)
 		return
-	var weapon = get_first_weapon_or_null()
+	var weapon = get_first_weapon_or_null(true,false)
 	if weapon==null:
 		return
 	var aim: Vector3 = aim_forward(weapon,state,target).normalized()
-	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
 	request_heading(state,aim)
 	request_primary_fire(state)
 
@@ -314,7 +315,7 @@ func check_target_lock(state: PhysicsDirectBodyState, point1: Vector3,
 	return result
 
 func auto_target(state: PhysicsDirectBodyState, target):
-	var weapon = get_first_weapon_or_null()
+	var weapon = get_first_weapon_or_null(true,false)
 	if weapon==null:
 		return
 	if not target.is_a_ship():
@@ -337,7 +338,7 @@ func auto_target(state: PhysicsDirectBodyState, target):
 func move_to_attack(var state: PhysicsDirectBodyState, var target):
 	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
 	var dp: Vector3 = target.get_position() - get_position()
-	var weapon = get_first_weapon_or_null()
+	var weapon = get_first_weapon_or_null(true,true)
 	if weapon==null:
 		return
 	var aim: Vector3 = aim_forward(weapon,state,target)
@@ -476,7 +477,7 @@ func request_velocity(var state: PhysicsDirectBodyState, \
 	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
 	var weapon
 	if include_weapon:
-		weapon = get_first_weapon_or_null()
+		weapon = get_first_weapon_or_null(true,true)
 		if weapon!=null:
 			my_velocity += weapon.projectile_speed*heading
 	var velocity_error: Vector3 = velocity_goal-my_velocity

@@ -104,6 +104,19 @@ func nearest_enemy(var last_target: NodePath, var rel: Vector3, var target_team)
 func next_enemy(var last_target: NodePath, var target_team) -> NodePath:
 	return next_target(last_target,$Ships,target_team)
 
+class CmpBy0:
+	static func cmp_by_0(a,b) -> bool:
+		return a[0]<b[0]
+
+func sorted_enemy_list(where: Vector3,enemy_team: int) -> Array:
+	var pos: Vector3 = Vector3(where.x,0,where.y)
+	var list: Array
+	for child in $Ships.get_children():
+		if child.team == enemy_team:
+			list.append([pos.distance_to(child.get_position()),child.get_path()])
+	list.sort_custom(CmpBy0,'cmp_by_0')
+	return list
+
 func nearest_target(var last_target: NodePath, var list: Node,
 		var target_team, var rel: Vector3) -> NodePath:
 	#var enemy_team: int = ship.enemy

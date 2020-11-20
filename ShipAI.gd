@@ -3,6 +3,11 @@ extends Node
 var tick: int = 0
 var tick_at_last_shot: int = 0
 
+var cached_sorted_enemy_list: Array
+var tick_at_last_list: int = -9999
+const default_max_age: int = 10
+
+var destination: Vector3 setget set_destination, get_destination
 var target_path: NodePath setget set_target_path,get_target_path
 
 # For stopping:
@@ -21,11 +26,21 @@ var got_near_objects: bool = false
 
 signal land
 
-func set_target_path(var target):
-	target_path = target
+func set_destination(f: Vector3): destination=Vector3(f.x,5,f.z)
+func get_destination() -> Vector3: return destination
+func set_target_path(f: NodePath): target_path = f
+func get_target_path() -> NodePath: return target_path
 
-func get_target_path() -> NodePath:
-	return target_path
+func randomize_destination():
+	var radius = 20 + pow(randf(),2)*60
+	var angle = randf()*2*PI
+	destination = Vector3(radius*sin(angle),5,radius*cos(angle))
+
+func sorted_enemy_list(var ship,system: Spatial,max_age: int = default_max_age):
+	if tick-tick_at_last_list > max_age:
+		cached_sorted_enemy_list=system.sorted_enemy_list(ship.translation,ship.enemy)
+		tick_at_last_list=tick
+	return cached_sorted_enemy_list
 
 func clear_data():
 	got_near_objects=false
@@ -63,6 +78,7 @@ func _ready():
 	near_shape = CylinderShape.new()
 	near_shape.radius = shape_radius
 	near_shape.height = 10
+	randomize_destination()
 
 func get_collisions(var space: PhysicsDirectSpaceState, var _state: PhysicsDirectBodyState, var ship):
 	if not got_near_objects!=null:
@@ -93,11 +109,11 @@ func pick_nearest_target(_space: PhysicsDirectSpaceState,
 		return target_object
 	
 	# No nearby targets, so expand to the full search radius
-	var near_path = system.nearest_enemy(target_path,ship.translation,ship.enemy)
-	target_object = get_node_or_null(near_path)
-	
-	if target_object!=null:
-		target_path=near_path
+	var enemies = sorted_enemy_list(ship,system)
+	for dist_path in enemies:
+		target_object=get_node_or_null(dist_path[1])
+		if target_object!=null:
+			target_path=dist_path[1]
 	
 	return target_object
 
@@ -169,17 +185,20 @@ func attacker_ai(var state: PhysicsDirectBodyState, var ship, var system: Spatia
 	else:
 		target_path = NodePath()
 		if not fight(state,ship,system):
-			ship.request_stop(Vector3(0,0,0),state,system)
+			if ship.translation.distance_to(destination)<10:
+				randomize_destination()
+			else:
+				ship.request_stop(destination,state,system)
 	if ship.ai_shoot:
 		tick_at_last_shot=tick
 
 func landing_ai(var state: PhysicsDirectBodyState, var ship,
-		var system: Spatial, var destination: Vector3):
+		var system: Spatial, var landing_destination: Vector3):
 	make_threat_vector(ship,0.5)
 	if threat_vector.length()>0:
 		evade(state,ship,system)
 	else:
-		ship.request_stop(destination,state,system)
+		ship.request_stop(landing_destination,state,system)
 
 func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> void:
 	if ship.shields<=0 and ship.hull<=0 and ship.structure<0.5*ship.max_structure:

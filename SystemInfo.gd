@@ -10,10 +10,10 @@ var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':100, 'ships':[ [3, PillShip] ], 'team':1 },
-	{ 'frequency':30, 'ships':[ [1, PillShip], [1, BigShip] ], 'team':1 },
-	{ 'frequency':30, 'ships':[ [5, Ship] ], 'team':0 },
-	{ 'frequency':200, 'ships':[ [1, Ship] ], 'team':0 },
+	{ 'frequency':200, 'ships':[ [3, PillShip] ], 'team':1 },
+	{ 'frequency':60, 'ships':[ [1, PillShip], [1, BigShip] ], 'team':1 },
+	{ 'frequency':60, 'ships':[ [5, Ship] ], 'team':0 },
+	{ 'frequency':400, 'ships':[ [3, Ship] ], 'team':0 },
 ]
 
 const team_maximums: Array = [ 12,10 ]
@@ -82,7 +82,7 @@ func spawn_fleet(var system, var fleet: Array,team: int):
 
 func process_space(var system,var delta):
 	for fleet in fleets:
-		if rng.randf_range(0.0,1.0) < delta*fleet['frequency']/1800:
+		if rng.randf_range(0.0,1.0) < delta*fleet['frequency']/3600:
 			var team: int = fleet['team']
 			if system.ship_count_by_team(team)<team_maximums[team]:
 				spawn_fleet(system,fleet['ships'],team)
