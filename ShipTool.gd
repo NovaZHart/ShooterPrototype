@@ -188,7 +188,6 @@ static func request_rotation(ship: RigidBody, state: PhysicsDirectBodyState, rot
 
 static func request_thrust(ship: RigidBody, state: PhysicsDirectBodyState,forward: float,reverse: float):
 	var ai_thrust = ship.thrust*min(1.0,abs(forward)) - ship.reverse_thrust*min(1.0,abs(reverse))
-	ship.velocity=state.linear_velocity
 	var v_thrust = Vector3(ai_thrust,0,0).rotated(Vector3(0,1,0),ship.rotation.y)
 	state.add_central_force(v_thrust)
 
