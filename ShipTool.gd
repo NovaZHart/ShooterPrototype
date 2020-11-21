@@ -1,5 +1,23 @@
 extends Node
 
+func make_threat_vector(ship,near_objects:Array,shape_radius: float,t: float) -> Vector3:
+	var my_position: Vector3 = ship.position_at_time(t)
+	var threat_vector: Vector3 = Vector3(0,0,0)
+	var dw_div = 0
+	for dict in near_objects:
+		var object = dict.collider
+		if object==null:
+			continue
+		var obj_pos: Vector3 = object.position_at_time(t)
+		var position: Vector3 = obj_pos - my_position
+		var threat: float = object.threat_at_time(t)
+		var distance: float = Vector2(position[0],position[1]).length()
+		var distance_weight = max(0.0,(shape_radius-distance)/shape_radius)
+		var weight: float = distance_weight*threat
+		dw_div += distance_weight
+		threat_vector += weight * position.normalized()
+	return Vector3(threat_vector[0],0,threat_vector[2])/max(1.0,dw_div)
+
 static func aim_forward(var ship,var weapon,var state: PhysicsDirectBodyState,var target) -> Vector3:
 	if weapon==null:
 		return Vector3()
