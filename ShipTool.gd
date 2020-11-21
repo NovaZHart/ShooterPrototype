@@ -1,6 +1,6 @@
 extends Node
 
-func make_threat_vector(ship,near_objects:Array,shape_radius: float,t: float) -> Vector3:
+func make_threat_vector(ship: RigidBody,near_objects:Array,shape_radius: float,t: float) -> Vector3:
 	var my_position: Vector3 = ship.position_at_time(t)
 	var threat_vector: Vector3 = Vector3(0,0,0)
 	var dw_div = 0
@@ -18,7 +18,7 @@ func make_threat_vector(ship,near_objects:Array,shape_radius: float,t: float) ->
 		threat_vector += weight * position.normalized()
 	return Vector3(threat_vector[0],0,threat_vector[2])/max(1.0,dw_div)
 
-static func aim_forward(var ship,var weapon,var state: PhysicsDirectBodyState,var target) -> Vector3:
+static func aim_forward(ship: RigidBody,weapon: Spatial,state: PhysicsDirectBodyState,target: RigidBody) -> Vector3:
 	if weapon==null:
 		return Vector3()
 	var my_pos: Vector3 = ship.get_position()
@@ -31,7 +31,7 @@ static func aim_forward(var ship,var weapon,var state: PhysicsDirectBodyState,va
 	t = min(t,weapon.get_projectile_lifetime())
 	return dp + t*dv
 
-static func stopping_point(var ship,var state: PhysicsDirectBodyState,var tgt_vel: Vector3):
+static func stopping_point(ship: RigidBody,state: PhysicsDirectBodyState,tgt_vel: Vector3):
 	var pos: Vector3 = ship.get_position()
 	var rel_vel: Vector3 = state.linear_velocity - tgt_vel
 	var heading: Vector3 = ship.get_heading()
@@ -52,8 +52,8 @@ static func stopping_point(var ship,var state: PhysicsDirectBodyState,var tgt_ve
 			dist = rev_dist
 	return [ should_reverse, pos+dist*rel_vel.normalized() ]
 
-static func rendezvous_time(var target_location: Vector3,
-		var target_velocity: Vector3, var interceptor_speed: float) -> float:
+static func rendezvous_time(target_location: Vector3,
+		target_velocity: Vector3, interceptor_speed: float) -> float:
 #	var target_location3: Vector3 = target.get_position()
 #	var target_location: Vector3 = Vector3(target_location3[0],0,target_location3[2])
 #	var target_velocity: Vector3 = target.get_velocity()
@@ -76,11 +76,11 @@ static func rendezvous_time(var target_location: Vector3,
 		return mx
 	return NAN
 
-static func request_move_to_attack(ship, var state: PhysicsDirectBodyState, target):
+static func request_move_to_attack(ship: RigidBody, var state: PhysicsDirectBodyState, target: RigidBody):
 	move_to_attack(ship,state,target)
 	auto_target(ship,state,target)
 
-static func auto_fire(ship,state: PhysicsDirectBodyState, target):
+static func auto_fire(ship: RigidBody,state: PhysicsDirectBodyState, target: RigidBody):
 	if not target.is_a_ship():
 		request_primary_fire(ship,state)
 		return
@@ -91,15 +91,15 @@ static func auto_fire(ship,state: PhysicsDirectBodyState, target):
 	request_heading(ship,state,aim)
 	request_primary_fire(ship,state)
 
-static func check_target_lock(_ship, state: PhysicsDirectBodyState, point1: Vector3,
-		point2: Vector3, target) -> Dictionary:
+static func check_target_lock(_ship: RigidBody, state: PhysicsDirectBodyState, point1: Vector3,
+		point2: Vector3, target: RigidBody) -> Dictionary:
 	target.collision_mask |= 1<<30
 	var space: PhysicsDirectSpaceState = state.get_space_state()
 	var result: Dictionary = space.intersect_ray(point1, point2, [])
 	target.collision_mask ^= 1<<30
 	return result
 
-static func auto_target(ship, state: PhysicsDirectBodyState, target):
+static func auto_target(ship: RigidBody, state: PhysicsDirectBodyState, target: RigidBody):
 	var weapon = ship.get_first_weapon_or_null(true,false)
 	if weapon==null:
 		return
@@ -120,7 +120,7 @@ static func auto_target(ship, state: PhysicsDirectBodyState, target):
 	if not result.empty():
 		request_primary_fire(ship,state)
 
-static func move_to_attack(ship, var state: PhysicsDirectBodyState, target):
+static func move_to_attack(ship: RigidBody, var state: PhysicsDirectBodyState, target: RigidBody):
 	var heading: Vector3 = ship.get_heading()
 	var dp: Vector3 = target.get_position() - ship.get_position()
 	var weapon = ship.get_first_weapon_or_null(true,true)
@@ -139,7 +139,7 @@ static func move_to_attack(ship, var state: PhysicsDirectBodyState, target):
 		or state.linear_velocity.dot(dp)<0 and heading.dot(dp.normalized())>0.9:
 			request_thrust(ship,state,1.0,0.0)
 
-static func move_to_intercept(ship, state: PhysicsDirectBodyState,
+static func move_to_intercept(ship: RigidBody, state: PhysicsDirectBodyState,
 		close: float, slow: float, tgt_pos: Vector3, tgt_vel: Vector3,
 		force_final_state: bool = false):
 	var small_dot_product = 0.8
@@ -167,7 +167,7 @@ static func move_to_intercept(ship, state: PhysicsDirectBodyState,
 		state.angular_velocity = Vector3(0,0,0)
 	request_thrust(ship,state,float(is_facing),float(should_reverse and not is_facing))
 
-static func request_heading(ship, state: PhysicsDirectBodyState, new_heading: Vector3):
+static func request_heading(ship: RigidBody, state: PhysicsDirectBodyState, new_heading: Vector3):
 	var heading = ship.get_heading()
 	var cross = -new_heading.cross(heading)[1]
 	
@@ -180,17 +180,17 @@ static func request_heading(ship, state: PhysicsDirectBodyState, new_heading: Ve
 		var right: float = float(cross < 0.0)
 		state.angular_velocity = Vector3(0,(left-right)*ship.max_angular_velocity,0)
 
-static func request_rotation(ship, state: PhysicsDirectBodyState, rotate: float):
+static func request_rotation(ship: RigidBody, state: PhysicsDirectBodyState, rotate: float):
 	if abs(rotate)>1e-3:
 		state.add_torque(Vector3(0,rotate*ship.rotation_torque,0))
 	else:
 		state.angular_velocity = Vector3(0,0,0)
 
-static func request_thrust(ship, state: PhysicsDirectBodyState,forward: float,reverse: float):
+static func request_thrust(ship: RigidBody, state: PhysicsDirectBodyState,forward: float,reverse: float):
 	var ai_thrust = ship.thrust*min(1.0,abs(forward)) - ship.reverse_thrust*min(1.0,abs(reverse))
 	ship.velocity=state.linear_velocity
 	var v_thrust = Vector3(ai_thrust,0,0).rotated(Vector3(0,1,0),ship.rotation.y)
 	state.add_central_force(v_thrust)
 
-static func request_primary_fire(ship, _state: PhysicsDirectBodyState):
+static func request_primary_fire(ship: RigidBody, _state: PhysicsDirectBodyState):
 	ship.ai_shoot = true
