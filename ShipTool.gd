@@ -14,25 +14,25 @@ static func aim_forward(var ship,var weapon,var state: PhysicsDirectBodyState,va
 	return dp + t*dv
 
 static func stopping_point(var ship,var state: PhysicsDirectBodyState,var tgt_vel: Vector3):
-	var pos: Vector3 = Vector3(ship.translation[0],0,ship.translation[2])
+	var pos: Vector3 = ship.get_position()
 	var rel_vel: Vector3 = state.linear_velocity - tgt_vel
-	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
+	var heading: Vector3 = ship.get_heading()
 	var should_reverse: bool = false
 	var speed = rel_vel.length()
 	var accel = ship.thrust*state.inverse_mass
 	var reverse_accel = ship.reverse_thrust*state.inverse_mass
 	
 	if(speed<=0):
-		return [should_reverse, pos]
+		return [false, pos]
 	var turn: float = acos(clamp(-rel_vel.normalized().dot(heading),-1.0,1.0))
 	var dist: float = speed*turn/ship.max_angular_velocity + 0.5*speed*speed/accel
-	if reverse_accel>0:
+	if false: #reverse_accel>0:
 		var rev_dist: float = speed*(PI-turn)/ship.max_angular_velocity \
 			+ 0.5*speed*speed/reverse_accel
 		if rev_dist < dist:
 			should_reverse = true
 			dist = rev_dist
-	return [ should_reverse, pos+dist*rel_vel ]
+	return [ should_reverse, pos+dist*rel_vel.normalized() ]
 
 static func rendezvous_time(var target_location: Vector3,
 		var target_velocity: Vector3, var interceptor_speed: float) -> float:
@@ -87,7 +87,7 @@ static func auto_target(ship, state: PhysicsDirectBodyState, target):
 		return
 	if not target.is_a_ship():
 		return
-	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
+	var heading: Vector3 = ship.get_heading()
 	var p: Vector3 = target.get_position()
 	var dp: Vector3 = p - ship.get_position()
 	var dv: Vector3 = target.get_velocity() - state.linear_velocity
@@ -103,7 +103,7 @@ static func auto_target(ship, state: PhysicsDirectBodyState, target):
 		request_primary_fire(ship,state)
 
 static func move_to_attack(ship, var state: PhysicsDirectBodyState, target):
-	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
+	var heading: Vector3 = ship.get_heading()
 	var dp: Vector3 = target.get_position() - ship.get_position()
 	var weapon = ship.get_first_weapon_or_null(true,true)
 	if weapon==null:
@@ -122,35 +122,35 @@ static func move_to_attack(ship, var state: PhysicsDirectBodyState, target):
 			request_thrust(ship,state,1.0,0.0)
 
 static func move_to_intercept(ship, state: PhysicsDirectBodyState,
-		close: float, slow: float, tgt_pos: Vector3, tgt_vel: Vector3):
+		close: float, slow: float, tgt_pos: Vector3, tgt_vel: Vector3,
+		force_final_state: bool = false):
 	var small_dot_product = 0.8
-	var position = Vector3(ship.translation[0],0,ship.translation[2])
-	var heading = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
+	var position = ship.get_position()
+	var heading = ship.get_heading()
 	var tgt_pos1 = Vector3(tgt_pos[0],0,tgt_pos[2])
 	var dp = tgt_pos1 - position
 	var dv = tgt_vel - state.linear_velocity
 	var speed = dv.length()
 	var is_close: bool = dp.length()<close
 	if is_close and speed<slow:
+		if force_final_state:
+			ship.translation = Vector3(position[0],ship.translation[1],position[2])
+			state.linear_velocity = tgt_vel
 		return true
 	var sp = stopping_point(ship, state, tgt_vel)
 	var should_reverse: bool = sp[0]
 	dp = tgt_pos1 - sp[1]
-	var dot = dp.normalized().dot(heading)
+	var dp_dir = dp.normalized()
+	var dot = dp_dir.dot(heading)
 	var is_facing = dot > small_dot_product
-	if is_close or (!is_facing and !should_reverse):
-		pass
+	if !is_close or (!is_facing and !should_reverse):
+		request_heading(ship,state,dp_dir)
 	else:
 		state.angular_velocity = Vector3(0,0,0)
 	request_thrust(ship,state,float(is_facing),float(should_reverse and not is_facing))
 
-static func request_intercept_try2(ship, target, state: PhysicsDirectBodyState):
-	var slow = ship.thrust*state.inverse_mass*state.step
-	var small = slow*state.step
-	move_to_intercept(ship,state,small,slow,target.get_position(),target.get_velocity())
-
 static func request_heading(ship, state: PhysicsDirectBodyState, new_heading: Vector3):
-	var heading = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
+	var heading = ship.get_heading()
 	var cross = -new_heading.cross(heading)[1]
 	
 	if new_heading.dot(heading)>0:
@@ -177,69 +177,12 @@ static func request_thrust(ship, state: PhysicsDirectBodyState,forward: float,re
 static func request_primary_fire(ship, _state: PhysicsDirectBodyState):
 	ship.ai_shoot = true
 
-static func request_stop(ship, destination: Vector3,
-		state: PhysicsDirectBodyState, _system: Spatial):
-	var towards_destination: Vector3 = destination-ship.get_position()
-	var distance: float = towards_destination.length()
-	var speed: float = state.linear_velocity.length()
-	if distance < 0.03 and speed < 0.1:
-		state.linear_velocity = Vector3(0,0,0)
-		state.angular_velocity = Vector3(0,0,0)
-		#game_state.print_to_console('reached destination')
-		return
-#	var s: String = ''
-	
-	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
-	var course: Vector3 = state.linear_velocity.normalized()
-	var turn_direction: float = max(-0.99999,min(0.99999,heading.dot(course)))
-	var _turn: float = acos(turn_direction)
-	
-	var fwd_turnaround_distance: float = (PI/ship.max_angular_velocity)*ship.max_speed
-	var fwd_decelleration_distance = ship.max_speed*ship.max_speed/(2*ship.thrust*state.inverse_mass)
-	var fwd_stop_distance: float = fwd_decelleration_distance+fwd_turnaround_distance
-	
-	var rev_turnaround_distance: float
-	var rev_stop_distance: float
-	var rev_decelleration_distance: float
-	
-	var stop_distance = fwd_stop_distance
-	var _turnaround_distance = fwd_turnaround_distance
-	var _decelleration_distance = fwd_decelleration_distance
-	#var prefer_reverse: bool = false
-	var _thrust_to_use: float = ship.thrust
-	
-	if false: #reverse_thrust > 1e-3:
-		rev_turnaround_distance = 0 # ((PI-turn)/max_angular_velocity)*speed
-		rev_decelleration_distance = ship.max_speed*ship.max_speed/(2*ship.reverse_thrust*state.inverse_mass)
-		rev_stop_distance = rev_turnaround_distance + rev_decelleration_distance
-		if rev_stop_distance < stop_distance:
-			stop_distance = rev_stop_distance
-			#prefer_reverse = true
-			_thrust_to_use = ship.reverse_thrust
-			_decelleration_distance = rev_decelleration_distance
-	
-#	s = 'speed %08.4f dist %08.4f\n'%[speed,distance]
-#	s += 'decel dist: fwd %08.4f rev %08.4f\n'%[fwd_decelleration_distance,rev_decelleration_distance]
-#	s += 'turn dist: fwd %08.4f rev %08.4f\n'%[fwd_turnaround_distance,rev_turnaround_distance]
-#	s += 'stop dist: fwd %08.4f rev %08.4f\n'%[fwd_stop_distance,rev_stop_distance]
-#	s += 'use reverse engines\n' if prefer_reverse else 'use forward engines\n'
-	
-	if distance<stop_distance:
-		var velocity_goal: Vector3
-		velocity_goal = towards_destination.normalized()* \
-			max(ship.max_speed*distance/stop_distance,.097)
-		request_velocity(ship,state,velocity_goal,false,false) # prefer_reverse)
-	else:
-#		s += 'head to destination\n'
-		request_velocity(ship,state,towards_destination.normalized()*ship.max_speed,false,false) # prefer_reverse)
-	#game_state.print_to_console('console',s)
-
 static func request_velocity(ship, state: PhysicsDirectBodyState, \
 		velocity_goal: Vector3,prioritize_speed: bool, \
 		_prefer_reverse: bool, include_weapon: bool = false):
 	# FIXME: include gravity in this equation
 	var my_velocity = state.linear_velocity
-	var heading: Vector3 = Vector3(1,0,0).rotated(Vector3(0,1,0),ship.rotation[1])
+	var heading: Vector3 = ship.get_heading()
 	var weapon
 	if include_weapon:
 		weapon = ship.get_first_weapon_or_null(true,true)

@@ -39,6 +39,7 @@ func get_sphere(): return sphere
 func get_sphere_material(): return sphere_material
 func get_tile_material(): return tile_material
 func receive_damage(_f: float): pass
+func get_radius() -> float: return sphere.scale[0]/2
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
 	var viewport=Viewport.new()

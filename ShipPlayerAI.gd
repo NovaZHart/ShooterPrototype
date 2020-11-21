@@ -84,36 +84,46 @@ func update_ui() -> void:
 	var right: bool = Input.is_action_pressed("ui_right")
 	var up: bool = Input.is_action_pressed("ui_up")
 	var down: bool = Input.is_action_pressed("ui_down")
+	var deselect: bool = Input.is_action_just_released('ui_deselect_target')
 	ui_forward = float(up)
 	ui_reverse = float(down)
 	ui_rotate = float(left)-float(right)
 	ui_shoot = Input.is_key_pressed(KEY_SPACE)
 	
-	var cancel_autopilot: bool = up or down or left or right
+	var cancel_autopilot: bool = up or down or left or right or deselect
 	
-	if Input.is_action_just_released('ui_land'):
-		autopilot_orders = AUTO_LAND|AUTO_INTERCEPT_TARGET
+	if not cancel_autopilot:
+		if Input.is_action_just_released('ui_land'):
+			if autopilot_orders & AUTO_LAND:
+				request_next_planet=true
+			autopilot_orders = AUTO_LAND|AUTO_INTERCEPT_TARGET
+			print_console_target=true
+		if Input.is_action_just_released('ui_evade'):
+			autopilot_orders = AUTO_EVADE
+			ensure_ship_ai()
+			print_console_target=true
+		if Input.is_action_just_released('ui_intercept'):
+			if autopilot_orders & AUTO_INTERCEPT_TARGET:
+				request_next_enemy=true
+			autopilot_orders = AUTO_INTERCEPT_TARGET
+			print_console_target=true
+	
+	if Input.is_action_just_released('ui_next_enemy'):
+		request_next_enemy=true
 		print_console_target=true
-	if Input.is_action_just_released('ui_evade'):
-		autopilot_orders = AUTO_EVADE
-		ensure_ship_ai()
-		print_console_target=true
-	if Input.is_action_just_released('ui_intercept'):
-		autopilot_orders = AUTO_INTERCEPT_TARGET
-		print_console_target=true
+		if autopilot_orders & AUTO_LAND:
+			cancel_autopilot = true
+	elif Input.is_action_just_released('ui_next_planet'):
+		request_next_planet=true
+		if autopilot_orders & AUTO_LAND:
+			print_console_target=true
+		else:
+			cancel_autopilot=true
 	
 	if cancel_autopilot:
 		if autopilot_orders != AUTO_NOTHING:
 			game_state.print_to_console('Autopilot canceled.')
 		autopilot_orders = AUTO_NOTHING
-	
-	if Input.is_action_just_released('ui_next_enemy'):
-		request_next_enemy=true
-		print_console_target=true
-	elif Input.is_action_just_released('ui_next_planet'):
-		request_next_planet=true
-		if autopilot_orders & AUTO_LAND:
-			print_console_target=true
 
 func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> void:
 	tick += 1
@@ -156,7 +166,7 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 				ship.emit_landing_signal()
 				return # Scene should end after this.
 		if print_console_target:
-			game_state.print_to_console('Landing on '+target.display_name)
+			game_state.print_to_console('Landing on '+target.display_name+' radius '+str(target.get_radius())+' at '+str(target.get_position()))
 			print_console_target=false
 
 	var should_auto_target: bool = target!=null
@@ -170,11 +180,11 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		should_auto_target = false
 	elif target!=null and autopilot_orders&AUTO_INTERCEPT_TARGET:
 		should_auto_target = false
-		if target.is_immobile():
-			var tgt_pos: Vector3 = target.position_at_time(0)
-			ship_tool.request_stop(ship,tgt_pos,state,system)
+		if target.is_a_planet():
+			ship_tool.move_to_intercept(ship, state, target.get_radius(),
+				1, target.get_position(), Vector3(0,0,0), true)
 			if print_console_target:
-				game_state.print_to_console('Fly to target.')
+				game_state.print_to_console('Fly to '+target.display_name)
 		else:
 			ship_tool.request_move_to_attack(ship,state,target)
 			if print_console_target:

@@ -139,6 +139,9 @@ func threat_at_time(t: float) -> float:
 func get_team(): return team
 func get_enemy(): return enemy
 
+func get_heading() -> Vector3:
+	return Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
+
 func get_minimap_heading():
 	var h = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
 	return Vector2(h[2],-h[0])
