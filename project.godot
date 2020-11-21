@@ -21,6 +21,7 @@ config/icon="res://icon.png"
 
 [autoload]
 
+ship_tool="*res://ShipTool.gd"
 game_state="*res://GameState.gd"
 
 [display]

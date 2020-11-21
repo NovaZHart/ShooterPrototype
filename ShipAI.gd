@@ -1,4 +1,4 @@
-extends Node
+extends Reference
 
 var tick: int = 0
 var tick_at_last_shot: int = 0
@@ -23,8 +23,6 @@ var shape_radius: float = 70.0
 var target_search_radius: float = 1000.0
 var near_objects: Array
 var got_near_objects: bool = false
-
-signal land
 
 func set_destination(f: Vector3): destination=Vector3(f.x,5,f.z)
 func get_destination() -> Vector3: return destination
@@ -111,7 +109,7 @@ func pick_nearest_target(_space: PhysicsDirectSpaceState,
 	# No nearby targets, so expand to the full search radius
 	var enemies = sorted_enemy_list(ship,system)
 	for dist_path in enemies:
-		target_object=get_node_or_null(dist_path[1])
+		target_object=ship.get_node_or_null(dist_path[1])
 		if target_object!=null:
 			target_path=dist_path[1]
 	
@@ -122,7 +120,7 @@ func fight(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> 
 	var target = pick_nearest_target(space,state,ship,system)
 	if target == null:
 		return false
-	ship.request_move_to_attack(state,target)
+	ship_tool.request_move_to_attack(ship,state,target)
 	return true
 
 func evade(var state: PhysicsDirectBodyState, var ship, var _system: Spatial) -> void:
@@ -140,13 +138,13 @@ func evade(var state: PhysicsDirectBodyState, var ship, var _system: Spatial) ->
 	
 	#game_state.print_to_console(s)
 	
-	ship.request_velocity(state,react_vector*ship.max_speed,true,false)
+	ship_tool.request_velocity(ship,state,react_vector*ship.max_speed,true,false)
 
 func approach_destination(var approach_here: Vector3,
 		var state: PhysicsDirectBodyState, var ship, var _system: Spatial):
 	var towards_destination: Vector3 = approach_here-ship.translation
 	towards_destination[1] = 0
-	ship.request_velocity(state,towards_destination.normalized()*ship.max_speed,false,true)
+	ship_tool.request_velocity(ship,state,towards_destination.normalized()*ship.max_speed,false,true)
 
 func coward_ai(state: PhysicsDirectBodyState, var ship, system: Spatial):
 	var _discard = get_collisions(state.get_space_state(),state,system)
@@ -158,13 +156,13 @@ func coward_ai(state: PhysicsDirectBodyState, var ship, system: Spatial):
 		var pos_norm = ship.get_position().normalized()
 		if pos_norm.length()<0.99:
 			pos_norm = Vector3(1,0,0)
-		ship.request_velocity(state,pos_norm*ship.max_speed,true,false)
+		ship_tool.request_velocity(ship,state,pos_norm*ship.max_speed,true,false)
 
 func attacker_ai(var state: PhysicsDirectBodyState, var ship, var system: Spatial):
 	var target = null
 
 	if not target_path.is_empty():
-		target = get_node_or_null(target_path)
+		target = ship.get_node_or_null(target_path)
 	if tick-tick_at_last_shot>600:
 		# After 10 seconds without firing, reevaluate target
 		target=null
@@ -181,14 +179,14 @@ func attacker_ai(var state: PhysicsDirectBodyState, var ship, var system: Spatia
 		target = null
 
 	if target != null:
-		ship.request_move_to_attack(state,target)
+		ship_tool.request_move_to_attack(ship,state,target)
 	else:
 		target_path = NodePath()
 		if not fight(state,ship,system):
 			if ship.translation.distance_to(destination)<10:
 				randomize_destination()
 			else:
-				ship.request_stop(destination,state,system)
+				ship_tool.request_stop(ship,destination,state,system)
 	if ship.ai_shoot:
 		tick_at_last_shot=tick
 
@@ -198,7 +196,7 @@ func landing_ai(var state: PhysicsDirectBodyState, var ship,
 	if threat_vector.length()>0:
 		evade(state,ship,system)
 	else:
-		ship.request_stop(landing_destination,state,system)
+		ship_tool.request_stop(ship,landing_destination,state,system)
 
 func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -> void:
 	if ship.shields<=0 and ship.hull<=0 and ship.structure<0.5*ship.max_structure:

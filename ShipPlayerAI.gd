@@ -24,9 +24,6 @@ enum { AUTO_NOTHING=0, AUTO_INTERCEPT_TARGET=1, AUTO_EVADE=2, AUTO_LAND=4 }
 
 var autopilot_orders = AUTO_NOTHING
 
-signal land
-signal target_changed
-
 func ensure_ship_ai():
 	if ship_ai==null:
 		ship_ai = ShipAI.new()
@@ -127,16 +124,16 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 	if target!=null:
 		# Position was selected by mouse location.
 		target_path=target.get_path()
-		emit_signal('target_changed',target_path)
+		ship.emit_target_changed_signal(target_path)
 		print_console_target=true
 	elif request_next_planet:
 		target_path = system.next_planet(target_path)
-		emit_signal('target_changed',target_path)
+		ship.emit_target_changed_signal(target_path)
 		request_next_planet=false
 		print_console_target=true
 	elif request_next_enemy:
 		target_path = system.next_enemy(target_path,ship.enemy)
-		emit_signal('target_changed',target_path)
+		ship.emit_target_changed_signal(target_path)
 		request_next_enemy=false
 		print_console_target=true
 	
@@ -144,19 +141,19 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		target = get_node_or_null(target_path)
 		if target == null:
 			target_path=NodePath() # can't intercept a dead target
-			emit_signal('target_changed',target_path)
+			ship.emit_target_changed_signal(target_path)
 	
 	if autopilot_orders&AUTO_LAND:
 		if target==null or not target.is_a_planet():
 			target_path = system.nearest_planet(target_path,ship.translation)
 			target = get_node_or_null(target_path)
 			if target!=null and target.is_a_planet():
-				emit_signal('target_changed',target_path)
+				ship.emit_target_changed_signal(target_path)
 				print_console_target=true
 		if target!=null and target.is_a_planet():
 			if target.ship_can_land(ship):
 				game_state.player_location=target.game_state_path
-				emit_signal('land')
+				ship.emit_landing_signal()
 				return # Scene should end after this.
 		if print_console_target:
 			game_state.print_to_console('Landing on '+target.display_name)
@@ -175,19 +172,19 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		should_auto_target = false
 		if target.is_immobile():
 			var tgt_pos: Vector3 = target.position_at_time(0)
-			ship.request_stop(tgt_pos,state,system)
+			ship_tool.request_stop(ship,tgt_pos,state,system)
 			if print_console_target:
 				game_state.print_to_console('Fly to target.')
 		else:
-			ship.request_move_to_attack(state,target)
+			ship_tool.request_move_to_attack(ship,state,target)
 			if print_console_target:
 				game_state.print_to_console('Intercept target.')
 		print_console_target=false
 	else:
-		ship.request_rotation(state,ui_rotate)
-		ship.request_thrust(state,ui_forward,ui_reverse)
+		ship_tool.request_rotation(ship,state,ui_rotate)
+		ship_tool.request_thrust(ship,state,ui_forward,ui_reverse)
 	if ui_shoot:
 		if should_auto_target and abs(ui_reverse)<1e-5:
-			ship.auto_fire(state,target)
+			ship_tool.auto_fire(ship,state,target)
 		else:
-			ship.request_primary_fire(state)
+			ship_tool.request_primary_fire(ship,state)

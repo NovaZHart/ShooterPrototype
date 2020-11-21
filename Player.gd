@@ -187,6 +187,7 @@ func spawn_ship(var ship,var _is_player: bool = false):
 	_discard = ship.connect('die',self,'ship_died',[ship])
 	_discard = ship.connect('ai_step',ship.ai,'ai_step',[ship,self])
 	ship.can_sleep=false
+	#_discard = ship.ai.connect('land',self,'land_npc')
 	$Ships.add_child(ship)
 
 func spawn_planet(var planet):
@@ -202,8 +203,8 @@ func make_player_ship():
 	ship.fully_heal()
 	ship.ai=ShipPlayerAI.new()
 	_discard = ship.connect('hp_changed',self,'emit_player_hp_changed')
-	_discard = ship.ai.connect('land',self,'land_player')
-	_discard = ship.ai.connect('target_changed',self,'player_target_changed')
+	_discard = ship.connect('land',self,'land_player')
+	_discard = ship.connect('target_changed',self,'player_target_changed')
 	spawn_ship(ship)
 	return ship
 
