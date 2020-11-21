@@ -27,7 +27,6 @@ var autopilot_orders = AUTO_NOTHING
 func ensure_ship_ai():
 	if ship_ai==null:
 		ship_ai = ShipAI.new()
-		add_child(ship_ai)
 
 func update_ship_ai():
 	if ship_ai==null:
@@ -166,7 +165,7 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 				ship.emit_landing_signal()
 				return # Scene should end after this.
 		if print_console_target:
-			game_state.print_to_console('Landing on '+target.display_name+' radius '+str(target.get_radius())+' at '+str(target.get_position()))
+			game_state.print_to_console('Landing on '+target.display_name)
 			print_console_target=false
 
 	var should_auto_target: bool = target!=null

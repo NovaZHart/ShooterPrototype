@@ -34,7 +34,7 @@ func randomize_destination():
 	var angle = randf()*2*PI
 	destination = Vector3(radius*sin(angle),5,radius*cos(angle))
 
-func sorted_enemy_list(ship, system: Spatial,max_age: int = default_max_age):
+func sorted_enemy_list(ship, system: Spatial,max_age: int = default_max_age) -> Array:
 	if tick-tick_at_last_list > max_age:
 		cached_sorted_enemy_list=system.sorted_enemy_list(ship.translation,ship.enemy)
 		tick_at_last_list=tick
@@ -59,6 +59,8 @@ func make_threat_vector(ship,t: float):
 	var dw_div = 0
 	for dict in near_objects:
 		var object = dict.collider
+		if object==null:
+			continue
 		var obj_pos: Vector3 = object.position_at_time(t)
 		var position: Vector3 = obj_pos - my_position
 		var threat: float = object.threat_at_time(t)
@@ -72,14 +74,16 @@ func make_threat_vector(ship,t: float):
 	threat_vector = Vector3(my_threat_vector[0],0,my_threat_vector[2])/max(1.0,dw_div)
 	nearby_enemy_ships = my_nearby_enemy_ships
 
-func _ready():
+func _init():
 	near_shape = CylinderShape.new()
 	near_shape.radius = shape_radius
 	near_shape.height = 10
+
+func _ready():
 	randomize_destination()
 
 func get_collisions(space: PhysicsDirectSpaceState, _state: PhysicsDirectBodyState, ship):
-	if not got_near_objects!=null:
+	if not got_near_objects:
 		var query = PhysicsShapeQueryParameters.new()
 		query.collision_mask = ship.enemy_mask
 		query.transform = ship.transform
@@ -90,25 +94,8 @@ func get_collisions(space: PhysicsDirectSpaceState, _state: PhysicsDirectBodySta
 
 func pick_nearest_target(_space: PhysicsDirectSpaceState,
 		_state: PhysicsDirectBodyState, ship, system: Spatial):
-	var ship_position: Vector3 = ship.get_position()
-	
 	var target_object = null
-	var target_distance: float = 9e9
-	
-	for obj in nearby_enemy_ships:
-		if not obj.is_a_ship() or not obj.is_alive():
-			continue
-		var dist = (obj.get_position()-ship_position).length()
-		if dist<target_distance:
-			target_object = obj
-	
-	if target_object!=null:
-		target_path=target_object.get_path()
-		return target_object
-	
-	# No nearby targets, so expand to the full search radius
-	var enemies = sorted_enemy_list(ship,system)
-	for dist_path in enemies:
+	for dist_path in sorted_enemy_list(ship,system):
 		target_object=ship.get_node_or_null(dist_path[1])
 		if target_object!=null:
 			target_path=dist_path[1]
@@ -127,36 +114,29 @@ func evade(state: PhysicsDirectBodyState, ship, _system: Spatial) -> void:
 	var threat_level: float = threat_vector.length()
 	#var norm_vector: Vector3 = threat_vector.normalized()
 	var react_vector: Vector3 = -threat_vector.normalized()
-#
-#	var s: String = "threat@[%8.4f x %8.4f] level %8.4f\n"% \
-#		[norm_vector[0],norm_vector[2],threat_level]
 	
 	if threat_level < threat_threshold:
 		var tock: float = tick%240-120
 		react_vector = react_vector.rotated(Vector3(0,1,0),PI/4.0 * exp(-tock*tock/40))
-#		s += "Pulsating react vector.\n"
 	
-	#game_state.print_to_console(s)
-	
-	ship_tool.request_velocity(ship,state,react_vector*ship.max_speed,true,false)
-
-func approach_destination(approach_here: Vector3,
-		state: PhysicsDirectBodyState, ship, _system: Spatial):
-	var towards_destination: Vector3 = approach_here-ship.translation
-	towards_destination[1] = 0
-	ship_tool.request_velocity(ship,state,towards_destination.normalized()*ship.max_speed,false,true)
+	ship_tool.request_heading(ship,state,react_vector.normalized())
+	var forward: bool = react_vector.dot(ship.get_heading()) > 0
+	ship_tool.request_thrust(ship,state,forward,!forward)
 
 func coward_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
-	var _discard = get_collisions(state.get_space_state(),state,system)
+	var _discard = get_collisions(state.get_space_state(),state,ship)
 	make_threat_vector(ship,0.5)
 	if threat_vector.length() > threat_threshold:
 		evade(state,ship,system)
 	else:
 		# When there are no threats, fly away from system center
-		var pos_norm = ship.get_position().normalized()
+		var pos = ship.get_position()
+		var pos_norm = pos.normalized()
 		if pos_norm.length()<0.99:
 			pos_norm = Vector3(1,0,0)
-		ship_tool.request_velocity(ship,state,pos_norm*ship.max_speed,true,false)
+		ship_tool.move_to_intercept(ship, state, 1,
+			999, pos_norm * max(100,pos.length()*2+10),
+			ship.max_speed * pos_norm)
 
 func patrol_ai(state: PhysicsDirectBodyState, ship, _system: Spatial):
 	if ship.translation.distance_to(destination)<10:

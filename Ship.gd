@@ -155,10 +155,10 @@ func get_minimap_velocity():
 	return Vector2(vel[2],-vel[0])
 
 func set_ai(var new_ai):
-	if ai!=null and ai.is_class('Node'):
+	if ai!=null and ai is Node:
 		ai.queue_free()
 	ai = new_ai
-	if new_ai!=null and new_ai.is_class('Node'):
+	if new_ai!=null and new_ai is Node:
 		add_child(ai)
 
 func position_at_time(t: float) -> Vector3:
