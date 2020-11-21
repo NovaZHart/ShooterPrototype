@@ -110,7 +110,7 @@ class CmpBy0:
 
 func sorted_enemy_list(where: Vector3,enemy_team: int) -> Array:
 	var pos: Vector3 = Vector3(where.x,0,where.y)
-	var list: Array
+	var list: Array = []
 	for child in $Ships.get_children():
 		if child.team == enemy_team:
 			list.append([pos.distance_to(child.get_position()),child.get_path()])

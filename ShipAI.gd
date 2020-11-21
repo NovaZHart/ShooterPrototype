@@ -142,9 +142,9 @@ func evade(var state: PhysicsDirectBodyState, var ship, var _system: Spatial) ->
 	
 	ship.request_velocity(state,react_vector*ship.max_speed,true,false)
 
-func approach_destination(var destination: Vector3,
+func approach_destination(var approach_here: Vector3,
 		var state: PhysicsDirectBodyState, var ship, var _system: Spatial):
-	var towards_destination: Vector3 = destination-ship.translation
+	var towards_destination: Vector3 = approach_here-ship.translation
 	towards_destination[1] = 0
 	ship.request_velocity(state,towards_destination.normalized()*ship.max_speed,false,true)
 

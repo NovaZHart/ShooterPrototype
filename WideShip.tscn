@@ -22,7 +22,6 @@ albedo_color = Color( 0.560784, 0.160784, 0.160784, 1 )
 height = 1.0
 
 [node name="WideShip" type="RigidBody"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0 )
 mass = 3.0
 script = ExtResource( 1 )
 rotation_torque = 120.0
