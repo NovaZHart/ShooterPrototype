@@ -115,14 +115,14 @@ func coward_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 			pos_norm = Vector3(1,0,0)
 		ship_tool.move_to_intercept(ship, state, 1,
 			999, pos_norm * max(100,pos.length()*2+10),
-			ship.max_speed * pos_norm)
+			ship.max_speed * pos_norm, false, false)
 
 func patrol_ai(state: PhysicsDirectBodyState, ship, _system: Spatial):
 	if ship.translation.distance_to(destination)<10:
 		randomize_destination()
 	else:
 		ship_tool.move_to_intercept(ship, state, 5,
-			1, destination, Vector3(0,0,0))
+			1, destination, Vector3(0,0,0), false, false)
 
 func attacker_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 	var target = null
@@ -169,7 +169,7 @@ func landing_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 			patrol_ai(state,ship,system)
 		else:
 			ship_tool.move_to_intercept(ship, state, target.get_radius(),
-				0.1, target.translation, Vector3(0,0,0))
+				0.1, target.translation, Vector3(0,0,0), false, false)
 
 func ai_step(state: PhysicsDirectBodyState, ship, system: Spatial) -> void:
 	if ship.shields<=0 and ship.hull<=0 and ship.structure<0.5*ship.max_structure:
