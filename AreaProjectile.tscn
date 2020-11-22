@@ -10,11 +10,16 @@ albedo_color = Color( 0.0862745, 0.294118, 0.560784, 1 )
 
 [sub_resource type="CylinderShape" id=3]
 
-[node name="RigidBody" type="Area"]
+[node name="AreaProjectile" type="Area"]
 script = ExtResource( 1 )
+damage = 25.0
+threat = 6.0
+guidance_uses_velocity = false
+max_speed = 60.0
+max_angular_velocity = 1.0
 
 [node name="Spatial" type="Spatial" parent="."]
-transform = Transform( 0.6, 0, 0, 0, 1, 0, 0, 0, 0.6, 0, 0, 0 )
+transform = Transform( 0.36, 0, 0, 0, 1, 0, 0, 0, 0.36, 0, 0, 0 )
 
 [node name="MeshInstance2" type="MeshInstance" parent="Spatial"]
 transform = Transform( -0.359174, -0.75, -3.27835e-08, -3.10892e-16, -6.55671e-08, 1.5, -0.207369, 1.29904, 5.67828e-08, -0.192652, 0, -4.44878e-24 )
@@ -40,6 +45,6 @@ wait_time = 1.5
 one_shot = true
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 0.9324, 0, 0, 0, 5, 0, 0, 0, 0.9, 0, 0, 0 )
+transform = Transform( 0.55944, 0, 0, 0, 5, 0, 0, 0, 0.54, 0, 0, 0 )
 shape = SubResource( 3 )
 [connection signal="timeout" from="Timer" to="." method="_on_Timer_timeout"]

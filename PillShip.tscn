@@ -37,10 +37,10 @@ radius = 2.08801
 
 [node name="PillShip" type="RigidBody"]
 script = ExtResource( 1 )
-max_angular_velocity = 1.7
 thrust = 15.0
 reverse_thrust = 6.0
 max_speed = 25.0
+max_angular_velocity = 1.7
 max_shields = 400.0
 max_hull = 300.0
 max_structure = 500.0
@@ -50,16 +50,16 @@ hull_heal = 5.0
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 0.221603, 0, 0, 0, 0.271922, 0.699, 0, -1.11 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 1.0
-projectile_speed = 80.0
-wait_time = 0.15
+projectile_lifetime = 0.7
+projectile_speed = 100.0
+wait_time = 0.134
 
 [node name="ProjectileWeapon2" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 0.221603, 0, 0, 0, 0.271922, 0.699, 0, 1.11 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 1.0
-projectile_speed = 80.0
-wait_time = 0.15
+projectile_lifetime = 0.7
+projectile_speed = 100.0
+wait_time = 0.134
 
 [node name="MainBody" type="MeshInstance" parent="."]
 transform = Transform( -6.11959e-08, 0, 1.4, 0, 0.5, 0, -0.8, 0, -3.49691e-08, 0, 0, 0 )

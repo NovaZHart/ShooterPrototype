@@ -2,7 +2,7 @@
 
 [ext_resource path="res://Ship.gd" type="Script" id=1]
 [ext_resource path="res://ProjectileWeapon.tscn" type="PackedScene" id=2]
-[ext_resource path="res://StrongRigidProjectile.tscn" type="PackedScene" id=3]
+[ext_resource path="res://HomingAreaProjectile.tscn" type="PackedScene" id=3]
 [ext_resource path="res://AreaProjectile.tscn" type="PackedScene" id=4]
 
 [sub_resource type="SpatialMaterial" id=1]
@@ -60,14 +60,16 @@ shape = SubResource( 6 )
 [node name="MiddleWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0, -0.232, 0 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 6.0
-projectile_speed = 40.0
-wait_time = 0.5
+projectile_lifetime = 5.0
+projectile_speed = 60.0
+wait_time = 1.0
 
 [node name="LeftWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0.761861, -0.232318, -1.12217 )
 Projectile = ExtResource( 4 )
+wait_time = 0.134
 
 [node name="RightWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0.762, -0.232, 1.122 )
 Projectile = ExtResource( 4 )
+wait_time = 0.134

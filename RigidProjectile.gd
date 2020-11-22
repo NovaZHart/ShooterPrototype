@@ -12,6 +12,10 @@ export var thrust: float = 100 setget set_thrust,get_thrust
 export var max_speed: float = 50 setget set_max_speed,get_max_speed
 export var max_angular_velocity: float = 5 setget set_max_angular_velocity,get_max_angular_velocity
 
+signal launch
+signal hit
+signal timeout
+
 func set_thrust(f: float): thrust=f
 func get_thrust() -> float: return thrust
 func get_reverse_thrust() -> float: return 0.0
@@ -58,6 +62,7 @@ func set_lifetime(var seconds: float):
 func _on_body_entered(body: Node):
 	if body.has_method('receive_damage'):
 		body.receive_damage(damage)
+	emit_signal('hit',body,damage)
 	queue_free()
 
 func _init():
@@ -81,6 +86,8 @@ func _integrate_forces(var state: PhysicsDirectBodyState):
 
 func _ready():
 	$Timer.start()
+	emit_signal('launch')
 
 func _on_Timer_timeout():
+	emit_signal('timeout')
 	queue_free()

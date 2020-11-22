@@ -7,6 +7,7 @@
 #include <Dictionary.hpp>
 #include <Node.hpp>
 #include <RigidBody.hpp>
+#include <Area.hpp>
 #include <PhysicsDirectBodyState.hpp>
 
 namespace godot {
@@ -46,6 +47,14 @@ namespace godot {
     Dictionary check_target_lock(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 point1,
                                  Vector3 point2, RigidBody *target);
     void move_to_attack(RigidBody *ship, PhysicsDirectBodyState *state, RigidBody *target);
+
+    void guide_AreaProjectile(Area *projectile, double delta,
+                              RigidBody *target, bool use_velocity);
+    bool move_to_intercept(Area *projectile, double delta,double close, double slow,
+                           Vector3 tgt_pos, Vector3 tgt_vel);
+    Vector3 stopping_point_unlimited_thrust(Area *projectile,double delta,Vector3 tgt_vel);
+    void request_heading(Area *projectile, double delta, Vector3 new_heading);
+    void velocity_to_heading(Area *projectile, double delta);
   };
 }
 
