@@ -5,7 +5,9 @@
 
 #include <Array.hpp>
 #include <PhysicsDirectSpaceState.hpp>
+#include <GodotGlobal.hpp>
 
+const double FAST = 1e6;
 const double PI = 3.141592653589793;
 
 using namespace godot;
@@ -20,6 +22,8 @@ void ShipTool::_register_methods() {
   register_method("request_primary_fire", &ShipTool::request_primary_fire);
   register_method("make_threat_vector", &ShipTool::make_threat_vector);
 
+  register_method("guide_RigidProjectile", &ShipTool::guide_RigidProjectile);
+  
   register_method("request_heading", &ShipTool::request_heading); // bad
   register_method("move_to_intercept", &ShipTool::move_to_intercept); // bad
 }
@@ -28,13 +32,14 @@ ShipTool::ShipTool() {}
 ShipTool::~ShipTool() {}
 void ShipTool::_init() {}
 
-static bool is_nil(const Variant &v) {
-  return v.get_type() == Variant::NIL;
-}
+////////////////////////////////////////////////////////////////////////
+
+// FIXME: These calls should be reduced to a few template functions
+// using variable-length argument lists.
 
 static double double_2arg(Variant &v,const char *method,const Variant &arg1,const Variant &arg2) {
   const Variant *args[3] = {&arg1,&arg2,nullptr};
-  Variant vv=v.call(method,args,1);
+  Variant vv=v.call(method,args,2);
   return static_cast<double>(vv);
 }
 
@@ -82,7 +87,7 @@ static bool bool_0arg(T &v,const char *method) {
 
 static Variant call_2arg(Variant &v,const char *method,const Variant &arg1,const Variant &arg2) {
   const Variant *args[3] = {&arg1,&arg2,nullptr};
-  return v.call(method,args,1);
+  return v.call(method,args,2);
 }
 
 template<class T>
@@ -110,6 +115,8 @@ static Variant call_0arg(T &v,const char *method) {
   return v->call(method);
 }
 
+////////////////////////////////////////////////////////////////////////
+
 template<class T>
 static Vector3 position_now(const T &ship) {
   Vector3 here=ship->get_translation();
@@ -125,6 +132,10 @@ static Vector3 position_at_time(const RigidBody *ship,PhysicsDirectBodyState *st
 
 static Vector3 get_heading(const RigidBody *ship) {
   return Vector3(1,0,0).rotated(Vector3(0,1,0),ship->get_rotation()[1]);
+}
+
+static bool is_nil(const Variant &v) {
+  return v.get_type() == Variant::NIL;
 }
 
 Vector3 ShipTool::make_threat_vector(RigidBody *ship, Array near_objects,
@@ -175,6 +186,7 @@ Vector3 ShipTool::aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
   }
   return !aim.length() ? tgt_pos-my_pos : aim.normalized();
 }
+
 Vector3 ShipTool::stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel, bool &should_reverse) {
   should_reverse = false;
 
@@ -191,13 +203,29 @@ Vector3 ShipTool::stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,V
   double max_angular_velocity = call_0arg(ship,"get_max_angular_velocity");
   double turn = acos(clamp(static_cast<double>(-rel_vel.normalized().dot(heading)),-1.0,1.0));
   double dist = speed*turn/max_angular_velocity + 0.5*speed*speed/accel;
-  if(reverse_accel>0) {
+  if(reverse_accel>1e-5) {
     double rev_dist = speed*(PI-turn)/max_angular_velocity + 0.5*speed*speed/reverse_accel;
     if(rev_dist < dist) {
       should_reverse = true;
       dist = rev_dist;
     }
   }
+  
+  return pos+dist*rel_vel.normalized();
+}
+
+Vector3 ShipTool::stopping_point_unlimited_thrust(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel) {
+  Vector3 pos = position_now(ship);
+  Vector3 rel_vel = state->get_linear_velocity() - tgt_vel;
+  Vector3 heading = get_heading(ship);
+  double speed = rel_vel.length();
+  
+  if(speed<=0)
+    return pos;
+
+  double max_angular_velocity = call_0arg(ship,"get_max_angular_velocity");
+  double turn = acos(clamp(static_cast<double>(-rel_vel.normalized().dot(heading)),-1.0,1.0));
+  double dist = speed*turn/max_angular_velocity;
   
   return pos+dist*rel_vel.normalized();
 }
@@ -304,7 +332,7 @@ void ShipTool::move_to_attack(RigidBody *ship, PhysicsDirectBodyState *state, Ri
 
 bool ShipTool::move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,double close, double slow,
                                  Vector3 tgt_pos, Vector3 tgt_vel,
-                                 bool force_final_state) {
+                                 bool force_final_state,bool unlimited_thrust) {
   const double small_dot_product = 0.8;
   Vector3 position = position_now(ship);
   Vector3 heading = get_heading(ship);
@@ -315,13 +343,16 @@ bool ShipTool::move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,
   bool is_close = dp.length()<close;
   if(is_close && speed<slow) {
     if(force_final_state) {
-      ship->set_translation(Vector3(position[0],ship->get_translation()[1],position[2]));
+      //ship->set_translation(Vector3(position[0],ship->get_translation()[1],position[2]));
       state->set_linear_velocity(tgt_vel);
     }
     return true;
   }
   bool should_reverse = false;
-  dp = tgt_pos1 - stopping_point(ship, state, tgt_vel, should_reverse);
+  if(unlimited_thrust)
+    dp = tgt_pos1 - stopping_point_unlimited_thrust(ship, state, tgt_vel);
+  else
+    dp = tgt_pos1 - stopping_point(ship, state, tgt_vel, should_reverse);
   Vector3 dp_dir = dp.normalized();
   double dot = dp_dir.dot(heading);
   bool is_facing = dot > small_dot_product;
@@ -329,9 +360,39 @@ bool ShipTool::move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,
     request_heading(ship,state,dp_dir);
   else
     state->set_angular_velocity(Vector3(0,0,0));
-  request_thrust(ship,state,double(is_facing),double(should_reverse && ! is_facing));
+  if(unlimited_thrust)
+    velocity_to_heading(ship,state);
+  else
+    request_thrust(ship,state,double(is_facing),double(should_reverse && ! is_facing));
   return false;
 };
+
+void ShipTool::velocity_to_heading(RigidBody *projectile, PhysicsDirectBodyState *state) {
+  // Projectiles always move in the direction they're pointing and never reduce speed.
+  double step = state->get_step();
+  Vector3 old_vel = state->get_linear_velocity();
+  double max_speed = double_0arg(projectile,"get_max_speed");
+  double invmass = state->get_inverse_mass();
+  double next_speed = min(max_speed,old_vel.length()+double_0arg(projectile,"get_thrust")*invmass*step);
+  double rotation = projectile->get_rotation()[1] + step*state->get_angular_velocity()[1];
+  Vector3 new_vel = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation)*next_speed;
+  Vector3 accel = (new_vel-old_vel)/step;
+  state->add_central_force(accel/invmass);
+};
+
+void ShipTool::guide_RigidProjectile(RigidBody *projectile, PhysicsDirectBodyState *state,
+                                     RigidBody *target, bool use_velocity) {
+  Vector3 proj_pos = position_now(projectile);
+  if(use_velocity)
+    move_to_intercept(projectile, state, 0, FAST,
+                      position_now(target), target->get_linear_velocity(),
+                      false,true);
+  else {
+    request_heading(projectile,state,position_now(target)-proj_pos);
+    velocity_to_heading(projectile,state);
+  }
+}
+
 void ShipTool::request_heading(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 new_heading) {
   Vector3 heading = get_heading(ship);
   double cross = -new_heading.cross(heading)[1];

@@ -24,10 +24,10 @@ height = 1.0
 [node name="WideShip" type="RigidBody"]
 mass = 3.0
 script = ExtResource( 1 )
-rotation_torque = 120.0
 thrust = 90.0
 reverse_thrust = 16.0
 max_speed = 55.0
+rotation_torque = 120.0
 max_shields = 300.0
 max_hull = 600.0
 max_structure = 1200.0
@@ -60,8 +60,8 @@ shape = SubResource( 6 )
 [node name="MiddleWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0, -0.232, 0 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 1.25
-projectile_speed = 120.0
+projectile_lifetime = 6.0
+projectile_speed = 40.0
 wait_time = 0.5
 
 [node name="LeftWeapon" parent="." instance=ExtResource( 2 )]

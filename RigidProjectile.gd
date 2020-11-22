@@ -4,11 +4,32 @@ var team: int = 1 setget set_team,get_team
 var enemy: int = 0 setget ,get_enemy
 export var damage: float = 50 setget set_damage,get_damage
 export var threat: float = 9 setget set_threat,get_threat
+export var guided: bool = false setget set_guided,get_guided
+export var guidance_uses_velocity: bool = true setget set_guidance_uses_velocity, get_guidance_uses_velocity
+var target_path: NodePath setget set_target_path, get_target_path
+
+export var thrust: float = 100 setget set_thrust,get_thrust
+export var max_speed: float = 50 setget set_max_speed,get_max_speed
+export var max_angular_velocity: float = 5 setget set_max_angular_velocity,get_max_angular_velocity
+
+func set_thrust(f: float): thrust=f
+func get_thrust() -> float: return thrust
+func get_reverse_thrust() -> float: return 0.0
+func set_max_speed(f: float): max_speed=f
+func get_max_speed() -> float: return max_speed
+func set_max_angular_velocity(f: float): max_angular_velocity=f
+func get_max_angular_velocity(): return max_angular_velocity
 
 func get_threat() -> float: return threat
 func set_threat(f: float): threat=f
 func get_damage() -> float: return damage
 func set_damage(f: float): damage=f
+func get_guided() -> bool: return guided
+func set_guided(f: bool): guided=f
+func get_guidance_uses_velocity() -> bool: return guidance_uses_velocity
+func set_guidance_uses_velocity(f: bool): guidance_uses_velocity=f
+func get_target_path() -> NodePath: return target_path
+func set_target_path(f: NodePath): target_path=f
 func is_a_ship() -> bool: return false
 func is_a_planet() -> bool: return false
 func is_a_projectile() -> bool: return true
@@ -42,6 +63,21 @@ func _on_body_entered(body: Node):
 func _init():
 	custom_integrator = true
 	var _discard=connect('body_entered',self,'_on_body_entered')
+
+func _integrate_forces(var state: PhysicsDirectBodyState):
+	if not guided:
+		return
+	if target_path.is_empty():
+		state.angular_velocity=Vector3(0,0,0)
+		return
+	var target=get_node_or_null(target_path)
+	if target==null or not target.has_method('is_a_ship') or not target.is_a_ship():
+		# Invalid target
+		target_path=NodePath()
+	elif not target.is_alive():
+		target_path=NodePath()
+	else:
+		ship_tool.guide_RigidProjectile(self,state,target,guidance_uses_velocity)
 
 func _ready():
 	$Timer.start()

@@ -28,18 +28,20 @@ namespace godot {
     void request_primary_fire(RigidBody *ship, PhysicsDirectBodyState *state);
     Vector3 make_threat_vector(RigidBody *ship, Array near_objects,
                                double shape_radius, double t);
-
+    void guide_RigidProjectile(RigidBody *projectile, PhysicsDirectBodyState *state,
+                               RigidBody *target, bool use_velocity);
+    
     void request_heading(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 new_heading);
     bool move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,double close, double slow,
                            Vector3 tgt_pos, Vector3 tgt_vel,
-                           bool force_final_state=false);
+                           bool force_final_state=false,bool unlimited_thrust=false);
 
-    
-    
+
+    void velocity_to_heading(RigidBody *projectile, PhysicsDirectBodyState *state);
     Vector3 aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
                         RigidBody *target);
     Vector3 stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel, bool &should_reverse);
-
+    Vector3 stopping_point_unlimited_thrust(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel);
     double rendezvous_time(Vector3 target_location,Vector3 target_velocity, double interceptor_speed);
     Dictionary check_target_lock(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 point1,
                                  Vector3 point2, RigidBody *target);

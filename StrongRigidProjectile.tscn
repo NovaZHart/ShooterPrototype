@@ -12,6 +12,7 @@ mass = 0.35
 script = ExtResource( 1 )
 damage = 200.0
 threat = 35.0
+guided = true
 
 [node name="Timer" type="Timer" parent="."]
 process_mode = 0

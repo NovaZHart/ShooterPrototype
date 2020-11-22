@@ -4,13 +4,13 @@ var ai setget set_ai,get_ai
 var team: int = 1 setget set_team, get_team
 var enemy: int = 0 setget , get_enemy
 
+export var thrust: float = 20 setget set_thrust,get_thrust
+export var reverse_thrust: float = 7 setget set_reverse_thrust,get_reverse_thrust
+export var max_speed: float = 30 setget ,get_max_speed
 export var rotation_torque: float = 70 setget set_rotation_torque,get_rotation_torque
 export var max_angular_velocity: float = 2 setget set_max_angular_velocity,get_max_angular_velocity
 
 var combined_aabb=null setget ,get_combined_aabb
-export var thrust: float = 20 setget set_thrust,get_thrust
-export var reverse_thrust: float = 7 setget set_reverse_thrust,get_reverse_thrust
-export var max_speed: float = 30 setget ,get_max_speed
 var tick: int = 0
 var ai_shoot: bool = false setget set_ai_shoot,get_ai_shoot
 var minimap_heading: Object = null setget ,get_minimap_heading
@@ -243,9 +243,12 @@ func _physics_process(var delta):
 	if ai_shoot:
 		for child in get_children():
 			if child.has_method('shoot'):
+				var target_path: NodePath = NodePath()
+				if ai!=null:
+					target_path=ai.target_path
 				child.shoot(translation+delta*linear_velocity, \
 					rotation[1]+delta*angular_velocity[1],linear_velocity, \
-					angular_velocity[1],team)
+					angular_velocity[1],team,target_path)
 
 func get_first_weapon_or_null(allow_non_turret: bool,allow_turret: bool):
 	for child in get_children():

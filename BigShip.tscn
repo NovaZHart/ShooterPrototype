@@ -43,10 +43,10 @@ size = Vector3( 1, 1, 1 )
 [node name="RigidBody" type="RigidBody"]
 mass = 4.0
 script = ExtResource( 2 )
-max_angular_velocity = 1.5
 thrust = 70.0
 reverse_thrust = 40.0
 max_speed = 20.0
+max_angular_velocity = 1.5
 max_shields = 2000.0
 max_hull = 2000.0
 max_structure = 4000.0
@@ -85,15 +85,15 @@ shape = SubResource( 9 )
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.973423, 0, -2.99087 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 1.0
-projectile_speed = 120.0
+projectile_lifetime = 6.0
+projectile_speed = 40.0
 wait_time = 0.5
 
 [node name="ProjectileWeapon2" parent="." instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.973, 0, 2.991 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 1.0
-projectile_speed = 120.0
+projectile_lifetime = 6.0
+projectile_speed = 40.0
 wait_time = 0.5
 
 [node name="ProjectileWeapon3" parent="." instance=ExtResource( 1 )]
