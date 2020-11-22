@@ -6,6 +6,6 @@ entry/X11.64 = "res://bin/x11/libshiptool.so"
 dependency/X11.64 = [  ]
 
 [resource]
-resource_name = "shiptool"
+resource_name = "ShipTool"
 class_name = "ShipTool"
 library = SubResource( 1 )
