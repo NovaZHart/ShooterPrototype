@@ -50,10 +50,6 @@ namespace godot {
 
     void guide_AreaProjectile(Area *projectile, double delta,
                               RigidBody *target, bool use_velocity);
-    bool move_to_intercept(Area *projectile, double delta,double close, double slow,
-                           Vector3 tgt_pos, Vector3 tgt_vel);
-    Vector3 stopping_point_unlimited_thrust(Area *projectile,double delta,Vector3 tgt_vel);
-    void request_heading(Area *projectile, double delta, Vector3 new_heading);
     void velocity_to_heading(Area *projectile, double delta);
   };
 }

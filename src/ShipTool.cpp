@@ -483,68 +483,6 @@ void ShipTool::guide_AreaProjectile(Area *projectile, double delta,
   velocity_to_heading(projectile,delta);
 }
 
-bool ShipTool::move_to_intercept(Area *projectile, double delta,double close, double slow,
-                                 Vector3 tgt_pos, Vector3 tgt_vel) {
-  const double small_dot_product = 0.8;
-  Vector3 position = position_now(projectile);
-  Vector3 heading = get_heading(projectile);
-  Vector3 tgt_pos1(tgt_pos[0],0,tgt_pos[2]);
-  Vector3 dp = tgt_pos1 - position;
-  Vector3 dv = tgt_vel - cast_0arg<Vector3>(projectile,"get_linear_velocity");
-  double speed = dv.length();
-  bool is_close = dp.length()<close;
-  
-  if(is_close && speed<slow)
-    return true;
-
-  dp = tgt_pos1 - stopping_point_unlimited_thrust(projectile, delta, tgt_vel);
-  Vector3 dp_dir = dp.normalized();
-  double dot = dp_dir.dot(heading);
-  bool is_facing = dot > small_dot_product;
-
-  if(!is_close || !is_facing)
-    request_heading(projectile,delta,dp_dir);
-  else {
-    call_1arg(projectile,"set_angular_velocity",Vector3(0,0,0));
-    velocity_to_heading(projectile,delta);
-  }
-  
-  return false;
-}
-
-Vector3 ShipTool::stopping_point_unlimited_thrust(Area *projectile,double delta,Vector3 tgt_vel) {
-  Vector3 pos = position_now(projectile);
-  Vector3 rel_vel = cast_0arg<Vector3>(projectile,"get_linear_velocity") - tgt_vel;
-  Vector3 heading = get_heading(projectile);
-  double speed = rel_vel.length();
-  
-  if(speed<=0)
-    return pos;
-
-  double max_angular_velocity = cast_0arg<double>(projectile,"get_max_angular_velocity");
-  double turn = acos(clamp(static_cast<double>(-rel_vel.normalized().dot(heading)),-1.0,1.0));
-  double dist = speed*turn/max_angular_velocity;
-  
-  return pos+dist*rel_vel.normalized();
-}
-
-void ShipTool::request_heading(Area *projectile, double delta, Vector3 new_heading) {
-  Vector3 new_normed = new_heading.normalized();
-  Vector3 heading = get_heading(projectile);
-  double cross = -new_normed.cross(heading)[1];
-  double max_angular_velocity = cast_0arg<double>(projectile,"get_max_angular_velocity");
-  
-  if(new_normed.dot(heading)>0) {
-    double angle = asin(min(1.0,max(-1.0,cross/new_normed.length())));
-    double actual_av = copysign(1.0,angle)*min(fabs(angle)/delta,max_angular_velocity);
-    call_1arg(projectile,"set_angular_velocity",Vector3(0,actual_av,0));
-  } else {
-    double left(cross >= 0.0), right(cross < 0.0);
-    call_1arg(projectile,"set_angular_velocity",Vector3(0,(left-right)*max_angular_velocity,0));
-  }
-  velocity_to_heading(projectile,delta);
-}
-
 void ShipTool::velocity_to_heading(Area *projectile, double delta) {
   // Projectiles always move in the direction they're pointing and never reduce speed.
   Vector3 old_vel = cast_0arg<Vector3>(projectile,"get_linear_velocity");
