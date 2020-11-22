@@ -1,7 +1,6 @@
 #include "ShipTool.hpp"
 
 #include <cmath>
-#include <iostream>
 #include <algorithm>
 
 #include <Array.hpp>
@@ -329,7 +328,6 @@ void ShipTool::request_rotation(RigidBody *ship, PhysicsDirectBodyState *state, 
 }
 
 void ShipTool::request_thrust(RigidBody *ship, PhysicsDirectBodyState *state,double forward,double reverse) {
-  cerr<<"request_thrust "<<forward<<" "<<reverse<<endl;
   double ai_thrust = double_0arg(ship,"get_thrust")*min(1.0,abs(forward)) - double_0arg(ship,"get_reverse_thrust")*min(1.0,abs(reverse));
   Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(Vector3(0,1,0),ship->get_rotation().y);
   state->add_central_force(v_thrust);
