@@ -1,4 +1,4 @@
-#include "spheretool.hpp"
+#include "SphereTool.hpp"
 
 #include <cmath>
 #include <GodotGlobal.hpp>
