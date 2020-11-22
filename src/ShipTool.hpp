@@ -36,7 +36,7 @@ namespace godot {
 
     
     
-    Vector3 aim_forward(RigidBody *ship, Variant &weapon, PhysicsDirectBodyState *state,
+    Vector3 aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
                         RigidBody *target);
     Vector3 stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel, bool &should_reverse);
 

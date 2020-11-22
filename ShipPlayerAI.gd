@@ -193,7 +193,7 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		ship_tool.request_rotation(ship,state,ui_rotate)
 		ship_tool.request_thrust(ship,state,ui_forward,ui_reverse)
 	if ui_shoot:
-		if should_auto_target and abs(ui_reverse)<1e-5:
+		if should_auto_target and abs(ui_rotate)<1e-5:
 			ship_tool.auto_fire(ship,state,target)
 		else:
 			ship_tool.request_primary_fire(ship,state)
