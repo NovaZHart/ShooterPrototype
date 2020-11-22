@@ -44,7 +44,7 @@ static func stopping_point(ship: RigidBody,state: PhysicsDirectBodyState,tgt_vel
 		return [false, pos]
 	var turn: float = acos(clamp(-rel_vel.normalized().dot(heading),-1.0,1.0))
 	var dist: float = speed*turn/ship.max_angular_velocity + 0.5*speed*speed/accel
-	if false: #reverse_accel>0:
+	if reverse_accel>0:
 		var rev_dist: float = speed*(PI-turn)/ship.max_angular_velocity \
 			+ 0.5*speed*speed/reverse_accel
 		if rev_dist < dist:

@@ -23,6 +23,7 @@ config/icon="res://icon.png"
 
 ship_tool="*res://ShipTool.gd"
 game_state="*res://GameState.gd"
+native_ship_tool="*res://bin/ShipTool.gdns"
 
 [display]
 

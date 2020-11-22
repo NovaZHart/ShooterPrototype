@@ -1,9 +1,10 @@
 #include "ShipTool.hpp"
 
 #include <cmath>
+#include <iostream>
 #include <algorithm>
-#include <Array.hpp>
 
+#include <Array.hpp>
 #include <PhysicsDirectSpaceState.hpp>
 
 const double PI = 3.141592653589793;
@@ -173,7 +174,7 @@ Vector3 ShipTool::stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,V
   double max_angular_velocity = call_0arg(ship,"get_max_angular_velocity");
   double turn = acos(clamp(static_cast<double>(-rel_vel.normalized().dot(heading)),-1.0,1.0));
   double dist = speed*turn/max_angular_velocity + 0.5*speed*speed/accel;
-  if(reverse_accel>0) {
+  if(false) { //reverse_accel>0) {
     double rev_dist = speed*(PI-turn)/max_angular_velocity + 0.5*speed*speed/reverse_accel;
     if(rev_dist < dist) {
       should_reverse = true;
@@ -294,8 +295,8 @@ bool ShipTool::move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,
     return true;
   }
   bool should_reverse = false;
-  Vector3 dpp = tgt_pos1 - stopping_point(ship, state, tgt_vel, should_reverse);
-  Vector3 dp_dir = dpp.normalized();
+  dp = tgt_pos1 - stopping_point(ship, state, tgt_vel, should_reverse);
+  Vector3 dp_dir = dp.normalized();
   double dot = dp_dir.dot(heading);
   bool is_facing = dot > small_dot_product;
   if(!is_close || (!is_facing && !should_reverse))
@@ -311,23 +312,24 @@ void ShipTool::request_heading(RigidBody *ship, PhysicsDirectBodyState *state, V
 
   if(new_heading.dot(heading)>0) {
     double angle = asin(min(1.0,max(-1.0,cross/new_heading.length())));
-    double actual_av = signbit(angle)*min(abs(angle)/state->get_step(),double_0arg(ship,"max_angular_velocity"));
+    double actual_av = copysign(1.0,angle)*min(abs(angle)/state->get_step(),double_0arg(ship,"get_max_angular_velocity"));
     state->set_angular_velocity(Vector3(0,actual_av,0));
   } else {
     double left = static_cast<double>(cross >= 0.0);
     double right = static_cast<double>(cross < 0.0);
-    state->set_angular_velocity(Vector3(0,(left-right)*double_0arg(ship,"max_angular_velocity"),0));
+    state->set_angular_velocity(Vector3(0,(left-right)*double_0arg(ship,"get_max_angular_velocity"),0));
   }
 };
 
 void ShipTool::request_rotation(RigidBody *ship, PhysicsDirectBodyState *state, double rotate) {
   if(abs(rotate)>1e-3)
-    state->add_torque(Vector3(0,rotate*double_0arg(ship,"rotation_torque"),0));
+    state->add_torque(Vector3(0,rotate*double_0arg(ship,"get_rotation_torque"),0));
   else
     state->set_angular_velocity(Vector3(0,0,0));
 }
 
 void ShipTool::request_thrust(RigidBody *ship, PhysicsDirectBodyState *state,double forward,double reverse) {
+  cerr<<"request_thrust "<<forward<<" "<<reverse<<endl;
   double ai_thrust = double_0arg(ship,"get_thrust")*min(1.0,abs(forward)) - double_0arg(ship,"get_reverse_thrust")*min(1.0,abs(reverse));
   Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(Vector3(0,1,0),ship->get_rotation().y);
   state->add_central_force(v_thrust);

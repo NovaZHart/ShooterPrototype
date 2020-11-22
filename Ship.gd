@@ -4,13 +4,12 @@ var ai setget set_ai,get_ai
 var team: int = 1 setget set_team, get_team
 var enemy: int = 0 setget , get_enemy
 
-export var rotation_torque: float = 70
-export var max_angular_velocity: float = 2
+export var rotation_torque: float = 70 setget set_rotation_torque,get_rotation_torque
+export var max_angular_velocity: float = 2 setget set_max_angular_velocity,get_max_angular_velocity
 
 var combined_aabb=null setget ,get_combined_aabb
-export var thrust: float = 20
-export var reverse_thrust: float = 7
-var velocity: Vector3 = Vector3()
+export var thrust: float = 20 setget set_thrust,get_thrust
+export var reverse_thrust: float = 7 setget set_reverse_thrust,get_reverse_thrust
 export var max_speed: float = 30 setget ,get_max_speed
 var tick: int = 0
 var ai_shoot: bool = false setget set_ai_shoot,get_ai_shoot
@@ -41,6 +40,15 @@ signal target_changed
 
 func is_alive():
 	return structure > 0
+
+func set_rotation_torque(f: float): rotation_torque=f
+func get_rotation_torque(): return rotation_torque
+func set_max_angular_velocity(f: float): max_angular_velocity=f
+func get_max_angular_velocity(): return max_angular_velocity
+func set_thrust(f: float): thrust=f
+func get_thrust() -> float: return thrust
+func set_reverse_thrust(f: float): reverse_thrust=f
+func get_reverse_thrust() -> float: return reverse_thrust
 
 func set_ai_shoot(f: bool): ai_shoot=f
 func get_ai_shoot() -> bool: return ai_shoot

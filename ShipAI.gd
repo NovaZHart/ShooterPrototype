@@ -51,7 +51,7 @@ func apply_ship_transform(scale: Vector3, origin: Vector3, ship) -> Transform:
 	return u
 
 func make_threat_vector(ship,t: float):
-	threat_vector = ship_tool.make_threat_vector(ship,near_objects,shape_radius,t)
+	threat_vector = native_ship_tool.make_threat_vector(ship,near_objects,shape_radius,t)
 
 func _init():
 	near_shape = CylinderShape.new()
@@ -86,7 +86,7 @@ func fight(state: PhysicsDirectBodyState, ship, system: Spatial) -> bool:
 	var target = pick_nearest_target(space,state,ship,system)
 	if target == null:
 		return false
-	ship_tool.request_move_to_attack(ship,state,target)
+	native_ship_tool.request_move_to_attack(ship,state,target)
 	return true
 
 func evade(state: PhysicsDirectBodyState, ship, _system: Spatial) -> void:
@@ -98,9 +98,9 @@ func evade(state: PhysicsDirectBodyState, ship, _system: Spatial) -> void:
 		var tock: float = tick%240-120
 		react_vector = react_vector.rotated(Vector3(0,1,0),PI/4.0 * exp(-tock*tock/40))
 	
-	ship_tool.request_heading(ship,state,react_vector.normalized())
+	native_ship_tool.request_heading(ship,state,react_vector.normalized())
 	var forward: bool = react_vector.dot(ship.get_heading()) > 0
-	ship_tool.request_thrust(ship,state,forward,!forward)
+	native_ship_tool.request_thrust(ship,state,forward,!forward)
 
 func coward_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 	var _discard = get_collisions(state.get_space_state(),state,ship)
@@ -113,7 +113,7 @@ func coward_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 		var pos_norm = pos.normalized()
 		if pos_norm.length()<0.99:
 			pos_norm = Vector3(1,0,0)
-		ship_tool.move_to_intercept(ship, state, 1,
+		native_ship_tool.move_to_intercept(ship, state, 1,
 			999, pos_norm * max(100,pos.length()*2+10),
 			ship.max_speed * pos_norm)
 
@@ -121,7 +121,7 @@ func patrol_ai(state: PhysicsDirectBodyState, ship, _system: Spatial):
 	if ship.translation.distance_to(destination)<10:
 		randomize_destination()
 	else:
-		ship_tool.move_to_intercept(ship, state, 5,
+		native_ship_tool.move_to_intercept(ship, state, 5,
 			1, destination, Vector3(0,0,0))
 
 func attacker_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
@@ -145,7 +145,7 @@ func attacker_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 		target = null
 
 	if target != null:
-		ship_tool.request_move_to_attack(ship,state,target)
+		native_ship_tool.request_move_to_attack(ship,state,target)
 	else:
 		target_path = NodePath()
 		if not fight(state,ship,system):
@@ -168,7 +168,7 @@ func landing_ai(state: PhysicsDirectBodyState, ship, system: Spatial):
 			# Nowhere to land!
 			patrol_ai(state,ship,system)
 		else:
-			ship_tool.move_to_intercept(ship, state, target.get_radius(),
+			native_ship_tool.move_to_intercept(ship, state, target.get_radius(),
 				0.1, target.translation, Vector3(0,0,0))
 
 func ai_step(state: PhysicsDirectBodyState, ship, system: Spatial) -> void:
