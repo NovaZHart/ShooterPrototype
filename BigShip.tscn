@@ -48,11 +48,11 @@ thrust = 70.0
 reverse_thrust = 40.0
 max_speed = 20.0
 max_angular_velocity = 1.5
-max_shields = 2000.0
-max_hull = 2000.0
-max_structure = 4000.0
-shield_heal = 100.0
-hull_heal = 30.0
+max_shields = 500.0
+max_hull = 500.0
+max_structure = 900.0
+shield_heal = 30.0
+hull_heal = 10.0
 
 [node name="MeshInstance7" type="MeshInstance" parent="."]
 transform = Transform( -0.0037874, 0.999993, 0, -0.999993, -0.0037874, 0, 0, 0, 1.77245, -1.411, 0, 0.003 )

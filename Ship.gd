@@ -91,6 +91,7 @@ func fully_heal():
 	shields = max_shields
 	hull = max_hull
 	structure = max_structure
+	emit_signal('hp_changed',self)
 
 func set_max_hp(var shields_: int, var hull_: int, var structure_: int):
 	max_shields = shields_
@@ -214,6 +215,9 @@ func init_children(node: Node):
 func _enter_tree():
 	init_children(self)
 #	make_transforms(Vector3(100,50,100),Vector3(20,50,20))
+
+func _ready():
+	fully_heal()
 
 func pass_shoot_signal(var shot: Node):
 	emit_signal('shoot',shot)

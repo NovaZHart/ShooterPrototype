@@ -6,7 +6,7 @@ var linear_velocity: Vector3 setget set_linear_velocity,get_linear_velocity
 var angular_velocity: Vector3 setget set_angular_velocity,get_angular_velocity
 export var damage: float = 50 setget set_damage,get_damage
 export var threat: float = 9 setget set_threat,get_threat
-export var lifetime: float = 0.7 setget set_lifetime,get_lifetime
+export var lifetime: float = 0.7 setget ,get_lifetime
 export var guided: bool = false setget set_guided,get_guided
 export var guidance_uses_velocity: bool = true setget set_guidance_uses_velocity, get_guidance_uses_velocity
 var target_path: NodePath setget set_target_path, get_target_path
@@ -67,10 +67,6 @@ func set_team(var new_team: int):
 	collision_layer = 1 << (team*2+1)
 	collision_mask = 1 << (enemy*2)
 
-func set_lifetime(f: float):
-	lifetime=f
-	if get_node_or_null("Timer")!=null:
-		$Timer.wait_time=lifetime
 func get_lifetime() -> float:
 	return lifetime
 
@@ -81,8 +77,6 @@ func _on_body_entered(body: Node):
 	queue_free()
 
 func guide_if_have_target(delta: float):
-	if not guided:
-		return
 	if target_path.is_empty():
 		angular_velocity=Vector3(0,0,0)
 		return
@@ -96,7 +90,8 @@ func guide_if_have_target(delta: float):
 		ship_tool.guide_AreaProjectile(self,delta,target,guidance_uses_velocity)
 
 func _physics_process(delta: float):
-	guide_if_have_target(delta)
+	if guided:
+		guide_if_have_target(delta)
 	translation += delta*linear_velocity
 	rotation += delta*angular_velocity
 

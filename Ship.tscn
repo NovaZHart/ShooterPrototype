@@ -21,10 +21,11 @@ points = PoolVector3Array( 0, 1, 1, 0, 1, -1, 0, 1, 1, 0, 1, -1, -1, -1, 1, 1, -
 
 [node name="Ship2" type="RigidBody"]
 script = ExtResource( 1 )
-max_hull = 100.0
+max_shields = 300.0
+max_hull = 150.0
 max_structure = 150.0
-shield_heal = 10.0
-hull_heal = 15.0
+shield_heal = 20.0
+hull_heal = 10.0
 
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1.04308e-07, 0.8, 1.09278e-08, 0, -3.49691e-08, 0.25, 0.25, -3.33786e-07, -5.32905e-15, 1.06842, 0, 0 )

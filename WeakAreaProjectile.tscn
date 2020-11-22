@@ -11,9 +11,9 @@ albedo_color = Color( 0.0862745, 0.294118, 0.560784, 1 )
 [sub_resource type="ConvexPolygonShape" id=3]
 points = PoolVector3Array( 0, 1, 1, 0, 1, -1, 0, 1, 1, 0, 1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, 0, 1, 1, 0, 1, -1, 0, 1, -1, 0, 1, 1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, -1 )
 
-[node name="WeakRigidProjectile" type="Area"]
+[node name="WeakAreaProjectile" type="Area"]
 script = ExtResource( 1 )
-damage = 7.0
+damage = 9.0
 threat = 2.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]

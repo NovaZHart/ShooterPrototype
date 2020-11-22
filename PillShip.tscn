@@ -44,7 +44,7 @@ max_angular_velocity = 1.7
 max_shields = 400.0
 max_hull = 300.0
 max_structure = 500.0
-shield_heal = 30.0
+shield_heal = 20.0
 hull_heal = 5.0
 
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
