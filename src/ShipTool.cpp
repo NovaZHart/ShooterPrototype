@@ -163,11 +163,11 @@ Vector3 ShipTool::aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
     Vector3 dp = dp_ships - position_now(weapon).rotated(Vector3(0,1,0),ship->get_rotation()[1]);
     double t = rendezvous_time(dp,dv,cast_0arg<double>(weapon,"get_projectile_speed"));
     if(isnan(t))
-      return tgt_pos - my_pos;
+      return (tgt_pos - my_pos).normalized();
     t = min(t,cast_0arg<double>(weapon,"get_projectile_lifetime"));
     aim += (dp+t*dv)*cast_1arg<double>(weapon,"threat_at_time",0.0);
   }
-  return !aim.length() ? tgt_pos-my_pos : aim.normalized();
+  return !aim.length() ? (tgt_pos-my_pos).normalized() : aim.normalized();
 }
 
 Vector3 ShipTool::stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel, bool &should_reverse) {
