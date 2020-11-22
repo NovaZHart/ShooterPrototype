@@ -13,7 +13,7 @@ export var reverse_thrust: float = 7
 var velocity: Vector3 = Vector3()
 export var max_speed: float = 30 setget ,get_max_speed
 var tick: int = 0
-var ai_shoot: bool = false
+var ai_shoot: bool = false setget set_ai_shoot,get_ai_shoot
 var minimap_heading: Object = null setget ,get_minimap_heading
 var minimap_velocity: Object = null setget ,get_minimap_velocity
 var minimap_location: Object = null setget ,get_minimap_location
@@ -41,6 +41,9 @@ signal target_changed
 
 func is_alive():
 	return structure > 0
+
+func set_ai_shoot(f: bool): ai_shoot=f
+func get_ai_shoot() -> bool: return ai_shoot
 
 func get_shield_heal() -> float: return shield_heal
 func set_shield_heal(f: float): shield_heal=f
