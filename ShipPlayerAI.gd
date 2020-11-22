@@ -1,13 +1,15 @@
 extends Node
 
 var target_path: NodePath setget set_target_path,get_target_path
-var ui_forward: float
-var ui_reverse: float
-var ui_rotate: float
-var ui_shoot: bool
+var ui_forward: float = 0.0
+var ui_reverse: float = 0.0
+var ui_rotate: float = 0.0
+var ui_shoot: bool = false
+var ui_toggle_auto_target: bool = false
 
+var auto_target: bool = false
 var alive: bool = true setget set_alive, is_alive
-var tick: int
+var tick: int = 0
 var print_console_target: bool = false
 
 const mask_all_ships_and_planets: int = 1<<29
@@ -84,6 +86,7 @@ func update_ui() -> void:
 	var up: bool = Input.is_action_pressed("ui_up")
 	var down: bool = Input.is_action_pressed("ui_down")
 	var deselect: bool = Input.is_action_just_released('ui_deselect_target')
+	ui_toggle_auto_target = Input.is_action_just_released('ui_toggle_auto_targeting')
 	ui_forward = float(up)
 	ui_reverse = float(down)
 	ui_rotate = float(left)-float(right)
@@ -168,7 +171,10 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 			game_state.print_to_console('Landing on '+target.display_name)
 			print_console_target=false
 
-	var should_auto_target: bool = target!=null
+	if ui_toggle_auto_target:
+		auto_target=!auto_target
+
+	var should_auto_target: bool = auto_target and target!=null
 	
 	if autopilot_orders&AUTO_EVADE:
 		ensure_ship_ai()
@@ -193,7 +199,6 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		ship_tool.request_rotation(ship,state,ui_rotate)
 		ship_tool.request_thrust(ship,state,ui_forward,ui_reverse)
 	if ui_shoot:
-		should_auto_target=false
 		if should_auto_target and abs(ui_rotate)<1e-5:
 			ship_tool.auto_fire(ship,state,target)
 		else:
