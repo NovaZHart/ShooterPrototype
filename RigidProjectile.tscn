@@ -13,6 +13,7 @@ albedo_color = Color( 0.0862745, 0.294118, 0.560784, 1 )
 [node name="RigidBody" type="RigidBody"]
 mass = 0.02
 script = ExtResource( 1 )
+lifetime = 1.0
 
 [node name="Spatial" type="Spatial" parent="."]
 transform = Transform( 0.6, 0, 0, 0, 1, 0, 0, 0, 0.6, 0, 0, 0 )

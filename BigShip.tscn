@@ -86,15 +86,11 @@ shape = SubResource( 9 )
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.973423, 0, -2.99087 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 5.0
-projectile_speed = 60.0
 wait_time = 1.0
 
 [node name="ProjectileWeapon2" parent="." instance=ExtResource( 1 )]
 transform = Transform( 0.835302, 0, 0, 0, 0.835302, 0, 0, 0, 0.835302, 0.973, 0, 2.991 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 5.0
-projectile_speed = 60.0
 wait_time = 1.0
 
 [node name="ProjectileWeapon3" parent="." instance=ExtResource( 1 )]

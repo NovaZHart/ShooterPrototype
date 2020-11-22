@@ -50,15 +50,11 @@ hull_heal = 5.0
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 0.221603, 0, 0, 0, 0.271922, 0.699, 0, -1.11 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 0.7
-projectile_speed = 100.0
 wait_time = 0.134
 
 [node name="ProjectileWeapon2" parent="." instance=ExtResource( 2 )]
 transform = Transform( 1, 0, 0, 0, 0.221603, 0, 0, 0, 0.271922, 0.699, 0, 1.11 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 0.7
-projectile_speed = 100.0
 wait_time = 0.134
 
 [node name="MainBody" type="MeshInstance" parent="."]

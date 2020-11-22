@@ -7,7 +7,7 @@ export var threat: float = 9 setget set_threat,get_threat
 export var guided: bool = false setget set_guided,get_guided
 export var guidance_uses_velocity: bool = true setget set_guidance_uses_velocity, get_guidance_uses_velocity
 var target_path: NodePath setget set_target_path, get_target_path
-
+export var lifetime: float = 0.7 setget set_lifetime,get_lifetime
 export var thrust: float = 100 setget set_thrust,get_thrust
 export var max_speed: float = 50 setget set_max_speed,get_max_speed
 export var max_angular_velocity: float = 5 setget set_max_angular_velocity,get_max_angular_velocity
@@ -56,8 +56,12 @@ func set_team(var new_team: int):
 	collision_layer = 1 << (team*2+1)
 	collision_mask = 1 << (enemy*2)
 
-func set_lifetime(var seconds: float):
-	$Timer.wait_time=seconds
+func get_lifetime() -> float:
+	return lifetime
+func set_lifetime(f: float):
+	lifetime=f
+	if get_node_or_null("Timer")!=null:
+		$Timer.wait_time=lifetime
 
 func _on_body_entered(body: Node):
 	if body.has_method('receive_damage'):
@@ -67,6 +71,10 @@ func _on_body_entered(body: Node):
 
 func _init():
 	custom_integrator = true
+	axis_lock_linear_y=true
+	contact_monitor=true
+	contacts_reported=1
+	$Timer.wait_time=lifetime
 	var _discard=connect('body_entered',self,'_on_body_entered')
 
 func _integrate_forces(var state: PhysicsDirectBodyState):

@@ -155,6 +155,8 @@ Vector3 ShipTool::aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
     Variant child = children[i];
     if(!child.has_method("is_a_turret") || cast_0arg<bool>(child,"is_a_turret"))
       continue;
+    if(cast_0arg<bool>(child,"get_projectile_guided"))
+      continue;
     Spatial *weapon(child);
     if(!weapon)
       continue;
@@ -270,6 +272,8 @@ void ShipTool::auto_target(RigidBody *ship, PhysicsDirectBodyState *state, Rigid
   for(int i=0;i<children.size();i++) {
     Variant child = children[i];
     if(!child.has_method("is_a_turret")) // || cast_0arg<bool>(child,"is_a_turret"))
+      continue;
+    if(cast_0arg<bool>(child,"get_projectile_guided"))
       continue;
     Spatial *weapon(child);
     if(!weapon)

@@ -60,8 +60,6 @@ shape = SubResource( 6 )
 [node name="MiddleWeapon" parent="." instance=ExtResource( 2 )]
 transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0, -0.232, 0 )
 Projectile = ExtResource( 3 )
-projectile_lifetime = 5.0
-projectile_speed = 60.0
 wait_time = 1.0
 
 [node name="LeftWeapon" parent="." instance=ExtResource( 2 )]

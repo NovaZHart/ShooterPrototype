@@ -12,6 +12,7 @@ script = ExtResource( 1 )
 damage = 200.0
 threat = 35.0
 guided = true
+lifetime = 3.0
 thrust = 20.0
 max_speed = 30.0
 max_angular_velocity = 8.0

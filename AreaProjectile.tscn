@@ -6,7 +6,7 @@
 
 [sub_resource type="SpatialMaterial" id=2]
 flags_unshaded = true
-albedo_color = Color( 0.0862745, 0.294118, 0.560784, 1 )
+albedo_color = Color( 0.996078, 0.980392, 0.0392157, 1 )
 
 [sub_resource type="CylinderShape" id=3]
 
@@ -15,7 +15,7 @@ script = ExtResource( 1 )
 damage = 25.0
 threat = 6.0
 guidance_uses_velocity = false
-max_speed = 60.0
+max_speed = 80.0
 max_angular_velocity = 1.0
 
 [node name="Spatial" type="Spatial" parent="."]
