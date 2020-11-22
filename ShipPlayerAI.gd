@@ -173,6 +173,10 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 
 	if ui_toggle_auto_target:
 		auto_target=!auto_target
+		if auto_target:
+			game_state.print_to_console('Enabling auto-targeting.')
+		else:
+			game_state.print_to_console('Disabling auto-targeting.')
 
 	var should_auto_target: bool = auto_target and target!=null
 	
