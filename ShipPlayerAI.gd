@@ -181,7 +181,7 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		should_auto_target = false
 		if target.is_a_planet():
 			ship_tool.move_to_intercept(ship, state, target.get_radius(),
-				1, target.get_position(), Vector3(0,0,0), true)
+				3, target.get_position(), Vector3(0,0,0), true)
 			if print_console_target:
 				game_state.print_to_console('Fly to '+target.display_name)
 		else:

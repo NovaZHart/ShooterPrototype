@@ -12,7 +12,8 @@ opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
 opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'bin/'))
-opts.Add(PathVariable('sphere_target_name', 'The spheretool library name.', 'libspheretool', PathVariable.PathAccept))
+opts.Add(PathVariable('SphereTool_target_name', 'The SphereTool library name.', 'libspheretool', PathVariable.PathAccept))
+opts.Add(PathVariable('ShipTool_target_name', 'The ShipTool library name.', 'libshiptool', PathVariable.PathAccept))
 
 SConscript(['godot-cpp/SConstruct'])
 
@@ -101,10 +102,11 @@ env.Append(LIBS=[cpp_library])
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=['src/'])
 
-sources = Glob('src/sphere*.cpp')
-sphere_library = env.SharedLibrary(target=env['target_path'] + env['sphere_target_name'] , source=sources)
+SphereTool_library = env.SharedLibrary(target=env['target_path'] + env['SphereTool_target_name'] , source=Glob('src/SphereTool*.cpp'))
+ShipTool_library = env.SharedLibrary(target=env['target_path'] + env['ShipTool_target_name'] , source=Glob('src/ShipTool*.cpp'))
 
-Default(sphere_library)
+Default(SphereTool_library)
+Default(ShipTool_library)
 
 # Generates help for the -h scons option.
 Help(opts.GenerateHelpText(env))
