@@ -107,6 +107,9 @@ func _init():
 
 func _ready():
 	$Timer.wait_time=lifetime
+	$Timer.one_shot=true
+	$Timer.process_mode=Timer.TIMER_PROCESS_PHYSICS
+	var _discard=$Timer.connect('timeout',self,'_on_Timer_timeout')
 	$Timer.start()
 	emit_signal('launch')
 	init_children(self)

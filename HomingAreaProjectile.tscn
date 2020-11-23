@@ -20,6 +20,7 @@ material = SubResource( 4 )
 script = ExtResource( 1 )
 damage = 180.0
 threat = 30.0
+lifetime = 6.0
 guided = true
 max_angular_velocity = 9.0
 
@@ -53,4 +54,5 @@ mesh = SubResource( 5 )
 material/0 = null
 
 [node name="Timer" type="Timer" parent="."]
+process_mode = 0
 one_shot = true
