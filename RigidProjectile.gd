@@ -50,6 +50,13 @@ func position_at_time(var t: float) -> Vector3:
 func get_position() -> Vector3:
 	return Vector3(translation[0],0,translation[2])
 
+func init_children(node: Node):
+	for child in node.get_children():
+		if child is VisualInstance:
+			child.layers=4
+		if child.get_child_count()>0:
+			init_children(child)
+
 func set_team(var new_team: int):
 	team=new_team
 	enemy = 0 if team else 1
@@ -95,6 +102,7 @@ func _integrate_forces(var state: PhysicsDirectBodyState):
 func _ready():
 	$Timer.start()
 	emit_signal('launch')
+	init_children(self)
 
 func _on_Timer_timeout():
 	emit_signal('timeout')
