@@ -257,6 +257,7 @@ func center_view() -> void:
 	$TopCamera.translation.z = z
 	$SpaceBackground.center_view(x,z,$TopCamera.size)
 	emit_signal('place_minimap',Vector2(z,-x),300)
+	$ShipLight.translation.y = min(1e4,max(10.0,sqrt(x*x+z*z)/sqrt(3)))
 
 func _process(delta):
 	game_state.system.process_space(self,delta)
