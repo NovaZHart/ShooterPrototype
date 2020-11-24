@@ -2,6 +2,8 @@
 
 #include <cmath>
 #include <algorithm>
+#include <cstring>
+#include <limits>
 
 #include <OS.hpp>
 #include <AABB.hpp>
@@ -10,31 +12,40 @@
 #include <GodotGlobal.hpp>
 #include <NodePath.hpp>
 
-
-const double FAST = 1e6;
-const double PI = 3.141592653589793;
-
 using namespace godot;
 using namespace std;
 
-class SimpleProfiling {
+class GodotProfiling {
   uint64_t ticks;
-  string function;
+  string *signature;
 public:
-  SimpleProfiling(const char *p_function) {
-    function = "::0::";
-    function += p_function;
-    ticks = OS::get_singleton()->get_ticks_usec();
+  string *sign(const char *function, int line) {
+    char buf[1024];
+    snprintf(buf, 1024, "::%d::%s", line, function);
+    return new string(buf);
   }
-  ~SimpleProfiling() {
+  GodotProfiling(const char *function, int line, string **signature_storage):
+    ticks(OS::get_singleton()->get_ticks_usec()),
+    signature(*signature_storage ? *signature_storage : *signature_storage = sign(function,line))
+  {}
+  ~GodotProfiling() {
     uint64_t t = OS::get_singleton()->get_ticks_usec() - ticks;
     if (t > 0) {
-      Godot::gdnative_profiling_add_data(function.c_str(), t);
+      Godot::gdnative_profiling_add_data(signature->c_str(), t);
     }
   }
 };
 
-#define SIMPLE_PROFILING_FUNCTION SimpleProfiling __simple_profiling( __FUNCTION__ )
+#define GODOT_PROFILING_FUNCTION \
+  static string *__signature_storage_ ## __LINE__ = nullptr; \
+  GodotProfiling __godot_profiling_ ## __LINE__ ( __FUNCTION__, __LINE__, \
+    &__signature_storage_ ## __LINE__ );
+
+
+const double FAST = 1e6;
+const double PI = 3.141592653589793;
+const Vector3 x_axis(1,0,0);
+const Vector3 y_axis(0,1,0);
 
 void ShipTool::_register_methods() {
   register_method("guide_RigidProjectile", &ShipTool::guide_RigidProjectile);
@@ -42,7 +53,6 @@ void ShipTool::_register_methods() {
 
   register_method("request_move_to_attack", &ShipTool::request_move_to_attack);
   register_method("player_auto_target", &ShipTool::player_auto_target);
-  register_method("auto_fire", &ShipTool::auto_fire);
   register_method("request_rotation", &ShipTool::request_rotation);
   register_method("make_threat_vector", &ShipTool::make_threat_vector);
   register_method("request_thrust", &ShipTool::request_thrust);
@@ -152,7 +162,7 @@ static Vector3 position_at_time(const RigidBody *ship,double t) {
 
 template<class T>
 static Vector3 get_heading(const T &spatial) {
-  return Vector3(1,0,0).rotated(Vector3(0,1,0),spatial->get_rotation()[1]);
+  return x_axis.rotated(y_axis,spatial->get_rotation()[1]);
 }
 
 static bool is_nil(const Variant &v) {
@@ -161,7 +171,7 @@ static bool is_nil(const Variant &v) {
 
 Vector3 ShipTool::make_threat_vector(RigidBody *ship, Array near_objects,
                                      double shape_radius, double t) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   Vector3 my_position = position_at_time(ship,t);
   Vector2 threat_vector;
   double dw_div = 0;
@@ -186,40 +196,114 @@ Vector3 ShipTool::make_threat_vector(RigidBody *ship, Array near_objects,
 }
 
 void ShipTool::aim_turrets(RigidBody *ship, PhysicsDirectBodyState *state,
-                           const Array &nearby_enemies) {
-  SIMPLE_PROFILING_FUNCTION;
+                           RigidBody *target, Spatial *system) {
+  GODOT_PROFILING_FUNCTION;
+  double step = state->get_step();
+  Vector3 ship_pos = position_now(ship);
+  Vector3 ship_vel = state->get_linear_velocity();
+  double ship_rotation = ship->get_rotation()[1];
+  Vector3 heading = x_axis.rotated(y_axis,ship_rotation);
+  Vector3 confusion = cast_0arg<Vector3>(ship,"get_confusion");
   Array children = ship->get_children();
+
+  bool got_enemies = false;
+  Array enemies;
+  
   for(int i=0;i<children.size();i++) {
-    Variant child = children[i];
-    if(!child.has_method("is_a_turret") || !cast_0arg<bool>(child,"is_a_turret"))
+    Spatial *weapon(static_cast<Variant>(children[i]));
+    if(!weapon or !weapon->has_method("get_max_angular_velocity"))
       continue;
-    Spatial *weapon(child);
-    if(!weapon)
-      continue;
+    
+    double max_angular_velocity = cast_0arg<double>(weapon,"get_max_angular_velocity");
+    if(max_angular_velocity<1e-5)
+      continue; // Can't aim turrets that are unable to turn
+    
     double projectile_lifetime = cast_0arg<double>(weapon,"get_projectile_lifetime");
     double projectile_speed = cast_0arg<double>(weapon,"get_projectile_speed");
     double travel = projectile_lifetime*projectile_speed;
     if(travel<1e-5)
       continue; // Avoid divide by zero for turrets with no range.
-    Vector3 turret_rotation = weapon->get_rotation();
+
+    double turret_rotation = weapon->get_rotation()[1];
     Vector3 turret_hardpoint = weapon->get_translation();
-    bool opportunistic = false; // FIXME: Query weapon or ship
-    if(nearby_enemies.empty()) {
+    double turret_angular_velocity = 0;
+
+    bool is_guided = weapon->has_method("get_guided") && cast_0arg<bool>(weapon,"get_guided");
+
+    call_1arg(weapon,"set_angular_velocity",Vector3(0,0,0));
+    
+    if(!got_enemies) {
+      enemies = cast_2arg<Array>(ship,"get_ships_within_turret_range",system,1.5);
+      got_enemies = true;
+    }
+    
+    // FIXME: implement Weapon->get_opportunistic
+    bool opportunistic = weapon->has_method("get_opportunistic") && cast_0arg<bool>(weapon,"get_opportunistic");
+    if(enemies.empty() && !target) {
+      Godot::print("No targets for turret aim.");
       if(opportunistic) {
         //FIXME: INSERT CODE HERE
       } else {
         // Nothing to shoot, so aim turret forward
         double to_center = asin(clamp(turret_hardpoint[2]/travel,-1.0,1.0));
-        //turn_turret(ship,state,weapon,to_center);
+        double desired_angular_velocity = fmod(turret_rotation - to_center + PI, PI*2) - PI;
+        turret_angular_velocity = clamp(desired_angular_velocity, -max_angular_velocity, max_angular_velocity);
+      }
+      call_1arg(weapon,"set_angular_velocity",Vector3(0,turret_angular_velocity,0));
+      call_1arg(weapon,"turn",step);
+      continue;
+    }
+
+    Vector3 proj_start = ship_pos + turret_hardpoint.rotated(y_axis,ship_rotation) + confusion;
+    Vector3 proj_heading = heading.rotated(y_axis,turret_rotation);
+
+    double best_score = numeric_limits<double>::infinity();
+    RigidBody *enemy = target;
+    for(int j=-1; j<enemies.size(); j++) {
+      if(j>=0) {
+        Dictionary a=static_cast<Dictionary>(enemies[j]);
+        NodePath np = a["path"];
+        Node *n=system->get_node_or_null(np);
+        if(n==nullptr || !n->has_method("_integrate_forces"))
+          continue;
+        enemy=static_cast<RigidBody*>(n);
+        if(enemy==target)
+          continue; // don't process target twice
+      }
+      if(!enemy)
+        continue;
+      Vector3 dp = position_now(enemy) - proj_start;
+      Vector3 dv = enemy->get_linear_velocity();
+      if(!is_guided)
+        dv -= ship_vel;
+      dp += dv*step;
+      double t = rendezvous_time(dp, dv, projectile_speed);
+      if(isnan(t))
+        // Target is out of range. Consider it viable but with a long time to hit.
+        t = max(dp.length()/projectile_speed, 2*projectile_lifetime);
+      dp += dv*t;
+      double dot = dp.normalized().dot(proj_heading);
+      double angle_to_target = asin(clamp(dot,-1.0,1.0));
+      double desired_angular_velocity = fmod(turret_rotation - angle_to_target + PI, PI*2) - PI;
+      double turn_time = desired_angular_velocity/max_angular_velocity;
+
+      // Score is adjusted to favor ships that the projectile will strike.
+      double score = turn_time + (PI/max_angular_velocity)*t;
+      if(score<best_score) {
+        best_score=score;
+        turret_angular_velocity = clamp(desired_angular_velocity, -max_angular_velocity, max_angular_velocity);
       }
     }
-    // FIXME: INSERT CODE HERE
+    if(fabs(turret_angular_velocity)>1e-5) {
+      call_1arg(weapon,"set_angular_velocity",Vector3(0,turret_angular_velocity,0));
+      call_1arg(weapon,"turn",step);
+    }
   }
 }
 
 Vector3 ShipTool::aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
                               RigidBody *target) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   Vector3 aim;
   Vector3 confusion = cast_0arg<Vector3>(ship,"get_confusion");
   Vector3 my_pos=position_now(ship);
@@ -247,7 +331,7 @@ Vector3 ShipTool::aim_forward(RigidBody *ship, PhysicsDirectBodyState *state,
 }
 
 Vector3 ShipTool::stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,Vector3 tgt_vel, bool &should_reverse) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   should_reverse = false;
 
   Vector3 pos = position_now(ship);
@@ -275,7 +359,7 @@ Vector3 ShipTool::stopping_point(RigidBody *ship,PhysicsDirectBodyState *state,V
 }
 
 double ShipTool::rendezvous_time(Vector3 target_location,Vector3 target_velocity, double interceptor_speed) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   double a = target_velocity.dot(target_velocity) - interceptor_speed*interceptor_speed;
   double b = 2.0 * target_location.dot(target_velocity);
   double c = target_location.dot(target_location);
@@ -297,7 +381,9 @@ double ShipTool::rendezvous_time(Vector3 target_location,Vector3 target_velocity
 }
 
 void ShipTool::request_move_to_attack(RigidBody *ship, PhysicsDirectBodyState *state, RigidBody *target, Spatial *system) {
-  move_to_attack(ship,state,target);
+  if(target)
+    move_to_attack(ship,state,target);
+  aim_turrets(ship,state,target,system);
   auto_fire(ship,state,target,system);
 }
 
@@ -313,7 +399,7 @@ void ShipTool::player_auto_target(RigidBody *ship,PhysicsDirectBodyState *state,
 
 Dictionary ShipTool::check_target_lock(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 point1,
                                        Vector3 point2, RigidBody *target) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   target->set_collision_mask(target->get_collision_mask() | (1<<30));
   PhysicsDirectSpaceState *space = state->get_space_state();
   Dictionary result = space->intersect_ray(point1, point2, Array());
@@ -322,13 +408,13 @@ Dictionary ShipTool::check_target_lock(RigidBody *ship, PhysicsDirectBodyState *
 }
 
 void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBody *target, Spatial *system) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   if(!target->has_method("is_a_ship"))
     return;
   if(!cast_0arg<bool>(target,"is_a_ship"))
     return;
 
-  Array enemies = cast_1arg<Array>(ship,"get_ships_within_weapon_range",system);
+  Array enemies = cast_2arg<Array>(ship,"get_ships_within_weapon_range",system,1.5);
 
   Vector3 heading = get_heading(ship);
   Vector3 p_ship = position_now(ship);
@@ -346,11 +432,14 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
       continue;
     }
     Vector3 p_weapon = position_now(weapon).rotated(Vector3(0,1,0),ship->get_rotation()[1]);
+    Vector3 weapon_rotation = weapon->get_rotation();
     double projectile_speed = cast_0arg<double>(weapon,"get_projectile_speed");
     double projectile_lifetime = cast_0arg<double>(weapon,"get_projectile_lifetime");
     p_weapon[1]=5;
     RigidBody *enemy=target;
-    AABB bound = cast_0arg<AABB>(target,"get_combined_aabb");
+    AABB bound;
+    if(target and target->has_method("get_combined_aabb"))
+      bound = cast_0arg<AABB>(target,"get_combined_aabb");
     for(int j=-1;j<enemies.size();j++) {
       if(j>=0) {
         Dictionary a=static_cast<Dictionary>(enemies[j]);
@@ -359,6 +448,8 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
         if(n==nullptr || !n->has_method("_integrate_forces"))
           continue;
         enemy=static_cast<RigidBody*>(n);
+        if(enemy==target)
+          continue; // don't process target twice
         bound = a["aabb"];
       }
       if(!enemy)
@@ -367,7 +458,8 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
       Vector3 dv_ship = enemy->get_linear_velocity() - state->get_linear_velocity();
       Vector3 dp_ship = p_enemy - p_ship + dv_ship*state->get_step();
       Vector3 dp = dp_ship - p_weapon;
-      Vector3 dv = (heading*projectile_speed - dv_ship)*projectile_lifetime;
+      Vector3 projectile_velocity = heading.rotated(y_axis,weapon_rotation[1])*projectile_speed;
+      Vector3 dv = (projectile_velocity - dv_ship)*projectile_lifetime*1.1;
       Vector3 point1 = dp-dv;
       Vector3 point2 = dp;
       point1[1]=0;
@@ -383,31 +475,33 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
 }
 
 void ShipTool::move_to_attack(RigidBody *ship, PhysicsDirectBodyState *state, RigidBody *target) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   Vector3 heading = get_heading(ship);
   Vector3 confusion = cast_0arg<Vector3>(ship,"get_confusion");
-  Vector3 dp = position_now(target)+confusion - position_now(ship);
   Variant weapon = cast_2arg<Variant>(ship,"get_first_weapon_or_null",true,true);
   if(is_nil(weapon))
     return;
-  Vector3 aim = aim_forward(ship,state,target);
-  request_heading(ship,state,aim.normalized());
+  if(target) {
+    Vector3 dp = position_now(target)+confusion - position_now(ship);
+    Vector3 aim = aim_forward(ship,state,target);
+    request_heading(ship,state,aim.normalized());
 	
-  // Get the circle the ship would make while turning at maximum speed:
-  double full_turn_time = 2*PI / cast_0arg<double>(ship,"get_max_angular_velocity");
-  double turn_circumference = full_turn_time * cast_0arg<double>(ship,"get_max_speed");
-  double turn_diameter = max(turn_circumference/PI,5.0);
+    // Get the circle the ship would make while turning at maximum speed:
+    double full_turn_time = 2*PI / cast_0arg<double>(ship,"get_max_angular_velocity");
+    double turn_circumference = full_turn_time * cast_0arg<double>(ship,"get_max_speed");
+    double turn_diameter = max(turn_circumference/PI,5.0);
 	
-  // Heuristic; needs improvement
-  if(heading.dot(dp)>=0 && dp.length()>turn_diameter ||
-     state->get_linear_velocity().dot(dp)<0 && heading.dot(dp.normalized())>0.9)
-    request_thrust(ship,state,1.0,0.0);
+    // Heuristic; needs improvement
+    if(heading.dot(dp)>=0 && dp.length()>turn_diameter ||
+       state->get_linear_velocity().dot(dp)<0 && heading.dot(dp.normalized())>0.9)
+      request_thrust(ship,state,1.0,0.0);
+  }
 }
 
 bool ShipTool::move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,double close, double slow,
                                  Vector3 tgt_pos, Vector3 tgt_vel,
                                  bool force_final_state) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   const double small_dot_product = 0.8;
   Vector3 position = position_now(ship);
   Vector3 heading = get_heading(ship);
@@ -437,21 +531,21 @@ bool ShipTool::move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,
 
 void ShipTool::velocity_to_heading(RigidBody *projectile, PhysicsDirectBodyState *state) {
   // Projectiles always move in the direction they're pointing and never reduce speed.
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   double step = state->get_step();
   Vector3 old_vel = state->get_linear_velocity();
   double max_speed = cast_0arg<double>(projectile,"get_max_speed");
   double invmass = state->get_inverse_mass();
   double next_speed = min(max_speed,old_vel.length()+cast_0arg<double>(projectile,"get_thrust")*invmass*step);
   double rotation = projectile->get_rotation()[1] + step*state->get_angular_velocity()[1];
-  Vector3 new_vel = Vector3(1,0,0).rotated(Vector3(0,1,0),rotation)*next_speed;
+  Vector3 new_vel = x_axis.rotated(y_axis,rotation)*next_speed;
   Vector3 accel = (new_vel-old_vel)/step;
   state->add_central_force(accel/invmass);
 }
 
 void ShipTool::guide_RigidProjectile(RigidBody *projectile, PhysicsDirectBodyState *state,
                                      RigidBody *target, bool use_velocity) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   double step = state->get_step();
   double max_speed = cast_0arg<double>(projectile,"get_max_speed");
 
@@ -499,7 +593,7 @@ void ShipTool::guide_RigidProjectile(RigidBody *projectile, PhysicsDirectBodySta
 }
 
 void ShipTool::request_heading(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 new_heading) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   Vector3 new_normed = new_heading.normalized();
   Vector3 heading = get_heading(ship);
   double cross = -new_normed.cross(heading)[1];
@@ -536,7 +630,7 @@ void ShipTool::request_thrust(RigidBody *ship, PhysicsDirectBodyState *state,dou
 
 void ShipTool::guide_AreaProjectile(Area *projectile, double delta,
                                     RigidBody *target, bool use_velocity) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   double max_speed = cast_0arg<double>(projectile,"get_max_speed");
   double max_angular_velocity = cast_0arg<double>(projectile,"get_max_angular_velocity");
   Vector3 dp = position_now(target) - position_now(projectile);
@@ -572,7 +666,7 @@ void ShipTool::guide_AreaProjectile(Area *projectile, double delta,
 }
 
 void ShipTool::velocity_to_heading(Area *projectile, double delta) {
-  SIMPLE_PROFILING_FUNCTION;
+  GODOT_PROFILING_FUNCTION;
   // Projectiles always move in the direction they're pointing and never reduce speed.
   Vector3 old_vel = cast_0arg<Vector3>(projectile,"get_linear_velocity");
   double max_speed = cast_0arg<double>(projectile,"get_max_speed");
@@ -582,5 +676,5 @@ void ShipTool::velocity_to_heading(Area *projectile, double delta) {
   double rotation = projectile->get_rotation()[1]
     + delta*cast_0arg<Vector3>(projectile,"get_angular_velocity")[1];
   call_1arg(projectile,"set_linear_velocity",
-            Vector3(1,0,0).rotated(Vector3(0,1,0),rotation)*next_speed);
+            x_axis.rotated(y_axis,rotation)*next_speed);
 }

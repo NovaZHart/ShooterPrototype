@@ -33,7 +33,7 @@ namespace godot {
     void guide_RigidProjectile(RigidBody *projectile, PhysicsDirectBodyState *state,
                                RigidBody *target, bool use_velocity);
     void aim_turrets(RigidBody *ship, PhysicsDirectBodyState *state,
-                     const Array &nearby_enemies, bool opportunistic);
+                     RigidBody *target, Spatial *system);
     
     void request_heading(RigidBody *ship, PhysicsDirectBodyState *state, Vector3 new_heading);
     bool move_to_intercept(RigidBody *ship, PhysicsDirectBodyState *state,double close, double slow,

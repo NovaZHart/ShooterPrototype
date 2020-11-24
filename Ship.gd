@@ -34,9 +34,9 @@ var enemy_mask: int setget ,get_enemy_mask
 var enemy_ship_mask: int setget ,get_enemy_mask
 
 # Cached results of calculations
-var cached_weapon_range = null
-var cached_unguided_weapon_range = null
-var cached_sorted_enemy_list = null
+var cached_weapon_ranges = null
+var cached_nearby_enemy_info: Array = [ -1, [] ]
+var mutex_nearby_enemy_info: Mutex = Mutex.new()
 
 var firing_flags: Dictionary = {}
 
@@ -178,19 +178,27 @@ func threat_at_time(t: float) -> float:
 func get_team(): return team
 func get_enemy(): return enemy
 
-func get_ships_within_unguided_weapon_range(system: Spatial):
-	var sorted_enemy_list = cached_sorted_enemy_list
-	if sorted_enemy_list==null:
-		sorted_enemy_list=system.sorted_enemy_list(translation,enemy,min(100,get_unguided_weapon_range()))
-		cached_sorted_enemy_list=sorted_enemy_list
-	return sorted_enemy_list
+func get_ships_within_range(system: Spatial, desired_range: float):
+	var info = cached_nearby_enemy_info
+	if info[0]<desired_range:
+		mutex_nearby_enemy_info.lock()
+		info = cached_nearby_enemy_info
+		if info[0]<desired_range:
+			info = [
+				desired_range,
+				system.sorted_enemy_list(translation,enemy,desired_range),
+			]
+			cached_nearby_enemy_info = info
+	return info[1]
 
-func get_ships_within_weapon_range(system: Spatial):
-	var sorted_enemy_list = cached_sorted_enemy_list
-	if sorted_enemy_list==null:
-		sorted_enemy_list=system.sorted_enemy_list(translation,enemy,min(100,get_weapon_range()))
-		cached_sorted_enemy_list=sorted_enemy_list
-	return sorted_enemy_list
+func get_ships_within_unguided_weapon_range(system: Spatial, fudge_factor: float = 1.5):
+	return get_ships_within_range(system,get_unguided_weapon_range()*fudge_factor)
+
+func get_ships_within_weapon_range(system: Spatial,fudge_factor: float = 1.5):
+	return get_ships_within_range(system,get_weapon_range()*fudge_factor)
+
+func get_ships_within_turret_range(system: Spatial,fudge_factor: float = 1.5):
+	return get_ships_within_range(system,get_turret_range()*fudge_factor)
 
 func get_heading() -> Vector3:
 	return Vector3(1,0,0).rotated(Vector3(0,1,0),rotation[1])
@@ -237,40 +245,31 @@ func _init():
 	axis_lock_angular_z=true
 	set_team(0)
 
-func get_weapon_range() -> float:
-	var max_range = cached_weapon_range
-	if max_range==null:
-		max_range = 0
+func get_weapon_ranges() -> Array:
+	var info = cached_weapon_ranges
+	if info==null:
+		info = [0,0,0,0,0]
 		for child in get_children():
-			if child.has_method('get_weapon_range'):
-				max_range = max(max_range,child.get_weapon_range())
-		cached_weapon_range=max_range
-	return max_range
-
-func get_unguided_weapon_range() -> float:
-	var max_range = cached_unguided_weapon_range
-	if max_range==null:
-		max_range = 0
-		for child in get_children():
-			if child.has_method('is_guided') and child.is_guided():
+			if not child.has_method('get_weapon_range'):
 				continue
-			elif child.has_method('get_weapon_range'):
-				max_range = max(max_range,child.get_weapon_range())
-		cached_unguided_weapon_range=max_range
-	return max_range
+			var weapon_range: float = child.get_weapon_range()
+			info[0] = max(info[0],weapon_range)
+			if child.has_method('is_guided') and child.is_guided():
+				info[1] = max(info[1],weapon_range)
+			else:
+				info[2] = max(info[2],weapon_range)
+			if child.has_method('is_a_turret') and child.is_a_turret():
+				info[3] = max(info[3],weapon_range)
+			else:
+				info[4] = max(info[4],weapon_range)
+		cached_weapon_ranges=info
+	return info
 
-#
-#func get_ships_within_turret_range(system: Node) -> Array:
-#	var weapon_range: float
-#	for child in get_children():
-#		if child.has_method('is_a_turret') and child.is_a_turret():
-#			var loc = child.translation
-#			var wep = child.get_weapon_range()
-#			var child_range = wep+sqrt(loc.x*loc.x+loc.z*loc.z)
-#			weapon_range = max(weapon_range,child_range)
-#	if weapon_range<1e-5:
-#		return []
-#	return system.sorted_enemy_list(self.translation,self.enemy,weapon_range)
+func get_weapon_range() -> float:            return get_weapon_ranges()[0]
+func get_guided_weapon_range() -> float:     return get_weapon_ranges()[1]
+func get_unguided_weapon_range() -> float:   return get_weapon_ranges()[2]
+func get_turret_range() -> float:            return get_weapon_ranges()[3]
+func get_non_turret_range() -> float:        return get_weapon_ranges()[4]
 
 func init_children(node: Node):
 	for child in node.get_children():
@@ -288,6 +287,7 @@ func _enter_tree():
 func _ready():
 	fully_heal()
 	init_firing_flags()
+	clear_ai()
 
 func pass_shoot_signal(var shot: Node):
 	emit_signal('shoot',shot)
@@ -296,12 +296,13 @@ func fire_primary_weapons():
 	for weapon_name in firing_flags.keys():
 		var weapon: Node = get_node_or_null(weapon_name)
 		if weapon==null:
-			var _discard=firing_flags.erase(weapon_name)
+			var _discard = firing_flags.erase(weapon_name)
 		elif not weapon.has_method('is_secondary') or not weapon.is_secondary():
-			firing_flags[weapon_name]=true
+			firing_flags[weapon_name] = true
 
 func clear_ai():
-	pass
+	cached_nearby_enemy_info = [-1,[]]
+	#cached_weapon_ranges = null
 
 func set_firing_flag(weapon_name: String,fire_flag: bool):
 	firing_flags[weapon_name]=fire_flag
