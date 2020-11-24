@@ -27,6 +27,7 @@ func set_linear_velocity(f: Vector3): linear_velocity=f
 
 func get_threat() -> float: return threat
 func set_threat(f: float): threat=f
+func get_max_threat() -> float: return threat
 func get_damage() -> float: return damage
 func set_damage(f: float): damage=f
 func get_guided() -> bool: return guided
@@ -83,10 +84,10 @@ func _on_body_entered(body: Node):
 	emit_signal('hit',body,damage)
 	queue_free()
 
-func guide_if_have_target(delta: float):
+func guide_if_have_target(delta: float) -> bool:
 	if target_path.is_empty():
 		angular_velocity=Vector3(0,0,0)
-		return
+		return false
 	var target=get_node_or_null(target_path)
 	if target==null or not target.has_method('is_a_ship') or not target.is_a_ship():
 		# Invalid target
@@ -95,10 +96,12 @@ func guide_if_have_target(delta: float):
 		target_path=NodePath()
 	else:
 		ship_tool.guide_AreaProjectile(self,delta,target,guidance_uses_velocity)
+	return true
 
 func _physics_process(delta: float):
 	if guided:
-		guide_if_have_target(delta)
+		if not guide_if_have_target(delta):
+			ship_tool.move_AreaProjectile(self,delta)
 	translation += delta*linear_velocity
 	rotation += delta*angular_velocity
 

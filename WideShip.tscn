@@ -2,8 +2,9 @@
 
 [ext_resource path="res://Ship.gd" type="Script" id=1]
 [ext_resource path="res://ProjectileWeapon.tscn" type="PackedScene" id=2]
-[ext_resource path="res://HomingAreaProjectile.tscn" type="PackedScene" id=3]
+[ext_resource path="res://HomingTorpedo.tscn" type="PackedScene" id=3]
 [ext_resource path="res://AreaProjectile.tscn" type="PackedScene" id=4]
+
 
 [sub_resource type="SpatialMaterial" id=1]
 albedo_color = Color( 0.898039, 0.811765, 0.811765, 1 )
@@ -28,10 +29,10 @@ thrust = 90.0
 reverse_thrust = 16.0
 max_speed = 55.0
 rotation_torque = 120.0
-max_shields = 300.0
-max_hull = 600.0
-max_structure = 1200.0
-shield_heal = 80.0
+max_shields = 2000.0
+max_hull = 3000.0
+max_structure = 7000.0
+shield_heal = 100.0
 hull_heal = 20.0
 
 [node name="Body" type="MeshInstance" parent="."]
@@ -58,7 +59,7 @@ transform = Transform( 1.1, 0, 0, 0, 10, 0, 0, 0, 1.5, 0, 0, 0 )
 shape = SubResource( 6 )
 
 [node name="MiddleWeapon" parent="." instance=ExtResource( 2 )]
-transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 0, -0.232, 0 )
+transform = Transform( 0.5, 0, 0, 0, 0.36, 0, 0, 0, 0.347826, 1.03985, -0.232, 0 )
 Projectile = ExtResource( 3 )
 wait_time = 1.0
 

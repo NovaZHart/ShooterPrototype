@@ -84,12 +84,10 @@ func _init():
 	$Timer.wait_time=lifetime
 	var _discard=connect('body_entered',self,'_on_body_entered')
 
-func _integrate_forces(var state: PhysicsDirectBodyState):
-	if not guided:
-		return
+func guide_if_have_target(var state: PhysicsDirectBodyState) -> bool:
 	if target_path.is_empty():
 		state.angular_velocity=Vector3(0,0,0)
-		return
+		return false
 	var target=get_node_or_null(target_path)
 	if target==null or not target.has_method('is_a_ship') or not target.is_a_ship():
 		# Invalid target
@@ -98,6 +96,12 @@ func _integrate_forces(var state: PhysicsDirectBodyState):
 		target_path=NodePath()
 	else:
 		ship_tool.guide_RigidProjectile(self,state,target,guidance_uses_velocity)
+	return true
+
+func _integrate_forces(var state: PhysicsDirectBodyState):
+	if guided:
+		if not guide_if_have_target(state):
+			ship_tool.move_RigidProjectile(self,state)
 
 func _ready():
 	$Timer.wait_time=lifetime

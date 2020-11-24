@@ -191,11 +191,11 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		should_auto_target = false
 		if target.is_a_planet():
 			ship_tool.move_to_intercept(ship, state, target.get_radius(),
-				3, target.get_position(), Vector3(0,0,0), true, false)
+				3, target.get_position(), Vector3(0,0,0), true)
 			if print_console_target:
 				game_state.print_to_console('Fly to '+target.display_name)
 		else:
-			ship_tool.request_move_to_attack(ship,state,target)
+			ship_tool.request_move_to_attack(ship,state,target,system)
 			if print_console_target:
 				game_state.print_to_console('Intercept target.')
 		print_console_target=false
@@ -204,6 +204,6 @@ func ai_step(var state: PhysicsDirectBodyState, var ship, var system: Spatial) -
 		ship_tool.request_thrust(ship,state,ui_forward,ui_reverse)
 	if ui_shoot:
 		if should_auto_target and abs(ui_rotate)<1e-5:
-			ship_tool.auto_fire(ship,state,target)
+			ship_tool.player_auto_target(ship,state,target)
 		else:
-			ship_tool.request_primary_fire(ship,state)
+			ship.fire_primary_weapons()

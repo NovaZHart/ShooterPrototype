@@ -6,15 +6,17 @@
 
 [sub_resource type="SpatialMaterial" id=2]
 flags_unshaded = true
-albedo_color = Color( 0.0862745, 0.294118, 0.560784, 1 )
+albedo_color = Color( 0.984314, 0.309804, 0.309804, 1 )
 
 [sub_resource type="ConvexPolygonShape" id=3]
 points = PoolVector3Array( 0, 1, 1, 0, 1, -1, 0, 1, 1, 0, 1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, 0, 1, 1, 0, 1, -1, 0, 1, -1, 0, 1, 1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, -1 )
 
 [node name="WeakAreaProjectile" type="Area"]
 script = ExtResource( 1 )
-damage = 9.0
+damage = 7.0
 threat = 2.0
+lifetime = 0.18
+max_speed = 250.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 transform = Transform( -1.2517e-08, 0.63, 2.75382e-08, 1.77636e-15, -6.55671e-08, 1.5, 0.248843, 3.57628e-08, 2.13163e-15, 8.94072e-09, 4.44089e-16, -9.56346e-17 )

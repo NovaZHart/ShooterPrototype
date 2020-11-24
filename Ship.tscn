@@ -5,13 +5,13 @@
 [ext_resource path="res://WeakAreaProjectile.tscn" type="PackedScene" id=3]
 
 [sub_resource type="SpatialMaterial" id=1]
-albedo_color = Color( 0.431373, 0.643137, 0.470588, 1 )
+albedo_color = Color( 0.909804, 0.345098, 0.172549, 1 )
 
 [sub_resource type="PrismMesh" id=2]
 material = SubResource( 1 )
 
 [sub_resource type="SpatialMaterial" id=3]
-albedo_color = Color( 0.207843, 0.505882, 0.423529, 1 )
+albedo_color = Color( 0.121569, 0.0784314, 0.501961, 1 )
 
 [sub_resource type="CubeMesh" id=4]
 material = SubResource( 3 )
@@ -20,15 +20,23 @@ material = SubResource( 3 )
 points = PoolVector3Array( 0, 1, 1, 0, 1, -1, 0, 1, 1, 0, 1, -1, -1, -1, 1, 1, -1, -1, 1, -1, 1, -1, -1, -1, 0, 1, 1, 0, 1, -1, 0, 1, -1, 0, 1, 1, 1, -1, 1, -1, -1, -1, 1, -1, -1, -1, -1, 1, -1, -1, 1, 1, -1, 1, -1, -1, -1, 1, -1, -1 )
 
 [node name="Ship2" type="RigidBody"]
+mass = 0.7
 script = ExtResource( 1 )
-max_shields = 300.0
-max_hull = 150.0
-max_structure = 150.0
-shield_heal = 20.0
-hull_heal = 10.0
+thrust = 35.0
+reverse_thrust = 12.0
+max_speed = 35.0
+max_angular_velocity = 2.2
+max_shields = 180.0
+max_hull = 80.0
+max_structure = 80.0
 
 [node name="ProjectileWeapon" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1.04308e-07, 0.8, 1.09278e-08, 0, -3.49691e-08, 0.25, 0.25, -3.33786e-07, -5.32905e-15, 1.06842, 0, 0 )
+transform = Transform( 1.04308e-07, 0.8, 1.09278e-08, 0, -3.49691e-08, 0.25, 0.25, -3.33786e-07, -5.32905e-15, 0.506028, 0, -0.740906 )
+Projectile = ExtResource( 3 )
+wait_time = 0.05
+
+[node name="ProjectileWeapon2" parent="." instance=ExtResource( 2 )]
+transform = Transform( 1.04308e-07, 0.8, 1.09278e-08, 0, -3.49691e-08, 0.25, 0.25, -3.33786e-07, -5.32905e-15, 0.506, 0, 0.741 )
 Projectile = ExtResource( 3 )
 wait_time = 0.05
 
@@ -39,7 +47,7 @@ mesh = SubResource( 2 )
 material/0 = null
 
 [node name="BodyOuter" type="MeshInstance" parent="BodyMiddle"]
-transform = Transform( 3, 0, 0, 5.96046e-08, 0.6, 0, 1.42109e-14, 4.08562e-14, 1, 0, -0.4, 0 )
+transform = Transform( 3, 0, 0, 5.96046e-08, 0.6, 4.4469e-21, 1.42109e-14, 3.90799e-14, 1, -0.000144981, -0.427435, -6.10376e-05 )
 layers = 1048574
 mesh = SubResource( 2 )
 material/0 = null
