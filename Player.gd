@@ -56,10 +56,15 @@ func update_minimap():
 			'type':'planet'
 		})
 	var player_ship_id = player_ship.get_instance_id()
+	var aim_point1: Vector2=Vector2(10,10)
+	var aim_point2: Vector2=Vector2(10,10)
 	for ship in $Ships.get_children():
 		if not ship.is_alive():
 			continue
 		var ship_id = ship.get_instance_id()
+		if ship_id == player_ship_id:
+			aim_point1=Vector2(ship.aim_point1[2],-ship.aim_point1[0])
+			aim_point2=Vector2(ship.aim_point2[2],-ship.aim_point1[0])
 		var info = {
 			'location':ship.minimap_location,
 			'scale':2,
@@ -81,7 +86,8 @@ func update_minimap():
 			'type':'projectile'
 		})
 	emit_signal('fill_minimap',planets,ships,projectiles,
-		player_ship.minimap_velocity,player_ship.minimap_heading)
+		player_ship.minimap_velocity,player_ship.minimap_heading,
+		aim_point1,aim_point2)
 
 func land_player():
 	var _discard=get_tree().change_scene('res://Landing.tscn')
@@ -104,17 +110,24 @@ func nearest_enemy(var last_target: NodePath, var rel: Vector3, var target_team)
 func next_enemy(var last_target: NodePath, var target_team) -> NodePath:
 	return next_target(last_target,$Ships,target_team)
 
-class CmpBy0:
-	static func cmp_by_0(a,b) -> bool:
-		return a[0]<b[0]
+class CmpByDistance:
+	static func cmp_by_distance(a,b) -> bool:
+		return a['distance']<b['distance']
 
-func sorted_enemy_list(where: Vector3,enemy_team: int) -> Array:
+func sorted_enemy_list(where: Vector3,enemy_team: int,max_range: float = NAN) -> Array:
+	# FIXME: Replace this with boost::geometry's r*tree
 	var pos: Vector3 = Vector3(where.x,0,where.y)
 	var list: Array = []
 	for child in $Ships.get_children():
-		if child.team == enemy_team:
-			list.append([pos.distance_to(child.get_position()),child.get_path()])
-	list.sort_custom(CmpBy0,'cmp_by_0')
+		if child.team == enemy_team and child.is_alive():
+			var dist: float = pos.distance_to(child.get_position())
+			if is_nan(max_range) or dist<=max_range:
+				list.append({
+					"distance":dist,
+					"path":child.get_path(),
+					"translation":child.translation,
+					"aabb":child.get_combined_aabb()})
+	list.sort_custom(CmpByDistance,'cmp_by_first_distance')
 	return list
 
 func nearest_target(var last_target: NodePath, var list: Node,
@@ -199,7 +212,6 @@ func make_player_ship():
 	ship.name='player'
 	ship.translation[1]=5
 	ship.set_team(0)
-	ship.set_max_hp(4000,8000,12000)
 	ship.fully_heal()
 	ship.ai=ShipPlayerAI.new()
 	_discard = ship.connect('hp_changed',self,'emit_player_hp_changed')

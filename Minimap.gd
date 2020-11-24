@@ -30,8 +30,9 @@ func set_minimap_line(var start: Vector2, var end: Vector2):
 func set_request_heading(var new_heading: Vector2):
 	requested_heading=new_heading
 
-func fill_map(var planets, var ships, var projectiles,
-		var _new_player_velocity: Vector2, var _new_player_heading: Vector2):
+func fill_map(planets, ships, projectiles,
+		_new_player_velocity: Vector2, _new_player_heading: Vector2,
+		_aim_point1: Vector2, _aim_point2: Vector2):
 	var planet_info=[]
 	var ship_info=[]
 	var projectile_info=[]
@@ -180,5 +181,5 @@ func _draw():
 	for cross in crosshairs:
 		draw_crosshairs(cross[0],minimap_radius,cross[1])
 	
-	#draw_minimap_line(minimap_radius, minimap_center)
+	draw_minimap_line(minimap_radius, minimap_center)
 
