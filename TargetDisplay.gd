@@ -23,8 +23,9 @@ func _draw():
 	var camera=get_viewport().get_camera()
 	if camera==null:
 		return
-	var pos = Vector3(target.translation.x,-30,target.translation.z)
-	var pos2d: Vector2 = camera.unproject_position(pos)
+	var camera_angle = camera.rotation.x+PI/2
+	var pos = target.translation
+	var pos2d: Vector2 = camera.unproject_position(target.translation)
 	var aabb: AABB = target.get_combined_aabb()
 	
 	# Crosshairs
@@ -37,8 +38,8 @@ func _draw():
 	
 	if target.has_method('is_a_planet') and target.is_a_planet():
 		# Tight circle around planets
-		var max_size = max(aabb.size.x,aabb.size.z)
-		out = pos+Vector3(max_size/2+0.25,0,0)
+		var max_size = max(aabb.size.x,max(aabb.size.y,aabb.size.z))
+		out = pos+Vector3(max_size/2+0.25,0,0).rotated(Vector3(0,0,1),camera_angle)
 		circle_color = Color(1,1,1,0.4)
 		cross_color = Color(1,1,1,1)
 		circle_width = 8.0
@@ -49,7 +50,7 @@ func _draw():
 		cross_width = 1.0
 		circle_color = Color(1,0,0,0.7)
 		cross_color = Color(1,0,0,1.0)
-		out = pos+Vector3(aabb.size.x/2,0,aabb.size.z/2)
+		out = pos+(aabb.size/2.0).rotated(Vector3(0,0,1),camera_angle)
 		show_cross = false
 	var out2d: Vector2 = camera.unproject_position(out)
 	var radius: float = pos2d.distance_to(out2d)
