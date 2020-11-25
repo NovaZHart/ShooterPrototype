@@ -246,7 +246,7 @@ void ShipTool::aim_turrets(RigidBody *ship, PhysicsDirectBodyState *state,
       } else {
         // Nothing to shoot, so aim turret forward
         double to_center = asin(clamp(turret_hardpoint[2]/travel,-1.0,1.0));
-        double desired_angular_velocity = fmod(turret_rotation - to_center + PI, PI*2) - PI;
+        double desired_angular_velocity = (fmod(turret_rotation - to_center + PI, PI*2) - PI)/step;
         turret_angular_velocity = clamp(desired_angular_velocity, -max_angular_velocity, max_angular_velocity);
       }
       call_1arg(weapon,"set_angular_velocity",Vector3(0,turret_angular_velocity,0));
@@ -284,7 +284,7 @@ void ShipTool::aim_turrets(RigidBody *ship, PhysicsDirectBodyState *state,
       dp += dv*t;
       double dot = dp.normalized().dot(proj_heading);
       double angle_to_target = asin(clamp(dot,-1.0,1.0));
-      double desired_angular_velocity = fmod(turret_rotation - angle_to_target + PI, PI*2) - PI;
+      double desired_angular_velocity = (fmod(turret_rotation - angle_to_target + PI, PI*2) - PI)/step;
       double turn_time = desired_angular_velocity/max_angular_velocity;
 
       // Score is adjusted to favor ships that the projectile will strike.
@@ -427,12 +427,14 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
     Spatial *weapon(child);
     if(!weapon)
       continue;
-    if(cast_0arg<bool>(child,"is_guided")) {
+    if(cast_0arg<bool>(child,"is_guided") && target) {
       call_2arg(ship,"set_firing_flag",weapon->get_name(),true);
       continue;
     }
     Vector3 p_weapon = position_now(weapon).rotated(Vector3(0,1,0),ship->get_rotation()[1]);
-    Vector3 weapon_rotation = weapon->get_rotation();
+    Vector3 weapon_rotation;
+    if(cast_0arg<bool>(weapon,"is_a_turret"))
+      weapon_rotation = weapon->get_rotation();
     double projectile_speed = cast_0arg<double>(weapon,"get_projectile_speed");
     double projectile_lifetime = cast_0arg<double>(weapon,"get_projectile_lifetime");
     p_weapon[1]=5;
@@ -441,6 +443,9 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
     if(target and target->has_method("get_combined_aabb"))
       bound = cast_0arg<AABB>(target,"get_combined_aabb");
     for(int j=-1;j<enemies.size();j++) {
+      // p_enemy + t*v_enemy
+      // p_start + v_proj*t
+      // p_start-p_enemy + t*(v_proj-v_enemy)
       if(j>=0) {
         Dictionary a=static_cast<Dictionary>(enemies[j]);
         NodePath np = a["path"];
@@ -455,20 +460,19 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
       if(!enemy)
         continue;
       Vector3 p_enemy = position_now(enemy)+confusion;
-      Vector3 dv_ship = enemy->get_linear_velocity() - state->get_linear_velocity();
-      Vector3 dp_ship = p_enemy - p_ship + dv_ship*state->get_step();
-      Vector3 dp = dp_ship - p_weapon;
       Vector3 projectile_velocity = heading.rotated(y_axis,weapon_rotation[1])*projectile_speed;
-      Vector3 dv = (projectile_velocity - dv_ship)*projectile_lifetime*1.1;
-      Vector3 point1 = dp-dv;
-      Vector3 point2 = dp;
-      point1[1]=0;
-      point2[1]=0;
-      if(bound.intersects_segment(point1,point2)) {
-        //Dictionary result = check_target_lock(ship,state,point1,point2,enemy);
-        //    if(!result.empty()) {
-        call_2arg(ship,"set_firing_flag",weapon->get_name(),true);
-        break;
+      Vector3 another1 = p_weapon+p_ship-p_enemy;
+      Vector3 another2 = another1 + projectile_lifetime*(projectile_velocity-enemy->get_linear_velocity());
+      another1[1]=0;
+      another2[1]=0;
+      if(bound.intersects_segment(another1,another2)) {
+        another1[1]=5;
+        another2[1]=5;
+        Dictionary result = check_target_lock(ship,state,another1+p_enemy,another2+p_enemy,enemy);
+        if(!result.empty()) {
+          call_2arg(ship,"set_firing_flag",weapon->get_name(),true);
+          break;
+        }
       }
     }
   }
