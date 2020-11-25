@@ -301,7 +301,8 @@ func fire_primary_weapons():
 			firing_flags[weapon_name] = true
 
 func clear_ai():
-	cached_nearby_enemy_info = [-1,[]]
+	if randf()<0.1:
+		cached_nearby_enemy_info = [-1,[]]
 	#cached_weapon_ranges = null
 
 func set_firing_flag(weapon_name: String,fire_flag: bool):

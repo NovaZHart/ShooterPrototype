@@ -4,12 +4,14 @@
 #include <algorithm>
 #include <cstring>
 #include <limits>
+#include <vector>
 
 #include <OS.hpp>
 #include <AABB.hpp>
 #include <Array.hpp>
 #include <PhysicsDirectSpaceState.hpp>
 #include <GodotGlobal.hpp>
+#include <GodotProfiling.hpp>
 #include <NodePath.hpp>
 
 using namespace godot;
@@ -36,7 +38,7 @@ public:
   }
 };
 
-#define GODOT_PROFILING_FUNCTION \
+#define SIMPLE_PROFILING_FUNCTION \
   static string *__signature_storage_ ## __LINE__ = nullptr; \
   GodotProfiling __godot_profiling_ ## __LINE__ ( __FUNCTION__, __LINE__, \
     &__signature_storage_ ## __LINE__ );
@@ -259,7 +261,7 @@ void ShipTool::aim_turrets(RigidBody *ship, PhysicsDirectBodyState *state,
 
     double best_score = numeric_limits<double>::infinity();
     RigidBody *enemy = target;
-    for(int j=-1; j<enemies.size(); j++) {
+    for(int j=-1; j<enemies.size() && j<8; j++) {
       if(j>=0) {
         Dictionary a=static_cast<Dictionary>(enemies[j]);
         NodePath np = a["path"];
@@ -420,6 +422,32 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
   Vector3 p_ship = position_now(ship);
   Array children = ship->get_children();
   Vector3 confusion = cast_0arg<Vector3>(ship,"get_confusion");
+  vector<pair<RigidBody*,AABB>> eptrs;
+
+  RigidBody *enemy=target;
+  AABB bound;
+  if(target and target->has_method("get_combined_aabb"))
+    bound = cast_0arg<AABB>(target,"get_combined_aabb");
+  for(int j=-1;j<enemies.size() && j<8;j++) {
+    // p_enemy + t*v_enemy
+    // p_start + v_proj*t
+    // p_start-p_enemy + t*(v_proj-v_enemy)
+    if(j>=0) {
+      Dictionary a=static_cast<Dictionary>(enemies[j]);
+      NodePath np = a["path"];
+      Node *n=system->get_node_or_null(np);
+      if(n==nullptr || !n->has_method("_integrate_forces"))
+        continue;
+      enemy=static_cast<RigidBody*>(n);
+      if(enemy==target)
+        continue; // don't process target twice
+      bound = a["aabb"];
+    }
+    if(!enemy)
+      continue;
+    eptrs.emplace_back(enemy,bound);
+  }
+
   for(int i=0;i<children.size();i++) {
     Variant child = children[i];
     if(!child.has_method("is_a_turret"))
@@ -438,27 +466,9 @@ void ShipTool::auto_fire(RigidBody *ship, PhysicsDirectBodyState *state, RigidBo
     double projectile_speed = cast_0arg<double>(weapon,"get_projectile_speed");
     double projectile_lifetime = cast_0arg<double>(weapon,"get_projectile_lifetime");
     p_weapon[1]=5;
-    RigidBody *enemy=target;
-    AABB bound;
-    if(target and target->has_method("get_combined_aabb"))
-      bound = cast_0arg<AABB>(target,"get_combined_aabb");
-    for(int j=-1;j<enemies.size();j++) {
-      // p_enemy + t*v_enemy
-      // p_start + v_proj*t
-      // p_start-p_enemy + t*(v_proj-v_enemy)
-      if(j>=0) {
-        Dictionary a=static_cast<Dictionary>(enemies[j]);
-        NodePath np = a["path"];
-        Node *n=system->get_node_or_null(np);
-        if(n==nullptr || !n->has_method("_integrate_forces"))
-          continue;
-        enemy=static_cast<RigidBody*>(n);
-        if(enemy==target)
-          continue; // don't process target twice
-        bound = a["aabb"];
-      }
-      if(!enemy)
-        continue;
+    for(auto it=eptrs.begin();it<eptrs.end();it++) {
+      enemy=it->first;
+      bound = it->second;
       Vector3 p_enemy = position_now(enemy)+confusion;
       Vector3 projectile_velocity = heading.rotated(y_axis,weapon_rotation[1])*projectile_speed;
       Vector3 another1 = p_weapon+p_ship-p_enemy;

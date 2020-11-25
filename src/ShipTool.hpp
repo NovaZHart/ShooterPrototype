@@ -1,6 +1,8 @@
 #ifndef SHIPTOOL_H
 #define SHIPTOOL_H
 
+#define DEBUG_ENABLED
+
 #include <Godot.hpp>
 #include <Variant.hpp>
 #include <Array.hpp>
