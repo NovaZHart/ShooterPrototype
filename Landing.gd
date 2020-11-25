@@ -24,7 +24,7 @@ func _ready():
 	camera_and_label(system_name,planet_name)
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
 	$SpaceBackground.rotate_x(PI/2-0.575959)
-	$SpaceBackground.center_view(130,90,100)
+	$SpaceBackground.center_view(130,90,0,100,0)
 	if planet.has_astral_gate:
 		var selector = SystemSelector.instance()
 		var system_list = selector.get_node('SystemList')
