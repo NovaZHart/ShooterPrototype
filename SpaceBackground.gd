@@ -97,8 +97,8 @@ func _ready():
 	background.set_layer_mask_bit(1,true)
 	add_child(background)
 
-func center_view(x: float,z: float,camera_size: float) -> void:
-	background.translation.x = x
+func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height: float) -> void:
+	background.translation.x = x + (camera_min_height-background.translation.y)*tan(a)
 	background.translation.z = z
 	var view_mat=background.material_override
 	uv_offset=Vector2(fmod(-x/background_size/2,1.0),

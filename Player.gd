@@ -9,6 +9,9 @@ const TargetDisplay = preload('res://TargetDisplay.tscn')
 # Note: cyclic dependency Landing->Main->Player->Landing
 var Landing = preload('res://Landing.tscn')
 
+export var camera_angle: float = 30*PI/180
+const camera_height: float = 10.0
+
 var target_change_mutex: Mutex = Mutex.new()
 var player_target_path: NodePath
 var new_target_path: NodePath
@@ -263,12 +266,18 @@ func ship_died(_damage: int, ship: Node):
 		ship.queue_free()
 
 func center_view() -> void:
+	var a: float = camera_angle
 	var x: float = player_ship.translation.x
 	var z: float = player_ship.translation.z
-	$TopCamera.translation.x = x
-	$TopCamera.translation.z = z
-	$SpaceBackground.center_view(x,z,$TopCamera.size)
-	emit_signal('place_minimap',Vector2(z,-x),300)
+	var w: float = $TopCamera.size
+	var h: float = camera_height
+	$TopCamera.far = 2*(h/cos(a) + w*tan(a))
+	$TopCamera.rotation = Vector3(a-PI/2,-PI/2,0)
+	$TopCamera.translation = Vector3(
+		x - w/2 * sin(a)*sin(a)/cos(a),
+		h + w/2 * sin(a), z)
+	$SpaceBackground.center_view(x,z,a,w,h)
+	emit_signal('place_minimap',Vector2(z,-x),500)
 	$ShipLight.translation.y = min(1e4,max(10.0,sqrt(x*x+z*z)/sqrt(3)))
 
 func _process(delta):
