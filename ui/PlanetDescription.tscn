@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=1]
+[ext_resource path="res://ui/ResizingRichTextLabel.gd" type="Script" id=2]
+[ext_resource path="res://ui/PlanetDescription.gd" type="Script" id=3]
+
+
+[sub_resource type="DynamicFont" id=1]
+size = 13
+font_data = ExtResource( 1 )
+
+[sub_resource type="Theme" id=2]
+default_font = SubResource( 1 )
+
+[node name="PlanetDescription" type="Node2D"]
+script = ExtResource( 3 )
+
+[node name="Panel" type="Panel" parent="."]
+margin_left = 321.024
+margin_top = 126.838
+margin_right = 321.024
+margin_bottom = 126.838
+grow_horizontal = 2
+grow_vertical = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Description" type="RichTextLabel" parent="."]
+margin_left = 321.024
+margin_top = 126.838
+margin_right = 647.024
+margin_bottom = 479.838
+theme = SubResource( 2 )
+text = "No description available."
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}

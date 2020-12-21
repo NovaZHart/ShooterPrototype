@@ -1,16 +1,22 @@
 extends Node
 
-var SystemInfo = preload('res://SystemInfo.gd')
-var PlanetInfo = preload('res://PlanetInfo.gd')
-var PlanetServices = preload('res://PlanetServices.gd')
+var SystemInfo = preload('res://places/SystemInfo.gd')
+var PlanetInfo = preload('res://places/PlanetInfo.gd')
+var PlanetServices = preload('res://ui/PlanetServices.gd')
 
 var known_systems: Dictionary = {}
 var system  setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
+var name_counter: int = 0
 
 signal console_append
+
+func make_unique_ship_node_name():
+	var i: int = name_counter
+	name_counter = name_counter+1
+	return 'ship_'+str(i)
 
 func print_to_console(s: String):
 	if s.ends_with('\n'):
@@ -98,9 +104,9 @@ func make_test_systems():
 
 func _init():
 	services['test'] = PlanetServices.ChildInstanceService.new(
-		'Service Text',preload('res://TestService.tscn'))
+		'Service Text',preload('res://ui/TestService.tscn'))
 	services['alttest'] = PlanetServices.ChildInstanceService.new(
-		'Service Button',preload('res://AltTestService.tscn'))
+		'Service Button',preload('res://ui/AltTestService.tscn'))
 	services['info'] = PlanetServices.PlanetDescription.new(
-		'Planet Description',preload('res://PlanetDescription.tscn'))
+		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	make_test_systems()

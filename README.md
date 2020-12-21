@@ -23,6 +23,9 @@ Installation
    <number>` option, with the number of processors on your machine, to
    compile quicker.
 
+   NOTE: After the first time you build, you can omit `generate_bindings=yes`
+   because you've already generated the bindings.
+
 4. Import into Godot: start Godot, press the "import"
    button, and select the `ShooterPrototype/project.godot` file.
 
