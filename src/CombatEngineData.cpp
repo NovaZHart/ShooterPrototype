@@ -14,16 +14,6 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
-object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1) {
-  auto it = rid2id.find(rid.get_id());
-  return (it==rid2id.end()) ? default_id : it->second;
-}
-
-object_id rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id=-1) {
-  auto it = rid2id.find(rid_id);
-  return (it==rid2id.end()) ? default_id : it->second;
-}
-
 ProjectileMesh::ProjectileMesh(RID mesh_rid,object_id id):
   id(id),
   mesh_id(mesh_id),
@@ -58,7 +48,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   rotation(),
   angular_velocity(),
   age(0),
-  alive(true)
+  scale(1.0f),
+  alive(true),
+  direct_fire(weapon.direct_fire)
 {
   rotation.y = ship.rotation.y;
   if(weapon.turn_rate>0)
@@ -69,6 +61,34 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   }
   linear_velocity = initial_velocity * x_axis.rotated(y_axis,rotation.y) + ship.linear_velocity;
 }
+
+Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
+  id(id),
+  target(target),
+  mesh_id(weapon.mesh_id),
+  guided(weapon.guided),
+  guidance_uses_velocity(weapon.guidance_uses_velocity),
+  damage(weapon.damage),
+  impulse(weapon.impulse),
+  blast_radius(weapon.blast_radius),
+  detonation_range(weapon.detonation_range),
+  turn_rate(weapon.projectile_turn_rate),
+  mass(weapon.projectile_mass),
+  drag(weapon.projectile_drag),
+  thrust(weapon.projectile_thrust),
+  lifetime(weapon.projectile_lifetime),
+  initial_velocity(weapon.initial_velocity),
+  max_speed(weapon.terminal_velocity),
+  position(position),
+  collision_mask(-1),
+  linear_velocity(),
+  rotation(Vector3(0,rotation,0)),
+  angular_velocity(),
+  age(0),
+  scale(scale),
+  alive(true),
+  direct_fire(weapon.direct_fire)
+{}
 
 Projectile::~Projectile() {}
 
@@ -92,14 +112,15 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   projectile_mass(get<real_t>(dict,"projectile_mass")),
   projectile_drag(get<real_t>(dict,"projectile_drag")),
   projectile_thrust(get<real_t>(dict,"projectile_thrust")),
-  projectile_lifetime(get<real_t>(dict,"projectile_lifetime")),
+  projectile_lifetime(max(1.0f/60.0f,get<real_t>(dict,"projectile_lifetime"))),
   projectile_turn_rate(get<real_t>(dict,"projectile_turn_rate")),
   firing_delay(get<real_t>(dict,"firing_delay")),
   turn_rate(get<real_t>(dict,"turn_rate")),
   blast_radius(get<real_t>(dict,"blast_radius")),
   detonation_range(get<real_t>(dict,"detonation_range")),
   threat(get<real_t>(dict,"threat")),
-  guided(get<bool>(dict,"guided")),
+  direct_fire(firing_delay<1e-5),
+  guided(not direct_fire and get<bool>(dict,"guided")),
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
   instance_id(get<RID>(dict,"instance_id")),
   mesh_id(make_mesh_id(get<String>(dict,"projectile_mesh_path"),last_id,mesh2path,path2mesh)),
@@ -127,6 +148,7 @@ Dictionary Weapon::make_status_dict() const {
   s["blast_radius"]=blast_radius;
   s["detonation_range"]=detonation_range;
   s["threat"]=threat;
+  s["direct_fire"]=direct_fire;
   s["guided"]=guided;
   s["guidance_uses_velocity"]=guidance_uses_velocity;
   s["position"]=position;
@@ -164,8 +186,8 @@ Dictionary Planet::update_status(const unordered_map<object_id,Ship> &ships,
 
 WeaponRanges make_ranges(const vector<Weapon> &weapons) {
   WeaponRanges r = {0,0,0,0,0};
+  
   for(auto &weapon : weapons) {
-    break;
     real_t range = weapon.projectile_lifetime*weapon.terminal_velocity;
     if(weapon.turn_rate>0)
       r.turrets = max(r.turrets,range);
@@ -177,6 +199,7 @@ WeaponRanges make_ranges(const vector<Weapon> &weapons) {
       r.unguided = max(r.unguided,range);
   }
   r.all = max(r.guns,r.turrets);
+  
   return r;
 }
 
@@ -255,7 +278,6 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   radius((aabb.size.x+aabb.size.z)/2.0),
   collision_layer(get<int>(dict,"collision_layer")),
   enemy_mask(get<int>(dict,"enemy_mask")),
-  range(make_ranges(weapons)),
 
   explosion_damage(get<real_t>(dict,"explosion_damage",0)),
   explosion_radius(get<real_t>(dict,"explosion_radius",0)),
@@ -285,6 +307,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   transform(get<Transform>(dict,"transform")),
   
   weapons(get_weapons(get<Array>(dict,"weapons"),last_id,mesh2path,path2mesh)),
+  range(make_ranges(weapons)),
   tick(0),
   tick_at_last_shot(TICKS_LONG_AGO),
   target(-1),
@@ -302,9 +325,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
 
   max_speed(max(thrust,reverse_thrust)/drag*inverse_mass),
   turn_diameter_squared(make_turn_diameter_squared())
-{
-  assert(max_angular_velocity>0);
-}
+{}
 
 Ship::~Ship()
 {}
@@ -522,9 +543,10 @@ VisibleObject::VisibleObject(const Planet &planet):
 {}
 
 VisibleProjectile::VisibleProjectile(const Projectile &projectile):
-  center(projectile.position.x,projectile.position.z),
-  half_size(1.0,1.0), // FIXME: need a better AABB for a projectile
   rotation_y(projectile.rotation.y),
+  scale_x(projectile.scale),
+  center(projectile.position.x,projectile.position.z),
+  half_size(max(1.0f,scale_x/2),max(1.0f,scale_x/2)), // FIXME: need a better AABB for a projectile
   type(VISIBLE_OBJECT_PROJECTILE),
   mesh_id(projectile.mesh_id)
 {}

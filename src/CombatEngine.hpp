@@ -148,6 +148,7 @@ namespace godot {
     const CE::ship_hit_list_t &get_ships_within_unguided_weapon_range(CE::Ship &ship,real_t fudge_factor);
     const CE::ship_hit_list_t &get_ships_within_weapon_range(CE::Ship &ship,real_t fudge_factor);
     const CE::ship_hit_list_t &get_ships_within_turret_range(CE::Ship &ship, real_t fudge_factor);
+    bool fire_direct_weapon(CE::Ship &ship,CE::Weapon &weapon,bool allow_untargeted);
     void auto_fire(CE::Ship &ship, CE::ships_iter &target);
     void move_to_attack(CE::Ship &ship,CE::Ship &target);
     bool move_to_intercept(CE::Ship &ship,double close, double slow,
@@ -164,6 +165,7 @@ namespace godot {
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
     void integrate_projectiles();
+    void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,CE::object_id target);
     void create_projectile(CE::Ship &ship,CE::Weapon &weapon);
     CE::ships_iter ship_for_rid(const RID &rid);
     CE::ships_iter ship_for_rid(int rid_id);

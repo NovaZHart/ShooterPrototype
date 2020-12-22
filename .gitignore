@@ -1,5 +1,9 @@
-.import
 *~
 *.os
 *.dblite
 *.dae
+*.import*
+*.blend*
+*.o
+*.dll
+*.xcf*

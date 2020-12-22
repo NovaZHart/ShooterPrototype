@@ -1,6 +1,5 @@
 #include "CombatEngineUtils.hpp"
 
-#include <limits>
 #include <cstdint>
 
 using namespace godot;
@@ -18,12 +17,12 @@ uint32_t godot::CE::bob_full_avalanche(uint32_t a) {
     return a;
 }
 
-godot::CE::select_mask::select_mask(int mask):
-  mask(mask)
-{}
+object_id godot::CE::rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id) {
+  auto it = rid2id.find(rid.get_id());
+  return (it==rid2id.end()) ? default_id : it->second;
+}
 
-godot::CE::select_nearest::select_nearest(const Vector3 &to):
-  to(Vector3(to.x,0,to.z)),
-  closest(numeric_limits<real_t>::infinity())
-{}
-
+object_id godot::CE::rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id) {
+  auto it = rid2id.find(rid_id);
+  return (it==rid2id.end()) ? default_id : it->second;
+}

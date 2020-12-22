@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <cmath>
 #include <algorithm>
+#include <limits>
 
 #include <Vector3.hpp>
 #include <Dictionary.hpp>
@@ -55,6 +56,9 @@ namespace godot {
     static const Vector3 x_axis(1,0,0);
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
+
+    object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1);
+    object_id rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id=-1);
 
     inline double double_dot(const Vector3 &a,const Vector3 &b) {
       return double(a.x)*double(b.x)+double(a.y)*double(b.y)+double(a.z)*double(b.z);
@@ -176,7 +180,8 @@ namespace godot {
     class select_mask {
       int mask;
     public:
-      select_mask(int mask);
+      select_mask(int mask): mask(mask) {}
+      select_mask(const select_mask &other): mask(other.mask) {}
       template<class I>
       inline bool operator () (I iter) const {
         return iter->second.collision_layer & mask;
@@ -187,7 +192,12 @@ namespace godot {
       Vector3 to;
       mutable real_t closest;
     public:
-      select_nearest(const Vector3 &to);
+      select_nearest(const Vector3 &to):
+        closest(std::numeric_limits<real_t>::infinity()),
+        to(to) {}
+      select_nearest(const select_nearest &other):
+        to(other.to), closest(other.closest)
+      {}
       template<class I>
       bool operator () (I iter) const {
         real_t distance = to.distance_to(iter->second.position);
@@ -207,6 +217,9 @@ namespace godot {
       select_two(const A &one,const B&two):
         one(one), two(two)
       {}
+      select_two(const select_two &other):
+        one(other.one), two(other.two)
+      {}
       template<class I>
       bool operator () (I iter) const {
         return one(iter) && two(iter);
@@ -221,6 +234,9 @@ namespace godot {
     public:
       select_three(const A &one,const B&two,const C&three):
         one(one), two(two), three(three)
+      {}
+      select_three(const select_three &other):
+        one(other.one), two(other.two), three(other.three)
       {}
       template<class I>
       bool operator () (I iter) const {

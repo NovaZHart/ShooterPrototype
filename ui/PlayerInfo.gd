@@ -24,8 +24,8 @@ func update_ship_stats(stats: Dictionary):
 	var updated: Array = [false] # will be [true] if any stat changed
 	structure = update_stat(stats.get('structure',0),structure,updated)
 	max_structure = update_stat(stats.get('max_structure',structure),max_structure,updated)
-	hull = update_stat(stats.get('hull',0),hull,updated)
-	max_hull = update_stat(stats.get('max_hull',hull),max_hull,updated)
+	hull = update_stat(stats.get('armor',0),hull,updated)
+	max_hull = update_stat(stats.get('max_armor',hull),max_hull,updated)
 	shields = update_stat(stats.get('shields',0),shields,updated)
 	max_shields = update_stat(stats.get('max_shields',shields),max_shields,updated)
 	if updated[0]:

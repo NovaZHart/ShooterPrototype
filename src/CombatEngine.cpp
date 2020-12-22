@@ -541,18 +541,15 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
       else if(target_selection==PLAYER_TARGET_FRIEND)
         mask=ship.collision_layer;
       if(target_nearest)
-        target=select_target<false>(target,select_three(select_nearest(ship.position),select_mask(mask),select_flying()),ships);
+        target=select_target<false>(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships);
       else
         target=select_target<true>(target,select_two(select_mask(mask),select_flying()),ships);
     }
     
-    if(target!=overrides.target_id) {
+    if(target!=overrides.target_id)
       overrides.target_id = ship.target = target;
-      Godot::print("ignored player-specified target");
-    } else if(target_selection==PLAYER_TARGET_OVERRIDE) {
-      Godot::print("used player-specified target");
+    else if(target_selection==PLAYER_TARGET_OVERRIDE)
       ship.target = overrides.target_id;
-    }
   }
 
   if(overrides.orders&PLAYER_ORDER_STOP_SHIP) {
@@ -656,9 +653,11 @@ ships_iter CombatEngine::update_targetting(Ship &ship) {
     }
   }
   
-  if(pick_new_target or target_ptr==ships.end())
+  if(pick_new_target or target_ptr==ships.end()) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    target_ptr = ships.find(select_target<false>(-1,select_three(select_nearest(ship.position),select_mask(ship.enemy_mask),select_flying()),ships));
+    object_id found=select_target<false>(-1,select_three(select_mask(ship.enemy_mask),select_flying(),select_nearest(ship.position)),ships);
+    target_ptr = ships.find(found);
+  }
   return target_ptr;
 }
 
@@ -947,8 +946,12 @@ double CombatEngine::rendezvous_time(Vector3 target_location,Vector3 target_velo
 void CombatEngine::fire_primary_weapons(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   // FIXME: UPDATE ONCE SECONDARY WEAPONS EXIST
-  for(auto &weapon : ship.weapons)
-    create_projectile(ship,weapon);
+  for(auto &weapon : ship.weapons) {
+    if(weapon.direct_fire)
+      fire_direct_weapon(ship,weapon,true);
+    else
+      create_projectile(ship,weapon);
+  }
 }
 
 void CombatEngine::player_auto_target(Ship &ship) {
@@ -1026,6 +1029,63 @@ CombatEngine::get_ships_within_turret_range(Ship &ship, real_t fudge_factor) {
   return get_ships_within_range(ship,ship.range.turrets*fudge_factor);
 }
 
+bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untargeted) {
+  Vector3 p_weapon = weapon.position.rotated(y_axis,ship.rotation.y);
+  real_t weapon_range = weapon.projectile_lifetime*weapon.initial_velocity;
+  Vector3 weapon_rotation;
+  if(weapon.turn_rate>1e-5)
+    weapon_rotation = weapon.rotation;
+  else
+    weapon_rotation = Vector3(0,asin_clamp(weapon.position.z/weapon_range),0);
+
+  weapon_rotation += ship.rotation;
+
+  Vector3 projectile_heading = unit_from_angle(weapon_rotation.y);
+  Vector3 point1 = p_weapon+ship.position;
+  Vector3 point2 = point1 + projectile_heading*weapon_range;
+  point1.y=5;
+  point2.y=5;
+  Array exclude;
+  exclude.append(ship.rid);
+  Dictionary result = space->intersect_ray(point1, point2, exclude, ship.enemy_mask, true, true);
+
+  Vector3 hit_position=Vector3(0,0,0);
+  object_id hit_target=-1;
+  
+  if(not result.empty()) {
+    if(result.has("position"))
+      hit_position = CE::get<Vector3>(result,"position");
+    ships_iter hit_ptr = ships.find(rid2id_default(rid2id,CE::get<RID>(result,"rid")));
+    if(hit_ptr!=ships.end()) {
+      hit_target=hit_ptr->first;
+      
+      // Direct fire projectiles do damage when launched.
+      if(weapon.damage>1e-5)
+        hit_ptr->second.take_damage(weapon.damage);
+      if(weapon.impulse) {
+        Vector3 impulse = weapon.impulse*projectile_heading;
+        if(impulse.length_squared())
+          physics_server->body_apply_central_impulse(hit_ptr->second.rid,impulse);
+      }
+    }
+    if(hit_target>=0 and not hit_position.length_squared())
+      hit_position = hit_ptr->second.position;
+  }
+
+  if(hit_target<0) {
+    if(not allow_untargeted)
+      return false;
+    hit_position=point2;
+  }
+  
+  hit_position[1]=0;
+  point1[1]=0;
+  Vector3 projectile_position = (point1+hit_position)*0.5;
+  real_t projectile_length = (hit_position-point1).length();
+  create_direct_projectile(ship,weapon,projectile_position,projectile_length,
+                           weapon_rotation,hit_target);
+  return true;
+}
 
 void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
   FAST_PROFILING_FUNCTION;
@@ -1035,25 +1095,23 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
 
   Ship *eptrs[12];
   int num_eptrs=0;
-  
-  AABB bound;
   bool have_a_target = target!=ships.end();
-  if(have_a_target)
-    eptrs[num_eptrs++] = &target->second;
-  for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
-    ships_iter enemy_iter = ships.find(it->second);
-    if(enemy_iter==ships.end())
-      continue;
-    if(distsq(enemy_iter->second.position,ship.position)>max_distsq)
-      break;
-    eptrs[num_eptrs++] = &enemy_iter->second;
-  }
-
+  bool have_enemies=false;
   bool hit_detected=false;
   
   for(auto &weapon : ship.weapons) {
+    if(weapon.direct_fire) {
+      hit_detected = fire_direct_weapon(ship,weapon,false) or hit_detected;
+      continue;
+    }
+
     if(weapon.firing_countdown>0)
       continue;
+    
+    Vector3 weapon_rotation=Vector3(0,0,0);
+    if(weapon.turn_rate>0)
+      weapon_rotation = weapon.rotation;
+    
     if(weapon.guided and have_a_target) {
       real_t travel = target->second.position.distance_to(ship.position);
       real_t max_travel = weapon.terminal_velocity*weapon.projectile_lifetime;
@@ -1061,13 +1119,25 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
         create_projectile(ship,weapon);
       continue;
     }
-    Vector3 weapon_rotation=Vector3(0,0,0);
-    if(weapon.turn_rate>0)
-      weapon_rotation = weapon.rotation;
-    else if(hit_detected) {
-      // If one non-turret fires, all fire.
+    if(hit_detected and weapon.turn_rate>=0) {
+      // If one non-turret fires, all fire. Can't do this for
+      // direct fire since the line has to end at a target.
       create_projectile(ship,weapon);
       continue;
+    }
+    if(not have_enemies) {  
+      AABB bound;
+      if(have_a_target)
+        eptrs[num_eptrs++] = &target->second;
+      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
+        ships_iter enemy_iter = ships.find(it->second);
+        if(enemy_iter==ships.end())
+          continue;
+        if(distsq(enemy_iter->second.position,ship.position)>max_distsq)
+          break;
+        eptrs[num_eptrs++] = &enemy_iter->second;
+      }
+      have_enemies=true;
     }
     real_t projectile_speed = weapon.terminal_velocity;
     real_t projectile_lifetime = weapon.projectile_lifetime;
@@ -1085,14 +1155,9 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
       another1[1]=0;
       another2[1]=0;
       if(bound.intersects_segment(another1,another2)) {
-        // another1[1]=5;
-        // another2[1]=5;
-        // Dictionary result = check_target_lock(enemy,another1+p_enemy,another2+p_enemy);
-        // if(!result.empty()) {
         hit_detected=true;
         create_projectile(ship,weapon);
         break;
-        // }
       }
     }
   }
@@ -1211,12 +1276,14 @@ void CombatEngine::integrate_projectiles() {
   vector<object_id> deleteme;
   for(projectiles_iter it=projectiles.begin();it!=projectiles.end();it++) {
     Projectile &projectile = it->second;
-    
-    projectile.age += delta;
-    if(projectile.age > projectile.lifetime - .001) {
+
+    if(projectile.direct_fire) {
+      // Direct fire projectiles do damage when launched and last only one frame.
       deleteme.push_back(it->first);
       continue;
     }
+    
+    projectile.age += delta;
     
     if(projectile.guided)
       guide_projectile(projectile);
@@ -1230,11 +1297,20 @@ void CombatEngine::integrate_projectiles() {
     else
       collided = collide_point_projectile(projectile);
     
-    if(collided)
+    if(collided or projectile.age > projectile.lifetime)
       deleteme.push_back(it->first);
   }
   for(auto &it : deleteme)
     projectiles.erase(it);
+}
+
+void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {
+  FAST_PROFILING_FUNCTION;
+  if(weapon.firing_countdown>0)
+    return;
+  weapon.firing_countdown = weapon.firing_delay;
+  object_id new_id=last_id++;
+  projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
 }
 
 void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
@@ -1622,15 +1698,15 @@ void CombatEngine::pack_projectiles(const pair<instlocs_iterator,instlocs_iterat
     MeshInstanceInfo &info = p_instance->second;
     float cos_ry=cosf(info.rotation_y);
     float sin_ry=sinf(info.rotation_y);
-    dataptr[i + 0] = cos_ry;
+    dataptr[i + 0] = cos_ry*info.scale_x;
     dataptr[i + 1] = 0.0;
     dataptr[i + 2] = sin_ry;
     dataptr[i + 3] = info.x;
     dataptr[i + 4] = 0.0;
     dataptr[i + 5] = 1.0;
     dataptr[i + 6] = 0.0;
-    dataptr[i + 7] = 5.0;
-    dataptr[i + 8] = -sin_ry;
+    dataptr[i + 7] = 7.0;
+    dataptr[i + 8] = -sin_ry*info.scale_x;
     dataptr[i + 9] = 0.0;
     dataptr[i + 10] = cos_ry;
     dataptr[i + 11] = info.z;
@@ -1672,7 +1748,7 @@ void CombatEngine::catalog_projectiles(const Vector3 &location,const Vector3 &si
       continue; // projectile is off-screen
 
     MeshInstanceInfo instance_info =
-      { projectile.center.x, projectile.center.y, projectile.rotation_y };
+      { projectile.center.x, projectile.center.y, projectile.rotation_y, projectile.scale_x };
     instance_locations.emplace(mesh_id,instance_info);
 
     v_meshes_iter mit = v_meshes.find(mesh_id);

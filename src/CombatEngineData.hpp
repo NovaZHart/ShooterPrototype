@@ -82,9 +82,10 @@ namespace godot {
       const real_t mass, drag, thrust, lifetime, initial_velocity, max_speed;
       const int collision_mask;
       Vector3 position, linear_velocity, rotation, angular_velocity;
-      real_t age;
-      bool alive;
+      real_t age, scale;
+      bool alive, direct_fire;
       Projectile(object_id id,const Ship &ship,const Weapon &weapon);
+      Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
       ~Projectile();
     };
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;
@@ -94,7 +95,7 @@ namespace godot {
       const real_t projectile_mass, projectile_drag, projectile_thrust, projectile_lifetime;
       const real_t projectile_turn_rate;
       const real_t firing_delay, turn_rate, blast_radius, detonation_range, threat;
-      const bool guided, guidance_uses_velocity;
+      const bool direct_fire, guided, guidance_uses_velocity;
       const RID instance_id;
       const object_id mesh_id;
       const real_t terminal_velocity;
@@ -145,7 +146,6 @@ namespace godot {
       const AABB aabb;
       const real_t radius;
       const int collision_layer, enemy_mask;
-      const WeaponRanges range;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       
@@ -159,6 +159,7 @@ namespace godot {
       Vector3 inverse_inertia;
       Transform transform;
       std::vector<Weapon> weapons;
+      const WeaponRanges range;
       int tick, tick_at_last_shot;
       object_id target;
       Vector3 threat_vector;
@@ -274,8 +275,8 @@ namespace godot {
     };
 
     struct VisibleProjectile {
+      const real_t rotation_y, scale_x;
       const Vector2 center, half_size;
-      const real_t rotation_y;
       const int type;
       const object_id mesh_id;
       VisibleProjectile(const Projectile &);
@@ -283,7 +284,7 @@ namespace godot {
     typedef std::vector<VisibleProjectile>::iterator visible_projectiles_iter;
 
     struct MeshInstanceInfo {
-      const real_t x, z, rotation_y;
+      const real_t x, z, rotation_y, scale_x;
     };
     typedef std::unordered_multimap<object_id,MeshInstanceInfo> instance_locations_t;
     typedef std::unordered_multimap<object_id,MeshInstanceInfo>::iterator instlocs_iterator;
