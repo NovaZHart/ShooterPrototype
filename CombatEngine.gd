@@ -13,7 +13,7 @@ var physics_mutex: Mutex = Mutex.new()
 func _init():
 	native = GDNativeCombatEngine.new()
 
-func clear() -> void:
+func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
 	# the CombatEngine to discard everything: projectiles, ship stats,
 	# multimeshes, and visual instances. Only meshes and their resource paths
@@ -21,7 +21,16 @@ func clear() -> void:
 	# until the next call to ai_step.
 	visual_mutex.lock()
 	physics_mutex.lock()
-	native.clear()
+	native.clear_ai()
+	physics_mutex.unlock()
+	visual_mutex.unlock()
+
+func clear_visuals() -> void:
+	# Called in VISUAL THREAD by screens that don't show outer space, to remove
+	# all projectiles and visual effects.
+	visual_mutex.lock()
+	physics_mutex.lock()
+	native.clear_visuals()
 	physics_mutex.unlock()
 	visual_mutex.unlock()
 
@@ -33,7 +42,7 @@ func change_worlds(world: World) -> void:
 	# until the next call to ai_step.
 	visual_mutex.lock()
 	physics_mutex.lock()
-	native.clear()
+	native.clear_ai()
 	native.prepare_visual_frame(world.scenario)
 	physics_mutex.unlock()
 	visual_mutex.unlock()

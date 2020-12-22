@@ -7,14 +7,14 @@ var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':900, 'ships':[ [8, SimpleInterceptor] ], 'team':1 },
-	{ 'frequency':900, 'ships':[ [8, SimpleInterceptor] ], 'team':0 },
-	{ 'frequency':2400, 'ships':[ [3, SimpleInterceptor] ], 'team':1 },
-	{ 'frequency':2400, 'ships':[ [3, SimpleInterceptor] ], 'team':0 },
+	{ 'frequency':1100, 'ships':[ [8, SimpleInterceptor] ], 'team':1 },
+	{ 'frequency':1100, 'ships':[ [8, SimpleInterceptor] ], 'team':0 },
+	{ 'frequency':2700, 'ships':[ [3, SimpleInterceptor] ], 'team':1 },
+	{ 'frequency':2700, 'ships':[ [3, SimpleInterceptor] ], 'team':0 },
 ]
 
-const team_maximums: Array = [ 75,75 ]
-const max_ships: int = 120
+const team_maximums: Array = [ 90,90 ]
+const max_ships: int = 150
 
 var fleets: Array = default_fleets
 

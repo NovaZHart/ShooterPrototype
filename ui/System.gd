@@ -252,7 +252,7 @@ func clear() -> void: # must be called in visual thread
 	player_orders_mutex.lock()
 	ship_stats_requests_mutex.lock()
 	
-	combat_engine.clear()
+	combat_engine.clear_ai()
 	
 	for ship in $Ships.get_children():
 		ship.queue_free()

@@ -91,7 +91,8 @@ CombatEngine::CombatEngine():
 CombatEngine::~CombatEngine() {}
 
 void CombatEngine::_register_methods() {
-  register_method("clear", &CombatEngine::clear);
+  register_method("clear_ai", &CombatEngine::clear_ai);
+  register_method("clear_visuals", &CombatEngine::clear_visuals);
   register_method("prepare_visual_frame", &CombatEngine::prepare_visual_frame);
   register_method("update_overhead_view", &CombatEngine::update_overhead_view);
   register_method("draw_minimap_contents", &CombatEngine::draw_minimap_contents);
@@ -106,7 +107,12 @@ void CombatEngine::_init() {}
 
 /**********************************************************************/
 
-void CombatEngine::clear() {
+void CombatEngine::clear_visuals() {
+  // NOTE: entry point from gdscript
+  clear_all_multimeshes();
+}
+
+void CombatEngine::clear_ai() {
   //NOTE: entry point from gdscript
   FAST_PROFILING_FUNCTION;
   

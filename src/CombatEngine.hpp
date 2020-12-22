@@ -99,7 +99,8 @@ namespace godot {
     
     static void _register_methods();
     void _init();
-    void clear();
+    void clear_ai();
+    void clear_visuals();
 
     Array ai_step(real_t new_delta,Array new_ships,Array new_planets,
                   Array new_player_orders,RID player_ship_rid,

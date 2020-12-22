@@ -10,6 +10,7 @@ var current_service: NodePath
 signal jump_complete
 
 func _ready():
+	combat_engine.clear_visuals()
 	var system_name = game_state.system.display_name
 	var planet_info = game_state.get_planet_info_or_null()
 	if planet_info==null:
