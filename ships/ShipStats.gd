@@ -16,11 +16,13 @@ export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
 export var base_explosion_impulse: float = 500
 export var base_explosion_delay: int = 10
+export var override_size: Vector3 = Vector3(0,0,0)
 
 var combined_stats: Dictionary = {'weapons':[]}
 var team: int = 0
 var enemy_team: int = 1
 var enemy_mask: int = 2
+var height: float = 5
 
 func set_team(new_team: int):
 	team=new_team
@@ -34,6 +36,8 @@ func init_ship_recursively(node: Node = self):
 	if node.has_method("add_weapon_stats"):
 		node.rotation=Vector3(0,0,0)
 	for child in node.get_children():
+		if node==self and child is VisualInstance:
+			child.translation.y+=height
 		init_ship_recursively(child)
 
 func get_combined_aabb(node: Node = self):
@@ -80,7 +84,11 @@ func add_stats(stats: Dictionary) -> void:
 	stats['heal_shields']=heal_shields
 	stats['heal_armor']=heal_armor
 	stats['heal_structure']=heal_structure
-	stats['aabb']=get_combined_aabb()
+	if override_size.length()>1e-5:
+		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
+		stats['aabb']=AABB(-size*0.5,size)
+	else:
+		stats['aabb']=get_combined_aabb()
 	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
 	stats['team']=team
@@ -94,6 +102,7 @@ func add_stats(stats: Dictionary) -> void:
 
 func _ready():
 	var _discard = make_stats(self,combined_stats)
+	height = (randi()%11)*2 - 5
 	collision_mask=0
 	mass=combined_stats['mass']
 	linear_damp=combined_stats['drag']

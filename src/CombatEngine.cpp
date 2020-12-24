@@ -309,7 +309,7 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
         draw_crosshairs(loc,rad,color);
       draw_anulus(loc,rad*3-0.75,rad*3+0.75,color,false);
     } else { // ship
-      visual_server->canvas_item_add_circle(canvas,loc,object.radius/2,color);
+      visual_server->canvas_item_add_circle(canvas,loc,min(2.5f,object.radius/2.0f),color);
       if(object.flags&(VISIBLE_OBJECT_PLAYER_TARGET|VISIBLE_OBJECT_PLAYER)) {
         draw_heading(object,loc,map_center,map_radius,minimap_center,minimap_radius,color);
         draw_velocity(object,loc,map_center,map_radius,minimap_center,minimap_radius,color);
@@ -582,8 +582,10 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     if(!rotation) {
       player_auto_target(ship);
       rotation=true;
-    } else
-      fire_primary_weapons(ship);
+    }
+    ships_iter target_ptr = ships.find(ship.target);
+    aim_turrets(ship,target_ptr);
+    fire_primary_weapons(ship);
   }
 
   return thrust or rotation;
@@ -661,7 +663,7 @@ ships_iter CombatEngine::update_targetting(Ship &ship) {
   
   if(pick_new_target or target_ptr==ships.end()) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    object_id found=select_target<false>(-1,select_three(select_mask(ship.enemy_mask),select_flying(),select_nearest(ship.position)),ships);
+    object_id found=select_target<false>(-1,select_three(select_mask(ship.enemy_mask),select_flying(),select_nearest(ship.position,200.0f)),ships);
     target_ptr = ships.find(found);
   }
   return target_ptr;
@@ -790,8 +792,12 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     if(!got_enemies) {
       const ship_hit_list_t &enemies = get_ships_within_turret_range(ship, 1.5);
       bool have_a_target = target!=ships.end();
-      if(have_a_target)
+      
+      if(have_a_target) {
+        real_t dp=target->second.position.distance_to(ship.position);
+        have_a_target = dp*dp<max_distsq and have_a_target;
         eptrs[num_eptrs++] = &target->second;
+      }
       for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
         ships_iter enemy_iter = ships.find(it->second);
         if(enemy_iter==ships.end())
@@ -805,17 +811,6 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     
     // FIXME: implement weapon.get_opportunistic
     bool opportunistic = false;
-    if(eptrs==0 && target==ships.end()) {
-      if(opportunistic) {
-        //FIXME: INSERT CODE HERE
-      } else {
-        // Nothing to shoot, so aim turret forward
-        real_t to_center = asin_clamp(weapon.position[2]/travel);
-        real_t desired_angular_velocity = (fmod(weapon.rotation.y - to_center + PI, PI*2) - PI)/delta;
-        turn = clamp(desired_angular_velocity, -weapon.turn_rate, weapon.turn_rate);
-      }
-      continue;
-    }
     
     Vector3 proj_start = ship_pos + weapon.position.rotated(y_axis,ship_rotation) + confusion;
     Vector3 proj_heading = ship.heading.rotated(y_axis,weapon.rotation.y);
@@ -837,9 +832,10 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       } else
         dp += dv*t;
       double angle_to_target = angle_diff(dp.normalized(),proj_heading);
-      //angle_to_target = fmodf(angle_to_target+PI,2*PI)-PI;
+      if(angle_to_target>PI)
+        angle_to_target-=2*PI;
       real_t desired_angular_velocity = angle_to_target/delta;
-      real_t turn_time = angle_to_target/weapon.turn_rate;
+      real_t turn_time = fabsf(angle_to_target/weapon.turn_rate);
       
       // Score is adjusted to favor ships that the projectile will strike.
       real_t score = turn_time + (PI/weapon.turn_rate)*t;
@@ -852,30 +848,44 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     if(fabsf(turret_angular_velocity)>1e-5) {
       weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
       weapon_rotations[weapon.node_path] = weapon.rotation.y;
+    } else {
+      // This turret has nothing to target.
+      if(opportunistic) {
+        //FIXME: INSERT CODE HERE
+      } else {
+        // Aim turret forward
+        real_t to_center = asin_clamp(weapon.position[2]/travel);
+        real_t desired_angular_velocity = (fmod(weapon.rotation.y - to_center + PI, PI*2) - PI)/delta;
+        turn = clamp(desired_angular_velocity, -weapon.turn_rate, weapon.turn_rate);
+      }
+      continue;
     }
   }
 }
 
-Vector3 CombatEngine::aim_forward(Ship &ship,Ship &target) {
+Vector3 CombatEngine::aim_forward(Ship &ship,Ship &target,bool &in_range) {
   FAST_PROFILING_FUNCTION;
   Vector3 aim = Vector3(0,0,0);
   Vector3 my_pos=ship.position;
   Vector3 tgt_pos=target.position+ship.confusion;
   Vector3 dp_ships = tgt_pos - my_pos;
   Vector3 dv = target.linear_velocity - ship.linear_velocity;
+  dp_ships += dv*delta;
+  in_range=false;
   for(auto &weapon : ship.weapons) {
     if(weapon.turn_rate>0 or weapon.guided)
       continue;
-    Vector3 weapon_velocity = ship.linear_velocity + weapon.terminal_velocity*ship.heading;
+    //Vector3 weapon_velocity = ship.linear_velocity + weapon.terminal_velocity*ship.heading;
     Vector3 dp = dp_ships - weapon.position.rotated(y_axis,ship.rotation.y);
-    real_t t = rendezvous_time(dp,dv,weapon_velocity.length());
+    real_t t = rendezvous_time(dp,dv,weapon.terminal_velocity);
     if(isnan(t)) 
       continue;
     //return (tgt_pos - my_pos).normalized();
+    in_range = in_range or t<weapon.projectile_lifetime;
     t = min(t,weapon.projectile_lifetime);
     aim += (dp+t*dv)*max(1.0f,weapon.threat);
   }
-  return !aim.length_squared() ? (tgt_pos-my_pos).normalized() : aim.normalized();
+  return aim.length_squared() ? aim.normalized() : (tgt_pos-my_pos).normalized();
 }
 
 bool CombatEngine::request_stop(Ship &ship,Vector3 desired_heading,real_t max_speed) {
@@ -936,7 +946,9 @@ double CombatEngine::rendezvous_time(Vector3 target_location,Vector3 target_velo
 
   if(descriminant<0)
     return NAN;
-	
+
+  descriminant = sqrt(descriminant);
+        
   double d1 = (-b + descriminant)/(2.0*a);
   double d2 = (-b - descriminant)/(2.0*a);
   double mn = min(d1,d2);
@@ -966,7 +978,8 @@ void CombatEngine::player_auto_target(Ship &ship) {
   if(target==ships.end())
     fire_primary_weapons(ship);
   else {
-    Vector3 aim = aim_forward(ship,target->second);
+    bool in_range=false;
+    Vector3 aim = aim_forward(ship,target->second,in_range);
     request_heading(ship,aim);
     fire_primary_weapons(ship);
   }
@@ -1173,18 +1186,25 @@ void CombatEngine::move_to_attack(Ship &ship,Ship &target) {
   FAST_PROFILING_FUNCTION;
   if(ship.weapons.empty())
     return;
-  
-  request_heading(ship,aim_forward(ship,target));
 
-  Vector3 dp = target.position+ship.confusion - ship.position;
+  bool in_range=false;
+  Vector3 aim=aim_forward(ship,target,in_range);
+  if(in_range)
+    request_heading(ship,aim);
+  else {
+    move_to_intercept(ship,0,0,target.position,target.linear_velocity,false);
+    return;
+  }
+
+  Vector3 dp = target.position - ship.position;
   real_t dotted = dot2(ship.heading,dp.normalized());
 	
   // Heuristic; needs improvement
-  if(dotted<0)
-    return;
-  if(dotted>0.9 and dot2(ship.linear_velocity,dp)<0 or
-     lensq2(dp)>ship.turn_diameter_squared)
+  if(dotted>=0.9 and dot2(ship.linear_velocity,dp)<0 or
+     lensq2(dp)>max(100.0f,ship.turn_diameter_squared))
     request_thrust(ship,1.0,0.0);
+  else if(dotted<-0.75 and ship.reverse_thrust>0)
+    request_thrust(ship,0.0,1.0);
 }
 
 bool CombatEngine::move_to_intercept(Ship &ship,double close, double slow,
@@ -1196,6 +1216,7 @@ bool CombatEngine::move_to_intercept(Ship &ship,double close, double slow,
   DVector3 heading = get_heading_d(ship);
   DVector3 dp = tgt_pos - position;
   DVector3 dv = tgt_vel - DVector3(ship.linear_velocity);
+  dp += dv*delta;
   double speed = dv.length();
   bool is_close = dp.length()<close;
   if(is_close && speed<slow) {
@@ -1208,8 +1229,10 @@ bool CombatEngine::move_to_intercept(Ship &ship,double close, double slow,
   bool should_reverse = false;
   dp = tgt_pos - ship.stopping_point(tgt_vel, should_reverse);
 
-  if(should_reverse and dp.length()<close)
+  if(should_reverse and dp.length()<close) {
     request_thrust(ship,0,1);
+    return false;
+  }
 
   DVector3 dp_dir = dp.normalized();
   double dot = dp_dir.dot(heading);
@@ -1711,7 +1734,7 @@ void CombatEngine::pack_projectiles(const pair<instlocs_iterator,instlocs_iterat
     dataptr[i + 4] = 0.0;
     dataptr[i + 5] = 1.0;
     dataptr[i + 6] = 0.0;
-    dataptr[i + 7] = 7.0;
+    dataptr[i + 7] = PROJECTILE_HEIGHT;
     dataptr[i + 8] = -sin_ry*info.scale_x;
     dataptr[i + 9] = 0.0;
     dataptr[i + 10] = cos_ry;

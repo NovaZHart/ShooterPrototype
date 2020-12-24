@@ -1,20 +1,28 @@
 extends Node
 
 const SimpleInterceptor = preload('res://ships/SimpleInterceptor.tscn')
+const PurpleWarship = preload('res://ships/PurpleWarship/PurpleWarship.tscn')
+const PurpleHeavyWarship = preload('res://ships/PurpleHeavyWarship/scene.tscn')
+const PurpleInterceptor = preload('res://ships/PurpleInterceptor/scene.tscn')
+const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
 const SuperSimpleInterceptor = preload('res://ships/SuperSimpleInterceptor.tscn')
 
 var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':1100, 'ships':[ [8, SimpleInterceptor] ], 'team':1 },
-	{ 'frequency':1100, 'ships':[ [8, SimpleInterceptor] ], 'team':0 },
-	{ 'frequency':2700, 'ships':[ [3, SimpleInterceptor] ], 'team':1 },
-	{ 'frequency':2700, 'ships':[ [3, SimpleInterceptor] ], 'team':0 },
+	{ 'frequency':1200, 'ships':[ [2, PurpleWarship], [5, PurpleInterceptor] ], 'team':0 },
+	{ 'frequency':600, 'ships':[ [1, PurpleWarship], [1, PurpleInterceptor] ], 'team':0 },
+	{ 'frequency':400, 'ships':[ [1, PurpleHeavyWarship], ], 'team':0 },
+	{ 'frequency':60, 'ships':[ [1, BannerShip], [1, PurpleInterceptor] ], 'team':0 },
+
+	{ 'frequency':1200, 'ships':[ [2, PurpleWarship], [5, PurpleInterceptor] ], 'team':1 },
+	{ 'frequency':600, 'ships':[ [3, PurpleInterceptor] ], 'team':1 },
+	{ 'frequency':400, 'ships':[ [1, PurpleHeavyWarship] ], 'team':1 },
 ]
 
-const team_maximums: Array = [ 90,90 ]
-const max_ships: int = 150
+const team_maximums: Array = [ 55,55 ]
+const max_ships: int = 90
 
 var fleets: Array = default_fleets
 
@@ -59,10 +67,11 @@ func astral_gate_path() -> NodePath:
 			return p
 	return NodePath()
 
-func spawn_ship(var _system,var ship_scene,team: int,a: float,r: float,s: float,
-		is_player: bool):
-	var x = r*sin(a) + 2*(rng.randf()-0.5)*s
-	var z = r*cos(a) + 2*(rng.randf()-0.5)*s
+func spawn_ship(var _system,var ship_scene,team: int,angle: float,
+		add_radius: float,safe_zone: float,
+		random_x: float, random_z: float, center: Vector3, is_player: bool):
+	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
+	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
 	return ['spawn_ship',[ship_scene, Vector3(0,-1,0), Vector3(x,5,z),
 		team, is_player]]
 
@@ -74,13 +83,23 @@ func fleet_size(var fleet: Array) -> int:
 	return result
 
 func spawn_fleet(system, fleet: Array,team: int) -> Array:
+	var planets: Array = system.get_node("Planets").get_children()
+	var planet: Spatial = planets[randi()%len(planets)]
 	var result: Array = Array()
-	var radius = 100*rng.randf()
+	var add_radius = 100*sqrt(rng.randf())
+	var safe_zone = 25
 	var angle = rng.randf()*2*PI
 	for num_ship in fleet:
 		for _n in range(num_ship[0]):
-			result.push_back(spawn_ship(system,num_ship[1],team,angle,radius,10,false))
+			result.push_back(spawn_ship(system,num_ship[1],team,
+				angle,add_radius,randf()*10-5,randf()*10-5,
+				safe_zone,planet.translation,false))
 	return result
+
+func spawn_player(system,scene):
+	var add_radius = 50*sqrt(rng.randf())
+	var angle = rng.randf()*2*PI
+	return spawn_ship(system,scene,0,angle,add_radius,0,0,10,Vector3(),true)
 
 func process_space(system,delta) -> Array:
 	var result: Array = Array()
@@ -89,19 +108,19 @@ func process_space(system,delta) -> Array:
 			continue
 		var size: int = fleet_size(fleet['ships'])
 		var team: int = fleet['team']
-		var my_count: int = system.ship_count_by_team(team)
-		if my_count+size>team_maximums[team]:
+		var my_stats: Dictionary = system.ship_stats_by_team(team)
+		if my_stats['count']+size>team_maximums[team]:
 			continue
-		var their_count: int = system.ship_count_by_team(1-team)
-		if my_count > their_count*1.5 and my_count>1:
+		var their_stats: Dictionary = system.ship_stats_by_team(1-team)
+		if my_stats['threat'] > their_stats['threat']*1.5 and my_stats['count']>1:
 			continue
-		if my_count+their_count+size > max_ships:
+		if my_stats['count']+their_stats['count']+size > max_ships:
 			continue
 		result += spawn_fleet(system,fleet['ships'],team)
 	return result
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float) -> Array:
-	var result = [spawn_ship(system,SuperSimpleInterceptor,0,0,0,0,true)]
+	var result = [spawn_player(system,PurpleWarship)]
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail)

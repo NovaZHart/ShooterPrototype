@@ -16,6 +16,7 @@ script = ExtResource( 2 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0 )
 layers = 4
 light_cull_mask = 4293918724
+shadow_enabled = true
 omni_range = 999999.0
 omni_attenuation = 0.0228763
 
@@ -28,7 +29,7 @@ omni_range = 500.0
 environment = SubResource( 1 )
 
 [node name="SpaceBackground" parent="." instance=ExtResource( 1 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -10, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -30, 0 )
 
 [node name="TopCamera" type="Camera" parent="."]
 transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65432e-14, -32.4787, 81.2257, 0 )

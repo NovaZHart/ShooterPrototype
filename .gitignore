@@ -1,7 +1,6 @@
 *~
 *.os
 *.dblite
-*.dae
 *.import*
 *.blend*
 *.o

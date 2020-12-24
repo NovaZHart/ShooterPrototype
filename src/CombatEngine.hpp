@@ -138,7 +138,7 @@ namespace godot {
     Vector3 make_threat_vector(CE::Ship &ship, real_t t);
     void evade(CE::Ship &ship);
     void aim_turrets(CE::Ship &ship,CE::ships_iter &target);
-    Vector3 aim_forward(CE::Ship &ship,CE::Ship &target);
+    Vector3 aim_forward(CE::Ship &ship,CE::Ship &target,bool &in_range);
     bool request_stop(CE::Ship &ship,Vector3 desired_heading,real_t max_speed);
     double rendezvous_time(Vector3 target_location,Vector3 target_velocity,
                            double interception_speed);

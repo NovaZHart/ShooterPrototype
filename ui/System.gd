@@ -1,6 +1,6 @@
 extends Spatial
 
-export var min_sun_height: float = 30.0
+export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
@@ -53,12 +53,14 @@ func receive_player_orders(new_orders: Dictionary) -> void:
 	player_orders = [new_orders]
 	player_orders_mutex.unlock()
 
-func ship_count_by_team(team: int):
+func ship_stats_by_team(team: int):
 	var count=0
+	var threat=0
 	for ship in $Ships.get_children():
 		if team==ship.team:
 			count+=1
-	return count
+			threat += max(0,ship.combined_stats.get('threat',0))
+	return {'count': count, 'threat': threat}
 
 func add_ship_stat_request(ship_name: String) -> void:
 	ship_stats_requests_mutex.lock()
@@ -229,6 +231,11 @@ func spawn_ship(ship_scene: PackedScene, rotation: Vector3, translation: Vector3
 	ship.set_team(team)
 	if is_player:
 		ship.name = player_ship_name
+		ship.base_shields*=4
+		ship.base_armor*=4
+		ship.base_structure*=4
+		ship.base_thrust*=1.3
+		ship.base_turn_rate*=1.3
 		add_ship_stat_request(player_ship_name)
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
@@ -277,7 +284,7 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	center_view()
 
 func _ready() -> void:
-	init_system(999,50,150)
+	init_system(randf()*500,50,150)
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size
@@ -291,9 +298,9 @@ func center_view(center=null) -> void:
 			center_object=player_ship
 		center = center_object.translation
 	var size=$TopCamera.size
-	$TopCamera.translation = Vector3(center.x, 10, center.z)
-	$SpaceBackground.center_view(center.x,center.z,0,size,10)
+	$TopCamera.translation = Vector3(center.x, 50, center.z)
+	$SpaceBackground.center_view(center.x,center.z,0,size,30)
 	# Maintain 30 degree sun angle unless were're very close to the sun.
 	$ShipLight.translation.y = min(max_sun_height,max(min_sun_height,
 		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
-	emit_signal('view_center_changed',Vector3(center.x,10,center.z),Vector3(size,0,size))
+	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))

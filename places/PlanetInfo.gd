@@ -119,7 +119,7 @@ func make_planet(detail: float=150, time: float=0):
 	
 	planet.color_sphere(color_scaling,color_addition)
 	var x0z = planet_translation(time)
-	planet.place_sphere(size,Vector3(x0z[0],-5,x0z[2]))
+	planet.place_sphere(size,Vector3(x0z[0],-15,x0z[2]))
 	
 	planet.name = make_unique_name()
 	planet.display_name = display_name

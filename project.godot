@@ -134,4 +134,6 @@ common/physics_jitter_fix=1.0
 [rendering]
 
 threads/thread_model=2
+quality/shadow_atlas/size=2048
+quality/shadow_atlas/size.mobile=1024
 environment/default_environment="res://default_env.tres"

@@ -93,9 +93,9 @@ func make_player_orders(_delta: float) -> Dictionary:
 		ui_scroll=0
 	var _zoom_level = $System.set_zoom(zoom)
 	
-	var nearest: int = PLAYER_TARGET_NEXT
+	var nearest: int = PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
-		nearest = PLAYER_TARGET_NEAREST
+		nearest = PLAYER_TARGET_NEXT
 	
 	if Input.is_action_just_pressed('ui_down') and tick-last_back_command<15:
 		double_down_active=true

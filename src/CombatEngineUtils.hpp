@@ -178,7 +178,7 @@ namespace godot {
     }
 
     class select_mask {
-      int mask;
+      const int mask;
     public:
       select_mask(int mask): mask(mask) {}
       select_mask(const select_mask &other): mask(other.mask) {}
@@ -189,18 +189,23 @@ namespace godot {
     };
 
     class select_nearest {
-      Vector3 to;
+      const Vector3 to;
       mutable real_t closest;
+      const real_t max_range;
     public:
-      select_nearest(const Vector3 &to):
+      select_nearest(const Vector3 &to,real_t max_range = std::numeric_limits<real_t>::infinity()):
         closest(std::numeric_limits<real_t>::infinity()),
-        to(to) {}
+        to(to),
+        max_range(max_range)
+      {}
       select_nearest(const select_nearest &other):
-        to(other.to), closest(other.closest)
+        to(other.to), closest(other.closest), max_range(other.max_range)
       {}
       template<class I>
       bool operator () (I iter) const {
         real_t distance = to.distance_to(iter->second.position);
+        if(distance>max_range)
+          return false;
         if(distance<closest) {
           closest=distance;
           return true;
@@ -211,8 +216,8 @@ namespace godot {
 
     template<class A,class B>
     class select_two {
-      A one;
-      B two;
+      const A one;
+      const B two;
     public:
       select_two(const A &one,const B&two):
         one(one), two(two)
@@ -228,9 +233,9 @@ namespace godot {
     
     template<class A,class B,class C>
     class select_three {
-      A one;
-      B two;
-      C three;
+      const A one;
+      const B two;
+      const C three;
     public:
       select_three(const A &one,const B&two,const C&three):
         one(one), two(two), three(three)

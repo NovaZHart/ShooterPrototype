@@ -73,7 +73,7 @@ func make_test_systems():
 			.add_planet(
 				PlanetInfo.new('storm', {
 					'display_name':'Storm', 'shader_seed':321321321,
-					'orbit_radius':70, 'orbit_period':300, 'size':3,
+					'orbit_radius':200, 'orbit_period':300, 'size':3,
 					'description':'Description of Storm planet.',
 				},PlanetInfo.ocean_planet,['info','missing'])
 			)
@@ -87,13 +87,13 @@ func make_test_systems():
 			.add_planet(
 				PlanetInfo.new('hellscape',{
 					'display_name':'Hellscape', 'shader_seed':391,
-					'orbit_radius':40, 'orbit_period':91, 'size':2,
+					'orbit_radius':200, 'orbit_period':91, 'size':2,
 				},PlanetInfo.fiery_rock,['info'])
 			) \
 			.add_planet(
 				PlanetInfo.new('pearl',{
 					'display_name':'Pearl', 'shader_seed':913,
-					'orbit_radius':105, 'orbit_period':1092, 'size':4,
+					'orbit_radius':450, 'orbit_period':1092, 'size':4,
 					'description':'Description of Pearl planet.',
 				},PlanetInfo.ice_planet,['info','test','alttest'])
 			) \
