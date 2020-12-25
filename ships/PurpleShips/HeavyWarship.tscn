@@ -1,0 +1,67 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://ships/PurpleShips/PurpleHeavyWarship.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=2]
+[ext_resource path="res://weapons/OrangeSpikeTurret.tscn" type="PackedScene" id=3]
+[ext_resource path="res://weapons/GreenLaserGun.tscn" type="PackedScene" id=5]
+[ext_resource path="res://weapons/BlueLaserTurret.tscn" type="PackedScene" id=6]
+
+[sub_resource type="CylinderShape" id=1]
+
+[sub_resource type="CylinderShape" id=2]
+
+[node name="PurpleHeavyWarship" type="RigidBody"]
+script = ExtResource( 2 )
+base_mass = 125.0
+base_thrust = 6500.0
+base_reverse_thrust = 1800.0
+base_shields = 3200.0
+base_armor = 2400.0
+base_structure = 1300.0
+heal_shields = 45.0
+heal_armor = 15.0
+base_drag = 1.9
+base_turn_rate = 1.1
+base_explosion_damage = 800.0
+base_explosion_radius = 12.0
+base_explosion_impulse = 900.0
+
+[node name="Body" type="MeshInstance" parent="."]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+
+[node name="CollisionShape2" type="CollisionShape" parent="."]
+transform = Transform( -3.64052e-08, 0, 0.832855, 0, 18, 0, -1.03173, 0, -4.50983e-08, 2.15095, 0, 0 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( -9.48319e-08, 0, 2.1695, 0, 18, 0, -2.13328, 0, -9.32484e-08, -0.772821, 0, 0 )
+shape = SubResource( 2 )
+
+[node name="RightMiddleTurret" parent="." instance=ExtResource( 3 )]
+transform = Transform( 0.632597, 0, -0.774481, 0, 1, 0, 0.774481, 0, 0.632597, -0.685224, 0.0262299, 1.31847 )
+
+[node name="RightMiddleTurret2" parent="." instance=ExtResource( 3 )]
+transform = Transform( 0.632597, 0, 0.774481, 0, 1, 0, -0.774481, 0, 0.632597, -0.685224, 0.026, -1.318 )
+
+[node name="Turret" parent="." instance=ExtResource( 6 )]
+transform = Transform( -0.665322, 0, 0.746557, 0, 1, 0, -0.746557, 0, -0.665322, -1.94862, -0.0939112, -1.01562 )
+
+[node name="Turret2" parent="." instance=ExtResource( 6 )]
+transform = Transform( -0.665322, 0, -0.746557, 0, 1, 0, 0.746557, 0, -0.665322, -1.949, -0.094, 1.016 )
+
+[node name="Turret3" parent="." instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.59342, -0.0599174, -0.0334737 )
+
+[node name="Gun" parent="." instance=ExtResource( 5 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.963567, 0, -1.56941 )
+
+[node name="Gun3" parent="." instance=ExtResource( 5 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.21489, -0.0412543, 1.12223 )
+
+[node name="Gun2" parent="." instance=ExtResource( 5 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.963876, 0.0737457, 1.47623 )
+
+[node name="Gun4" parent="." instance=ExtResource( 5 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.21497, -0.115303, -1.21485 )

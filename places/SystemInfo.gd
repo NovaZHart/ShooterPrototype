@@ -1,9 +1,9 @@
 extends Node
 
 const SimpleInterceptor = preload('res://ships/SimpleInterceptor.tscn')
-const PurpleWarship = preload('res://ships/PurpleWarship/PurpleWarship.tscn')
-const PurpleHeavyWarship = preload('res://ships/PurpleHeavyWarship/scene.tscn')
-const PurpleInterceptor = preload('res://ships/PurpleInterceptor/scene.tscn')
+const PurpleWarship = preload('res://ships/PurpleShips/Warship.tscn')
+const PurpleHeavyWarship = preload('res://ships/PurpleShips/HeavyWarship.tscn')
+const PurpleInterceptor = preload('res://ships/PurpleShips/Interceptor.tscn')
 const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
 const SuperSimpleInterceptor = preload('res://ships/SuperSimpleInterceptor.tscn')
 

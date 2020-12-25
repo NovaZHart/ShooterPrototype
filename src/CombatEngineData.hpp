@@ -9,7 +9,7 @@
 #define FAR 9999999 /* farther than any distance that should be considered */
 #define BIG 9999999 /* bigger than any object should be */
 #define PLAYER_COLLISION_LAYER_BITS 1
-#define PROJECTILE_HEIGHT 20
+#define PROJECTILE_HEIGHT 27
 #define PI 3.141592653589793
 
 #include <unordered_set>

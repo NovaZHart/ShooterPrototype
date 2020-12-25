@@ -13,4 +13,4 @@ size = Vector3( 0.1, 0.3, 0.3 )
 mesh = SubResource( 2 )
 material/0 = null
 script = ExtResource( 1 )
-projectile_mesh_path = "res://weapons/YellowSpike.mesh"
+projectile_mesh_path = "res://weapons/meshes/YellowSpike.mesh"
