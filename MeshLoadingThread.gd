@@ -27,7 +27,6 @@ func load_meshes() -> int: # returns an Error enum
 			printerr('MeshLoadingThread: Could not start thread for self.thread_main(). Error #',result)
 	was_started = result==OK
 	start_mutex.unlock()
-	has_ended=true
 	return result
 
 func count_meshes() -> int:
@@ -51,6 +50,7 @@ func thread_main(_userdata):
 		print('MeshLoadingThread: success. Loaded ',count_meshes(),' of ',
 			len(meshes),' meshes.')
 	mesh_loader.receive_meshes(meshes)
+	has_ended=true
 
 func process_dir(dir_path) -> bool:
 	scanned_dirs += 1

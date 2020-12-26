@@ -672,14 +672,17 @@ ships_iter CombatEngine::update_targetting(Ship &ship) {
 void CombatEngine::attacker_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   ships_iter target_ptr = update_targetting(ship);
+  bool have_target = target_ptr!=ships.end();
+  bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<100;
   
-  if(target_ptr!=ships.end()) {
+  if(close_to_target) {
     ship.target=target_ptr->first;
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
   } else {
-    ship.target=-1;  
+    if(not have_target)
+      ship.target=-1;
     landing_ai(ship);
   }
 }
@@ -782,13 +785,12 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
   
   for(auto &weapon : ship.weapons) {
     if(weapon.turn_rate<=0)
-      continue;
+      continue; // Not a turret.
     
     real_t travel = weapon.projectile_lifetime*weapon.terminal_velocity;
     if(travel<1e-5)
       continue; // Avoid divide by zero for turrets with no range.
 
-    real_t turn = 0;
     if(!got_enemies) {
       const ship_hit_list_t &enemies = get_ships_within_turret_range(ship, 1.5);
       bool have_a_target = target!=ships.end();
@@ -845,20 +847,23 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       }
     }
     
-    if(fabsf(turret_angular_velocity)>1e-5) {
+    if(fabsf(turret_angular_velocity)<=1e-9) {
+      // This turret has nothing to target.
+      // if(opportunistic) {
+      //   //FIXME: INSERT CODE HERE
+      // } else {
+        // Aim turret forward
+      // Vector3 to_center = ship.heading.rotated();
+      real_t harmony_angle = asin_clamp(weapon.position.z/travel);
+      real_t to_center = harmony_angle-weapon.rotation.y;
+      if(to_center>PI)
+        to_center-=2*PI;
+      turret_angular_velocity = clamp(to_center/delta, -weapon.turn_rate, weapon.turn_rate);
+      // }
+    }
+    if(fabsf(turret_angular_velocity)>1e-9) {
       weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
       weapon_rotations[weapon.node_path] = weapon.rotation.y;
-    } else {
-      // This turret has nothing to target.
-      if(opportunistic) {
-        //FIXME: INSERT CODE HERE
-      } else {
-        // Aim turret forward
-        real_t to_center = asin_clamp(weapon.position[2]/travel);
-        real_t desired_angular_velocity = (fmod(weapon.rotation.y - to_center + PI, PI*2) - PI)/delta;
-        turn = clamp(desired_angular_velocity, -weapon.turn_rate, weapon.turn_rate);
-      }
-      continue;
     }
   }
 }
@@ -1337,6 +1342,7 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
   FAST_PROFILING_FUNCTION;
   if(weapon.firing_countdown>0)
     return;
+  ship.tick_at_last_shot=ship.tick;
   weapon.firing_countdown = weapon.firing_delay;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
@@ -1346,6 +1352,7 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
   FAST_PROFILING_FUNCTION;
   if(weapon.firing_countdown>0)
     return;
+  ship.tick_at_last_shot=ship.tick;
   weapon.firing_countdown = weapon.firing_delay;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));

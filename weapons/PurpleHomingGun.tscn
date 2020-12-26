@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/meshes/purple_gun.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
+
+[node name="Emitter" type="MeshInstance"]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+script = ExtResource( 2 )
+damage = 95.0
+impulse = 12.0
+weapon_mass = 30.0
+weapon_structure = 55.0
+initial_velocity = 25.0
+projectile_thrust = 250.0
+projectile_lifetime = 2.5
+firing_delay = 0.5
+detonation_range = 0.25
+blast_radius = 1.0
+guided = true
+guidance_uses_velocity = true
+projectile_mesh_path = "res://weapons/meshes/PurpleBlob.mesh"

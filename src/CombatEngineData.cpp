@@ -544,9 +544,9 @@ VisibleObject::VisibleObject(const Planet &planet):
 
 VisibleProjectile::VisibleProjectile(const Projectile &projectile):
   rotation_y(projectile.rotation.y),
-  scale_x(projectile.scale),
+  scale_x(projectile.direct_fire ? projectile.scale : 0),
   center(projectile.position.x,projectile.position.z),
-  half_size(max(1.0f,scale_x/2),max(1.0f,scale_x/2)), // FIXME: need a better AABB for a projectile
+  half_size(projectile.direct_fire ? Vector2(projectile.scale,projectile.scale) : Vector2(0.1f,0.1f)),
   type(VISIBLE_OBJECT_PROJECTILE),
   mesh_id(projectile.mesh_id)
 {}

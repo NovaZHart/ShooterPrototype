@@ -20,5 +20,6 @@ func wait_for_thread():
 	mesh_mutex.lock()
 	if mesh_loading_thread!=null:
 		mesh_loading_thread.terminate=true
-		mesh_loading_thread.wait_to_finish()
+		if mesh_loading_thread.is_active():
+			mesh_loading_thread.wait_to_finish()
 	mesh_mutex.unlock()

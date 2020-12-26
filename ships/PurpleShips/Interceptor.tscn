@@ -24,7 +24,7 @@ transform = Transform( 0.154587, 0.000882607, -0.565972, -5.98082e-05, 10, 3.123
 shape = SubResource( 1 )
 
 [node name="MeshInstance" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.518406, -0.134129, -0.382142 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.452495, -0.143383, -0.382142 )
 
 [node name="MeshInstance2" parent="." instance=ExtResource( 2 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.51862, -0.13457, 0.382 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.452709, -0.143824, 0.382 )

@@ -3,6 +3,7 @@ extends Node
 const SimpleInterceptor = preload('res://ships/SimpleInterceptor.tscn')
 const PurpleWarship = preload('res://ships/PurpleShips/Warship.tscn')
 const PurpleHeavyWarship = preload('res://ships/PurpleShips/HeavyWarship.tscn')
+const PlayerShip = preload('res://ships/PurpleShips/PlayerHeavyWarship.tscn')
 const PurpleInterceptor = preload('res://ships/PurpleShips/Interceptor.tscn')
 const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
 const SuperSimpleInterceptor = preload('res://ships/SuperSimpleInterceptor.tscn')
@@ -11,18 +12,26 @@ var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':1200, 'ships':[ [2, PurpleWarship], [5, PurpleInterceptor] ], 'team':0 },
-	{ 'frequency':600, 'ships':[ [1, PurpleWarship], [1, PurpleInterceptor] ], 'team':0 },
-	{ 'frequency':400, 'ships':[ [1, PurpleHeavyWarship], ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [2, PurpleWarship] ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [1, PurpleWarship], [1, PurpleInterceptor] ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [3, PurpleInterceptor] ], 'team':0 },
+	{ 'frequency':900, 'ships':[ [1, PurpleHeavyWarship], ], 'team':0 },
+	
 	{ 'frequency':60, 'ships':[ [1, BannerShip], [1, PurpleInterceptor] ], 'team':0 },
 
-	{ 'frequency':1200, 'ships':[ [2, PurpleWarship], [5, PurpleInterceptor] ], 'team':1 },
-	{ 'frequency':600, 'ships':[ [3, PurpleInterceptor] ], 'team':1 },
-	{ 'frequency':400, 'ships':[ [1, PurpleHeavyWarship] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [2, PurpleWarship] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [1, PurpleWarship], [1, PurpleInterceptor] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [3, PurpleInterceptor] ], 'team':1 },
+	{ 'frequency':900, 'ships':[ [1, PurpleHeavyWarship], ], 'team':1 },
 ]
 
-const team_maximums: Array = [ 55,55 ]
-const max_ships: int = 90
+const standalone_team_maximums: Array = [ 200,200 ]
+const standalone_max_ships: int = 300
+const debug_team_maximums: Array = [75, 75]
+const debug_max_ships: int = 120
+
+var team_maximums: Array = standalone_team_maximums
+var max_ships: int = standalone_max_ships
 
 var fleets: Array = default_fleets
 
@@ -43,6 +52,10 @@ func _init(the_name: String,the_fleets: Array=default_fleets):
 	fleets = the_fleets
 	rng = RandomNumberGenerator.new()
 	rng.randomize()
+	if not OS.has_feature('standalone'):
+		print('Reducing ship count for debug build')
+		max_ships = debug_max_ships
+		team_maximums = debug_team_maximums
 
 func increment_counter() -> int:
 	counter+=1
@@ -120,7 +133,7 @@ func process_space(system,delta) -> Array:
 	return result
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float) -> Array:
-	var result = [spawn_player(system,PurpleWarship)]
+	var result = [spawn_player(system,PurpleHeavyWarship)]
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail)
