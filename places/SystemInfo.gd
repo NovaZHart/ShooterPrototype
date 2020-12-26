@@ -3,7 +3,6 @@ extends Node
 const SimpleInterceptor = preload('res://ships/SimpleInterceptor.tscn')
 const PurpleWarship = preload('res://ships/PurpleShips/Warship.tscn')
 const PurpleHeavyWarship = preload('res://ships/PurpleShips/HeavyWarship.tscn')
-const PlayerShip = preload('res://ships/PurpleShips/PlayerHeavyWarship.tscn')
 const PurpleInterceptor = preload('res://ships/PurpleShips/Interceptor.tscn')
 const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
 const SuperSimpleInterceptor = preload('res://ships/SuperSimpleInterceptor.tscn')
