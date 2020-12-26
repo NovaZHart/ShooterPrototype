@@ -107,7 +107,7 @@ namespace godot {
                   PhysicsDirectSpaceState *new_space,
                   Array update_request_rid);
     void prepare_visual_frame(RID new_scenario);
-    void update_overhead_view(Vector3 location,Vector3 size);
+    void update_overhead_view(Vector3 location,Vector3 size,real_t projectile_scale);
     void draw_minimap_contents(RID new_canvas, Vector2 map_center, float map_radius,
                                Vector2 minimap_center, float minimap_radius);
 
@@ -191,7 +191,7 @@ namespace godot {
     void clear_all_multimeshes();
     void unused_multimesh(CE::MeshInfo &mesh_info);
     void pack_projectiles(const std::pair<CE::instlocs_iterator,CE::instlocs_iterator> &projectiles,
-                          PoolRealArray &floats,CE::MeshInfo &mesh_info);
+                          PoolRealArray &floats,CE::MeshInfo &mesh_info,real_t projectile_scale);
     void catalog_projectiles(const Vector3 &location,const Vector3 &size,
                              CE::instance_locations_t &instance_locations,
                              std::unordered_set<CE::object_id> &need_new_meshes);

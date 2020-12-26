@@ -199,7 +199,7 @@ void CombatEngine::prepare_visual_frame(RID new_scenario) {
   reset_scenario=true;
 }
 
-void CombatEngine::update_overhead_view(Vector3 location,Vector3 size) {
+void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
   //NOTE: entry point from gdscript
 
@@ -277,7 +277,7 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size) {
     if(!update_visual_instance(mesh_info))
       continue;
     
-    pack_projectiles(instances,mesh_info.floats,mesh_info);
+    pack_projectiles(instances,mesh_info.floats,mesh_info,projectile_scale);
     
     // Send the instance data.
     visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
@@ -1712,7 +1712,7 @@ void CombatEngine::unused_multimesh(MeshInfo &mesh_info) {
 }
 
 void CombatEngine::pack_projectiles(const pair<instlocs_iterator,instlocs_iterator> &projectiles,
-                                    PoolRealArray &floats,MeshInfo &mesh_info) {
+                                    PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
   // Change the float array so it is exactly as large as we need
   floats.resize(mesh_info.instance_count*12);
@@ -1720,24 +1720,27 @@ void CombatEngine::pack_projectiles(const pair<instlocs_iterator,instlocs_iterat
   PoolRealArray::Write writer = floats.write();
   real_t *dataptr = writer.ptr();
 
+  real_t scale_z = projectile_scale;
+  
   // Fill in the transformations for the projectiles.
   int i=0;
   for(instlocs_iterator p_instance = projectiles.first;
       p_instance!=projectiles.second && i<stop;  p_instance++, i+=12) {
     MeshInstanceInfo &info = p_instance->second;
+    real_t scale_x = info.scale_x ? info.scale_x : projectile_scale;
     float cos_ry=cosf(info.rotation_y);
     float sin_ry=sinf(info.rotation_y);
-    dataptr[i + 0] = cos_ry*info.scale_x;
+    dataptr[i + 0] = cos_ry*scale_x;
     dataptr[i + 1] = 0.0;
-    dataptr[i + 2] = sin_ry;
+    dataptr[i + 2] = sin_ry*scale_z;
     dataptr[i + 3] = info.x;
     dataptr[i + 4] = 0.0;
     dataptr[i + 5] = 1.0;
     dataptr[i + 6] = 0.0;
     dataptr[i + 7] = PROJECTILE_HEIGHT;
-    dataptr[i + 8] = -sin_ry*info.scale_x;
+    dataptr[i + 8] = -sin_ry*scale_x;
     dataptr[i + 9] = 0.0;
-    dataptr[i + 10] = cos_ry;
+    dataptr[i + 10] = cos_ry*scale_z;
     dataptr[i + 11] = info.z;
   }
   

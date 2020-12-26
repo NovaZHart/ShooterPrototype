@@ -73,7 +73,8 @@ func draw_space(camera: Camera,viewport: Viewport) -> void:
 	var ul: Vector3 = camera.project_position(Vector2(0,0),0)
 	var lr: Vector3 = camera.project_position(viewport_size,0)
 	var size: Vector3 = Vector3(abs(ul.x-lr.x),0,abs(ul.z-lr.z))
-	native.update_overhead_view(camera.translation,size)
+	var projectile_scale: float = camera.size/60.0
+	native.update_overhead_view(camera.translation,size,projectile_scale)
 	visual_mutex.unlock()
 
 func draw_minimap(minimap: Node2D,minimap_size: float,
