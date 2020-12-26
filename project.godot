@@ -23,6 +23,7 @@ config/icon="res://icon.png"
 
 game_state="*res://GameState.gd"
 combat_engine="*res://CombatEngine.gd"
+mesh_loader="*res://MeshLoaderNode.gd"
 
 [display]
 
