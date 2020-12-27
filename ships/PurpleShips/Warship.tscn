@@ -16,7 +16,7 @@ base_armor = 700.0
 base_structure = 450.0
 heal_shields = 35.0
 heal_armor = 8.0
-override_size = Vector3( 3, 0, 2.4 )
+override_size = Vector3( 2.5, 0, 4 )
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )

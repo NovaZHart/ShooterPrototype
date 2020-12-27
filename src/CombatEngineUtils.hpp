@@ -2,6 +2,7 @@
 #define COMBATENGINEUTILS_HPP
 
 #include <assert.h>
+#include <time.h>
 
 #include <cstdint>
 #include <cmath>
@@ -22,34 +23,38 @@
 namespace godot {
 
   class FastProfiling {
-    char *signature;
+    const char *function;
+    int line;
+    char *sig;
     uint64_t ticks;
   public:
-    FastProfiling(const char *p_function, const int p_line, char *&sig):
-      signature(sig ? sig : sig=sign(p_function,p_line)),
-      ticks(OS::get_singleton()->get_ticks_usec())
-    {}
+    explicit FastProfiling(const char *p_function, const int p_line, char *sig):
+      function(p_function),line(p_line),sig(sig)
+    {
+      //      signature = sign(p_function,p_line,sig);
+      ticks = tick();
+    }
     ~FastProfiling() {
-      uint64_t t = OS::get_singleton()->get_ticks_usec() - ticks;
-      if (t > 0) {
-        Godot::gdnative_profiling_add_data(signature, t);
+      uint64_t t = tick() - ticks;
+      if(t>10) {
+        if(sig[0]!=':')
+          snprintf(sig, 1024, "::%d::%s", line, function);
+        Godot::gdnative_profiling_add_data(sig, t);
       }
     }
   private:
-    static char *sign(const char *p_function, const int p_line) {
-      char *signature=new char[300];
-      snprintf(signature, 300, "::%d::%s", p_line, p_function);
-      return signature;
+    static uint64_t tick() {
+      struct timespec ts;
+      clock_gettime(CLOCK_MONOTONIC_RAW,&ts);
+      return ((uint64_t)ts.tv_nsec / 1000L) + (uint64_t)ts.tv_sec * 1000000L;
     }
   };
 
-#ifdef ENABLE_PROFILING
-#define FAST_PROFILING_FUNCTION     \
-  static char *__function_profiling_sig = nullptr ;  \
-  FastProfiling __function_profiling_prof(__FUNCTION__, __LINE__, __function_profiling_sig )
-#else
-#define FAST_PROFILING_FUNCTION
-#endif
+  //#ifdef ENABLE_PROFILING
+#define FAST_PROFILING_FUNCTION static char __function_profiling_sig[1024] = {'\0'} ; FastProfiling __function_profiling_prof(__func__, __LINE__, __function_profiling_sig )
+// #else
+// #define FAST_PROFILING_FUNCTION
+// #endif
 
   
   namespace CE {

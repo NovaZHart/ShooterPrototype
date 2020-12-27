@@ -98,10 +98,12 @@ namespace godot {
       const bool direct_fire, guided, guidance_uses_velocity;
       const RID instance_id;
       const object_id mesh_id;
-      const real_t terminal_velocity;
+      const real_t terminal_velocity, projectile_range;
       const NodePath node_path;
+      const bool is_turret;
       
       Vector3 position, rotation;
+      const real_t harmony_angle;
       real_t firing_countdown;
       
       Weapon(Dictionary dict,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh);

@@ -31,8 +31,6 @@ func set_team(new_team: int):
 	enemy_mask = 1<<enemy_team
 
 func init_ship_recursively(node: Node = self):
-	if node is VisualInstance:
-		node.set_layer_mask(4)
 	if node.has_method("add_weapon_stats"):
 		node.rotation=Vector3(0,0,0)
 	for child in node.get_children():
@@ -111,4 +109,7 @@ func _ready():
 	axis_lock_angular_x=true
 	axis_lock_angular_z=true
 	can_sleep=false
-	init_ship_recursively()
+	for child in get_children():
+		if child is VisualInstance:
+			child.translation.y+=height
+	#init_ship_recursively()

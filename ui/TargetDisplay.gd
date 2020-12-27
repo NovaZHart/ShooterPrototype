@@ -42,23 +42,22 @@ func _draw():
 	var pos2d: Vector2 = camera.unproject_position(target.translation)
 	
 	# Crosshairs
-	var out: Vector3
-	var circle_width: float = 2
-	var circle_color: Color
+#	var circle_width: float = 2
+#	var circle_color: Color
 	
-	if stats_local.has('radius'):
-		# Tight circle around planets
-		out = pos+Vector3(stats_local['radius']+0.25,0,0).rotated(Vector3(0,0,1),camera_angle)
-		circle_color = planet_circle_color
-		circle_width = planet_circle_thickness
-	elif stats_local.has('aabb'):
-		# Circle whole bounding box for jagged things like ships
-		circle_width = ship_circle_thickness
-		circle_color = ship_circle_color
-		var aabb: AABB = stats_local['aabb']
-		out = pos+(aabb.size/2.0).rotated(Vector3(0,0,1),camera_angle)
-	else:
-		return
+	var combat_radius: float = stats_local.get('radius',1.0)
+	var out: Vector3 = pos+Vector3(combat_radius+0.25,0,0).rotated(Vector3(0,0,1),camera_angle)
+	
+#	var type: String = stats_local.get('type','ship')
+#	if type == 'planet':
+#		circle_color = planet_circle_color
+#		circle_width = planet_circle_thickness
+#	elif type == 'ship':
+#		# Circle whole bounding box for jagged things like ships
+#		circle_width = ship_circle_thickness
+#		circle_color = ship_circle_color
+#	else:
+#		return
 	
 	var out2d: Vector2 = camera.unproject_position(out)
 	var radius: float = pos2d.distance_to(out2d)
@@ -70,4 +69,5 @@ func _draw():
 		draw_hp_arc(pos2d,structure_have,structure_lack,radius+ship_target_border,
 			4*PI/3,2*PI,stats_local['structure'],stats_local['max_structure'])
 	else:
-		draw_arc(pos2d,radius+planet_target_border,0.0,2*PI,240,circle_color,circle_width,true)
+		draw_arc(pos2d,radius+planet_target_border,0.0,2*PI,240,
+			planet_circle_color,planet_circle_thickness,true)

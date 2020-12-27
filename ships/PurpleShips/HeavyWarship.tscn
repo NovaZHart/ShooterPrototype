@@ -26,6 +26,7 @@ base_turn_rate = 1.1
 base_explosion_damage = 800.0
 base_explosion_radius = 12.0
 base_explosion_impulse = 900.0
+override_size = Vector3( 6, 0, 3.5 )
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )

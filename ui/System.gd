@@ -16,7 +16,13 @@ var player_orders_mutex: Mutex = Mutex.new()
 var ship_stats_requests: Dictionary = Dictionary()
 var ship_stats_requests_mutex: Mutex = Mutex.new()
 
+var terminate_ship_maker: bool = false
+var ship_maker_thread: Thread = Thread.new()
 var ships_to_spawn: Array = Array()
+var ship_maker_mutex: Mutex = Mutex.new()
+
+var team_stats: Array = [{'count':0,'threat':0},{'count':0,'threat':0}]
+var team_stats_mutex: Mutex = Mutex.new()
 
 var ship_stats: Dictionary = {}
 const player_ship_name: String = 'player_ship' # name of player's ship node
@@ -47,20 +53,24 @@ func get_player_target_rid() -> RID:
 	return RID() 
 
 func receive_player_orders(new_orders: Dictionary) -> void:
-	player_orders_mutex.lock()
 	var player_ship = $Ships.get_node_or_null(player_ship_name)
 	new_orders['rid_id'] = player_ship.get_rid().get_id() if player_ship!=null else 0
+	player_orders_mutex.lock()
 	player_orders = [new_orders]
 	player_orders_mutex.unlock()
 
-func ship_stats_by_team(team: int):
-	var count=0
-	var threat=0
-	for ship in $Ships.get_children():
-		if team==ship.team:
-			count+=1
-			threat += max(0,ship.combined_stats.get('threat',0))
-	return {'count': count, 'threat': threat}
+func ship_stats_by_team():
+	team_stats_mutex.lock()
+	var result = team_stats.duplicate(true)
+	team_stats_mutex.unlock()
+	return result
+#	var results: Dictionary = {}
+#	for i in range(2): # range(max_teams)
+#		results[i] = {'count':0,'threat':0}
+#	for ship in $Ships.get_children():
+#		results[ship.team]['count'] += 1
+#		results[ship.team]['threat'] += max(0,ship.combined_stats.get('threat',0))
+#	return results
 
 func add_ship_stat_request(ship_name: String) -> void:
 	ship_stats_requests_mutex.lock()
@@ -74,12 +84,15 @@ func remove_ship_stat_request(ship_name: String) -> void:
 
 func sync_Ships_with_stat_requests() -> void:
 	# Remove non-existent ships from the ship stats requests:
-	ship_stats_requests_mutex.lock()
 	var new_requests: Dictionary = Dictionary()
-	for ship_name in ship_stats_requests.keys():
+	ship_stats_requests_mutex.lock()
+	var keys=ship_stats_requests.keys()
+	ship_stats_requests_mutex.unlock()
+	for ship_name in keys:
 		if $Ships.get_node_or_null(ship_name)!=null or \
 				$Planets.get_node_or_null(ship_name)!=null:
 			new_requests[ship_name]=1
+	ship_stats_requests_mutex.lock()
 	ship_stats_requests=new_requests
 	ship_stats_requests_mutex.unlock()
 
@@ -126,12 +139,23 @@ func update_target_display(old_target_name: String,new_target_name: String) -> v
 
 func pack_ship_stats() -> Array:
 	new_ships_mutex.lock()
-	var new_ships_packed: Array = []
-	for ship in new_ships:
-		if ship!=null and ship is RigidBody:
-			new_ships_packed.append(ship.pack_stats())
+	var my_new_ships = new_ships.duplicate(true)
 	new_ships.clear()
 	new_ships_mutex.unlock()
+
+	var threats: Array = [0, 0]
+	var new_ships_packed: Array = []
+	for ship in my_new_ships:
+		if ship!=null and ship is RigidBody:
+			new_ships_packed.append(ship.pack_stats())
+			threats[ship.team] += max(0,ship.combined_stats.get('threat',0))
+
+	team_stats_mutex.lock()
+	# Count was incremented in _physics_process
+	for team in range(len(threats)):
+		team_stats[team]['threat'] += threats[team]
+	team_stats_mutex.unlock()
+
 	return new_ships_packed
 
 func pack_planet_stats_if_not_sent() -> Array:
@@ -142,14 +166,31 @@ func pack_planet_stats_if_not_sent() -> Array:
 		sent_planets = true
 	return new_planets_packed
 
+func make_ships(_ignored):
+	while not terminate_ship_maker:
+		ship_maker_mutex.lock()
+		var spawn_me = ships_to_spawn.pop_front()
+		ship_maker_mutex.unlock()
+		if spawn_me==null:
+			OS.delay_usec(100)
+		else:
+			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
+
 func _physics_process(delta):
 	physics_tick += 1
-	ships_to_spawn = ships_to_spawn + game_state.system.process_space(self,delta)
-	for _i in range(max_new_ships_per_tick):
-		var spawn_me = ships_to_spawn.pop_front()
-		if spawn_me==null:
-			break
-		callv(spawn_me[0],spawn_me[1])
+	
+	var make_me: Array = game_state.system.process_space(self,delta)
+	
+	ship_maker_mutex.lock()
+	ships_to_spawn = ships_to_spawn + make_me
+	ship_maker_mutex.unlock()
+	
+	team_stats_mutex.lock()
+	for ship in make_me:
+		var team: int = ship[4] # "team" argument to spawn_ship
+		team_stats[team]['count']+=1
+	team_stats_mutex.unlock()
+	
 	combat_engine_mutex.lock() # ensure clear() does not run during _physics_process()
 	
 	var new_ships_packed: Array = pack_ship_stats().duplicate(true)
@@ -206,6 +247,10 @@ func _physics_process(delta):
 					game_state.player_location=node.game_state_path
 				clear()
 				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+		team_stats_mutex.lock()
+		team_stats[ship_node.team]['count'] -= 1
+		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
+		team_stats_mutex.unlock()
 		ship_node.call_deferred("queue_free")
 	if not player_died:
 		# Update target information.
@@ -221,6 +266,14 @@ func get_main_camera() -> Node:
 
 func land_player() -> int:
 	return get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+
+func add_spawned_ship(ship: RigidBody,is_player: bool):
+	$Ships.add_child(ship)
+	new_ships_mutex.lock()
+	new_ships.append(ship)
+	new_ships_mutex.unlock()
+	if is_player:
+		receive_player_orders({})
 
 func spawn_ship(ship_scene: PackedScene, rotation: Vector3, translation: Vector3,
 		team: int, is_player: bool) -> void:
@@ -239,12 +292,7 @@ func spawn_ship(ship_scene: PackedScene, rotation: Vector3, translation: Vector3
 		add_ship_stat_request(player_ship_name)
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
-	$Ships.add_child(ship)
-	new_ships_mutex.lock()
-	new_ships.append(ship)
-	new_ships_mutex.unlock()
-	if is_player:
-		receive_player_orders({})
+	call_deferred('add_spawned_ship',ship,is_player)
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)
@@ -278,13 +326,26 @@ func clear() -> void: # must be called in visual thread
 	combat_engine_mutex.unlock()
 
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
+	game_state.system.fill_system(self,planet_time,ship_time,detail)
 	var make_me: Array = game_state.system.fill_system(self,planet_time,ship_time,detail)
+	team_stats_mutex.lock()
+	for ship in make_me:
+		var team: int = ship[4] # "team" argument to spawn_ship
+		team_stats[team]['count']+=1
+	team_stats_mutex.unlock()
 	for call_arg in make_me:
-		callv(call_arg[0],call_arg[1])
+		callv(call_arg[0],call_arg.slice(1,len(call_arg)))
 	center_view()
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)
+	if ship_maker_thread.start(self,'make_ships',null)!=OK:
+		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
+
+func _exit_tree() -> void:
+	terminate_ship_maker=true
+	if ship_maker_thread.is_active():
+		ship_maker_thread.wait_to_finish()
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size

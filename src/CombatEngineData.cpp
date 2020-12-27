@@ -125,9 +125,12 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   instance_id(get<RID>(dict,"instance_id")),
   mesh_id(make_mesh_id(get<String>(dict,"projectile_mesh_path"),last_id,mesh2path,path2mesh)),
   terminal_velocity((projectile_drag>0 and projectile_thrust>0) ? projectile_thrust/projectile_drag : initial_velocity),
+  projectile_range(projectile_lifetime*terminal_velocity),
   node_path(get<NodePath>(dict,"node_path")),
+  is_turret(turn_rate>1e-5),
   position(get<Vector3>(dict,"position")),
   rotation(get<Vector3>(dict,"rotation")),
+  harmony_angle(asin_clamp(position.z/projectile_range)),
   firing_countdown(0)
 {}
 
@@ -174,9 +177,10 @@ Planet::~Planet()
 Dictionary Planet::update_status(const unordered_map<object_id,Ship> &ships,
                                  const unordered_map<object_id,Planet> &planets) const {
   Dictionary s;
-  s["rotation"] = rotation;
-  s["position"] = position;
-  s["transform"] = transform;
+  // s["rotation"] = rotation;
+  // s["position"] = position;
+  // s["transform"] = transform;
+  s["type"] = "planet";
   s["name"] = name;
   s["rid"] = rid;
   s["radius"] = radius;
@@ -382,6 +386,7 @@ Vector3 Ship::randomize_destination() {
 }
 
 DVector3 Ship::stopping_point(DVector3 tgt_vel, bool &should_reverse) const {
+  FAST_PROFILING_FUNCTION;
   should_reverse = false;
   
   DVector3 pos = position;
@@ -412,32 +417,34 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
                                const unordered_map<object_id,Planet> &planets) const {
   FAST_PROFILING_FUNCTION;
   Dictionary s;
+  s["type"] = "ship";
   s["fate"] = int(fate);
   s["alive"] = fate!=FATED_TO_DIE;
-  s["rotation"]=rotation;
-  s["position"]=position;
-  s["linear_velocity"]=linear_velocity;
-  s["mass"]=1.0/inverse_mass;
-  s["inverse_inertia"]=inverse_inertia;
-  s["transform"]=transform;
+  // s["rotation"]=rotation;
+  // s["position"]=position;
+  // s["linear_velocity"]=linear_velocity;
+  // s["mass"]=1.0/inverse_mass;
+  // s["inverse_inertia"]=inverse_inertia;
+  // s["transform"]=transform;
   s["name"]=name;
   s["rid"]=rid;
-  s["drag"]=drag;
-  s["thrust"]=thrust;
-  s["reverse_thrust"]=reverse_thrust;
-  s["turn_rate"]=max_angular_velocity;
-  s["threat"]=threat;
+  // s["drag"]=drag;
+  // s["thrust"]=thrust;
+  // s["reverse_thrust"]=reverse_thrust;
+  // s["turn_rate"]=max_angular_velocity;
+  // s["threat"]=threat;
   s["shields"]=shields;
   s["armor"]=armor;
   s["structure"]=structure;
   s["max_shields"]=max_shields;
   s["max_armor"]=max_armor;
   s["max_structure"]=max_structure;
-  s["heal_shields"]=heal_shields;
-  s["heal_armor"]=heal_armor;
-  s["heal_structure"]=heal_structure;
-  s["aabb"]=aabb;
-  s["collision_layer"]=collision_layer;
+  // s["heal_shields"]=heal_shields;
+  // s["heal_armor"]=heal_armor;
+  // s["heal_structure"]=heal_structure;
+  // s["aabb"]=aabb;
+  s["radius"] = radius;
+  // s["collision_layer"]=collision_layer;
   Dictionary r;
   {
     r["guns"]=range.guns;
@@ -447,11 +454,11 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
     r["all"]=range.all;
   }
   s["ranges"]=r;
-  s["tick"]=tick;
-  s["tick_at_last_shot"]=tick_at_last_shot;
+  // s["tick"]=tick;
+  // s["tick_at_last_shot"]=tick_at_last_shot;
   s["destination"]=destination;
-  s["threat_vector"]=threat_vector;
-  s["confusion"]=confusion;
+  // s["threat_vector"]=threat_vector;
+  // s["confusion"]=confusion;
 
   ships_const_iter target_p = ships.find(target);
   if(target_p!=ships.end() and target_p->second.structure>0) {
@@ -471,10 +478,10 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
     }
   }
 
-  Array weapon_status;
-  for(auto &weapon : weapons)
-    weapon_status.append(weapon.make_status_dict());
-  s["weapons"]=weapon_status;
+  // Array weapon_status;
+  // for(auto &weapon : weapons)
+  //   weapon_status.append(weapon.make_status_dict());
+  // s["weapons"]=weapon_status;
   return s;
 }
 

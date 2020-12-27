@@ -120,6 +120,9 @@ namespace godot {
     // Ship methods 
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
+    void setup_ai_step(const Array &new_player_orders, const Array &new_ships,
+                       const Array &new_planets, const RID &player_ship_rid);
+    void step_all_ships();
     void update_ship_body_state();
     void update_ship_list(const Array &update_request_rid, Array &result);
     void add_ships_and_planets(const Array &new_ships,const Array &new_planets);

@@ -9,6 +9,7 @@ extents = Vector3( 1.00947, 1, 1 )
 
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 3 )
+override_size = Vector3( 2, 0, 2 )
 
 [node name="Dome002" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )

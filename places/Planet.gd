@@ -84,7 +84,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	shade.set_shader(sphere_shader)
 	sphere.material_override=shade
 	sphere_material = sphere.material_override
-	sphere.set_layer_mask_bit(1,true)
+	sphere.set_layer_mask(4)
 	sphere.name='Sphere'
 	
 	var view_shade=ShaderMaterial.new()
