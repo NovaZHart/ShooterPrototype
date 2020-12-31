@@ -1,0 +1,40 @@
+@PAGE page1
+@title Page 1
+@synopsis A page that tells you not to look at page 3
+@content
+This is the information from page 1. Make sure you never look at [ref=page3]Page 3.[/ref]
+@see_also page2 page3
+
+@PAGE page2
+@title Page 2
+@synopsis A nice image
+@content
+Isn't this a nice image?\n[img]res://ships/PurpleShips/Metal-4271-light-green-128x128.jpg[/img]
+@see_also page1
+
+@PAGE page3
+@title The Forbidden Page 3
+@synopsis Do not look at this page.
+@content
+[b][color=#ff7777]I told you not to look at this page!![/color][/b]
+@see_also page1
+
+@PAGE commands
+@title Console Commands
+@synopsis List of console commands and how to use them
+@content
+Known commands:
+
+	\u2022 Read a help page:
+		[code]help[/code] [i]page_id[/i]
+	\u2022 Search for help:
+		[code]search[/code] [i]search words[/i]
+	\u2022 Quick info from a page:
+		[code]synopsis[/code] [i]page_id[/i]
+	\u2022 Clear the terminal:
+		[code]clear[/code]
+
+@PAGE help
+@title Table of Contents
+@synopsis List of help sections.
+@toc commands page1 page2 page3
