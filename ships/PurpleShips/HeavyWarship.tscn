@@ -34,11 +34,11 @@ material/0 = null
 material/1 = null
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -3.64052e-08, 0, 0.832855, 0, 18, 0, -1.03173, 0, -4.50983e-08, 2.15095, 0, 0 )
+transform = Transform( -3.08014e-08, 0, 0.704656, 0, 18, 0, -1.03173, 0, -4.50983e-08, 1.81132, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -9.48319e-08, 0, 2.1695, 0, 18, 0, -2.13328, 0, -9.32484e-08, -0.772821, 0, 0 )
+transform = Transform( -8.32174e-08, 0, 1.90379, 0, 18, 0, -1.97052, 0, -8.61338e-08, -0.596499, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="RightMiddleTurret2" parent="." instance=ExtResource( 3 )]
@@ -54,10 +54,10 @@ transform = Transform( 0.632597, 0, -0.774481, 0, 1, 0, 0.774481, 0, 0.632597, -
 transform = Transform( -0.665322, 0, 0.746557, 0, 1, 0, -0.746557, 0, -0.665322, -1.47, 0.051, -0.911 )
 
 [node name="Turret3" parent="." instance=ExtResource( 6 )]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.15841, 0.0581856, -0.0334737 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.158, 0.058, 0 )
 
 [node name="Gun4" parent="." instance=ExtResource( 5 )]
-transform = Transform( 0.999953, 0, -0.00970388, 0, 1, 0, 0.00970388, 0, 0.999953, 2.61212, -0.114985, 0.309402 )
+transform = Transform( 0.999759, 1.19583e-07, -0.0219545, -3.33703e-07, 1, -9.75035e-06, 0.0219545, 9.75533e-06, 0.999759, 2.61212, -0.114985, 0.309402 )
 
 [node name="Gun5" parent="." instance=ExtResource( 5 )]
 transform = Transform( 0.999953, 0, -0.00970388, 0, 1, 0, 0.00970388, 0, 0.999953, 2.6121, -0.115, -0.309 )

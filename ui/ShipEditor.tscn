@@ -1,35 +1,33 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
-[ext_resource path="res://ui/OutfitBorders/1x1-UR.mesh" type="ArrayMesh" id=1]
-[ext_resource path="res://ui/OutfitBorders/1x1-UDR.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://ships/PurpleShips/Interceptor.tscn" type="PackedScene" id=1]
+[ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ui/ShipEditor.gd" type="Script" id=3]
 
 [sub_resource type="Environment" id=1]
 ambient_light_color = Color( 1, 1, 1, 1 )
 ambient_light_energy = 0.2
 
 [node name="Spatial" type="Spatial"]
+script = ExtResource( 3 )
+
+[node name="SpaceBackground" parent="." instance=ExtResource( 2 )]
+transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, 0, 0 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 0.750076, -0.436111, 0.497184, 0, 0.751771, 0.659425, -0.661351, -0.494619, 0.563886, 4.90081, 2.66708, 9.82405 )
+transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.90081, 10.6671, 9.82405 )
+light_indirect_energy = 0.0
+light_cull_mask = 4293918721
 shadow_enabled = true
+shadow_contact = 0.1
 directional_shadow_normal_bias = 0.0
-
-[node name="MeshInstance" type="MeshInstance" parent="."]
-mesh = ExtResource( 2 )
-material/0 = null
-material/1 = null
-
-[node name="MeshInstance2" type="MeshInstance" parent="."]
-transform = Transform( -1.62921e-07, 0, 1, 0, 1, 0, -1, 0, -1.62921e-07, 0, 0, 2 )
-mesh = ExtResource( 1 )
-material/0 = null
-material/1 = null
 
 [node name="Red" type="OmniLight" parent="."]
 transform = Transform( 1, 0, 0, 0, -1.62921e-07, 1, 0, -1, -1.62921e-07, 0, 500, 0 )
-visible = false
+layers = 2147483656
 light_color = Color( 0.996078, 0.278431, 0.137255, 1 )
 light_energy = 3.0
+light_cull_mask = 4293918728
 shadow_color = Color( 1, 0, 0, 1 )
 omni_range = 1000.0
 omni_attenuation = 0.017337
@@ -39,7 +37,9 @@ omni_shadow_mode = 0
 environment = SubResource( 1 )
 
 [node name="Camera" type="Camera" parent="."]
-transform = Transform( 1, 0, 0, 0, -1.62921e-07, 1, 0, -1, -1.62921e-07, 0, 7, 0 )
+transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 30, 0 )
 projection = 1
 current = true
-size = 30.0
+size = 10.0
+
+[node name="Ship" parent="." instance=ExtResource( 1 )]

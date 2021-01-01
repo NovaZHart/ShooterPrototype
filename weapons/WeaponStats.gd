@@ -18,6 +18,14 @@ export var threat: float = -1
 export var guided: bool = false
 export var guidance_uses_velocity: bool = false
 export var projectile_mesh_path: String
+export var mount_size_x: int = 0
+export var mount_size_y: int =0
+export var mount_type: String
+
+func mount_size() -> Vector2:
+	if mount_size_x>0 and mount_size_y>0:
+		return Vector2(mount_size_x,mount_size_y)
+	return Vector2(2,2)
 
 func add_stats(stats: Dictionary) -> void:
 	var th = threat

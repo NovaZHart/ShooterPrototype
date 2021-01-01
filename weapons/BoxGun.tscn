@@ -14,3 +14,6 @@ mesh = SubResource( 2 )
 material/0 = null
 script = ExtResource( 1 )
 projectile_mesh_path = "res://weapons/meshes/YellowSpike.mesh"
+mount_size_x = 1
+mount_size_y = 3
+mount_type = "gun"
