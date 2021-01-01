@@ -25,13 +25,13 @@ Isn't this a nice image?\n[img]res://ships/PurpleShips/Metal-4271-light-green-12
 @content
 Known commands:
 
-	\u2022 Read a help page:
+	{*} Read a help page:
 		[code]help[/code] [i]page_id[/i]
-	\u2022 Search for help:
+	{*} Search for help:
 		[code]search[/code] [i]search words[/i]
-	\u2022 Quick info from a page:
+	{*} Quick info from a page:
 		[code]synopsis[/code] [i]page_id[/i]
-	\u2022 Clear the terminal:
+	{*} Clear the terminal:
 		[code]clear[/code]
 
 @PAGE help

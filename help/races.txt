@@ -1,19 +1,19 @@
-@PAGE species/humans
-@title Humans
+@PAGE races/humans
+@title Human Species
 @synopsis Sentient, bipedal, ape-descended, refugees from planet Earth.
 @content
 [b]Also known as:[/b] Terrans, Thin-Skins
 
-These ape-descended natives of planet [ref=places/Earth]Earth[/ref] escaped their homeworld during an [ref=history/Earth/Apocalypse]apocalypse[/ref] partly of their own making. Because Earth was outside any [ref=science/Stable_Sectors]stable sectors[/ref], faster-than-light travel was impossible. This led them to invent giant [ref=ship_classes/City_Ships]city ships[/ref] capable of taking multiple generations through centuries-long voyages. Many ships were lost, but most found their way to stable sectors where sentient space-dwelling [ref=species/psirocks]Psirocks[/ref] helped them find safe planets to reside.
+These ape-descended natives of planet [ref=places/Earth]Earth[/ref] escaped their homeworld during an [ref=history/Earth/Apocalypse]apocalypse[/ref] partly of their own making. Because Earth was outside any [ref=science/Stable_Sectors]stable sectors[/ref], faster-than-light travel was impossible. This led them to invent giant [ref=ship_classes/City_Ships]city ships[/ref] capable of taking multiple generations through centuries-long voyages. Many ships were lost, but most found their way to stable sectors where sentient space-dwelling [ref=races/psirocks]Psirocks[/ref] helped them find safe planets to reside.
 
-Although they evolved as the lone sentient species on Earth, they unintentionally birthed two new sentient species through genetic experiments. One is a humanoid cat-like creature, [ref=species/suvar]Súvar[/ref], derived from lions. The other are the [ref=species/sage_spiders]Sage Spiders[/ref], engineered from the Fringed Jumping Spider. Both species still live with humans and have fully integrated into their society. The spiders' powerful intellect leads them to the upper intelligencia. The cats, more dextrous and less intelligent than humans, have found many niches. They are most appriciated in dangerous [ref=places/Norther_Frontier]frontier worlds[/ref] where colonies could not survive without them. The three species are now tied together in a symbiotic relationship.
+Although they evolved as the lone sentient species on Earth, they unintentionally birthed two new sentient species through genetic experiments. One is a humanoid cat-like creature, [ref=races/suvar]Súvar[/ref], derived from lions. The other are the [ref=races/sage_spiders]Sage Spiders[/ref], engineered from the Fringed Jumping Spider. Both species still live with humans and have fully integrated into their society. The spiders' powerful intellect leads them to the upper intelligencia. The cats, more dextrous and less intelligent than humans, have found many niches. They are most appriciated in dangerous [ref=places/Norther_Frontier]frontier worlds[/ref] where colonies could not survive without them. The three species are now tied together in a symbiotic relationship.
 
 The personality of modern human society is best described as, "cautiously optimistic." Having survived one apocalypse, they're wary to avoid another, often banning dangerous practices and experiments. However, instead of hiding from their fears, they eagery explore and expand, encouraged by their past resilience. This leads to unpleasant discoveries and hostile creatures, which humans and their allies band together to defeat.
 
 Humans now [ref=places/Human_Space]inhabit several sectors[/ref] in the extreme south end of the [ref=places/Vorai_Expanse]Vorai Expanse[/ref], and have split into several groups or regions. This split was largely to ensure peace between groups who couldn't agree on society's rules. There are common laws ensuring basic rights, most notably the freedom of movement. Beyond that, society varies widely from planet to planet; one planet may have strict religious laws while another may intentionally be an anarchy. The seat of power, where disagreements are resolved and common laws are made, are the five [ref=places/First_Worlds]First Worlds[/ref]. Those worlds were the first colonized by humans, even before they met the Psirocks, and are viewed as the birthplace of modern society.
 
-@PAGE species/sage_spiders
-@title Sage Spiders
+@PAGE races/sage_spiders
+@title Sage Spider Species
 @synopsis Giant, carnivorous, pacifistic, spiders that lead the human intelligensia
 @content
 [b]Also known as:[/b] Peacemakers, Eight-Legged Maulers
@@ -22,13 +22,13 @@ About a century before the [ref=history/Earth/Apocalypse]apocalypse[/ref] began,
 
 Instead of obedient battle spiders, they produced nigh-immortal, super-intelligent, pacifists whose diplomatic and scientific achievements are credited for the survival of the human race. When asked to fight in the war for which they were designed, the spiders instead negotiated a peace agreement and political structure that survives to this day. Soon after, spiders led human research projects that eventually produced the [ref=ship_classes/City_Ships]city ships[/ref] which took refugees from Earth to [ref=places/Human_Space]their new homes[/ref]. 
 
-The spiders could easily have taken over human society without resistance, but they've chosen instead to be teachers and advisors. They view humans as troubled children to be raised by wiser beings through gentle nudging and subtle guidance. When asked why they act this way, the spiders explained, "when your society and learning evolves far enough, you will instinctually understand the futility of violent conflict and benefits of peaceful coexistance." For this, they are known as Sages and are reveared by [ref=species/humans]humans[/ref] and [ref=species/suvar]Súvar[/ref] alike.
+The spiders could easily have taken over human society without resistance, but they've chosen instead to be teachers and advisors. They view humans as troubled children to be raised by wiser beings through gentle nudging and subtle guidance. When asked why they act this way, the spiders explained, "when your society and learning evolves far enough, you will instinctually understand the futility of violent conflict and benefits of peaceful coexistance." For this, they are known as Sages and are reveared by [ref=races/humans]humans[/ref] and [ref=races/suvar]Súvar[/ref] alike.
 
 A long history of spider-human friendship has not ended arachnophobia, in part due to the spiders' feeding habits. As giant carnivores, they still hunger for flesh, and will hunt creatures larger than themselves, poisoning them, and eating them seconds after death. This is a great embarassment to these sage-like philosopher-spiders, who prefer to be alone while hunting. Most spider-led universies and research centers are on planets with plentiful, large, creatures in dense jungles where privacy is a cheap commodity. This has fueled a long-running, and thoroughly debunked, conspiracy theory about a smuggling ring of humans as live spider food.
 
-@PAGE species/suvar
-@title Súvar
-@synopsis Energetic humanoid cats found throughout human space
+@PAGE races/suvar
+@title Súvar Species
+@synopsis Sentient humanoid cats found throughout human space
 @content
 [b]Also known as:[/b] Lionnesses, Catgirls
 
@@ -38,7 +38,7 @@ They typically live in groups, called [i]prides[/i], which chiefly serves to pro
 
 Súvar women, even elderly women, have the appearance of furry, cat-like, preteen, girls. This is partly due to their fur-coated childlike face and short stature. However, it is also due to their different chests; unlike humans, who have two breasts, the lion-descended Súvar have four smaller breasts. Their fur and bulging muscles make these four even less noticable. This has granted them the unfair nickname, "Catgirls." Humans who throw that insult are left with bloody scratches and a keen understanding of the Súvar nickname for humans, "Thin-Skins."
 
-While most Súvar are less intelligent than humans, on occasion one will be born with far superior intellect. These are known as [i]Prime Súvar[/i]. Female Prime Súvar are sent from their pride with any resources the pride can spare. They gather skills, power, and knowledge, helping better the tribe. Most Súvar politicians are Primes, advocating for Súvar rights with an intelligence on par with the smartest humans.
+While most Súvar are less intelligent than humans, on occasion one will be born with far superior intellect. These are known as [i]Prime Súvar[/i]. Female Prime Súvar are sent from their pride with any resources the pride can spare. They gather skills, power, and knowledge, helping better the pride. Most Súvar politicians are Primes, advocating for Súvar rights with an intelligence on par with the smartest humans.
 
 [h1]Origin[/h1]
 
@@ -46,33 +46,43 @@ Several decades of human history were known as the, "Golden Age of Genetic Engin
 
 The process of turning a mammal humanoid had been reduced almost to a recipe, but it took some clever researchers to apply this to the extinct Panthera Leo (Lion) species. Their goal was to create an exotic pet: a humanoid cat about 120 cm (4 ft) in height, with a childlike appearance, the intellect of a house cat, and a lifespan of about 40 years. It would be omnivorious to reduce maintenance costs, and males would rarely be born, to avoid the need for spaying and neutering.
 
-By some miracle, the scientists succeeded on their first attempt, but their mistake became apparent when the animals reached maturity, around five years of age. During intelligence tests, the cats revealed they had learned as cubs to make three word sentences and read simple words, just by observing the scientists. They could solve puzzles far more complex than any animal should, and were quick learners, albiet not as bright as a human. Clearly, the scientists created a sentient species, a highly illegal crime that had never before been broken.
+By some miracle, the scientists succeeded on their first attempt, but their mistake became apparent when the animals reached maturity, around five years of age. During intelligence tests, the cats revealed they had learned as cubs to make three word sentences and read simple words, just by observing the scientists. They could solve puzzles far more complex than any animal should, and were quick learners, albiet not as bright as a human. Clearly, the scientists created a sentient species, a highly illegal crime that had never before been committed.
 
 At this point, the scientists' first concern was to avoid a lifetime in jail. If they kept the males and females separate, the species would eventually die out. Perhaps they could hide the cats somewhere and cover up the experiment? 
 
-During this conversation, one of the cats walked in. She had escaped the cats' quarters and was spying on the panicked scientists. She was the first of her species, given the name Súvar, meaning "sunlight," after the unusual yellow-white patch on her forehead. She didn't understand the scientific or legal terms, but she clearly grasped the question being asked, and gave her answer.
+During this conversation, one of the cats walked in. She had escaped the cats' quarters and was spying on the panicked scientists. She was the first of her species, given the name Súvar, meaning "sunlight," after the unusual yellow-white patch on her forehead. Súvar didn't understand the scientific or legal terms, but she clearly grasped the question being asked, and gave her answer.
 
 "You made us broken," said Súvar, "and that was wrong. Fix us. Help us live."
 
 Ashamed, the scientists corrected the intentional flaws in the cats' DNA. By the new design, females now lived as long as a human, males about half that, and enough males were born to sustain exponential population growth. The scientists made as many cats as they could, as quickly as possible, before they got caught and jailed. They ensured sufficient health and genetic diversity for the species to continue perpetually. For this, the team of unwise scientists are considered heros by the Súvar today. 
 
 
-@PAGE species/psirocks
-@title Psirocks
+@PAGE races/psirocks
+@title Psirock Species
 @synopsis Sentient space-faring creatures with rocky shells.
 @content
 
-Psirocks are a species ancient by [ref=species/humans]human[/ref] standards, and are the only surviving sentient species native to [ref=places/Human_Space]human space[/ref]. Their name comes from their ability to manipulate objects with their minds and communicate remotely, by changing electromagnetic and gravitational fields. Their ship-sized bodies are inherantly capable of interplanetary travel, and their high technology enables interstellar travel. These vast creatures live in the lower atmospheres of gas giants, surviving incredible pressures. Having little use for the low-gravity worlds on which humans live, they cohabitate with humans in the same star systems.
+Psirocks are a species ancient by [ref=races/humans]human[/ref] standards, and are the only surviving sentient species native to [ref=places/Human_Space]human space[/ref]. Their name comes from their ability to manipulate objects with their minds and communicate remotely, by changing electromagnetic and gravitational fields. Their ship-sized bodies are inherantly capable of interplanetary travel, and their high technology enables interstellar travel. These vast creatures live in the lower atmospheres of gas giants, surviving incredible pressures. Having little use for the low-gravity worlds on which humans live, they cohabitate with humans in the same star systems.
 
-The Psirocks have far higher technology and more developed culture than humans, and view humans almost as children. They have a strict policy of non-interferance with human developments, preferring that humans learn from their own mistakes. On occasion, the Psirocks have intervened, to prevent atrocities or great disasters, usually at the request of the [ref=species/sage_spiders]Sage Spiders[/ref], who they view as humans' adoptive parents. However, they're always happy to rescue damaged ships, once the fighting has stopped.
+The Psirocks have far higher technology and more developed culture than humans, and view humans almost as children. They have a strict policy of non-interferance with human developments, preferring that humans learn from their own mistakes. On occasion, the Psirocks have intervened, to prevent atrocities or great disasters, usually at the request of the [ref=races/sage_spiders]Sage Spiders[/ref], who they view as humans' adoptive parents. However, they're always happy to rescue damaged ships, once the fighting has stopped.
 
 [h1]First Encounter with the Humans[/h1]
 
-When the [ref=species/humans]humans[/ref] escaped [ref=places/Earth]Earth[/ref] in their great [ref=ship_classes/City_Ships]city ships[/ref], they did not know where to find habitable planets. Remote sensors had shown many possible locations. Unfortunately, a planet that appears from dozens of lightyears away to have a suitable atmosphere may have hostile lifeforms, frequent asteroid strikes, or abundant toxins. Though they managed to find five [ref=places/First_Worlds]barely-habitable worlds[/ref], it would not be enough for the countless refugees.
+When the [ref=races/humans]humans[/ref] escaped [ref=places/Earth]Earth[/ref] in their great [ref=ship_classes/City_Ships]city ships[/ref], they did not know where to find habitable planets. Remote sensors had shown many possible locations. Unfortunately, a planet that appears from dozens of lightyears away to have a suitable atmosphere may have hostile lifeforms, frequent asteroid strikes, or abundant toxins. Though they managed to find five [ref=places/First_Worlds]barely-habitable worlds[/ref], it would not be enough for the countless refugees.
 
-The humans and Psirocks were aware of each other's movements but did not realize they were looking at another sentient species. Psirocks could not conceive of sentience scaled down as small as a human, and mistook their ships as [ref=species/probes]wayward robotic probes[/ref]. The humans were curious about the self-propelled asteroids that avoided their ships, but never got close enough to assess intelligence.
+The humans and Psirocks were aware of each other's movements but did not realize they were looking at another sentient species. Psirocks could not conceive of sentience scaled down as small as a human, and mistook their ships as [ref=races/probes]wayward robotic probes[/ref]. The humans were curious about the self-propelled asteroids that avoided their ships, but never got close enough to assess intelligence.
 
 When a city-ship wandered too close to [ref=places/probe_space]Probe territory[/ref], it was attacked by robotic probes, seeking to use it as building material. That was when the Psyrocks realied their mistake. The complex signals coming from these city-ships was the communication of a new intelligent species, not coded probe transmissions. They drove off the probes and analyzed the ship and its inhabitents, trying to find a way to help.
 
 From an educated guess based off of a cursory scan of human anatomy, they towed the city-ship to a moon that appeared habitable, orbiting a gas giant densely populated by Psirocks. They developed a quick understanding with the Sage Spiders, who have a similar parental fealings towards humans. The spiders negotiated for more human-habitable living places, chosen to reduce inter-group strife and increase growth. Initially, humans inhabited Psirock systems, to take advantage of their protection. Eventually they spread outward to other sectors, far beyond where the Psirocks live.
+
+
+@PAGE races/probes
+@title Probes
+@synopsis A fleet of self-replicating probes near human space
+@content
+
+Near [ref=places/Human_Space]human space[/ref], a [ref=places/probe_space]large number of systems[/ref] are inhabited by robotic probes. These probes endlessly scanning anything they can reach, cataloging it for a database of unknown purpose. They're usually non-hostile, except towards larger metalic objects such as ships, which they dismantle and rebuild into more probes. Because of this, their systems are considered a shipping hazard. A [ref=races/humans]human[/ref] [ref=ship_classes/City_Ships]city ship[/ref]'s encounter with hungry probes led to the first human-[ref=races/psirocks]Psirock[/ref] encounter.
+
+The probes will allow small vessels are through, perhaps because they're non-threatening or too small to be useful as raw materials. Smugglers take advantage of this, passing through probe territory unhindered while helpless police vessels are devoured.
 

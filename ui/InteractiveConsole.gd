@@ -61,6 +61,7 @@ func call_echo(hover,argv):
 func call_clear(hover,_argv):
 	if not hover:
 		$Console/Output.clear()
+		help_index={}
 
 func page_tooltip(id):
 	var page = help_pages.get(id)
@@ -76,7 +77,8 @@ func page_note(id: String):
 func rewrite_tags(s: String) -> String:
 	return s.replace('[ref=','[color=#88ccff][url=help ') \
 		.replace('[/ref]','[/url][/color]') \
-		.replace('h1]','b]')
+		.replace('h1]','b]') \
+		.replace('{*}','\u2022')
 
 func show_page(id):
 	
@@ -94,7 +96,7 @@ func show_page(id):
 	var content: String = help_pages[id].get('content','')
 	if content:
 		append(rewrite_tags(content))
-	var toc: Array = help_pages[id].get('table_of_contents',[])
+	var toc: Array = help_pages[id].get('toc',[])
 	for t in toc:
 		append(' \u2022 '+page_tooltip(t)+'\n')
 	var see_also: Array = help_pages[id].get('see_also',[])

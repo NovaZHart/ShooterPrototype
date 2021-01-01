@@ -56,7 +56,6 @@ func scan_file(path: String,result: Dictionary):
 			if block_name=='page':
 				page_id=block
 		# Begin the next block:
-		print('directive ',dir)
 		block_name = dir
 		block = dir_rest.get_string('rest')
 
