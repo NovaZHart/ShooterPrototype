@@ -10,4 +10,4 @@ material/1 = null
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 4
-mount_type = "ngu"
+mount_type = "gun"
