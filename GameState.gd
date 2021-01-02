@@ -11,6 +11,8 @@ var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
 
+var player_ship_scene: PackedScene = preload('res://ships/PurpleShips/Warship.tscn')
+
 signal console_append
 
 func make_unique_ship_node_name():
@@ -75,7 +77,7 @@ func make_test_systems():
 					'display_name':'Storm', 'shader_seed':321321321,
 					'orbit_radius':200, 'orbit_period':300, 'size':3,
 					'description':'Description of Storm planet.',
-				},PlanetInfo.ocean_planet,['info','missing'])
+				},PlanetInfo.ocean_planet,['info','missing','shipeditor'])
 			)
 		)
 	)
@@ -88,14 +90,14 @@ func make_test_systems():
 				PlanetInfo.new('hellscape',{
 					'display_name':'Hellscape', 'shader_seed':391,
 					'orbit_radius':200, 'orbit_period':91, 'size':2,
-				},PlanetInfo.fiery_rock,['info'])
+				},PlanetInfo.fiery_rock,['info','shipeditor'])
 			) \
 			.add_planet(
 				PlanetInfo.new('pearl',{
 					'display_name':'Pearl', 'shader_seed':913,
 					'orbit_radius':450, 'orbit_period':1092, 'size':4,
 					'description':'Description of Pearl planet.',
-				},PlanetInfo.ice_planet,['info','test','alttest'])
+				},PlanetInfo.ice_planet,['info','test','alttest','shipeditor'])
 			) \
 		)
 	)
@@ -109,4 +111,6 @@ func _init():
 		'Service Button',preload('res://ui/AltTestService.tscn'))
 	services['info'] = PlanetServices.PlanetDescription.new(
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
+	services['shipeditor'] = PlanetServices.SceneChangeService.new(
+		'Shipyard',preload('res://ui/ShipEditor.tscn'))
 	make_test_systems()

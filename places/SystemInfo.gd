@@ -131,8 +131,7 @@ func process_space(system,delta) -> Array:
 	return result
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float) -> Array:
-	spawn_player(system,PurpleHeavyWarship)
-	var result = [spawn_player(system,PurpleHeavyWarship)]
+	var result = [spawn_player(system,game_state.player_ship_scene)]
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail)

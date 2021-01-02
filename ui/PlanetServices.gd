@@ -10,14 +10,23 @@ class Service extends Reference:
 		service_title=s
 	func get_service_title() -> String:
 		return service_title
-	func create():
+	func create(_tree: SceneTree):
 		return null
 	func _init(title: String):
 		service_title=title
 
+class SceneChangeService extends Service:
+	var resource: PackedScene
+	func will_change_scene() -> bool:
+		return true
+	func create(tree: SceneTree) -> int:
+		return tree.change_scene_to(resource)
+	func _init(title: String,resource_: PackedScene).(title):
+		resource = resource_
+
 class ChildInstanceService extends Service:
 	var resource: PackedScene
-	func create() -> Node:
+	func create(_tree: SceneTree) -> Node:
 		return resource.instance()
 	func _init(title: String,resource_: PackedScene).(title):
 		resource = resource_
@@ -26,7 +35,7 @@ class PlanetDescription extends ChildInstanceService:
 	func is_available() -> bool:
 		var info = game_state.get_planet_info_or_null()
 		return not info==null and not info.description.empty()
-	func create() -> Node:
+	func create(_tree: SceneTree) -> Node:
 		var info = game_state.get_planet_info_or_null()
 		var scene = resource.instance()
 		var desc = '' if info==null else info.description
@@ -35,3 +44,4 @@ class PlanetDescription extends ChildInstanceService:
 		return scene
 	func _init(title: String,resource: PackedScene).(title,resource):
 		pass
+

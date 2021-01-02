@@ -38,15 +38,18 @@ func _ready():
 		var _discard = service_list.connect('service_activated',self,'activate_service')
 		add_child(selector)
 
-func activate_service(_service_name: String,var service):
+func activate_service(service_name: String,var service):
 	if not service.is_available():
 		return
 	var service_node = get_node_or_null(current_service)
 	if service_node!=null:
 		service_node.queue_free()
-	service_node = service.create()
 	if service.will_change_scene():
-		return # create() already changed the scene
+		if OK!=service.create(get_tree()):
+			printerr('Unable to start service ',service_name)
+		return
+	else:
+		service_node = service.create(get_tree())
 	if service_node!=null:
 		add_child(service_node)
 		current_service = get_path_to(service_node)

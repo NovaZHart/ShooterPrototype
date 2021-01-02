@@ -12,7 +12,7 @@ const LEFT: int = 2
 const DOWN: int = 4
 const UP: int = 8
 
-const ship_scene: PackedScene = preload('res://ships/PurpleShips/HeavyWarship.tscn')
+var ship_scene
 
 const guns = {
 	'DF Laser': preload('res://weapons/BlueLaserGun.tscn'),
@@ -52,6 +52,8 @@ var ship_aabb: AABB = AABB()
 var mounts: Dictionary = {}
 var used_width: float = 0
 var selected: bool = false
+var selected_scene = null
+var scene_for_item: Dictionary = {}
 
 func make_area_for_item(item: Spatial,mask: int) -> Area:
 	var area: Area = Area.new()
@@ -142,11 +144,12 @@ func mount_point(width: int,height: int,loc: Vector3,box_scale: float,box_name: 
 	$MountPoints.add_child(box)
 	return box
 
-func copy_to_installed(child: Node,display_location: Vector3) -> NodePath:
+func copy_to_installed(installed_name: String,child: Node,display_location: Vector3) -> NodePath:
 	if child.has_method('add_stats'):
 		var item = child.duplicate()
 		var area = make_area_for_item(item,2)
 		area.translation = Vector3(display_location.x,13,display_location.z)
+		area.name = installed_name
 		$Installed.add_child(area)
 		return area.get_path()
 	return NodePath()
@@ -156,16 +159,15 @@ func make_ship(scene: PackedScene):
 	ship.name='Ship'
 	add_child(ship)
 	for child in $Ship.get_children():
-		if child.has_method('mount_size'):
-			var size: Vector2 = child.mount_size()
+		if child.get('mount_type')!=null:
 			var loc: Vector3 = child.translation
-			var nx: int = int(ceil(size.x))
-			var ny: int = int(ceil(size.y))
+			var nx: int = child.mount_size_x
+			var ny: int = child.mount_size_y
 			loc.y=10
 			var mp: Area = mount_point(nx,ny,loc,0.135,child.name)
 			mounts[child.name]={'name':child.name, 'transform':child.transform, 
-				'mount_type':child.mount_type,
-				'content':copy_to_installed(child,mp.translation),
+				'mount_type':child.mount_type,'scene':'',
+				'content':copy_to_installed(child.name,child,mp.translation),
 				'box':mp.get_path(),'nx':nx,'ny':ny,'box_translation':mp.translation
 			}
 	return ship
@@ -194,6 +196,7 @@ func add_available_item(scene: PackedScene,item_name: String):
 	box.name = 'box_for_'+item_name
 	$Available.add_child(area)
 	$Available.add_child(box)
+	scene_for_item[item_name]=scene
 
 func move_Camera_for_scene():
 	$Camera.size = max(8,max(abs(ship_aabb.size.x),abs(ship_aabb.size.z))+2)
@@ -219,28 +222,29 @@ func try_to_mount(area: Area, mount_name: String):
 	var content = get_node_or_null(mount['content'])
 	if content!=null:
 		content.queue_free()
-	mounts[mount_name]['content'] = copy_to_installed(item,mount['box_translation'])
+	mounts[mount_name]['content'] = copy_to_installed(mount['name'],item,mount['box_translation'])
+	mounts[mount_name]['scene'] = selected_scene
 	var child = $Ship.get_node_or_null(mount['name'])
 	if child!=null:
 		$Ship.remove_child(child)
 		child.queue_free()
-	var install = item.duplicate()
+	var install = selected_scene.instance()
 	install.transform = mount['transform']
 	install.name = mount['name']
-	$Ship.call_deferred('add_child',install)
+	install.mount_size_x = mount['nx']
+	install.mount_size_y = mount['ny']
+	$Ship.add_child(install)
+	install.owner=$Ship
 
 func deselect(there: Dictionary):
 	var area: Area = get_node_or_null('Selected')
-	
-	if area==null:
-		return # nothing to do
-	
-	if there.has('collider'):
-		var target: CollisionObject = there['collider']
-		try_to_mount(area,target.name)
-	
-	area.queue_free()
+	if area!=null:
+		if there.has('collider'):
+			var target: CollisionObject = there['collider']
+			try_to_mount(area,target.name)
+		area.queue_free()
 	selected=false
+	selected_scene=''
 	update_coloring(0,0,'')
 
 func update_coloring(nx: int,ny: int,type: String):
@@ -257,7 +261,7 @@ func update_coloring(nx: int,ny: int,type: String):
 				if child is VisualInstance:
 					child.layers = child.layers & ~8
 
-func select(pos: Vector2, there: Dictionary):
+func select_available(pos: Vector2, there: Dictionary):
 	var collider = there['collider']
 	if collider!=null:
 		var dup: CollisionObject = collider.duplicate()
@@ -266,6 +270,7 @@ func select(pos: Vector2, there: Dictionary):
 		dup.name = 'Selected'
 		add_child(dup)
 		selected=true
+		selected_scene = scene_for_item[collider.name]
 		var item = collider.get_node_or_null('item')
 		update_coloring(item.mount_size_x,item.mount_size_y,
 			'' if item==null else item.mount_type)
@@ -288,7 +293,6 @@ func at_position(pos,mask: int):
 func _input(event: InputEvent):
 	if event.is_action_released('ui_location_select'):
 		if selected:
-			print('button released and something is selected, so deselect')
 			var there = at_position(event_position(event),4)
 			deselect(there)
 	elif event.is_action_pressed('ui_location_select'):
@@ -296,7 +300,14 @@ func _input(event: InputEvent):
 		if pos!=null:
 			var there = at_position(pos,8)
 			if there!=null and not there.empty():
-				select(pos,there)
+				select_available(pos,there)
+	elif event.is_action_released('ui_depart'):
+		var packed: PackedScene = PackedScene.new()
+		if OK==packed.pack($Ship):
+			game_state.player_ship_scene=packed
+		else:
+			printerr('Failed to pack player ship!!')
+		var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 	elif selected:
 		var n = get_node_or_null('Selected')
 		if n!=null:
@@ -306,6 +317,7 @@ func _input(event: InputEvent):
 				n.translation = Vector3(pos3.x,16,pos3.z)
 
 func _ready():
+	ship_scene = game_state.player_ship_scene
 	$SpaceBackground.center_view(130,90,0,100,0)
 	ship_aabb = combined_aabb(make_ship(ship_scene))
 	ship_aabb = ship_aabb.merge(combined_aabb($MountPoints))
