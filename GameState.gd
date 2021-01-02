@@ -49,6 +49,12 @@ func set_player_location(s: NodePath):
 			player_location = loc
 	return player_location
 
+func get_player_translation(planet_time: float) -> Vector3:
+	var node = get_node_or_null(player_location)
+	if node==null or not node.has_method('planet_translation'):
+		return Vector3()
+	return node.planet_translation(planet_time)
+
 func get_planet_unique_name() -> String:
 	var n: Node = get_node_or_null(player_location)
 	if n!=null and n.is_a_planet():

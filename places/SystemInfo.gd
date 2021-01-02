@@ -106,10 +106,11 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 				safe_zone,planet.translation,false))
 	return result
 
-func spawn_player(system,scene):
+func spawn_player(system: Spatial,scene: PackedScene,t: float):
 	var add_radius = 50*sqrt(rng.randf())
 	var angle = rng.randf()*2*PI
-	return spawn_ship(system,scene,0,angle,add_radius,0,0,10,Vector3(),true)
+	var center = game_state.get_player_translation(t)
+	return spawn_ship(system,scene,0,angle,add_radius,0,0,10,center,true)
 
 func process_space(system,delta) -> Array:
 	var result: Array = Array()
@@ -131,9 +132,9 @@ func process_space(system,delta) -> Array:
 	return result
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float) -> Array:
-	var result = [spawn_player(system,game_state.player_ship_scene)]
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail)
+	var result = [spawn_player(system,game_state.player_ship_scene,planet_time)]
 	result += process_space(system,ship_time)
 	return result
