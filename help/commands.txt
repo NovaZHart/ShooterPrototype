@@ -1,23 +1,23 @@
-@PAGE page1
+@PAGE test/page1
 @title Page 1
 @synopsis A page that tells you not to look at page 3
 @content
-This is the information from page 1. Make sure you never look at [ref=page3]Page 3.[/ref]
-@see_also page2 page3
+This is the information from page 1. Make sure you never look at [ref=test/page3]Page 3.[/ref]
+@see_also test/page2 test/page3
 
-@PAGE page2
+@PAGE test/page2
 @title Page 2
 @synopsis A nice image
 @content
 Isn't this a nice image?\n[img]res://ships/PurpleShips/Metal-4271-light-green-128x128.jpg[/img]
-@see_also page1
+@see_also test/page1
 
-@PAGE page3
+@PAGE test/page3
 @title The Forbidden Page 3
 @synopsis Do not look at this page.
 @content
 [b][color=#ff7777]I told you not to look at this page!![/color][/b]
-@see_also page1
+@see_also test/page1
 
 @PAGE commands
 @title Console Commands

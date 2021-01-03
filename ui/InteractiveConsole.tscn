@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.gd" type="Script" id=1]
 [ext_resource path="res://ui/Console.tres" type="Theme" id=2]
@@ -8,33 +8,43 @@
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=6]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=7]
 
+[sub_resource type="DynamicFont" id=6]
+size = 21
+font_data = ExtResource( 7 )
+
+[sub_resource type="DynamicFont" id=7]
+size = 18
+font_data = ExtResource( 7 )
+
 [sub_resource type="DynamicFont" id=1]
-size = 15
+size = 14
 font_data = ExtResource( 3 )
 
 [sub_resource type="DynamicFont" id=2]
-size = 17
+size = 15
 font_data = ExtResource( 4 )
 
 [sub_resource type="DynamicFont" id=3]
-size = 17
+size = 15
 font_data = ExtResource( 5 )
 
 [sub_resource type="DynamicFont" id=4]
-size = 17
+size = 15
 font_data = ExtResource( 7 )
 
 [sub_resource type="DynamicFont" id=5]
-size = 17
+size = 15
 font_data = ExtResource( 6 )
 
-[node name="Node2D" type="Panel"]
+[node name="ConsolePanel" type="Panel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+h1_font = SubResource( 6 )
+h2_font = SubResource( 7 )
 
 [node name="Console" type="GridContainer" parent="."]
 anchor_right = 1.0
@@ -75,7 +85,7 @@ caret_blink_speed = 0.5
 
 [node name="Tooltip" type="Panel" parent="."]
 visible = false
-margin_right = 100.0
+margin_right = 40.0
 margin_bottom = 10.0
 __meta__ = {
 "_edit_use_anchors_": false
@@ -98,6 +108,22 @@ scroll_active = false
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="Viewport" type="Viewport" parent="."]
+size = Vector2( 64, 64 )
+own_world = true
+render_target_v_flip = true
+render_target_clear_mode = 1
+render_target_update_mode = 0
+
+[node name="Camera" type="Camera" parent="Viewport"]
+transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 10, 0 )
+projection = 1
+
+[node name="DirectionalLight" type="DirectionalLight" parent="Viewport"]
+transform = Transform( 0.568687, 0.713081, -0.410012, -0.533023, 0.699114, 0.476577, 0.626483, -0.052478, 0.777666, -2.81608, 2.77962, 3.6697 )
+
+[node name="Content" type="Spatial" parent="Viewport"]
 [connection signal="meta_clicked" from="Console/Output" to="." method="_on_Output_meta_clicked"]
 [connection signal="meta_hover_ended" from="Console/Output" to="." method="_on_Output_meta_hover_ended"]
 [connection signal="meta_hover_started" from="Console/Output" to="." method="_on_Output_meta_hover_started"]

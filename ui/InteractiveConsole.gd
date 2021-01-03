@@ -1,13 +1,27 @@
 extends Panel
 
+export var auto_resize: bool = false
+export var h1_font: Font
+export var h2_font: Font
+
+var tag_filters = {
+	'[h1]':'[center][b]',
+	'[/h1]':'[/b][/center]',
+	'[h2]':'[b]',
+	'[/h2]':'[/b]',
+	'[ref=':'[color=#88ccff][url=help ',
+	'[/ref]':'[/url][/color]',
+	'{*}':'\u2022'
+}
+
 var ZWSP: String = '\u200B' # zero-width space
 var console_prompt: String = '[color=#6688ff][code]user@host> [/code][/color]'
 var image_path: String = 'res://ships/PurpleShips/Metal-4271-light-green-128x128.jpg'
 var LoadHelp = preload('res://help/LoadHelp.gd')
 var help_loader = LoadHelp.new()
 var help_pages: Dictionary = {}
-
 var help_index: Dictionary = {}
+var initial_size: Rect2 = Rect2()
 
 var commands: Dictionary = {
 	'echo':'call_echo',
@@ -33,13 +47,31 @@ func append(what: String, clean: bool = false):
 		$Console/Output.append_bbcode('\n')
 
 func prompt():
-	$Console/Output.append_bbcode('\n'+console_prompt)
+	$Console/Output.append_bbcode(console_prompt)
 
 func _ready():
 	$Console/Output.clear()
-	append('[img]'+image_path+'[/img]\n[url=help page1]blah[/url]\n'+
-		'[url=help page2][img]'+image_path+'[/img][/url]\n')
 	prompt()
+	initial_size=Rect2(rect_global_position,rect_size)
+	if not auto_resize:
+		set_process(false)
+	if h1_font:
+		tag_filters['[h1]'] = '[center][font='+h1_font.resource_path+']'
+		tag_filters['[/h1]'] = '[/font][/center]'
+	if h2_font:
+		tag_filters['[h2]'] = '[center][font='+h2_font.resource_path+']'
+		tag_filters['[/h2]'] = '[/font][/center]'
+
+func _process(_delta):
+	var vs: Vector2 = get_viewport().get_size()
+	var pos: Vector2 = Vector2(initial_size.position.x*vs.x/1024, \
+		initial_size.position.y*vs.y/600)
+	var siz: Vector2 = Vector2(initial_size.size.x*vs.x/1024, \
+		initial_size.size.y*vs.y/600)
+	siz.x = max(40,min(vs.x-pos.x+1,siz.x))
+	siz.y = max(40,min(vs.y-pos.y+1,siz.y))
+	rect_global_position = pos
+	rect_size = siz
 
 func _on_Input_text_entered(new_text):
 	$Console/Input.clear()
@@ -65,6 +97,9 @@ func call_clear(hover,_argv):
 
 func page_tooltip(id):
 	var page = help_pages.get(id)
+	if page==null:
+		printerr('help: reference to invalid page "',id,'"')
+		return ''
 	var text = '[b][color=#88ccff][url=help '+id+']'+page.get('title',id)
 	var synopsis = page.get('synopsis','')
 	text += (': [/url][/color][/b]'+synopsis) if synopsis else '[/url][/color][/b]'
@@ -75,23 +110,105 @@ func page_note(id: String):
 	return '[url=help '+id+'][color=#88ccff]'+clean_input(title)+'[/color][/url]'
 
 func rewrite_tags(s: String) -> String:
-	return s.replace('[ref=','[color=#88ccff][url=help ') \
-		.replace('[/ref]','[/url][/color]') \
-		.replace('h1]','b]') \
-		.replace('{*}','\u2022')
+	var t: String = s
+	for from_string in tag_filters:
+		t = t.replace(from_string,tag_filters[from_string])
+	return t
+
+func combined_aabb(node: Node):
+	var result: AABB = AABB()
+	if node is VisualInstance:
+		result = node.get_aabb()
+	for child in node.get_children():
+		result=result.merge(combined_aabb(child))
+	if node is Spatial:
+		result = node.transform.xform(result)
+	return result
+
+func load_page_scene(scene_name: String, id: String) -> Array:
+	var scene = null
+	if not scene_name:
+		return [null,null]
+
+	var packed_scene = load(scene_name)
+	if packed_scene==null:
+		printerr(scene_name+': cannot load packed scene')
+		return [null,null]
+	scene = packed_scene.instance()
+	if scene==null:
+		printerr(scene_name+': cannot instance scene')
+		return [null,null]
+	
+	var bbcode = null
+	var res = null
+	
+	if scene.has_method('get_bbcode'):
+		bbcode = scene.get_bbcode()
+
+	if get_tree()==null:
+		return [bbcode,res]
+	
+	scene.name = 'scene'
+	$Viewport/Content.add_child(scene)
+	var aabb: AABB = combined_aabb(scene)
+	$Viewport/Camera.size = max(1,max(abs(aabb.size.x),abs(aabb.size.z)))
+	$Viewport/Camera.translation.x = aabb.position.x+aabb.size.x/2
+	$Viewport/Camera.translation.z = aabb.position.z+aabb.size.z/2
+	$Viewport/Camera.translation.y = max(aabb.position.y,aabb.position.y+aabb.size.y)+10
+	$Viewport.render_target_update_mode = Viewport.UPDATE_ONCE
+	yield(get_tree(),'idle_frame')
+	yield(get_tree(),'idle_frame')
+	
+	var tex = $Viewport.get_texture()
+	if tex==null:
+		printerr(scene_name+': cannot get viewport texture')
+		return [bbcode,res]
+	var dat = tex.get_data()
+	if dat==null:
+		printerr(scene_name+': cannot get viewport texture data')
+		return [bbcode,res]
+	
+	var image = Image.new()
+	image.copy_from(dat)
+	var itex = ImageTexture.new()
+	itex.create_from_image(image)
+	res='res://help/rendered/'+id+'/scene_image'
+	itex.take_over_path(res)
+	
+	$Viewport/Content.remove_child(scene)
+	scene.queue_free()
+	
+	return [bbcode,res]
 
 func show_page(id):
-	
-	append('[code]Searching datastore for '+id+'...[/code]')
 	if not id in help_pages:
+		append('[code]Searching datastore for '+id+'...[/code]')
 		append('[b][code]error: There is no page '+id+'!![/code][/b]')
 		return
+	var scene_bbcode = null
+	var scene_name = help_pages[id].get('scene','')
+	var image_resource = null
+	if scene_name:
+		var result = load_page_scene(scene_name,id)
+		while result is GDScriptFunctionState:
+			result=yield(result,'completed')
+		scene_bbcode = result[0]
+		image_resource = result[1]
+	
+	append('[code]Searching datastore for '+id+'...[/code]')
 	append('[code]Loading '+id+'...[/code]')
-	var title: String = help_pages[id].get('title',id)
-	append('\n[center][b]'+clean_input(title)+'[/b][/center]')
+	
+	var title: String = help_pages[id].get('title','')
+	if not title:
+		title = id.capitalize()
+	append(rewrite_tags('\n[h1]'+clean_input(title)+'[/h1]'))
+
+	if image_resource:
+		append('\n[img]'+image_resource+'[/img]\n')
+	
 	var synopsis: String = help_pages[id].get('synopsis','')
 	if synopsis:
-		append('\n[i]Synopsis: '+synopsis+'[/i]\n\n')
+		append(rewrite_tags('\n[i]Synopsis: '+synopsis+'[/i]\n\n'))
 	# FIXME: REPLACE {ref=...} IN CONTENT
 	var content: String = help_pages[id].get('content','')
 	if content:
@@ -99,6 +216,8 @@ func show_page(id):
 	var toc: Array = help_pages[id].get('toc',[])
 	for t in toc:
 		append(' \u2022 '+page_tooltip(t)+'\n')
+	if scene_bbcode:
+		append(rewrite_tags(scene_bbcode))
 	var see_also: Array = help_pages[id].get('see_also',[])
 	if see_also:
 		var see: String = ''
@@ -107,6 +226,7 @@ func show_page(id):
 			see += page_note(also)
 		if see:
 			append('[i]'+see+'[/i]')
+	return ''
 
 func call_ref(hover,argv:PoolStringArray):
 	if not hover and len(argv)>1:
@@ -155,19 +275,19 @@ func call_help(hover: bool,argv: PoolStringArray):
 		var id = join_argv(argv) if len(argv)>1 else 'help'
 		if not help_index.has(id):
 			var here = $Console/Output.get_line_count()
-			show_page(id)
+			var result = show_page(id)
+			while result is GDScriptFunctionState:
+				result=yield(result,'completed')
 			help_index[id]=here+1
-		else:
-			append('[code]Scrolling console to line '+str(help_index[id])+'...[/code]')
 		$Console/Output.scroll_to_line(help_index[id])
 	elif len(argv)>1 and help_pages.has(argv[1]):
 		return '[code]synopsis '+argv[1]+'[/code]\n'+page_tooltip(argv[1])
 	elif len(argv)==1:
 		return '[code]synopsis help[/code]\n'+page_tooltip('help')
-	return ''
 
-func call_invalid_command(_hover: bool,argv: PoolStringArray):
+func call_invalid_command(_hover: bool,argv: PoolStringArray) -> String:
 	append('Error: "'+argv[0]+'" is not a valid command. Try [color=#88ccff][url=help]help[/url][/color]')
+	return ''
 
 func process_hover(line):
 	var argv: PoolStringArray = line.split(' ')
@@ -175,9 +295,11 @@ func process_hover(line):
 
 func process_command(line):
 	var argv: PoolStringArray = line.split(' ')
-	append('[code]'+clean_input(line)+'[/code]\n\n')
+	append('[code]'+clean_input(line)+'[/code]\n')
 	if argv and argv[0]:
-		call(commands.get(argv[0],'call_invalid_command'),false,argv)
+		var result = call(commands.get(argv[0],'call_invalid_command'),false,argv)
+		while result is GDScriptFunctionState:
+			result=yield(result,'completed')
 	prompt()
 
 func _on_Output_meta_clicked(meta):
@@ -190,6 +312,20 @@ func _on_Output_meta_hover_started(meta):
 	var result = process_hover(str(meta))
 	if result:
 		$Tooltip/Text.parse_bbcode(result)
-		$Tooltip.rect_global_position=get_viewport().get_mouse_position()
+		var pos: Vector2 = get_viewport().get_mouse_position()
+		$Tooltip.rect_global_position=pos
 		$Tooltip.rect_min_size=Vector2(get_viewport().size.x/6.0,0)
+		var siz: Vector2 = $Tooltip.rect_size
+		var positions: Array = [ pos, pos-siz, Vector2(pos.x,pos.y-siz.y),
+			Vector2(pos.x-siz.x,pos.y) ]
+		var me: Rect2 = Rect2(rect_global_position,rect_size)
+		var best_remain: float = 0
+		var best_pos: Vector2 = pos
+		for position in positions:
+			var visible: Rect2 = Rect2(position,siz).clip(me)
+			var remain: float = visible.get_area()
+			if remain>best_remain:
+				best_remain=remain
+				best_pos=position
+		$Tooltip.rect_global_position=best_pos
 		$Tooltip.visible=true

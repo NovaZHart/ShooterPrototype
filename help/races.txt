@@ -40,7 +40,7 @@ Súvar women, even elderly women, have the appearance of furry, cat-like, pretee
 
 While most Súvar are less intelligent than humans, on occasion one will be born with far superior intellect. These are known as [i]Prime Súvar[/i]. Female Prime Súvar are sent from their pride with any resources the pride can spare. They gather skills, power, and knowledge, helping better the pride. Most Súvar politicians are Primes, advocating for Súvar rights with an intelligence on par with the smartest humans.
 
-[h1]Origin[/h1]
+[h2]Origin[/h2]
 
 Several decades of human history were known as the, "Golden Age of Genetic Engineering." Many food shortages, climate change disasters, and diseases were defeated by creating or modifying species. During the height of this era, some laboratories modified mammal species to be somewhat humanoid, able to perform manual labor or tasks dangerous to a human. Seeing how this could go horribly wrong, the practice ended through science ethics and government law. However, the rules had an unintended loophole: they didn't ban manipulation of DNA from recently-extinct animal species.
 
@@ -66,7 +66,7 @@ Psirocks are a species ancient by [ref=races/humans]human[/ref] standards, and a
 
 The Psirocks have far higher technology and more developed culture than humans, and view humans almost as children. They have a strict policy of non-interferance with human developments, preferring that humans learn from their own mistakes. On occasion, the Psirocks have intervened, to prevent atrocities or great disasters, usually at the request of the [ref=races/sage_spiders]Sage Spiders[/ref], who they view as humans' adoptive parents. However, they're always happy to rescue damaged ships, once the fighting has stopped.
 
-[h1]First Encounter with the Humans[/h1]
+[h2]First Encounter with the Humans[/h2]
 
 When the [ref=races/humans]humans[/ref] escaped [ref=places/Earth]Earth[/ref] in their great [ref=ship_classes/City_Ships]city ships[/ref], they did not know where to find habitable planets. Remote sensors had shown many possible locations. Unfortunately, a planet that appears from dozens of lightyears away to have a suitable atmosphere may have hostile lifeforms, frequent asteroid strikes, or abundant toxins. Though they managed to find five [ref=places/First_Worlds]barely-habitable worlds[/ref], it would not be enough for the countless refugees.
 

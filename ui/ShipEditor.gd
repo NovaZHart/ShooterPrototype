@@ -13,23 +13,24 @@ const DOWN: int = 4
 const UP: int = 8
 
 var ship_scene
+var scroll_width: float = 20
 
 const guns = {
-	'DF Laser': preload('res://weapons/BlueLaserGun.tscn'),
-	'Gamma Ray Laser': preload('res://weapons/GreenLaserGun.tscn'),
-	'Particle Cannon': preload('res://weapons/OrangeSpikeGun.tscn'),
-	'Shockwave Torpedo': preload('res://weapons/PurpleHomingGun.tscn'),
+	'df_laser': preload('res://weapons/BlueLaserGun.tscn'),
+	'gamma_ray_laser': preload('res://weapons/GreenLaserGun.tscn'),
+	'cyclotron_cannon': preload('res://weapons/OrangeSpikeGun.tscn'),
+	'shockwave_torpedo': preload('res://weapons/PurpleHomingGun.tscn'),
 }
 
 const turrets = {
-	'Particle Turret': preload('res://weapons/OrangeSpikeTurret.tscn'),
-	'DF Laser Turret': preload('res://weapons/BlueLaserTurret.tscn'),
+	'linear_accelerator_turret': preload('res://weapons/OrangeSpikeTurret.tscn'),
+	'df_laser_turret': preload('res://weapons/BlueLaserTurret.tscn'),
 }
 
 const x_axis: Vector3 = Vector3(1,0,0)
 const y_axis: Vector3 = Vector3(0,1,0)
 
-const outfit_borders = [           # U D L R
+const outfit_borders = [	       # U D L R
 	[   0.0, border_all ],         # 0 0 0 0
 	[ 270.0, border_tube_bottom ], # 0 0 0 1
 	[  90.0, border_tube_bottom ], # 0 0 1 0
@@ -271,6 +272,7 @@ func select_available(pos: Vector2, there: Dictionary):
 		add_child(dup)
 		selected=true
 		selected_scene = scene_for_item[collider.name]
+		$ConsolePanel.process_command('help weapons/'+collider.name)
 		var item = collider.get_node_or_null('item')
 		update_coloring(item.mount_size_x,item.mount_size_y,
 			'' if item==null else item.mount_type)
@@ -301,7 +303,7 @@ func _input(event: InputEvent):
 			var there = at_position(pos,8)
 			if there!=null and not there.empty():
 				select_available(pos,there)
-	elif event.is_action_released('ui_depart'):
+	elif event.is_action_released('ui_cancel'):
 		var packed: PackedScene = PackedScene.new()
 		if OK==packed.pack($Ship):
 			game_state.player_ship_scene=packed
@@ -316,6 +318,37 @@ func _input(event: InputEvent):
 				var pos3 = $Camera.project_position(pos2,-10)
 				n.translation = Vector3(pos3.x,16,pos3.z)
 
+func force_child_size(c: Control,size: Vector2,pos: Vector2):
+	c.anchor_left=0
+	c.anchor_right=0
+	c.anchor_top=0
+	c.anchor_bottom=0
+	
+	c.margin_left=0
+	c.margin_right=0
+	c.margin_top=0
+	c.margin_bottom=0
+	
+	c.size_flags_horizontal=0
+	c.size_flags_vertical=0
+	
+	c.rect_global_position=pos
+	c.rect_size=size
+
+func child_fills_parent(c: Control):
+	c.anchor_left=0
+	c.anchor_right=1
+	c.anchor_top=0
+	c.anchor_bottom=1
+	
+	c.margin_left=0
+	c.margin_right=0
+	c.margin_top=0
+	c.margin_bottom=0
+	
+	c.size_flags_horizontal=Control.SIZE_FILL|Control.SIZE_EXPAND
+	c.size_flags_vertical=Control.SIZE_FILL|Control.SIZE_EXPAND
+
 func _ready():
 	ship_scene = game_state.player_ship_scene
 	$SpaceBackground.center_view(130,90,0,100,0)
@@ -328,3 +361,22 @@ func _ready():
 	for turret_name in turrets.keys():
 		_discard=add_available_item(turrets[turret_name],turret_name)
 	move_Available_for_scene()
+	
+	var n = $ConsolePanel/Console/Output.get_child(0)
+	if n!=null:
+		scroll_width = 12
+		$ConsolePanel/Console/Output.remove_child(n)
+		var view_size: Vector2 = get_viewport().get_size()
+		n.name='ConsoleScrollbar'
+		$ScrollPanel.add_child(n)
+		force_child_size($ScrollPanel,Vector2(scroll_width,view_size.y),Vector2(0,0))
+		child_fills_parent(n)
+
+func _process(_delta):
+	var view_size: Vector2 = get_viewport().get_size()
+	var pos3_ul: Vector3 = $Camera.project_position(Vector2(0,0),-10)
+	var pos3_lr: Vector3 = $Camera.project_position(view_size,-10)
+	$Camera.translation.z = -abs(pos3_ul.z-pos3_lr.z)/6
+	force_child_size($ScrollPanel,Vector2(scroll_width,view_size.y),Vector2(0,0))
+	$ConsolePanel.rect_global_position=Vector2(scroll_width,0)
+	$ConsolePanel.rect_size=Vector2(view_size.x/3.0-scroll_width,view_size.y)
