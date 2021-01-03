@@ -1,5 +1,7 @@
 extends RigidBody
 
+export var ship_display_name: String = 'Unnamed'
+export var hull_display_name: String = 'Unnamed'
 export var base_mass: float = 50
 export var base_thrust: float = 3000
 export var base_reverse_thrust: float = 800
@@ -54,6 +56,9 @@ func make_stats(node: Node, stats: Dictionary) -> Dictionary:
 		var _discard = make_stats(child,stats)
 	return stats
 
+func repack_stats() -> Dictionary:
+	return make_stats(self,combined_stats)
+	
 func pack_stats() -> Dictionary:
 	return combined_stats
 
@@ -97,6 +102,69 @@ func add_stats(stats: Dictionary) -> void:
 	stats['mass']=base_mass
 	stats['drag']=base_drag
 	stats['weapons']=Array()
+
+func make_cell(key,value) -> String:
+	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
+
+func max_and_repair(key,maxval,repairval) -> String:
+	if repairval>0:
+		return make_cell(key,maxval)
+	return make_cell(key,str(maxval)+' (+'+str(repairval)+'/s)')
+
+func get_bbcode() -> String:
+	var contents: String = '' #'[b]Contents:[/b]\n'
+	var dps: float = 0
+	for child in get_children():
+		if child.has_method('get_bbcode_for_ship_table'):
+			contents += child.get_bbcode_for_ship_table()+'\n'
+			if child.mount_type=='gun' or child.mount_type=='turret':
+				dps += child.damage / max(1.0/60,child.firing_delay)
+	
+	var s: Dictionary = combined_stats
+	var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n[table=5]'
+	bbcode += make_cell('Hull Design:',hull_display_name)
+	bbcode += '[cell]    [/cell]'
+	bbcode += make_cell('Weapon Damage:',str(round(dps))+'/s')
+
+	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
+	bbcode += '[cell]    [/cell]'
+	bbcode += '[cell]Death Explosion:[/cell][cell][/cell]'
+
+	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
+	bbcode += '[cell]    [/cell]'
+	bbcode += make_cell('Radius:',s['explosion_radius'])
+
+	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
+	bbcode += '[cell]    [/cell]'
+	bbcode += make_cell('Damage:',s['explosion_damage'])
+
+	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
+	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*s['mass'])*10)/10)
+	bbcode += '[cell]    [/cell]'
+	bbcode += make_cell('Hit Force:',s['explosion_impulse'])
+
+	bbcode += make_cell('Thrust:',s['thrust'])
+	bbcode += '[cell]    [/cell]'
+	bbcode += make_cell('Delay:',str(round(1.0/max(1.0/60,s['explosion_delay'])*10)/10)+'/s')
+
+	if s['reverse_thrust']>0:
+		bbcode += make_cell('Reverse:',s['reverse_thrust'])
+		bbcode += '[cell]    [/cell]'
+		bbcode += '[cell][/cell][cell][/cell]'
+
+	bbcode += make_cell('Mass:',s['mass'])
+	bbcode += '[cell]    [/cell]'
+	bbcode += '[cell][/cell][cell][/cell]'
+
+	bbcode += make_cell('Drag:',s['drag'])
+	bbcode += '[cell]    [/cell]'
+	bbcode += '[cell][/cell][cell][/cell]'
+
+	bbcode += '[/table]\n\n'
+
+	if contents:
+		bbcode += contents
+	return bbcode
 
 func _ready():
 	var _discard = make_stats(self,combined_stats)

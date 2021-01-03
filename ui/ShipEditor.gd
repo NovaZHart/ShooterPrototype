@@ -84,6 +84,7 @@ func make_ship(design: Dictionary):
 				area.queue_free()
 		elif mount_name!='hull':
 			printerr('ShipEditor: mount "',mount_name,'" does not exist.')
+	$ShipInfo.process_command('ship info')
 	return ship
 
 func combined_aabb(node: Node):
@@ -152,6 +153,7 @@ func try_to_mount(area: Area, mount_name: String):
 		$Ship.add_child(install)
 	install.owner=$Ship
 	install.name = mount['name']
+	update_ship_info()
 	return true
 
 func deselect(there: Dictionary):
@@ -163,6 +165,10 @@ func deselect(there: Dictionary):
 		area.queue_free()
 	selected=false
 	update_coloring(0,0,'')
+
+func update_ship_info():
+	$ShipInfo.clear()
+	$ShipInfo.process_command('ship info')
 
 func update_coloring(nx: int,ny: int,type: String):
 	for mount_info in mounts.values():
@@ -291,7 +297,16 @@ func child_fills_parent(c: Control):
 	c.size_flags_horizontal=Control.SIZE_FILL|Control.SIZE_EXPAND
 	c.size_flags_vertical=Control.SIZE_FILL|Control.SIZE_EXPAND
 
+func run(console,argv:PoolStringArray):
+	# Entry point for console commands.
+	if argv[0]=='ship' and len(argv)>1 and argv[1]=='info':
+		if $Ship.has_method('get_bbcode'):
+			console.insert_bbcode(console.rewrite_tags($Ship.get_bbcode()))
+
 func _ready():
+	$ConsolePanel.add_command('ship',self)
+	$ShipInfo/Console/Output.scroll_following=false
+	$ShipInfo.add_command('ship',self)
 	$Red.layers = RED_LIGHT_CULL_LAYER
 	$Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$SpaceBackground.center_view(130,90,0,120,0)

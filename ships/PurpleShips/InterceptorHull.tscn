@@ -9,6 +9,7 @@ extents = Vector3( 1.00947, 1, 1 )
 
 [node name="PurpleInterceptorHull" type="RigidBody"]
 script = ExtResource( 3 )
+hull_display_name = "Peregrine"
 override_size = Vector3( 2, 0, 2 )
 
 [node name="Body" type="MeshInstance" parent="."]

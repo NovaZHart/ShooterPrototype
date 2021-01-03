@@ -10,6 +10,7 @@
 
 [node name="PurpleHeavyWarshipHull" type="RigidBody"]
 script = ExtResource( 2 )
+hull_display_name = "Condor"
 base_mass = 125.0
 base_thrust = 6500.0
 base_reverse_thrust = 1800.0

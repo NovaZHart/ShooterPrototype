@@ -11,6 +11,7 @@ height = 1.0
 
 [node name="PurpleWarshipHull" type="RigidBody"]
 script = ExtResource( 4 )
+hull_display_name = "Raven"
 base_shields = 1200.0
 base_armor = 700.0
 base_structure = 450.0

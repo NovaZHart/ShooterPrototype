@@ -1,0 +1,32 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://ui/commands/Echo.gd" type="Script" id=1]
+[ext_resource path="res://ui/commands/Clear.gd" type="Script" id=2]
+[ext_resource path="res://ui/commands/Help.gd" type="Script" id=3]
+
+[node name="BuiltinCommands" type="Node"]
+
+[node name="Clear" type="Node" parent="."]
+script = ExtResource( 2 )
+
+[node name="Echo" type="Node" parent="."]
+script = ExtResource( 1 )
+
+[node name="Help" type="Node" parent="."]
+script = ExtResource( 3 )
+
+[node name="Viewport" type="Viewport" parent="Help"]
+size = Vector2( 64, 64 )
+own_world = true
+render_target_v_flip = true
+render_target_clear_mode = 1
+render_target_update_mode = 0
+
+[node name="Camera" type="Camera" parent="Help/Viewport"]
+transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 10, 0 )
+projection = 1
+
+[node name="DirectionalLight" type="DirectionalLight" parent="Help/Viewport"]
+transform = Transform( 0.568682, 0.713083, -0.410016, -0.533025, 0.699113, 0.476576, 0.626486, -0.0524713, 0.777665, -2.816, 2.78, 3.67 )
+
+[node name="Content" type="Spatial" parent="Help/Viewport"]

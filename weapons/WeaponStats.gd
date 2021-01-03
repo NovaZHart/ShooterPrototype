@@ -41,6 +41,11 @@ func approximate_range() -> float:
 func make_cell(var a,var b):
 	return '[cell]'+str(a)+'[/cell][cell]'+str(b)+'[/cell]'
 
+func get_bbcode_for_ship_table() -> String:
+	return '[b]'+name.capitalize() + ':[/b] {ref '+help_page+'}\n' + get_bbcode()
+#		+ '[cell] DPS ' + str(round(damage/max(1.0/60,firing_delay)*10)/10) + '[/cell]' \
+#		+ '[cell] Range ' + str(round(approximate_range()*100)/100) + ' [/cell]'
+
 func get_bbcode() -> String:
 	if cached_bbcode == null:
 		var bbcode: String = '[table=2]'

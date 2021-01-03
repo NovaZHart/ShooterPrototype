@@ -8,7 +8,7 @@
 ambient_light_color = Color( 1, 1, 1, 1 )
 ambient_light_energy = 0.2
 
-[node name="Spatial" type="Spatial"]
+[node name="ShipEditor" type="Spatial"]
 script = ExtResource( 3 )
 
 [node name="SpaceBackground" parent="." instance=ExtResource( 2 )]
@@ -52,7 +52,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 0 )
 
 [node name="ConsolePanel" parent="." instance=ExtResource( 1 )]
 hostname = "shipyard"
-initial_bbcode = "Hunter AI activated.{eoln}Message received: [i]\"Welcome to the shipyard. What can we sell you today?\"[/i]"
+initial_bbcode = "Hunter AI activated. Host mind control complete. Enter commands.{eoln}Message received: [i]\"Welcome to the shipyard. What can we sell you today?\"[/i]"
 
 [node name="ShipInfo" parent="." instance=ExtResource( 1 )]
 initial_bbcode = "[ref=races/humans]test text[/ref]"
