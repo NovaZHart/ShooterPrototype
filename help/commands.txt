@@ -37,4 +37,4 @@ Known commands:
 @PAGE help
 @title Table of Contents
 @synopsis List of help sections.
-@toc commands page1 page2 page3
+@toc commands races weapons

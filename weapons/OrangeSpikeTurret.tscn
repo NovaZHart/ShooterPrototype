@@ -17,3 +17,4 @@ turn_rate = 2.0
 projectile_mesh_path = "res://weapons/meshes/OrangeIsoBlob.mesh"
 item_size_x = 3
 mount_type = "turret"
+help_page = "weapons/linear_accelerator_turret"

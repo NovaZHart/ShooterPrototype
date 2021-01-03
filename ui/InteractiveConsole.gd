@@ -1,8 +1,15 @@
 extends Panel
 
 export var auto_resize: bool = false
+export var hostname: String = ''
+export var domain: String = ''
+export var username: String = 'ai'
 export var h1_font: Font
 export var h2_font: Font
+export var small_code_font: Font
+export var initial_bbcode: String
+export var follow_urls: bool = true
+export var allow_input: bool = true
 
 var tag_filters = {
 	'[h1]':'[center][b]',
@@ -11,11 +18,19 @@ var tag_filters = {
 	'[/h2]':'[/b]',
 	'[ref=':'[color=#88ccff][url=help ',
 	'[/ref]':'[/url][/color]',
-	'{*}':'\u2022'
+	'{*}':'\u2022',
+	'{eoln}':'\n',
+	'{tab}':'\t',
+	'[prompt_font]':'[color=#6688ff][code]',
+	'[/prompt_font]':'[/code][/color]',
+	'[command_font]':'[color=#eebb66][code]',
+	'[/command_font]':'[/code][/color]',
+	'[small_code]':'[code]',
+	'[/small_code]':'[/code]',
 }
 
 var ZWSP: String = '\u200B' # zero-width space
-var console_prompt: String = '[color=#6688ff][code]user@host> [/code][/color]'
+var console_prompt = null
 var image_path: String = 'res://ships/PurpleShips/Metal-4271-light-green-128x128.jpg'
 var LoadHelp = preload('res://help/LoadHelp.gd')
 var help_loader = LoadHelp.new()
@@ -32,8 +47,27 @@ var commands: Dictionary = {
 	'search':'call_search',
 }
 
+signal url_clicked
+
+func rewrite_tags(s: String) -> String:
+	var t: String = s
+	for from_string in tag_filters:
+		t = t.replace(from_string,tag_filters[from_string])
+	return t
+
 func _init():
 	help_pages = help_loader.load_help_pages()
+
+func fqdn() -> String:
+	if not hostname:
+		hostname='orbit'
+	if not domain:
+		var loc = game_state.get_info_or_null()
+		if not loc:
+			domain='cosmos'
+		else:
+			domain = loc.display_name.strip_escapes().replace(' ','_')+'.cosmos'
+	return hostname+'.'+domain
 
 func clean_input(input: String) -> String:
 	return input.replace('[','['+ZWSP).replace(']',']'+ZWSP)
@@ -47,11 +81,16 @@ func append(what: String, clean: bool = false):
 		$Console/Output.append_bbcode('\n')
 
 func prompt():
+	if console_prompt==null:
+		console_prompt = rewrite_tags('[prompt_font]'+clean_input(username+'@'+fqdn())+'> [/prompt_font]')
 	$Console/Output.append_bbcode(console_prompt)
 
 func _ready():
 	$Console/Output.clear()
-	prompt()
+	if initial_bbcode:
+		append(rewrite_tags(initial_bbcode))
+	if allow_input:
+		prompt()
 	initial_size=Rect2(rect_global_position,rect_size)
 	if not auto_resize:
 		set_process(false)
@@ -61,6 +100,10 @@ func _ready():
 	if h2_font:
 		tag_filters['[h2]'] = '[center][font='+h2_font.resource_path+']'
 		tag_filters['[/h2]'] = '[/font][/center]'
+	if small_code_font:
+		tag_filters['[small_code]'] = '[font='+small_code_font.resource_path+']'
+		tag_filters['[/small_code]'] = '[/font]'
+	$Console/Input.set_visible(allow_input)
 
 func _process(_delta):
 	var vs: Vector2 = get_viewport().get_size()
@@ -100,20 +143,17 @@ func page_tooltip(id):
 	if page==null:
 		printerr('help: reference to invalid page "',id,'"')
 		return ''
-	var text = '[b][color=#88ccff][url=help '+id+']'+page.get('title',id)
+	var title = page.get('title','')
+	if not title:
+		title=id.capitalize()
+	var text = '[small_code][\u200Bhelp '+id+'\u200B][/small_code] [b][ref='+id+']'+clean_input(title)
 	var synopsis = page.get('synopsis','')
-	text += (': [/url][/color][/b]'+synopsis) if synopsis else '[/url][/color][/b]'
-	return text
+	text += (':[/ref][/b] '+synopsis) if synopsis else '[/ref][/b]'
+	return rewrite_tags(text)
 
 func page_note(id: String):
 	var title = help_pages.get(id,{}).get('title',id)
 	return '[url=help '+id+'][color=#88ccff]'+clean_input(title)+'[/color][/url]'
-
-func rewrite_tags(s: String) -> String:
-	var t: String = s
-	for from_string in tag_filters:
-		t = t.replace(from_string,tag_filters[from_string])
-	return t
 
 func combined_aabb(node: Node):
 	var result: AABB = AABB()
@@ -279,11 +319,13 @@ func call_help(hover: bool,argv: PoolStringArray):
 			while result is GDScriptFunctionState:
 				result=yield(result,'completed')
 			help_index[id]=here+1
+		else:
+			append('[code]Scrolling to line '+str(help_index[id])+'.[/code]')
 		$Console/Output.scroll_to_line(help_index[id])
 	elif len(argv)>1 and help_pages.has(argv[1]):
-		return '[code]synopsis '+argv[1]+'[/code]\n'+page_tooltip(argv[1])
+		return page_tooltip(argv[1])
 	elif len(argv)==1:
-		return '[code]synopsis help[/code]\n'+page_tooltip('help')
+		return page_tooltip('help')
 
 func call_invalid_command(_hover: bool,argv: PoolStringArray) -> String:
 	append('Error: "'+argv[0]+'" is not a valid command. Try [color=#88ccff][url=help]help[/url][/color]')
@@ -295,15 +337,19 @@ func process_hover(line):
 
 func process_command(line):
 	var argv: PoolStringArray = line.split(' ')
-	append('[code]'+clean_input(line)+'[/code]\n')
+	if allow_input:
+		append(rewrite_tags('[command_font]'+clean_input(line)+'[/command_font]\n'))
 	if argv and argv[0]:
 		var result = call(commands.get(argv[0],'call_invalid_command'),false,argv)
 		while result is GDScriptFunctionState:
 			result=yield(result,'completed')
-	prompt()
+	if allow_input:
+		prompt()
 
 func _on_Output_meta_clicked(meta):
-	process_command(str(meta))
+	if follow_urls:
+		process_command(str(meta))
+	emit_signal('url_clicked',str(meta))
 
 func _on_Output_meta_hover_ended(_meta):
 	$Tooltip.visible=false

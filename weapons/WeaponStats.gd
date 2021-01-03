@@ -23,8 +23,15 @@ export var item_size_y: int = 3
 export var mount_size_x: int = 0 setget ,get_mount_size_x
 export var mount_size_y: int = 0 setget ,get_mount_size_y
 export var mount_type: String = 'gun'
+export var help_page: String = 'weapons'
 
 var cached_bbcode = null
+
+func is_mount_point(): # Never called; must only exist
+	pass
+
+func is_mounted(): # Never called; must only exist
+	pass
 
 func approximate_range() -> float:
 	if projectile_drag>0 and projectile_thrust>0:

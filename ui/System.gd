@@ -275,9 +275,9 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 	if is_player:
 		receive_player_orders({})
 
-func spawn_ship(ship_scene: PackedScene, rotation: Vector3, translation: Vector3,
+func spawn_ship(ship_design: Dictionary, rotation: Vector3, translation: Vector3,
 		team: int, is_player: bool) -> void:
-	var ship = ship_scene.instance()
+	var ship = game_state.assemble_ship(ship_design)
 	ship.set_identity()
 	ship.rotation=rotation
 	ship.translation=translation

@@ -1,0 +1,100 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ships/PurpleShips/PurpleHeavyWarship.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=2]
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
+
+[sub_resource type="CylinderShape" id=1]
+
+[sub_resource type="CylinderShape" id=2]
+
+[node name="PurpleHeavyWarshipHull" type="RigidBody"]
+script = ExtResource( 2 )
+base_mass = 125.0
+base_thrust = 6500.0
+base_reverse_thrust = 1800.0
+base_shields = 3200.0
+base_armor = 2400.0
+base_structure = 1300.0
+heal_shields = 45.0
+heal_armor = 15.0
+base_drag = 1.9
+base_turn_rate = 1.1
+base_explosion_damage = 800.0
+base_explosion_radius = 12.0
+base_explosion_impulse = 900.0
+override_size = Vector3( 6, 0, 3.5 )
+
+[node name="Body" type="MeshInstance" parent="."]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+
+[node name="CollisionShape2" type="CollisionShape" parent="."]
+transform = Transform( -3.08014e-08, 0, 0.704656, 0, 18, 0, -1.03173, 0, -4.50983e-08, 1.81132, 0, 0 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( -8.32174e-08, 0, 1.90379, 0, 18, 0, -1.97052, 0, -8.61338e-08, -0.596499, 0, 0 )
+shape = SubResource( 2 )
+
+[node name="PortLargeGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.394, -0.341, -0.698 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "gun"
+
+[node name="PortSmallGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.61247, -0.12788, -0.340595 )
+script = ExtResource( 3 )
+mount_size_y = 4
+mount_type = "gun"
+
+[node name="StarboardSmallGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.612, -0.128, 0.341 )
+script = ExtResource( 3 )
+mount_size_y = 4
+mount_type = "gun"
+
+[node name="StarboardLargeGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.39443, -0.341, 0.698308 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "gun"
+
+[node name="ForwardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.23321, 0.0337296, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "turret"
+
+[node name="MidPortTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.183116, 0.0517502, -1.04733 )
+script = ExtResource( 3 )
+mount_size_x = 3
+mount_size_y = 3
+mount_type = "turret"
+
+[node name="MidStarboardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.183, 0.052, 1.047 )
+script = ExtResource( 3 )
+mount_size_x = 3
+mount_size_y = 3
+mount_type = "turret"
+
+[node name="AftPortTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.46862, 0.0211411, -0.8701 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "turret"
+
+[node name="AftStarboardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.469, 0.021, 0.87 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "turret"

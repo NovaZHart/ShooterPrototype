@@ -11,7 +11,13 @@ var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
 
-var player_ship_scene: PackedScene = preload('res://ships/PurpleShips/Warship.tscn')
+var player_ship_design: Dictionary = {
+	'hull':preload('res://ships/PurpleShips/WarshipHull.tscn'),
+	'StarboardMiddleGun':preload('res://weapons/OrangeSpikeGun.tscn'),
+	'StarboardOuterGun':preload('res://weapons/OrangeSpikeGun.tscn'),
+	'PortMiddleGun':preload('res://weapons/OrangeSpikeGun.tscn'),
+	'PortOuterGun':preload('res://weapons/OrangeSpikeGun.tscn'),
+}
 
 signal console_append
 
@@ -67,10 +73,45 @@ func get_planet_info_or_null():
 		return n
 	return null
 
+func get_info_or_null():
+	var n: Node = get_node_or_null(player_location)
+	if n!=null and n.is_a_planet() or n.is_a_system():
+		return n
+	return null
+
 func add_system(var node_name,var new_system):
 	known_systems[node_name]=new_system
 	new_system.name=node_name
 	add_child(new_system)
+
+func assemble_player_ship():
+	return assemble_ship(player_ship_design)
+
+func assemble_ship(design: Dictionary):
+	if not 'hull' in design or not design['hull'] is PackedScene:
+		printerr('assemble_ship: no hull provided')
+		return null
+	var body_scene = design['hull']
+	var body = body_scene.instance()
+	if body == null:
+		printerr('assemble_ship: cannot instance scene: ',body_scene)
+		return Node.new()
+	for child in body.get_children():
+		if child.name!='hull' and design.has(child.name) and design[child.name] is PackedScene:
+			var new_child: Node = design[child.name].instance()
+			if new_child!=null:
+				new_child.transform = child.transform
+				new_child.name = child.name
+				body.remove_child(child)
+				child.queue_free()
+				body.add_child(new_child)
+				continue
+		
+		if child.has_method('is_not_mounted'):
+			# Unused slots are removed to save space in the scene tree
+			body.remove_child(child)
+			child.queue_free()
+	return body
 
 func make_test_systems():
 	add_system('seti_alpha',SystemInfo.new('Seti-α') \
@@ -87,7 +128,7 @@ func make_test_systems():
 			)
 		)
 	)
-	add_system('alef_93',SystemInfo.new('א:93') \
+	add_system('alef_93',SystemInfo.new('א-93') \
 		.add_planet(
 			PlanetInfo.new('astra', {
 				'display_name':'Astra', 'shader_seed':91,

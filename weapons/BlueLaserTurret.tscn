@@ -19,3 +19,4 @@ projectile_mesh_path = "res://weapons/meshes/dark_blue_line.mesh"
 item_size_x = 2
 item_size_y = 2
 mount_type = "turret"
+help_page = "weapons/df_laser_turret"

@@ -13,3 +13,4 @@ initial_velocity = 50.0
 projectile_lifetime = 0.5
 firing_delay = 0.167
 projectile_mesh_path = "res://weapons/meshes/OrangeIsoBlob.mesh"
+help_page = "weapons/cyclotron_cannon"

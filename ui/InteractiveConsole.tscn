@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.gd" type="Script" id=1]
 [ext_resource path="res://ui/Console.tres" type="Theme" id=2]
@@ -8,31 +8,35 @@
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=6]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=7]
 
-[sub_resource type="DynamicFont" id=6]
+[sub_resource type="DynamicFont" id=1]
 size = 21
 font_data = ExtResource( 7 )
 
-[sub_resource type="DynamicFont" id=7]
+[sub_resource type="DynamicFont" id=2]
 size = 18
 font_data = ExtResource( 7 )
 
-[sub_resource type="DynamicFont" id=1]
-size = 14
+[sub_resource type="DynamicFont" id=3]
+size = 12
 font_data = ExtResource( 3 )
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="DynamicFont" id=4]
+size = 12
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=5]
 size = 15
 font_data = ExtResource( 4 )
 
-[sub_resource type="DynamicFont" id=3]
+[sub_resource type="DynamicFont" id=6]
 size = 15
 font_data = ExtResource( 5 )
 
-[sub_resource type="DynamicFont" id=4]
+[sub_resource type="DynamicFont" id=7]
 size = 15
 font_data = ExtResource( 7 )
 
-[sub_resource type="DynamicFont" id=5]
+[sub_resource type="DynamicFont" id=8]
 size = 15
 font_data = ExtResource( 6 )
 
@@ -43,8 +47,10 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-h1_font = SubResource( 6 )
-h2_font = SubResource( 7 )
+h1_font = SubResource( 1 )
+h2_font = SubResource( 2 )
+small_code_font = SubResource( 3 )
+initial_bbcode = "Hunter AI activated."
 
 [node name="Console" type="GridContainer" parent="."]
 anchor_right = 1.0
@@ -62,11 +68,11 @@ focus_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource( 2 )
-custom_fonts/mono_font = SubResource( 1 )
-custom_fonts/bold_italics_font = SubResource( 2 )
-custom_fonts/italics_font = SubResource( 3 )
-custom_fonts/bold_font = SubResource( 4 )
-custom_fonts/normal_font = SubResource( 5 )
+custom_fonts/mono_font = SubResource( 4 )
+custom_fonts/bold_italics_font = SubResource( 5 )
+custom_fonts/italics_font = SubResource( 6 )
+custom_fonts/bold_font = SubResource( 7 )
+custom_fonts/normal_font = SubResource( 8 )
 bbcode_enabled = true
 bbcode_text = "[b]user@localhost>[/b]"
 text = "user@localhost>"
@@ -85,7 +91,7 @@ caret_blink_speed = 0.5
 
 [node name="Tooltip" type="Panel" parent="."]
 visible = false
-margin_right = 40.0
+margin_right = 80.0
 margin_bottom = 10.0
 __meta__ = {
 "_edit_use_anchors_": false
@@ -95,11 +101,11 @@ __meta__ = {
 anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource( 2 )
-custom_fonts/mono_font = SubResource( 1 )
-custom_fonts/bold_italics_font = SubResource( 2 )
-custom_fonts/italics_font = SubResource( 3 )
-custom_fonts/bold_font = SubResource( 4 )
-custom_fonts/normal_font = SubResource( 5 )
+custom_fonts/mono_font = SubResource( 4 )
+custom_fonts/bold_italics_font = SubResource( 5 )
+custom_fonts/italics_font = SubResource( 6 )
+custom_fonts/bold_font = SubResource( 7 )
+custom_fonts/normal_font = SubResource( 8 )
 bbcode_enabled = true
 bbcode_text = "[b]user@localhost>[/b]"
 text = "user@localhost>"

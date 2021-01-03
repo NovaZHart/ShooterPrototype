@@ -8,18 +8,25 @@ const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
 var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
-const default_fleets: Array = [
-	{ 'frequency':1800, 'ships':[ [2, PurpleWarship] ], 'team':0 },
-	{ 'frequency':1800, 'ships':[ [1, PurpleWarship], [1, PurpleInterceptor] ], 'team':0 },
-	{ 'frequency':1800, 'ships':[ [3, PurpleInterceptor] ], 'team':0 },
-	{ 'frequency':900, 'ships':[ [1, PurpleHeavyWarship], ], 'team':0 },
-	
-#	{ 'frequency':60, 'ships':[ [1, BannerShip], [1, PurpleInterceptor] ], 'team':0 },
+const ship_designs: Dictionary = {
+	'warship_default': { 'hull': PurpleWarship },
+	'interceptor_default': { 'hull': PurpleInterceptor },
+	'heavy_warship_default': { 'hull': PurpleHeavyWarship },
+	'bannership_default': {'hull':BannerShip},
+}
 
-	{ 'frequency':1800, 'ships':[ [2, PurpleWarship] ], 'team':1 },
-	{ 'frequency':1800, 'ships':[ [1, PurpleWarship], [1, PurpleInterceptor] ], 'team':1 },
-	{ 'frequency':1800, 'ships':[ [3, PurpleInterceptor] ], 'team':1 },
-	{ 'frequency':900, 'ships':[ [1, PurpleHeavyWarship], ], 'team':1 },
+const default_fleets: Array = [
+	{ 'frequency':1800, 'ships':[ [2, 'warship_default'] ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [1, 'warship_default'], [1, 'interceptor_default' ] ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [3, 'interceptor_default'] ], 'team':0 },
+	{ 'frequency':900, 'ships':[ [1, 'heavy_warship_default'], ], 'team':0 },
+	
+#	{ 'frequency':60, 'ships':[ [1, 'bannership_default'], [1, 'interceptor_default'] ], 'team':0 },
+
+	{ 'frequency':1800, 'ships':[ [2, 'warship_default'] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [1, 'warship_default'], [1, 'interceptor_default'] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [3, 'interceptor_default'] ], 'team':1 },
+	{ 'frequency':900, 'ships':[ [1, 'heavy_warship_default'], ], 'team':1 },
 ]
 
 const standalone_team_maximums: Array = [ 200,200 ]
@@ -77,12 +84,15 @@ func astral_gate_path() -> NodePath:
 			return p
 	return NodePath()
 
-func spawn_ship(var _system,var ship_scene,team: int,angle: float,
+func spawn_ship(var _system,var ship_design: Dictionary,team: int,angle: float,
 		add_radius: float,safe_zone: float,
 		random_x: float, random_z: float, center: Vector3, is_player: bool):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
-	return ['spawn_ship',ship_scene, Vector3(0,-1,0), Vector3(x,5,z),
+	
+	# IMPORTANT: Return value must match what spawn_ship, init_system, and
+	#   _physics_process want in System.gd:
+	return ['spawn_ship',ship_design, Vector3(0,-1,0), Vector3(x,5,z),
 		team, is_player]
 
 func fleet_size(var fleet: Array) -> int:
@@ -101,16 +111,19 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	var angle = rng.randf()*2*PI
 	for num_ship in fleet:
 		for _n in range(num_ship[0]):
-			result.push_back(spawn_ship(system,num_ship[1],team,
-				angle,add_radius,randf()*10-5,randf()*10-5,
-				safe_zone,planet.translation,false))
+			var design_name: String = num_ship[1]
+			if design_name in ship_designs:
+				result.push_back(spawn_ship(system,ship_designs[design_name],team,
+					angle,add_radius,randf()*10-5,randf()*10-5,
+					safe_zone,planet.translation,false))
 	return result
 
-func spawn_player(system: Spatial,scene: PackedScene,t: float):
+func spawn_player(system: Spatial,t: float):
 	var add_radius = 50*sqrt(rng.randf())
 	var angle = rng.randf()*2*PI
 	var center = game_state.get_player_translation(t)
-	return spawn_ship(system,scene,0,angle,add_radius,0,0,10,center,true)
+	return spawn_ship(system,game_state.player_ship_design,
+		0,angle,add_radius,0,0,10,center,true)
 
 func process_space(system,delta) -> Array:
 	var result: Array = Array()
@@ -135,6 +148,6 @@ func fill_system(var system,planet_time: float,ship_time: float,detail: float) -
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail)
-	var result = [spawn_player(system,game_state.player_ship_scene,planet_time)]
+	var result = [spawn_player(system,planet_time)]
 	result += process_space(system,ship_time)
 	return result

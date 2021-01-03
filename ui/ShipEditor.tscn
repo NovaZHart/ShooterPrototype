@@ -12,7 +12,7 @@ ambient_light_energy = 0.2
 script = ExtResource( 3 )
 
 [node name="SpaceBackground" parent="." instance=ExtResource( 2 )]
-transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, 0, 0 )
+transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -10, 0 )
 
 [node name="DirectionalLight" type="DirectionalLight" parent="."]
 transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.90081, 10.6671, 9.82405 )
@@ -51,10 +51,11 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 0 )
 [node name="Installed" type="Spatial" parent="."]
 
 [node name="ConsolePanel" parent="." instance=ExtResource( 1 )]
+hostname = "shipyard"
+initial_bbcode = "Hunter AI activated.{eoln}Message received: [i]\"Welcome to the shipyard. What can we sell you today?\"[/i]"
 
-[node name="ScrollPanel" type="Panel" parent="."]
-size_flags_horizontal = 0
-size_flags_vertical = 0
-__meta__ = {
-"_edit_use_anchors_": false
-}
+[node name="ShipInfo" parent="." instance=ExtResource( 1 )]
+initial_bbcode = "[ref=races/humans]test text[/ref]"
+follow_urls = false
+allow_input = false
+[connection signal="url_clicked" from="ShipInfo" to="ConsolePanel" method="process_command"]

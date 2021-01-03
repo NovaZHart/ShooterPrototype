@@ -1,0 +1,37 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://ships/PurpleShips/PurpleInterceptor.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=2]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=3]
+
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 1.00947, 1, 1 )
+
+[node name="PurpleInterceptorHull" type="RigidBody"]
+script = ExtResource( 3 )
+override_size = Vector3( 2, 0, 2 )
+
+[node name="Body" type="MeshInstance" parent="."]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 0.154587, -0.000216381, 0.565972, -5.55661e-05, 10, 3.61365e-05, -0.464488, -0.0012683, 0.188362, -0.0620286, 0, -0.206156 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape2" type="CollisionShape" parent="."]
+transform = Transform( 0.154587, 0.000882607, -0.565972, -5.98082e-05, 10, 3.12323e-05, 0.464488, 0.000993874, 0.188361, -0.062, 0, 0.206 )
+shape = SubResource( 1 )
+
+[node name="PortGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.452, -0.143, -0.382 )
+script = ExtResource( 2 )
+mount_size_y = 3
+mount_type = "gun"
+
+[node name="StarboardGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.452, -0.143, 0.382 )
+script = ExtResource( 2 )
+mount_size_y = 3
+mount_type = "gun"
