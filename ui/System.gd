@@ -284,11 +284,11 @@ func spawn_ship(ship_design: Dictionary, rotation: Vector3, translation: Vector3
 	ship.set_team(team)
 	if is_player:
 		ship.name = player_ship_name
-		ship.base_shields*=4
-		ship.base_armor*=4
-		ship.base_structure*=4
-		ship.base_thrust*=1.3
-		ship.base_turn_rate*=1.3
+#		ship.base_shields*=4
+#		ship.base_armor*=4
+#		ship.base_structure*=4
+#		ship.base_thrust*=1.3
+#		ship.base_turn_rate*=1.3
 		add_ship_stat_request(player_ship_name)
 	else:
 		ship.name = game_state.make_unique_ship_node_name()

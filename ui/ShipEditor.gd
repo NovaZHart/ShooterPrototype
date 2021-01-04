@@ -1,24 +1,22 @@
 extends Spatial
 
 const InventorySlot: Script = preload('res://ui/InventorySlot.gd')
+const HullIcon: Script = preload('res://ui/HullIcon.gd')
 
-const ships = {
-	'condor': preload('res://ships/PurpleShips/HeavyWarshipHull.tscn'),
-	'raven': preload('res://ships/PurpleShips/WarshipHull.tscn'),
-	'peregrine': preload('res://ships/PurpleShips/InterceptorHull.tscn'),
-}
+const available_items: Array = [
+	preload('res://weapons/BlueLaserGun.tscn'),
+	preload('res://weapons/GreenLaserGun.tscn'),
+	preload('res://weapons/OrangeSpikeGun.tscn'),
+	preload('res://weapons/PurpleHomingGun.tscn'),
+	preload('res://weapons/OrangeSpikeTurret.tscn'),
+	preload('res://weapons/BlueLaserTurret.tscn'),
+]
 
-const guns = {
-	'df_laser': preload('res://weapons/BlueLaserGun.tscn'),
-	'gamma_ray_laser': preload('res://weapons/GreenLaserGun.tscn'),
-	'cyclotron_cannon': preload('res://weapons/OrangeSpikeGun.tscn'),
-	'shockwave_torpedo': preload('res://weapons/PurpleHomingGun.tscn'),
-}
-
-const turrets = {
-	'linear_accelerator_turret': preload('res://weapons/OrangeSpikeTurret.tscn'),
-	'df_laser_turret': preload('res://weapons/BlueLaserTurret.tscn'),
-}
+const available_hulls: Array = [
+	preload('res://ships/PurpleShips/HeavyWarshipHull.tscn'),
+	preload('res://ships/PurpleShips/WarshipHull.tscn'),
+	preload('res://ships/PurpleShips/InterceptorHull.tscn'),
+]
 
 const x_axis: Vector3 = Vector3(1,0,0)
 const y_axis: Vector3 = Vector3(0,1,0)
@@ -27,20 +25,21 @@ var ship_aabb: AABB = AABB()
 var mounts: Dictionary = {}
 var used_width: float = 0
 var selected: bool = false
-#var selected_scene = null
-var scene_for_item: Dictionary = {}
+var hull_scene: PackedScene
 
 const SHIP_LAYER_MASK: int = 1
 const INSTALLED_LAYER_MASK: int = 2
 const MOUNT_POINT_LAYER_MASK: int = 4
-const AVAILABLE_LAYER_MASK: int = 8
+const AVAILABLE_ITEM_LAYER_MASK: int = 8
+const AVAILABLE_HULL_LAYER_MASK: int = 16
 const RED_LIGHT_CULL_LAYER: int = 8
 
 func mount_point(width: int,height: int,loc: Vector3,box_name: String) -> Area:
 	var box: Area = Area.new()
 	box.set_script(InventorySlot)
-	box.create_only_box(box_name,width,height)
-	box.place_near(loc,get_viewport().world.direct_space_state)
+	box.create_only_box(width,height)
+	box.place_near(loc,get_viewport().world.direct_space_state, \
+		MOUNT_POINT_LAYER_MASK | SHIP_LAYER_MASK)
 	box.name=box_name
 	box.collision_layer = MOUNT_POINT_LAYER_MASK
 	$MountPoints.add_child(box)
@@ -55,14 +54,39 @@ func copy_to_installed(installed_name: String,child: Node,display_location: Vect
 	area.name = installed_name
 	return area.get_path()
 
+class CompareMountLocations:
+	static func cmp(a: Spatial,b: Spatial) -> bool:
+		if sign(a.translation.z)<sign(b.translation.z):
+			return sign(a.translation.z)<sign(b.translation.z)
+		var a_angle: float = atan2(abs(a.translation.z),a.translation.x)
+		var b_angle: float = atan2(abs(b.translation.z),b.translation.x)
+		return a_angle<b_angle
+
+func sorted_ship_children(ship: Node) -> Array:
+	var just_mounts: Array = []
+	for child in ship.get_children():
+		if child.get('mount_type')!=null:
+			just_mounts.append(child)
+	just_mounts.sort_custom(CompareMountLocations,'cmp')
+	return just_mounts
+
 func make_ship(design: Dictionary):
 	var scene: PackedScene = design['hull']
+	hull_scene = scene
 	var ship = scene.instance()
 	ship.name='Ship'
 	ship.collision_layer = SHIP_LAYER_MASK
 	ship.collision_mask = 0
+	ship.random_height = false
+	var existing = get_node_or_null('Ship')
+	if existing:
+		remove_child(existing)
+		existing.queue_free()
 	add_child(ship)
-	for child in $Ship.get_children():
+	ship.name = 'Ship'
+	assert(ship.get_parent())
+	assert(get_node_or_null('Ship'))
+	for child in sorted_ship_children(ship):
 		if child.get('mount_type')!=null:
 			var loc: Vector3 = child.translation
 			var nx: int = child.mount_size_x
@@ -77,14 +101,15 @@ func make_ship(design: Dictionary):
 		if mounts.has(mount_name):
 			var area: Area = Area.new()
 			area.set_script(InventorySlot)
-			var instanced_mount: Node = design[mount_name].instance()
-			area.create_item(mount_name,design[mount_name],instanced_mount.help_page,false)
-			instanced_mount.queue_free()
+			area.create_item(design[mount_name],false)
 			if not try_to_mount(area,mount_name):
 				area.queue_free()
 		elif mount_name!='hull':
 			printerr('ShipEditor: mount "',mount_name,'" does not exist.')
 	$ShipInfo.process_command('ship info')
+	ship_aabb = combined_aabb(ship)
+	ship_aabb = ship_aabb.merge(combined_aabb($MountPoints))
+	move_Camera_for_scene()
 	return ship
 
 func combined_aabb(node: Node):
@@ -97,28 +122,43 @@ func combined_aabb(node: Node):
 		result = node.transform.xform(result)
 	return result
 
-func add_available_item(scene: PackedScene,item_name: String):
+func add_available_item(scene: PackedScene):
 	var area: Area = Area.new()
 	area.set_script(InventorySlot)
-	area.create_item(item_name,scene,'weapons/'+item_name,true)
-	area.collision_layer = AVAILABLE_LAYER_MASK
+	area.create_item(scene,true)
+	area.collision_layer = AVAILABLE_ITEM_LAYER_MASK
 	var width: float = max(2,area.nx+1)*0.25
 	area.translation.z = width/2.0+used_width
 	area.translation.x = (3.0-area.ny)/8.0
 	used_width += width
-	area.name = item_name
+#	area.name = item_name
 	$Available.add_child(area)
-	scene_for_item[item_name]=scene
+
+func add_available_design(design: Dictionary):
+	var icon: Spatial = Spatial.new()
+	icon.set_script(HullIcon)
+	icon.create_item(design)
+	icon.set_collision_layer(AVAILABLE_HULL_LAYER_MASK)
+	var width: float = abs(icon.width)
+	icon.translation.z = width/2.0+used_width
+	used_width += width
+#	area.name = item_name
+	$Available.add_child(icon)
 
 func move_Camera_for_scene():
-	$Camera.size = max(8,max(abs(ship_aabb.size.x),abs(ship_aabb.size.z))+2)
+	var size_x = clamp(abs(ship_aabb.size.x),8.0,18.0)
+	size_x += 2.0 * 10.0/size_x
+	$Camera.size = size_x
 	var pos = ship_aabb.position + ship_aabb.size*0.5
-	$Camera.translation.x = pos.x-0.8
+	$Camera.translation.x = pos.x-1
 	$Camera.translation.z = pos.z
 
 func move_Available_for_scene():
 	var scene_size = $Camera.size
-	$Available.translation.x = -scene_size/2.0 + 0.5
+	var middle_x = $Camera.translation.x
+	var scale = 10.0/scene_size
+	$Available.scale = Vector3(scale,scale,scale)
+	$Available.translation.x = middle_x -scene_size/2.0 + 0.135*5*scale
 	$Available.translation.z = -used_width/2.0
 
 func try_to_mount(area: Area, mount_name: String):
@@ -130,10 +170,13 @@ func try_to_mount(area: Area, mount_name: String):
 		printerr('mount failed: no scene in mount ',mount_name)
 		return false
 	if area.nx>mount['nx']:
-		printerr('mount failed: x size too small (',area.nx,'>',mount['nx'],' in ',mount_name)
+		printerr('mount failed: x size too small (',area.nx,'>',mount['nx'],') in ',mount_name)
 		return false
 	if area.ny>mount['ny']:
-		printerr('mount failed: y size too small (',area.ny,'>',mount['ny'],' in ',mount_name)
+		printerr('mount failed: y size too small (',area.ny,'>',mount['ny'],') in ',mount_name)
+		return false
+	if area.mount_type!=mount['mount_type']:
+		printerr('mount failed: type ',area.mount_type,' does not match mount type ',mount['mount_type'])
 		return false
 	var content = get_node_or_null(mount['content'])
 	if content!=null:
@@ -167,7 +210,6 @@ func deselect(there: Dictionary):
 	update_coloring(0,0,'')
 
 func update_ship_info():
-	$ShipInfo.clear()
 	$ShipInfo.process_command('ship info')
 
 func update_coloring(nx: int,ny: int,type: String):
@@ -216,11 +258,27 @@ func select_installed(pos: Vector2, there: Dictionary):
 		# Unmount the item from $Installed
 		$Installed.remove_child(collider)
 		collider.queue_free()
+		
+		update_ship_info()
 
 func select_available(pos: Vector2, there: Dictionary):
 	var collider = there['collider']
 	if collider!=null:
 		select_collider(pos,collider)
+
+func select_hull(_pos: Vector2, there: Dictionary):
+	var collider = there['collider']
+	var parent = collider.get_parent()
+	var design = parent.design
+	for child in $Installed.get_children():
+		child.queue_free()
+	for child in $MountPoints.get_children():
+		child.queue_free()
+	mounts={}
+	$Ship.queue_free()
+	yield(get_tree(),'idle_frame')
+	make_ship(design)
+	move_Available_for_scene()
 
 func event_position(event: InputEvent):
 	if event is InputEventMouseButton:
@@ -245,18 +303,20 @@ func _input(event: InputEvent):
 	elif event.is_action_pressed('ui_location_select'):
 		var pos = event_position(event)
 		if pos!=null:
-			var there = at_position(pos,AVAILABLE_LAYER_MASK)
+			var there = at_position(pos,AVAILABLE_ITEM_LAYER_MASK)
 			if there!=null and not there.empty():
 				select_available(pos,there)
 			there = at_position(pos,INSTALLED_LAYER_MASK)
 			if there!=null and not there.empty():
 				select_installed(pos,there)
+			there = at_position(pos,AVAILABLE_HULL_LAYER_MASK)
+			if there!=null and not there.empty():
+				var result = select_hull(pos,there)
+				while result is GDScriptFunctionState and result.is_valid():
+					result=yield(result,'completed')
 	elif event.is_action_released('ui_cancel'):
-		var design: Dictionary = {'hull':game_state.player_ship_design['hull']}
-		for mount_name in mounts:
-			if mounts[mount_name]['scene']:
-				design[mount_name] = mounts[mount_name]['scene']
-		game_state.player_ship_design = design
+		game_state.player_ship_design = make_design()
+		print(string_design(game_state.player_ship_design))
 		var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 	elif selected:
 		var n = get_node_or_null('Selected')
@@ -265,6 +325,19 @@ func _input(event: InputEvent):
 			if pos2!=null:
 				var pos3 = $Camera.project_position(pos2,-10)
 				n.translation = Vector3(pos3.x,16,pos3.z)
+
+func string_design(design: Dictionary) -> String:
+	var s = '\t\t{\n'
+	for key in design:
+		s += '\t\t\t"'+key+'": preload("'+design[key].resource_path+'"),\n'
+	return s + '\t\t},\n'
+
+func make_design() -> Dictionary:
+	var design: Dictionary = {'hull':hull_scene}
+	for mount_name in mounts:
+		if mounts[mount_name]['scene']:
+			design[mount_name] = mounts[mount_name]['scene']
+	return design
 
 func force_child_size(c: Control,size: Vector2,pos: Vector2):
 	c.anchor_left=0
@@ -299,9 +372,12 @@ func child_fills_parent(c: Control):
 
 func run(console,argv:PoolStringArray):
 	# Entry point for console commands.
-	if argv[0]=='ship' and len(argv)>1 and argv[1]=='info':
-		if $Ship.has_method('get_bbcode'):
+	if argv[0]=='ship' and len(argv)>1:
+		if argv[1]=='info' and $Ship.has_method('get_bbcode'):
+			$Ship.repack_stats()
 			console.insert_bbcode(console.rewrite_tags($Ship.get_bbcode()))
+		if argv[1]=='dump':
+			console.append_raw_text(string_design(make_design()))
 
 func _ready():
 	$ConsolePanel.add_command('ship',self)
@@ -310,14 +386,15 @@ func _ready():
 	$Red.layers = RED_LIGHT_CULL_LAYER
 	$Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$SpaceBackground.center_view(130,90,0,120,0)
-	ship_aabb = combined_aabb(make_ship(game_state.player_ship_design))
-	ship_aabb = ship_aabb.merge(combined_aabb($MountPoints))
-	move_Camera_for_scene()
+	make_ship(game_state.player_ship_design)
+#	ship_aabb = combined_aabb(make_ship(game_state.player_ship_design))
+#	ship_aabb = ship_aabb.merge(combined_aabb($MountPoints))
+#	move_Camera_for_scene()
 	var _discard
-	for gun_name in guns.keys():
-		_discard=add_available_item(guns[gun_name],gun_name)
-	for turret_name in turrets.keys():
-		_discard=add_available_item(turrets[turret_name],turret_name)
+	for avail in available_items:
+		_discard=add_available_item(avail)
+	for avail in game_state.ship_designs.values():
+		_discard=add_available_design(avail)
 	move_Available_for_scene()
 
 func _process(_delta):

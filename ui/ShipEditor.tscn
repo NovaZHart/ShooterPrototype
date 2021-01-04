@@ -52,7 +52,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12, 0 )
 
 [node name="ConsolePanel" parent="." instance=ExtResource( 1 )]
 hostname = "shipyard"
-initial_bbcode = "Hunter AI activated. Host mind control complete. Enter commands.{eoln}Message received: [i]\"Welcome to the shipyard. What can we sell you today?\"[/i]"
+initial_bbcode = "Hunter AI activated. Host mind control complete.{eoln}Message received: [i]\"Welcome to the shipyard. How can we serve you today?\"[/i]"
 
 [node name="ShipInfo" parent="." instance=ExtResource( 1 )]
 initial_bbcode = "[ref=races/humans]test text[/ref]"

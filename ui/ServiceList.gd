@@ -8,6 +8,7 @@ var starting_font_size: float
 const min_font_size: float = 9.0
 
 signal service_activated
+signal deorbit_selected
 
 func _ready():
 	starting_left=margin_left
@@ -28,12 +29,15 @@ func _ready():
 		add_item(service.service_title)
 		set_item_metadata(i,[service_name,service])
 		i+=1
+	add_item('De-orbit')
+	set_item_metadata(i,[])
+	i=i+1
 	update_selectability()
 
 func update_selectability():
 	for i in range(get_item_count()):
 		var name_and_object = get_item_metadata(i)
-		var available = name_and_object[1].is_available()
+		var available = !len(name_and_object) or name_and_object[1].is_available()
 		set_item_disabled(i,not available)
 		set_item_selectable(i,available)
 
@@ -53,4 +57,7 @@ func _process(var _delta: float) -> void:
 func _on_item_selected(index: int):
 	if is_item_selectable(index):
 		var name_and_object = get_item_metadata(index)
-		emit_signal('service_activated',name_and_object[0],name_and_object[1])
+		if not len(name_and_object):
+			emit_signal('deorbit_selected')
+		else:
+			emit_signal('service_activated',name_and_object[0],name_and_object[1])

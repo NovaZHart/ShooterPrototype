@@ -8,31 +8,26 @@ const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
 var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
-const ship_designs: Dictionary = {
-	'warship_default': { 'hull': PurpleWarship },
-	'interceptor_default': { 'hull': PurpleInterceptor },
-	'heavy_warship_default': { 'hull': PurpleHeavyWarship },
-	'bannership_default': {'hull':BannerShip},
-}
-
 const default_fleets: Array = [
-	{ 'frequency':1800, 'ships':[ [2, 'warship_default'] ], 'team':0 },
-	{ 'frequency':1800, 'ships':[ [1, 'warship_default'], [1, 'interceptor_default' ] ], 'team':0 },
-	{ 'frequency':1800, 'ships':[ [3, 'interceptor_default'] ], 'team':0 },
-	{ 'frequency':900, 'ships':[ [1, 'heavy_warship_default'], ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':0 },
+	{ 'frequency':1800, 'ships':[ [3, 'interceptor_lasers'] ], 'team':0 },
+	{ 'frequency':450, 'ships':[ [1, 'heavy_lasers'], ], 'team':0 },
+	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':0 },
 	
 #	{ 'frequency':60, 'ships':[ [1, 'bannership_default'], [1, 'interceptor_default'] ], 'team':0 },
 
-	{ 'frequency':1800, 'ships':[ [2, 'warship_default'] ], 'team':1 },
-	{ 'frequency':1800, 'ships':[ [1, 'warship_default'], [1, 'interceptor_default'] ], 'team':1 },
-	{ 'frequency':1800, 'ships':[ [3, 'interceptor_default'] ], 'team':1 },
-	{ 'frequency':900, 'ships':[ [1, 'heavy_warship_default'], ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':1 },
+	{ 'frequency':1800, 'ships':[ [3, 'interceptor_lasers'] ], 'team':1 },
+	{ 'frequency':450, 'ships':[ [1, 'heavy_lasers'], ], 'team':1 },
+	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':1 },
 ]
 
 const standalone_team_maximums: Array = [ 200,200 ]
 const standalone_max_ships: int = 300
-const debug_team_maximums: Array = [75, 75]
-const debug_max_ships: int = 120
+const debug_team_maximums: Array = [35, 35]
+const debug_max_ships: int = 60
 
 var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
@@ -112,10 +107,13 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	for num_ship in fleet:
 		for _n in range(num_ship[0]):
 			var design_name: String = num_ship[1]
-			if design_name in ship_designs:
-				result.push_back(spawn_ship(system,ship_designs[design_name],team,
+			if design_name in game_state.ship_designs:
+				result.push_back(spawn_ship(
+					system,game_state.ship_designs[design_name],team,
 					angle,add_radius,randf()*10-5,randf()*10-5,
 					safe_zone,planet.translation,false))
+			else:
+				printerr('No such design: ',design_name)
 	return result
 
 func spawn_player(system: Spatial,t: float):

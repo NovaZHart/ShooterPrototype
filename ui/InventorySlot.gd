@@ -4,7 +4,7 @@ var scene: PackedScene
 var nx: int = 2
 var ny: int = 2
 var page: String = 'weapons'
-var correct_name: String
+var mount_type: String = ''
 
 const border_all: Mesh = preload('res://ui/OutfitBorders/1x1.mesh')
 const border_tube_bottom: Mesh = preload('res://ui/OutfitBorders/1x1-U.mesh')
@@ -46,11 +46,10 @@ const item_scale: float = 0.125
 func copy_only_item() -> Area:
 	var new: Area = Area.new()
 	new.set_script(get_script())
-	new.create_item(correct_name,scene,page,false)
+	new.create_item(scene,false)
 	return new
 
-func create_only_box(name: String,nx_: int,ny_: int):
-	correct_name = name
+func create_only_box(nx_: int,ny_: int):
 	nx=nx_
 	ny=ny_
 	collision_layer=16
@@ -61,14 +60,14 @@ func create_only_box(name: String,nx_: int,ny_: int):
 	add_child(shape)
 	make_box()
 
-func create_item(name: String, scene_: PackedScene,page_: String,with_box: bool):
-	correct_name = name
-	page=page_
+func create_item(scene_: PackedScene,with_box: bool):
 	scene=scene_
 	
 	var item: Node = scene.instance()
 	nx=item.mount_size_x
 	ny=item.mount_size_y
+	page=item.help_page
+	mount_type=item.mount_type
 	
 	var shape: BoxShape = BoxShape.new()
 	shape.extents = Vector3(ny*item_scale,1,nx*item_scale)
@@ -87,33 +86,50 @@ func create_item(name: String, scene_: PackedScene,page_: String,with_box: bool)
 	if with_box:
 		make_box()
 
-func place_near(mount: Vector3,space: PhysicsDirectSpaceState):
+func place_near(mount: Vector3,space: PhysicsDirectSpaceState,mask: int):
 #	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
 	var badness: float = INF
 	var loc: Vector3 = mount
-	var angles: Array
-	if mount.z>0:
-		angles = [ 0,2.5,-2.5,5,-5,10,-10,15,-15,25,-25,40,-40,60,-60,80,-80 ]
-	else:
-		angles = [ 0,-2.5,2.5,-5,5,-10,10,-15,15,-25,25,-40,40,-60,60,-80,80 ]
+	var angles: Array = []
+	for i in range(0,10,1):
+		angles.append(i/10.0)
+		if i>0:
+			angles.append(-i/10.0)
+	for i in range(10,100,10):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	for i in range(100,200,20):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	for i in range(200,350,30):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	for i in range(350,750,50):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
 	var radii: Array = [ .1, .2, .3, .5, .8, 1.3, 2.1, 3.4, 5.5, 8.9 ]
 	var shape: Shape = get_node('shape').shape
 	var query: PhysicsShapeQueryParameters = PhysicsShapeQueryParameters.new()
+
 	query.margin=0.25
 	query.collide_with_areas=true
+	query.collision_mask = mask
 	query.shape_rid=shape.get_rid()
 	query.exclude = [get_rid()]
 	var unit: Vector3 = Vector3(mount.x,0,mount.z).normalized()
 	if unit.length()<0.99: # mount was precisely at the origin
 		unit=x_axis
 	for angle in angles:
+		if mount.z<0:
+			angle=-angle
+		angle *= PI/180
 		for radius in radii:
-			var trans: Vector3 = mount + unit.rotated(y_axis,angle*PI/180)*radius
+			var trans: Vector3 = mount + unit.rotated(y_axis,angle)*radius
 			query.transform.origin=trans
 			var result: Dictionary = space.get_rest_info(query)
 			if result.empty():
 				trans[1]=0
-				var bad: float = Vector3(trans.x,0,trans.z).length()*(1+abs(sin(angle*PI/180)))
+				var bad: float = Vector3(trans.x,0,trans.z).length()*(1+pow(1-cos(angle),.8))
 				if bad<badness:
 					badness=bad
 					loc=trans

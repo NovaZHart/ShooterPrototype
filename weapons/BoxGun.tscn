@@ -13,5 +13,6 @@ size = Vector3( 0.1, 0.3, 0.3 )
 mesh = SubResource( 2 )
 material/0 = null
 script = ExtResource( 1 )
+weapon_mass = 3.0
 projectile_mesh_path = "res://weapons/meshes/OrangeIsoBlob.mesh"
 help_page = "weapons/cyclotron_cannon"

@@ -36,6 +36,7 @@ func _ready():
 		var selector = ServiceSelector.instance()
 		var service_list = selector.get_node('ServiceList')
 		var _discard = service_list.connect('service_activated',self,'activate_service')
+		_discard = service_list.connect('deorbit_selected',self,'deorbit')
 		add_child(selector)
 
 func activate_service(service_name: String,var service):
@@ -89,9 +90,12 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 		+system_info.display_name+" system.\n")
 	emit_signal('jump_complete')
 
+func deorbit():
+	game_state.print_to_console('Departing '+$LocationLabel.text)
+	var _discard=get_tree().change_scene('res://ui/SpaceScreen.tscn')
+
 func _process(delta):
 	if Input.is_action_just_released('ui_depart'):
-		game_state.print_to_console('Departing '+$LocationLabel.text)
-		var _discard=get_tree().change_scene('res://ui/SpaceScreen.tscn')
+		deorbit()
 	else:
 		planet.rotate_y(0.4*delta)

@@ -10,14 +10,9 @@ var player_location: NodePath = NodePath() setget set_player_location,get_player
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
+var ship_designs: Dictionary = {}
 
-var player_ship_design: Dictionary = {
-	'hull':preload('res://ships/PurpleShips/WarshipHull.tscn'),
-	'StarboardMiddleGun':preload('res://weapons/OrangeSpikeGun.tscn'),
-	'StarboardOuterGun':preload('res://weapons/OrangeSpikeGun.tscn'),
-	'PortMiddleGun':preload('res://weapons/OrangeSpikeGun.tscn'),
-	'PortOuterGun':preload('res://weapons/OrangeSpikeGun.tscn'),
-}
+var player_ship_design: Dictionary
 
 signal console_append
 
@@ -97,6 +92,8 @@ func assemble_ship(design: Dictionary):
 		printerr('assemble_ship: cannot instance scene: ',body_scene)
 		return Node.new()
 	for child in body.get_children():
+		if not (child is Position3D):
+			continue
 		if child.name!='hull' and design.has(child.name) and design[child.name] is PackedScene:
 			var new_child: Node = design[child.name].instance()
 			if new_child!=null:
@@ -151,6 +148,62 @@ func make_test_systems():
 	system = known_systems['alef_93']
 	player_location = get_path_to(system)
 
+func make_test_designs():
+	ship_designs = {
+		'warship_lasers':{
+			"hull": preload("res://ships/PurpleShips/WarshipHull.tscn"),
+			"PortMiddleGun": preload("res://weapons/GreenLaserGun.tscn"),
+			"PortOuterGun": preload("res://weapons/BlueLaserGun.tscn"),
+			"StarboardMiddleGun": preload("res://weapons/GreenLaserGun.tscn"),
+			"StarboardOuterGun": preload("res://weapons/BlueLaserGun.tscn"),
+		},
+		'warship_cyclotrons':{
+			"hull": preload("res://ships/PurpleShips/WarshipHull.tscn"),
+			"PortMiddleGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"PortOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"StarboardMiddleGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"StarboardOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+		},
+		
+		'interceptor_cyclotrons':{
+			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
+			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"StarboardGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+		},
+		'interceptor_lasers':{
+			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
+			"PortGun": preload("res://weapons/BlueLaserGun.tscn"),
+			"StarboardGun": preload("res://weapons/BlueLaserGun.tscn"),
+		},
+
+		'heavy_cyclotrons':{
+			"hull": preload("res://ships/PurpleShips/HeavyWarshipHull.tscn"),
+			"MidPortTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+			"ForwardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
+			"PortSmallGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"StarboardSmallGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"PortLargeGun": preload('res://weapons/PurpleHomingGun.tscn'),
+			"AftPortTurret": preload("res://weapons/BlueLaserTurret.tscn"),
+			"StarboardLargeGun": preload('res://weapons/PurpleHomingGun.tscn'),
+			"MidStarboardTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+			"AftStarboardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
+		},
+		'heavy_lasers':{
+			'hull':preload('res://ships/PurpleShips/HeavyWarshipHull.tscn'),
+			'PortLargeGun':preload('res://weapons/PurpleHomingGun.tscn'),
+			'StarboardLargeGun':preload('res://weapons/PurpleHomingGun.tscn'),
+			'PortSmallGun':preload('res://weapons/GreenLaserGun.tscn'),
+			'StarboardSmallGun':preload('res://weapons/GreenLaserGun.tscn'),
+			'ForwardTurret':preload('res://weapons/BlueLaserTurret.tscn'),
+			'AftPortTurret':preload('res://weapons/BlueLaserTurret.tscn'),
+			'AftStarboardTurret':preload('res://weapons/BlueLaserTurret.tscn'),
+			'MidPortTurret':preload('res://weapons/OrangeSpikeTurret.tscn'),
+			'MidStarboardTurret':preload('res://weapons/OrangeSpikeTurret.tscn'),
+		},
+	}
+	player_ship_design = ship_designs['warship_lasers']
+
+
 func _init():
 	services['test'] = PlanetServices.ChildInstanceService.new(
 		'Service Text',preload('res://ui/TestService.tscn'))
@@ -161,3 +214,4 @@ func _init():
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
 		'Shipyard',preload('res://ui/ShipEditor.tscn'))
 	make_test_systems()
+	make_test_designs()

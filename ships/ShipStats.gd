@@ -1,7 +1,7 @@
 extends RigidBody
 
 export var ship_display_name: String = 'Unnamed'
-export var hull_display_name: String = 'Unnamed'
+export var help_page: String = 'hulls'
 export var base_mass: float = 50
 export var base_thrust: float = 3000
 export var base_reverse_thrust: float = 800
@@ -25,6 +25,7 @@ var team: int = 0
 var enemy_team: int = 1
 var enemy_mask: int = 2
 var height: float = 5
+var random_height: bool = true
 
 func set_team(new_team: int):
 	team=new_team
@@ -33,8 +34,6 @@ func set_team(new_team: int):
 	enemy_mask = 1<<enemy_team
 
 func init_ship_recursively(node: Node = self):
-	if node.has_method("add_weapon_stats"):
-		node.rotation=Vector3(0,0,0)
 	for child in node.get_children():
 		if node==self and child is VisualInstance:
 			child.translation.y+=height
@@ -57,16 +56,16 @@ func make_stats(node: Node, stats: Dictionary) -> Dictionary:
 	return stats
 
 func repack_stats() -> Dictionary:
-	return make_stats(self,combined_stats)
+	combined_stats = make_stats(self,{'weapons':[]})
+	return combined_stats
 	
 func pack_stats() -> Dictionary:
+	if not combined_stats.has('mass'):
+		printerr('No stats in pack_stats! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[]})
 	return combined_stats
 
 func add_stats(stats: Dictionary) -> void:
-#	export var base_explosion_damage: float = 100
-#export var base_explosion_radius: float = 5
-#export var base_explosion_impact: float = 500
-#export var base_explosion_delay: int = 10
 	stats['explosion_damage']=base_explosion_damage
 	stats['explosion_radius']=base_explosion_radius
 	stats['explosion_impulse']=base_explosion_impulse
@@ -108,8 +107,8 @@ func make_cell(key,value) -> String:
 
 func max_and_repair(key,maxval,repairval) -> String:
 	if repairval>0:
-		return make_cell(key,maxval)
-	return make_cell(key,str(maxval)+' (+'+str(repairval)+'/s)')
+		return make_cell(key,str(maxval)+' (+'+str(repairval)+'/s)')
+	return make_cell(key,maxval)
 
 func get_bbcode() -> String:
 	var contents: String = '' #'[b]Contents:[/b]\n'
@@ -120,15 +119,16 @@ func get_bbcode() -> String:
 			if child.mount_type=='gun' or child.mount_type=='turret':
 				dps += child.damage / max(1.0/60,child.firing_delay)
 	
-	var s: Dictionary = combined_stats
-	var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n[table=5]'
-	bbcode += make_cell('Hull Design:',hull_display_name)
+	var s: Dictionary = pack_stats()
+	#var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n'
+	var bbcode = '[table=5]'
+	bbcode += make_cell('Hull Design: ','{ref '+help_page+'}')
 	bbcode += '[cell]    [/cell]'
 	bbcode += make_cell('Weapon Damage:',str(round(dps))+'/s')
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
 	bbcode += '[cell]    [/cell]'
-	bbcode += '[cell]Death Explosion:[/cell][cell][/cell]'
+	bbcode += '[cell]Death Explosion[/cell][cell][/cell]'
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
 	bbcode += '[cell]    [/cell]'
@@ -168,7 +168,8 @@ func get_bbcode() -> String:
 
 func _ready():
 	var _discard = make_stats(self,combined_stats)
-	height = (randi()%11)*2 - 5
+	if random_height:
+		height = (randi()%11)*2 - 5
 	collision_mask=0
 	mass=combined_stats['mass']
 	linear_damp=combined_stats['drag']
@@ -178,6 +179,6 @@ func _ready():
 	axis_lock_angular_z=true
 	can_sleep=false
 	for child in get_children():
-		if child is VisualInstance:
+		if child is Spatial:
 			child.translation.y+=height
 	#init_ship_recursively()

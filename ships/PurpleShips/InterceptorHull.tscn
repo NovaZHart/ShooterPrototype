@@ -9,7 +9,10 @@ extents = Vector3( 1.00947, 1, 1 )
 
 [node name="PurpleInterceptorHull" type="RigidBody"]
 script = ExtResource( 3 )
-hull_display_name = "Peregrine"
+help_page = "hulls/peregrine"
+base_shields = 950.0
+base_armor = 400.0
+heal_shields = 25.0
 override_size = Vector3( 2, 0, 2 )
 
 [node name="Body" type="MeshInstance" parent="."]
