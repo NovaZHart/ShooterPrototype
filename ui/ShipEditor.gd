@@ -26,6 +26,8 @@ var mounts: Dictionary = {}
 var used_width: float = 0
 var selected: bool = false
 var hull_scene: PackedScene
+var scroll_active: bool = false
+var page_size: float = 0
 
 const SHIP_LAYER_MASK: int = 1
 const INSTALLED_LAYER_MASK: int = 2
@@ -158,7 +160,7 @@ func move_Available_for_scene():
 	var middle_x = $Camera.translation.x
 	var scale = 10.0/scene_size
 	$Available.scale = Vector3(scale,scale,scale)
-	$Available.translation.x = middle_x -scene_size/2.0 + 0.135*5*scale
+	$Available.translation.x = middle_x -scene_size/2.0 + 0.135*7*scale
 	$Available.translation.z = -used_width/2.0
 
 func try_to_mount(area: Area, mount_name: String):
@@ -402,7 +404,27 @@ func _process(_delta):
 	var pos3_ul: Vector3 = $Camera.project_position(Vector2(0,0),-10)
 	var pos3_lr: Vector3 = $Camera.project_position(view_size,-10)
 	$Camera.translation.z = abs(pos3_ul.z-pos3_lr.z)/6
-	$ConsolePanel.rect_global_position=Vector2(view_size.x*2.0/3.0,0)
-	$ConsolePanel.rect_size=Vector2(view_size.x/3.0,view_size.y*0.6)
-	$ShipInfo.rect_global_position=Vector2(view_size.x*2.0/3.0,view_size.y*0.6)
+	$ShipInfo.rect_global_position=Vector2(view_size.x*2.0/3.0,0)
 	$ShipInfo.rect_size=Vector2(view_size.x/3.0,view_size.y*0.4)
+	$ConsolePanel.rect_global_position=Vector2(view_size.x*2.0/3,view_size.y*0.4)
+	$ConsolePanel.rect_size=Vector2(view_size.x/3.0,view_size.y*0.6)
+	$HScrollBar.rect_global_position=Vector2(0,view_size.y-12)
+	$HScrollBar.rect_size=Vector2(view_size.x*2.0/3.0,12)
+	var left3: Vector3 = $Camera.project_position(Vector2(0,view_size.y-12),-10)
+	var right3: Vector3 = $Camera.project_position(Vector2(view_size.x*2.0/3.0,view_size.y-12),-10)
+	var scroll_max: float = max(0,used_width)
+	page_size = min(abs(right3.z-left3.z),scroll_max)
+	scroll_active = scroll_max>0 and page_size<scroll_max
+	$HScrollBar.visible=scroll_active
+	if scroll_active:
+		if $HScrollBar.max_value != scroll_max:
+			$HScrollBar.max_value=scroll_max
+		if $HScrollBar.page!=page_size:
+			$HScrollBar.page=page_size
+
+func _on_HScrollBar_changed():
+	_on_HScrollBar_value_changed($HScrollBar.value)
+
+func _on_HScrollBar_value_changed(value):
+	if scroll_active:
+		$Available.translation.z=-page_size/2-value

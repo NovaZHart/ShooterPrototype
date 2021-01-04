@@ -26,6 +26,20 @@ var enemy_team: int = 1
 var enemy_mask: int = 2
 var height: float = 5
 var random_height: bool = true
+var transforms: Dictionary = {}
+
+func save_transforms():
+	for child in get_children():
+		if child is Spatial:
+			transforms[child.name] = child.transform
+
+func restore_transforms():
+	for key in transforms:
+		var child = get_node_or_null(key)
+		if child==null:
+			printerr('restore_transforms: child "',child.name,'" vanished!')
+		else:
+			child.transform=transforms[key]
 
 func set_team(new_team: int):
 	team=new_team
@@ -59,9 +73,10 @@ func repack_stats() -> Dictionary:
 	combined_stats = make_stats(self,{'weapons':[]})
 	return combined_stats
 	
-func pack_stats() -> Dictionary:
+func pack_stats(quiet: bool = false) -> Dictionary:
 	if not combined_stats.has('mass'):
-		printerr('No stats in pack_stats! Making stats now.')
+		if not quiet:
+			printerr('No stats in pack_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[]})
 	return combined_stats
 
@@ -101,6 +116,21 @@ func add_stats(stats: Dictionary) -> void:
 	stats['mass']=base_mass
 	stats['drag']=base_drag
 	stats['weapons']=Array()
+
+func update_stats():
+	combined_stats['team']=team
+	combined_stats['enemy_team']=enemy_team
+	combined_stats['name']=name
+	combined_stats['enemy_mask']=enemy_mask
+	combined_stats['rid'] = get_rid()
+	assert(get_rid().get_id())
+	for wep in combined_stats['weapons']:
+		var child = get_node_or_null(wep['name'])
+		if child==null:
+			printerr('ShipStats._ready: weapon "',wep['name'],'" vanished.')
+		else:
+			wep['node_path'] = child.get_path()
+			assert(not wep['node_path'].is_empty())
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
@@ -167,9 +197,13 @@ func get_bbcode() -> String:
 	return bbcode
 
 func _ready():
-	var _discard = make_stats(self,combined_stats)
+	if not combined_stats.has('mass'):
+		var _discard = pack_stats(true)
+	else:
+		update_stats()
+
 	if random_height:
-		height = (randi()%11)*2 - 5
+		height = (randi()%11)*1.99 - 4.95
 	collision_mask=0
 	mass=combined_stats['mass']
 	linear_damp=combined_stats['drag']
@@ -178,6 +212,10 @@ func _ready():
 	axis_lock_angular_x=true
 	axis_lock_angular_z=true
 	can_sleep=false
+	
+	# Sometimes Godot trashes the CollisionShape transforms:
+	restore_transforms()
+	
 	for child in get_children():
 		if child is Spatial:
 			child.translation.y+=height

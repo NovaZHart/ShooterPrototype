@@ -9,8 +9,6 @@
 [ext_resource path="res://fonts/LiberationMono-Regular.ttf" type="DynamicFontData" id=8]
 [ext_resource path="res://ships/BannerShip/Advertisment.gd" type="Script" id=9]
 
-
-
 [sub_resource type="ArrayMesh" id=1]
 surfaces/0 = {
 "aabb": AABB( -0.623052, -0.160511, -1.13709, 1.22768, 0.307656, 1.33695 ),

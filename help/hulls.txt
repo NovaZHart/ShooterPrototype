@@ -1,0 +1,23 @@
+@PAGE hulls/peregrine
+@title Peregrine-Class Interceptor
+@synopsis Fast, lightly-armed, interceptor
+@content
+This ship is built mostly for speed, to hunt down enemies using swarm tactics. It relies on shields for its survival, fleeing from fights to recharge, leaving threats far behind.
+
+@bbcode_from_scene res://ships/PurpleShips/InterceptorHull.tscn
+
+@PAGE hulls/raven
+@title Raven-Class Warship
+@synopsis Medium-strength warship
+@content
+A warship with a good mix of shields and armor, with a decent armament that focuses on forward firepower. With two weapon slot sizes, this ship is highly configurable.
+
+@bbcode_from_scene res://ships/PurpleShips/WarshipHull.tscn
+
+@PAGE hulls/condor
+@title Condor-Class Capital Ship
+@synopsis Heavy weapons platform
+@content
+This massive ship is durable by every measure, and focuses on all-round firepower, with five turrets. The forward gun ports are large enough to support the largest human weapons.
+
+@bbcode_from_scene res://ships/PurpleShips/HeavyWarshipHull.tscn

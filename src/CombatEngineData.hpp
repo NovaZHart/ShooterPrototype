@@ -96,7 +96,7 @@ namespace godot {
       const real_t projectile_turn_rate;
       const real_t firing_delay, turn_rate, blast_radius, detonation_range, threat;
       const bool direct_fire, guided, guidance_uses_velocity;
-      const RID instance_id;
+      //      const RID instance_id;
       const object_id mesh_id;
       const real_t terminal_velocity, projectile_range;
       const NodePath node_path;

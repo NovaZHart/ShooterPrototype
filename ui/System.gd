@@ -54,7 +54,12 @@ func get_player_target_rid() -> RID:
 
 func receive_player_orders(new_orders: Dictionary) -> void:
 	var player_ship = $Ships.get_node_or_null(player_ship_name)
-	new_orders['rid_id'] = player_ship.get_rid().get_id() if player_ship!=null else 0
+	if player_ship!=null:
+		var rid: RID = player_ship.get_rid()
+		var id: int = rid.get_id()
+		new_orders['rid_id'] = id
+	else:
+		new_orders['rid_id'] = 0
 	player_orders_mutex.lock()
 	player_orders = [new_orders]
 	player_orders_mutex.unlock()
@@ -275,7 +280,7 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 	if is_player:
 		receive_player_orders({})
 
-func spawn_ship(ship_design: Dictionary, rotation: Vector3, translation: Vector3,
+func spawn_ship(var ship_design: Dictionary, rotation: Vector3, translation: Vector3,
 		team: int, is_player: bool) -> void:
 	var ship = game_state.assemble_ship(ship_design)
 	ship.set_identity()
@@ -284,12 +289,8 @@ func spawn_ship(ship_design: Dictionary, rotation: Vector3, translation: Vector3
 	ship.set_team(team)
 	if is_player:
 		ship.name = player_ship_name
-#		ship.base_shields*=4
-#		ship.base_armor*=4
-#		ship.base_structure*=4
-#		ship.base_thrust*=1.3
-#		ship.base_turn_rate*=1.3
 		add_ship_stat_request(player_ship_name)
+		pass
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 	call_deferred('add_spawned_ship',ship,is_player)

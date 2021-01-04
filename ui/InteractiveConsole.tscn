@@ -84,9 +84,8 @@ __meta__ = {
 }
 
 [node name="Input" type="LineEdit" parent="Console"]
-margin_top = 573.0
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_right = 132.0
+margin_bottom = 27.0
 theme = ExtResource( 2 )
 caret_blink_speed = 0.5
 

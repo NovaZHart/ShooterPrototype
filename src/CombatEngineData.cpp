@@ -122,7 +122,7 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   direct_fire(firing_delay<1e-5),
   guided(not direct_fire and get<bool>(dict,"guided")),
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
-  instance_id(get<RID>(dict,"instance_id")),
+  //  instance_id(get<RID>(dict,"instance_id")),
   mesh_id(make_mesh_id(get<String>(dict,"projectile_mesh_path"),last_id,mesh2path,path2mesh)),
   terminal_velocity((projectile_drag>0 and projectile_thrust>0) ? projectile_thrust/projectile_drag : initial_velocity),
   projectile_range(projectile_lifetime*terminal_velocity),
@@ -156,7 +156,7 @@ Dictionary Weapon::make_status_dict() const {
   s["guidance_uses_velocity"]=guidance_uses_velocity;
   s["position"]=position;
   s["rotation"]=rotation;
-  s["instance_id"]=instance_id;
+  //  s["instance_id"]=instance_id;
   s["firing_countdown"]=firing_countdown;
   return s;
 }

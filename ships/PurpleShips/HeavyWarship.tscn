@@ -8,8 +8,11 @@
 [ext_resource path="res://weapons/BlueLaserTurret.tscn" type="PackedScene" id=6]
 
 [sub_resource type="CylinderShape" id=1]
+height = 20.0
 
 [sub_resource type="CylinderShape" id=2]
+radius = 1.94
+height = 20.0
 
 [node name="PurpleHeavyWarship" type="RigidBody"]
 script = ExtResource( 2 )
@@ -34,11 +37,11 @@ material/0 = null
 material/1 = null
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -3.08014e-08, 0, 0.704656, 0, 18, 0, -1.03173, 0, -4.50983e-08, 1.81132, 0, 0 )
+transform = Transform( -4.37114e-08, 0, 0.705, 0, 1, 0, -1, 0, -3.08165e-08, 1.81132, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -8.32174e-08, 0, 1.90379, 0, 18, 0, -1.97052, 0, -8.61338e-08, -0.596499, 0, 0 )
+transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.596499, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="RightMiddleTurret2" parent="." instance=ExtResource( 3 )]

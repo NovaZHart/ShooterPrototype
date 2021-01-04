@@ -91,9 +91,10 @@ func assemble_ship(design: Dictionary):
 	if body == null:
 		printerr('assemble_ship: cannot instance scene: ',body_scene)
 		return Node.new()
+	body.save_transforms()
 	for child in body.get_children():
-		if not (child is Position3D):
-			continue
+		if child is CollisionShape and child.scale.y<10:
+			child.scale.y=10
 		if child.name!='hull' and design.has(child.name) and design[child.name] is PackedScene:
 			var new_child: Node = design[child.name].instance()
 			if new_child!=null:
