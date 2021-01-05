@@ -64,7 +64,7 @@ __meta__ = {
 
 [node name="Output" type="RichTextLabel" parent="Console"]
 margin_right = 1024.0
-margin_bottom = 569.0
+margin_bottom = 573.0
 focus_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -84,9 +84,11 @@ __meta__ = {
 }
 
 [node name="Input" type="LineEdit" parent="Console"]
-margin_right = 132.0
-margin_bottom = 27.0
+margin_top = 577.0
+margin_right = 1024.0
+margin_bottom = 600.0
 theme = ExtResource( 2 )
+placeholder_text = "(Use controls or enter commands here.)"
 caret_blink_speed = 0.5
 
 [node name="Tooltip" type="Panel" parent="."]
