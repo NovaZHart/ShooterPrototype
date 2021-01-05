@@ -13,13 +13,11 @@ const available_items: Array = [
 	preload('res://equipment/EquipmentTest.tscn'),
 	preload('res://equipment/BigEquipmentTest.tscn'),
 ]
-
-const available_hulls: Array = [
-	preload('res://ships/PurpleShips/HeavyWarshipHull.tscn'),
-	preload('res://ships/PurpleShips/WarshipHull.tscn'),
-	preload('res://ships/PurpleShips/InterceptorHull.tscn'),
-]
-
+const allowed_designs: PoolStringArray = PoolStringArray([
+	'warship_lasers', 'warship_cyclotrons', 'curvy_cyclotrons', 
+	'interceptor_cyclotrons', 'interceptor_lasers',
+	'heavy_cyclotrons', 'heavy_lasers'
+])
 const x_axis: Vector3 = Vector3(1,0,0)
 const y_axis: Vector3 = Vector3(0,1,0)
 
@@ -399,8 +397,9 @@ func _ready():
 	var _discard
 	for avail in available_items:
 		_discard=add_available_item(avail)
-	for avail in game_state.ship_designs.values():
-		_discard=add_available_design(avail)
+	for design_name in allowed_designs:
+		if game_state.ship_designs.has(design_name):
+			_discard=add_available_design(game_state.ship_designs[design_name])
 	move_Available_for_scene()
 
 func _process(_delta):

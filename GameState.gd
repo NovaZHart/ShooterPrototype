@@ -165,7 +165,23 @@ func make_test_designs():
 			"StarboardMiddleGun": preload("res://weapons/OrangeSpikeGun.tscn"),
 			"StarboardOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
 		},
-		
+
+		'banner_default':{
+			"hull": preload("res://ships/BannerShip/BannerShipHull.tscn"),
+			"ForwardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
+			"PortGun": preload("res://weapons/GreenLaserGun.tscn"),
+			"StarboardGun": preload("res://weapons/GreenLaserGun.tscn"),
+			"AftPortTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+			"AftStarboardTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+		},
+
+		'curvy_cyclotrons':{
+			"hull": preload("res://ships/PurpleShips/CurvyWarshipHull.tscn"),
+			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"StarboardGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"Turret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+		},
+
 		'interceptor_cyclotrons':{
 			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
 			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),

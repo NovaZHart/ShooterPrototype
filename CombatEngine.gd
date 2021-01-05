@@ -73,7 +73,7 @@ func draw_space(camera: Camera,viewport: Viewport) -> void:
 	var ul: Vector3 = camera.project_position(Vector2(0,0),0)
 	var lr: Vector3 = camera.project_position(viewport_size,0)
 	var size: Vector3 = Vector3(abs(ul.x-lr.x),0,abs(ul.z-lr.z))
-	var projectile_scale: float = sqrt(camera.size/20.0)
+	var projectile_scale: float = pow(camera.size/30.0,0.5)
 	native.update_overhead_view(camera.translation,size,projectile_scale)
 	visual_mutex.unlock()
 

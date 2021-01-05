@@ -13,6 +13,9 @@ help_page = "hulls/peregrine"
 base_shields = 950.0
 base_armor = 400.0
 heal_shields = 25.0
+base_explosion_damage = 250.0
+base_explosion_radius = 2.5
+base_explosion_impulse = 375.0
 override_size = Vector3( 2, 0, 2 )
 
 [node name="Body" type="MeshInstance" parent="."]

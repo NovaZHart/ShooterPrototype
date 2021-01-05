@@ -1,25 +1,27 @@
 extends Node
 
-const PurpleWarship = preload('res://ships/PurpleShips/Warship.tscn')
-const PurpleHeavyWarship = preload('res://ships/PurpleShips/HeavyWarship.tscn')
-const PurpleInterceptor = preload('res://ships/PurpleShips/Interceptor.tscn')
-const BannerShip = preload('res://ships/BannerShip/BannerShip.tscn')
-
 var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':1800, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':0 },
-	{ 'frequency':1800, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':0 },
-	{ 'frequency':1800, 'ships':[ [3, 'interceptor_lasers'] ], 'team':0 },
+	{ 'frequency':900, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':0 },
+	{ 'frequency':900, 'ships':[ [2, 'curvy_cyclotrons'] ], 'team':0 },
+	{ 'frequency':900, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':0 },
+	{ 'frequency':900, 'ships':[ [1, 'curvy_cyclotrons'], [1, 'interceptor_cyclotrons' ] ], 'team':0 },
+	{ 'frequency':1200, 'ships':[ [3, 'interceptor_lasers'] ], 'team':0 },
+	{ 'frequency':600, 'ships':[ [3, 'interceptor_lasers'] ], 'team':0 },
 	{ 'frequency':450, 'ships':[ [1, 'heavy_lasers'], ], 'team':0 },
 	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':0 },
+	{ 'frequency':100, 'ships':[ [1, 'banner_default'], ], 'team':0 },
 	
 #	{ 'frequency':60, 'ships':[ [1, 'bannership_default'], [1, 'interceptor_default'] ], 'team':0 },
 
-	{ 'frequency':1800, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':1 },
-	{ 'frequency':1800, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':1 },
-	{ 'frequency':1800, 'ships':[ [3, 'interceptor_lasers'] ], 'team':1 },
+	{ 'frequency':900, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':1 },
+	{ 'frequency':900, 'ships':[ [2, 'curvy_cyclotrons'] ], 'team':1 },
+	{ 'frequency':900, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':1 },
+	{ 'frequency':900, 'ships':[ [1, 'curvy_cyclotrons'], [1, 'interceptor_cyclotrons' ] ], 'team':1 },
+	{ 'frequency':1200, 'ships':[ [3, 'interceptor_lasers'] ], 'team':1 },
+	{ 'frequency':600, 'ships':[ [3, 'interceptor_lasers'] ], 'team':1 },
 	{ 'frequency':450, 'ships':[ [1, 'heavy_lasers'], ], 'team':1 },
 	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':1 },
 ]
