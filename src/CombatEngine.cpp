@@ -444,6 +444,7 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     Ship new_ship = Ship(ship,id,last_id,mesh2path,path2mesh);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
+    physics_server->body_set_collision_layer(pp_ship.first->second.rid,pp_ship.first->second.collision_layer);
   }
 }
 

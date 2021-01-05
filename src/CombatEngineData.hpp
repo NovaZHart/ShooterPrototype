@@ -147,7 +147,7 @@ namespace godot {
       const real_t heal_shields, heal_armor, heal_structure;
       const AABB aabb;
       const real_t radius;
-      const int collision_layer, enemy_mask;
+      const int team, enemy_team, collision_layer, enemy_mask;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       
