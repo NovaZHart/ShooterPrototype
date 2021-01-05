@@ -5,6 +5,8 @@ var nx: int = 2
 var ny: int = 2
 var page: String = 'weapons'
 var mount_type: String = ''
+var my_x: int = 0
+var my_y: int = 0
 
 const border_all: Mesh = preload('res://ui/OutfitBorders/1x1.mesh')
 const border_tube_bottom: Mesh = preload('res://ui/OutfitBorders/1x1-U.mesh')
@@ -42,6 +44,9 @@ const outfit_borders = [	       # U D L R
 
 const box_scale: float = 0.135
 const item_scale: float = 0.125
+
+func is_inventory_slot(): # never called; must only exist.
+	pass
 
 func copy_only_item() -> Area:
 	var new: Area = Area.new()
