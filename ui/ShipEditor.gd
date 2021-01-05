@@ -10,6 +10,8 @@ const available_items: Array = [
 	preload('res://weapons/PurpleHomingGun.tscn'),
 	preload('res://weapons/OrangeSpikeTurret.tscn'),
 	preload('res://weapons/BlueLaserTurret.tscn'),
+	preload('res://equipment/EquipmentTest.tscn'),
+	preload('res://equipment/BigEquipmentTest.tscn'),
 ]
 
 const available_hulls: Array = [
@@ -80,6 +82,7 @@ func make_ship(design: Dictionary):
 	ship.collision_layer = SHIP_LAYER_MASK
 	ship.collision_mask = 0
 	ship.random_height = false
+	ship.retain_hidden_mounts = true
 	var existing = get_node_or_null('Ship')
 	if existing:
 		remove_child(existing)

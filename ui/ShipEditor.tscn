@@ -65,6 +65,16 @@ margin_bottom = 12.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="EscToExit" type="Label" parent="."]
+margin_left = 9.00543
+margin_top = 6.35678
+margin_right = 107.005
+margin_bottom = 20.3568
+text = "Hit [Esc] To Exit"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 [connection signal="url_clicked" from="ShipInfo" to="ConsolePanel" method="process_command"]
 [connection signal="changed" from="HScrollBar" to="." method="_on_HScrollBar_changed"]
 [connection signal="value_changed" from="HScrollBar" to="." method="_on_HScrollBar_value_changed"]

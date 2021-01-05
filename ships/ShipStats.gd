@@ -27,6 +27,7 @@ var enemy_mask: int = 2
 var height: float = 5
 var random_height: bool = true
 var transforms: Dictionary = {}
+var retain_hidden_mounts: bool = false
 
 func save_transforms():
 	for child in get_children():
@@ -36,9 +37,7 @@ func save_transforms():
 func restore_transforms():
 	for key in transforms:
 		var child = get_node_or_null(key)
-		if child==null:
-			printerr('restore_transforms: child "',child.name,'" vanished!')
-		else:
+		if child!=null:
 			child.transform=transforms[key]
 
 func set_team(new_team: int):
@@ -123,7 +122,10 @@ func update_stats():
 	combined_stats['name']=name
 	combined_stats['enemy_mask']=enemy_mask
 	combined_stats['rid'] = get_rid()
-	assert(get_rid().get_id())
+	combined_stats['team']=team
+	combined_stats['rotation']=rotation
+	combined_stats['position']=Vector3(translation.x,0,translation.z)
+	combined_stats['transform']=transform
 	for wep in combined_stats['weapons']:
 		var child = get_node_or_null(wep['name'])
 		if child==null:
@@ -131,6 +133,11 @@ func update_stats():
 		else:
 			wep['node_path'] = child.get_path()
 			assert(not wep['node_path'].is_empty())
+	if override_size.length()>1e-5:
+		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
+		combined_stats['aabb']=AABB(-size*0.5,size)
+	else:
+		combined_stats['aabb']=get_combined_aabb()
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
@@ -197,13 +204,25 @@ func get_bbcode() -> String:
 	return bbcode
 
 func _ready():
+	var must_update: bool = false
 	if not combined_stats.has('mass'):
 		var _discard = pack_stats(true)
 	else:
-		update_stats()
+		must_update = true
 
+	if not retain_hidden_mounts:
+		for child in get_children():
+			if child.has_method('is_mount_point') and \
+					child.mount_type!='gun' and child.mount_type!='turret':
+				remove_child(child)
+				child.queue_free()
+				must_update=true
+	if must_update:
+		update_stats()
+	
 	if random_height:
-		height = (randi()%11)*1.99 - 4.95
+		#height = (randi()%5)*1.99 - 1.48
+		height = (randi()%11)*1.99 - 8.445
 	collision_mask=0
 	mass=combined_stats['mass']
 	linear_damp=combined_stats['drag']
@@ -217,6 +236,6 @@ func _ready():
 	restore_transforms()
 	
 	for child in get_children():
-		if child is Spatial:
+		if child is VisualInstance or child is Position3D:
 			child.translation.y+=height
 	#init_ship_recursively()

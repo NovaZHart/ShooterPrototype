@@ -25,7 +25,7 @@ const Color planet_color = neutral_color;
 
 Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask) {
   FAST_PROFILING_FUNCTION;
-  static Array empty;
+  static Array empty = Array();
   return space->intersect_ray(point1,point2,empty,mask);
 }
 
@@ -1155,7 +1155,7 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
         create_projectile(ship,weapon);
       continue;
     }
-    if(hit_detected and weapon.is_turret) {
+    if(hit_detected and not weapon.is_turret) {
       // If one non-turret fires, all fire.
       if(weapon.direct_fire)
         fire_direct_weapon(ship,weapon,false);
@@ -1459,8 +1459,8 @@ CE::ships_iter CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 p
 
 bool CombatEngine::collide_point_projectile(Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
-  Vector3 point1(projectile.position.x,30,projectile.position.z);
-  Vector3 point2(projectile.position.x,-30,projectile.position.z);
+  Vector3 point1(projectile.position.x,500,projectile.position.z);
+  Vector3 point2(projectile.position.x,-500,projectile.position.z);
   ships_iter p_ship = space_intersect_ray_p_ship(point1,point2,projectile.collision_mask);
   if(p_ship==ships.end())
     return false;

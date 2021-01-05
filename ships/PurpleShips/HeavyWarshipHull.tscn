@@ -5,8 +5,12 @@
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
 
 [sub_resource type="CylinderShape" id=1]
+radius = 1.03
+height = 10.0
 
 [sub_resource type="CylinderShape" id=2]
+radius = 1.9
+height = 10.0
 
 [node name="PurpleHeavyWarshipHull" type="RigidBody"]
 script = ExtResource( 2 )
@@ -24,7 +28,7 @@ base_turn_rate = 1.1
 base_explosion_damage = 800.0
 base_explosion_radius = 12.0
 base_explosion_impulse = 900.0
-override_size = Vector3( 6, 0, 3.5 )
+override_size = Vector3( 6, 0, 4 )
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
@@ -32,11 +36,11 @@ material/0 = null
 material/1 = null
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -3.08014e-08, 0, 0.704656, 0, 18, 0, -1.03173, 0, -4.50983e-08, 1.81132, 0, 0 )
+transform = Transform( -3.13554e-08, 0, 0.717327, 0, 1, 0, -1, 0, -4.37114e-08, 1.81132, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -8.32174e-08, 0, 1.90379, 0, 18, 0, -1.97052, 0, -8.61338e-08, -0.596499, 0, 0 )
+transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.596499, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="PortLargeGun" type="Position3D" parent="."]
@@ -45,6 +49,12 @@ script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4
 mount_type = "gun"
+
+[node name="EquipmentMount" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.741057, 0, 0 )
+script = ExtResource( 3 )
+mount_size_x = 3
+mount_size_y = 4
 
 [node name="PortSmallGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.61247, -0.12788, -0.340595 )

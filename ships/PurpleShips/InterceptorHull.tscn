@@ -39,3 +39,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.452, -0.143, 0.382 )
 script = ExtResource( 2 )
 mount_size_y = 3
 mount_type = "gun"
+
+[node name="EquipmentMount" type="Position3D" parent="."]
+script = ExtResource( 2 )
+mount_size_y = 2

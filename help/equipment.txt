@@ -1,0 +1,7 @@
+@PAGE equipment/test
+@title Equipment Placeholder Test
+@synopsis A prism for testing the equipment functionality.
+@content
+This equipment just tests whether the equipment functionality is working.
+
+@bbcode_from_scene res://equipment/EquipmentTest.tscn
