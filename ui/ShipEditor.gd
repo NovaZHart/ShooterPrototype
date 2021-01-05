@@ -199,6 +199,7 @@ func try_to_mount(area: Area, mount_name: String):
 		child.replace_by(install)
 	else:
 		$Ship.add_child(install)
+	install.visible = mount['mount_type']=='gun' or mount['mount_type']=='turret'
 	install.owner=$Ship
 	install.name = mount['name']
 	update_ship_info()
