@@ -10,6 +10,7 @@ const available_items: Array = [
 	preload('res://weapons/PurpleHomingGun.tscn'),
 	preload('res://weapons/OrangeSpikeTurret.tscn'),
 	preload('res://weapons/BlueLaserTurret.tscn'),
+	preload('res://equipment/BigEngineTest.tscn'),
 	preload('res://equipment/EquipmentTest.tscn'),
 	preload('res://equipment/BigEquipmentTest.tscn'),
 ]

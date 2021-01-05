@@ -1,0 +1,5 @@
+@PAGE engines/test
+@title Engine Placeholder Test
+@synopsis A cylinder for testing whether the engine functionality is working.
+
+@bbcode_from_scene res://equipment/BigEngineTest.tscn

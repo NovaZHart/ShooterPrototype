@@ -43,11 +43,11 @@ func add_stats(stats: Dictionary) -> void:
 	if add_reverse_thrust>0:
 		stats['reverse_thrust'] = max(0,stats['reverse_thrust']+add_reverse_thrust)
 	if add_shields>0:
-		stats['shields'] = max(0,stats['shields']+add_shields)
+		stats['max_shields'] = max(0,stats['max_shields']+add_shields)
 	if add_armor>0:
-		stats['armor'] = max(0,stats['armor']+add_armor)
+		stats['max_armor'] = max(0,stats['max_armor']+add_armor)
 	if add_structure>0:
-		stats['structure'] = max(0,stats['structure']+add_structure)
+		stats['max_structure'] = max(0,stats['max_structure']+add_structure)
 	if add_heal_shields>0:
 		stats['heal_shields'] = max(0,stats['heal_shields']+add_heal_shields)
 	if add_heal_armor>0:
