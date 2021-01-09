@@ -1,6 +1,7 @@
 extends Spatial
 
 const InventorySlot: Script = preload('res://ui/InventorySlot.gd')
+const InventoryArray: Script = preload('res://ui/InventoryArray.gd')
 const HullIcon: Script = preload('res://ui/HullIcon.gd')
 
 const available_items: Array = [
@@ -73,6 +74,17 @@ func sorted_ship_children(ship: Node) -> Array:
 	just_mounts.sort_custom(CompareMountLocations,'cmp')
 	return just_mounts
 
+func add_multimount_contents(mount_name: String,design: Dictionary):
+	var contents: Array = design[mount_name]
+	for pos_scene in contents:
+		var position: Vector2 = contents[0]
+		var scene: PackedScene = contents[1]
+		var area: Area = Area.new()
+		area.set_script(InventorySlot)
+		area.create_item(scene,false,position)
+		if not try_to_mount(area,mount_name):
+			area.queue_free()
+
 func make_ship(design: Dictionary):
 	var scene: PackedScene = design['hull']
 	hull_scene = scene
@@ -99,10 +111,14 @@ func make_ship(design: Dictionary):
 			var mp: Area = mount_point(nx,ny,loc,child.name)
 			mounts[child.name]={'name':child.name, 'transform':child.transform, 
 				'mount_type':child.mount_type,'scene':'','content':NodePath(),
-				'box':mp.get_path(),'nx':nx,'ny':ny,'box_translation':mp.translation
+				'box':mp.get_path(),'nx':nx,'ny':ny,'box_translation':mp.translation,
+				'multimount':child.mount_type=='equipment'
 			}
 	for mount_name in design:
 		if mounts.has(mount_name):
+			if mounts[mount_name]['multimount']:
+				add_multimount_contents(mount_name,ship)
+				continue
 			var area: Area = Area.new()
 			area.set_script(InventorySlot)
 			area.create_item(design[mount_name],false)
@@ -165,42 +181,59 @@ func move_Available_for_scene():
 	$Available.translation.x = middle_x -scene_size/2.0 + 0.135*7*scale
 	$Available.translation.z = -used_width/2.0
 
-func try_to_mount(area: Area, mount_name: String):
-	if not mounts.has(mount_name):
-		printerr('mount failed: no mount ',mount_name)
-		return false
-	var mount: Dictionary = mounts[mount_name]
-	if not area.scene:
-		printerr('mount failed: no scene in mount ',mount_name)
-		return false
+func place_in_multimount(area: Area, _mount_name: String, mount: Dictionary) -> bool:
+	var inventory_array: Spatial = mount['content']
+	var result: Array = inventory_array.insert_at_grid_range(area,area.scene)
+	return len(result)==5 and result[0]
+
+func place_in_single_mount(area: Area, mount_name: String, mount: Dictionary) -> bool:
 	if area.nx>mount['nx']:
 		printerr('mount failed: x size too small (',area.nx,'>',mount['nx'],') in ',mount_name)
 		return false
 	if area.ny>mount['ny']:
 		printerr('mount failed: y size too small (',area.ny,'>',mount['ny'],') in ',mount_name)
 		return false
-	if area.mount_type!=mount['mount_type']:
-		printerr('mount failed: type ',area.mount_type,' does not match mount type ',mount['mount_type'])
-		return false
 	var content = get_node_or_null(mount['content'])
 	if content!=null:
 		content.queue_free()
 	mounts[mount_name]['content'] = copy_to_installed(mount['name'],area,mount['box_translation'])
 	mounts[mount_name]['scene'] = area.scene
+	
+	if mount['mount_type']!='gun' and mount['mount_type']!='turret':
+		return false
+	
 	var install = area.scene.instance()
 	install.transform = mount['transform']
 	install.name = mount['name']
 	install.mount_size_x = mount['nx']
 	install.mount_size_y = mount['ny']
-
 	var child = $Ship.get_node_or_null(mount['name'])
 	if child!=null:
 		child.replace_by(install)
 	else:
 		$Ship.add_child(install)
-	install.visible = mount['mount_type']=='gun' or mount['mount_type']=='turret'
 	install.owner=$Ship
 	install.name = mount['name']
+	return true
+
+func try_to_mount(area: Area, mount_name: String):
+	if not mounts.has(mount_name):
+		printerr('mount failed: no mount ',mount_name)
+		return false
+	var mount: Dictionary = mounts[mount_name]
+	if area.mount_type!=mount['mount_type']:
+		printerr('mount failed: type ',area.mount_type,' does not match mount type ',mount['mount_type'])
+		return false
+	if not area.scene:
+		printerr('mount failed: no scene in mount ',mount_name)
+		return false
+	
+	if mount['multimount']:
+		if not place_in_multimount(area,mount_name,mount):
+			return false
+	elif not place_in_single_mount(area,mount_name,mount):
+		return false
+	
 	update_ship_info()
 	return true
 
@@ -303,7 +336,7 @@ func at_position(pos,mask: int):
 func _input(event: InputEvent):
 	if event.is_action_released('ui_location_select'):
 		if selected:
-			var there = at_position(event_position(event),4)
+			var there = at_position(event_position(event),36)
 			deselect(there)
 	elif event.is_action_pressed('ui_location_select'):
 		var pos = event_position(event)
@@ -312,6 +345,9 @@ func _input(event: InputEvent):
 			if there!=null and not there.empty():
 				select_available(pos,there)
 			there = at_position(pos,INSTALLED_LAYER_MASK)
+			if there!=null and not there.empty():
+				select_installed(pos,there)
+			there = at_position(pos,InventoryArray.my_collision_mask)
 			if there!=null and not there.empty():
 				select_installed(pos,there)
 			there = at_position(pos,AVAILABLE_HULL_LAYER_MASK)

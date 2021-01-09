@@ -10,9 +10,9 @@ export var grid_cell_size = 0.135
 var first: Vector3
 var slots: Array = []
 var used: Array = []
-var scene: Array = []
+var scenes: Array = []
 
-func clear_grid_range():
+func reset_grid_colors():
 	var both: int = fail_cull_layer_mask|okay_cull_layer_mask
 	for child in get_children():
 		child.layers = child.layers & ~both
@@ -42,6 +42,7 @@ func remove_child_or_null(viewport_point: Vector2):
 		for i in range(nx):
 			if used[j*nx+i]==child_path:
 				used[j*nx+i] = NodePath()
+				scenes[j*nx+i] = null
 	remove_child(child)
 	return child
 
@@ -49,20 +50,35 @@ func slot_at_pixel(viewport_point: Vector2) -> Vector2:
 	var pos3 = get_viewport().get_camera().project_position(viewport_point,-10)
 	return Vector2(pos3.z-first.z,-(pos3.x-first.x))
 
-func insert_at_grid_range(inventory_slot: CollisionObject,item: PackedScene) -> bool:
+func insert_at_grid_range(inventory_slot: CollisionObject,scene: PackedScene) -> Array:
 	var test = update_grid_range(inventory_slot,false)
 	if not test[0]:
-		return false
-	
+		return [false,0,0,0,0]
+	var item: Node = scene.instance()
+	if not item is Area:
+		printerr('insert_at_grid_range: scene "'+scene.resource_path+'" is not an Area.')
+		return [false,0,0,0,0]
+	var x1: int = test[1]
+	var y1: int = test[2]
+	var x2: int = test[3]
+	var y2: int = test[4]
+	item.translation = first+grid_cell_size*Vector3(0.5+(x2-x1)/2.0,0,0.5+(y2-y1/2.0))
+	add_child(item)
+	var path = item.get_path()
+	for y in range(y1,y2+1):
+		for x in range(x1,x2+1):
+			used[y*nx+x] = path
+			scenes[y*nx+x] = scene
+	return test
 
 func update_grid_range(inventory_slot: CollisionObject,recolor: bool = true) -> Array:
 	if not inventory_slot.has_method('is_inventory_slot'):
 		printerr('update_grid_range: argument is not an inventory slot')
-		clear_grid_range()
-		return [0,0,0,0]
+		reset_grid_colors()
+		return [false,0,0,0,0]
 	
-	var item_nx: int = inventory_slot.nx
-	var item_ny: int = inventory_slot.ny
+	var item_nx: int = inventory_slot.item_size_x
+	var item_ny: int = inventory_slot.item_size_y
 	var item_x_float: float = inventory_slot.translation.z-first.z
 	var item_y_float: float = -(inventory_slot.translation.x-first.x)
 	var item_x1: int = int(round(item_x_float))
@@ -71,15 +87,16 @@ func update_grid_range(inventory_slot: CollisionObject,recolor: bool = true) -> 
 	var item_y2: int = item_y1 + item_ny-1
 	var okay_points: int = 0
 	
-	item_x1 = clamp(item_x1,0,nx-1)
-	item_x2 = clamp(item_x2,0,nx-1)
-	item_y1 = clamp(item_y1,0,ny-1)
-	item_y2 = clamp(item_y2,0,ny-1)
+	item_x1 = int(clamp(item_x1,0,nx-1))
+	item_x2 = int(clamp(item_x2,0,nx-1))
+	item_y1 = int(clamp(item_y1,0,ny-1))
+	item_y2 = int(clamp(item_y2,0,ny-1))
+	var inside_points = (item_x2-item_x1+1)*(item_y2-item_y1+1)
 	
 	for y in range(item_y1,item_y2+1):
 		for x in range(item_x1,item_x2+1):
 			if used[y*nx+x].is_empty():
-				if recolor:
+				if recolor and inside_points==item_nx*item_ny:
 					color_slot(x,y,false,true)
 				okay_points+=1
 			elif recolor:

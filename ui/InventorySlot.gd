@@ -1,10 +1,14 @@
 extends Area
 
 var scene: PackedScene
+
+# From item_size_x, item_size_y, page, mount_type of *Stats.gd:
 var nx: int = 2
 var ny: int = 2
 var page: String = 'weapons'
 var mount_type: String = ''
+
+# x,y location within an InventoryArray
 var my_x: int = 0
 var my_y: int = 0
 
@@ -42,6 +46,7 @@ const outfit_borders = [	       # U D L R
 	[ 180.0, border_middle      ], # 1 1 1 1
 ]
 
+# Inventory grid boxes are slightly larger than items:
 const box_scale: float = 0.135
 const item_scale: float = 0.125
 
@@ -65,7 +70,7 @@ func create_only_box(nx_: int,ny_: int):
 	add_child(shape)
 	make_box()
 
-func create_item(scene_: PackedScene,with_box: bool):
+func create_item(scene_: PackedScene,with_box: bool,position = null):
 	scene=scene_
 	
 	var item: Node = scene.instance()
@@ -73,6 +78,11 @@ func create_item(scene_: PackedScene,with_box: bool):
 	ny=item.mount_size_y
 	page=item.help_page
 	mount_type=item.mount_type
+	
+	if position!=null:
+		assert(position is Vector2)
+		my_x = int(round(position.x))
+		my_y = int(round(position.y))
 	
 	var shape: BoxShape = BoxShape.new()
 	shape.extents = Vector3(ny*item_scale,1,nx*item_scale)
