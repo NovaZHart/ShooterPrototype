@@ -37,9 +37,18 @@ const INSTALLED_LAYER_MASK: int = 2
 const MOUNT_POINT_LAYER_MASK: int = 4
 const AVAILABLE_ITEM_LAYER_MASK: int = 8
 const AVAILABLE_HULL_LAYER_MASK: int = 16
+
+const ITEM_LIGHT_CULL_LAYER: int = 1
+const SHIP_LIGHT_CULL_LAYER: int = 2
 const RED_LIGHT_CULL_LAYER: int = 8
 
 signal update_coloring
+
+func set_layer_recursively(node: Node,layer: int):
+	if node is VisualInstance:
+		node.layers=layer
+	for child in node.get_children():
+		set_layer_recursively(child,layer)
 
 func multimount_point(width: int,height: int,loc: Vector3,mount_type: String,box_name: String) -> Spatial:
 	# Create an area that allows multiple non-overlapping items to be mounted
@@ -79,7 +88,13 @@ func copy_to_installed(installed_name: String,child: Node,display_location: Vect
 class CompareMountLocations:
 	static func cmp(a: Spatial,b: Spatial) -> bool:
 		# Sort function to beautify the locations of mount points on the screen.
-		if sign(a.translation.z)<sign(b.translation.z):
+		var eq_a: bool = a.mount_type=='equipment'
+		var eq_b: bool = b.mount_type=='equipment'
+		if eq_a and not eq_b:
+			return true
+		elif eq_b and not eq_a:
+			return true
+		elif sign(a.translation.z)<sign(b.translation.z):
 			return sign(a.translation.z)<sign(b.translation.z)
 		var a_angle: float = atan2(abs(a.translation.z),a.translation.x)
 		var b_angle: float = atan2(abs(b.translation.z),b.translation.x)
@@ -117,6 +132,7 @@ func make_ship(design: Dictionary):
 	ship.collision_mask = 0
 	ship.random_height = false
 	ship.retain_hidden_mounts = true
+	set_layer_recursively(ship,SHIP_LIGHT_CULL_LAYER)
 	var existing = get_node_or_null('Ship')
 	if existing:
 		remove_child(existing)
@@ -242,6 +258,7 @@ func place_in_multimount(area: Area, mount_name: String, mount: Dictionary, from
 		install.collision_mask=0
 		install.collision_layer=0
 	ship_mount.add_child(install)
+	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
 	if install.name!=cell_name:
 		printerr('installing item failed because Godot renamed node from ',cell_name,' to ',install.name)
 		install.queue_free()
@@ -275,6 +292,7 @@ func place_in_single_mount(area: Area, mount_name: String, mount: Dictionary) ->
 		child.replace_by(install)
 	else:
 		$Ship.add_child(install)
+	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
 	install.owner=$Ship
 	install.name = mount['name']
 	return true
@@ -469,12 +487,13 @@ func at_position(pos,mask: int) -> Dictionary:
 	to.y = $Camera.translation.y-500
 	return space.intersect_ray(from,to,[],mask,true,true)
 
-func _input(event: InputEvent):
+func _unhandled_input(event: InputEvent):
 	if event.is_action_released('ui_location_select'):
 		old_collider_path=NodePath()
 		if selected:
 			var there = at_position(event_position(event),36)
 			deselect(there)
+		return
 	elif event.is_action_pressed('ui_location_select'):
 		old_collider_path=NodePath()
 		var pos = event_position(event)
@@ -487,10 +506,12 @@ func _input(event: InputEvent):
 				found = select_hull(pos,at_position(pos,AVAILABLE_HULL_LAYER_MASK))
 				while found is GDScriptFunctionState and found.is_valid():
 					found=yield(found,'completed')
+		return
 	elif event.is_action_released('ui_cancel'):
 		game_state.player_ship_design = make_design()
 		print(string_design(game_state.player_ship_design))
 		var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+		return
 	elif selected:
 		var n = get_node_or_null('Selected')
 		if n!=null:
@@ -509,6 +530,10 @@ func _input(event: InputEvent):
 				elif collider:
 					collider.update_coloring(n.nx,n.ny,pos3,n.mount_type)
 				old_collider_path=path
+	if event.is_action_released('wheel_up'):
+		$HScrollBar.value-=0.5
+	elif event.is_action_released('wheel_down'):
+		$HScrollBar.value+=0.5
 
 func string_design(design: Dictionary) -> String:
 	var s = '\t\t{\n'

@@ -14,11 +14,17 @@ script = ExtResource( 3 )
 [node name="SpaceBackground" parent="." instance=ExtResource( 2 )]
 transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -10, 0 )
 
-[node name="DirectionalLight" type="DirectionalLight" parent="."]
+[node name="ShipLight" type="DirectionalLight" parent="."]
+transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.90081, 10.6671, 9.82405 )
+light_indirect_energy = 0.0
+light_cull_mask = 4293918722
+shadow_enabled = true
+shadow_bias = -0.21
+
+[node name="EquipmentLight" type="DirectionalLight" parent="."]
 transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.90081, 10.6671, 9.82405 )
 light_indirect_energy = 0.0
 light_cull_mask = 4293918721
-shadow_enabled = true
 shadow_contact = 0.1
 directional_shadow_normal_bias = 0.0
 
