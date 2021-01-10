@@ -30,6 +30,7 @@ var selected: bool = false
 var hull_scene: PackedScene
 var scroll_active: bool = false
 var page_size: float = 0
+var old_collider_path: NodePath = NodePath()
 
 const SHIP_LAYER_MASK: int = 1
 const INSTALLED_LAYER_MASK: int = 2
@@ -38,7 +39,22 @@ const AVAILABLE_ITEM_LAYER_MASK: int = 8
 const AVAILABLE_HULL_LAYER_MASK: int = 16
 const RED_LIGHT_CULL_LAYER: int = 8
 
+signal update_coloring
+
+func multimount_point(width: int,height: int,loc: Vector3,mount_type: String,box_name: String) -> Spatial:
+	# Create an area that allows multiple non-overlapping items to be mounted
+	var box: Spatial = Spatial.new()
+	box.set_script(InventoryArray)
+	box.create(width,height,mount_type)
+	# Note: equipment box is not displaced, unlike regular mounts.
+	box.translation = loc
+	box.name=box_name
+	var _discard=connect('update_coloring',box,'update_coloring')
+	$MountPoints.add_child(box)
+	return box
+
 func mount_point(width: int,height: int,loc: Vector3,box_name: String) -> Area:
+	# Create an area that allows only one item to be mounted
 	var box: Area = Area.new()
 	box.set_script(InventorySlot)
 	box.create_only_box(width,height)
@@ -46,6 +62,7 @@ func mount_point(width: int,height: int,loc: Vector3,box_name: String) -> Area:
 		MOUNT_POINT_LAYER_MASK | SHIP_LAYER_MASK)
 	box.name=box_name
 	box.collision_layer = MOUNT_POINT_LAYER_MASK
+	var _discard=connect('update_coloring',box,'update_coloring')
 	$MountPoints.add_child(box)
 	return box
 
@@ -60,6 +77,7 @@ func copy_to_installed(installed_name: String,child: Node,display_location: Vect
 
 class CompareMountLocations:
 	static func cmp(a: Spatial,b: Spatial) -> bool:
+		# Sort function to beautify the locations of mount points on the screen.
 		if sign(a.translation.z)<sign(b.translation.z):
 			return sign(a.translation.z)<sign(b.translation.z)
 		var a_angle: float = atan2(abs(a.translation.z),a.translation.x)
@@ -67,6 +85,7 @@ class CompareMountLocations:
 		return a_angle<b_angle
 
 func sorted_ship_children(ship: Node) -> Array:
+	# Return a sorted list of mount names, arranged to beautify the locations of mounts.
 	var just_mounts: Array = []
 	for child in ship.get_children():
 		if child.get('mount_type')!=null:
@@ -75,17 +94,18 @@ func sorted_ship_children(ship: Node) -> Array:
 	return just_mounts
 
 func add_multimount_contents(mount_name: String,design: Dictionary):
+	# Load contents of a multimount from a design dictionary.
 	var contents: Array = design[mount_name]
-	for pos_scene in contents:
-		var position: Vector2 = contents[0]
-		var scene: PackedScene = contents[1]
+	for x_y_scene in contents:
+		var scene: PackedScene = contents[2]
 		var area: Area = Area.new()
 		area.set_script(InventorySlot)
-		area.create_item(scene,false,position)
+		area.create_item(scene,false,Vector2(contents[0],contents[1]))
 		if not try_to_mount(area,mount_name):
 			area.queue_free()
 
 func make_ship(design: Dictionary):
+	# Fills the screen with a ship hull and whatever was mounted inside it
 	var scene: PackedScene = design['hull']
 	hull_scene = scene
 	var ship = scene.instance()
@@ -104,15 +124,19 @@ func make_ship(design: Dictionary):
 	assert(get_node_or_null('Ship'))
 	for child in sorted_ship_children(ship):
 		if child.get('mount_type')!=null:
-			var loc: Vector3 = child.translation
+			var loc: Vector3 = Vector3(child.translation.x,10,child.translation.z)
 			var nx: int = child.mount_size_x
 			var ny: int = child.mount_size_y
-			loc.y=10
-			var mp: Area = mount_point(nx,ny,loc,child.name)
+			var multimount: bool = child.mount_type=='equipment'
+			var mp
+			if multimount:
+				mp = multimount_point(nx,ny,loc,child.mount_type,child.name)
+			else:
+				mp = mount_point(nx,ny,loc,child.name)
 			mounts[child.name]={'name':child.name, 'transform':child.transform, 
 				'mount_type':child.mount_type,'scene':'','content':NodePath(),
 				'box':mp.get_path(),'nx':nx,'ny':ny,'box_translation':mp.translation,
-				'multimount':child.mount_type=='equipment'
+				'multimount':multimount,
 			}
 	for mount_name in design:
 		if mounts.has(mount_name):
@@ -133,6 +157,8 @@ func make_ship(design: Dictionary):
 	return ship
 
 func combined_aabb(node: Node):
+	# Get an AABB large enough for all visual instances in this node and its
+	# descendants, recursively.
 	var result: AABB = AABB()
 	if node is VisualInstance:
 		result = node.get_aabb()
@@ -143,6 +169,7 @@ func combined_aabb(node: Node):
 	return result
 
 func add_available_item(scene: PackedScene):
+	# Adds the scene to the list of installable items.
 	var area: Area = Area.new()
 	area.set_script(InventorySlot)
 	area.create_item(scene,true)
@@ -155,6 +182,7 @@ func add_available_item(scene: PackedScene):
 	$Available.add_child(area)
 
 func add_available_design(design: Dictionary):
+	# Adds a design to the list of ship designs.
 	var icon: Spatial = Spatial.new()
 	icon.set_script(HullIcon)
 	icon.create_item(design)
@@ -166,6 +194,8 @@ func add_available_design(design: Dictionary):
 	$Available.add_child(icon)
 
 func move_Camera_for_scene():
+	# Move the camera to fit the ship design, plus some space at the bottom
+	# for the scrollbar and items.
 	var size_x = clamp(abs(ship_aabb.size.x),8.0,18.0)
 	size_x += 2.0 * 10.0/size_x
 	$Camera.size = size_x
@@ -174,6 +204,7 @@ func move_Camera_for_scene():
 	$Camera.translation.z = pos.z
 
 func move_Available_for_scene():
+	# Put the available items at the bottom left part of the screen.
 	var scene_size = $Camera.size
 	var middle_x = $Camera.translation.x
 	var scale = 10.0/scene_size
@@ -181,12 +212,17 @@ func move_Available_for_scene():
 	$Available.translation.x = middle_x -scene_size/2.0 + 0.135*7*scale
 	$Available.translation.z = -used_width/2.0
 
-func place_in_multimount(area: Area, _mount_name: String, mount: Dictionary) -> bool:
-	var inventory_array: Spatial = mount['content']
-	var result: Array = inventory_array.insert_at_grid_range(area,area.scene)
-	return len(result)==5 and result[0]
+func place_in_multimount(area: Area, mount_name: String, mount: Dictionary) -> bool:
+	# Install a component (area) in the multimount in mounts[mount_name].
+	# The location is based on the area location and item size.
+	var inventory_array = get_node_or_null(mount['box'])
+	if inventory_array==null:
+		printerr('Inventory array missing for mount "',mount_name,'"')
+		return false
+	return inventory_array.insert_at_grid_range(area,area.scene)
 
 func place_in_single_mount(area: Area, mount_name: String, mount: Dictionary) -> bool:
+	# Install a component (area) in the mount in mounts[mount_name]
 	if area.nx>mount['nx']:
 		printerr('mount failed: x size too small (',area.nx,'>',mount['nx'],') in ',mount_name)
 		return false
@@ -217,6 +253,8 @@ func place_in_single_mount(area: Area, mount_name: String, mount: Dictionary) ->
 	return true
 
 func try_to_mount(area: Area, mount_name: String):
+	# Install the item (area) in the specified mount, which may be a single
+	# or multimount.
 	if not mounts.has(mount_name):
 		printerr('mount failed: no mount ',mount_name)
 		return false
@@ -238,33 +276,37 @@ func try_to_mount(area: Area, mount_name: String):
 	return true
 
 func deselect(there: Dictionary):
+	# If something is being dragged, try to install it if possible, and then
+	# delete the dragging version.
 	var area: Area = get_node_or_null('Selected')
 	if area!=null:
 		if there.has('collider'):
 			var target: CollisionObject = there['collider']
-			try_to_mount(area,target.name)
+			try_to_mount(area,target.get_mount_name())
 		area.queue_free()
 	selected=false
-	update_coloring(0,0,'')
+	emit_signal('update_coloring',0,0,null,'')
 
 func update_ship_info():
 	$ShipInfo.process_command('ship info')
 
-func update_coloring(nx: int,ny: int,type: String):
-	for mount_info in mounts.values():
-		var box_area = get_node_or_null(mount_info['box'])
-		if box_area==null:
-			continue
-		if type and (type != mount_info['mount_type'] or nx>mount_info['nx'] or ny>mount_info['ny']):
-			for child in box_area.get_children():
-				if child is VisualInstance:
-					child.layers = child.layers | RED_LIGHT_CULL_LAYER
-		else:
-			for child in box_area.get_children():
-				if child is VisualInstance:
-					child.layers = child.layers & ~RED_LIGHT_CULL_LAYER
+#func update_coloring(nx: int,ny: int,type: String):
+#	for mount_info in mounts.values():
+#		var box_area = get_node_or_null(mount_info['box'])
+#		if box_area==null:
+#			continue
+#		if type and (type != mount_info['mount_type'] or nx>mount_info['nx'] or ny>mount_info['ny']):
+#			for child in box_area.get_children():
+#				if child is VisualInstance:
+#					child.layers = child.layers | RED_LIGHT_CULL_LAYER
+#		else:
+#			for child in box_area.get_children():
+#				if child is VisualInstance:
+#					child.layers = child.layers & ~RED_LIGHT_CULL_LAYER
 
 func select_collider(pos: Vector2, collider: Area):
+	# Given an item (collider) from a collision check at screen position pos,
+	# start dragging that item.
 	var dup: CollisionObject = collider.copy_only_item()
 	var pos3: Vector3 = $Camera.project_position(pos,-10)
 	dup.translation = Vector3(pos3.x,16,pos3.z)
@@ -273,10 +315,45 @@ func select_collider(pos: Vector2, collider: Area):
 	selected=true
 	$ConsolePanel.process_command('help '+dup.page)
 	var item = collider.get_node_or_null('item')
-	update_coloring(item.mount_size_x,item.mount_size_y,
+	emit_signal('update_coloring',item.mount_size_x,item.mount_size_y,pos3,
 		'' if item==null else item.mount_type)
 
+func select_multimount(pos: Vector2, there: Dictionary):
+	# Start dragging something from a multimount. The pos is the screen position
+	# and "there" is the result of a collision check.
+	var collider = there.get('collider',null)
+	if collider==null:
+		return false
+	
+	var parent = collider.get_parent()
+	if parent==null:
+		printerr('Orphaned node found in select_multimount.')
+		return false
+	elif not parent.has_method('remove_child_or_null'):
+		printerr('Multimount slot does not have a multimount parent.')
+		return false
+	
+	var pos3: Vector3 = $Camera.project_position(pos,-10)
+	var scene = parent.remove_child_or_null(pos3)
+	if scene==null:
+		return false
+	var area: Area = Area.new()
+	area.name='Selected'
+	area.set_script(InventorySlot)
+	area.create_item(scene,false)
+	area.translation=pos3
+	add_child(area)
+	area.name='Selected'
+	selected=true
+	$ConsolePanel.process_command('help '+area.page)
+	emit_signal('update_coloring',area.nx,area.ny,pos3,area.mount_type)
+	return true
+
 func select_installed(pos: Vector2, there: Dictionary):
+	# Pull something off of the single mount at screen position pos, identified
+	# by the collision check information in "there"
+	if there.empty():
+		return false
 	var collider = there['collider']
 	if there!=null:
 		select_collider(pos,collider)
@@ -298,13 +375,22 @@ func select_installed(pos: Vector2, there: Dictionary):
 		collider.queue_free()
 		
 		update_ship_info()
+		return true
+	return false
 
 func select_available(pos: Vector2, there: Dictionary):
+	# Start dragging the item at screen position "pos" identified by the 
+	# collision check information in "there"
+	if there.empty():
+		return false
 	var collider = there['collider']
 	if collider!=null:
 		select_collider(pos,collider)
+		return true
+	return false
 
 func select_hull(_pos: Vector2, there: Dictionary):
+	# Switch to the hull identified by the collision check information "there"
 	var collider = there['collider']
 	var parent = collider.get_parent()
 	var design = parent.design
@@ -317,13 +403,16 @@ func select_hull(_pos: Vector2, there: Dictionary):
 	yield(get_tree(),'idle_frame')
 	make_ship(design)
 	move_Available_for_scene()
+	return true
 
 func event_position(event: InputEvent):
+	# Get the best guess of the mouse position for the event.
 	if event is InputEventMouseButton:
 		return event.position
 	return get_viewport().get_mouse_position()
 
-func at_position(pos,mask: int):
+func at_position(pos,mask: int) -> Dictionary:
+	# Helper function to do an intersect_ray at a particular screen location.
 	if pos==null:
 		return {}
 	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
@@ -341,20 +430,14 @@ func _input(event: InputEvent):
 	elif event.is_action_pressed('ui_location_select'):
 		var pos = event_position(event)
 		if pos!=null:
-			var there = at_position(pos,AVAILABLE_ITEM_LAYER_MASK)
-			if there!=null and not there.empty():
-				select_available(pos,there)
-			there = at_position(pos,INSTALLED_LAYER_MASK)
-			if there!=null and not there.empty():
-				select_installed(pos,there)
-			there = at_position(pos,InventoryArray.my_collision_mask)
-			if there!=null and not there.empty():
-				select_installed(pos,there)
-			there = at_position(pos,AVAILABLE_HULL_LAYER_MASK)
-			if there!=null and not there.empty():
-				var result = select_hull(pos,there)
-				while result is GDScriptFunctionState and result.is_valid():
-					result=yield(result,'completed')
+			var found = \
+				select_available(pos,at_position(pos,AVAILABLE_ITEM_LAYER_MASK)) \
+				or select_installed(pos,at_position(pos,INSTALLED_LAYER_MASK)) \
+				or select_multimount(pos,at_position(pos,InventoryArray.my_collision_mask))
+			if not found:
+				found = select_hull(pos,at_position(pos,AVAILABLE_HULL_LAYER_MASK))
+				while found is GDScriptFunctionState and found.is_valid():
+					found=yield(found,'completed')
 	elif event.is_action_released('ui_cancel'):
 		game_state.player_ship_design = make_design()
 		print(string_design(game_state.player_ship_design))
@@ -366,6 +449,16 @@ func _input(event: InputEvent):
 			if pos2!=null:
 				var pos3 = $Camera.project_position(pos2,-10)
 				n.translation = Vector3(pos3.x,16,pos3.z)
+				var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
+				var there: Dictionary = space.intersect_ray(
+					pos3+Vector3(0,500,0),pos3-Vector3(0,500,0),[],36,true,true)
+				var collider = there.get('collider',null)
+				var path = collider.get_path() if collider!=null else NodePath()
+				if path!=old_collider_path:
+					emit_signal('update_coloring',n.nx,n.ny,pos3,n.mount_type)
+				else:
+					collider.update_coloring(n.nx,n.ny,pos3,n.mount_type)
+				old_collider_path=path
 
 func string_design(design: Dictionary) -> String:
 	var s = '\t\t{\n'
@@ -376,8 +469,14 @@ func string_design(design: Dictionary) -> String:
 func make_design() -> Dictionary:
 	var design: Dictionary = {'hull':hull_scene}
 	for mount_name in mounts:
-		if mounts[mount_name]['scene']:
-			design[mount_name] = mounts[mount_name]['scene']
+		var mount = mounts[mount_name]
+		if mount['multimount']:
+			var node = get_node_or_null(mount['box'])
+			if node==null:
+				printerr('null node for mount ',mount_name,' path ',str(mount['box']))
+			design[mount_name] = node.content_for_design()
+		elif mount['scene']:
+			design[mount_name] = mount['scene']
 	return design
 
 func force_child_size(c: Control,size: Vector2,pos: Vector2):

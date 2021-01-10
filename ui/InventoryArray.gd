@@ -1,39 +1,53 @@
 extends Spatial
 
-export var nx = 2
-export var ny = 2
-export var fail_cull_layer_mask = 8
-export var okay_cull_layer_mask = 16
-export var my_collision_mask = 32
-export var grid_cell_size = 0.135
+export var nx: int = 2
+export var ny: int = 2
+export var mount_type: String = 'equipment'
+
+const fail_cull_layer_mask: int = 8
+const okay_cull_layer_mask: int = 16
+const both_cull_layer_mask: int = fail_cull_layer_mask|okay_cull_layer_mask
+const my_collision_mask: int = 32
+const grid_cell_size: float = 0.135
 
 var first: Vector3
 var slots: Array = []
 var used: Array = []
 var scenes: Array = []
 
-func reset_grid_colors():
-	var both: int = fail_cull_layer_mask|okay_cull_layer_mask
-	for child in get_children():
-		child.layers = child.layers & ~both
+func create(nx_: int,ny_: int,mount_type_: String):
+	nx=nx_
+	ny=ny_
+	mount_type=mount_type_
 
-func color_slot(x,y,red,white):
-	var spot = get_node_or_null(slots[y*nx+x])
-	if not spot:
-		return
-	var both: int = fail_cull_layer_mask|okay_cull_layer_mask
-	var set: int = (fail_cull_layer_mask if red else 0) \
-		| (okay_cull_layer_mask if white else 0)
-	spot.layers = (spot.layers&~both) | set
+func content_for_design() -> Array:
+	var nodes = Dictionary()
+	for j in range(ny):
+		for i in range(nx):
+			var path = used[j*nx+i]
+			if not path or nodes.has(path):
+				continue
+			var node = get_node_or_null(path)
+			if node==null:
+				continue
+			nodes[path]=node
+	var content = []
+	for node in nodes:
+		content.append([ node.my_x, node.my_y, node.scene ])
+	return content
 
-func remove_child_or_null(viewport_point: Vector2):
-	var xy: Vector2 = slot_at_pixel(viewport_point)
-	var x = round(xy.x)
-	var y = round(xy.y)
+func remove_child_or_null(pos3: Vector3): # -> PackedScene or null
+	var xy: Vector2 = Vector2(pos3.z-first.z,-(pos3.x-first.x))/grid_cell_size
+	var x: int = int(round(xy.x))
+	var y: int = int(round(xy.y))
 	if x<0 or y<0 or x>=nx or y>=ny:
 		return null
 	var child_path = used[y*nx+x]
 	if child_path.is_empty():
+		return null
+	var child_scene = scenes[y*nx+x]
+	if not child_scene is PackedScene:
+		printerr('Missing scene in InventoryArray')
 		return null
 	var child = get_node_or_null(child_path)
 	if child==null:
@@ -44,65 +58,70 @@ func remove_child_or_null(viewport_point: Vector2):
 				used[j*nx+i] = NodePath()
 				scenes[j*nx+i] = null
 	remove_child(child)
-	return child
+	child.queue_free()
+	return child_scene
 
-func slot_at_pixel(viewport_point: Vector2) -> Vector2:
-	var pos3 = get_viewport().get_camera().project_position(viewport_point,-10)
-	return Vector2(pos3.z-first.z,-(pos3.x-first.x))
-
-func insert_at_grid_range(inventory_slot: CollisionObject,scene: PackedScene) -> Array:
-	var test = update_grid_range(inventory_slot,false)
-	if not test[0]:
-		return [false,0,0,0,0]
-	var item: Node = scene.instance()
-	if not item is Area:
-		printerr('insert_at_grid_range: scene "'+scene.resource_path+'" is not an Area.')
-		return [false,0,0,0,0]
-	var x1: int = test[1]
-	var y1: int = test[2]
-	var x2: int = test[3]
-	var y2: int = test[4]
-	item.translation = first+grid_cell_size*Vector3(0.5+(x2-x1)/2.0,0,0.5+(y2-y1/2.0))
+func insert_at_grid_range(drag: CollisionObject,scene: PackedScene) -> bool:
+	if drag.mount_type!=mount_type or drag.nx>nx or drag.ny>ny:
+		return false
+	# dragged item's location, upper-left (-x, -y) corner:
+	var xy1 = Vector2(round(drag.translation.z/grid_cell_size-drag.nx),
+		round(-drag.translation.x/grid_cell_size-drag.ny))
+	for y in range(int(xy1.y),int(xy1.y)+drag.ny):
+		for x in range(int(xy1.x),int(xy1.x)+drag.ny):
+			var path: NodePath = used[y*nx+x]
+			if not path.is_empty():
+				return false
+	var item: Spatial = scene.instance()
+	if not item is Spatial:
+		printerr('insert_at_grid_range: scene "'+scene.resource_path+'" is not a Spatial.')
+		return false
+	item.translation = Vector3(-xy1.y+0.5,0,xy1.x+0.5)*grid_cell_size+first
+	if item is CollisionObject:
+		item.collision_layer = 0
+		item.collision_mask = 0
 	add_child(item)
 	var path = item.get_path()
-	for y in range(y1,y2+1):
-		for x in range(x1,x2+1):
+	for y in range(int(xy1.y),int(xy1.y)+drag.ny):
+		for x in range(int(xy1.x),int(xy1.x)+drag.ny):
 			used[y*nx+x] = path
 			scenes[y*nx+x] = scene
-	return test
+	return true
 
-func update_grid_range(inventory_slot: CollisionObject,recolor: bool = true) -> Array:
-	if not inventory_slot.has_method('is_inventory_slot'):
-		printerr('update_grid_range: argument is not an inventory slot')
-		reset_grid_colors()
-		return [false,0,0,0,0]
+func all_slots() -> Dictionary:
+	var d = {}
+	for path in used:
+		if not path.empty():
+			d[path]=1
+	return d
+
+func color_slots(set: Dictionary,mask: int):
+	for path in set:
+		var child = get_node_or_null(path)
+		if child:
+			child.layers = child.layers & ~both_cull_layer_mask | mask
+
+func update_coloring(size_x: int,size_y: int,pos,type: String):
+	if type!=mount_type:
+		return color_slots(all_slots(),fail_cull_layer_mask)
+	elif pos==null or size_x<=0 or size_y<=0:
+		return color_slots(all_slots(),0)
+	# item location, upper-left (-x, -y) corner:
+	var xy1 = Vector2(round(pos.z/grid_cell_size-size_x),round(-pos.x/grid_cell_size-size_y))
+	var not_free: int = size_x*size_y
+	var red: Dictionary = {}
+	var not_red: Dictionary = {}
+	for y in range(int(xy1.y),int(xy1.y)+size_y):
+		for x in range(int(xy1.x),int(xy1.x)+size_x):
+			var path: NodePath = used[y*nx+x]
+			if path.is_empty():
+				not_red[path]=1
+			else:
+				red[path]=1
+				not_free-=1
 	
-	var item_nx: int = inventory_slot.item_size_x
-	var item_ny: int = inventory_slot.item_size_y
-	var item_x_float: float = inventory_slot.translation.z-first.z
-	var item_y_float: float = -(inventory_slot.translation.x-first.x)
-	var item_x1: int = int(round(item_x_float))
-	var item_y1: int = int(round(item_y_float))
-	var item_x2: int = item_x1 + item_nx-1
-	var item_y2: int = item_y1 + item_ny-1
-	var okay_points: int = 0
-	
-	item_x1 = int(clamp(item_x1,0,nx-1))
-	item_x2 = int(clamp(item_x2,0,nx-1))
-	item_y1 = int(clamp(item_y1,0,ny-1))
-	item_y2 = int(clamp(item_y2,0,ny-1))
-	var inside_points = (item_x2-item_x1+1)*(item_y2-item_y1+1)
-	
-	for y in range(item_y1,item_y2+1):
-		for x in range(item_x1,item_x2+1):
-			if used[y*nx+x].is_empty():
-				if recolor and inside_points==item_nx*item_ny:
-					color_slot(x,y,false,true)
-				okay_points+=1
-			elif recolor:
-				color_slot(x,y,true,false)
-	
-	return [okay_points==item_nx*item_ny, item_x1, item_y1, item_x2, item_y2]
+	color_slots(red,fail_cull_layer_mask)
+	color_slots(not_red, (0 if not_free else okay_cull_layer_mask) )
 
 func _ready():
 	var gs: float = grid_cell_size
@@ -112,7 +131,10 @@ func _ready():
 			var slot = Area.new()
 			slot.set_script(preload('res://ui/InventorySlot.gd'))
 			slot.name = 'slot_x'+str(x)+'_y'+str(y)
+			slot.mount_name = name
 			slot.translation = first + Vector3(-gs*y,0,gs*x)
+			slot.collision_layer = 0
+			slot.collision_mask = my_collision_mask
 			slot.my_x = x
 			slot.my_y = y
 			add_child(slot)

@@ -7,10 +7,11 @@ var nx: int = 2
 var ny: int = 2
 var page: String = 'weapons'
 var mount_type: String = ''
+var mount_name: String = '' setget ,get_mount_name
 
 # x,y location within an InventoryArray
-var my_x: int = 0
-var my_y: int = 0
+var my_x: int = -1
+var my_y: int = -1
 
 const border_all: Mesh = preload('res://ui/OutfitBorders/1x1.mesh')
 const border_tube_bottom: Mesh = preload('res://ui/OutfitBorders/1x1-U.mesh')
@@ -18,6 +19,10 @@ const border_tube_middle: Mesh = preload('res://ui/OutfitBorders/1x1-UD.mesh')
 const border_middle: Mesh = preload('res://ui/OutfitBorders/1x1-UDLR.mesh')
 const border_left: Mesh = preload('res://ui/OutfitBorders/1x1-UDR.mesh')
 const border_lower_left: Mesh = preload('res://ui/OutfitBorders/1x1-UR.mesh')
+
+const RED_LIGHT_LAYER_MASK = 8
+const WHITE_LIGHT_LAYER_MASK = 16
+const LIGHT_LAYER_MASK = RED_LIGHT_LAYER_MASK|WHITE_LIGHT_LAYER_MASK
 
 const RIGHT: int = 1
 const LEFT: int = 2
@@ -50,8 +55,32 @@ const outfit_borders = [	       # U D L R
 const box_scale: float = 0.135
 const item_scale: float = 0.125
 
+func get_mount_name() -> String:
+	return mount_name if mount_name else name
+
 func is_inventory_slot(): # never called; must only exist.
 	pass
+
+func update_coloring(size_x: int,size_y: int,pos,type: String):
+	if my_x>0:
+		var parent=get_parent()
+		if parent:
+			parent.update_coloring(size_x,size_y,pos,type)
+	else:
+		var item = get_node_or_null('item')
+		if item==null:
+			return
+		var mask: int = 0
+		if size_x>nx or size_y>ny or type!=mount_type:
+			mask |= RED_LIGHT_LAYER_MASK
+		elif pos!=null:
+			var pos3_half_x: float = ny*box_scale/2.0
+			var pos3_half_z: float = nx*box_scale/2.0
+			var rel: Vector3 = pos-translation
+			if rel.x>-pos3_half_x and rel.x<pos3_half_x and \
+					rel.z>-pos3_half_z and rel.z<pos3_half_z:
+				mask |= WHITE_LIGHT_LAYER_MASK
+		item.layers = item.layers & ~LIGHT_LAYER_MASK | mask
 
 func copy_only_item() -> Area:
 	var new: Area = Area.new()
