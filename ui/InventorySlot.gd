@@ -61,26 +61,34 @@ func get_mount_name() -> String:
 func is_inventory_slot(): # never called; must only exist.
 	pass
 
+func color(mask: int):
+	for j in range(ny):
+		for i in range(nx):
+			var child = get_node_or_null('cell_'+str(i)+'_'+str(j))
+			assert(child)
+			if child!=null:
+				child.layers = child.layers&~LIGHT_LAYER_MASK | mask
+
 func update_coloring(size_x: int,size_y: int,pos,type: String):
 	if my_x>0:
 		var parent=get_parent()
 		if parent:
 			parent.update_coloring(size_x,size_y,pos,type)
 	else:
-		var item = get_node_or_null('item')
-		if item==null:
-			return
 		var mask: int = 0
-		if size_x>nx or size_y>ny or type!=mount_type:
+		# special case: no type means deselect
+		if type and (size_x>nx or size_y>ny or type!=mount_type):
 			mask |= RED_LIGHT_LAYER_MASK
 		elif pos!=null:
-			var pos3_half_x: float = ny*box_scale/2.0
-			var pos3_half_z: float = nx*box_scale/2.0
+			var pos3_half_x: float = ny*box_scale
+			var pos3_half_z: float = nx*box_scale
 			var rel: Vector3 = pos-translation
-			if rel.x>-pos3_half_x and rel.x<pos3_half_x and \
-					rel.z>-pos3_half_z and rel.z<pos3_half_z:
+			if rel.x>=-pos3_half_x and rel.x<=pos3_half_x and \
+					rel.z>=-pos3_half_z and rel.z<=pos3_half_z:
 				mask |= WHITE_LIGHT_LAYER_MASK
-		item.layers = item.layers & ~LIGHT_LAYER_MASK | mask
+		for child in get_children():
+			if child is VisualInstance:
+				child.layers = child.layers & ~LIGHT_LAYER_MASK | mask
 
 func copy_only_item() -> Area:
 	var new: Area = Area.new()
@@ -88,9 +96,10 @@ func copy_only_item() -> Area:
 	new.create_item(scene,false)
 	return new
 
-func create_only_box(nx_: int,ny_: int):
+func create_only_box(nx_: int,ny_: int,mount_type_: String):
 	nx=nx_
 	ny=ny_
+	mount_type=mount_type_
 	collision_layer=16
 	var shape: CollisionShape = CollisionShape.new()
 	shape.shape = BoxShape.new()
@@ -98,6 +107,7 @@ func create_only_box(nx_: int,ny_: int):
 	shape.name='shape'
 	add_child(shape)
 	make_box()
+	assert(mount_type)
 
 func create_item(scene_: PackedScene,with_box: bool,position = null):
 	scene=scene_
@@ -129,6 +139,7 @@ func create_item(scene_: PackedScene,with_box: bool,position = null):
 	
 	if with_box:
 		make_box()
+	assert(mount_type)
 
 func place_near(mount: Vector3,space: PhysicsDirectSpaceState,mask: int):
 #	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
