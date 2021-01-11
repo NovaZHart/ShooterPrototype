@@ -23,4 +23,4 @@ add_turn_rate = 1.0
 add_explosion_radius = 10.0
 item_size_x = 3
 item_size_y = 4
-help_page = "equipment/test"
+help_page = "equipment/bigtest"

@@ -1,7 +1,8 @@
 extends Spatial
 
-const InventorySlot: Script = preload('res://ui/InventorySlot.gd')
 const InventoryArray: Script = preload('res://ui/InventoryArray.gd')
+const InventoryContent: Script = preload('res://ui/InventoryContent.gd')
+const InventorySlot: Script = preload('res://ui/InventorySlot.gd')
 const HullIcon: Script = preload('res://ui/HullIcon.gd')
 
 const available_items: Array = [
@@ -23,6 +24,8 @@ const allowed_designs: PoolStringArray = PoolStringArray([
 const x_axis: Vector3 = Vector3(1,0,0)
 const y_axis: Vector3 = Vector3(0,1,0)
 
+var available_by_page: Dictionary = {}
+var designs_by_name: Dictionary = {}
 var ship_aabb: AABB = AABB()
 var mounts: Dictionary = {}
 var used_width: float = 0
@@ -76,7 +79,7 @@ func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_type
 	$MountPoints.add_child(box)
 	return box
 
-func copy_to_installed(installed_name: String,child: Node,display_location: Vector3) -> NodePath:
+func copy_to_installed(installed_name: String,child,display_location: Vector3) -> NodePath:
 	var area = child.copy_only_item()
 	area.collision_layer = INSTALLED_LAYER_MASK
 	area.translation = Vector3(display_location.x,7,display_location.z)
@@ -199,8 +202,9 @@ func add_available_item(scene: PackedScene):
 	used_width += width
 #	area.name = item_name
 	$Available.add_child(area)
+	available_by_page[area.page]=area.get_path()
 
-func add_available_design(design: Dictionary):
+func add_available_design(design_name: String, design: Dictionary):
 	# Adds a design to the list of ship designs.
 	var icon: Spatial = Spatial.new()
 	icon.set_script(HullIcon)
@@ -211,6 +215,7 @@ func add_available_design(design: Dictionary):
 	used_width += width
 #	area.name = item_name
 	$Available.add_child(icon)
+	designs_by_name[design_name]=design
 
 func move_Camera_for_scene():
 	# Move the camera to fit the ship design, plus some space at the bottom
@@ -231,25 +236,27 @@ func move_Available_for_scene():
 	$Available.translation.x = middle_x -scene_size/2.0 + 0.135*7*scale
 	$Available.translation.z = -used_width/2.0
 
-func place_in_multimount(area: Area, mount_name: String, mount: Dictionary, from_design: bool) -> bool:
+func place_in_multimount(content, mount_name: String, mount: Dictionary, use_item_offset: bool, console=null) -> bool:
 	# Install a component (area) in the multimount in mounts[mount_name].
 	# The location is based on the area location and item size.
 	var inventory_array = get_node_or_null(mount['box'])
 	if inventory_array==null:
-		printerr('Inventory array missing for mount "',mount_name,'"')
+		if console:
+			console.append_raw_text('Inventory array missing for mount "',mount_name,'"')
 		return false
 	var ship_mount = $Ship.get_node_or_null(mount_name)
 	if ship_mount==null:
-		printerr('Missing ship mount "',mount_name,'"')
+		if console:
+			console.append_raw_text('Missing ship mount "',mount_name,'"')
 		return false
-	var x_y = inventory_array.insert_at_grid_range(area,area.scene,from_design)
+	var x_y = inventory_array.insert_at_grid_range(content,use_item_offset,console)
 	if not x_y:
 		return false
 	
 	var x: int = x_y[0]
 	var y: int = x_y[1]
 	var cell_name: String = 'cell_'+str(x)+'_'+str(y)
-	var install = area.scene.instance()
+	var install = content.scene.instance()
 	install.item_offset_x = x
 	install.item_offset_y = y
 	install.name=cell_name
@@ -260,28 +267,31 @@ func place_in_multimount(area: Area, mount_name: String, mount: Dictionary, from
 	ship_mount.add_child(install)
 	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
 	if install.name!=cell_name:
-		printerr('installing item failed because Godot renamed node from ',cell_name,' to ',install.name)
+		if console:
+			console.append_raw_text('installing item failed because Godot renamed node from '+cell_name+' to '+install.name)
 		install.queue_free()
 		return false
 	return true
 
-func place_in_single_mount(area: Area, mount_name: String, mount: Dictionary) -> bool:
-	# Install a component (area) in the mount in mounts[mount_name]
-	if area.nx>mount['nx']:
-		printerr('mount failed: x size too small (',area.nx,'>',mount['nx'],') in ',mount_name)
+func place_in_single_mount(content, mount_name: String, mount: Dictionary, console=null) -> bool:
+	# Install a component (content) in the mount in mounts[mount_name]
+	if content.nx>mount['nx']:
+		if console:
+			console.append_raw_text('mount failed: x size too small (',content.nx,'>',mount['nx'],') in ',mount_name)
 		return false
-	if area.ny>mount['ny']:
-		printerr('mount failed: y size too small (',area.ny,'>',mount['ny'],') in ',mount_name)
+	if content.ny>mount['ny']:
+		if console:
+			console.append_raw_text('mount failed: y size too small (',content.ny,'>',mount['ny'],') in ',mount_name)
 		return false
-	var content = get_node_or_null(mount['content'])
-	if content!=null:
-		content.queue_free()
-	mounts[mount_name]['content'] = copy_to_installed(mount['name'],area,mount['box_translation'])
-	mounts[mount_name]['scene'] = area.scene
+	var mount_content = get_node_or_null(mount['content'])
+	if mount_content!=null:
+		mount_content.queue_free()
+	mounts[mount_name]['content'] = copy_to_installed(mount['name'],content,mount['box_translation'])
+	mounts[mount_name]['scene'] = content.scene
 	
 	var make_visible = mount['mount_type']=='gun' or mount['mount_type']=='turret'
 	
-	var install = area.scene.instance()
+	var install = content.scene.instance()
 	install.visible = make_visible
 	install.transform = mount['transform']
 	install.name = mount['name']
@@ -297,27 +307,33 @@ func place_in_single_mount(area: Area, mount_name: String, mount: Dictionary) ->
 	install.name = mount['name']
 	return true
 
-func try_to_mount(area: Area, mount_name: String, from_design: bool):
+func try_to_mount(content, mount_name: String, use_item_offset: bool, console=null):
 	# Install the item (area) in the specified mount, which may be a single
 	# or multimount.
 	if not mounts.has(mount_name):
-		printerr('mount failed: no mount ',mount_name)
+		if console:
+			console.append_raw_text('mount failed: no mount '+mount_name)
 		return false
 	var mount: Dictionary = mounts[mount_name]
-	if area.mount_type!=mount['mount_type']:
-		printerr('mount failed: type ',area.mount_type,' does not match mount type ',mount['mount_type'])
+	if content.mount_type!=mount['mount_type']:
+		if console:
+			console.append_raw_text('mount failed: type "'+content.mount_type+'" does not match mount type "'+mount['mount_type']+'"')
 		return false
-	if not area.scene:
-		printerr('mount failed: no scene in mount ',mount_name)
+	if not content.scene:
+		if console:
+			console.append_raw_text('mount failed: no scene in mount '+mount_name)
 		return false
+	
+#	var content = InventoryContent.new()
+#	content.fill_with(area)
 	
 	if mount['multimount']:
-		if not place_in_multimount(area,mount_name,mount,from_design):
+		if not place_in_multimount(content,mount_name,mount,use_item_offset,console):
 			return false
-	elif not place_in_single_mount(area,mount_name,mount):
+	elif not place_in_single_mount(content,mount_name,mount,console):
 		return false
 	
-	update_ship_info()
+	$ShipInfo.process_command('ship info')
 	return true
 
 func deselect(there: Dictionary):
@@ -327,29 +343,22 @@ func deselect(there: Dictionary):
 	if area!=null:
 		if there.has('collider'):
 			var target: CollisionObject = there['collider']
-			try_to_mount(area,target.get_mount_name(),false)
+			var mount_name: String = target.get_mount_name()
+			var command: String = 'install '+mount_name+' '+area.page
+			var mount = mounts[mount_name]
+			if mount['multimount']:
+				var inventory_array = get_node_or_null(mount['box'])
+				var slot_xy = inventory_array.slot_xy_for(area.translation,area.nx,area.ny)
+				command += ' '+str(slot_xy[0])+' '+str(slot_xy[1])
+			$ConsolePanel.process_command(command)
+#			var content: Reference = InventoryContent.new()
+#			content.fill_with(area)
+#			try_to_mount(content,target.get_mount_name(),false)
 		area.queue_free()
 	selected=false
 	emit_signal('update_coloring',0,0,null,'')
 
-func update_ship_info():
-	$ShipInfo.process_command('ship info')
-
-#func update_coloring(nx: int,ny: int,type: String):
-#	for mount_info in mounts.values():
-#		var box_area = get_node_or_null(mount_info['box'])
-#		if box_area==null:
-#			continue
-#		if type and (type != mount_info['mount_type'] or nx>mount_info['nx'] or ny>mount_info['ny']):
-#			for child in box_area.get_children():
-#				if child is VisualInstance:
-#					child.layers = child.layers | RED_LIGHT_CULL_LAYER
-#		else:
-#			for child in box_area.get_children():
-#				if child is VisualInstance:
-#					child.layers = child.layers & ~RED_LIGHT_CULL_LAYER
-
-func select_collider(pos: Vector2, collider: Area):
+func select_collider(pos: Vector2, collider: Area, help: bool = true) -> CollisionObject:
 	# Given an item (collider) from a collision check at screen position pos,
 	# start dragging that item.
 	var dup: CollisionObject = collider.copy_only_item()
@@ -358,11 +367,13 @@ func select_collider(pos: Vector2, collider: Area):
 	dup.name = 'Selected'
 	add_child(dup)
 	selected=true
-	$ConsolePanel.process_command('help '+dup.page)
+	if help:
+		$ConsolePanel.process_command('help '+dup.page)
 	var item = collider.get_node_or_null('item')
 	assert(item)
 	emit_signal('update_coloring',item.mount_size_x,item.mount_size_y,pos3,
 		item.mount_type)
+	return dup
 
 func select_multimount(pos: Vector2, there: Dictionary):
 	# Start dragging something from a multimount. The pos is the screen position
@@ -385,20 +396,9 @@ func select_multimount(pos: Vector2, there: Dictionary):
 		return false
 	
 	var pos3: Vector3 = $Camera.project_position(pos,-10)
-	var scene_x_y = parent.remove_child_or_null(pos3)
-	var scene = scene_x_y[0]
-	var x: int = scene_x_y[1]
-	var y: int = scene_x_y[2]
-	var child_name = 'cell_'+str(x)+'_'+str(y)
-	if not scene or not child_name:
-		return false
-	var old_child = ship_mount.get_node_or_null(child_name)
-	if old_child==null:
-		printerr('Cannot find unmounted item "',child_name,'" in ship. Will ignore this error.')
-	else:
-		ship_mount.remove_child(old_child) # make the node name available again
-		old_child.queue_free()
-		update_ship_info()
+	var xy = parent.slot_xy_for(pos3,1,1)
+	var scene = parent.scene_at(xy[0],xy[1])
+	$ConsolePanel.process_command('uninstall '+parent.name+' '+str(xy[0])+' '+str(xy[1]))
 	
 	var area: Area = Area.new()
 	area.name='Selected'
@@ -412,6 +412,67 @@ func select_multimount(pos: Vector2, there: Dictionary):
 	emit_signal('update_coloring',area.nx,area.ny,pos3,area.mount_type)
 	return true
 
+func unmount_all(multimount_name: String):
+	var mount: Dictionary = mounts[multimount_name]
+	if not mount['multimount']:
+		unmount(multimount_name,0,0)
+		return
+	var parent = get_node_or_null(mount['box'])
+	if parent==null:
+		return
+	var ship_mount = $Ship.get_node_or_null(parent.name)
+	if ship_mount==null:
+		printerr('Cannot find ship mount "',parent.name,'"')
+		return
+	var all = parent.all_children_xy()
+	for sxy in all:
+		var scene_x_y = parent.remove_child_or_null(sxy[1],sxy[2])
+		var child_name = 'cell_'+str(scene_x_y[1])+'_'+str(scene_x_y[2])
+		var old_child = ship_mount.get_node_or_null(child_name)
+		if old_child==null:
+			printerr('Cannot find unmounted item "',child_name,'" in ship. Will ignore this error.')
+		else:
+			ship_mount.remove_child(old_child) # make the node name available again
+			old_child.queue_free()
+
+func unmount(mount_name: String,x: int,y: int): # -> PackedScene or something that evaluates to false
+	var mount: Dictionary = mounts[mount_name]
+	if mount['multimount'] and (x<0 or y<0):
+		unmount_all(mount_name)
+	elif mount['multimount']:
+		var parent = get_node_or_null(mount['box'])
+		if parent==null:
+			return null
+		var ship_mount = $Ship.get_node_or_null(parent.name)
+		if ship_mount==null:
+			printerr('Cannot find ship mount "',parent.name,'"')
+			return null
+		var scene_x_y = parent.remove_child_or_null(x,y)
+		var scene = scene_x_y[0]
+		if not scene:
+			return null
+		var child_name = 'cell_'+str(scene_x_y[1])+'_'+str(scene_x_y[2])
+		var old_child = ship_mount.get_node_or_null(child_name)
+		if old_child==null:
+			printerr('Cannot find unmounted item "',child_name,'" in ship. Will ignore this error.')
+		else:
+			ship_mount.remove_child(old_child) # make the node name available again
+			old_child.queue_free()
+		return scene
+	else:
+		var child = $Ship.get_node_or_null(mount_name)
+		if child!=null:
+			$Ship.remove_child(child)
+			child.queue_free()
+		child = $Installed.get_node_or_null(mount_name)
+		if child!=null:
+			$Installed.remove_child(child)
+			child.queue_free()
+		mounts[mount_name]['content'] = NodePath()
+		var scene = mounts[mount_name]['scene']
+		mounts[mount_name]['scene'] = ''
+		return scene
+
 func select_installed(pos: Vector2, there: Dictionary):
 	# Pull something off of the single mount at screen position pos, identified
 	# by the collision check information in "there"
@@ -419,25 +480,22 @@ func select_installed(pos: Vector2, there: Dictionary):
 		return false
 	var collider = there['collider']
 	if there!=null:
-		select_collider(pos,collider)
+		var new = select_collider(pos,collider,false)
 		
 		# Unmount the item from the ship
 		var path = collider.get_path()
 		for mount_name in mounts:
 			var mount: Dictionary = mounts[mount_name]
 			if mount['content'] == path:
-				var child = $Ship.get_node_or_null(mount_name)
-				if child!=null:
-					$Ship.remove_child(child)
-					child.queue_free()
-				mount['scene'] = ''
-				mount['content'] = NodePath()
+				$ConsolePanel.process_command('uninstall '+mount_name)
+#				unmount(mount_name,0,0)
 
 		# Unmount the item from $Installed
-		$Installed.remove_child(collider)
-		collider.queue_free()
+#		$Installed.remove_child(collider)
+#		collider.queue_free()
 		
-		update_ship_info()
+		$ConsolePanel.process_command('help '+new.page)
+		$ShipInfo.process_command('ship info')
 		return true
 	return false
 
@@ -448,17 +506,11 @@ func select_available(pos: Vector2, there: Dictionary):
 		return false
 	var collider = there['collider']
 	if collider!=null:
-		select_collider(pos,collider)
+		var _discard = select_collider(pos,collider)
 		return true
 	return false
 
-func select_hull(_pos: Vector2, there: Dictionary):
-	# Switch to the hull identified by the collision check information "there"
-	var collider = there.get('collider',null)
-	if collider==null:
-		return false
-	var parent = collider.get_parent()
-	var design = parent.design
+func load_design(design: Dictionary):
 	for child in $Installed.get_children():
 		child.queue_free()
 	for child in $MountPoints.get_children():
@@ -468,6 +520,14 @@ func select_hull(_pos: Vector2, there: Dictionary):
 	yield(get_tree(),'idle_frame')
 	make_ship(design)
 	move_Available_for_scene()
+
+func select_hull(_pos: Vector2, there: Dictionary):
+	# Switch to the hull identified by the collision check information "there"
+	var collider = there.get('collider',null)
+	if collider==null:
+		return false
+	var parent = collider.get_parent()
+	load_design(parent.design)
 	return true
 
 func event_position(event: InputEvent):
@@ -508,9 +568,7 @@ func _unhandled_input(event: InputEvent):
 					found=yield(found,'completed')
 		return
 	elif event.is_action_released('ui_cancel'):
-		game_state.player_ship_design = make_design()
-		print(string_design(game_state.player_ship_design))
-		var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+		exit_scene()
 		return
 	elif selected:
 		var n = get_node_or_null('Selected')
@@ -534,6 +592,11 @@ func _unhandled_input(event: InputEvent):
 		$HScrollBar.value-=0.5
 	elif event.is_action_released('wheel_down'):
 		$HScrollBar.value+=0.5
+
+func exit_scene():
+	game_state.player_ship_design = make_design()
+	print(string_design(game_state.player_ship_design))
+	var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
 func string_design(design: Dictionary) -> String:
 	var s = '\t\t{\n'
@@ -592,17 +655,131 @@ func child_fills_parent(c: Control):
 	c.size_flags_horizontal=Control.SIZE_FILL|Control.SIZE_EXPAND
 	c.size_flags_vertical=Control.SIZE_FILL|Control.SIZE_EXPAND
 
+func usage_install(console,argv:PoolStringArray):
+	console.append(argv[0]+': install items in a ship. Syntax:')
+	console.append('\t[code]'+argv[0]+' install MountName item/path [/code]    = Mount an item')
+	console.append('\t[code]'+argv[0]+' install MountName item/path x y[/code] = at location x,y')
+
+func usage_design(console,argv:PoolStringArray):
+	console.append(argv[0]+': load a different ship design. Syntax:')
+	console.append('\t[code]'+argv[0]+' design load design_name [/code]')
+
+func usage_ship(console,argv:PoolStringArray):
+	console.append(argv[0]+': display ship info. Syntax:')
+	console.append('\t[code]'+argv[0]+' info[/code]    = Show ship info on other panel')
+	console.append('\t[code]'+argv[0]+' dump[/code]    = Dump JSON-encoded ship info')
+
+func usage_list(console,argv:PoolStringArray):
+	console.append(argv[0]+': list known mount points, items, or designs. Syntax:')
+	console.append('\t[code]'+argv[0]+' mounts[/code]  = mount points on this ship')
+	console.append('\t[code]'+argv[0]+' items[/code]   = guns, turrets, engines, equipment')
+	console.append('\t[code]'+argv[0]+' designs[/code] = list ship designs')
+
 func run(console,argv:PoolStringArray):
 	# Entry point for console commands.
-	if argv[0]=='ship' and len(argv)>1:
-		if argv[1]=='info' and $Ship.has_method('get_bbcode'):
+	if argv[0]=='ship':
+		if len(argv)!=2:
+			usage_ship(console,argv)
+		elif argv[1]=='info' and $Ship.has_method('get_bbcode'):
 			$Ship.repack_stats()
 			console.insert_bbcode(console.rewrite_tags($Ship.get_bbcode()))
-		if argv[1]=='dump':
+		elif argv[1]=='dump':
 			console.append_raw_text(string_design(make_design()))
+		else:
+			usage_ship(console,argv)
+	elif argv[0]=='exit':
+		exit_scene()
+	elif argv[0]=='design':
+		if len(argv)==3 and argv[1]=='load':
+			var design = designs_by_name.get(argv[2],null)
+			if not design:
+				return console.append_raw_text('error: no design named "'+design+'". Try "list designs"')
+			load_design(design)
+		else:
+			usage_design(console,argv)
+	elif argv[0]=='uninstall':
+		if len(argv)==2 or len(argv)==4:
+			var mount=mounts.get(argv[1],null)
+			if not mount:
+				return console.append('Error: there is no mount named "'+argv[1]+'". Try "list mounts"')
+			if len(argv)==4:
+				unmount(argv[1],convert(argv[2],TYPE_INT),convert(argv[3],TYPE_INT))
+			else:
+				unmount(argv[1],-1,-1)
+	elif argv[0]=='install':
+		if len(argv)==3 or len(argv)==5:
+			var mount = mounts.get(argv[1],null)
+			if not mount:
+				return console.append('Error: there is no mount named "'+argv[1]+'". Try "list mounts"')
+			var path = available_by_page.get(argv[2],NodePath())
+			var node = get_node_or_null(path)
+			if not node:
+				return console.append('Error: there is no item named "'+argv[2]+'". Try "list items"')
+			var content = InventoryContent.new()
+			content.fill_with(node)
+			if len(argv)==5:
+				content.my_x = convert(argv[3],TYPE_INT)
+				content.my_y = convert(argv[4],TYPE_INT)
+				console.append_raw_text(str(content.my_x)+' '+str(content.my_y))
+				assert(content.my_x>=0 and content.my_y>=0)
+				try_to_mount(content,argv[1],true,console)
+			elif mount['multimount']:
+				return console.append('Error: you must specify a location for this mount')
+			else:
+				try_to_mount(content,argv[1],false,console)
+		else:
+			usage_install(console,argv)
+	elif argv[0]=='list':
+		if len(argv)!=2:
+			usage_list(console,argv)
+		elif argv[1]=='mounts':
+			console.append('Mount points on this ship:\n[table=5]',false)
+			var names = mounts.keys()
+			names.sort()
+			for mount_name in names:
+				var mount: Dictionary = mounts[mount_name]
+				console.append('[cell]%s[/cell][cell]%d[/cell][cell]x[/cell][cell]%d[/cell][cell]%s[/cell]'%[
+					mount_name, mount['nx'],mount['ny'],mount['mount_type']],false)
+			console.append('[/table]')
+			console.append('[i]--[/i]') # Godot bug workaround: this line is discarded to end the table.
+		elif argv[1]=='items':
+			console.append('All available items:\n[table=5]',false)
+			var pages = available_by_page.keys()
+			pages.sort()
+			for page in pages:
+				var node = get_node_or_null(available_by_page[page])
+				if node!=null:
+					console.append('[cell][ref=%s]%s[/ref][/cell][cell]%d[/cell][cell]x[/cell][cell]%2d[/cell][cell]%s[/cell]'%[
+						page,page,node.nx,node.ny,node.mount_type],false)
+			console.append('[/table]')
+			console.append('[i]--[/i]') # Godot bug workaround: this line is discarded to end the table.
+		elif argv[1]=='designs':
+			console.append('All available ship designs:')
+			var names = designs_by_name.keys()
+			names.sort()
+			for name in names:
+				console.append_raw_text('\t'+name)
+#				var design: Dictionary = designs_by_name[name]
+#				if not design.has('hull'):
+#					continue
+#				var hull = design['hull'].instance()
+#				if not hull:
+#					continue
+#				var weapon_space=0
+#				var engine_space=0
+#				var equipment_space=0
+#				for child in hull.get_children():
+#					if not child.has_method('is_mount_point'):
+#						continue
+#					if child.mount_type=='gun' or child.mount_type=='turret':
+#						weapon_space += 
+#				console.append('\t[ref=%s]%s[/ref] 
+		else:
+			usage_list(console,argv)
 
 func _ready():
-	$ConsolePanel.add_command('ship',self)
+	for command in [ 'ship','list','exit','design','install','uninstall' ]:
+		$ConsolePanel.add_command(command,self)
 	$ShipInfo/Console/Output.scroll_following=false
 	$ShipInfo.add_command('ship',self)
 	$Red.layers = RED_LIGHT_CULL_LAYER
@@ -617,7 +794,7 @@ func _ready():
 		_discard=add_available_item(avail)
 	for design_name in allowed_designs:
 		if game_state.ship_designs.has(design_name):
-			_discard=add_available_design(game_state.ship_designs[design_name])
+			_discard=add_available_design(design_name,game_state.ship_designs[design_name])
 	move_Available_for_scene()
 
 func _process(_delta):
