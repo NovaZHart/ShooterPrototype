@@ -12,7 +12,11 @@ const available_items: Array = [
 	preload('res://weapons/PurpleHomingGun.tscn'),
 	preload('res://weapons/OrangeSpikeTurret.tscn'),
 	preload('res://weapons/BlueLaserTurret.tscn'),
-	preload('res://equipment/BigEngineTest.tscn'),
+	preload('res://equipment/engines/Engine2x2.tscn'),
+	preload('res://equipment/engines/Engine2x4.tscn'),
+	preload('res://equipment/engines/Engine4x4.tscn'),
+
+# Test outfits; delete:
 	preload('res://equipment/EquipmentTest.tscn'),
 	preload('res://equipment/BigEquipmentTest.tscn'),
 ]
@@ -84,8 +88,14 @@ func copy_to_installed(installed_name: String,child,display_location: Vector3) -
 	area.collision_layer = INSTALLED_LAYER_MASK
 	area.translation = Vector3(display_location.x,7,display_location.z)
 	area.name = installed_name
+	var old = $Installed.get_node_or_null(area.name)
+	if old:
+		$Installed.remove_child(old)
+		old.queue_free()
 	$Installed.add_child(area)
 	area.name = installed_name
+	if area.name != installed_name:
+		printerr('Godot renamed installed item to '+area.name+' so I will not be able to remove it.')
 	return area.get_path()
 
 class CompareMountLocations:
@@ -305,6 +315,9 @@ func place_in_single_mount(content, mount_name: String, mount: Dictionary, conso
 	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
 	install.owner=$Ship
 	install.name = mount['name']
+	if install.name!=mount['name']:
+		if console:
+			console.append_raw_text('warning: Godot renamed item to '+install.name+' so I cannot uninstall it.')
 	return true
 
 func try_to_mount(content, mount_name: String, use_item_offset: bool, console=null):
@@ -398,6 +411,8 @@ func select_multimount(pos: Vector2, there: Dictionary):
 	var pos3: Vector3 = $Camera.project_position(pos,-10)
 	var xy = parent.slot_xy_for(pos3,1,1)
 	var scene = parent.scene_at(xy[0],xy[1])
+	if scene==null:
+		return false
 	$ConsolePanel.process_command('uninstall '+parent.name+' '+str(xy[0])+' '+str(xy[1]))
 	
 	var area: Area = Area.new()

@@ -14,13 +14,16 @@ extents = Vector3( 0.392, 10, 1.296 )
 [node name="PurpleWarshipHull" type="RigidBody"]
 script = ExtResource( 4 )
 help_page = "hulls/raven"
-base_mass = 75.0
-base_thrust = 4500.0
+base_mass = 100.0
+base_thrust = 1300.0
 base_shields = 1200.0
-base_armor = 700.0
-base_structure = 450.0
+base_armor = 900.0
+base_structure = 400.0
 heal_shields = 35.0
-heal_armor = 8.0
+heal_armor = 0.0
+heal_structure = 12.0
+base_drag = 1.5
+base_turn_rate = 1.2
 base_explosion_damage = 400.0
 base_explosion_radius = 4.0
 base_explosion_impulse = 800.0
@@ -65,8 +68,15 @@ mount_size_x = 2
 mount_size_y = 3
 mount_type = "gun"
 
-[node name="EquipmentMount" type="Position3D" parent="."]
+[node name="Equipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.572475, 0, 0 )
 script = ExtResource( 2 )
+mount_size_x = 4
+mount_size_y = 2
+
+[node name="Engine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.970066, 0, 0 )
+script = ExtResource( 2 )
 mount_size_x = 2
-mount_size_y = 3
+mount_size_y = 4
+mount_type = "engine"
