@@ -102,13 +102,12 @@ default_font = SubResource( 10 )
 [node name="BannerShip" type="RigidBody"]
 script = ExtResource( 1 )
 help_page = "hulls/banner_ship"
-base_mass = 190.0
+base_mass = 175.0
 base_thrust = 2600.0
-base_reverse_thrust = 800.0
 base_shields = 2000.0
 base_armor = 1100.0
 base_structure = 900.0
-heal_shields = 50.0
+heal_shields = 0.0
 heal_armor = 0.0
 heal_structure = 7.0
 base_drag = 3.5
