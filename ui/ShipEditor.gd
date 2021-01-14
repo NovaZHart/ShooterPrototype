@@ -15,6 +15,9 @@ const available_items: Array = [
 	preload('res://equipment/engines/Engine2x2.tscn'),
 	preload('res://equipment/engines/Engine2x4.tscn'),
 	preload('res://equipment/engines/Engine4x4.tscn'),
+	preload('res://equipment/repair/Shield2x1.tscn'),
+	preload('res://equipment/repair/Shield2x2.tscn'),
+	preload('res://equipment/repair/Shield3x3.tscn'),
 
 # Test outfits; delete:
 	preload('res://equipment/EquipmentTest.tscn'),
@@ -23,7 +26,7 @@ const available_items: Array = [
 const allowed_designs: PoolStringArray = PoolStringArray([
 	'warship_lasers', 'warship_cyclotrons', 'curvy_cyclotrons', 
 	'interceptor_cyclotrons', 'interceptor_lasers',
-	'heavy_cyclotrons', 'heavy_lasers'
+	'heavy_cyclotrons', 'heavy_lasers', 'banner_default'
 ])
 const x_axis: Vector3 = Vector3(1,0,0)
 const y_axis: Vector3 = Vector3(0,1,0)
@@ -346,7 +349,6 @@ func try_to_mount(content, mount_name: String, use_item_offset: bool, console=nu
 	elif not place_in_single_mount(content,mount_name,mount,console):
 		return false
 	
-	$ShipInfo.process_command('ship info')
 	return true
 
 func deselect(there: Dictionary):
@@ -510,7 +512,6 @@ func select_installed(pos: Vector2, there: Dictionary):
 #		collider.queue_free()
 		
 		$ConsolePanel.process_command('help '+new.page)
-		$ShipInfo.process_command('ship info')
 		return true
 	return false
 
@@ -620,7 +621,7 @@ func string_design(design: Dictionary) -> String:
 		if value is Array:
 			s += '\t\t\t"'+key+'": [\n'
 			for item in value:
-				s += '\t\t\t\t[ '+str(item[0])+', '+str(item[1])+', '+str(item[2])+' ],\n'
+				s += '\t\t\t\t[ '+str(item[0])+', '+str(item[1])+', preload("'+item[2].resource_path+'") ],\n'
 			s += '\t\t\t]\n'
 		else:
 			s += '\t\t\t"'+key+'": preload("'+value.resource_path+'"),\n'
@@ -712,6 +713,7 @@ func run(console,argv:PoolStringArray):
 			load_design(design)
 		else:
 			usage_design(console,argv)
+		$ShipInfo.process_command('ship info')
 	elif argv[0]=='uninstall':
 		if len(argv)==2 or len(argv)==4:
 			var mount=mounts.get(argv[1],null)
@@ -721,6 +723,7 @@ func run(console,argv:PoolStringArray):
 				unmount(argv[1],convert(argv[2],TYPE_INT),convert(argv[3],TYPE_INT))
 			else:
 				unmount(argv[1],-1,-1)
+			$ShipInfo.process_command('ship info')
 	elif argv[0]=='install':
 		if len(argv)==3 or len(argv)==5:
 			var mount = mounts.get(argv[1],null)
@@ -742,6 +745,7 @@ func run(console,argv:PoolStringArray):
 				return console.append('Error: you must specify a location for this mount')
 			else:
 				try_to_mount(content,argv[1],false,console)
+			$ShipInfo.process_command('ship info')
 		else:
 			usage_install(console,argv)
 	elif argv[0]=='list':

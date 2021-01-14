@@ -98,7 +98,7 @@ func insert_at_grid_range(content,use_item_offset: bool,console=null) -> Array:
 		return []
 	elif content.nx>nx or content.ny>ny:
 		if console:
-			console.append_raw_text('multimount: cannot mount item larger than mount space')
+			console.append_raw_text('multimount: cannot mount item ('+str(content.nx)+'x'+str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
 		return []
 	# item location, upper-left (-x, -y) corner:
 	var xy1

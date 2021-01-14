@@ -15,13 +15,13 @@ height = 10.0
 [node name="PurpleHeavyWarshipHull" type="RigidBody"]
 script = ExtResource( 2 )
 help_page = "hulls/condor"
-base_mass = 260.0
+base_mass = 250.0
 base_thrust = 1900.0
 base_reverse_thrust = 1200.0
 base_shields = 3200.0
 base_armor = 2400.0
 base_structure = 1300.0
-heal_shields = 45.0
+heal_shields = 0.0
 heal_armor = 0.0
 heal_structure = 15.0
 base_drag = 1.9
