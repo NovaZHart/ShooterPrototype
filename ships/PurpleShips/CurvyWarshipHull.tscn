@@ -13,16 +13,17 @@ extents = Vector3( 0.5, 10, 1.4 )
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 1 )
 help_page = "hulls/eagle"
-base_mass = 75.0
-base_thrust = 4200.0
+base_mass = 100.0
+base_thrust = 1100.0
 base_reverse_thrust = 900.0
-base_shields = 1100.0
-base_armor = 900.0
+base_shields = 1600.0
+base_armor = 1200.0
 base_structure = 500.0
-heal_shields = 35.0
-heal_armor = 12.0
+heal_shields = 0.0
+heal_armor = 0.0
+heal_structure = 12.0
 base_drag = 1.7
-base_turn_rate = 1.8
+base_turn_rate = 1.0
 base_explosion_damage = 400.0
 base_explosion_radius = 4.0
 base_explosion_impulse = 800.0
@@ -42,8 +43,14 @@ shape = SubResource( 1 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.661987, 0, 0 )
 shape = SubResource( 2 )
 
-[node name="Equipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.761357, 0, 0 )
+[node name="PortEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.572948, 0, -0.807037 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 3
+
+[node name="StarboardEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573227, 0, 0.807 )
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 3
@@ -66,3 +73,10 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.499, 0.266, -0.741 )
 script = ExtResource( 2 )
 mount_size_y = 3
 mount_type = "gun"
+
+[node name="Engine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.10581, 0, 0 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "engine"

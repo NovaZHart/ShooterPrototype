@@ -157,46 +157,46 @@ func get_bbcode() -> String:
 				dps += child.damage / max(1.0/60,child.firing_delay)
 	
 	var s: Dictionary = pack_stats()
+	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
 	#var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n'
-	var bbcode = '[table=5]'
-	bbcode += make_cell('Hull Design: ','{ref '+help_page+'}')
-	bbcode += '[cell]    [/cell]'
-	bbcode += make_cell('Weapon Damage:',str(round(dps))+'/s')
+	var bbcode = '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
+
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
-	bbcode += '[cell]    [/cell]'
-	bbcode += '[cell]Death Explosion[/cell][cell][/cell]'
+	bbcode += '[cell] [/cell]'
+	bbcode += make_cell('Damage:',str(round(dps))+'/s')
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
-	bbcode += '[cell]    [/cell]'
-	bbcode += make_cell('Radius:',s['explosion_radius'])
+	bbcode += '[cell] [/cell]'
+	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*s['mass'])*10)/10)
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
-	bbcode += '[cell]    [/cell]'
+	bbcode += '[cell] [/cell]'
+	bbcode += make_cell('Turn rate:',s['turn_rate'])
+
+	bbcode += '[cell][/cell][cell][/cell]'
+	bbcode += '[cell] [/cell]'
+	bbcode += '[cell]Death Explosion[/cell][cell][/cell]'
+
+	bbcode += make_cell('Mass:',s['mass'])
+	bbcode += '[cell] [/cell]'
+	bbcode += make_cell('Radius:',s['explosion_radius'])
+
+	bbcode += make_cell('Drag:',s['drag'])
+	bbcode += '[cell] [/cell]'
 	bbcode += make_cell('Damage:',s['explosion_damage'])
 
-	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
-	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*s['mass'])*10)/10)
-	bbcode += '[cell]    [/cell]'
-	bbcode += make_cell('Hit Force:',s['explosion_impulse'])
-
 	bbcode += make_cell('Thrust:',s['thrust'])
-	bbcode += '[cell]    [/cell]'
-	bbcode += make_cell('Delay:',str(round(1.0/max(1.0/60,s['explosion_delay'])*10)/10)+'/s')
+	bbcode += '[cell] [/cell]'
+	bbcode += make_cell('Delay:',str(round(1.0/max(1.0/60,s['explosion_delay'])*10)/10)+'s')
 
 	if s['reverse_thrust']>0:
 		bbcode += make_cell('Reverse:',s['reverse_thrust'])
-		bbcode += '[cell]    [/cell]'
+	else:
 		bbcode += '[cell][/cell][cell][/cell]'
-
-	bbcode += make_cell('Mass:',s['mass'])
-	bbcode += '[cell]    [/cell]'
-	bbcode += '[cell][/cell][cell][/cell]'
-
-	bbcode += make_cell('Drag:',s['drag'])
-	bbcode += '[cell]    [/cell]'
-	bbcode += '[cell][/cell][cell][/cell]'
-
+	bbcode += '[cell] [/cell]'
+	bbcode += make_cell('Hit Force:',s['explosion_impulse'])
+	
 	bbcode += '[/table]\n\n'
 
 	if contents:

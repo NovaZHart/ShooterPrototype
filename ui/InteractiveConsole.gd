@@ -21,6 +21,8 @@ var tag_filters = {
 	'{*}':'\u2022',
 	'{eoln}':'\n',
 	'{tab}':'\t',
+	'{<}':'[',
+	'{>}':']',
 	'[prompt_font]':'[color=#6688ff][code]',
 	'[/prompt_font]':'[/code][/color]',
 	'[command_font]':'[color=#eebb66][code]',

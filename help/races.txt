@@ -1,10 +1,18 @@
+@PAGE races/terrans
+@title Terrans
+@synopsis Three sentient species native to earth: {ref races/humans}, {ref races/sage_spiders}, and {ref races/suvar}.
+@content
+FIXME
+
+########################################################################
+#
 @PAGE races/humans
 @title Human Species
 @synopsis Sentient, bipedal, ape-descended, refugees from planet Earth.
 @content
-[b]Also known as:[/b] Terrans, Thin-Skins
+[b]Also known as:[/b] Founders, Thin-Skins
 
-These ape-descended natives of planet [ref=places/Earth]Earth[/ref] escaped their homeworld during an [ref=history/Earth/Apocalypse]apocalypse[/ref] partly of their own making. Because Earth was outside any [ref=science/Stable_Sectors]stable sectors[/ref], faster-than-light travel was impossible. This led them to invent giant [ref=ship_classes/City_Ships]city ships[/ref] capable of taking multiple generations through centuries-long voyages. Many ships were lost, but most found their way to stable sectors where sentient space-dwelling [ref=races/psirocks]Psirocks[/ref] helped them find safe planets to reside.
+One of the three [ref=races/terrans]Terran races[/ref], these ape-descended natives of planet [ref=places/Earth]Earth[/ref] escaped their homeworld during an [ref=history/Earth/Apocalypse]apocalypse[/ref] partly of their own making. Because Earth was outside any [ref=science/Stable_Sectors]stable sectors[/ref], faster-than-light travel was impossible. With much help from [ref=races/sage_spiders]Sage Spiders[/ref], they invented giant [ref=ship_classes/City_Ships]city ships[/ref]. These ships took the terrans through centuries-long voyages where the space-dwelling [ref=races/psirocks]Psirocks[/ref] helped them find new homes.
 
 Although they evolved as the lone sentient species on Earth, they unintentionally birthed two new sentient species through genetic experiments. One is a humanoid cat-like creature, [ref=races/suvar]Súvar[/ref], derived from lions. The other are the [ref=races/sage_spiders]Sage Spiders[/ref], engineered from the Fringed Jumping Spider. Both species still live with humans and have fully integrated into their society. The spiders' powerful intellect leads them to the upper intelligencia. The cats, more dextrous and less intelligent than humans, have found many niches. They are most appriciated in dangerous [ref=places/Norther_Frontier]frontier worlds[/ref] where colonies could not survive without them. The three species are now tied together in a symbiotic relationship.
 
@@ -12,6 +20,8 @@ The personality of modern human society is best described as, "cautiously optimi
 
 Humans now [ref=places/Human_Space]inhabit several sectors[/ref] in the extreme south end of the [ref=places/Vorai_Expanse]Vorai Expanse[/ref], and have split into several groups or regions. This split was largely to ensure peace between groups who couldn't agree on society's rules. There are common laws ensuring basic rights, most notably the freedom of movement. Beyond that, society varies widely from planet to planet; one planet may have strict religious laws while another may intentionally be an anarchy. The seat of power, where disagreements are resolved and common laws are made, are the five [ref=places/First_Worlds]First Worlds[/ref]. Those worlds were the first colonized by humans, even before they met the Psirocks, and are viewed as the birthplace of modern society.
 
+########################################################################
+#
 @PAGE races/sage_spiders
 @title Sage Spider Species
 @synopsis Giant, carnivorous, pacifistic, spiders that lead the human intelligensia
@@ -26,6 +36,8 @@ The spiders could easily have taken over human society without resistance, but t
 
 A long history of spider-human friendship has not ended arachnophobia, in part due to the spiders' feeding habits. As giant carnivores, they still hunger for flesh, and will hunt creatures larger than themselves, poisoning them, and eating them seconds after death. This is a great embarassment to these sage-like philosopher-spiders, who prefer to be alone while hunting. Most spider-led universies and research centers are on planets with plentiful, large, creatures in dense jungles where privacy is a cheap commodity. This has fueled a long-running, and thoroughly debunked, conspiracy theory about a smuggling ring of humans as live spider food.
 
+########################################################################
+#
 @PAGE races/suvar
 @title Súvar Species
 @synopsis Sentient humanoid cats found throughout human space
@@ -56,7 +68,8 @@ During this conversation, one of the cats walked in. She had escaped the cats' q
 
 Ashamed, the scientists corrected the intentional flaws in the cats' DNA. By the new design, females now lived as long as a human, males about half that, and enough males were born to sustain exponential population growth. The scientists made as many cats as they could, as quickly as possible, before they got caught and jailed. They ensured sufficient health and genetic diversity for the species to continue perpetually. For this, the team of unwise scientists are considered heros by the Súvar today. 
 
-
+########################################################################
+#
 @PAGE races/psirocks
 @title Psirock Species
 @synopsis Sentient space-faring creatures with rocky shells.
@@ -76,7 +89,8 @@ When a city-ship wandered too close to [ref=places/probe_space]Probe territory[/
 
 From an educated guess based off of a cursory scan of human anatomy, they towed the city-ship to a moon that appeared habitable, orbiting a gas giant densely populated by Psirocks. They developed a quick understanding with the Sage Spiders, who have a similar parental fealings towards humans. The spiders negotiated for more human-habitable living places, chosen to reduce inter-group strife and increase growth. Initially, humans inhabited Psirock systems, to take advantage of their protection. Eventually they spread outward to other sectors, far beyond where the Psirocks live.
 
-
+########################################################################
+#
 @PAGE races/probes
 @title Probes
 @synopsis A fleet of self-replicating probes near human space

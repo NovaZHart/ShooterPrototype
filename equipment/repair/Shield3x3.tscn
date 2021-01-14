@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/repair/shield-3x3.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+script = ExtResource( 1 )
+add_mass = 12.0
+add_heal_shields = 85.0
+add_explosion_damage = 70.0
+add_explosion_impulse = 140.0
+item_size_x = 3
+help_page = "equipment/energy-shield-large"

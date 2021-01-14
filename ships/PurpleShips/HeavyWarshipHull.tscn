@@ -15,16 +15,17 @@ height = 10.0
 [node name="PurpleHeavyWarshipHull" type="RigidBody"]
 script = ExtResource( 2 )
 help_page = "hulls/condor"
-base_mass = 125.0
-base_thrust = 6500.0
-base_reverse_thrust = 1800.0
+base_mass = 250.0
+base_thrust = 1900.0
+base_reverse_thrust = 1200.0
 base_shields = 3200.0
 base_armor = 2400.0
 base_structure = 1300.0
-heal_shields = 45.0
-heal_armor = 15.0
+heal_shields = 0.0
+heal_armor = 0.0
+heal_structure = 15.0
 base_drag = 1.9
-base_turn_rate = 1.1
+base_turn_rate = 0.3
 base_explosion_damage = 800.0
 base_explosion_radius = 8.0
 base_explosion_impulse = 1200.0
@@ -50,11 +51,11 @@ mount_size_x = 2
 mount_size_y = 4
 mount_type = "gun"
 
-[node name="EquipmentMount" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.741057, 0, 0 )
+[node name="AftEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.58377, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 3
-mount_size_y = 4
+mount_size_y = 3
 
 [node name="PortSmallGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.61247, -0.12788, -0.340595 )
@@ -116,3 +117,9 @@ script = ExtResource( 3 )
 mount_size_x = 4
 mount_size_y = 4
 mount_type = "engine"
+
+[node name="NeckEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.209265, 0, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 8

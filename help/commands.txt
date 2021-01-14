@@ -1,3 +1,24 @@
+@PAGE test/boxes
+@title Box Test
+@synopsis Box test for HP meters
+@content
+{ref hulls/raven} [i]Titan's Toes[/i]
+[code]Sheilds   ▕[color=#7777ff]████▌  [/color]▏ 4080 / 9000[/code]
+[code]Armor     ▕[color=#eeee55]█      [/color]▏  214 / 2100[/code]
+[code]Structure ▕[color=#ff7777]███████[/color]▏ 9700 / 9800[/code]
+[code]Energy    ▕[color=#eeeeee]███████[/color]▏ 1200 / 1200[/code]
+[code]Heat      ▕[color=#aa1111]███████[/color]▏  294 /  300[/code]
+[code]
+8/8: █ 
+7/8: ▉ 
+6/8: ▊ 
+5/8: ▋ 
+4/8: ▌
+3/8: ▍ 
+2/8: ▎ 
+1/8: ▏ 
+[/code]
+
 @PAGE test/page1
 @title Page 1
 @synopsis A page that tells you not to look at page 3

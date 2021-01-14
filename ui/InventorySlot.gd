@@ -1,10 +1,17 @@
 extends Area
 
 var scene: PackedScene
+
+# From item_size_x, item_size_y, page, mount_type of *Stats.gd:
 var nx: int = 2
 var ny: int = 2
 var page: String = 'weapons'
 var mount_type: String = ''
+var mount_name: String = '' setget ,get_mount_name
+
+# x,y location within an InventoryArray
+var my_x: int = -1
+var my_y: int = -1
 
 const border_all: Mesh = preload('res://ui/OutfitBorders/1x1.mesh')
 const border_tube_bottom: Mesh = preload('res://ui/OutfitBorders/1x1-U.mesh')
@@ -12,6 +19,10 @@ const border_tube_middle: Mesh = preload('res://ui/OutfitBorders/1x1-UD.mesh')
 const border_middle: Mesh = preload('res://ui/OutfitBorders/1x1-UDLR.mesh')
 const border_left: Mesh = preload('res://ui/OutfitBorders/1x1-UDR.mesh')
 const border_lower_left: Mesh = preload('res://ui/OutfitBorders/1x1-UR.mesh')
+
+const RED_LIGHT_LAYER_MASK = 8
+const WHITE_LIGHT_LAYER_MASK = 16
+const LIGHT_LAYER_MASK = RED_LIGHT_LAYER_MASK|WHITE_LIGHT_LAYER_MASK
 
 const RIGHT: int = 1
 const LEFT: int = 2
@@ -40,8 +51,44 @@ const outfit_borders = [	       # U D L R
 	[ 180.0, border_middle      ], # 1 1 1 1
 ]
 
+# Inventory grid boxes are slightly larger than items:
 const box_scale: float = 0.135
 const item_scale: float = 0.125
+
+func get_mount_name() -> String:
+	return mount_name if mount_name else name
+
+func is_inventory_slot(): # never called; must only exist.
+	pass
+
+func color(mask: int):
+	for j in range(ny):
+		for i in range(nx):
+			var child = get_node_or_null('cell_'+str(i)+'_'+str(j))
+			assert(child)
+			if child!=null:
+				child.layers = child.layers&~LIGHT_LAYER_MASK | mask
+
+func update_coloring(size_x: int,size_y: int,pos,type: String):
+	if my_x>0:
+		var parent=get_parent()
+		if parent:
+			parent.update_coloring(size_x,size_y,pos,type)
+	else:
+		var mask: int = 0
+		# special case: no type means deselect
+		if type and (size_x>nx or size_y>ny or type!=mount_type):
+			mask |= RED_LIGHT_LAYER_MASK
+		elif pos!=null:
+			var pos3_half_x: float = ny*box_scale
+			var pos3_half_z: float = nx*box_scale
+			var rel: Vector3 = pos-translation
+			if rel.x>=-pos3_half_x and rel.x<=pos3_half_x and \
+					rel.z>=-pos3_half_z and rel.z<=pos3_half_z:
+				mask |= WHITE_LIGHT_LAYER_MASK
+		for child in get_children():
+			if child is VisualInstance:
+				child.layers = child.layers & ~LIGHT_LAYER_MASK | mask
 
 func copy_only_item() -> Area:
 	var new: Area = Area.new()
@@ -49,9 +96,10 @@ func copy_only_item() -> Area:
 	new.create_item(scene,false)
 	return new
 
-func create_only_box(nx_: int,ny_: int):
+func create_only_box(nx_: int,ny_: int,mount_type_: String):
 	nx=nx_
 	ny=ny_
+	mount_type=mount_type_
 	collision_layer=16
 	var shape: CollisionShape = CollisionShape.new()
 	shape.shape = BoxShape.new()
@@ -59,8 +107,9 @@ func create_only_box(nx_: int,ny_: int):
 	shape.name='shape'
 	add_child(shape)
 	make_box()
+	assert(mount_type)
 
-func create_item(scene_: PackedScene,with_box: bool):
+func create_item(scene_: PackedScene,with_box: bool,position = null):
 	scene=scene_
 	
 	var item: Node = scene.instance()
@@ -68,6 +117,11 @@ func create_item(scene_: PackedScene,with_box: bool):
 	ny=item.mount_size_y
 	page=item.help_page
 	mount_type=item.mount_type
+	
+	if position!=null:
+		assert(position is Vector2)
+		my_x = int(round(position.x))
+		my_y = int(round(position.y))
 	
 	var shape: BoxShape = BoxShape.new()
 	shape.extents = Vector3(ny*item_scale,1,nx*item_scale)
@@ -85,6 +139,7 @@ func create_item(scene_: PackedScene,with_box: bool):
 	
 	if with_box:
 		make_box()
+	assert(mount_type)
 
 func place_near(mount: Vector3,space: PhysicsDirectSpaceState,mask: int):
 #	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state

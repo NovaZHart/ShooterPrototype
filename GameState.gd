@@ -157,6 +157,10 @@ func make_test_designs():
 			"PortOuterGun": preload("res://weapons/BlueLaserGun.tscn"),
 			"StarboardMiddleGun": preload("res://weapons/GreenLaserGun.tscn"),
 			"StarboardOuterGun": preload("res://weapons/BlueLaserGun.tscn"),
+			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
+			'Equipment': [
+				[ 0, 0, preload("res://equipment/repair/Shield2x2.tscn") ]
+			],
 		},
 		'warship_cyclotrons':{
 			"hull": preload("res://ships/PurpleShips/WarshipHull.tscn"),
@@ -164,6 +168,10 @@ func make_test_designs():
 			"PortOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
 			"StarboardMiddleGun": preload("res://weapons/OrangeSpikeGun.tscn"),
 			"StarboardOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
+			'Equipment': [
+				[ 0, 0, preload("res://equipment/repair/Shield2x2.tscn") ]
+			],
 		},
 
 		'banner_default':{
@@ -173,6 +181,11 @@ func make_test_designs():
 			"StarboardGun": preload("res://weapons/GreenLaserGun.tscn"),
 			"AftPortTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
 			"AftStarboardTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
+			"Equipment": [
+				[ 0, 0, preload("res://equipment/repair/Shield3x3.tscn") ],
+				[ 3, 0, preload("res://equipment/repair/Shield3x3.tscn") ],
+			]
 		},
 
 		'curvy_cyclotrons':{
@@ -180,17 +193,30 @@ func make_test_designs():
 			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),
 			"StarboardGun": preload("res://weapons/OrangeSpikeGun.tscn"),
 			"Turret": preload("res://weapons/OrangeSpikeTurret.tscn"),
+			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
+			"PortEquipment": [
+				[ 0, 0, preload("res://equipment/repair/Shield2x2.tscn") ],
+				[ 0, 2, preload("res://equipment/repair/Shield2x1.tscn") ],
+			]
 		},
 
 		'interceptor_cyclotrons':{
 			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
 			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			"Engine": preload("res://equipment/engines/Engine2x2.tscn"),
 			"StarboardGun": preload("res://weapons/OrangeSpikeGun.tscn"),
+			'Equipment': [
+				[ 0, 0, preload("res://equipment/repair/Shield2x1.tscn") ]
+			],
 		},
 		'interceptor_lasers':{
 			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
 			"PortGun": preload("res://weapons/BlueLaserGun.tscn"),
+			"Engine": preload("res://equipment/engines/Engine2x2.tscn"),
 			"StarboardGun": preload("res://weapons/BlueLaserGun.tscn"),
+			'Equipment': [
+				[ 0, 0, preload("res://equipment/repair/Shield2x1.tscn") ]
+			],
 		},
 
 		'heavy_cyclotrons':{
@@ -204,6 +230,10 @@ func make_test_designs():
 			"StarboardLargeGun": preload('res://weapons/PurpleHomingGun.tscn'),
 			"MidStarboardTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
 			"AftStarboardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
+			"Engine": preload("res://equipment/engines/Engine4x4.tscn"),
+			'AftEquipment': [
+				[ 0, 0, preload("res://equipment/repair/Shield3x3.tscn") ]
+			],
 		},
 		'heavy_lasers':{
 			'hull':preload('res://ships/PurpleShips/HeavyWarshipHull.tscn'),
@@ -216,6 +246,10 @@ func make_test_designs():
 			'AftStarboardTurret':preload('res://weapons/BlueLaserTurret.tscn'),
 			'MidPortTurret':preload('res://weapons/OrangeSpikeTurret.tscn'),
 			'MidStarboardTurret':preload('res://weapons/OrangeSpikeTurret.tscn'),
+			"Engine": preload("res://equipment/engines/Engine4x4.tscn"),
+			'AftEquipment': [
+				[ 0, 0, preload("res://equipment/repair/Shield3x3.tscn") ]
+			],
 		},
 	}
 	player_ship_design = ship_designs['warship_lasers']
