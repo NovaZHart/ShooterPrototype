@@ -18,32 +18,97 @@ var system_data = PoolRealArray()
 var systems: Dictionary = {}
 
 var selection = null
-var last_id = 0 # valid ids are >0
 var mutex: Mutex = Mutex.new() # control access to systems, links, selection, last_id
 var ui_scroll: float = 0
 
-func _process(delta):
-	if not link_multimesh.mesh:
-		link_multimesh.mesh = regular_link
-		link_multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	if not system_multimesh:
-		system_multimesh.mesh = regular_system
-		system_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+const SYSTEM_SCALE: float = 0.01
+const LINK_SCALE: float = 0.005
+const SELECT_EPSILON: float = 0.02
+
+func _ready():
+	link_multimesh.mesh = regular_link
+	link_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	$Links.multimesh=link_multimesh
+	system_multimesh.mesh = regular_system
+	system_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	$Systems.multimesh=system_multimesh
+
+func _process(_delta):
+#	var pos3ul: Vector3 = $Camera.project_position(Vector2(),-10)
+#	var pos3lr: Vector3 = $Camera.project_position(get_viewport().size(),-10)
+#	var pos2ul: Vector2 = Vector2(pos3ul.z,0,-pos3ul.x)
+#	var pos2lr: Vector2 = Vector2(pos3lr.z,0,-pos3lr.x)
+#	var height: float = abs(pos2ul.x-pos2lr.x)
+#	var zoom: float = $Camera.size()
+	var system_scale: float = SYSTEM_SCALE*$Camera.size()
+	var link_scale: float = LINK_SCALE*$Camera.size()
 	
 	mutex.lock()
-	link_data.resize(12*links.size())
-	system_data.resize(12*systems.size())
-	# FIXME: update meshes
+	link_data.resize(12*len(links))
+	system_data.resize(12*len(systems))
+	var i: int=-1
+	for system in systems:
+		i+=1
+		var pos: Vector3 = system['position']
+		system_data[i +  0] = system_scale
+		system_data[i +  3] = pos.x
+		system_data[i +  5] = 1.0
+		system_data[i + 10] = system_scale
+		system_data[i + 11] = pos.z
+	system_multimesh.set_as_bulk_array(system_data)
+	
+	i=-1
+	for link in links:
+		i+=1
+		var pos: Vector3 = link['position']
+		var link_sin: float = link['sin']
+		var link_cos: float = link['cos']
+		var link_len: float = link['distance']
+		link_data[i +  0] = link_cos*link_len
+		link_data[i +  2] = link_sin*link_scale
+		link_data[i +  3] = pos.x
+		link_data[i +  5] = 1.0
+		link_data[i +  8] = -link_sin*link_len
+		link_data[i + 10] = link_cos*link_scale
+		link_data[i + 11] = pos.z
+	link_multimesh.set_as_bulk_array(link_data)
+	
+	if not selection:
+		$Selection.visible=false
+	elif selection['type']=='system':
+		var pos: Vector3 = selection['position']
+		$Selection.mesh = highlight_system
+		$Selection.transform = Transform(Vector3(system_scale,0.0,0.0),
+			Vector3(0.0,1.0,0.0),Vector3(0.0,0.0,system_scale),
+			Vector3(pos.x,0.0,pos.z))
+		$Selection.visible=true
+	elif selection['type']=='link':
+		var pos: Vector3 = selection['position']
+		var link_sin: float = selection['sin']
+		var link_cos: float = selection['cos']
+		var link_len: float = selection['distance']/1.5+link_scale
+		$Selection.mesh = highlight_link
+		$Selection.transform = Transform(Vector3(link_cos*link_len,0.0,link_sin*link_scale),
+			Vector3(0.0,1.0,0.0),Vector3(-link_sin*link_len,0.0,link_cos*link_scale),
+			Vector3(pos.x,0.0,pos.z))
+		$Selection.visible = true
+	else:
+		$Selection.visible=false
 	# FIXME: update selection
 	mutex.unlock()
 	
 	set_process(false)
 
-func add_system(projected_position: Vector2) -> Dictionary:
+func add_system(id: String,projected_position: Vector3) -> Dictionary:
 	mutex.lock()
-	last_id += 1
-	var system = { 'position':projected_position, 'id':last_id, 'links':{} }
-	systems[last_id]=system
+	var system = systems.get(id,null)
+	if system!=null:
+		var _discard = erase_system(system)
+	system = {
+		'position':projected_position, 'id':id, 'links':{},
+		'distance':projected_position.length(), 'type':'system'
+	}
+	systems[id]=system
 	mutex.unlock()
 	set_process(true)
 	
@@ -63,33 +128,30 @@ func erase_system(system: Dictionary) -> bool:
 		var link = links.get(link_key,null)
 		if not link:
 			continue
-		links.erase(link_key)
-		to['links'].erase(system_id)
-	system.erase(system_id)
-	if selection and selection['id']==system_id:
+		var _discard = links.erase(link_key)
+		_discard = to['links'].erase(system_id)
+	var _discard = system.erase(system_id)
+	if selection and selection['type']=='system' and selection['id']==system_id:
 		selection=null
 	mutex.unlock()
 	set_process(true)
 	
 	return true
 
-func erase_link(from: Dictionary,to: Dictionary) -> bool:
-	if from['type']!='system' or to['type']!='system':
-		return false
-	var from_id = from['id']
-	var to_id = to['id']
+func erase_link(link: Dictionary) -> bool:
+	var from_id = link['from_id']
+	var to_id = link['to_id']
 	
 	mutex.lock()
-	var link_key = [from_id,to_id] if from_id<to_id else [to_id,from_id]
-	var link = links.get(link_key,null)
-	if not link:
-		mutex.unlock()
-		return false
-	
-	from['links'].erase(to_id)
-	to['links'].erase(from_id)
-	links.erase(link_key)
-	if selection and selection['id']==link['id']:
+	var from = systems.get(from_id,null)
+	var to = systems.get(to_id,null)
+	var link_key = link['link_key']
+	var _discard = links.erase(link_key)
+	if from:
+		_discard = from['links'].erase(to_id)
+	if to:
+		_discard = to['links'].erase(from_id)
+	if selection and selection['type']=='link' and selection['link_key']==link_key:
 		selection=null
 	mutex.unlock()
 	set_process(true)
@@ -108,19 +170,23 @@ func add_link(from: Dictionary,to: Dictionary): # -> Dictionary or null
 	if link:
 		mutex.unlock()
 		return link
-	var from_location = from['position']
-	var to_location = to['position']
+	var from_location: Vector3 = from['position']
+	var to_location: Vector3 = to['position']
 	
-	last_id+=1
-	
+	var dist: float = from_location.distance_to(to_location)
 	link = {
-		'from':from, 'from_location':from_location,
-		'to':to, 'to_location':to_location,
-		'type':'link', 'id':last_id,
+		'from_id':from_id, 'from_location':from_location,
+		'along':to_location-from_location,
+		'distance_squared':dist*dist,
+		'to_id':to_id, 'to_location':to_location, 
+		'position':(from_location+to_location)/2.0,
+		'type':'link', 'dist':dist, 'link_key':link_key,
+		'sin':-(to_location-from_location).z/dist,
+		'cos':(to_location-from_location).x/dist,
 	}
 	links[link_key]=link
-	from['links'][to_id]=last_id
-	to['links'][from_id]=last_id
+	from['links'][to_id]=link_key
+	to['links'][from_id]=link_key
 	mutex.unlock()
 	set_process(true)
 	
@@ -167,10 +233,27 @@ func event_position(event: InputEvent) -> Vector2:
 		return event.position
 	return get_viewport().get_mouse_position()
 
+func link_distsq(p: Vector3,link: Dictionary) -> float:
+	# modified from http://geomalgorithms.com/a02-_lines.html#Distance-to-Ray-or-Segment
+	var p0: Vector3 = link['from_location']
+	var c2: float = link['distance_squared']
+	var w: Vector3 = p-p0
+	if abs(c2)<1e-5: # "line segment" is actually a point
+		return w.length_squared()
+	var v: Vector3 = link['along']
+	var c1: float = w.dot(v)
+	if c1<=0:
+		return v.length_squared()
+	var p1: Vector3 = link['to_location']
+	if c2<=c1:
+		return p.distance_squared_to(p1)
+	return p.distance_squared_to(p0+(c1/c2)*v)
+
 func find_at_location(screen_location: Vector2):
-	var epsilon = 300.0/$Camera.size() # FIXME: test this radius
+	var epsilon = SELECT_EPSILON*$Camera.size()
 	var pos3 = $Camera.project_position(screen_location,-10)
-	var pos2 = Vector2(pos3.z,-pos3.x)
+	pos3.y=0
+#	var pos2 = Vector2(pos3.z,-pos3.x)
 	var closest = null
 	var close_distsq = INF
 	
@@ -179,18 +262,22 @@ func find_at_location(screen_location: Vector2):
 		var system = systems.get(system_id,null)
 		if not system:
 			continue
-		var dist = pos2.distance_squared(system['position'])
-		if dist<close_distsq:
-			close_distsq=dist
+		var distsq = pos3.distance_squared(system['position'])
+		if distsq<close_distsq:
+			close_distsq=distsq
 			closest=system
-		
+	
+	if close_distsq<epsilon:
+		# Always favor selecting a system since they're smaller than a link.
+		return closest
+	
 	for link_id in links:
 		var link = links.get(link_id,null)
 		if not link:
 			continue
-		var dist = INF # FIXME: distance from point to line segment
-		if dist<close_distsq:
-			close_distsq=dist
+		var distsq = link_distsq(pos3,link)
+		if distsq<close_distsq:
+			close_distsq=distsq
 			closest=link
 	mutex.unlock()
 	
@@ -222,7 +309,7 @@ func handle_select(event: InputEvent):
 	var target = find_at_location(pos)
 	if event.shift:
 		if selection and selection['type']=='system':
-			if target and target['type']=='system' and target!=selection:
+			if target and target['type']=='system' and target['id']!=selection['id']:
 				return add_link(selection,target)
 			elif not target and selection and selection['type']=='system':
 				target = make_new_system(pos)
@@ -251,9 +338,14 @@ func set_zoom(zoom: float,original: float=-1) -> void:
 
 func _unhandled_input(event):
 	if event.is_action_pressed('ui_location_select'):
-		return handle_select(event)
+		handle_select(event)
 	elif event.is_action_pressed('ui_location_modify'):
-		return handle_modify(event)
+		handle_modify(event)
+	elif event.is_action_pressed('ui_delete') and selection:
+		if selection['type']=='link':
+			var _discard = erase_link(selection)
+		elif selection['type']=='system':
+			var _discard = erase_system(selection)
 	
 	var ui_zoom: int = int(Input.is_action_pressed("ui_page_up"))-int(Input.is_action_pressed("ui_page_down"))
 	if Input.is_action_just_released("wheel_up"):
@@ -264,5 +356,4 @@ func _unhandled_input(event):
 	ui_scroll*=0.7
 	if abs(ui_scroll)<.05:
 		ui_scroll=0
-	var _zoom_level = set_zoom(zoom)
-	
+	set_zoom(zoom)

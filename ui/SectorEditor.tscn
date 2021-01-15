@@ -16,8 +16,9 @@ size = 45.0
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource( 1 )
 
-[node name="SystemSelection" type="MeshInstance" parent="."]
+[node name="Selection" type="MeshInstance" parent="."]
 visible = false
 
-[node name="LinkSelection" type="MeshInstance" parent="."]
-visible = false
+[node name="Systems" type="MultiMeshInstance" parent="."]
+
+[node name="Links" type="MultiMeshInstance" parent="."]
