@@ -5,14 +5,20 @@ export var regular_color = Color(0.2,0.4,1.0)
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
 
-var highlight_link = make_box_mesh(Vector3(-0.5,0,-0.5),1,1,highlight_color)
-var regular_link = make_box_mesh(Vector3(-0.5,0,-0.5),1,1,regular_color)
+const RESULT_NONE: int = 0
+const RESULT_CANCEL: int = 1
+const RESULT_ACTION: int = 02
+
+var popup_result = null
+
+var highlight_link: Mesh
+var regular_link: Mesh
 var link_multimesh = MultiMesh.new()
 var link_data = PoolRealArray()
 var links: Dictionary = {}
 
-var highlight_system = make_circle_mesh(1.5,32,Vector3(),highlight_color)
-var regular_system = make_circle_mesh(1,32,Vector3(),regular_color)
+var highlight_system: Mesh
+var regular_system: Mesh
 var system_multimesh = MultiMesh.new()
 var system_data = PoolRealArray()
 var systems: Dictionary = {}
@@ -22,56 +28,90 @@ var mutex: Mutex = Mutex.new() # control access to systems, links, selection, la
 var ui_scroll: float = 0
 
 const SYSTEM_SCALE: float = 0.01
-const LINK_SCALE: float = 0.005
+const LINK_SCALE: float = 0.0025
 const SELECT_EPSILON: float = 0.02
 
 func _ready():
+	highlight_link = make_box_mesh(Vector3(-0.5,0,-0.5),1,1,highlight_color)
+	regular_link = make_box_mesh(Vector3(-0.5,0,-0.5),1,1,regular_color)
+	highlight_system = make_circle_mesh(1.5,32,Vector3(),highlight_color)
+	regular_system = make_circle_mesh(1,32,Vector3(),regular_color)
 	link_multimesh.mesh = regular_link
 	link_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	link_multimesh.visible_instance_count = 0
 	$Links.multimesh=link_multimesh
 	system_multimesh.mesh = regular_system
 	system_multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	system_multimesh.visible_instance_count = 0
 	$Systems.multimesh=system_multimesh
 
 func _process(_delta):
+	assert($Links.multimesh==link_multimesh)
+	assert($Systems.multimesh==system_multimesh)
+	assert($Links.multimesh.mesh==regular_link)
+	assert($Systems.multimesh.mesh==regular_system)
 #	var pos3ul: Vector3 = $Camera.project_position(Vector2(),-10)
-#	var pos3lr: Vector3 = $Camera.project_position(get_viewport().size(),-10)
+#	var pos3lr: Vector3 = $Camera.project_position(get_viewport().size,-10)
 #	var pos2ul: Vector2 = Vector2(pos3ul.z,0,-pos3ul.x)
 #	var pos2lr: Vector2 = Vector2(pos3lr.z,0,-pos3lr.x)
 #	var height: float = abs(pos2ul.x-pos2lr.x)
-#	var zoom: float = $Camera.size()
-	var system_scale: float = SYSTEM_SCALE*$Camera.size()
-	var link_scale: float = LINK_SCALE*$Camera.size()
+#	var zoom: float = $Camera.size
+	var system_scale: float = SYSTEM_SCALE*$Camera.size
+	var link_scale: float = LINK_SCALE*$Camera.size
 	
 	mutex.lock()
-	link_data.resize(12*len(links))
-	system_data.resize(12*len(systems))
-	var i: int=-1
-	for system in systems:
-		i+=1
-		var pos: Vector3 = system['position']
-		system_data[i +  0] = system_scale
-		system_data[i +  3] = pos.x
-		system_data[i +  5] = 1.0
-		system_data[i + 10] = system_scale
-		system_data[i + 11] = pos.z
-	system_multimesh.set_as_bulk_array(system_data)
+	$Systems.visible=not not systems
+	if systems:
+		print(len(systems))
+		system_data.resize(12*len(systems))
+		print(len(system_data))
+		var i: int=0
+		for system_id in systems:
+			var system: Dictionary = systems[system_id]
+			var pos: Vector3 = system['position']
+			system_data[i +  0] = system_scale
+			system_data[i +  1] = 0.0
+			system_data[i +  2] = 0.0
+			system_data[i +  3] = pos.x
+			system_data[i +  4] = 0.0
+			system_data[i +  5] = 1.0
+			system_data[i +  6] = 0.0
+			system_data[i +  7] = 0.0
+			system_data[i +  8] = 0.0
+			system_data[i +  9] = 0.0
+			system_data[i + 10] = system_scale
+			system_data[i + 11] = pos.z
+			i+=12
+		system_multimesh.instance_count=len(systems)
+		system_multimesh.visible_instance_count=-1
+		system_multimesh.set_as_bulk_array(system_data)
 	
-	i=-1
-	for link in links:
-		i+=1
-		var pos: Vector3 = link['position']
-		var link_sin: float = link['sin']
-		var link_cos: float = link['cos']
-		var link_len: float = link['distance']
-		link_data[i +  0] = link_cos*link_len
-		link_data[i +  2] = link_sin*link_scale
-		link_data[i +  3] = pos.x
-		link_data[i +  5] = 1.0
-		link_data[i +  8] = -link_sin*link_len
-		link_data[i + 10] = link_cos*link_scale
-		link_data[i + 11] = pos.z
-	link_multimesh.set_as_bulk_array(link_data)
+	$Links.visible=not not links
+	if links:
+		link_data.resize(12*len(links))
+		var i: int = 0
+		for link_key in links:
+			var link = links[link_key]
+			var pos: Vector3 = link['position']
+			var link_sin: float = link['sin']
+			var link_cos: float = link['cos']
+			var link_len: float = link['distance']
+			link_data[i +  0] = link_cos*link_len
+			link_data[i +  1] = 0.0
+			link_data[i +  2] = link_sin*link_scale
+			link_data[i +  3] = pos.x
+			link_data[i +  4] = 0.0
+			link_data[i +  5] = 1.0
+			link_data[i +  6] = 0.0
+			link_data[i +  7] = 0.0
+			link_data[i +  8] = -link_sin*link_len
+			link_data[i +  9] = 0.0
+			link_data[i + 10] = link_cos*link_scale
+			link_data[i + 11] = pos.z
+			i+=12
+		link_multimesh.instance_count=len(links)
+		link_multimesh.visible_instance_count=-1
+		link_multimesh.set_as_bulk_array(link_data)
 	
 	if not selection:
 		$Selection.visible=false
@@ -80,17 +120,21 @@ func _process(_delta):
 		$Selection.mesh = highlight_system
 		$Selection.transform = Transform(Vector3(system_scale,0.0,0.0),
 			Vector3(0.0,1.0,0.0),Vector3(0.0,0.0,system_scale),
-			Vector3(pos.x,0.0,pos.z))
+			Vector3(pos.x,-1.0,pos.z))
 		$Selection.visible=true
 	elif selection['type']=='link':
 		var pos: Vector3 = selection['position']
 		var link_sin: float = selection['sin']
 		var link_cos: float = selection['cos']
-		var link_len: float = selection['distance']/1.5+link_scale
+		var link_len: float = selection['distance']
+		link_scale*=3
 		$Selection.mesh = highlight_link
-		$Selection.transform = Transform(Vector3(link_cos*link_len,0.0,link_sin*link_scale),
-			Vector3(0.0,1.0,0.0),Vector3(-link_sin*link_len,0.0,link_cos*link_scale),
-			Vector3(pos.x,0.0,pos.z))
+		$Selection.transform = Transform(Vector3(link_cos*link_len,0.0,-link_sin*link_len),
+			Vector3(0.0,1.0,0.0),Vector3(link_sin*link_scale,0.0,link_cos*link_scale),
+			Vector3(pos.x,-1.0,pos.z))
+#		$Selection.transform = Transform(Vector3(link_cos*link_len,0.0,link_sin*link_scale),
+#			Vector3(0.0,1.0,0.0),Vector3(-link_sin*link_len,0.0,link_cos*link_scale),
+#			Vector3(pos.x,-1.0,pos.z))
 		$Selection.visible = true
 	else:
 		$Selection.visible=false
@@ -99,16 +143,19 @@ func _process(_delta):
 	
 	set_process(false)
 
-func add_system(id: String,projected_position: Vector3) -> Dictionary:
+func add_system(id: String,display_name: String,projected_position: Vector3) -> Dictionary:
 	mutex.lock()
 	var system = systems.get(id,null)
 	if system!=null:
 		var _discard = erase_system(system)
 	system = {
 		'position':projected_position, 'id':id, 'links':{},
-		'distance':projected_position.length(), 'type':'system'
+		'distance':projected_position.length(), 'type':'system',
+		'display_name':display_name
 	}
 	systems[id]=system
+	if not selection:
+		selection=system
 	mutex.unlock()
 	set_process(true)
 	
@@ -124,13 +171,13 @@ func erase_system(system: Dictionary) -> bool:
 		var to = systems.get(to_id,null)
 		if not to:
 			continue
-		var link_key = [system_id,to_id] if system<to_id else [to_id,system_id]
+		var link_key = [system_id,to_id] if system_id<to_id else [to_id,system_id]
 		var link = links.get(link_key,null)
 		if not link:
 			continue
 		var _discard = links.erase(link_key)
 		_discard = to['links'].erase(system_id)
-	var _discard = system.erase(system_id)
+	var _discard = systems.erase(system_id)
 	if selection and selection['type']=='system' and selection['id']==system_id:
 		selection=null
 	mutex.unlock()
@@ -180,7 +227,7 @@ func add_link(from: Dictionary,to: Dictionary): # -> Dictionary or null
 		'distance_squared':dist*dist,
 		'to_id':to_id, 'to_location':to_location, 
 		'position':(from_location+to_location)/2.0,
-		'type':'link', 'dist':dist, 'link_key':link_key,
+		'type':'link', 'distance':dist, 'link_key':link_key,
 		'sin':-(to_location-from_location).z/dist,
 		'cos':(to_location-from_location).x/dist,
 	}
@@ -189,7 +236,7 @@ func add_link(from: Dictionary,to: Dictionary): # -> Dictionary or null
 	to['links'][from_id]=link_key
 	mutex.unlock()
 	set_process(true)
-	
+	print(str(link_key),' -> ',str(link))
 	return link
 
 func tri_to_mesh(vertices: PoolVector3Array, color: Color) -> ArrayMesh:
@@ -206,23 +253,25 @@ func tri_to_mesh(vertices: PoolVector3Array, color: Color) -> ArrayMesh:
 func make_box_mesh(from: Vector3, x_span: float, z_span: float, color: Color) -> ArrayMesh:
 	var vertices: PoolVector3Array = PoolVector3Array()
 	vertices.resize(6)
+	assert(z_span)
+	assert(x_span)
 	vertices[0] = from
-	vertices[1] = from + Vector3(0,0,z_span)
-	vertices[2] = from + Vector3(x_span,0,z_span)
-	vertices[3] = from
-	vertices[2] = from + Vector3(x_span,0,z_span)
+	vertices[1] = from + Vector3(x_span,0,z_span)
 	vertices[2] = from + Vector3(0,0,z_span)
+	vertices[3] = from
+	vertices[4] = from + Vector3(x_span,0,0)
+	vertices[5] = from + Vector3(x_span,0,z_span)
 	return tri_to_mesh(vertices,color)
 
 func make_circle_mesh(radius: float,count: int,center: Vector3, color: Color) -> ArrayMesh:
 	var vertices: PoolVector3Array = PoolVector3Array()
 	vertices.resize(count*3)
 	var angle = PI*2/count
-	var prior = center + radius*Vector3(cos((count-1)*angle),sin((count-1)*angle),0)
+	var prior = center + radius*Vector3(cos((count-1)*angle),0,sin((count-1)*angle))
 	for i in range(count):
-		var this = center + radius*Vector3(cos(i*angle),sin(i*angle),0)
-		vertices[i*3] = prior
-		vertices[i*3+1] = center
+		var this = center + radius*Vector3(cos(i*angle),0,sin(i*angle))
+		vertices[i*3] = center
+		vertices[i*3+1] = prior
 		vertices[i*3+2] = this
 		prior=this
 	return tri_to_mesh(vertices,color)
@@ -250,7 +299,7 @@ func link_distsq(p: Vector3,link: Dictionary) -> float:
 	return p.distance_squared_to(p0+(c1/c2)*v)
 
 func find_at_location(screen_location: Vector2):
-	var epsilon = SELECT_EPSILON*$Camera.size()
+	var epsilon = SELECT_EPSILON*$Camera.size
 	var pos3 = $Camera.project_position(screen_location,-10)
 	pos3.y=0
 #	var pos2 = Vector2(pos3.z,-pos3.x)
@@ -262,7 +311,7 @@ func find_at_location(screen_location: Vector2):
 		var system = systems.get(system_id,null)
 		if not system:
 			continue
-		var distsq = pos3.distance_squared(system['position'])
+		var distsq = pos3.distance_squared_to(system['position'])
 		if distsq<close_distsq:
 			close_distsq=distsq
 			closest=system
@@ -293,15 +342,49 @@ func find_link(from: Dictionary,to: Dictionary):
 	var link_key = [from['id'],to['id']] if from['id']<to['id'] else [to['id'],from['id']]
 	return links.get(link_key,null)
 
+func validate_popup() -> bool:
+	var info: String = ''
+	if $PopUp/A/A/DisplayName.editable and not $PopUp/A/A/DisplayName.text:
+		info='Enter a human-readable name to display.'
+	if $PopUp/A/A/SystemID.editable:
+		if not $PopUp/A/A/SystemID.text:
+			info='Enter a system ID'
+		elif systems.has($PopUp/A/A/SystemID.text):
+			info='There is already a "'+$PopUp/A/A/SystemID.text+'" system!'
+	$PopUp/A/B/Info.text=info
+	$PopUp/A/B/Action.disabled = not not info
+	return not info
+
 func make_new_system(event: InputEvent): # -> Dictionary or null
 	var screen_location: Vector2 = event_position(event)
 	var pos3 = $Camera.project_position(screen_location,-10)
-	var pos2 = Vector2(pos3.z,-pos3.x)
-	pass # FIXME: new system dialog
+	pos3.y=0
+	$PopUp/A/B/Action.text = 'Create'
+	$PopUp/A/A/SystemID.text = ''
+	$PopUp/A/A/DisplayName.text = ''
+	popup_result = null
+	var _discard = validate_popup()
+	$PopUp.popup()
+	while $PopUp.visible:
+		yield(get_tree(),'idle_frame')
+	var result = popup_result
+	if result and result['result']==RESULT_ACTION:
+		_discard = add_system(result['id'],result['display_name'],pos3)
 	set_process(true)
 
 func edit_system(system: Dictionary):
-	pass # FIXME: system editor dialog
+	$PopUp/A/B/Action.text = 'Apply'
+	$PopUp/A/A/SystemID.text = system['id']
+	$PopUp/A/A/SystemID.editable = false
+	$PopUp/A/A/DisplayName.text = system['display_name']
+	popup_result = null
+	var _discard = validate_popup()
+	$PopUp.popup()
+	while $PopUp.visible:
+		yield(get_tree(),'idle_frame')
+	var result = popup_result
+	if result and result['result']==RESULT_ACTION:
+		system['display_name'] = result['display_name']
 	set_process(true)
 
 func handle_select(event: InputEvent):
@@ -357,3 +440,35 @@ func _unhandled_input(event):
 	if abs(ui_scroll)<.05:
 		ui_scroll=0
 	set_zoom(zoom)
+
+
+func _on_Action_pressed():
+	popup_result = {
+		'id':$PopUp/A/A/SystemID.text,
+		'display_name':$PopUp/A/A/DisplayName.text,
+		'result': (RESULT_ACTION if validate_popup() else RESULT_CANCEL)
+	}
+	$PopUp.visible=false
+
+func _on_Cancel_pressed():
+	popup_result = {
+		'id':$PopUp/A/A/SystemID.text,
+		'display_name':$PopUp/A/A/DisplayName.text,
+		'result': RESULT_CANCEL
+	}
+	$PopUp.visible=false
+
+
+func _on_SystemID_text_changed(_new_text):
+	var _discard = validate_popup()
+
+func _on_DisplayName_text_changed(_new_text):
+	var _discard = validate_popup()
+
+func _on_DisplayName_text_entered(_new_text):
+	if validate_popup():
+		_on_Action_pressed()
+
+func _on_SystemID_text_entered(_new_text):
+	if validate_popup():
+		_on_Action_pressed()
