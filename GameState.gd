@@ -2,6 +2,7 @@ extends Node
 
 var SystemInfo = preload('res://places/SystemInfo.gd')
 var PlanetInfo = preload('res://places/PlanetInfo.gd')
+var Universe = preload('res://places/Universe.gd')
 var PlanetServices = preload('res://ui/PlanetServices.gd')
 
 var known_systems: Dictionary = {}
@@ -11,6 +12,7 @@ var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
 var ship_designs: Dictionary = {}
+var universe = Universe.new()
 
 var player_ship_design: Dictionary
 

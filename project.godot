@@ -21,10 +21,10 @@ config/icon="res://icon.png"
 
 [autoload]
 
+undo_tool="*res://UndoTool.gd"
 game_state="*res://GameState.gd"
 combat_engine="*res://CombatEngine.gd"
 mesh_loader="*res://MeshLoaderNode.gd"
-undo_tool="*res://UndoTool.gd"
 
 [display]
 
@@ -140,6 +140,16 @@ ui_redo={
 "deadzone": 0.5,
 "events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":true,"meta":false,"command":true,"pressed":false,"scancode":89,"unicode":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":true,"control":true,"meta":false,"command":true,"pressed":false,"scancode":90,"unicode":0,"echo":false,"script":null)
+ ]
+}
+ui_editor_save={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":true,"meta":false,"command":true,"pressed":false,"scancode":83,"unicode":0,"echo":false,"script":null)
+ ]
+}
+ui_editor_load={
+"deadzone": 0.5,
+"events": [ Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":0,"alt":false,"shift":false,"control":true,"meta":false,"command":true,"pressed":false,"scancode":79,"unicode":0,"echo":false,"script":null)
  ]
 }
 

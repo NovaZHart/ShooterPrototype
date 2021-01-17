@@ -175,6 +175,18 @@ __meta__ = {
 }
 
 [node name="Annotations" type="Node2D" parent="."]
+
+[node name="FileDialog" type="FileDialog" parent="."]
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.9
+popup_exclusive = true
+resizable = true
+filters = PoolStringArray( "*.json ; JSON Files" )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 [connection signal="text_changed" from="PopUp/A/A/SystemID" to="." method="_on_SystemID_text_changed"]
 [connection signal="text_entered" from="PopUp/A/A/SystemID" to="." method="_on_SystemID_text_entered"]
 [connection signal="text_changed" from="PopUp/A/A/DisplayName" to="." method="_on_DisplayName_text_changed"]
@@ -182,3 +194,4 @@ __meta__ = {
 [connection signal="pressed" from="PopUp/A/B/Action" to="." method="_on_Action_pressed"]
 [connection signal="pressed" from="PopUp/A/B/Cancel" to="." method="_on_Cancel_pressed"]
 [connection signal="draw" from="Annotations" to="." method="_on_Annotations_draw"]
+[connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]

@@ -20,6 +20,10 @@ class UndoStack extends Reference:
 		if undo_stack:
 			return undo_stack[len(undo_stack)-1]
 		return null
+	func clear():
+		if verbose: print('clear stack')
+		undo_stack.clear()
+		redo_stack.clear()
 	func dump():
 		print('Undo/Redo Stack State')
 		for i in range(len(redo_stack)):
