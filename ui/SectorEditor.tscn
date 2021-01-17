@@ -1,15 +1,39 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ui/SectorEditor.gd" type="Script" id=1]
 [ext_resource path="res://ui/Console.tres" type="Theme" id=2]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=4]
 
-[sub_resource type="Environment" id=1]
+[sub_resource type="DynamicFont" id=1]
+size = 15
+use_filter = true
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=5]
+size = 15
+use_filter = true
+font_data = ExtResource( 4 )
+
+[sub_resource type="Environment" id=2]
 background_mode = 1
 background_color = Color( 0.0156863, 0.0156863, 0.0588235, 1 )
 ambient_light_color = Color( 1, 1, 1, 1 )
 
+[sub_resource type="DynamicFont" id=3]
+size = 13
+use_filter = true
+font_data = ExtResource( 4 )
+
+[sub_resource type="DynamicFont" id=4]
+size = 13
+use_filter = true
+font_data = ExtResource( 3 )
+
 [node name="Spatial" type="Spatial"]
 script = ExtResource( 1 )
+label_font = SubResource( 1 )
+highlighted_font = SubResource( 5 )
 
 [node name="Camera" type="Camera" parent="."]
 transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 10, 0 )
@@ -17,7 +41,7 @@ projection = 1
 size = 45.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 1 )
+environment = SubResource( 2 )
 
 [node name="Selection" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1, 0 )
@@ -30,7 +54,6 @@ visible = false
 visible = false
 
 [node name="PopUp" type="PopupPanel" parent="."]
-visible = true
 anchor_left = 0.2
 anchor_top = 0.5
 anchor_right = 0.8
@@ -126,9 +149,36 @@ text = "Informational text here"
 
 [node name="OmniLight" type="OmniLight" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, 36 )
+
+[node name="RichTextLabel" type="RichTextLabel" parent="."]
+margin_right = 120.0
+size_flags_horizontal = 3
+custom_fonts/bold_font = SubResource( 3 )
+custom_fonts/normal_font = SubResource( 4 )
+bbcode_enabled = true
+bbcode_text = "[b]Controls:[/b]
+left: select
+left drag: move
+right: new or edit
+shift-right: link
+delete: delete"
+text = "Controls:
+left: select
+left drag: move
+right: new or edit
+shift-right: link
+delete: delete"
+fit_content_height = true
+scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Annotations" type="Node2D" parent="."]
 [connection signal="text_changed" from="PopUp/A/A/SystemID" to="." method="_on_SystemID_text_changed"]
 [connection signal="text_entered" from="PopUp/A/A/SystemID" to="." method="_on_SystemID_text_entered"]
 [connection signal="text_changed" from="PopUp/A/A/DisplayName" to="." method="_on_DisplayName_text_changed"]
 [connection signal="text_entered" from="PopUp/A/A/DisplayName" to="." method="_on_DisplayName_text_entered"]
 [connection signal="pressed" from="PopUp/A/B/Action" to="." method="_on_Action_pressed"]
 [connection signal="pressed" from="PopUp/A/B/Cancel" to="." method="_on_Cancel_pressed"]
+[connection signal="draw" from="Annotations" to="." method="_on_Annotations_draw"]
