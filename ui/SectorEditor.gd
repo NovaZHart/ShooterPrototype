@@ -10,7 +10,7 @@ export var max_camera_size: float = 150
 export var label_font: Font
 export var highlighted_font: Font
 
-const UndoTool: Reference = preload('res://ui/UndoTool.gd')
+const Universe = preload('res://places/Universe.gd')
 const MapItemShader: Shader = preload('res://ui/MapItem.shader')
 const RESULT_NONE: int = 0
 const RESULT_CANCEL: int = 1
@@ -23,18 +23,15 @@ var highlight_link: Mesh
 var regular_link: Mesh
 var link_multimesh = MultiMesh.new()
 var link_data = PoolRealArray()
-var links: Dictionary = {}
 
 var highlight_system: Mesh
 var regular_system: Mesh
 var system_multimesh = MultiMesh.new()
 var system_data = PoolRealArray()
-var systems: Dictionary = {}
 
-var state = UndoTool.UndoStack.new()
+var universe = Universe.new()
 var popup_result = null
 var selection = null
-var data_mutex: Mutex = Mutex.new() # control access to systems, links, selection, last_id
 var ui_scroll: float = 0
 var last_position = null
 var last_screen_position = null
@@ -44,46 +41,12 @@ var am_moving = false
 var draw_commands: Array = []
 var draw_mutex: Mutex = Mutex.new()
 
-func cancel_drag():
+func cancel_drag() -> bool:
 	last_position=null
 	last_screen_position=null
 	camera_start=null
 	am_moving = false
-
-func link_vectors(link_key):
-	var from = systems.get(link_key[0],null)
-	if not from: return null
-	var to = systems.get(link_key[1],null)
-	if not to: return null
-
-	var from_position: Vector3 = from['position']
-	var to_position: Vector3 = to['position']
-	var along: Vector3 = to_position-from_position
-
-	return {
-		'link_key':link_key, 'type':'link', 'from_position':from_position,
-		'to_position':to_position, 'along':along,
-		'distance_squared': along.length_squared()
-	}
-
-func link_sin_cos(link_key):
-	var from = systems.get(link_key[0],null)
-	if not from: return null
-	var to = systems.get(link_key[1],null)
-	if not to: return null
-	
-	var diff: Vector3 = to['position']-from['position']
-	var distsq: float = diff.length_squared()
-	var dist: float = sqrt(distsq)
-	
-	return {
-		'from':from, 'to':to, 'position':(from['position']+to['position'])/2.0,
-		'sin':(-diff.z/dist if abs(dist)>0.0 else 0.0),
-		'cos':(diff.x/dist if abs(dist)>0.0 else 0.0),
-		'distance':(dist if abs(dist)>0.0 else 1e-6),
-		'distance_squared':(distsq if abs(dist)>0.0 else 1e-12),
-		'link_key':link_key, 'type':'link',
-	}
+	return true
 
 func _ready():
 	highlight_link = make_box_mesh(Vector3(-0.5,-0.5,-0.5),0.5,0.5,2,2)
@@ -117,6 +80,18 @@ func _ready():
 	var v = get_viewport()
 	if v:
 		var _discard = v.connect('size_changed',self,'set_process',[true])
+#signal added_system
+#signal erased_system
+#signal added_link
+#signal erased_link
+#signal system_display_name_changed
+#signal system_position_changed
+#signal link_position_changed
+
+func process_if(flag):
+	if flag:
+		set_process(true)
+	return flag
 
 func _process(_delta):
 	var system_scale: float = SYSTEM_SCALE*$Camera.size
@@ -124,7 +99,8 @@ func _process(_delta):
 	
 	var new_draw_commands: Array = []
 
-	data_mutex.lock()
+	universe.lock()
+	var systems: Dictionary = universe.systems
 	$Systems.visible=not not systems
 	var view_rect: Rect2 = Rect2(Vector2(-20,-20),get_viewport().size+Vector2(20,20))
 	var text_offset: float = abs($Camera.unproject_position(Vector3()).x - \
@@ -177,12 +153,13 @@ func _process(_delta):
 		system_multimesh.visible_instance_count=-1
 		system_multimesh.set_as_bulk_array(system_data)
 	
+	var links: Dictionary = universe.links
 	$Links.visible=not not links
 	if links:
 		link_data.resize(16*len(links))
 		var i: int = 0
 		for link_key in links:
-			var link = link_sin_cos(link_key)
+			var link = universe.link_sin_cos(link_key)
 			
 			var pos: Vector3 = link['position']
 			var link_sin: float = link['sin']
@@ -213,7 +190,7 @@ func _process(_delta):
 		link_multimesh.instance_count=len(links)
 		link_multimesh.visible_instance_count=-1
 		link_multimesh.set_as_bulk_array(link_data)
-	data_mutex.unlock()
+	universe.unlock()
 
 	draw_mutex.lock()
 	draw_commands=new_draw_commands
@@ -222,216 +199,159 @@ func _process(_delta):
 
 	set_process(false)
 
-func add_system(id: String,display_name: String,projected_position: Vector3) -> Dictionary:
-	data_mutex.lock()
-	var system = systems.get(id,null)
-	if system!=null:
-		var _discard = erase_system(system)
-	system = {
-		'position':projected_position, 'id':id, 'links':{},
-		'distance':projected_position.length(), 'type':'system',
-		'display_name':display_name
-	}
-	systems[id]=system
-	if not selection:
-		selection=system
-	data_mutex.unlock()
-	set_process(true)
-	
-	return system
-
-func restore_system(system: Dictionary) -> bool:
-	data_mutex.lock()
-	var system_id: String = system['id']
-	systems[system_id]=system
-	data_mutex.unlock()
-	for to_id in system['links']:
-		var to = systems.get(to_id,null)
-		if to:
-			add_link(system,to)
-	set_process(true)
-	return true
-
-class AddSystem extends UndoTool.Action:
+class AddSystem extends undo_tool.Action:
 	var system: Dictionary
 	var editor: Node
 	var was_selected: bool
+	func as_string() -> String:
+		return 'AddSystem('+str(system['id'])+')'
 	func _init(editor_: Node,system_: Dictionary):
 		system=system_
 		editor=editor_
 		was_selected = editor.selection is Dictionary and editor.selection==system
 	func undo() -> bool:
-		return editor.erase_system(system)
+		editor.deselect(system)
+		return editor.process_if(editor.universe.erase_system(system))
 	func redo() -> bool:
-		if editor.restore_system(system):
+		if editor.process_if(editor.universe.restore_system(system)):
 			return not was_selected or editor.change_selection_to(system)
 		return false
 
-func erase_system(system: Dictionary) -> bool:
-	if system['type']!='system':
-		printerr('tried to erase a system that was not a system')
-		return false
-	var system_id = system['id']
-	
-	data_mutex.lock()
-	for to_id in system['links']:
-		var to = systems.get(to_id,null)
-		if not to:
-			printerr('missing system for link to ',to_id)
-			continue
-		var link_key = [system_id,to_id] if system_id<to_id else [to_id,system_id]
-		var link = links.get(link_key,null)
-		if not link:
-			printerr('missing link from ',systems['id'],' to ',to_id)
-			continue
-		if not links.erase(link_key):
-			printerr('cannot erase link from ',systems['id'],' to ',to_id)
-		var _discard = to['links'].erase(system_id)
-		if links.has(link_key):
-			printerr('links dictionary did not erase link key ',link_key)
-	for link_key in links:
-		assert(link_key[0]!=system['id'])
-		assert(link_key[1]!=system['id'])
-	var _discard = systems.erase(system_id)
-	if selection and selection['type']=='system' and selection['id']==system_id:
-		selection=null
-	data_mutex.unlock()
-	set_process(true)
-	
-	return true
-
-class EraseSystem extends UndoTool.Action:
+class EraseSystem extends undo_tool.Action:
 	var system: Dictionary
 	var editor: Node
 	var was_selected: bool
+	func as_string() -> String:
+		return 'Erase('+str(system['id'])+')'
 	func _init(editor_: Node,system_: Dictionary):
 		system=system_
 		editor=editor_
 		was_selected=editor.selection is Dictionary and editor.selection==system
 	func run() -> bool:
-		return editor.erase_system(system)
+		editor.deselect(system)
+		return editor.process_if(editor.universe.erase_system(system))
 	func undo() -> bool:
-		var restored = editor.restore_system(system)
-		if restored:
-			editor.change_selection_to(system)
-			return true
-		return false
+		return editor.process_if(editor.universe.restore_system(system)) \
+			and editor.change_selection_to(system)
 	func redo() -> bool:
-		return editor.erase_system(system)
+		editor.deselect(system)
+		return editor.process_if(editor.universe.erase_system(system))
 
-func erase_link(link: Dictionary) -> bool:
-	var from_id = link['link_key'][0]
-	var to_id = link['link_key'][1]
-	
-	data_mutex.lock()
-	var from = systems.get(from_id,null)
-	var to = systems.get(to_id,null)
-	var link_key = link['link_key']
-	var _discard = links.erase(link_key)
-	if from:
-		_discard = from['links'].erase(to_id)
-	if to:
-		_discard = to['links'].erase(from_id)
-	if selection and selection['type']=='link' and selection['link_key']==link_key:
-		selection=null
-	data_mutex.unlock()
-	set_process(true)
-	
-	return true
-
-func restore_link(link: Dictionary) -> bool:
-	data_mutex.lock()
-	var link_key = link['link_key']
-	var from = systems.get(link_key[0],null)
-	if not from:
-		data_mutex.unlock()
-		return false
-	var to = systems.get(link_key[1],null)
-	if not to:
-		data_mutex.unlock()
-		return false
-	from['links'][to['id']]=link
-	to['links'][from['id']]=link
-	links[link_key]=link
-	data_mutex.unlock()
-	set_process(true)
-	return true
-
-class EraseLink extends UndoTool.Action:
+class EraseLink extends undo_tool.Action:
 	var link: Dictionary
 	var editor: Node
 	var was_selected: bool
 	# warning-ignore:shadowed_variable
 	# warning-ignore:shadowed_variable
+	func as_string() -> String:
+		return 'EraseLink('+link['link_key'][0]+'->'+link['link_key'][1]+')'
 	func _init(editor: Node,link: Dictionary):
 		self.link=link
 		self.editor=editor
 		was_selected = editor.selection is Dictionary and editor.selection==link
 	func run() -> bool:
-		return editor.erase_link(link)
+		editor.deselect(link)
+		return editor.process_if(editor.universe.erase_link(link))
 	func undo() -> bool:
-		if editor.restore_link(link):
-			editor.change_selection_to(link)
-			return true
+		if editor.process_if(editor.universe.restore_link(link)):
+			return not was_selected or editor.change_selection_to(link)
 		return false
 	func redo() -> bool:
-		return editor.erase_link(link)
+		editor.deselect(link)
+		return editor.process_if(editor.universe.erase_link(link))
 
-func add_link(from: Dictionary,to: Dictionary): # -> Dictionary or null
-	assert(from!=to)
-	if from['type']!='system' or to['type']!='system':
-		return null
-	var from_id = from['id']
-	var to_id = to['id']
-	var link_key = [from_id,to_id] if from_id<to_id else [to_id,from_id]
-
-	data_mutex.lock()
-	var link = links.get(link_key,null)
-	if link:
-		data_mutex.unlock()
-		return link
-	
-	link = { 'link_key':link_key, 'type':'link' }
-	links[link_key]=link
-	from['links'][to_id]=link_key
-	to['links'][from_id]=link_key
-	data_mutex.unlock()
-	set_process(true)
-	return link
-
-class AddLink extends UndoTool.Action:
+class AddLink extends undo_tool.Action:
 	var link: Dictionary
 	var editor: Node
 	# warning-ignore:shadowed_variable
 	# warning-ignore:shadowed_variable
+	func as_string() -> String:
+		return 'AddLink('+link['link_key'][0]+'->'+link['link_key'][1]+')'
 	func _init(editor: Node,link: Dictionary):
 		self.link=link
 		self.editor=editor
 	func undo() -> bool:
-		return editor.erase_link(link)
+		editor.deselect(link)
+		return editor.process_if(editor.universe.erase_link(link))
 	func redo() -> bool:
-		return editor.restore_link(link)
+		return editor.process_if(editor.universe.restore_link(link))
 
-class ChangeSelection extends UndoTool.Action:
+# warning-ignore:shadowed_variable
+func string_for(selection) -> String:
+	if selection is Dictionary:
+		var type = str(selection.get('type',''))
+		if type=='system':
+			return selection['id']
+		elif type=='link':
+			return selection['link_key'][0]+'->'+selection['link_key'][1]
+	return str(selection)
+
+class ChangeSelection extends undo_tool.Action:
 	var old_selection
 	var new_selection
 	var editor
 	# warning-ignore:shadowed_variable
+	func as_string() -> String:
+		return 'ChangeSelection(old=['+editor.string_for(old_selection)+ \
+			'],to=['+editor.string_for(new_selection)+'])'
 	func _init(editor: Node,old,new):
 		old_selection=old
 		new_selection=new
 		self.editor=editor
 	func run() -> bool:
-		editor.change_selection_to(new_selection)
+		return editor.change_selection_to(new_selection)
+	func undo() -> bool:
+		return editor.change_selection_to(old_selection) and editor.cancel_drag()
+	func redo() -> bool:
+		return editor.change_selection_to(new_selection) and editor.cancel_drag()
+
+class ChangeDisplayName extends undo_tool.Action:
+	var editor: Node
+	var system_id: String
+	var old_name: String
+	var new_name: String
+	func as_string() -> String:
+		return 'ChangeDisplayName(system_id='+str(system_id)+',old_name='+ \
+			str(old_name)+',new_name='+str(new_name)+')'
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
+	func _init(editor: Node,system_id: String,old_name: String,new_name: String):
+		self.editor=editor
+		self.system_id=system_id
+		self.old_name=old_name
+		self.new_name=new_name
+	func undo() -> bool:
+		return editor.process_if(editor.universe.set_display_name(system_id,old_name))
+	func redo() -> bool:
+		return editor.process_if(editor.universe.set_display_name(system_id,new_name))
+
+class MoveObject extends undo_tool.Action:
+	var editor: Node
+	var object
+	var delta: Vector3
+	var function: String
+	func as_string() -> String:
+		return 'MoveObject(object='+editor.string_for(object)+',delta='+str(delta)+')'
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
+	func _init(editor: Node,var object,function: String):
+		self.editor=editor
+		self.object=object
+		self.delta = Vector3()
+		self.function = function
+# warning-ignore:shadowed_variable
+	func amend(delta: Vector3) -> bool:
+		self.delta += delta
 		return true
 	func undo() -> bool:
-		editor.change_selection_to(old_selection)
-		editor.cancel_drag()
-		return true
+		return editor.process_if(editor.universe.call(function,object,-delta)) \
+			and editor.cancel_drag()
 	func redo() -> bool:
-		editor.change_selection_to(new_selection)
-		editor.cancel_drag()
-		return true
+		return editor.process_if(editor.universe.call(function,object,delta)) \
+			and editor.cancel_drag()
 
 func tri_to_mesh(vertices: PoolVector3Array, uv: PoolVector2Array) -> ArrayMesh:
 	var mesh = ArrayMesh.new()
@@ -499,22 +419,6 @@ func event_position(event: InputEvent) -> Vector2:
 		return event.position
 	return get_viewport().get_mouse_position()
 
-func link_distsq(p: Vector3,link: Dictionary) -> float:
-	# modified from http://geomalgorithms.com/a02-_lines.html#Distance-to-Ray-or-Segment
-	var p0: Vector3 = link['from_position']
-	var c2: float = link['distance_squared']
-	var w: Vector3 = p-p0
-	if abs(c2)<1e-5: # "line segment" is actually a point
-		return w.length_squared()
-	var v: Vector3 = link['along']
-	var c1: float = w.dot(v)
-	if c1<=0:
-		return v.length_squared()
-	var p1: Vector3 = link['to_position']
-	if c2<=c1:
-		return p.distance_squared_to(p1)
-	return p.distance_squared_to(p0+(c1/c2)*v)
-
 func find_at_position(screen_position: Vector2):
 	var epsilon = SELECT_EPSILON*$Camera.size
 	var pos3 = $Camera.project_position(screen_position,-10)
@@ -523,9 +427,9 @@ func find_at_position(screen_position: Vector2):
 	var closest = null
 	var close_distsq = INF
 	
-	data_mutex.lock()
-	for system_id in systems:
-		var system = systems.get(system_id,null)
+	universe.lock()
+	for system_id in universe.systems:
+		var system = universe.get_system(system_id)
 		if not system:
 			continue
 		var distsq = pos3.distance_squared_to(system['position'])
@@ -535,30 +439,33 @@ func find_at_position(screen_position: Vector2):
 	
 	if close_distsq<epsilon:
 		# Always favor selecting a system since they're smaller than a link.
-		data_mutex.unlock()
+		universe.unlock()
 		return closest
 	
-	for link_key in links:
-		var link = link_vectors(link_key)
+	for link_key in universe.links:
+		var link = universe.link_vectors(link_key)
 		if not link:
 			continue
-		var distsq = link_distsq(pos3,link)
+		var distsq = universe.link_distsq(pos3,link)
 		if distsq<close_distsq:
 			close_distsq=distsq
 			closest=link
-	data_mutex.unlock()
+	universe.unlock()
 	
 	return closest if close_distsq<epsilon else null
 
-func change_selection_to(new_selection):
-	data_mutex.lock()
-	selection=new_selection
-	data_mutex.unlock()
-	set_process(true)
+func deselect(what) -> bool:
+	if what is Dictionary and selection==what:
+		selection=null
+		return true
+	return false
 
-func find_link(from: Dictionary,to: Dictionary):
-	var link_key = [from['id'],to['id']] if from['id']<to['id'] else [to['id'],from['id']]
-	return links.get(link_key,null)
+func change_selection_to(new_selection) -> bool:
+	universe.lock()
+	selection=new_selection
+	universe.unlock()
+	set_process(true)
+	return true
 
 func validate_popup() -> bool:
 	var info: String = ''
@@ -567,7 +474,7 @@ func validate_popup() -> bool:
 	if $PopUp/A/A/SystemID.editable:
 		if not $PopUp/A/A/SystemID.text:
 			info='Enter a system ID'
-		elif systems.has($PopUp/A/A/SystemID.text):
+		elif universe.has_system($PopUp/A/A/SystemID.text):
 			info='There is already a "'+$PopUp/A/A/SystemID.text+'" system!'
 		elif not $PopUp/A/A/SystemID.text[0].is_valid_identifier():
 			info='ID must begin with a letter or "_"'
@@ -593,7 +500,9 @@ func make_new_system(event: InputEvent): # -> Dictionary or null
 	var result = popup_result
 	var system = null
 	if result and result['result']==RESULT_ACTION:
-		system = add_system(result['id'],result['display_name'],pos3)
+		system = universe.add_system(result['id'],result['display_name'],pos3)
+		if system and not selection:
+			selection=system
 	set_process(true)
 	return system
 
@@ -611,46 +520,16 @@ func edit_system(system: Dictionary):
 	if result and result['result']==RESULT_ACTION:
 		var old_name = system['display_name']
 		system['display_name'] = result['display_name']
-		state.push(ChangeDisplayName.new(self,system['id'],old_name,result['display_name']))
+		universe.state.push(ChangeDisplayName.new(self,system['id'],old_name,result['display_name']))
 	set_process(true)
-
-func set_display_name(system_id,display_name) -> bool:
-	data_mutex.lock()
-	var system = systems.get(system_id,null)
-	if not system:
-		data_mutex.unlock()
-		return false
-	system['display_name']=display_name
-	set_process(true)
-	data_mutex.unlock()
-	return true
-
-class ChangeDisplayName extends UndoTool.Action:
-	var editor: Node
-	var system_id: String
-	var old_name: String
-	var new_name: String
-# warning-ignore:shadowed_variable
-# warning-ignore:shadowed_variable
-# warning-ignore:shadowed_variable
-# warning-ignore:shadowed_variable
-	func _init(editor: Node,system_id: String,old_name: String,new_name: String):
-		self.editor=editor
-		self.system_id=system_id
-		self.old_name=old_name
-		self.new_name=new_name
-	func undo() -> bool:
-		return editor.set_display_name(system_id,old_name)
-	func redo() -> bool:
-		return editor.set_display_name(system_id,new_name)
 
 func handle_select(event: InputEvent):
 	var pos = event_position(event)
 	var target = find_at_position(pos)
 	if event.shift and selection and selection['type']=='system':
 		if target and target['type']=='system' and target['id']!=selection['id']:
-			var link = find_link(selection,target)
-			if link and state.push(ChangeSelection.new(self,selection,link)):
+			var link = universe.get_link_between(selection,target)
+			if link and universe.state.push(ChangeSelection.new(self,selection,link)):
 #				change_selection_to(link)
 				last_position = $Camera.project_position(pos,-10)
 				last_screen_position = pos
@@ -658,7 +537,7 @@ func handle_select(event: InputEvent):
 				am_moving = false
 			return
 	if selection!=target:
-		state.push(ChangeSelection.new(self,selection,target))
+		universe.state.push(ChangeSelection.new(self,selection,target))
 #	change_selection_to(target)
 	last_position = $Camera.project_position(pos,-10)
 	last_screen_position = pos
@@ -672,25 +551,18 @@ func handle_modify(event: InputEvent):
 		if selection and at['type']=='system' and selection['type']=='system':
 			if at['id']==selection['id']:
 				return edit_system(selection)
-			if not find_link(selection,at):
-				var link = add_link(selection,at)
+			if not universe.get_link_between(selection,at):
+				var link = process_if(universe.add_link(selection,at))
 				if link:
-					state.push(AddLink.new(self,link))
+					universe.state.push(AddLink.new(self,link))
 	elif not event.shift:
 		at = make_new_system(event)
 		while at is GDScriptFunctionState and at.is_valid():
 			at = yield(at,'completed')
-		if at and at!=selection and selection and selection['type']=='system':
-			add_link(selection,at)
 		if at:
-			state.push(AddSystem.new(self,at))
-
-func move_system(system: Dictionary,delta: Vector3) -> bool:
-	data_mutex.lock()
-	system['position'] += Vector3(delta.x,0.0,delta.z)
-	data_mutex.unlock()
-	set_process(true)
-	return true
+			if selection and at!=selection and selection['type']=='system':
+				process_if(universe.add_link(selection,at))
+			universe.state.push(AddSystem.new(self,at))
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $Camera.size
@@ -698,46 +570,6 @@ func set_zoom(zoom: float,original: float=-1) -> void:
 	if new!=$Camera.size:
 		$Camera.size = new
 		set_process(true)
-
-func set_system_position(system: Dictionary,pos: Vector3):
-	data_mutex.lock()
-	system['position']=pos
-	data_mutex.unlock()
-	set_process(true)
-
-class MoveObject extends UndoTool.Action:
-	var editor: Node
-	var object
-	var delta: Vector3
-	var function: String
-# warning-ignore:shadowed_variable
-# warning-ignore:shadowed_variable
-# warning-ignore:shadowed_variable
-	func _init(editor: Node,var object,function: String):
-		self.editor=editor
-		self.object=object
-		self.delta = Vector3()
-		self.function = function
-# warning-ignore:shadowed_variable
-	func amend(delta: Vector3) -> bool:
-		self.delta += delta
-		return true
-	func undo() -> bool:
-		editor.cancel_drag()
-		return editor.call(function,object,-delta)
-	func redo() -> bool:
-		editor.cancel_drag()
-		return editor.call(function,object,delta)
-
-func move_link(link,delta) -> bool:
-	data_mutex.lock()
-	for system_id in link['link_key']:
-		var system = systems.get(system_id,null)
-		if system:
-			system['position'] += delta
-	data_mutex.unlock()
-	set_process(true)
-	return true
 
 func _input(event):
 	if $PopUp.visible:
@@ -753,17 +585,21 @@ func _input(event):
 			var delta: Vector3 = pos3-last_position
 			if selection:
 				if selection['type']=='system':
-					if not state.top() or not state.top() is MoveObject or \
-							not state.top().object==selection:
-						state.push(MoveObject.new(self,selection,'move_system'))
-					if move_system(selection,delta):
-						state.amend(delta)
+					var top = universe.state.top()
+					if not top or not top is MoveObject or not top.object==selection:
+						universe.state.push(MoveObject.new(self,selection,'move_system'))
+						top=universe.state.top()
+					if process_if(universe.move_system(selection,delta)):
+						assert(top and top is MoveObject and top.object==selection)
+						universe.state.amend(delta)
 				elif selection['type']=='link':
-					if not state.top() or not state.top() is MoveObject or \
-							not state.top().object==selection:
-						state.push(MoveObject.new(self,selection,'move_link'))
-					if move_link(selection,delta):
-						state.amend(delta)
+					var top = universe.state.top()
+					if not top or not top is MoveObject or not top.object==selection:
+						universe.state.push(MoveObject.new(self,selection,'move_link'))
+						top = universe.state.top()
+					if process_if(universe.move_link(selection,delta)):
+						assert(top and top is MoveObject and top.object==selection)
+						universe.state.amend(delta)
 				last_position=pos3
 			else:
 				var pos3_start: Vector3 = $Camera.project_position(last_screen_position,-10)
@@ -774,27 +610,29 @@ func _input(event):
 					set_process(true)
 		else:
 			last_position=null
-	
+
 	if event.is_action_pressed('ui_location_select'):
 		handle_select(event)
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_location_modify'):
 		handle_modify(event)
 		get_tree().set_input_as_handled()
+	elif event.is_action_released('ui_location_select'):
+		var _discard = cancel_drag()
 	elif event.is_action_pressed('ui_delete') and selection:
 		if selection['type']=='link':
-			state.push(EraseLink.new(self,selection))
+			universe.state.push(EraseLink.new(self,selection))
 #			var _discard = erase_link(selection)
 			get_tree().set_input_as_handled()
 		elif selection['type']=='system':
-			state.push(EraseSystem.new(self,selection))
+			universe.state.push(EraseSystem.new(self,selection))
 #			var _discard = erase_system(selection)
 			get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_undo'):
-		state.undo()
+		universe.state.undo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_redo'):
-		state.redo()
+		universe.state.redo()
 		get_tree().set_input_as_handled()
 	
 	var ui_zoom: int = 0
@@ -815,7 +653,6 @@ func _input(event):
 	if abs(ui_scroll)<.05:
 		ui_scroll=0
 	set_zoom(zoom)
-
 
 func _on_Action_pressed():
 	popup_result = {
@@ -847,7 +684,6 @@ func _on_DisplayName_text_entered(_new_text):
 func _on_SystemID_text_entered(_new_text):
 	if validate_popup():
 		_on_Action_pressed()
-
 
 func _on_Annotations_draw():
 	draw_mutex.lock()
