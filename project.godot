@@ -21,10 +21,10 @@ config/icon="res://icon.png"
 
 [autoload]
 
-undo_tool="*res://UndoTool.gd"
-game_state="*res://GameState.gd"
-combat_engine="*res://CombatEngine.gd"
-mesh_loader="*res://MeshLoaderNode.gd"
+undo_tool="*res://globals/UndoTool.gd"
+game_state="*res://globals/GameState.gd"
+combat_engine="*res://globals/CombatEngine.gd"
+mesh_loader="*res://globals/MeshLoaderNode.gd"
 
 [display]
 
