@@ -1,5 +1,13 @@
 extends Node
 
+const standalone_team_maximums: Array = [ 200,200 ]
+const standalone_max_ships: int = 300
+const debug_team_maximums: Array = [35, 35]
+const debug_max_ships: int = 60
+
+var team_maximums: Array = standalone_team_maximums
+var max_ships: int = standalone_max_ships
+
 var SystemInfo = preload('res://places/SystemInfo.gd')
 var PlanetInfo = preload('res://places/PlanetInfo.gd')
 var Universe = preload('res://places/Universe.gd')
@@ -259,6 +267,11 @@ func make_test_designs():
 
 
 func _init():
+	universe.load_from_json('res://places/universe.json')
+	if not OS.has_feature('standalone'):
+#		print('Reducing ship count for debug build')
+		max_ships = debug_max_ships
+		team_maximums = debug_team_maximums
 	services['test'] = PlanetServices.ChildInstanceService.new(
 		'Service Text',preload('res://ui/TestService.tscn'))
 	services['alttest'] = PlanetServices.ChildInstanceService.new(

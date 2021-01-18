@@ -26,45 +26,41 @@ const default_fleets: Array = [
 	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':1 },
 ]
 
-const standalone_team_maximums: Array = [ 200,200 ]
-const standalone_max_ships: int = 300
-const debug_team_maximums: Array = [35, 35]
-const debug_max_ships: int = 60
-
-var team_maximums: Array = standalone_team_maximums
-var max_ships: int = standalone_max_ships
-var fleets: Array = default_fleets
+var fleets: Array
+var links: Dictionary
+var position: Vector3 setget set_position
 var rng
+
+func set_position(v: Vector3):
+	position=Vector3(v.x,0.0,v.z)
 
 func is_a_system() -> bool: return true
 func is_a_planet() -> bool: return false
 
 func is_SystemData(): pass # never called; must only exist
 
-#func add_planet(planet_name: String,planet: Reference):
-#	add_child(planet_name,planet)
-#	return self
-#
 func full_display_name():
 	return display_name
 
 func encode() -> Dictionary:
-	return {
+	var result = {
 		'display_name':display_name,
-		'fleets':fleets.duplicate(true),
+		'position':position,
+		'links':links,
 	}
+	if fleets!=default_fleets:
+		result['fleets']=fleets.duplicate(true)
+	return result
 
 func _init(the_name,content: Dictionary):
 	display_name = content.get('display_name','(unnamned)')
 	fleets = content.get('fleets',default_fleets)
+	links = content.get('links',{})
+	set_position(content.get('position',Vector3()))
 	if the_name:
 		set_name(the_name)
 	rng = RandomNumberGenerator.new()
 	rng.randomize()
-	if not OS.has_feature('standalone'):
-		print('Reducing ship count for debug build')
-		max_ships = debug_max_ships
-		team_maximums = debug_team_maximums
 	var objects = content.get('objects',{})
 	if objects and objects is Dictionary:
 		for key in objects:
@@ -80,19 +76,19 @@ func get_display_name() -> String:
 	return display_name
 
 func num_planets():
-	var n=0
-	for child in get_children():
-		if child.is_a_planet():
-			n += 1+child.num_planets()
-	return n
+	return get_child_count()
+#	var n=0
+#	for child in get_children():
+#		if child.is_a_planet():
+#			n += 1+child.get_child_count()
+#	return n
 
 func astral_gate_path() -> NodePath:
 	for child in get_children():
-		if not child.is_a_planet():
-			continue
-		var p: NodePath = child.astral_gate_path()
-		if not p.is_empty():
-			return p
+		if child.has_method('astral_gate_path'):
+			var p: NodePath = child.astral_gate_path()
+			if not p.is_empty():
+				return p
 	return NodePath()
 
 func spawn_ship(var _system,var ship_design: Dictionary,team: int,angle: float,
@@ -148,11 +144,11 @@ func process_space(system,delta) -> Array:
 		var size: int = fleet_size(fleet['ships'])
 		var team: int = fleet['team']
 		var enemy: int = 1-team
-		if stats[team]['count']+size>team_maximums[team]:
+		if stats[team]['count']+size>game_state.team_maximums[team]:
 			continue
 		if stats[team]['threat'] > stats[enemy]['threat']*1.5 and stats[team]['count']>1:
 			continue
-		if stats[team]['count']+stats[enemy]['count']+size > max_ships:
+		if stats[team]['count']+stats[enemy]['count']+size > game_state.max_ships:
 			continue
 		result += spawn_fleet(system,fleet['ships'],team)
 		stats[team]['count'] += size

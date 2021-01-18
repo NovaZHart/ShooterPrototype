@@ -1,0 +1,136 @@
+{
+  "seti_alpha": [
+    "SystemData",
+    {
+      "display_name": "Seti-α",
+      "position": [
+        "Vector3",
+        1,
+        0,
+        1
+      ],
+      "links": {
+        "alef_93": 1
+      },
+      "objects": {
+        "sun": [
+          "SpaceObjectData",
+          {
+            "services": [
+              "Array"
+            ],
+            "display_name": "Seti-α",
+            "description": "",
+            "base": "yellow_sun",
+            "shader_seed": 1231333334,
+            "orbit_radius": 0,
+            "orbit_period": 0,
+            "has_astral_gate": true,
+            "objects": {
+              "storm": [
+                "SpaceObjectData",
+                {
+                  "services": [
+                    "Array",
+                    "info",
+                    "missing",
+                    "shipeditor"
+                  ],
+                  "display_name": "Storm",
+                  "description": "Description of Storm planet.",
+                  "base": "ocean_planet",
+                  "size": 3,
+                  "shader_seed": 321321321,
+                  "orbit_radius": 200,
+                  "orbit_period": 300,
+                  "has_astral_gate": false,
+                  "objects": {
+
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ],
+  "alef_93": [
+    "SystemData",
+    {
+      "display_name": "א-93",
+      "position": [
+        "Vector3",
+        6.025001,
+        0,
+        -5.725
+      ],
+      "links": {
+        "seti_alpha": 1
+      },
+      "objects": {
+        "astra": [
+          "SpaceObjectData",
+          {
+            "services": [
+              "Array"
+            ],
+            "display_name": "Astra",
+            "description": "",
+            "base": "blue_sun",
+            "shader_seed": 91,
+            "orbit_radius": 0,
+            "orbit_period": 0,
+            "has_astral_gate": true,
+            "objects": {
+              "hellscape": [
+                "SpaceObjectData",
+                {
+                  "services": [
+                    "Array",
+                    "info",
+                    "shipeditor"
+                  ],
+                  "display_name": "Hellscape",
+                  "description": "",
+                  "base": "fiery_rock",
+                  "size": 2,
+                  "shader_seed": 391,
+                  "orbit_radius": 200,
+                  "orbit_period": 91,
+                  "has_astral_gate": false,
+                  "objects": {
+
+                  }
+                }
+              ],
+              "pearl": [
+                "SpaceObjectData",
+                {
+                  "services": [
+                    "Array",
+                    "info",
+                    "test",
+                    "alttest",
+                    "shipeditor"
+                  ],
+                  "display_name": "Pearl",
+                  "description": "Description of Pearl planet.",
+                  "base": "ice_planet",
+                  "size": 4,
+                  "shader_seed": 913,
+                  "orbit_radius": 450,
+                  "orbit_period": 1092,
+                  "has_astral_gate": false,
+                  "objects": {
+
+                  }
+                }
+              ]
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

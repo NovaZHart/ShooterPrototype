@@ -96,28 +96,24 @@ func _process(_delta):
 	var new_draw_commands: Array = []
 
 	game_state.universe.lock()
-	var systems: Dictionary = game_state.universe.systems
-	$Systems.visible=not not systems
+	$Systems.visible=game_state.universe.has_children()
 	var view_rect: Rect2 = Rect2(Vector2(-20,-20),get_viewport().size+Vector2(20,20))
 	var text_offset: float = abs($Camera.unproject_position(Vector3()).x - \
 			$Camera.unproject_position(Vector3(system_scale,0,system_scale)).x)
 	var selected_system = ''
-	if selection and selection['type']=='system':
-		selected_system=selection['id']
+	var child_names = game_state.universe.get_child_names()
+	if selection and selection is simple_tree.SimpleNode:
+		selected_system=selection.get_name()
 	var selected_link = ['','']
-	if selection and selection['type']=='link':
+	if selection is Dictionary:
 		selected_link=selection['link_key']
-	if systems:
-		system_data.resize(16*len(systems))
+	if game_state.universe.has_children():
+		system_data.resize(16*len(child_names))
 		var i: int=0
 		var ascent: float = label_font.get_ascent()
-		for system_id in systems:
-			var system: Dictionary = systems[system_id]
-			var pos = system.get('position',null)
-			if pos==null or not pos is Vector3:
-				printerr('System ',system_id,' lacks a position.')
-				continue
-			pos.y=0
+		for system_id in child_names:
+			var system = game_state.universe.get_child_with_name(system_id)
+			assert(system is simple_tree.SimpleNode)
 			var color: Color = system_color
 			var font: Font = label_font
 			if system_id==selected_system:
@@ -126,7 +122,7 @@ func _process(_delta):
 			elif selected_link[0]==system_id or selected_link[1]==system_id:
 				color = connected_color
 				font = highlighted_font
-			var pos2: Vector2 = $Camera.unproject_position(pos)
+			var pos2: Vector2 = $Camera.unproject_position(system.position)
 			if view_rect.has_point(pos2):
 				var text_size: Vector2 = label_font.get_string_size(system['display_name'])
 				new_draw_commands.append(['draw_string',font,\
@@ -135,7 +131,7 @@ func _process(_delta):
 			system_data[i +  0] = system_scale
 			system_data[i +  1] = 0.0
 			system_data[i +  2] = 0.0
-			system_data[i +  3] = pos.x
+			system_data[i +  3] = system.position.x
 			system_data[i +  4] = 0.0
 			system_data[i +  5] = 1.0
 			system_data[i +  6] = 0.0
@@ -143,13 +139,13 @@ func _process(_delta):
 			system_data[i +  8] = 0.0
 			system_data[i +  9] = 0.0
 			system_data[i + 10] = system_scale
-			system_data[i + 11] = pos.z
+			system_data[i + 11] = system.position.z
 			system_data[i + 12] = color.r
 			system_data[i + 13] = color.g
 			system_data[i + 14] = color.b
 			system_data[i + 15] = color.a
 			i+=16
-		system_multimesh.instance_count=len(systems)
+		system_multimesh.instance_count=len(child_names)
 		system_multimesh.visible_instance_count=-1
 		system_multimesh.set_as_bulk_array(system_data)
 	
@@ -177,7 +173,7 @@ func _process(_delta):
 			link_data[i +  4] = 0.0
 			link_data[i +  5] = 1.0
 			link_data[i +  6] = 0.0
-			link_data[i +  7] = -0.5
+			link_data[i +  7] = 0.0
 			link_data[i +  8] = -link_sin*link_len
 			link_data[i +  9] = 0.0
 			link_data[i + 10] = link_cos*link_scale
@@ -274,7 +270,7 @@ func find_at_position(screen_position: Vector2):
 	var close_distsq = INF
 	
 	game_state.universe.lock()
-	for system_id in game_state.universe.systems:
+	for system_id in game_state.universe.get_child_names():
 		var system = game_state.universe.get_system(system_id)
 		if not system:
 			continue
@@ -301,7 +297,9 @@ func find_at_position(screen_position: Vector2):
 	return closest if close_distsq<epsilon else null
 
 func deselect(what) -> bool:
-	if what is Dictionary and selection==what:
+	if (what is Dictionary and selection is Dictionary and what==selection) or \
+		(what is simple_tree.SimpleNode and selection is simple_tree.SimpleNode \
+		and what==selection):
 		selection=null
 		return true
 	return false
@@ -330,7 +328,7 @@ func validate_popup() -> bool:
 	$PopUp/A/B/Action.disabled = not not info
 	return not info
 
-func make_new_system(event: InputEvent): # -> Dictionary or null
+func make_new_system(event: InputEvent): # -> SimpleNode or null
 	var screen_position: Vector2 = event_position(event)
 	var pos3 = $Camera.project_position(screen_position,-10)
 	pos3.y=0
@@ -352,9 +350,9 @@ func make_new_system(event: InputEvent): # -> Dictionary or null
 	set_process(true)
 	return system
 
-func edit_system(system: Dictionary):
+func edit_system(system):
 	$PopUp/A/B/Action.text = 'Apply'
-	$PopUp/A/A/SystemID.text = system['id']
+	$PopUp/A/A/SystemID.text = system.get_name()
 	$PopUp/A/A/SystemID.editable = false
 	$PopUp/A/A/DisplayName.text = system['display_name']
 	popup_result = null
@@ -364,17 +362,17 @@ func edit_system(system: Dictionary):
 		yield(get_tree(),'idle_frame')
 	var result = popup_result
 	if result and result['result']==RESULT_ACTION:
-		var old_name = system['display_name']
-		system['display_name'] = result['display_name']
+		var old_name = system.display_name
+		system.display_name = result['display_name']
 		editor.state.push(editor.ChangeDisplayName.new(
-			self,system['id'],old_name,result['display_name']))
+			self,system.get_name(),old_name,result['display_name']))
 	set_process(true)
 
 func handle_select(event: InputEvent):
 	var pos = event_position(event)
 	var target = find_at_position(pos)
-	if event.shift and selection and selection['type']=='system':
-		if target and target['type']=='system' and target['id']!=selection['id']:
+	if event.shift and selection is simple_tree.SimpleNode:
+		if target is simple_tree.SimpleNode and target.get_name()!=selection.get_name():
 			var link = game_state.universe.get_link_between(selection,target)
 			if link and editor.state.push(
 					editor.ChangeSelection.new(self,selection,link)):
@@ -384,7 +382,7 @@ func handle_select(event: InputEvent):
 				camera_start = $Camera.translation
 				am_moving = false
 			return
-	if selection!=target:
+	if typeof(selection)!=typeof(target) or selection!=target:
 		editor.state.push(editor.ChangeSelection.new(self,selection,target))
 #	change_selection_to(target)
 	last_position = $Camera.project_position(pos,-10)
@@ -396,8 +394,8 @@ func handle_modify(event: InputEvent):
 	var loc: Vector2 = event_position(event)
 	var at = find_at_position(loc)
 	if at:
-		if selection and at['type']=='system' and selection['type']=='system':
-			if at['id']==selection['id']:
+		if selection and at is simple_tree.SimpleNode:
+			if at.get_name()==selection.get_name():
 				return edit_system(selection)
 			if not game_state.universe.get_link_between(selection,at):
 				var link = process_if(game_state.universe.add_link(selection,at))
@@ -408,7 +406,7 @@ func handle_modify(event: InputEvent):
 		while at is GDScriptFunctionState and at.is_valid():
 			at = yield(at,'completed')
 		if at:
-			if selection and at!=selection and selection['type']=='system':
+			if selection is simple_tree.SimpleNode and at!=selection:
 				process_if(game_state.universe.add_link(selection,at))
 			editor.state.push(editor.AddSystem.new(self,at))
 
@@ -429,29 +427,14 @@ func save_load(save: bool) -> bool:
 	while $FileDialog.visible:
 		yield(get_tree(),'idle_frame')
 	if not selected_file:
-		print('save canceled')
-		return false
-	if save:
-		print('save to file "',selected_file,'"')
-		var encoded: String = game_state.universe.encode()
-		var file: File = File.new()
-		if file.open(selected_file, File.WRITE):
-			printerr('Cannot open file ',selected_file,'!!')
-			return false
-		file.store_string(encoded)
-		file.close()
-	else:
-		print('load from file "',selected_file,'"')
-		var file: File = File.new()
-		if file.open(selected_file, File.READ):
-			printerr('Cannot open file ',selected_file,'!!')
-			return false
-		var encoded: String = file.get_as_text()
-		file.close()
-		if game_state.universe.decode(encoded,selected_file):
-			editor.state.clear()
+		return false # canceled
+	elif save:
+		return game_state.universe.save_to_json(selected_file)
+	elif game_state.universe.load_from_json(selected_file):
+		editor.state.clear()
 		set_process(true)
-	return true
+		return true
+	return false
 
 func _input(event):
 	if $PopUp.visible:
@@ -468,7 +451,7 @@ func _input(event):
 			var pos3: Vector3 = $Camera.project_position(pos2,-10)
 			var delta: Vector3 = pos3-last_position
 			if selection:
-				if selection['type']=='system':
+				if selection is simple_tree.SimpleNode:
 					var top = editor.state.top()
 					if not top or not top is editor.MoveObject \
 							or not top.object==selection:
@@ -477,7 +460,7 @@ func _input(event):
 						top=editor.state.top()
 					if process_if(game_state.universe.move_system(selection,delta)):
 						editor.state.amend(delta)
-				elif selection['type']=='link':
+				elif selection is Dictionary:
 					var top = editor.state.top()
 					if not top or not top is editor.MoveObject or \
 							not top.object==selection:
@@ -511,11 +494,11 @@ func _input(event):
 		save_load(false)
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_delete') and selection:
-		if selection['type']=='link':
+		if selection is Dictionary:
 			editor.state.push(editor.EraseLink.new(self,selection))
 #			var _discard = erase_link(selection)
 			get_tree().set_input_as_handled()
-		elif selection['type']=='system':
+		elif selection is simple_tree.SimpleNode:
 			editor.state.push(editor.EraseSystem.new(self,selection))
 #			var _discard = erase_system(selection)
 			get_tree().set_input_as_handled()

@@ -3,15 +3,15 @@ extends Reference
 var state = undo_tool.UndoStack.new(false)
 
 class AddSystem extends undo_tool.Action:
-	var system: Dictionary
+	var system
 	var editor: Node
 	var was_selected: bool
 	func as_string() -> String:
-		return 'AddSystem('+str(system['id'])+')'
-	func _init(editor_: Node,system_: Dictionary):
+		return 'AddSystem('+str(system.get_name())+')'
+	func _init(editor_: Node,system_):
 		system=system_
 		editor=editor_
-		was_selected = editor.selection is Dictionary and editor.selection==system
+		was_selected = editor.selection is simple_tree.SimpleNode and editor.selection==system
 	func undo() -> bool:
 		editor.deselect(system)
 		return editor.process_if(game_state.universe.erase_system(system))
@@ -21,15 +21,15 @@ class AddSystem extends undo_tool.Action:
 		return false
 
 class EraseSystem extends undo_tool.Action:
-	var system: Dictionary
+	var system
 	var editor: Node
 	var was_selected: bool
 	func as_string() -> String:
-		return 'Erase('+str(system['id'])+')'
-	func _init(editor_: Node,system_: Dictionary):
+		return 'Erase('+str(system.get_name())+')'
+	func _init(editor_: Node,system_):
 		system=system_
 		editor=editor_
-		was_selected=editor.selection is Dictionary and editor.selection==system
+		was_selected=editor.selection is simple_tree.SimpleNode and editor.selection==system
 	func run() -> bool:
 		editor.deselect(system)
 		return editor.process_if(game_state.universe.erase_system(system))

@@ -18,6 +18,15 @@ class SimpleNode extends Reference:
 	func is_root():
 		return is_root_
 
+	func get_child_count() -> int:
+		return len(children_)
+	
+	func has_children() -> bool:
+		return len(children_)>0
+
+	func has_child(id) -> bool:
+		return children_.has(id)
+
 	func set_name(n: String):
 		var p = parent_.get_ref()
 		if p:
@@ -76,6 +85,12 @@ class SimpleNode extends Reference:
 			push_error('tried to get parent of orphaned node')
 		return p
 
+	func get_child_names():
+		return children_.keys()
+	
+	func get_child_with_name(name: String):
+		return children_.get(name,null)
+
 	func get_children():
 		return children_.values()
 
@@ -83,6 +98,17 @@ class SimpleNode extends Reference:
 		var parent_node = parent_.get_ref()
 		if parent_node:
 			parent_node.remove_child(self)
+
+	func remove_all_children() -> bool:
+		var names = children_.keys()
+		if not names:
+			return false
+		for name in names:
+			var child = children_.get(name,null)
+			if child:
+				child.clear_parent_()
+			var _discard = children_.erase(name)
+		return true
 
 	func remove_child(child: SimpleNode) -> bool:
 		var child_name = child.name_

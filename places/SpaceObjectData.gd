@@ -96,11 +96,10 @@ func astral_gate_path() -> NodePath:
 	if has_astral_gate:
 		return NodePath() # FIXME: game_state.universe.get_path_to(self)
 	for child in get_children():
-		if not child.get_class() == 'PlanetInfo':
-			continue
-		var p: NodePath = child.astral_gate_path()
-		if not p.is_empty():
-			return p
+		if child.has_method('astral_gate_path'):
+			var p: NodePath = child.astral_gate_path()
+			if not p.is_empty():
+				return p
 	return NodePath()
 
 func get_it(info: Dictionary,type: Dictionary,key: String, var default):
