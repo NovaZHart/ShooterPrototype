@@ -28,7 +28,7 @@ export var help_page: String = 'equipment'
 func is_mount_point(): # Never called; must only exist
 	pass
 
-func is_mounted(): # Never called; must only exist
+func is_not_mounted(): # Never called; must only exist
 	pass
 
 func get_mount_size_x() -> int:

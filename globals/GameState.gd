@@ -101,16 +101,30 @@ func assemble_ship(design: Dictionary):
 	for child in body.get_children():
 		if child is CollisionShape and child.scale.y<10:
 			child.scale.y=10
-		if child.name!='hull' and design.has(child.name) and design[child.name] is PackedScene:
-			var new_child: Node = design[child.name].instance()
-			if new_child!=null:
-				new_child.transform = child.transform
-				new_child.name = child.name
-				body.remove_child(child)
-				child.queue_free()
-				body.add_child(new_child)
+		if child.name!='hull' and design.has(child.name):
+			if design[child.name] is PackedScene:
+				var new_child: Node = design[child.name].instance()
+				if new_child!=null:
+					new_child.transform = child.transform
+					new_child.name = child.name
+					body.remove_child(child)
+					child.queue_free()
+					body.add_child(new_child)
+					continue
+			elif design[child.name] is Array:
+				for content in design[child.name]:
+					if len(content)<3:
+						continue
+					var scene = content[2]
+					if scene is PackedScene:
+						var new_child: Node = scene.instance()
+						if new_child!=null:
+							new_child.transform = child.transform
+							new_child.name = child.name+'_at_'+str(content[0])+'_'+str(content[1])
+							body.add_child(new_child)
 				continue
-		
+	body.pack_stats(true)
+	for child in body.get_children():
 		if child.has_method('is_not_mounted'):
 			# Unused slots are removed to save space in the scene tree
 			body.remove_child(child)
@@ -230,7 +244,7 @@ func _init():
 	assert(universe.get_path_str()=='/root')
 	universe.load_from_json('res://places/universe.json')
 
-	set_player_location(NodePath('/root/seti_alpha/sun/storm'))
+	set_player_location(NodePath('/root/alef_93/astra/pearl'))
 	assert(player_location)
 	assert(system)
 

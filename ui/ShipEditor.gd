@@ -153,6 +153,7 @@ func make_ship(design: Dictionary):
 	if existing:
 		remove_child(existing)
 		existing.queue_free()
+	ship.pack_stats(true)
 	add_child(ship)
 	ship.name = 'Ship'
 	assert(ship.get_parent())

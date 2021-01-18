@@ -75,7 +75,7 @@ func repack_stats() -> Dictionary:
 func pack_stats(quiet: bool = false) -> Dictionary:
 	if not combined_stats.has('mass'):
 		if not quiet:
-			printerr('No stats in pack_stats! Making stats now.')
+			push_error('No stats in pack_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[]})
 	return combined_stats
 
@@ -85,7 +85,8 @@ func add_stats(stats: Dictionary) -> void:
 	stats['explosion_impulse']=base_explosion_impulse
 	stats['explosion_delay']=base_explosion_delay
 	stats['name']=name
-	stats['rid']=get_rid()
+	if is_inside_tree():
+		stats['rid']=get_rid()
 	stats['thrust']=base_thrust
 	stats['reverse_thrust']=base_reverse_thrust
 	stats['turn_rate']=base_turn_rate
@@ -103,7 +104,7 @@ func add_stats(stats: Dictionary) -> void:
 	if override_size.length()>1e-5:
 		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
 		stats['aabb']=AABB(-size*0.5,size)
-	else:
+	elif is_inside_tree():
 		stats['aabb']=get_combined_aabb()
 	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
@@ -156,7 +157,7 @@ func get_bbcode() -> String:
 			if child.mount_type=='gun' or child.mount_type=='turret':
 				dps += child.damage / max(1.0/60,child.firing_delay)
 	
-	var s: Dictionary = pack_stats()
+	var s: Dictionary = pack_stats(true)
 	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
 	#var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n'
 	var bbcode = '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
@@ -206,7 +207,7 @@ func get_bbcode() -> String:
 func _ready():
 	var must_update: bool = false
 	if not combined_stats.has('mass'):
-		var _discard = pack_stats(true)
+		var _discard = pack_stats(false)
 	else:
 		must_update = true
 
