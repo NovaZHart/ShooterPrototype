@@ -10,12 +10,14 @@ var current_service: NodePath
 signal jump_complete
 
 func _ready():
+	print('ready orbital screen')
 	combat_engine.clear_visuals()
 	var system_name = game_state.system.display_name
-	var planet_info = game_state.get_planet_info_or_null()
+	var planet_info = game_state.get_space_object_or_null()
+	assert(planet_info)
 	if planet_info==null:
 		# Cannot land here
-		print('ERROR: NULL PLANET INFO')
+		push_error('ERROR: NULL PLANET INFO')
 		var _discard=get_tree().change_scene('res://ui/SpaceScreen.tscn')
 		return
 	planet=planet_info.make_planet(600,0)
@@ -70,10 +72,10 @@ func camera_and_label(system_name: String,planet_name: String):
 	$Camera.translate_object_local(Vector3(0.0,0.0,10.0))
 
 func astral_jump(system_node_name: String,planet_location: NodePath):
-	game_state.system=game_state.get_node(system_node_name)
+	game_state.system=game_state.universe.get_node(system_node_name)
 	game_state.player_location=planet_location
 	planet.queue_free()
-	var planet_info = game_state.get_planet_info_or_null()
+	var planet_info = game_state.get_space_object_or_null()
 	var system_info = game_state.system
 	if planet_info==null:
 		# Cannot land here
@@ -94,8 +96,11 @@ func deorbit():
 	game_state.print_to_console('Departing '+$LocationLabel.text)
 	var _discard=get_tree().change_scene('res://ui/SpaceScreen.tscn')
 
-func _process(delta):
-	if Input.is_action_just_released('ui_depart'):
+func _input(event):
+	if event.is_action_released('ui_depart'):
+		print('deorbit requested via ui_depart action')
+		get_tree().set_input_as_handled()
 		deorbit()
-	else:
-		planet.rotate_y(0.4*delta)
+
+func _process(delta):
+	planet.rotate_y(0.4*delta)

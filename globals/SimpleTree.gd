@@ -59,18 +59,24 @@ class SimpleNode extends Reference:
 		parent_ = NoRef.new()
 		set_tree(NoRef.new())
 
-	# warning-ignore:shadowed_variable
-	func set_parent(parent: WeakRef):
+	func make_root_of(tree: WeakRef):
 		unparent()
-		parent_=parent
+		is_root_ = true
+		set_tree(tree)
 		path_array_ = null
 		node_path_ = null
 		path_string_ = null
+
+	func set_parent(parent: WeakRef):
+		unparent()
+		parent_=parent
 		var p = parent.get_ref()
-		assert(p)
 		if p:
 			set_tree(p.tree_)
 			is_root_=false
+		path_array_ = null
+		node_path_ = null
+		path_string_ = null
 
 	func get_tree():
 		return tree_.get_ref()
@@ -172,7 +178,9 @@ class SimpleNode extends Reference:
 
 	func get_path_str() -> String:
 		if path_string_ == null:
-			if not parent_.get_ref():
+			if is_root_:
+				path_string_='/root'
+			elif not parent_.get_ref():
 				push_error('Tried to get path to an orphaned SpaceObjectData.')
 				path_string_=''
 			elif not tree_.get_ref():
@@ -192,7 +200,12 @@ class SimpleNode extends Reference:
 		return t.get_node_or_null(path,self) if t else null
 
 	func get_node(path: NodePath) -> SimpleNode:
-		return get_node_or_null(path)
+		var result = get_node_or_null(path)
+		if not result or not result is SimpleNode:
+			push_error(str(self)+' has no node at path '+str(path))
+		assert(result)
+		assert(result is SimpleNode)
+		return result
 
 	func get_path_to(other) -> NodePath:
 		var a: Array = get_path_array()
@@ -200,7 +213,6 @@ class SimpleNode extends Reference:
 		var i: int = 0
 		while i<len(a) and i<len(b) and a[i]==b[i]:
 			i+=1
-		print(i,' ',a,' ',b,' ',b.slice(i,len(b)))
 		if i==len(a):
 			return NodePath(slash_join(b.slice(i,len(b)),false))
 		return NodePath()
@@ -210,24 +222,19 @@ class SimpleNode extends Reference:
 
 class SimpleTree extends Reference:
 	var root_: SimpleNode
-	func _init(root=null):
-		if root_==null:
-			root_ = SimpleNode.new()
-		else:
-			root_ = root
-		root_.tree_=weakref(self)
-		root_.is_root_=true
+	func _init(root):
+		root_ = root
+		root_.make_root_of(weakref(self))
 	func get_root():
 		return root_
 	func get_node_or_null(path: NodePath,start=null):
+		var obj = root_ if (start==null or path.is_absolute()) else start
 		if path.is_empty():
 			return null
-		var obj = root_ if (start==null or path.is_absolute()) else start
 		for i in range(path.get_name_count()):
 			if obj==null:
 				return obj
 			var name = path.get_name(i)
-			print('index ',i,' has ',name)
 			if i==0 and name=='root' and path.is_absolute():
 				continue
 			obj = obj.children_.get(name,null)

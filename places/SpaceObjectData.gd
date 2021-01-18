@@ -94,7 +94,7 @@ func _init(node_name,me: Dictionary):
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:
-		return NodePath() # FIXME: game_state.universe.get_path_to(self)
+		return get_path()
 	for child in get_children():
 		if child.has_method('astral_gate_path'):
 			var p: NodePath = child.astral_gate_path()
@@ -111,7 +111,7 @@ func make_unique_name() -> String:
 	var parent = get_parent()
 	if parent==null:
 		return uname
-	elif parent.is_a_planet():
+	elif parent.has_method('make_unique_name'):
 		return parent.make_unique_name() + '_' + uname
 	return parent.get_name() + '_' + uname
 
@@ -150,7 +150,7 @@ func make_planet(detail: float=150, time: float=0):
 	planet.display_name = display_name
 	planet.full_display_name = full_display_name()
 	planet.has_astral_gate = has_astral_gate
-	planet.game_state_path = NodePath() # FIXME: game_state.get_path_to(self)
+	planet.game_state_path = game_state.universe.get_path_to(self)
 	return planet
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float):

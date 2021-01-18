@@ -19,7 +19,7 @@ func _ready():
 	anchor_right=0
 	anchor_top=0
 	anchor_bottom=0
-	var planet_info = game_state.get_planet_info_or_null()
+	var planet_info = game_state.get_space_object_or_null()
 	var service_names = [] if planet_info==null else planet_info.services
 	var i=0
 	for service_name in service_names:

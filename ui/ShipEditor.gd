@@ -565,12 +565,14 @@ func at_position(pos,mask: int) -> Dictionary:
 
 func _unhandled_input(event: InputEvent):
 	if event.is_action_released('ui_location_select'):
+		get_tree().set_input_as_handled()
 		old_collider_path=NodePath()
 		if selected:
 			var there = at_position(event_position(event),36)
 			deselect(there)
 		return
 	elif event.is_action_pressed('ui_location_select'):
+		get_tree().set_input_as_handled()
 		old_collider_path=NodePath()
 		var pos = event_position(event)
 		if pos!=null:
@@ -584,6 +586,7 @@ func _unhandled_input(event: InputEvent):
 					found=yield(found,'completed')
 		return
 	elif event.is_action_released('ui_cancel'):
+		get_tree().set_input_as_handled()
 		exit_scene()
 		return
 	elif selected:
@@ -606,8 +609,10 @@ func _unhandled_input(event: InputEvent):
 				old_collider_path=path
 	if event.is_action_released('wheel_up'):
 		$HScrollBar.value-=0.5
+		get_tree().set_input_as_handled()
 	elif event.is_action_released('wheel_down'):
 		$HScrollBar.value+=0.5
+		get_tree().set_input_as_handled()
 
 func exit_scene():
 	game_state.player_ship_design = make_design()

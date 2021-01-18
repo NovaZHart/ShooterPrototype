@@ -8,20 +8,17 @@ const debug_max_ships: int = 60
 var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
 
-var SystemInfo = preload('res://places/SystemInfo.gd')
-var PlanetInfo = preload('res://places/PlanetInfo.gd')
 var Universe = preload('res://places/Universe.gd')
 var PlanetServices = preload('res://ui/PlanetServices.gd')
 
-var known_systems: Dictionary = {}
-var system  setget set_system,get_system
+var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
 var ship_designs: Dictionary = {}
-var universe = Universe.new()
-var tree = simple_tree.SimpleTree.new(universe)
+var universe
+var tree
 
 var player_ship_design: Dictionary
 
@@ -40,67 +37,65 @@ func print_to_console(s: String):
 func set_stored_console(s: String): stored_console=s
 func get_stored_console() -> String: return stored_console
 
-func is_a_system() -> bool: return false
-func is_a_planet() -> bool: return false
-
 func get_system(): return system
 func set_system(var s: String):
-	if known_systems.has(s):
-		system = known_systems[s]
-		player_location = get_path_to(system)
+	var system_for_name = universe.get_child_with_name(s)
+	if system_for_name:
+		system = system_for_name
+		player_location = universe.get_path_to(system)
 	return system
 
 func get_player_location() -> NodePath: return player_location
 func set_player_location(s: NodePath):
-	var n = get_node_or_null(s)
+	var n = universe.get_node_or_null(s)
 	if n!=null:
-		var loc = get_path_to(n)
+		var loc = universe.get_path_to(n)
+		assert(loc)
 		var system_name = loc.get_name(0)
-		if known_systems.has(system_name):
-			system = known_systems[system_name]
-			player_location = loc
+		assert(universe.has_child(system_name))
+		if universe.has_child(system_name):
+			system = universe.get_child_with_name(system_name)
+			player_location = n.get_path()
+	else:
+		push_error('no SimpleNode at path '+str(s))
 	return player_location
 
 func get_player_translation(planet_time: float) -> Vector3:
-	var node = get_node_or_null(player_location)
+	var node = universe.get_node_or_null(player_location)
 	if node==null or not node.has_method('planet_translation'):
 		return Vector3()
 	return node.planet_translation(planet_time)
 
-func get_planet_unique_name() -> String:
-	var n: Node = get_node_or_null(player_location)
-	if n!=null and n.is_a_planet():
+func get_space_object_unique_name() -> String:
+	var n = universe.get_node_or_null(player_location)
+	if n!=null and n.has_method('is_SpaceObjectData'):
 		return n.make_unique_name()
 	return ""
 
-func get_planet_info_or_null():
-	var n: Node = get_node_or_null(player_location)
-	if n!=null and n.is_a_planet():
+func get_space_object_or_null():
+	var n = universe.get_node_or_null(player_location)
+	if n!=null and n.has_method('is_SpaceObjectData'):
 		return n
+	push_error('SimpleNode '+str(n)+' is not a SpaceObjectData')
 	return null
 
 func get_info_or_null():
-	var n: Node = get_node_or_null(player_location)
-	if n!=null and n.is_a_planet() or n.is_a_system():
+	var n: simple_tree.SimpleNode = universe.get_node_or_null(player_location)
+	if n!=null and n is simple_tree.SimpleNode:
 		return n
 	return null
-
-func add_system(var node_name,var new_system):
-	known_systems[node_name]=new_system
-	new_system.name=node_name
-	add_child(new_system)
 
 func assemble_player_ship():
 	return assemble_ship(player_ship_design)
 
 func assemble_ship(design: Dictionary):
 	if not 'hull' in design or not design['hull'] is PackedScene:
-		printerr('assemble_ship: no hull provided')
+		push_error('assemble_ship: no hull provided')
 		return null
 	var body_scene = design['hull']
 	var body = body_scene.instance()
 	if body == null:
-		printerr('assemble_ship: cannot instance scene: ',body_scene)
+		push_error('assemble_ship: cannot instance scene: '+body_scene)
 		return Node.new()
 	body.save_transforms()
 	for child in body.get_children():
@@ -121,44 +116,6 @@ func assemble_ship(design: Dictionary):
 			body.remove_child(child)
 			child.queue_free()
 	return body
-
-func make_test_systems():
-	add_system('seti_alpha',SystemInfo.new('Seti-α') \
-		.add_planet(
-			PlanetInfo.new('sun', {
-				'display_name':'Seti-α', 'shader_seed':1231333334,
-			},PlanetInfo.yellow_sun) \
-			.add_planet(
-				PlanetInfo.new('storm', {
-					'display_name':'Storm', 'shader_seed':321321321,
-					'orbit_radius':200, 'orbit_period':300, 'size':3,
-					'description':'Description of Storm planet.',
-				},PlanetInfo.ocean_planet,['info','missing','shipeditor'])
-			)
-		)
-	)
-	add_system('alef_93',SystemInfo.new('א-93') \
-		.add_planet(
-			PlanetInfo.new('astra', {
-				'display_name':'Astra', 'shader_seed':91,
-			},PlanetInfo.blue_sun) \
-			.add_planet(
-				PlanetInfo.new('hellscape',{
-					'display_name':'Hellscape', 'shader_seed':391,
-					'orbit_radius':200, 'orbit_period':91, 'size':2,
-				},PlanetInfo.fiery_rock,['info','shipeditor'])
-			) \
-			.add_planet(
-				PlanetInfo.new('pearl',{
-					'display_name':'Pearl', 'shader_seed':913,
-					'orbit_radius':450, 'orbit_period':1092, 'size':4,
-					'description':'Description of Pearl planet.',
-				},PlanetInfo.ice_planet,['info','test','alttest','shipeditor'])
-			) \
-		)
-	)
-	system = known_systems['alef_93']
-	player_location = get_path_to(system)
 
 func make_test_designs():
 	ship_designs = {
@@ -265,9 +222,18 @@ func make_test_designs():
 	}
 	player_ship_design = ship_designs['warship_lasers']
 
-
 func _init():
+	universe = Universe.new()
+	tree = simple_tree.SimpleTree.new(universe)
+	assert(tree.root_==universe)
+	assert(universe.is_root())
+	assert(universe.get_path_str()=='/root')
 	universe.load_from_json('res://places/universe.json')
+
+	set_player_location(NodePath('/root/seti_alpha/sun/storm'))
+	assert(player_location)
+	assert(system)
+
 	if not OS.has_feature('standalone'):
 #		print('Reducing ship count for debug build')
 		max_ships = debug_max_ships
@@ -280,5 +246,4 @@ func _init():
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
 		'Shipyard',preload('res://ui/ShipEditor.tscn'))
-	make_test_systems()
 	make_test_designs()

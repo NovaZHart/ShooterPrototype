@@ -129,7 +129,7 @@ func _init():
 func _process(var _delta) -> void:
 	if have_sent_texture: return
 	if sphere==null or view==null:
-		printerr("Planet's child no longer exists!?")
+		push_error("Planet's child no longer exists!?")
 		return # child no longer exists?
 	var tex = view.get_texture()
 	if tex == null:
