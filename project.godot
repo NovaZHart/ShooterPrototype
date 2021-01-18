@@ -21,6 +21,7 @@ config/icon="res://icon.png"
 
 [autoload]
 
+simple_tree="*res://globals/SimpleTree.gd"
 undo_tool="*res://globals/UndoTool.gd"
 game_state="*res://globals/GameState.gd"
 combat_engine="*res://globals/CombatEngine.gd"

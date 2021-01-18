@@ -83,13 +83,6 @@ func _ready():
 	var v = get_viewport()
 	if v:
 		var _discard = v.connect('size_changed',self,'set_process',[true])
-#signal added_system
-#signal erased_system
-#signal added_link
-#signal erased_link
-#signal system_display_name_changed
-#signal system_position_changed
-#signal link_position_changed
 
 func process_if(flag):
 	if flag:
@@ -120,7 +113,11 @@ func _process(_delta):
 		var ascent: float = label_font.get_ascent()
 		for system_id in systems:
 			var system: Dictionary = systems[system_id]
-			var pos: Vector3 = system['position']
+			var pos = system.get('position',null)
+			if pos==null or not pos is Vector3:
+				printerr('System ',system_id,' lacks a position.')
+				continue
+			pos.y=0
 			var color: Color = system_color
 			var font: Font = label_font
 			if system_id==selected_system:
@@ -435,6 +432,7 @@ func save_load(save: bool) -> bool:
 		print('save canceled')
 		return false
 	if save:
+		print('save to file "',selected_file,'"')
 		var encoded: String = game_state.universe.encode()
 		var file: File = File.new()
 		if file.open(selected_file, File.WRITE):
@@ -443,6 +441,7 @@ func save_load(save: bool) -> bool:
 		file.store_string(encoded)
 		file.close()
 	else:
+		print('load from file "',selected_file,'"')
 		var file: File = File.new()
 		if file.open(selected_file, File.READ):
 			printerr('Cannot open file ',selected_file,'!!')
@@ -584,6 +583,5 @@ func _on_Annotations_draw():
 		$Annotations.callv(command[0],command.slice(1,len(command)))
 
 func _on_FileDialog_file_selected(path):
-	print('select file ',path)
 	selected_file=path
 	$FileDialog.visible=false

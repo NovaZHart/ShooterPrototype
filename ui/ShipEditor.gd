@@ -705,6 +705,15 @@ func run(console,argv:PoolStringArray):
 			usage_ship(console,argv)
 	elif argv[0]=='exit':
 		exit_scene()
+	elif argv[0]=='path' and len(argv)>1:
+		var np = NodePath(argv[1])
+		console.append('path "'+str(np)+'" has '+str(np.get_subname_count())+' subnames and '+str(np.get_name_count())+' names.')
+		console.append('  is aboslute?   '+('yes' if np.is_absolute() else 'no'))
+		console.append('  is empty?   '+('yes' if np.is_empty() else 'no'))
+		for i in range(np.get_subname_count()):
+			console.append('[code]subname '+str(i)+'[/code]: '+np.get_subname(i))
+		for i in range(np.get_name_count()):
+			console.append('[code]name '+str(i)+'[/code]: '+np.get_name(i))
 	elif argv[0]=='design':
 		if len(argv)==3 and argv[1]=='load':
 			var design = designs_by_name.get(argv[2],null)
@@ -797,7 +806,7 @@ func run(console,argv:PoolStringArray):
 			usage_list(console,argv)
 
 func _ready():
-	for command in [ 'ship','list','exit','design','install','uninstall' ]:
+	for command in [ 'ship','list','exit','design','install','uninstall','path' ]:
 		$ConsolePanel.add_command(command,self)
 	$ShipInfo/Console/Output.scroll_following=false
 	$ShipInfo.add_command('ship',self)

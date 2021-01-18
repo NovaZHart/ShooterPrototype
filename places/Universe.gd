@@ -1,4 +1,7 @@
-extends Reference
+extends simple_tree.SimpleNode
+
+const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
+const SystemData = preload('res://places/SystemData.gd')
 
 var links: Dictionary = {}
 var systems: Dictionary = {}
@@ -11,6 +14,11 @@ signal erased_link
 signal system_display_name_changed
 signal system_position_changed
 signal link_position_changed
+
+func is_a_system() -> bool: return false
+func is_a_planet() -> bool: return false
+
+func is_Universe(): pass # never called; must only exist
 
 func has_links() -> bool:
 	return not not links
@@ -33,10 +41,9 @@ func encode() -> String:
 func decode(json_string,context: String) -> bool:
 	var parsed: JSONParseResult = JSON.parse(json_string)
 	if parsed.error:
-		push_error(context+':'+str(parsed.line)+': cannot parse')
+		push_error(context+':'+str(parsed.error_line)+': '+parsed.error_string)
 		return false
 	var content = decode_helper(parsed.result)
-	print(content)
 	if not content is Dictionary:
 		printerr('Can only load systems from a Dictionary!')
 		return false
@@ -86,19 +93,34 @@ func encode_helper(what):
 		return [ 'Vector2', what.x, what.y ]
 	elif what is Vector3:
 		return [ 'Vector3', what.x, what.y, what.z ]
+	elif what is simple_tree.SimpleNode and what.has_method('encode'):
+		var encoded = encode_helper(what.encode())
+		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'
+		var children = {}
+		var what_children = what.get_children()
+		if what.has_astral_gate:
+			assert(what_children)
+		for child in what_children:
+			assert(child is simple_tree.SimpleNode)
+			children[encode_helper(child.get_name())]=encode_helper(child)
+		encoded['objects'] = children
+		return [ type, encoded ]
+	elif what is simple_tree.SimpleNode and what.has_method('is_SystemData'):
+		return [ 'SystemData', what.encode() ]
 	elif what==null:
 		return []
-	elif [TYPE_INT,TYPE_REAL,TYPE_STRING].has(typeof(what)):
+	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
 	else:
 		printerr('encode_helper: do not know how to handle object ',str(what))
 		return []
 
-func decode_helper(what):
+func decode_helper(what,key=null):
 	if what is Dictionary:
 		var result = {}
-		for key in what:
-			result[decode_helper(key)] = decode_helper(what[key])
+		for encoded_key in what:
+			var decoded_key = decode_helper(encoded_key)
+			result[decoded_key] = decode_helper(what[encoded_key],decoded_key)
 		return result
 	elif what is Array:
 		if not what:
@@ -111,8 +133,13 @@ func decode_helper(what):
 			return what.slice(1,len(what))
 		elif what[0]=='Vector3' and len(what)>=4:
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
-	elif [TYPE_INT,TYPE_REAL,TYPE_STRING].has(typeof(what)):
+		elif what[0]=='SpaceObjectData' and len(what)>=2:
+			return SpaceObjectData.new(key,decode_helper(what[1]))
+		elif what[0]=='SystemData' and len(what)>=2:
+			return SystemData.new(key,decode_helper(what[1]))
+	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
+	return null
 
 func lock():
 	data_mutex.lock()

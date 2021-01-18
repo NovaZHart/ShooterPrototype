@@ -13,6 +13,7 @@ var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_store
 var name_counter: int = 0
 var ship_designs: Dictionary = {}
 var universe = Universe.new()
+var tree = simple_tree.SimpleTree.new(universe)
 
 var player_ship_design: Dictionary
 
