@@ -99,13 +99,14 @@ void SphereTool::make_icosphere(String name, Vector3 center, float radius, int s
   scale_object_local(Vector3(radius,radius,radius));
 }
 
-void SphereTool::make_cube_sphere(String name,Vector3 center, float radius, int subs) {
+void SphereTool::make_cube_sphere(String name,Vector3 center, float float_radius, int subs) {
+  double radius = float_radius;
   Ref<SurfaceTool> tool=SurfaceTool::_new();
 
-  const float pi = 3.14159265358979323846;
+  const double pi = 3.14159265358979323846;
 
-  float angles[subs+1];
-  float sides[subs+1];
+  double angles[subs+1];
+  double sides[subs+1];
   for(int i=0;i<=subs;i++) {
     angles[i]=pi/2 * (i-(subs/2.0))/subs;
     sides[i]=tan(angles[i])/sqrt(2);
@@ -114,7 +115,7 @@ void SphereTool::make_cube_sphere(String name,Vector3 center, float radius, int 
 
   const int i_add[2][6] = { {0,0,1,1,1,0}, {0,0,1,1,0,1} };
   const int j_add[2][6] = { {0,1,1,1,0,0}, {0,1,0,0,1,1} };
-  const float width = 1.0/sqrt(2.0), widthsq=0.5;
+  const double width = 1.0/sqrt(2.0), widthsq=0.5;
   int u_add[6] = {subs,2*subs,3*subs,0,subs,0};
   int v_add[6] = {subs,subs,subs,subs,0,0};
   int ij_size = subs*4;
@@ -125,10 +126,10 @@ void SphereTool::make_cube_sphere(String name,Vector3 center, float radius, int 
       for(int i=0;i<subs;i++) {
         int k=(i+j)%2; // Squares will be triangulated in alternating order, creating peaks
         for(int t=0;t<6;t++) {
-          float u=u_add[itile]+i+i_add[k][t];
-          float v=v_add[itile]+j+j_add[k][t];
-          float x=sides[i+i_add[k][t]],y=sides[j+j_add[k][t]],z=width;
-          float l=sqrt(x*x+y*y+z*z);
+          double u=u_add[itile]+i+i_add[k][t];
+          double v=v_add[itile]+j+j_add[k][t];
+          double x=sides[i+i_add[k][t]],y=sides[j+j_add[k][t]],z=width;
+          double l=sqrt(x*x+y*y+z*z);
           tool->add_uv(Vector2(u/ij_size,v/ij_size));
           x/=l;
           y/=l;
