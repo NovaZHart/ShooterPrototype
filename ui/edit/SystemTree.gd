@@ -3,6 +3,16 @@ extends Tree
 signal select_node
 signal deselect_node
 
+func select_recursively_with_path(item: TreeItem,path: NodePath) -> bool:
+	if item.get_metadata(0)==path:
+		pass # FIXME
+	else:
+		pass # FIXME
+	return false # FIXME
+
+func select_node_with_path(path: NodePath) -> bool:
+	return select_recursively_with_path(get_root(),path)
+
 func sync_names_recursively(item: TreeItem):
 	var path = item.get_metadata(0)
 	if path and path is NodePath:

@@ -46,7 +46,6 @@ func set_panel_type(var scene) -> Control:
 			assert(added!=null)
 			assert(added==instance)
 			return instance
-	assert(false)
 	var node: Node = $Split/Right/Bottom/Settings
 	$Split/Right/Bottom.remove_child(node)
 	node.queue_free()
@@ -97,3 +96,15 @@ func _on_Tree_select_node(path: NodePath):
 		if control.connect('surrender_focus',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect surrender_focus')
 		$Split/Left/View/SystemView.center_view(node.planet_translation(0))
+
+func _on_Left_focus_exited():
+	$Split/Left/View/SystemView.lose_focus()
+
+func _on_Left_focus_entered():
+	$Split/Left/View/SystemView.gain_focus()
+
+func _on_SystemView_select_nothing():
+	pass # Replace with function body.
+
+func _on_SystemView_select_space_object(path: NodePath):
+	pass # Replace with function body.

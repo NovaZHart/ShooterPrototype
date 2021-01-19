@@ -190,6 +190,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+stretch = true
 
 [node name="Port" type="Viewport" parent="Visual/View"]
 size = Vector2( 100, 100 )
@@ -320,6 +321,9 @@ margin_right = 1016.0
 margin_bottom = 262.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
+syntax_highlighting = true
+draw_tabs = true
+wrap_enabled = true
 
 [node name="Display" parent="Help/Data" instance=ExtResource( 1 )]
 follow_urls = false

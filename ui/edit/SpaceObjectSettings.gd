@@ -30,6 +30,10 @@ func _ready():
 	$Visual/View/Port/Camera.rotate_y(-0.14399)
 	$Visual/View/Port/Camera.size = 15
 	$Visual/View/Port/Camera.translate_object_local(Vector3(0.0,0.0,10.0))
+	$Help/Data/Text.add_color_region('[h1]','[/h1]',Color(0.7,1.0,0.7))
+	$Help/Data/Text.add_color_region('[h2]','[/h2]',Color(0.7,1.0,0.7))
+	$Help/Data/Text.add_color_region('[',']',Color(1.0,0.9,0.5))
+	$Help/Data/Text.add_color_region('{','}',Color(0.5,0.7,1.0))
 	sync_view_size()
 
 func update_planet_view():
@@ -37,7 +41,7 @@ func update_planet_view():
 	if planet_node!=null:
 		$Visual/View/Port.remove_child(planet_node)
 		planet_node.queue_free()
-	planet_node=planet.make_planet(300,0)
+	planet_node=planet.make_planet(600,0)
 	planet_node.get_sphere().scale=Vector3(7,7,7)
 	planet_node.translation = Vector3(0,0,0)
 	planet_node.name = 'Planet'
@@ -46,11 +50,9 @@ func update_planet_view():
 	sync_view_size()
 
 func sync_view_size():
-	var want_size=min($Visual/View.rect_size.x,$Visual/View.rect_size.y)
-	var want_size2=Vector2(want_size,want_size)
-	if $Visual/View/Port.size!=want_size2:
-		print('resize to '+str(want_size2))
-		$Visual/View/Port.size=want_size2
+	var want_size=$Visual/View.rect_size
+	if $Visual/View/Port.size!=want_size:
+		$Visual/View/Port.size=want_size
 
 func _on_Visual_resized():
 	sync_view_size()
@@ -142,7 +144,7 @@ func _on_OrbitPhaseEdit_text_entered(_new_text):
 func _on_Gate_toggled(_button_pressed):
 	pass # Replace with function body.
 
-func _on_Services_changed():
+func _on_Services_changed(_ignore=null,_ignore2=null):
 	pass # Replace with function body.
 
 func _on_RadiusEdit_value_changed(_value):

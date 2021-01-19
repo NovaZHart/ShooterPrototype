@@ -35,9 +35,12 @@ __meta__ = {
 [node name="Left" type="ViewportContainer" parent="Split"]
 margin_right = 725.0
 margin_bottom = 600.0
+focus_mode = 2
+mouse_default_cursor_shape = 3
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 2.5
+stretch = true
 
 [node name="View" type="Viewport" parent="Split/Left"]
 size = Vector2( 100, 100 )
@@ -77,6 +80,10 @@ size_flags_vertical = 3
 __meta__ = {
 "_edit_use_anchors_": false
 }
+[connection signal="focus_entered" from="Split/Left" to="." method="_on_Left_focus_entered"]
+[connection signal="focus_exited" from="Split/Left" to="." method="_on_Left_focus_exited"]
 [connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
+[connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_nothing"]
+[connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_space_object"]
 [connection signal="deselect_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_deselect_node"]
 [connection signal="select_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_select_node"]
