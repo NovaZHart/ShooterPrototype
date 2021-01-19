@@ -38,6 +38,9 @@ signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
 
+func player_has_a_ship() -> bool:
+	return $Ships.get_node_or_null(player_ship_name)!=null
+
 func update_space_background(from=null):
 	if from==null:
 		from=game_state.system
