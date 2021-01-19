@@ -13,8 +13,10 @@ var data2planet: Dictionary = {}
 
 signal view_center_changed
 
-func update_space_background():
-	var result = $SpaceBackground.update_from(system)
+func update_space_background(from=null):
+	if from==null:
+		from=system
+	var result = $SpaceBackground.update_from(from)
 	while result is GDScriptFunctionState and result.is_valid():
 		result = yield(result,'completed')
 	if not result:

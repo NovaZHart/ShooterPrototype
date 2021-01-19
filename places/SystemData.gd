@@ -164,6 +164,7 @@ func process_space(system,delta) -> Array:
 	return result
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true) -> Array:
+	system.update_space_background(self)
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail,ships)

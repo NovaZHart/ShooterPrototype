@@ -812,6 +812,7 @@ func run(console,argv:PoolStringArray):
 			usage_list(console,argv)
 
 func _ready():
+	$SpaceBackground.update_from(game_state.system)
 	for command in [ 'ship','list','exit','design','install','uninstall','path' ]:
 		$ConsolePanel.add_command(command,self)
 	$ShipInfo/Console/Output.scroll_following=false

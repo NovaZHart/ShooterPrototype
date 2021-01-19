@@ -38,6 +38,15 @@ signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
 
+func update_space_background(from=null):
+	if from==null:
+		from=game_state.system
+	var result = $SpaceBackground.update_from(from)
+	while result is GDScriptFunctionState and result.is_valid():
+		result = yield(result,'completed')
+	if not result:
+		push_error('space background regeneration failed')
+
 func get_player_rid() -> RID:
 	var player_ship = $Ships.get_node_or_null(player_ship_name)
 	return RID() if player_ship==null else player_ship.get_rid()
