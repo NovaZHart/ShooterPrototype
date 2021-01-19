@@ -10,8 +10,8 @@ export var max_camera_size: float = 150
 export var label_font: Font
 export var highlighted_font: Font
 
-const UniverseEditor = preload('res://ui/UniverseEditor.gd')
-const MapItemShader: Shader = preload('res://ui/MapItem.shader')
+const UniverseEditor = preload('res://ui/edit/UniverseEditor.gd')
+const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
 const RESULT_NONE: int = 0
 const RESULT_CANCEL: int = 1
 const RESULT_ACTION: int = 02
