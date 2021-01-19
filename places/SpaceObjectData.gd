@@ -2,6 +2,7 @@ extends simple_tree.SimpleNode
 
 const Planet = preload('res://places/Planet.tscn')
 
+# IMPORTANT: These must match SpaceObjectSettings._ready():
 enum { PLANET=0, STAR=1 }
 
 const base_types = {

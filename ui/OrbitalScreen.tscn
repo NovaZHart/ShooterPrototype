@@ -6,33 +6,28 @@
 [ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/Console.gd" type="Script" id=5]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=6]
+[ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=7]
 
-[sub_resource type="Environment" id=1]
-background_energy = 0.0
-ambient_light_color = Color( 0, 0.0392157, 0.192157, 1 )
-ambient_light_energy = 0.05
-ambient_light_sky_contribution = 0.0
-
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="DynamicFont" id=1]
 size = 13
 font_data = ExtResource( 1 )
 
-[sub_resource type="Theme" id=3]
-default_font = SubResource( 2 )
+[sub_resource type="Theme" id=2]
+default_font = SubResource( 1 )
 
-[sub_resource type="DynamicFont" id=4]
+[sub_resource type="DynamicFont" id=3]
 size = 13
 font_data = ExtResource( 1 )
 
-[sub_resource type="Theme" id=5]
-default_font = SubResource( 4 )
+[sub_resource type="Theme" id=4]
+default_font = SubResource( 3 )
 
-[sub_resource type="DynamicFont" id=6]
+[sub_resource type="DynamicFont" id=5]
 size = 18
 font_data = ExtResource( 1 )
 
-[sub_resource type="Theme" id=7]
-default_font = SubResource( 6 )
+[sub_resource type="Theme" id=6]
+default_font = SubResource( 5 )
 
 [node name="Landing" type="Node2D"]
 script = ExtResource( 2 )
@@ -42,7 +37,7 @@ projection = 1
 size = 4.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 1 )
+environment = ExtResource( 7 )
 
 [node name="SpaceBackground" parent="." instance=ExtResource( 4 )]
 transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -30, 0 )
@@ -53,7 +48,7 @@ margin_left = 16.0
 margin_top = 408.0
 margin_right = 472.0
 margin_bottom = 600.0
-theme = SubResource( 3 )
+theme = SubResource( 2 )
 text = "0
 1
 2
@@ -78,7 +73,7 @@ margin_left = 921.0
 margin_top = 27.0
 margin_right = 1024.0
 margin_bottom = 47.0
-theme = SubResource( 5 )
+theme = SubResource( 4 )
 text = "60 FPS"
 align = 2
 valign = 2
@@ -91,7 +86,7 @@ __meta__ = {
 margin_left = 792.0
 margin_right = 1024.0
 margin_bottom = 32.0
-theme = SubResource( 7 )
+theme = SubResource( 6 )
 text = "Planet Name"
 align = 2
 script = ExtResource( 6 )

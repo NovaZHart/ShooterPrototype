@@ -1,6 +1,9 @@
 extends Panel
 
 const SystemSettings: PackedScene = preload('res://ui/edit/SystemSettings.tscn')
+const SpaceObjectSettings: PackedScene = preload('res://ui/edit/SpaceObjectSettings.tscn')
+
+var selection: NodePath = NodePath()
 
 func _ready():
 	$Split/Left.set_focus_mode(Control.FOCUS_CLICK)
@@ -39,7 +42,11 @@ func set_panel_type(var scene) -> Control:
 			child_fills_parent(instance)
 			instance.name='Settings'
 			$Split/Right/Bottom.add_child(instance)
+			var added = $Split/Right/Bottom.get_node_or_null('Settings')
+			assert(added!=null)
+			assert(added==instance)
 			return instance
+	assert(false)
 	var node: Node = $Split/Right/Bottom/Settings
 	$Split/Right/Bottom.remove_child(node)
 	node.queue_free()
@@ -63,10 +70,18 @@ func _on_Tree_deselect_node():
 	set_panel_type(null)
 
 func _on_Tree_select_node(path: NodePath):
+	print('tree select node')
 	var node = game_state.universe.get_node_or_null(path)
-	if node.has_method('is_SystemData'):
+	if node==null:
+		print('null settings')
+# warning-ignore:return_value_discarded
+		set_panel_type(null)
+		selection = NodePath()
+	elif node.has_method('is_SystemData'):
+		print('system data settings')
 		var control: Control = set_panel_type(SystemSettings)
 		control.set_system(game_state.system)
+		selection = game_state.system.get_path()
 		if control.connect('space_background_changed',self,'_on_SystemView_space_background_changed')!=OK:
 			push_error('cannot connect space_background_changed')
 		if control.connect('system_metadata_changed',self,'_on_SystemView_system_metadata_changed')!=OK:
@@ -74,6 +89,11 @@ func _on_Tree_select_node(path: NodePath):
 		if control.connect('edit_complete',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect edit_complete')
 	else:
+		print('space object settings')
+		var control: Control = set_panel_type(SpaceObjectSettings)
+		assert(control is TabContainer)
+		control.set_planet(node)
+		selection = path
+		if control.connect('surrender_focus',self,'give_focus_to_view')!=OK:
+			push_error('cannot connect surrender_focus')
 		$Split/Left/View/SystemView.center_view(node.planet_translation(0))
-# warning-ignore:return_value_discarded
-		set_panel_type(null)
