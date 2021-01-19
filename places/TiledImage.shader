@@ -175,7 +175,7 @@ vec3 kelvin_to_rgb(float kelvin) {
 	return vec3(0.0,0.0,0.5);
 }
 
-vec3 star_overlay(vec2 uv) {
+vec4 star_overlay(vec2 uv) {
 	float uv_scale=(uv_range[1]-uv_range[0])/uv_whole.y;
 	float scale=clamp(uv_scale/5.0,0.02,0.2);
 	vec2 uvs=uv/7.0, uvos=uv_offset/7.0, uvws=uv_whole;
@@ -186,16 +186,17 @@ vec3 star_overlay(vec2 uv) {
 	vec4 star = texelFetch(texture_starfield,itexel,0);
 	float dist=distance(within,scale+(1.0-2.0*scale)*star.xy);
 	if(dist>scale)
-		return vec3(0.0,0.0,0.0);
+		return vec4(0.0,0.0,0.0,0.0);
 	float kelvin=star.x*10000.0+star.y*3000.0+500.0;
 	float intensity=clamp((scale-dist)/scale*star.z,0.0,1.0);
-	return kelvin_to_rgb(kelvin)*intensity;
+	vec3 rgb = kelvin_to_rgb(kelvin);
+	return vec4(rgb.r,rgb.g,rgb.b,1.0)*intensity;
 }
 
 void fragment() {
 	vec4 low_res_texture=bilinear_interp_texture(UV,texture_albedo,texture_size,uv_offset,uv_whole);
 	vec4 high_res_texture=bilinear_interp_texture(UV2,texture_albedo,texture_size,uv2_offset,uv2_whole);
-	vec3 star=star_overlay(UV);
-	vec3 lohi=mix(low_res_texture.rgb,high_res_texture.rgb,.3);
-	ALBEDO=max(lohi,star);
+	vec4 star=star_overlay(UV);
+	vec4 lohi=mix(low_res_texture,high_res_texture,.3);
+	ALBEDO=mix(lohi.rgb,star.rgb,star.w);
 }

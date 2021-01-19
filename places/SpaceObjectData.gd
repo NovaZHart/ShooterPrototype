@@ -153,8 +153,8 @@ func make_planet(detail: float=150, time: float=0):
 	planet.game_state_path = game_state.universe.get_path_to(self)
 	return planet
 
-func fill_system(var system,planet_time: float,ship_time: float,detail: float):
+func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true):
 	system.spawn_planet(make_planet(detail,planet_time))
 	for child in get_children():
 		if child.is_a_planet():
-			child.fill_system(system,planet_time,ship_time,detail)
+			child.fill_system(system,planet_time,ship_time,detail,ships)

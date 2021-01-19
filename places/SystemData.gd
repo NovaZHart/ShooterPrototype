@@ -29,6 +29,10 @@ const default_fleets: Array = [
 var fleets: Array
 var links: Dictionary
 var position: Vector3 setget set_position
+var plasma_seed: int
+var plasma_color: Color
+var starfield_seed: int
+
 var rng
 
 func set_position(v: Vector3):
@@ -47,6 +51,8 @@ func encode() -> Dictionary:
 		'display_name':display_name,
 		'position':position,
 		'links':links,
+		'plasma_seed':plasma_seed,
+		'starfield_seed':starfield_seed,
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
@@ -56,6 +62,9 @@ func _init(the_name,content: Dictionary):
 	display_name = content.get('display_name','(unnamned)')
 	fleets = content.get('fleets',default_fleets)
 	links = content.get('links',{})
+	plasma_seed = content.get('plasma_seed',320918)
+	starfield_seed = content.get('starfield_seed',987686)
+	plasma_color = content.get('plasma_color',Color(0.07,0.07,.18,1.0))
 	set_position(content.get('position',Vector3()))
 	if the_name:
 		set_name(the_name)
@@ -154,10 +163,12 @@ func process_space(system,delta) -> Array:
 		stats[team]['count'] += size
 	return result
 
-func fill_system(var system,planet_time: float,ship_time: float,detail: float) -> Array:
+func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true) -> Array:
 	for child in get_children():
 		if child.is_a_planet():
-			child.fill_system(system,planet_time,ship_time,detail)
+			child.fill_system(system,planet_time,ship_time,detail,ships)
+	if not ships:
+		return []
 	var result = [spawn_player(system,planet_time)]
 	result += process_space(system,ship_time)
 	return result

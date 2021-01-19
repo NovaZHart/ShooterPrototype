@@ -1,0 +1,105 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ui/edit/SystemSettings.gd" type="Script" id=1]
+
+
+[node name="SystemSettings" type="GridContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IDLabel" type="Label" parent="."]
+margin_top = 5.0
+margin_right = 510.0
+margin_bottom = 19.0
+size_flags_horizontal = 3
+text = "ID"
+
+[node name="IDEdit" type="LineEdit" parent="."]
+margin_left = 514.0
+margin_right = 1024.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+editable = false
+
+[node name="NameLabel" type="Label" parent="."]
+margin_top = 33.0
+margin_right = 510.0
+margin_bottom = 47.0
+text = "Name"
+
+[node name="NameEdit" type="LineEdit" parent="."]
+margin_left = 514.0
+margin_top = 28.0
+margin_right = 1024.0
+margin_bottom = 52.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="PlasmaSeedLabel" type="Label" parent="."]
+margin_top = 61.0
+margin_right = 510.0
+margin_bottom = 75.0
+text = "Cloud Seed"
+
+[node name="PlasmaSeedEdit" type="LineEdit" parent="."]
+margin_left = 514.0
+margin_top = 56.0
+margin_right = 1024.0
+margin_bottom = 80.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="StarSeedLabel" type="Label" parent="."]
+margin_top = 89.0
+margin_right = 510.0
+margin_bottom = 103.0
+text = "Starfield Seed"
+
+[node name="StarSeedEdit" type="LineEdit" parent="."]
+margin_left = 514.0
+margin_top = 84.0
+margin_right = 1024.0
+margin_bottom = 108.0
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="Panel" type="Panel" parent="."]
+margin_top = 112.0
+margin_right = 510.0
+margin_bottom = 132.0
+
+[node name="Button" type="Button" parent="."]
+margin_left = 514.0
+margin_top = 112.0
+margin_right = 1024.0
+margin_bottom = 132.0
+text = "Randomize Seeds"
+
+[node name="Label" type="Label" parent="."]
+margin_top = 139.0
+margin_right = 510.0
+margin_bottom = 153.0
+text = "Plasma Color"
+
+[node name="ColorPickerButton" type="ColorPickerButton" parent="."]
+margin_left = 514.0
+margin_top = 136.0
+margin_right = 1024.0
+margin_bottom = 156.0
+[connection signal="focus_exited" from="NameEdit" to="." method="_on_NameEdit_focus_exited"]
+[connection signal="text_entered" from="NameEdit" to="." method="_on_NameEdit_text_entered"]
+[connection signal="focus_exited" from="PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_focus_exited"]
+[connection signal="text_entered" from="PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_text_entered"]
+[connection signal="focus_exited" from="StarSeedEdit" to="." method="_on_StarSeedEdit_focus_exited"]
+[connection signal="text_entered" from="StarSeedEdit" to="." method="_on_StarSeedEdit_text_entered"]
+[connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
+[connection signal="color_changed" from="ColorPickerButton" to="." method="_on_ColorPickerButton_color_changed"]
+[connection signal="focus_exited" from="ColorPickerButton" to="." method="_on_ColorPickerButton_focus_exited"]

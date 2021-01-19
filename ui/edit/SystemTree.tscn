@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ui/edit/SystemTree.gd" type="Script" id=1]
+
+[node name="Tree" type="Tree"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+[connection signal="item_activated" from="." to="." method="_on_Tree_item_activated"]
+[connection signal="item_selected" from="." to="." method="_on_Tree_item_selected"]
+[connection signal="nothing_selected" from="." to="." method="_on_Tree_nothing_selected"]

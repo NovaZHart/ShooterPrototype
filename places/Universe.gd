@@ -106,6 +106,8 @@ func encode_helper(what):
 		return [ 'Vector2', what.x, what.y ]
 	elif what is Vector3:
 		return [ 'Vector3', what.x, what.y, what.z ]
+	elif what is Color:
+		return [ 'Color', what.r, what.g, what.b, what.a ]
 	elif what is simple_tree.SimpleNode and what.has_method('encode'):
 		var encoded = encode_helper(what.encode())
 		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'
@@ -146,6 +148,8 @@ func decode_helper(what,key=null):
 			return what.slice(1,len(what))
 		elif what[0]=='Vector3' and len(what)>=4:
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
+		elif what[0]=='Vector3' and len(what)>=5:
+			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0]=='SpaceObjectData' and len(what)>=2:
 			return SpaceObjectData.new(key,decode_helper(what[1]))
 		elif what[0]=='SystemData' and len(what)>=2:

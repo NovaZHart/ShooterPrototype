@@ -30,6 +30,7 @@ mesh_loader="*res://globals/MeshLoaderNode.gd"
 [display]
 
 window/size/borderless=true
+window/size/fullscreen=true
 
 [input]
 
