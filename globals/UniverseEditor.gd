@@ -183,3 +183,52 @@ class SystemDataChange extends undo_tool.Action:
 			system.set(key,new[key])
 		return game_state.system_editor.update_system_data(system.get_path(),
 				background_update,metadata_update)
+
+class SpaceObjectDataChange extends undo_tool.Action:
+	var old: Dictionary = {}
+	var new: Dictionary
+	var object_path: NodePath
+	var basic: bool
+	var visual: bool
+	var help: bool
+	var location: bool
+	func as_string() -> String:
+		return 'SpaceObjectDataChange('+str(object_path)+','+str(new)+','+ \
+			str(basic)+','+str(visual)+','+str(help)+','+str(location)+')'
+# warning-ignore:shadowed_variable
+	func _init(object_path: NodePath,changes: Dictionary,
+			basic: bool, visual: bool, help: bool, location: bool):
+		self.new = changes
+		self.object_path=object_path
+		self.basic=basic
+		self.visual=visual
+		self.help=help
+		self.location=location
+	func run() -> bool:
+		var object = game_state.universe.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			return false
+		for key in new:
+			old[key]=object.get(key)
+			object.set(key,new[key])
+		return game_state.system_editor.update_space_object_data(object.get_path(),
+				basic,visual,help,location)
+	func undo() -> bool:
+		var object = game_state.universe.get_node_or_null(object_path)
+		if not object or not old:
+			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			return false
+		for key in old:
+			object.set(key,old[key])
+		return game_state.system_editor.update_space_object_data(object.get_path(),
+				basic,visual,help,location)
+	func redo() -> bool:
+		var object = game_state.universe.get_node_or_null(object_path)
+		if not object or not old:
+			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			return false
+		for key in new:
+			object.set(key,new[key])
+		return game_state.system_editor.update_space_object_data(object.get_path(),
+				basic,visual,help,location)

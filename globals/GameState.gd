@@ -32,9 +32,12 @@ class SectorEditorStub extends Spatial:
 	func cancel_drag() -> bool:                    return true
 
 class SystemEditorStub extends Panel:
-	func update_system_data(_path: NodePath,_background_update: bool,_metadata_update: bool):
+	func update_system_data(_path: NodePath,_background_update: bool,
+			_metadata_update: bool):
 		return true
-
+	func update_space_object_data(_path: NodePath, _basic: bool, _visual: bool,
+			_help: bool, _location: bool):
+		return true
 var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 

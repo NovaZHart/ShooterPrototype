@@ -2,6 +2,7 @@ extends Tree
 
 signal select_node
 signal deselect_node
+signal center_on_node
 
 func select_recurse(item,path) -> bool:
 	if not item:
@@ -56,7 +57,7 @@ func set_system(system: simple_tree.SimpleNode):
 
 func _on_Tree_item_activated():
 	var path: NodePath = get_selected().get_metadata(0)
-	emit_signal('select_node',path)
+	emit_signal('center_on_node',path)
 
 func _on_Tree_item_selected():
 	var path: NodePath = get_selected().get_metadata(0)

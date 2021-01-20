@@ -123,32 +123,32 @@ func spawn_planet(planet: Spatial) -> bool:
 	planet_mutex.unlock()
 	return true
 
-func remake_planet(data) -> bool:
-	var game_state_path: NodePath = data.get_path()
-	if not game_state_path:
-		return false
-# warning-ignore:return_value_discarded
-	erase_planet(game_state_path)
-	var planet: PhysicsBody = data.make_planet(detail_level,0.0)
-	if not planet:
-		return false
-	return spawn_planet(planet)
-
-func erase_planet(game_state_path: NodePath) -> bool:
-	planet_mutex.lock()
-	var node_path = data2planet.get(game_state_path)
-# warning-ignore:return_value_discarded
-	data2planet.erase(game_state_path)
-	if node_path:
-# warning-ignore:return_value_discarded
-		planet2data.erase(node_path)
-		var node = get_node_or_null(node_path)
-		if node:
-			node.queue_free()
-			planet_mutex.unlock()
-			return true
-	planet_mutex.unlock()
-	return false
+#func remake_planet(data) -> bool:
+#	var game_state_path: NodePath = data.get_path()
+#	if not game_state_path:
+#		return false
+## warning-ignore:return_value_discarded
+#	erase_planet(game_state_path)
+#	var planet: PhysicsBody = data.make_planet(detail_level,0.0)
+#	if not planet:
+#		return false
+#	return spawn_planet(planet)
+#
+#func erase_planet(game_state_path: NodePath) -> bool:
+#	planet_mutex.lock()
+#	var node_path = data2planet.get(game_state_path)
+## warning-ignore:return_value_discarded
+#	data2planet.erase(game_state_path)
+#	if node_path:
+## warning-ignore:return_value_discarded
+#		planet2data.erase(node_path)
+#		var node = get_node_or_null(node_path)
+#		if node:
+#			node.queue_free()
+#			planet_mutex.unlock()
+#			return true
+#	planet_mutex.unlock()
+#	return false
 
 func center_view(center=null) -> void:
 	if center==null:
@@ -169,9 +169,13 @@ func clear():
 	planet2data.clear()
 	planet_mutex.unlock()
 
+func remake_planets() -> bool:
+	return set_system(system)
+
 # warning-ignore:shadowed_variable
-func set_system(system: simple_tree.SimpleNode):
+func set_system(system: simple_tree.SimpleNode) -> bool:
 	self.system=system
 	clear()
 	system.fill_system(self,0.0,0.0,detail_level,false)
 	update_space_background()
+	return true

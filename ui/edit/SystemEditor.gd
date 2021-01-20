@@ -70,6 +70,16 @@ func update_system_data(_path: NodePath,bkg_update: bool,meta_update:bool):
 		return $Split/Right/Top/Tree.sync_metadata() and success
 	return success
 
+func update_space_object_data(path: NodePath, basic: bool, visual: bool,
+		help: bool, location: bool) -> bool:
+	var success = true
+	if $Split/Right/Bottom/Settings.has_method('update_space_object_data'):
+		success = $Split/Right/Bottom/Settings.update_space_object_data(
+			path,basic,visual,help,location) and success
+	if visual or location:
+		success = $Split/Left/View/SystemView.remake_planets() and success
+	return success
+
 #func _on_SystemView_system_metadata_changed(_system):
 #	$Split/Right/Top/Tree.sync_metadata()
 #
@@ -99,7 +109,7 @@ func _on_Tree_select_node(path: NodePath):
 	else:
 		var control: Control = set_panel_type(SpaceObjectSettings)
 		assert(control is TabContainer)
-		control.set_planet(node)
+		control.set_object(node)
 		selection = path
 		if control.connect('surrender_focus',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect surrender_focus')
@@ -117,3 +127,8 @@ func _on_SystemView_select_nothing():
 func _on_SystemView_select_space_object(path: NodePath):
 	if not $Split/Right/Top/Tree.select_node_with_path(path):
 		push_error('Cannot select path '+str(path))
+
+func _on_Tree_center_on_node(path: NodePath):
+	var node = game_state.universe.get_node_or_null(path)
+	if node!=null and node.has_method('is_SpaceObjectData'):
+		$Split/Left/View/SystemView.center_view(node.planet_translation(0))

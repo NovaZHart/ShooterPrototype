@@ -18,7 +18,133 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="Visual" type="GridContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="View" type="ViewportContainer" parent="Visual"]
+margin_right = 1016.0
+margin_bottom = 424.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="Port" type="Viewport" parent="Visual/View"]
+size = Vector2( 1016, 424 )
+own_world = true
+world = SubResource( 1 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="Visual/View/Port"]
+projection = 1
+size = 4.0
+
+[node name="SpaceBackground" parent="Visual/View/Port" instance=ExtResource( 2 )]
+transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -30, 0 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="Visual/View/Port"]
+transform = Transform( 0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0 )
+light_color = Color( 1, 0.992157, 0.929412, 1 )
+
+[node name="Settings" type="GridContainer" parent="Visual"]
+margin_top = 428.0
+margin_right = 1016.0
+margin_bottom = 564.0
+columns = 2
+
+[node name="RadiusLabel" type="Label" parent="Visual/Settings"]
+margin_right = 506.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Radius of the space object."
+mouse_filter = 1
+size_flags_vertical = 5
+text = "Radius"
+valign = 1
+
+[node name="RadiusEdit" type="LineEdit" parent="Visual/Settings"]
+margin_left = 510.0
+margin_right = 1016.0
+margin_bottom = 24.0
+hint_tooltip = "Radius of the space object."
+
+[node name="SeedLabel" type="Label" parent="Visual/Settings"]
+margin_top = 33.0
+margin_right = 506.0
+margin_bottom = 47.0
+hint_tooltip = "Random seed for shader noise field."
+mouse_filter = 1
+text = "Shader Seed"
+
+[node name="SeedEdit" type="LineEdit" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 28.0
+margin_right = 1016.0
+margin_bottom = 52.0
+hint_tooltip = "Random seed for shader noise field."
+caret_blink_speed = 0.5
+
+[node name="Empty" type="Label" parent="Visual/Settings"]
+margin_top = 55.0
+margin_right = 506.0
+margin_bottom = 79.0
+rect_min_size = Vector2( 0, 24 )
+text = " "
+
+[node name="Randomize" type="Button" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 56.0
+margin_right = 1016.0
+margin_bottom = 80.0
+text = "Random Seed"
+
+[node name="ColorScalingPicker" type="ColorPickerButton" parent="Visual/Settings"]
+margin_top = 84.0
+margin_right = 506.0
+margin_bottom = 108.0
+hint_tooltip = "Shader generates a noise field and multiplies it by this color."
+size_flags_horizontal = 3
+
+[node name="ColorScalingLabel" type="Label" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 84.0
+margin_right = 1016.0
+margin_bottom = 108.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Shader generates a noise field and multiplies it by this color."
+mouse_filter = 1
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "Scale Color"
+valign = 1
+
+[node name="ColorAdditionPicker" type="ColorPickerButton" parent="Visual/Settings"]
+margin_top = 112.0
+margin_right = 506.0
+margin_bottom = 136.0
+hint_tooltip = "Shader adds 2*addition-1 to the randomly-generated noise field, after multiplying by scale."
+size_flags_horizontal = 3
+
+[node name="ColorAdditionLabel" type="Label" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 112.0
+margin_right = 1016.0
+margin_bottom = 136.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Shader adds 2*addition-1 to the randomly-generated noise field, after multiplying by scale."
+mouse_filter = 1
+text = "Add Color"
+valign = 1
+
 [node name="Basic" type="GridContainer" parent="."]
+visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -174,117 +300,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 select_mode = 1
 
-[node name="Visual" type="GridContainer" parent="."]
-visible = false
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = 4.0
-margin_top = 32.0
-margin_right = -4.0
-margin_bottom = -4.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="View" type="ViewportContainer" parent="Visual"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-stretch = true
-
-[node name="Port" type="Viewport" parent="Visual/View"]
-size = Vector2( 100, 100 )
-own_world = true
-world = SubResource( 1 )
-handle_input_locally = false
-render_target_update_mode = 0
-
-[node name="Camera" type="Camera" parent="Visual/View/Port"]
-projection = 1
-size = 4.0
-
-[node name="SpaceBackground" parent="Visual/View/Port" instance=ExtResource( 2 )]
-transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -30, 0 )
-
-[node name="DirectionalLight" type="DirectionalLight" parent="Visual/View/Port"]
-transform = Transform( 0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0 )
-light_color = Color( 1, 0.992157, 0.929412, 1 )
-
-[node name="Settings" type="GridContainer" parent="Visual"]
-margin_top = 484.0
-margin_right = 1016.0
-margin_bottom = 564.0
-columns = 2
-
-[node name="RadiusLabel" type="Label" parent="Visual/Settings"]
-margin_top = -400.0
-margin_right = 506.0
-margin_bottom = -376.0
-rect_min_size = Vector2( 0, 24 )
-hint_tooltip = "Radius of the space object."
-mouse_filter = 1
-size_flags_vertical = 5
-text = "Radius"
-valign = 1
-
-[node name="RadiusEdit" type="LineEdit" parent="Visual/Settings"]
-margin_left = 510.0
-margin_top = -400.0
-margin_right = 1016.0
-margin_bottom = -376.0
-hint_tooltip = "Radius of the space object."
-
-[node name="ColorScalingLabel" type="Label" parent="Visual/Settings"]
-margin_right = 506.0
-margin_bottom = 24.0
-rect_min_size = Vector2( 0, 24 )
-hint_tooltip = "Shader generates a noise field and multiplies it by this color."
-mouse_filter = 1
-size_flags_horizontal = 3
-size_flags_vertical = 5
-text = "Scale Color"
-valign = 1
-
-[node name="ColorScalingPicker" type="ColorPickerButton" parent="Visual/Settings"]
-margin_left = 510.0
-margin_right = 1016.0
-margin_bottom = 24.0
-hint_tooltip = "Shader generates a noise field and multiplies it by this color."
-size_flags_horizontal = 3
-
-[node name="ColorAdditionLabel" type="Label" parent="Visual/Settings"]
-margin_top = 27.0
-margin_right = 506.0
-margin_bottom = 51.0
-rect_min_size = Vector2( 0, 24 )
-hint_tooltip = "Shader adds 2*addition-1 to the randomly-generated noise field, after multiplying by scale."
-mouse_filter = 1
-text = "Add Color"
-valign = 1
-
-[node name="ColorAdditionPicker" type="ColorPickerButton" parent="Visual/Settings"]
-margin_left = 510.0
-margin_top = 28.0
-margin_right = 1016.0
-margin_bottom = 52.0
-hint_tooltip = "Shader adds 2*addition-1 to the randomly-generated noise field, after multiplying by scale."
-
-[node name="SeedLabel" type="Label" parent="Visual/Settings"]
-margin_top = 61.0
-margin_right = 506.0
-margin_bottom = 75.0
-hint_tooltip = "Random seed for shader noise field."
-mouse_filter = 1
-text = "Shader Seed"
-
-[node name="SeedEdit" type="LineEdit" parent="Visual/Settings"]
-margin_left = 510.0
-margin_top = 56.0
-margin_right = 1016.0
-margin_bottom = 80.0
-hint_tooltip = "Random seed for shader noise field."
-caret_blink_speed = 0.5
-
 [node name="Help" type="GridContainer" parent="."]
 visible = false
 anchor_right = 1.0
@@ -328,6 +343,14 @@ wrap_enabled = true
 [node name="Display" parent="Help/Data" instance=ExtResource( 1 )]
 follow_urls = false
 allow_input = false
+[connection signal="resized" from="Visual" to="." method="_on_Visual_resized"]
+[connection signal="focus_exited" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_focus_exited"]
+[connection signal="text_entered" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_text_entered"]
+[connection signal="focus_exited" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_focus_exited"]
+[connection signal="text_entered" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_text_entered"]
+[connection signal="pressed" from="Visual/Settings/Randomize" to="." method="_on_Randomize_pressed"]
+[connection signal="color_changed" from="Visual/Settings/ColorScalingPicker" to="." method="_on_ColorScalingPicker_color_changed"]
+[connection signal="color_changed" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_ColorAdditionPicker_color_changed"]
 [connection signal="focus_exited" from="Basic/Top/IDEdit" to="." method="_on_IDEdit_focus_exited"]
 [connection signal="focus_exited" from="Basic/Top/NameEdit" to="." method="_on_NameEdit_focus_exited"]
 [connection signal="text_entered" from="Basic/Top/NameEdit" to="." method="_on_NameEdit_text_entered"]
@@ -344,11 +367,4 @@ allow_input = false
 [connection signal="item_selected" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="multi_selected" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="nothing_selected" from="Basic/Services" to="." method="_on_Services_changed"]
-[connection signal="resized" from="Visual" to="." method="_on_Visual_resized"]
-[connection signal="focus_exited" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_focus_exited"]
-[connection signal="text_entered" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_text_entered"]
-[connection signal="color_changed" from="Visual/Settings/ColorScalingPicker" to="." method="_on_ColorScalingPicker_color_changed"]
-[connection signal="color_changed" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_ColorAdditionPicker_color_changed"]
-[connection signal="focus_exited" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_focus_exited"]
-[connection signal="text_entered" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_text_entered"]
 [connection signal="text_changed" from="Help/Data/Text" to="." method="_on_Text_text_changed"]

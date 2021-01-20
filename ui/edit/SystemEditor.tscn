@@ -85,5 +85,6 @@ __meta__ = {
 [connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
 [connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_nothing"]
 [connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_space_object"]
+[connection signal="center_on_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_center_on_node"]
 [connection signal="deselect_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_deselect_node"]
 [connection signal="select_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_select_node"]
