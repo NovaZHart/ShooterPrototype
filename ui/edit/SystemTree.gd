@@ -27,17 +27,20 @@ func select_node_with_path(path) -> bool:
 			full_path = node.get_path()
 	return select_recurse(get_root(),full_path)
 
-func sync_names_recursively(item: TreeItem):
-	var path = item.get_metadata(0)
-	if path and path is NodePath:
-		var node = game_state.universe.get_node_or_null(path)
-		if node:
-			item.set_text(0,node.display_name)
-	for child in item.get_children():
-		sync_names_recursively(child)
+func sync_names_recursively(item):
+	var scan = item
+	while scan:
+		var path = scan.get_metadata(0)
+		if path and path is NodePath:
+			var node = game_state.universe.get_node_or_null(path)
+			if node:
+				scan.set_text(0,node.display_name)
+		sync_names_recursively(scan.get_children())
+		scan = scan.get_next()
 
 func sync_metadata():
 	sync_names_recursively(get_root())
+	return true
 
 func recurse_fill_tree(node: simple_tree.SimpleNode, parent):
 	var item: TreeItem = create_item(parent)

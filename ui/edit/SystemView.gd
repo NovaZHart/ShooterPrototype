@@ -42,7 +42,7 @@ func lose_focus():
 	last_screen_position=null
 	camera_start=null
 
-func update_space_background(from=null):
+func update_space_background(from=null) -> bool:
 	if from==null:
 		from=system
 	var result = $SpaceBackground.update_from(from)
@@ -50,6 +50,8 @@ func update_space_background(from=null):
 		result = yield(result,'completed')
 	if not result:
 		push_error('space background regeneration failed')
+		return false
+	return true
 
 func handle_input():
 	if not has_focus:

@@ -1,4 +1,6 @@
-extends Spatial
+extends game_state.SectorEditorStub
+
+#extends Spatial
 
 export var connected_color = Color(0.4,0.8,1.0)
 export var highlight_color = Color(1.0,0.9,0.5)
@@ -10,7 +12,6 @@ export var max_camera_size: float = 150
 export var label_font: Font
 export var highlighted_font: Font
 
-const UniverseEditor = preload('res://ui/edit/UniverseEditor.gd')
 const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
 const RESULT_NONE: int = 0
 const RESULT_CANCEL: int = 1
@@ -31,18 +32,13 @@ var system_data = PoolRealArray()
 var selected_file = null
 
 var popup_result = null
-var selection = null
 var ui_scroll: float = 0
 var last_position = null
 var last_screen_position = null
 var camera_start = null
 var am_moving = false
-var editor
 var draw_commands: Array = []
 var draw_mutex: Mutex = Mutex.new()
-
-func _init():
-	editor = UniverseEditor.new()
 
 func cancel_drag() -> bool:
 	last_position=null
@@ -52,6 +48,7 @@ func cancel_drag() -> bool:
 	return true
 
 func _ready():
+	game_state.switch_editors(self)
 	highlight_link = make_box_mesh(Vector3(-0.5,-0.5,-0.5),0.5,0.5,2,2)
 	regular_link = make_box_mesh(Vector3(-0.5,-0.5,-0.5),0.5,0.5,2,2)
 	highlight_system = make_circle_mesh(1.5,32,Vector3())
@@ -364,8 +361,8 @@ func edit_system(system):
 	if result and result['result']==RESULT_ACTION:
 		var old_name = system.display_name
 		system.display_name = result['display_name']
-		editor.state.push(editor.ChangeDisplayName.new(
-			self,system.get_name(),old_name,result['display_name']))
+		universe_editor.state.push(universe_editor.ChangeDisplayName.new(
+			system.get_name(),old_name,result['display_name']))
 	set_process(true)
 
 func handle_select(event: InputEvent):
@@ -374,8 +371,8 @@ func handle_select(event: InputEvent):
 	if event.shift and selection is simple_tree.SimpleNode:
 		if target is simple_tree.SimpleNode and target.get_name()!=selection.get_name():
 			var link = game_state.universe.get_link_between(selection,target)
-			if link and editor.state.push(
-					editor.ChangeSelection.new(self,selection,link)):
+			if link and universe_editor.state.push(
+					universe_editor.ChangeSelection.new(selection,link)):
 #				change_selection_to(link)
 				last_position = $Camera.project_position(pos,-10)
 				last_screen_position = pos
@@ -383,7 +380,7 @@ func handle_select(event: InputEvent):
 				am_moving = false
 			return
 	if typeof(selection)!=typeof(target) or selection!=target:
-		editor.state.push(editor.ChangeSelection.new(self,selection,target))
+		universe_editor.state.push(universe_editor.ChangeSelection.new(selection,target))
 #	change_selection_to(target)
 	last_position = $Camera.project_position(pos,-10)
 	last_screen_position = pos
@@ -400,7 +397,7 @@ func handle_modify(event: InputEvent):
 			if not game_state.universe.get_link_between(selection,at):
 				var link = process_if(game_state.universe.add_link(selection,at))
 				if link:
-					editor.state.push(editor.AddLink.new(self,link))
+					universe_editor.state.push(universe_editor.AddLink.new(link))
 	elif not event.shift:
 		at = make_new_system(event)
 		while at is GDScriptFunctionState and at.is_valid():
@@ -408,7 +405,7 @@ func handle_modify(event: InputEvent):
 		if at:
 			if selection is simple_tree.SimpleNode and at!=selection:
 				process_if(game_state.universe.add_link(selection,at))
-			editor.state.push(editor.AddSystem.new(self,at))
+			universe_editor.state.push(universe_editor.AddSystem.new(at))
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $Camera.size
@@ -431,7 +428,7 @@ func save_load(save: bool) -> bool:
 	elif save:
 		return game_state.universe.save_to_json(selected_file)
 	elif game_state.universe.load_from_json(selected_file):
-		editor.state.clear()
+		universe_editor.state.clear()
 		set_process(true)
 		return true
 	return false
@@ -452,22 +449,22 @@ func _input(event):
 			var delta: Vector3 = pos3-last_position
 			if selection:
 				if selection is simple_tree.SimpleNode:
-					var top = editor.state.top()
-					if not top or not top is editor.MoveObject \
+					var top = universe_editor.state.top()
+					if not top or not top is universe_editor.MoveObject \
 							or not top.object==selection:
-						editor.state.push(editor.MoveObject.new(
-							self,selection,'move_system'))
-						top=editor.state.top()
+						universe_editor.state.push(universe_editor.MoveObject.new(
+							selection,'move_system'))
+						top=universe_editor.state.top()
 					if process_if(game_state.universe.move_system(selection,delta)):
-						editor.state.amend(delta)
+						universe_editor.state.amend(delta)
 				elif selection is Dictionary:
-					var top = editor.state.top()
-					if not top or not top is editor.MoveObject or \
+					var top = universe_editor.state.top()
+					if not top or not top is universe_editor.MoveObject or \
 							not top.object==selection:
-						editor.state.push(editor.MoveObject.new(self,selection,'move_link'))
-						top = editor.state.top()
+						universe_editor.state.push(universe_editor.MoveObject.new(selection,'move_link'))
+						top = universe_editor.state.top()
 					if process_if(game_state.universe.move_link(selection,delta)):
-						editor.state.amend(delta)
+						universe_editor.state.amend(delta)
 				last_position=pos3
 			else:
 				var pos3_start: Vector3 = $Camera.project_position(last_screen_position,-10)
@@ -495,18 +492,18 @@ func _input(event):
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_delete') and selection:
 		if selection is Dictionary:
-			editor.state.push(editor.EraseLink.new(self,selection))
+			universe_editor.state.push(universe_editor.EraseLink.new(selection))
 #			var _discard = erase_link(selection)
 			get_tree().set_input_as_handled()
 		elif selection is simple_tree.SimpleNode:
-			editor.state.push(editor.EraseSystem.new(self,selection))
+			universe_editor.state.push(universe_editor.EraseSystem.new(selection))
 #			var _discard = erase_system(selection)
 			get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_undo'):
-		editor.state.undo()
+		universe_editor.state.undo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_redo'):
-		editor.state.redo()
+		universe_editor.state.redo()
 		get_tree().set_input_as_handled()
 	
 	var ui_zoom: int = 0

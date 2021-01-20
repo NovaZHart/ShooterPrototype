@@ -58,7 +58,7 @@ func encode() -> Dictionary:
 		result['fleets']=fleets.duplicate(true)
 	return result
 
-func _init(the_name,content: Dictionary):
+func decode(content: Dictionary):
 	display_name = content.get('display_name','(unnamned)')
 	fleets = content.get('fleets',default_fleets)
 	links = content.get('links',{})
@@ -66,6 +66,9 @@ func _init(the_name,content: Dictionary):
 	starfield_seed = content.get('starfield_seed',987686)
 	plasma_color = content.get('plasma_color',Color(0.07,0.07,.18,1.0))
 	set_position(content.get('position',Vector3()))
+
+func _init(the_name,content: Dictionary):
+	decode(content)
 	if the_name:
 		set_name(the_name)
 	rng = RandomNumberGenerator.new()

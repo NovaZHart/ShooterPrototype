@@ -24,6 +24,32 @@ var player_ship_design: Dictionary
 
 signal console_append
 
+class SectorEditorStub extends Spatial:
+	var selection = null
+	func process_if(_condition: bool) -> bool:     return true
+	func change_selection_to(var _what) -> bool:   return true
+	func deselect(_what) -> bool:                  return true
+	func cancel_drag() -> bool:                    return true
+
+class SystemEditorStub extends Panel:
+	func update_system_data(_path: NodePath,_background_update: bool,_metadata_update: bool):
+		return true
+
+var sector_editor = SectorEditorStub.new()
+var system_editor = SystemEditorStub.new()
+
+func switch_editors(what: Node):
+	if what is SectorEditorStub:
+		system_editor=SystemEditorStub.new()
+		sector_editor=what
+	elif what is SystemEditorStub:
+		system_editor=what
+		sector_editor=SectorEditorStub.new()
+	else:
+		push_error('Unrecognized type in switch_editors for node '+str(what))
+		system_editor=SystemEditorStub.new()
+		sector_editor=SectorEditorStub.new()
+
 func make_unique_ship_node_name():
 	var i: int = name_counter
 	name_counter = name_counter+1
