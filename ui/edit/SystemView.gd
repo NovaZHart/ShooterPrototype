@@ -88,7 +88,7 @@ func handle_selection():
 		var pos_diff = start_pos-space_pos
 		pos_diff.y=0
 		if pos_diff.length()>1e-3:
-			$TopCamera.translation = camera_start + pos_diff
+			center_view(camera_start + pos_diff)
 
 func _process(_delta):
 	if not has_focus:

@@ -69,15 +69,12 @@ func _on_Tree_deselect_node():
 	set_panel_type(null)
 
 func _on_Tree_select_node(path: NodePath):
-	print('tree select node')
 	var node = game_state.universe.get_node_or_null(path)
 	if node==null:
-		print('null settings')
 # warning-ignore:return_value_discarded
 		set_panel_type(null)
 		selection = NodePath()
 	elif node.has_method('is_SystemData'):
-		print('system data settings')
 		var control: Control = set_panel_type(SystemSettings)
 		control.set_system(game_state.system)
 		selection = game_state.system.get_path()
@@ -88,7 +85,6 @@ func _on_Tree_select_node(path: NodePath):
 		if control.connect('edit_complete',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect edit_complete')
 	else:
-		print('space object settings')
 		var control: Control = set_panel_type(SpaceObjectSettings)
 		assert(control is TabContainer)
 		control.set_planet(node)
@@ -104,7 +100,8 @@ func _on_Left_focus_entered():
 	$Split/Left/View/SystemView.gain_focus()
 
 func _on_SystemView_select_nothing():
-	pass # Replace with function body.
+	pass # clicking nothing just drags
 
 func _on_SystemView_select_space_object(path: NodePath):
-	pass # Replace with function body.
+	if not $Split/Right/Top/Tree.select_node_with_path(path):
+		push_error('Cannot select path '+str(path))

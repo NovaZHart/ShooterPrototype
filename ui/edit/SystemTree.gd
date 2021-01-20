@@ -3,15 +3,29 @@ extends Tree
 signal select_node
 signal deselect_node
 
-func select_recursively_with_path(item: TreeItem,path: NodePath) -> bool:
-	if item.get_metadata(0)==path:
-		pass # FIXME
-	else:
-		pass # FIXME
-	return false # FIXME
+func select_recurse(item,path) -> bool:
+	if not item:
+		return false
+	var success: bool = false
+	var scan = item
+	while scan:
+		if scan.get_metadata(0)==path:
+			scan.select(0)
+			success=true
+		else:
+			scan.deselect(0)
+		success = select_recurse(scan.get_children(),path) or success
+		scan = scan.get_next()
+	return success
 
-func select_node_with_path(path: NodePath) -> bool:
-	return select_recursively_with_path(get_root(),path)
+func select_node_with_path(path) -> bool:
+	var node = null
+	var full_path = NodePath()
+	if path:
+		node = game_state.universe.get_node_or_null(path)
+		if node != null:
+			full_path = node.get_path()
+	return select_recurse(get_root(),full_path)
 
 func sync_names_recursively(item: TreeItem):
 	var path = item.get_metadata(0)
@@ -19,6 +33,8 @@ func sync_names_recursively(item: TreeItem):
 		var node = game_state.universe.get_node_or_null(path)
 		if node:
 			item.set_text(0,node.display_name)
+	for child in item.get_children():
+		sync_names_recursively(child)
 
 func sync_metadata():
 	sync_names_recursively(get_root())
