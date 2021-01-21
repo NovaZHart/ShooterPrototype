@@ -111,10 +111,12 @@ func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
 		noise_type: int = 1):
 	make_sphere(simple_sun_shader,subdivisions,random_seed,noise_type,texture_size)
 
-func place_sphere(sphere_scale: float, sphere_translation: Vector3):
+func place_sphere(sphere_scale: float, sphere_translation: Vector3,
+		sphere_rotation: Vector3=Vector3()):
 	sphere.scale = Vector3(sphere_scale,sphere_scale,sphere_scale)
-	$CollisionShape.shape.radius = sphere_scale*2
+	$CollisionShape.scale = sphere.scale
 	translation = sphere_translation
+	rotation = sphere_rotation
 
 func get_combined_aabb():
 	if combined_aabb==null:

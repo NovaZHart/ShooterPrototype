@@ -26,6 +26,7 @@ __meta__ = {
 [node name="Split" type="HSplitContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
+focus_mode = 1
 size_flags_horizontal = 3
 size_flags_vertical = 3
 __meta__ = {
@@ -35,7 +36,12 @@ __meta__ = {
 [node name="Left" type="ViewportContainer" parent="Split"]
 margin_right = 725.0
 margin_bottom = 600.0
+focus_neighbour_left = NodePath(".")
+focus_neighbour_top = NodePath(".")
+focus_neighbour_right = NodePath(".")
+focus_neighbour_bottom = NodePath(".")
 focus_mode = 2
+mouse_filter = 1
 mouse_default_cursor_shape = 3
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -82,6 +88,7 @@ __meta__ = {
 }
 [connection signal="focus_entered" from="Split/Left" to="." method="_on_Left_focus_entered"]
 [connection signal="focus_exited" from="Split/Left" to="." method="_on_Left_focus_exited"]
+[connection signal="resized" from="Split/Left" to="Split/Left/View/SystemView" method="view_resized"]
 [connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
 [connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_nothing"]
 [connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_space_object"]

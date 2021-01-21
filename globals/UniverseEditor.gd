@@ -184,6 +184,37 @@ class SystemDataChange extends undo_tool.Action:
 		return game_state.system_editor.update_system_data(system.get_path(),
 				background_update,metadata_update)
 
+class DescriptionChange extends undo_tool.Action:
+	var old_description: String
+	var new_description: String
+	var object_path: NodePath
+	func as_string() -> String:
+		return 'DescriptionChange('+str(object_path)+',...)'
+# warning-ignore:shadowed_variable
+	func _init(object_path: NodePath,new_description: String,old_description: String):
+		self.new_description = new_description
+		self.old_description = old_description
+		self.object_path=object_path
+	func amend(description: String) -> bool:
+		new_description = description
+		return true
+	func undo() -> bool:
+		var object = game_state.universe.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			return false
+		object.description = old_description
+		return game_state.system_editor.update_space_object_data(object.get_path(),
+				false,false,true,false)
+	func redo() -> bool:
+		var object = game_state.universe.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			return false
+		object.description = new_description
+		return game_state.system_editor.update_space_object_data(object.get_path(),
+				false,false,true,false)
+
 class SpaceObjectDataChange extends undo_tool.Action:
 	var old: Dictionary = {}
 	var new: Dictionary

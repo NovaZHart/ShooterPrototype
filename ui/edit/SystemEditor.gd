@@ -4,6 +4,7 @@ const SystemSettings: PackedScene = preload('res://ui/edit/SystemSettings.tscn')
 const SpaceObjectSettings: PackedScene = preload('res://ui/edit/SpaceObjectSettings.tscn')
 
 var selection: NodePath = NodePath()
+var last_space_object_tab: int = 0
 
 func _ready():
 	$Split/Left.set_focus_mode(Control.FOCUS_CLICK)
@@ -31,25 +32,30 @@ func child_fills_parent(c: Control):
 	c.size_flags_horizontal=Control.SIZE_FILL|Control.SIZE_EXPAND
 	c.size_flags_vertical=Control.SIZE_FILL|Control.SIZE_EXPAND
 
+func remove_old_settings():
+	var node: Node = $Split/Right/Bottom/Settings
+	if node.has_method('is_SpaceObjectSettings'):
+		last_space_object_tab = node.current_tab
+	$Split/Right/Bottom.remove_child(node)
+	node.queue_free()
+
 func set_panel_type(var scene) -> Control:
 	if scene:
 		var instance = scene.instance()
 		if not instance is Control:
 			push_error('Instanced scene '+str(scene.resource_path)+' is not a Control.')
 		else:
-			var node: Node = $Split/Right/Bottom/Settings
-			$Split/Right/Bottom.remove_child(node)
-			node.queue_free()
+			remove_old_settings()
 			child_fills_parent(instance)
 			instance.name='Settings'
 			$Split/Right/Bottom.add_child(instance)
+			if instance.has_method('is_SpaceObjectSettings'):
+				instance.current_tab=last_space_object_tab
 			var added = $Split/Right/Bottom.get_node_or_null('Settings')
 			assert(added!=null)
 			assert(added==instance)
 			return instance
-	var node: Node = $Split/Right/Bottom/Settings
-	$Split/Right/Bottom.remove_child(node)
-	node.queue_free()
+	remove_old_settings()
 	var filler: RichTextLabel = RichTextLabel.new()
 	child_fills_parent(filler)
 	filler.name='Settings'
@@ -73,11 +79,13 @@ func update_system_data(_path: NodePath,bkg_update: bool,meta_update:bool):
 func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 		help: bool, location: bool) -> bool:
 	var success = true
+	if basic:
+		$Split/Right/Top/Tree.sync_metadata()
 	if $Split/Right/Bottom/Settings.has_method('update_space_object_data'):
 		success = $Split/Right/Bottom/Settings.update_space_object_data(
 			path,basic,visual,help,location) and success
 	if visual or location:
-		success = $Split/Left/View/SystemView.remake_planets() and success
+		success = $Split/Left/View/SystemView.remake_planet(path) and success
 	return success
 
 #func _on_SystemView_system_metadata_changed(_system):
@@ -100,10 +108,6 @@ func _on_Tree_select_node(path: NodePath):
 		var control: Control = set_panel_type(SystemSettings)
 		control.set_system(game_state.system)
 		selection = game_state.system.get_path()
-#		if control.connect('space_background_changed',self,'_on_SystemView_space_background_changed')!=OK:
-#			push_error('cannot connect space_background_changed')
-#		if control.connect('system_metadata_changed',self,'_on_SystemView_system_metadata_changed')!=OK:
-#			push_error('cannot connect system_metadata_changed')
 		if control.connect('edit_complete',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect edit_complete')
 	else:
@@ -113,7 +117,7 @@ func _on_Tree_select_node(path: NodePath):
 		selection = path
 		if control.connect('surrender_focus',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect surrender_focus')
-		$Split/Left/View/SystemView.center_view(node.planet_translation(0))
+		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
 
 func _on_Left_focus_exited():
 	$Split/Left/View/SystemView.lose_focus()
@@ -126,9 +130,19 @@ func _on_SystemView_select_nothing():
 
 func _on_SystemView_select_space_object(path: NodePath):
 	if not $Split/Right/Top/Tree.select_node_with_path(path):
-		push_error('Cannot select path '+str(path))
+		push_error('Tree cannot select path '+str(path))
+	if not $Split/Left/View/SystemView.select_and_center_view(path):
+		push_error('View cannot select path '+str(path))
 
 func _on_Tree_center_on_node(path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
 	if node!=null and node.has_method('is_SpaceObjectData'):
-		$Split/Left/View/SystemView.center_view(node.planet_translation(0))
+		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
+
+func _unhandled_input(event):
+	if event.is_action_pressed('ui_undo'):
+		universe_editor.state.undo()
+		get_tree().set_input_as_handled()
+	elif event.is_action_pressed('ui_redo'):
+		universe_editor.state.redo()
+		get_tree().set_input_as_handled()

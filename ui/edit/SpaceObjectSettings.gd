@@ -13,6 +13,8 @@ var text_change_tick: int = -1
 
 var object
 
+func is_SpaceObjectSettings(): pass # never called; must only exist
+
 func _ready():
 	var i: int = 0
 	for service_id in game_state.services:
@@ -84,8 +86,8 @@ func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 		help: bool, location: bool) -> bool:
 	var node = game_state.universe.get_node_or_null(path)
 	if node and node==object:
-		return sync_with_object(basic,visual,help,location)
-	return false
+		return sync_with_object(basic,visual,help,location,false)
+	return true
 
 func sync_with_object(basic: bool=true, visual: bool = true, help: bool = true, location: bool = true, send_text: bool = false) -> bool:
 	if basic:
@@ -119,6 +121,7 @@ func sync_with_object(basic: bool=true, visual: bool = true, help: bool = true, 
 		$Basic/Top/OrbitRadiusEdit.text = str(object.orbit_radius)
 		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_period)
 		$Basic/Top/OrbitPhaseEdit.text = str(object.orbit_start)
+		$Basic/Top/RotationPeriodEdit.text = str(object.rotation_period)
 	
 	return true
 
@@ -133,8 +136,16 @@ func display_description(visual_update: bool, send_text: bool):
 		$Help/Data/Display.insert_bbcode(full_text,true)
 		$Help/Data/Display.scroll_to_line(0)
 	if send_text:
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
-			object.get_path(),{'description':just_text},false,false,false,true))
+		var top = universe_editor.state.top()
+		if top and top is universe_editor.DescriptionChange and top.object_path==object.get_path():
+			print('amend')
+			top.amend(just_text)
+		else:
+			print('replace')
+			var old_description = object.description
+			object.description = just_text
+			universe_editor.state.push(universe_editor.DescriptionChange.new(
+				object.get_path(),just_text,old_description))
 
 func _on_SeedEdit_focus_exited():
 	$Visual/Settings/SeedEdit.text = str(object.shader_seed)
@@ -165,8 +176,11 @@ func _on_OrbitRadiusEdit_focus_exited():
 	emit_signal('surrender_focus')
 
 func _on_OrbitPeriodEdit_focus_exited():
-	$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_start)
+	$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_period)
 	emit_signal('surrender_focus')
+
+func _on_RotationPeriodEdit_focus_exited():
+	$Basic/Top/RotationPeriodEdit.text = str(object.rotation_period)
 
 func _on_NameEdit_text_entered(new_text):
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
@@ -235,7 +249,7 @@ func _on_SeedEdit_text_entered(new_text):
 func _on_RadiusEdit_text_entered(new_text):
 	if new_text.is_valid_float():
 		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
-			object.get_path(),{'size':clamp(float(new_text),0.5,10.0)},false,true,false,false))
+			object.get_path(),{'size':clamp(float(new_text),0.5,20.0)},false,true,false,false))
 	else:
 		$Visual/Settings/RadiusEdit.text = str(object.size)
 	emit_signal('surrender_focus')
@@ -243,7 +257,20 @@ func _on_RadiusEdit_text_entered(new_text):
 func _on_Text_text_changed():
 	text_change_tick = OS.get_ticks_msec()
 
+func _on_Text_focus_exited():
+	display_description(true,true)
+
 func _on_Randomize_pressed():
 	var new_seed: int = randi()%99999
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'shader_seed':new_seed},false,true,false,false))
+
+
+func _on_RotationPeriodEdit_text_entered(new_text):
+	if new_text.is_valid_float():
+		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+			object.get_path(),{'rotation_period':max(float(new_text),0.0)},false,false,false,true))
+	else:
+		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_start)
+	emit_signal('surrender_focus')
+

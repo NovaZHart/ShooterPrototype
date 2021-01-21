@@ -28,19 +28,40 @@ const base_types = {
 	}
 }
 
-var object_type = PLANET
-var size: float = 3.0
+var object_type = PLANET setget set_object_type
+var size: float = 3.0 setget set_size
 var color_scaling: Color = Color(1,1,1,1)
 var color_addition: Color = Color(0,0,0,1)
 var display_name: String = 'Unnamed'
 var shader_seed: int = 0
-var orbit_radius: float = 0.0
-var orbit_period: float = 0.0
+var rotation_period: float = 0.0 setget set_rotation_period
+var orbit_radius: float = 0.0 setget set_orbit_radius
+var orbit_period: float = 0.0 setget set_orbit_period
 var orbit_start: float = 0.0
 var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
 var base_name: String = ''
+
+func set_object_type(p: int):
+	assert(object_type==PLANET or object_type==STAR)
+	object_type=p
+
+func set_size(p: float):
+	assert(p>.1)
+	size=p
+
+func set_orbit_radius(p: float):
+	assert(p>=0)
+	orbit_radius = p
+
+func set_orbit_period(p: float):
+	assert(p>=0)
+	orbit_period = p
+
+func set_rotation_period(p: float):
+	assert(p>=0)
+	rotation_period = p
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return true
@@ -125,14 +146,39 @@ func full_display_name() -> String:
 		return parent.full_display_name() + '_' + fp
 	return fp
 
+func planet_rotation(time: float) -> Vector3:
+	var rotation_y = 2*PI*time/rotation_period if (rotation_period>1e-6) else 0.0
+	return Vector3(0.0,rotation_y,0.0)
+
 func planet_translation(time: float) -> Vector3:
 	var angle = 2*PI*time/orbit_period if (orbit_period>1e-6) else 0.0
 	var loc = Vector3(orbit_radius*sin(angle+orbit_start),0,orbit_radius*cos(angle+orbit_start))
 	
 	var parent = get_parent()
-	if parent!=null and parent.is_a_planet():
+	if parent!=null and parent.has_method('is_SpaceObjectData'):
 		loc += parent.planet_translation(time)
 	return loc
+
+func orbital_adjustments_to(time: float,new_location: Vector3) -> Dictionary:
+	var angle = 2*PI*time/orbit_period if (orbit_period>1e-6) else 0.0
+	var loc = Vector3(orbit_radius*sin(angle+orbit_start),0,orbit_radius*cos(angle+orbit_start))
+	var rel_loc = loc
+	var parent = get_parent()
+	var parent_translation: Vector3 = Vector3()
+	if parent and parent.has_method('is_SpaceObjectData'):
+		parent_translation = parent.planet_translation(time)
+	loc += parent_translation
+
+	var new_rad_loc = new_location-parent_translation
+	new_rad_loc.y=0
+	var new_radius = new_rad_loc.length()
+
+	var new_start = 0.0
+	if orbit_period>1e-6:
+		var new_rel_loc = new_rad_loc
+		var new_angle = atan2(new_rel_loc.x,new_rel_loc.z)
+		new_start = fmod(new_angle - angle, 2*PI)
+	return { 'orbit_radius':new_radius, 'orbit_start':new_start }
 
 func make_planet(detail: float=150, time: float=0):
 	var texture_size: int = int(round(pow(2,max(7,min(11,int(log(detail*size)/log(2)))))))
@@ -145,7 +191,7 @@ func make_planet(detail: float=150, time: float=0):
 	
 	planet.color_sphere(color_scaling,color_addition)
 	var x0z = planet_translation(time)
-	planet.place_sphere(size,Vector3(x0z[0],-15,x0z[2]))
+	planet.place_sphere(size,Vector3(x0z[0],-15,x0z[2]),planet_rotation(time))
 	
 	planet.name = make_unique_name()
 	planet.display_name = display_name
