@@ -3,6 +3,7 @@ extends game_state.SystemEditorStub
 const SystemSettings: PackedScene = preload('res://ui/edit/SystemSettings.tscn')
 const SpaceObjectSettings: PackedScene = preload('res://ui/edit/SpaceObjectSettings.tscn')
 
+var selected_file = null
 var selection: NodePath = NodePath()
 var last_space_object_tab: int = 0
 
@@ -99,28 +100,33 @@ func remove_space_object(_parent: NodePath, _child) -> bool:
 	$Split/Left/View/SystemView.set_system(game_state.system)
 	return true
 
-func _on_Tree_deselect_node():
-	var _discard = set_panel_type(null)
+func cancel_drag() -> bool:
+	return $Split/Left/View/SystemView.stop_moving()
 
-func _on_Tree_select_node(path: NodePath):
-	var node = game_state.universe.get_node_or_null(path)
+func change_selection_to(node) -> bool:
 	if node==null:
 		var _discard = set_panel_type(null)
 		selection = NodePath()
+		$Split/Left/View/SystemView.deselect()
+		$Split/Right/Top/Tree.select_node_with_path(NodePath())
 	elif node.has_method('is_SystemData'):
 		var control: Control = set_panel_type(SystemSettings)
 		control.set_system(game_state.system)
 		selection = game_state.system.get_path()
 		if control.connect('edit_complete',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect edit_complete')
+		$Split/Left/View/SystemView.deselect()
+		$Split/Right/Top/Tree.select_node_with_path(node.get_path())
 	else:
 		var control: Control = set_panel_type(SpaceObjectSettings)
 		assert(control is TabContainer)
 		control.set_object(node)
-		selection = path
+		selection = node.get_path()
 		if control.connect('surrender_focus',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect surrender_focus')
 		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
+		$Split/Right/Top/Tree.select_node_with_path(node.get_path())
+	return true
 
 func _on_Left_focus_exited():
 	$Split/Left/View/SystemView.lose_focus()
@@ -128,19 +134,42 @@ func _on_Left_focus_exited():
 func _on_Left_focus_entered():
 	$Split/Left/View/SystemView.gain_focus()
 
-func _on_SystemView_select_nothing():
-	pass # clicking nothing just drags
+func _on_select_nothing():
+	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
+	if from==null:
+		return
+	universe_editor.state.push(universe_editor.ChangeSelection.new(from,null,true))
 
-func _on_SystemView_select_space_object(path: NodePath):
-	if not $Split/Right/Top/Tree.select_node_with_path(path):
-		push_error('Tree cannot select path '+str(path))
-	if not $Split/Left/View/SystemView.select_and_center_view(path):
-		push_error('View cannot select path '+str(path))
+func _on_select_space_object(path: NodePath):
+	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
+	var to = game_state.universe.get_node_or_null(path)
+	if (not from and not to) or (from and to and from==to):
+		return
+	universe_editor.state.push(universe_editor.ChangeSelection.new(from,to,true))
 
 func _on_Tree_center_on_node(path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
 	if node!=null and node.has_method('is_SpaceObjectData'):
 		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
+
+func save_load(save: bool) -> bool:
+	if save:
+		$FileDialog.mode=FileDialog.MODE_SAVE_FILE
+	else:
+		$FileDialog.mode=FileDialog.MODE_OPEN_FILE
+	selected_file=null
+	$FileDialog.popup()
+	while $FileDialog.visible:
+		yield(get_tree(),'idle_frame')
+	if not selected_file:
+		return false # canceled
+	elif save:
+		return game_state.universe.save_to_json(selected_file)
+	elif game_state.universe.load_from_json(selected_file):
+		universe_editor.state.clear()
+		set_process(true)
+		return true
+	return false
 
 func _unhandled_input(event):
 	if event.is_action_pressed('ui_undo'):
@@ -148,4 +177,10 @@ func _unhandled_input(event):
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_redo'):
 		universe_editor.state.redo()
+		get_tree().set_input_as_handled()
+	elif event.is_action_pressed('ui_editor_save'):
+		save_load(true)
+		get_tree().set_input_as_handled()
+	elif event.is_action_pressed('ui_editor_load'):
+		save_load(false)
 		get_tree().set_input_as_handled()

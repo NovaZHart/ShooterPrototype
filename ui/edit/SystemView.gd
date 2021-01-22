@@ -22,10 +22,11 @@ var system
 var planet_mutex: Mutex = Mutex.new()
 var has_focus: bool = false
 var arrow_move: Vector3 = Vector3()
-var selection: NodePath = NodePath()
+var selection: NodePath = NodePath() setget set_selection
 var last_clicked: NodePath = NodePath()
 var is_moving = false
 var is_making = null
+var is_sliding = false
 var last_position = null
 var start_position = null
 var last_screen_position = null
@@ -43,26 +44,42 @@ func full_game_state_path(var path: NodePath):
 		push_error('No game state node exists at path '+str(path))
 	return path
 
+func set_selection(what) -> bool:
+	if (what==null or not what) and selection:
+		selection=NodePath()
+		$Annotations.update()
+		return stop_moving()
+	else:
+		var full_path = game_state.tree.make_absolute(what)
+		if full_path != game_state.tree.make_absolute(selection):
+			selection = what
+			$Annotations.update()
+			return stop_moving()
+	return true # selection hasn't changed
+
 func gain_focus():
 	has_focus = true
 	$Annotations.update()
+	return true
 
-func lose_focus():
+func lose_focus() -> bool:
 	has_focus = false
 	is_location_select_down=false
 	was_location_select_down=false
 	ui_scroll=0
 	camera_start=null
-	stop_moving()
 	$Annotations.update()
+	return stop_moving()
 
-func stop_moving():
+func stop_moving() -> bool:
 	is_moving = false
 	is_making = null
 	last_position=null
 	last_screen_position=null
+	is_sliding = false
 	start_position=null
 	$Annotations.update()
+	return true
 
 func update_space_background(from=null) -> bool:
 	if from==null:
@@ -111,38 +128,32 @@ func start_moving(space_pos: Vector3,mouse_pos: Vector2):
 	last_screen_position = mouse_pos
 	camera_start = $TopCamera.translation
 
-func handle_selection():
-	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-	var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
+func handle_mouse_action_start(mouse_pos: Vector2, space_pos: Vector3):
+	var view_rect: Rect2 = Rect2(Vector2(),get_viewport().get_size())
+	if not view_rect.has_point(mouse_pos):
+		return
 	if Input.is_action_just_pressed('ui_location_modify'):
+		var _discard = stop_moving()
 		is_making = make_node_to_add()
 		start_moving(space_pos,mouse_pos)
 		print('start making ',is_making.encode(),' at ',space_pos)
 	elif Input.is_action_just_pressed('ui_location_select'):
+		var _discard = stop_moving()
 		var space: PhysicsDirectSpaceState = get_world().direct_space_state
 		var result: Dictionary = space.intersect_ray(space_pos-y500,space_pos+y500)
-		start_moving(space_pos,mouse_pos)
+		last_clicked = NodePath()
 		if result:
-			print('select')
-			var path = result['collider'].game_state_path
-			last_clicked = full_game_state_path(path)
-			if path:
-				emit_signal('select_space_object',path)
-		elif selection:
-			print('select nothing')
-			last_clicked = NodePath()
+			last_clicked = full_game_state_path(result['collider'].game_state_path)
+		if last_clicked:
+			emit_signal('select_space_object',last_clicked)
+			start_moving(space_pos,mouse_pos)
+		else:
 			emit_signal('select_nothing')
-	elif last_position and Input.is_action_pressed('ui_location_select'):
-		if not last_clicked:
-			var start_pos: Vector3 = $TopCamera.project_position(last_screen_position,-10)
-			var pos_diff = start_pos-space_pos
-			pos_diff.y=0
-			if pos_diff.length()>1e-3:
-				center_view(camera_start + pos_diff)
-		elif is_moving or space_pos.distance_to(start_position)>0.25:
-			print('start moving due to 0.25 movement')
-			is_moving = true
-			play_speed = 0
+	elif Input.is_action_just_pressed('ui_location_slide'):
+		is_sliding = true
+		start_moving(space_pos,mouse_pos)
+
+func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 	if is_making and not Input.is_action_pressed('ui_location_modify'):
 		print('should make')
 		var parent_path = selection
@@ -155,22 +166,35 @@ func handle_selection():
 		print('add ',is_making.encode(),' in ',str(parent_path))
 		universe_editor.state.push(universe_editor.AddSpaceObject.new(
 			parent_path,is_making))
-		stop_moving()
+		var _discard = stop_moving()
 	if is_moving and not Input.is_action_pressed('ui_location_select'):
 		print('done moving')
 		var data = game_state.universe.get_node_or_null(last_clicked)
 		var adjust: Dictionary = data.orbital_adjustments_to(planet_time,space_pos)
 		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 			data.get_path(),adjust,false,false,false,true))
-		stop_moving()
+		var _discard = stop_moving()
 		last_clicked = NodePath()
+	if is_sliding and not Input.is_action_pressed('ui_location_slide'):
+		is_sliding = false
+		if not is_moving and not is_making:
+			var _discard = stop_moving()
+
+func handle_mouse_action_active(_mouse_pos: Vector2, space_pos: Vector3):
+	if last_position and Input.is_action_pressed('ui_location_slide'):
+		var start_pos: Vector3 = $TopCamera.project_position(last_screen_position,-10)
+		var pos_diff = start_pos-space_pos
+		pos_diff.y=0
+		if pos_diff.length()>1e-3:
+			center_view(camera_start + pos_diff)
+	if last_position and Input.is_action_pressed('ui_location_select'):
+		if last_clicked and not is_moving and space_pos.distance_to(start_position)>0.25:
+			print('start moving due to 0.25 movement')
+			is_moving = true
+			play_speed = 0
 	if ( (last_clicked and is_moving) or is_making ) and last_position:
 		last_position=space_pos
 		$Annotations.update()
-	if selection and Input.is_action_just_released('ui_delete'):
-		var node = game_state.universe.get_node_or_null(selection)
-		universe_editor.state.push(universe_editor.RemoveSpaceObject.new(node))
-		selection = NodePath()
 
 func update_planet_locations():
 	var success: bool = true
@@ -187,7 +211,15 @@ func update_planet_locations():
 
 func _process(delta):
 	if has_focus:
-		handle_selection()
+		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+		var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
+		handle_mouse_action_start(mouse_pos,space_pos)
+		handle_mouse_action_end(mouse_pos,space_pos)
+		handle_mouse_action_active(mouse_pos,space_pos)
+		if selection and Input.is_action_just_released('ui_delete'):
+			var node = game_state.universe.get_node_or_null(selection)
+			universe_editor.state.push(universe_editor.RemoveSpaceObject.new(node,true))
+			selection = NodePath()
 		if arrow_move.length()>1e-5:
 			center_view($TopCamera.translation+arrow_move*delta*$TopCamera.size)
 		handle_scroll()
@@ -236,6 +268,7 @@ func erase_planet(game_state_path: NodePath) -> bool:
 	return false
 
 func deselect():
+	var _discard = stop_moving()
 	selection = NodePath()
 	$Annotations.update()
 

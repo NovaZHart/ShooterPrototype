@@ -374,6 +374,7 @@ allow_input = false
 [connection signal="multi_selected" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="nothing_selected" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="resized" from="Visual" to="." method="_on_Visual_resized"]
+[connection signal="visibility_changed" from="Visual/View" to="." method="_on_View_visibility_changed"]
 [connection signal="focus_exited" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_focus_exited"]
 [connection signal="text_entered" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_text_entered"]
 [connection signal="focus_exited" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_focus_exited"]

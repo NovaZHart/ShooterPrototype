@@ -1,6 +1,6 @@
 extends Node
 
-var state = undo_tool.UndoStack.new(false)
+var state = undo_tool.UndoStack.new(true)
 const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
 
 class AddSystem extends undo_tool.Action:
@@ -71,21 +71,32 @@ class AddLink extends undo_tool.Action:
 class ChangeSelection extends undo_tool.Action:
 	var old_selection
 	var new_selection
+	var system_editor: bool
 	func as_string() -> String:
 		return 'ChangeSelection(old=['+ \
 			game_state.universe.string_for(old_selection)+ \
 			'],to=['+game_state.universe.string_for(new_selection)+'])'
-	func _init(old,new):
+	func _init(old,new,system_editor_: bool = false):
 		old_selection=old
 		new_selection=new
+		system_editor=system_editor_
+	func cancel_drag(_from,_to) -> bool:
+		if system_editor:
+			return game_state.system_editor.cancel_drag()
+		return game_state.sector_editor.cancel_drag()
+	func set_selection(_from,to) -> bool:
+		if system_editor:
+			return game_state.system_editor.change_selection_to(to)
+		return game_state.sector_editor.change_selection_to(null)
 	func run() -> bool:
-		return game_state.sector_editor.change_selection_to(new_selection)
+		return set_selection(old_selection,new_selection)
 	func undo() -> bool:
-		return game_state.sector_editor.change_selection_to(old_selection) and game_state.sector_editor.cancel_drag()
+		return set_selection(new_selection,old_selection) and cancel_drag(new_selection,old_selection)
 	func redo() -> bool:
-		return game_state.sector_editor.change_selection_to(new_selection) and game_state.sector_editor.cancel_drag()
+		return set_selection(old_selection,new_selection) and cancel_drag(old_selection,new_selection)
 
 class ChangeDisplayName extends undo_tool.Action: # change name from sector editor
+	# FIXME: replace with SystemDataChange
 	var editor: Node
 	var system_id: String
 	var old_name: String
@@ -199,11 +210,13 @@ class RemoveSpaceObject extends undo_tool.Action:
 	var parent_path: NodePath
 	var child: simple_tree.SimpleNode
 	var child_name
+	var was_selected: bool
 	func as_string() -> String:
 		return 'RemoveSpaceObject('+str(parent_path)+'/'+str(child.get_name())+')'
-	func _init(child_: simple_tree.SimpleNode):
+	func _init(child_: simple_tree.SimpleNode, was_selected_: bool):
 		child=child_
 		child_name=child.get_name()
+		was_selected=was_selected_
 		var parent = child.get_parent()
 		var parent_path_: NodePath = parent.get_path() if parent else NodePath()
 		if not parent_path_ or not child_name:
@@ -226,7 +239,10 @@ class RemoveSpaceObject extends undo_tool.Action:
 		if not node.add_child(child):
 			push_error('Unable to add child to '+str(parent_path))
 			return false
-		return game_state.system_editor.add_space_object(parent_path,child)
+		if not game_state.system_editor.add_space_object(parent_path,child):
+			push_error('SystemEditor failed to add child to '+str(parent_path))
+			return false
+		return game_state.system_editor.change_selection_to(child)
 
 class DescriptionChange extends undo_tool.Action:
 	var old_description: String

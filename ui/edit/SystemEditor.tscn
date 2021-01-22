@@ -86,12 +86,24 @@ size_flags_vertical = 3
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="FileDialog" type="FileDialog" parent="."]
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.9
+popup_exclusive = true
+resizable = true
+filters = PoolStringArray( "*.json ; JSON Files" )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 [connection signal="focus_entered" from="Split/Left" to="." method="_on_Left_focus_entered"]
 [connection signal="focus_exited" from="Split/Left" to="." method="_on_Left_focus_exited"]
 [connection signal="resized" from="Split/Left" to="Split/Left/View/SystemView" method="view_resized"]
 [connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
-[connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_nothing"]
-[connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_SystemView_select_space_object"]
+[connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_select_nothing"]
+[connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_select_space_object"]
 [connection signal="center_on_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_center_on_node"]
-[connection signal="deselect_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_deselect_node"]
-[connection signal="select_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_select_node"]
+[connection signal="deselect_node" from="Split/Right/Top/Tree" to="." method="_on_select_nothing"]
+[connection signal="select_node" from="Split/Right/Top/Tree" to="." method="_on_select_space_object"]

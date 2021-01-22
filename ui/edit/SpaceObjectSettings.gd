@@ -4,6 +4,7 @@ signal surrender_focus
 
 var text_change_tick: int = -1
 var object
+var ignore_signals: bool = false
 
 func is_SpaceObjectSettings(): pass # never called; must only exist
 
@@ -33,11 +34,18 @@ func _ready():
 	$Help/Data/Text.add_color_region('{','}',Color(0.5,0.7,1.0))
 	sync_view_size()
 
-func update_object_view():
+func clear_object_view():
 	var object_node = $Visual/View/Port.get_node_or_null('Object')
 	if object_node!=null:
 		$Visual/View/Port.remove_child(object_node)
 		object_node.queue_free()
+
+func generate_object_view():
+	if not object:
+		return
+	var object_node = $Visual/View/Port.get_node_or_null('Object')
+	if object_node:
+		return
 	object_node=object.make_planet(600,0)
 	object_node.get_sphere().scale=Vector3(7,7,7)
 	object_node.translation = Vector3(0,0,0)
@@ -82,6 +90,7 @@ func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 	return true
 
 func sync_with_object(basic: bool=true, visual: bool = true, help: bool = true, location: bool = true, send_text: bool = false) -> bool:
+	ignore_signals = true
 	if basic:
 		$Basic/Top/IDEdit.text = str(object.get_name())
 		$Basic/Top/NameEdit.text = str(object.display_name)
@@ -103,7 +112,9 @@ func sync_with_object(basic: bool=true, visual: bool = true, help: bool = true, 
 		$Visual/Settings/ColorAdditionPicker.color = \
 			Color(c.r/2.0+0.5,c.g/2.0+0.5,c.b/2.0+0.5,1.0)
 		$Visual/Settings/SeedEdit.text = str(object.shader_seed)
-		update_object_view()
+		clear_object_view()
+		if $Visual.visible:
+			generate_object_view()
 	
 	if help:
 		$Help/Data/Text.text = object.description
@@ -114,7 +125,7 @@ func sync_with_object(basic: bool=true, visual: bool = true, help: bool = true, 
 		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_period)
 		$Basic/Top/OrbitPhaseEdit.text = str(object.orbit_start)
 		$Basic/Top/RotationPeriodEdit.text = str(object.rotation_period)
-	
+	ignore_signals = false
 	return true
 
 func display_description(visual_update: bool, send_text: bool):
@@ -138,6 +149,10 @@ func display_description(visual_update: bool, send_text: bool):
 			object.description = just_text
 			universe_editor.state.push(universe_editor.DescriptionChange.new(
 				object.get_path(),just_text,old_description))
+
+func _on_View_visibility_changed():
+	if $Visual.visible:
+		generate_object_view()
 
 func _on_SeedEdit_focus_exited():
 	$Visual/Settings/SeedEdit.text = str(object.shader_seed)
@@ -180,6 +195,7 @@ func _on_NameEdit_text_entered(new_text):
 	emit_signal('surrender_focus')
 
 func _on_TypeOptions_item_selected(index):
+	if ignore_signals: return
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'object_type':index},true,true,false,false))
 	emit_signal('surrender_focus')
@@ -209,11 +225,13 @@ func _on_OrbitPhaseEdit_text_entered(new_text):
 	emit_signal('surrender_focus')
 
 func _on_Gate_toggled(button_pressed):
+	if ignore_signals: return
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'has_astral_gate':button_pressed},true,false,false,false))
 	emit_signal('surrender_focus')
 
 func _on_Services_changed(_ignore=null,_ignore2=null):
+	if ignore_signals: return
 	var locations: PoolIntArray = $Basic/Services.get_selected_items()
 	var selections: Array = []
 	for i in range(len(locations)):
@@ -222,10 +240,12 @@ func _on_Services_changed(_ignore=null,_ignore2=null):
 		object.get_path(),{'services':selections},true,false,false,false))
 
 func _on_ColorScalingPicker_color_changed(color):
+	if ignore_signals: return
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'color_scaling':color},false,true,false,false))
 
 func _on_ColorAdditionPicker_color_changed(color):
+	if ignore_signals: return
 	var adjust: Color = Color(color.r*2.0-1.0,color.g*2.0-1.0,color.b*2.0-1.0,1.0)
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'color_addition':adjust},false,true,false,false))
@@ -253,6 +273,7 @@ func _on_Text_focus_exited():
 	display_description(true,true)
 
 func _on_Randomize_pressed():
+	if ignore_signals: return
 	var new_seed: int = randi()%99999
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'shader_seed':new_seed},false,true,false,false))

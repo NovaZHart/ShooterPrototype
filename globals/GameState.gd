@@ -42,6 +42,10 @@ class SystemEditorStub extends Panel:
 		return true
 	func remove_space_object(_parent: NodePath, _child) -> bool:
 		return true
+	func change_selection_to(_what) -> bool:
+		return true
+	func cancel_drag() -> bool:
+		return true
 var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 
