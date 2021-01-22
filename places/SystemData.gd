@@ -78,7 +78,7 @@ func _init(the_name,content: Dictionary):
 		for key in objects:
 			var object = objects[key]
 			if object and object is simple_tree.SimpleNode:
-				add_child(object,key)
+				var _discard = add_child(object,key)
 
 func increment_counter() -> int:
 	counter+=1

@@ -131,19 +131,32 @@ class SimpleNode extends Reference:
 			return children_.erase(child_name)
 		return false
 
-	func add_child(child: SimpleNode, child_name = null):
+	func make_child_name(base: String) -> String:
+		if not base in children_:
+			return base
+		for _x in range(100):
+			var check: String = ( '%s@%08x' % [ base, randi()%4294967296 ] )
+			if not check in children_:
+				print('name ',check)
+				return check
+		var last_resort: String = '%s@%x'%[base,randi()] # hope for the best
+		print('name ',last_resort)
+		return last_resort
+
+	func add_child(child: SimpleNode, child_name = null) -> bool:
 		if child.parent_.get_ref():
 			push_error('child already has a parent: '+str(child))
-			return
+			return false
 		if child_name==null:
 			child_name=child.get_name()
 		if not child_name or not child_name is String:
 			push_error('tried to add a child with no name: '+str(child))
-			return
+			return false
 		var _discard = remove_child_with_name(child_name)
 		child.name_=child_name
 		child.set_parent(weakref(self))
 		children_[child_name]=child
+		return true
 
 	func is_orphan() -> bool:
 		return not parent_.get_ref()
@@ -239,3 +252,12 @@ class SimpleTree extends Reference:
 				continue
 			obj = obj.children_.get(name,null)
 		return obj
+	func make_absolute(a: NodePath) -> NodePath:
+		if a.is_absolute():
+			return a
+		var node = get_node_or_null(a)
+		return NodePath() if node==null else node.get_path()
+	func same_path(a: NodePath, b: NodePath):
+		if a.is_empty() and b.is_empty():
+			return true
+		return make_absolute(a) == make_absolute(b)

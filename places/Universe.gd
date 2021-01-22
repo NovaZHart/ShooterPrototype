@@ -86,7 +86,7 @@ func decode(json_string,context: String) -> bool:
 			links[link_key]={ 'type':'link', 'link_key':link_key }
 		if bad_links:
 			printerr('warning: system with id ',system_id,' has invalid objects for destination systems in its links')
-		add_child(system)
+		_discard = add_child(system)
 	return true
 
 func encode_helper(what):
@@ -257,7 +257,7 @@ func add_system(id: String,display_name: String,projected_position: Vector3) -> 
 	var system = SystemData.new(id,{
 		'display_name': display_name,
 		'position': projected_position })
-	add_child(system)
+	var _discard = add_child(system)
 	data_mutex.unlock()
 	emit_signal('added_system',system)
 	return system
@@ -265,7 +265,7 @@ func add_system(id: String,display_name: String,projected_position: Vector3) -> 
 func restore_system(system) -> bool:
 	data_mutex.lock()
 	#var system_id: String = system.get_name()
-	add_child(system)
+	var _discard = add_child(system)
 	data_mutex.unlock()
 	for to_id in system.links:
 		var to = get_child_with_name(to_id)

@@ -3,14 +3,6 @@ extends TabContainer
 signal surrender_focus
 
 var text_change_tick: int = -1
-
-## warning-ignore:unused_signal
-#signal object_metadata_changed
-## warning-ignore:unused_signal
-#signal object_location_changed
-## warning-ignore:unused_signal
-#signal object_visuals_changed
-
 var object
 
 func is_SpaceObjectSettings(): pass # never called; must only exist
@@ -265,7 +257,6 @@ func _on_Randomize_pressed():
 	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
 		object.get_path(),{'shader_seed':new_seed},false,true,false,false))
 
-
 func _on_RotationPeriodEdit_text_entered(new_text):
 	if new_text.is_valid_float():
 		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
@@ -273,4 +264,3 @@ func _on_RotationPeriodEdit_text_entered(new_text):
 	else:
 		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_start)
 	emit_signal('surrender_focus')
-

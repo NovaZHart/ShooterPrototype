@@ -2,7 +2,7 @@ extends Node
 
 class Action extends Reference:
 	func run() -> bool: return true
-	func redo() -> bool: return true
+	func redo() -> bool: return run()
 	func undo() -> bool: return true
 	func amend(_arg) -> bool: return true
 	func as_string() -> String:

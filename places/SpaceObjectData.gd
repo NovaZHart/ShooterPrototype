@@ -69,7 +69,7 @@ func is_a_planet() -> bool: return true
 func is_SpaceObjectData(): pass # never called; must only exist
 
 func maybe_add(result,key,value,base):
-	if base.has(key) and value==base[key]:
+	if base and base.has(key) and value==base[key]:
 		return
 	result[key]=value
 
@@ -89,30 +89,29 @@ func encode() -> Dictionary:
 	maybe_add(result,'has_astral_gate',has_astral_gate,base)
 	return result
 
-func _init(node_name,me: Dictionary):
+func _init(node_name,me: Dictionary ={}):
 	base_name = me.get('base','')
 	var base = base_types.get(base_name,{})
 	if node_name:
 		set_name(node_name)
 	object_type = get_it(me,base,'object_type',PLANET)
-	size = get_it(me,base,'size',2.5)
+	size = get_it(me,base,'size',5)
 	color_scaling = get_it(me,base,'color_scaling',Color(1,1,1,1))
 	color_addition = get_it(me,base,'color_addition',Color(0,0,0,1))
 	display_name = get_it(me,base,'display_name','Unnamed')
 	shader_seed = get_it(me,base,'shader_seed',0)
-	orbit_radius = get_it(me,base,'orbit_radius',0.0)
-	orbit_period = get_it(me,base,'orbit_period',0.0)
+	orbit_radius = get_it(me,base,'orbit_radius',20.0)
+	orbit_period = get_it(me,base,'orbit_period',20.0)
 	orbit_start = get_it(me,base,'orbit_start',0.0)
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
-	assert(services is Array)
 	var objects = me.get('objects',{})
 	if objects and objects is Dictionary:
 		for key in objects:
 			var object = objects[key]
 			if object and object is simple_tree.SimpleNode:
-				add_child(object,key)
+				var _discard = add_child(object,key)
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:
@@ -159,19 +158,17 @@ func planet_translation(time: float) -> Vector3:
 		loc += parent.planet_translation(time)
 	return loc
 
-func orbital_adjustments_to(time: float,new_location: Vector3) -> Dictionary:
+func orbital_adjustments_to(time: float,new_location: Vector3,parent=null) -> Dictionary:
 	var angle = 2*PI*time/orbit_period if (orbit_period>1e-6) else 0.0
-	var loc = Vector3(orbit_radius*sin(angle+orbit_start),0,orbit_radius*cos(angle+orbit_start))
-	var rel_loc = loc
-	var parent = get_parent()
+	if parent==null:
+		parent = get_parent()
 	var parent_translation: Vector3 = Vector3()
 	if parent and parent.has_method('is_SpaceObjectData'):
 		parent_translation = parent.planet_translation(time)
-	loc += parent_translation
-
 	var new_rad_loc = new_location-parent_translation
 	new_rad_loc.y=0
 	var new_radius = new_rad_loc.length()
+	print(angle,' ',parent,' ',parent_translation,' ',new_rad_loc,' ',new_radius)
 
 	var new_start = 0.0
 	if orbit_period>1e-6:

@@ -1,5 +1,7 @@
 extends Spatial
 
+const SpaceObjectData=preload('res://places/SpaceObjectData.gd')
+
 export var label_font: Font
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
@@ -7,11 +9,11 @@ export var min_camera_size: float = 25
 export var max_camera_size: float = 500
 export var detail_level: float = 150
 
+const y500: Vector3 = Vector3(0.0,500.0,0.0)
+
 var play_speed: float = 0.0
 var planet_time: float = 0.0
 
-var is_paging_up: bool = false
-var is_paging_down: bool = false
 var ui_scroll: float = 0.0
 var is_location_select_down: bool = false
 var was_location_select_down: bool = false
@@ -23,6 +25,7 @@ var arrow_move: Vector3 = Vector3()
 var selection: NodePath = NodePath()
 var last_clicked: NodePath = NodePath()
 var is_moving = false
+var is_making = null
 var last_position = null
 var start_position = null
 var last_screen_position = null
@@ -46,16 +49,19 @@ func gain_focus():
 
 func lose_focus():
 	has_focus = false
-	is_paging_up=false
-	is_paging_down=false
 	is_location_select_down=false
 	was_location_select_down=false
 	ui_scroll=0
+	camera_start=null
+	stop_moving()
+	$Annotations.update()
+
+func stop_moving():
 	is_moving = false
+	is_making = null
 	last_position=null
 	last_screen_position=null
 	start_position=null
-	camera_start=null
 	$Annotations.update()
 
 func update_space_background(from=null) -> bool:
@@ -69,51 +75,64 @@ func update_space_background(from=null) -> bool:
 		return false
 	return true
 
-func handle_input():
-	if not has_focus:
-		return
+func handle_scroll():
 	if Input.is_action_just_released("wheel_up"):
 		ui_scroll=1.5
 	if Input.is_action_just_released("wheel_down"):
 		ui_scroll=-1.5
-	is_paging_up = Input.is_action_pressed("ui_page_up")
-	is_paging_down = Input.is_action_pressed("ui_page_down")
-	was_location_select_down = is_location_select_down
-	is_location_select_down = Input.is_action_pressed("ui_location_select")
 	arrow_move = Vector3(
 		float(Input.is_action_pressed('ui_up'))-float(Input.is_action_pressed('ui_down')),
 		0.0,
 		float(Input.is_action_pressed('ui_right'))-float(Input.is_action_pressed('ui_left')))
 	if Input.is_action_just_released('ui_select'):
-		if abs(play_speed)>1e-5:
-			play_speed=0
+		play_speed = float(abs(play_speed)<=1e-5)
+	var ui_zoom = int(Input.is_action_pressed("ui_page_up")) \
+		- int(Input.is_action_pressed("ui_page_down"))
+	set_zoom(pow(0.9,ui_zoom)*pow(0.9,3*ui_scroll))
+	ui_scroll*=0.7
+	if abs(ui_scroll)<.05:
+		ui_scroll=0
+
+func make_node_to_add():
+	if selection:
+		var selected_node = game_state.universe.get_node_or_null(selection)
+		if selected_node:
+			print('duplicate node '+str(selected_node.encode()))
+			var result = SpaceObjectData.new('unnamed',selected_node.encode())
+			result.display_name = result.display_name+' DUP'
+			return result
 		else:
-			play_speed=1.0
+			push_error('Selected node does not exist. Will make a child of system.')
+	return SpaceObjectData.new(system.make_child_name('unnamed'))
+
+func start_moving(space_pos: Vector3,mouse_pos: Vector2):
+	last_position = space_pos
+	start_position = space_pos
+	last_screen_position = mouse_pos
+	camera_start = $TopCamera.translation
 
 func handle_selection():
-	if Input.is_action_just_pressed('ui_location_select'):
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
-		var y500: Vector3 = Vector3(0.0,500.0,0.0)
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
+	if Input.is_action_just_pressed('ui_location_modify'):
+		is_making = make_node_to_add()
+		start_moving(space_pos,mouse_pos)
+		print('start making ',is_making.encode(),' at ',space_pos)
+	elif Input.is_action_just_pressed('ui_location_select'):
 		var space: PhysicsDirectSpaceState = get_world().direct_space_state
 		var result: Dictionary = space.intersect_ray(space_pos-y500,space_pos+y500)
-		last_position = space_pos
-		start_position = space_pos
-		last_screen_position = mouse_pos
-		camera_start = $TopCamera.translation
+		start_moving(space_pos,mouse_pos)
 		if result:
+			print('select')
 			var path = result['collider'].game_state_path
 			last_clicked = full_game_state_path(path)
-#			selection = full_game_state_path(path)
 			if path:
 				emit_signal('select_space_object',path)
 		elif selection:
-#			selection = NodePath()
+			print('select nothing')
 			last_clicked = NodePath()
 			emit_signal('select_nothing')
 	elif last_position and Input.is_action_pressed('ui_location_select'):
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
 		if not last_clicked:
 			var start_pos: Vector3 = $TopCamera.project_position(last_screen_position,-10)
 			var pos_diff = start_pos-space_pos
@@ -121,25 +140,38 @@ func handle_selection():
 			if pos_diff.length()>1e-3:
 				center_view(camera_start + pos_diff)
 		elif is_moving or space_pos.distance_to(start_position)>0.25:
+			print('start moving due to 0.25 movement')
 			is_moving = true
 			play_speed = 0
-	if last_clicked and is_moving and last_position:
+	if is_making and not Input.is_action_pressed('ui_location_modify'):
+		print('should make')
+		var parent_path = selection
+		var adjust: Dictionary = is_making.orbital_adjustments_to(planet_time,space_pos,
+			game_state.universe.get_node_or_null(parent_path))
+		is_making.orbit_start=adjust.orbit_start
+		is_making.orbit_radius=adjust.orbit_radius
+		if not parent_path:
+			parent_path = game_state.system.get_path()
+		print('add ',is_making.encode(),' in ',str(parent_path))
+		universe_editor.state.push(universe_editor.AddSpaceObject.new(
+			parent_path,is_making))
+		stop_moving()
+	if is_moving and not Input.is_action_pressed('ui_location_select'):
+		print('done moving')
+		var data = game_state.universe.get_node_or_null(last_clicked)
+		var adjust: Dictionary = data.orbital_adjustments_to(planet_time,space_pos)
+		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+			data.get_path(),adjust,false,false,false,true))
+		stop_moving()
+		last_clicked = NodePath()
+	if ( (last_clicked and is_moving) or is_making ) and last_position:
+		last_position=space_pos
 		$Annotations.update()
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
-		if not Input.is_action_pressed('ui_location_select'):
-			var data = game_state.universe.get_node_or_null(last_clicked)
-			var adjust: Dictionary = data.orbital_adjustments_to(planet_time,space_pos)
-			universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
-				data.get_path(),adjust,false,false,false,true))
-			is_moving = false
-			last_position=null
-			last_screen_position=null
-			start_position=null
-			last_clicked = NodePath()
-		else:
-			last_position=space_pos
-		
+	if selection and Input.is_action_just_released('ui_delete'):
+		var node = game_state.universe.get_node_or_null(selection)
+		universe_editor.state.push(universe_editor.RemoveSpaceObject.new(node))
+		selection = NodePath()
+
 func update_planet_locations():
 	var success: bool = true
 	for planet in $Planets.get_children():
@@ -155,19 +187,10 @@ func update_planet_locations():
 
 func _process(delta):
 	if has_focus:
-		handle_input()
 		handle_selection()
-		
 		if arrow_move.length()>1e-5:
 			center_view($TopCamera.translation+arrow_move*delta*$TopCamera.size)
-		
-		var ui_zoom: int = 0
-		ui_zoom = int(is_paging_up)-int(is_paging_down)
-		var zoom: float = pow(0.9,ui_zoom)*pow(0.9,3*ui_scroll)
-		ui_scroll*=0.7
-		if abs(ui_scroll)<.05:
-			ui_scroll=0
-		set_zoom(zoom)
+		handle_scroll()
 	if abs(play_speed)>1e-5:
 		planet_time += delta*0.5
 		update_planet_locations()
@@ -179,9 +202,6 @@ func set_zoom(zoom: float,original: float=-1) -> void:
 	if abs($TopCamera.size-new_size)>1e-5:
 		$TopCamera.size = new_size
 		center_view()
-
-func get_main_camera() -> Node:
-	return $TopCamera
 
 func spawn_planet(planet: Spatial) -> bool:
 	$Annotations.update()
@@ -220,14 +240,14 @@ func deselect():
 	$Annotations.update()
 
 func select_and_center_view(path: NodePath) -> bool:
-	if last_position and last_clicked:
-		return true
 	var data = game_state.universe.get_node_or_null(path)
 	var full_path = data.get_path() if data else NodePath()
 	selection = full_path
 	if not full_path:
 		push_error('no object exists at path '+str(path))
 		return false
+	if last_position and last_clicked:
+		return true
 	for child in $Planets.get_children():
 		var child_path = full_game_state_path(child.game_state_path)
 		if full_path==child_path:
@@ -279,6 +299,17 @@ func _on_Annotations_draw():
 		$Annotations.draw_polyline(points,box_color,1.5,true)
 	
 	var ascent: float = label_font.get_ascent()
+	
+	if is_making and last_position:
+		var center2d: Vector2 = $TopCamera.unproject_position(last_position)
+		var pos2d: Vector2 = $TopCamera.unproject_position(
+			last_position+Vector3(-1.0,0,1.0)*is_making.size/sqrt(2))
+		$Annotations.draw_circle(center2d,pos2d.distance_to(center2d),box_color)
+		pos2d = $TopCamera.unproject_position(
+			last_position+Vector3(-1.0,0,1.0)*is_making.size/sqrt(2))
+		$Annotations.draw_string(label_font,pos2d+Vector2(0,ascent), \
+			is_making.display_name,draw_color)
+	
 	for planet in $Planets.get_children():
 		var data = game_state.universe.get_node_or_null(planet.game_state_path)
 		if data:

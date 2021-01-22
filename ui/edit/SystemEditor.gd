@@ -88,21 +88,24 @@ func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 		success = $Split/Left/View/SystemView.remake_planet(path) and success
 	return success
 
-#func _on_SystemView_system_metadata_changed(_system):
-#	$Split/Right/Top/Tree.sync_metadata()
-#
-#func _on_SystemView_space_background_changed(_system):
-#	$Split/Left/View/SystemView.update_space_background()
+func add_space_object(_parent: NodePath, _child) -> bool:
+	print('add space object pass through')
+	$Split/Right/Top/Tree.update_system()
+	$Split/Left/View/SystemView.set_system(game_state.system)
+	return true
+
+func remove_space_object(_parent: NodePath, _child) -> bool:
+	$Split/Right/Top/Tree.update_system()
+	$Split/Left/View/SystemView.set_system(game_state.system)
+	return true
 
 func _on_Tree_deselect_node():
-# warning-ignore:return_value_discarded
-	set_panel_type(null)
+	var _discard = set_panel_type(null)
 
 func _on_Tree_select_node(path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
 	if node==null:
-# warning-ignore:return_value_discarded
-		set_panel_type(null)
+		var _discard = set_panel_type(null)
 		selection = NodePath()
 	elif node.has_method('is_SystemData'):
 		var control: Control = set_panel_type(SystemSettings)
