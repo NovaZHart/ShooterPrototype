@@ -72,22 +72,24 @@ class ChangeSelection extends undo_tool.Action:
 	var old_selection
 	var new_selection
 	var system_editor: bool
+	var center_view: bool
 	func as_string() -> String:
 		return 'ChangeSelection(old=['+ \
 			game_state.universe.string_for(old_selection)+ \
 			'],to=['+game_state.universe.string_for(new_selection)+'])'
-	func _init(old,new,system_editor_: bool = false):
+	func _init(old,new,system_editor_: bool = false, center_view_: bool = false):
 		old_selection=old
 		new_selection=new
 		system_editor=system_editor_
+		center_view=center_view_
 	func cancel_drag(_from,_to) -> bool:
 		if system_editor:
 			return game_state.system_editor.cancel_drag()
 		return game_state.sector_editor.cancel_drag()
 	func set_selection(_from,to) -> bool:
 		if system_editor:
-			return game_state.system_editor.change_selection_to(to)
-		return game_state.sector_editor.change_selection_to(null)
+			return game_state.system_editor.change_selection_to(to,center_view)
+		return game_state.sector_editor.change_selection_to(null,center_view)
 	func run() -> bool:
 		return set_selection(old_selection,new_selection)
 	func undo() -> bool:

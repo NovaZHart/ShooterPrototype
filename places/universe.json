@@ -102,7 +102,14 @@
             "description": "",
             "base": "blue_sun",
             "size": 14,
-            "shader_seed": 91,
+            "color_addition": [
+              "Color",
+              0.388235,
+              0.466667,
+              0.866667,
+              1
+            ],
+            "shader_seed": 53820,
             "rotation_period": 13,
             "orbit_radius": 0,
             "orbit_period": 0,
@@ -162,16 +169,16 @@
                   "size": 11,
                   "color_scaling": [
                     "Color",
-                    0.458824,
-                    0.945098,
-                    0.945098,
+                    0.909804,
+                    0.980392,
+                    0.980392,
                     1
                   ],
                   "color_addition": [
                     "Color",
-                    -0.027451,
-                    0.035294,
-                    0.32549,
+                    0.207843,
+                    0.631373,
+                    0.662745,
                     1
                   ],
                   "shader_seed": 18492,
@@ -194,20 +201,20 @@
                         "size": 3,
                         "color_scaling": [
                           "Color",
-                          0.701961,
-                          0.701961,
-                          0.917647,
+                          0.74902,
+                          0.964706,
+                          0.74902,
                           1
                         ],
                         "color_addition": [
                           "Color",
-                          0.011765,
-                          0.003922,
                           -0.011765,
+                          0.003922,
+                          0.011765,
                           1
                         ],
-                        "shader_seed": 58199,
-                        "rotation_period": 0,
+                        "shader_seed": 28185,
+                        "rotation_period": 5,
                         "orbit_radius": 37.711163,
                         "orbit_period": 13,
                         "orbit_start": -6.135315,

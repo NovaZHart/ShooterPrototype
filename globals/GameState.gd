@@ -26,10 +26,14 @@ signal console_append
 
 class SectorEditorStub extends Spatial:
 	var selection = null
-	func process_if(_condition: bool) -> bool:     return true
-	func change_selection_to(var _what) -> bool:   return true
-	func deselect(_what) -> bool:                  return true
-	func cancel_drag() -> bool:                    return true
+	func process_if(_condition: bool) -> bool:
+		return true
+	func change_selection_to(_what, _center: bool) -> bool:
+		return true
+	func deselect(_what) -> bool:
+		return true
+	func cancel_drag() -> bool:
+		return true
 
 class SystemEditorStub extends Panel:
 	func update_system_data(_path: NodePath,_background_update: bool,
@@ -42,7 +46,7 @@ class SystemEditorStub extends Panel:
 		return true
 	func remove_space_object(_parent: NodePath, _child) -> bool:
 		return true
-	func change_selection_to(_what) -> bool:
+	func change_selection_to(_what, _center: bool) -> bool:
 		return true
 	func cancel_drag() -> bool:
 		return true

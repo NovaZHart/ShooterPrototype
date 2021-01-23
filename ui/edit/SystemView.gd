@@ -132,7 +132,9 @@ func any_actions_present():
 		Input.is_action_just_released('ui_location_modify') or \
 		Input.is_action_pressed('ui_location_modify') or \
 		Input.is_action_just_released('ui_location_slide') or \
-		Input.is_action_pressed('ui_location_slide')
+		Input.is_action_pressed('ui_location_slide') or \
+		Input.is_action_just_released('wheel_down') or \
+		Input.is_action_just_released('wheel_up')
 
 func start_moving(space_pos: Vector3,mouse_pos: Vector2):
 	last_position = space_pos
@@ -287,14 +289,14 @@ func deselect():
 	selection = NodePath()
 	$Annotations.update()
 
-func select_and_center_view(path: NodePath) -> bool:
+func change_selection_to(path: NodePath,center_view: bool) -> bool:
 	var data = game_state.universe.get_node_or_null(path)
 	var full_path = data.get_path() if data else NodePath()
 	selection = full_path
 	if not full_path:
 		push_error('no object exists at path '+str(path))
 		return false
-	if is_moving or is_sliding or is_making:
+	if not center_view or is_moving or is_sliding or is_making:
 		return true
 	for child in $Planets.get_children():
 		var child_path = full_game_state_path(child.game_state_path)

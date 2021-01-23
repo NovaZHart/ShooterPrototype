@@ -118,7 +118,7 @@ func remove_space_object(_parent: NodePath, _child) -> bool:
 func cancel_drag() -> bool:
 	return $Split/Left/View/SystemView.stop_moving()
 
-func change_selection_to(node) -> bool:
+func change_selection_to(node,center_view: bool) -> bool:
 	if node==null:
 		var _discard = set_panel_type(null)
 		selection = NodePath()
@@ -139,7 +139,7 @@ func change_selection_to(node) -> bool:
 		selection = node.get_path()
 		if control.connect('surrender_focus',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect surrender_focus')
-		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
+		$Split/Left/View/SystemView.change_selection_to(node.get_path(),center_view)
 		$Split/Right/Top/Tree.select_node_with_path(node.get_path())
 	return true
 
@@ -155,12 +155,19 @@ func _on_select_nothing():
 		return
 	universe_edits.state.push(universe_edits.ChangeSelection.new(from,null,true))
 
-func _on_select_space_object(path: NodePath):
+func _on_Tree_select_space_object(path: NodePath):
 	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
 	var to = game_state.universe.get_node_or_null(path)
 	if (not from and not to) or (from and to and from==to):
-		return
-	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true))
+		return # selection has not changed
+	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,true))
+
+func _on_System_View_select_space_object(path: NodePath):
+	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
+	var to = game_state.universe.get_node_or_null(path)
+	if (not from and not to) or (from and to and from==to):
+		return # selection has not changed
+	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,false))
 
 func _on_Tree_center_on_node(path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
@@ -286,6 +293,12 @@ func _on_IDEdit_text_changed(_new_text):
 func _on_FileDialog_file_selected(path):
 	selected_file=path
 	$FileDialog.visible=false
+
+
+
+
+
+
 
 
 
