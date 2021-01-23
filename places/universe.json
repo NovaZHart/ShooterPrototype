@@ -12,6 +12,15 @@
       "links": {
         "alef_93": 1
       },
+      "plasma_seed": 320918,
+      "starfield_seed": 987686,
+      "plasma_color": [
+        "Color",
+        0.07,
+        0.07,
+        0.18,
+        1
+      ],
       "objects": {
         "sun": [
           "SpaceObjectData",
@@ -21,11 +30,13 @@
             ],
             "display_name": "Seti-α",
             "description": "",
-            "size": 12,
             "base": "yellow_sun",
+            "size": 12,
             "shader_seed": 1231333334,
+            "rotation_period": 0,
             "orbit_radius": 0,
             "orbit_period": 0,
+            "orbit_start": 0,
             "has_astral_gate": true,
             "objects": {
               "storm": [
@@ -42,8 +53,10 @@
                   "base": "ocean_planet",
                   "size": 5,
                   "shader_seed": 321321321,
+                  "rotation_period": 0,
                   "orbit_radius": 200,
                   "orbit_period": 300,
+                  "orbit_start": 0,
                   "has_astral_gate": false,
                   "objects": {
 
@@ -69,6 +82,15 @@
       "links": {
         "seti_alpha": 1
       },
+      "plasma_seed": 82597,
+      "starfield_seed": 42878,
+      "plasma_color": [
+        "Color",
+        0.160784,
+        0.070588,
+        0.007843,
+        1
+      ],
       "objects": {
         "astra": [
           "SpaceObjectData",
@@ -79,10 +101,12 @@
             "display_name": "Astra",
             "description": "",
             "base": "blue_sun",
+            "size": 14,
             "shader_seed": 91,
+            "rotation_period": 13,
             "orbit_radius": 0,
-            "size": 12,
             "orbit_period": 0,
+            "orbit_start": 0,
             "has_astral_gate": true,
             "objects": {
               "hellscape": [
@@ -96,10 +120,26 @@
                   "display_name": "Hellscape",
                   "description": "",
                   "base": "fiery_rock",
-                  "size": 4,
-                  "shader_seed": 391,
-                  "orbit_radius": 200,
+                  "size": 5.5,
+                  "color_scaling": [
+                    "Color",
+                    0.988235,
+                    0.741176,
+                    0.741176,
+                    1
+                  ],
+                  "color_addition": [
+                    "Color",
+                    -0.05098,
+                    -0.254902,
+                    -0.717647,
+                    1
+                  ],
+                  "shader_seed": 58199,
+                  "rotation_period": 3,
+                  "orbit_radius": 160.636551,
                   "orbit_period": 91,
+                  "orbit_start": -0.044163,
                   "has_astral_gate": false,
                   "objects": {
 
@@ -119,13 +159,64 @@
                   "display_name": "Pearl",
                   "description": "Description of Pearl planet.",
                   "base": "ice_planet",
-                  "size": 9,
-                  "shader_seed": 913,
-                  "orbit_radius": 450,
+                  "size": 11,
+                  "color_scaling": [
+                    "Color",
+                    0.458824,
+                    0.945098,
+                    0.945098,
+                    1
+                  ],
+                  "color_addition": [
+                    "Color",
+                    -0.027451,
+                    0.035294,
+                    0.32549,
+                    1
+                  ],
+                  "shader_seed": 18492,
+                  "rotation_period": 7,
+                  "orbit_radius": 348.036102,
                   "orbit_period": 1092,
+                  "orbit_start": -0.006191,
                   "has_astral_gate": false,
                   "objects": {
+                    "ironclad": [
+                      "SpaceObjectData",
+                      {
+                        "services": [
+                          "Array",
+                          "info"
+                        ],
+                        "display_name": "Ironclad",
+                        "description": "Description of Pearl planet.",
+                        "base": "ice_planet",
+                        "size": 3,
+                        "color_scaling": [
+                          "Color",
+                          0.701961,
+                          0.701961,
+                          0.917647,
+                          1
+                        ],
+                        "color_addition": [
+                          "Color",
+                          0.011765,
+                          0.003922,
+                          -0.011765,
+                          1
+                        ],
+                        "shader_seed": 58199,
+                        "rotation_period": 0,
+                        "orbit_radius": 37.711163,
+                        "orbit_period": 13,
+                        "orbit_start": -6.135315,
+                        "has_astral_gate": false,
+                        "objects": {
 
+                        }
+                      }
+                    ]
                   }
                 }
               ]

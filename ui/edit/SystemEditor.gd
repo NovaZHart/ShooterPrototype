@@ -2,10 +2,17 @@ extends game_state.SystemEditorStub
 
 const SystemSettings: PackedScene = preload('res://ui/edit/SystemSettings.tscn')
 const SpaceObjectSettings: PackedScene = preload('res://ui/edit/SpaceObjectSettings.tscn')
+const RESULT_NONE: int = 0
+const RESULT_CANCEL: int = 1
+const RESULT_ACTION: int = 02
 
 var selected_file = null
 var selection: NodePath = NodePath()
 var last_space_object_tab: int = 0
+
+var popup_result = null
+var parent_path = null
+var is_making = null
 
 func _ready():
 	$Split/Left.set_focus_mode(Control.FOCUS_CLICK)
@@ -138,14 +145,14 @@ func _on_select_nothing():
 	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
 	if from==null:
 		return
-	universe_editor.state.push(universe_editor.ChangeSelection.new(from,null,true))
+	universe_edits.state.push(universe_edits.ChangeSelection.new(from,null,true))
 
 func _on_select_space_object(path: NodePath):
 	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
 	var to = game_state.universe.get_node_or_null(path)
 	if (not from and not to) or (from and to and from==to):
 		return
-	universe_editor.state.push(universe_editor.ChangeSelection.new(from,to,true))
+	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true))
 
 func _on_Tree_center_on_node(path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
@@ -164,19 +171,21 @@ func save_load(save: bool) -> bool:
 	if not selected_file:
 		return false # canceled
 	elif save:
-		return game_state.universe.save_to_json(selected_file)
-	elif game_state.universe.load_from_json(selected_file):
-		universe_editor.state.clear()
-		set_process(true)
+		return game_state.save_universe_as_json(selected_file)
+	elif game_state.load_universe_from_json(selected_file):
+		$Split/Left/View/SystemView.clear()
+		$Split/Left/View/SystemView.set_system(game_state.system)
+		$Split/Right/Top/Tree.set_system(game_state.system)
+		universe_edits.state.clear()
 		return true
 	return false
 
 func _unhandled_input(event):
 	if event.is_action_pressed('ui_undo'):
-		universe_editor.state.undo()
+		universe_edits.state.undo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_redo'):
-		universe_editor.state.redo()
+		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_editor_save'):
 		save_load(true)
@@ -184,3 +193,87 @@ func _unhandled_input(event):
 	elif event.is_action_pressed('ui_editor_load'):
 		save_load(false)
 		get_tree().set_input_as_handled()
+	elif ($PopUp.visible or $FileDialog.visible) and event.is_action_pressed('ui_cancel'):
+		if $PopUp.visible:
+			_on_Cancel_pressed()
+		if $FileDialog.visible:
+			$FileDialog.visible=false
+		get_tree().set_input_as_handled()
+	elif $PopUp.visible and event.is_action_pressed('ui_accept'):
+		_on_Action_pressed()
+		get_tree().set_input_as_handled()
+
+func _on_SystemView_make_new_space_object(parent_path_,is_making_):
+	parent_path = parent_path_
+	is_making = is_making_
+	$PopUp/A/B/Action.text = 'Create'
+	$PopUp/A/A/IDEdit.text = ''
+	$PopUp/A/A/IDEdit.editable = true
+	$PopUp/A/A/NameEdit.text = ''
+	popup_result = null
+	var _discard = validate_popup()
+	$PopUp.popup()
+	while $PopUp.visible:
+		yield(get_tree(),'idle_frame')
+	var result = popup_result
+	if result and result['result']==RESULT_ACTION:
+		is_making.set_name(result['id'])
+		is_making.display_name = result['display_name']
+		universe_edits.state.push(universe_edits.AddSpaceObject.new(
+			parent_path,is_making))
+	parent_path = null
+	is_making = null
+	popup_result = null
+
+func validate_popup() -> bool:
+	var info: String = ''
+	if $PopUp/A/A/NameEdit.editable and not $PopUp/A/A/NameEdit.text:
+		info='Enter a human-readable name to display.'
+	if $PopUp/A/A/IDEdit.editable:
+		if not $PopUp/A/A/IDEdit.text:
+			info='Enter a space object ID'
+		elif not $PopUp/A/A/IDEdit.text[0].is_valid_identifier():
+			info='ID must begin with a letter or "_"'
+		elif not $PopUp/A/A/IDEdit.text.is_valid_identifier():
+			info='ID: only letters, numbers, "_"'
+		var parent = game_state.universe.get_node_or_null(parent_path)
+		var child_name = is_making.get_name()
+		if parent and parent.has_child(child_name):
+			info='There is already an object "'+$PopUp/A/A/IDEdit.text+'"!'
+	$PopUp/A/B/Info.text=info
+	$PopUp/A/B/Action.disabled = not not info
+	return not info
+
+func _on_Action_pressed():
+	popup_result = {
+		'id':$PopUp/A/A/IDEdit.text,
+		'display_name':$PopUp/A/A/NameEdit.text,
+		'result': (RESULT_ACTION if validate_popup() else RESULT_CANCEL)
+	}
+	$PopUp.visible=false
+
+func _on_Cancel_pressed():
+	popup_result = {
+		'id':$PopUp/A/A/IDEdit.text,
+		'display_name':$PopUp/A/A/NameEdit.text,
+		'result': RESULT_CANCEL
+	}
+	$PopUp.visible=false
+
+func _on_NameEdit_text_entered(_new_text):
+	if validate_popup():
+		_on_Action_pressed()
+
+func _on_IDEdit_text_entered(_new_text):
+	if validate_popup():
+		_on_Action_pressed()
+
+func _on_NameEdit_text_changed(_new_text):
+	var _discard = validate_popup()
+
+func _on_IDEdit_text_changed(_new_text):
+	var _discard = validate_popup()
+
+func _on_FileDialog_file_selected(path):
+	selected_file=path
+	$FileDialog.visible=false

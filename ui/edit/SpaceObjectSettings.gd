@@ -139,15 +139,15 @@ func display_description(visual_update: bool, send_text: bool):
 		$Help/Data/Display.insert_bbcode(full_text,true)
 		$Help/Data/Display.scroll_to_line(0)
 	if send_text:
-		var top = universe_editor.state.top()
-		if top and top is universe_editor.DescriptionChange and top.object_path==object.get_path():
+		var top = universe_edits.state.top()
+		if top and top is universe_edits.DescriptionChange and top.object_path==object.get_path():
 			print('amend')
 			top.amend(just_text)
 		else:
 			print('replace')
 			var old_description = object.description
 			object.description = just_text
-			universe_editor.state.push(universe_editor.DescriptionChange.new(
+			universe_edits.state.push(universe_edits.DescriptionChange.new(
 				object.get_path(),just_text,old_description))
 
 func _on_View_visibility_changed():
@@ -190,19 +190,19 @@ func _on_RotationPeriodEdit_focus_exited():
 	$Basic/Top/RotationPeriodEdit.text = str(object.rotation_period)
 
 func _on_NameEdit_text_entered(new_text):
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'display_name':new_text},true,false,false,false))
 	emit_signal('surrender_focus')
 
 func _on_TypeOptions_item_selected(index):
 	if ignore_signals: return
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'object_type':index},true,true,false,false))
 	emit_signal('surrender_focus')
 
 func _on_OrbitRadiusEdit_text_entered(new_text):
 	if new_text.is_valid_float():
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 			object.get_path(),{'orbit_radius':max(float(new_text),5.0)},false,false,false,true))
 	else:
 		$Basic/Top/OrbitRadiusEdit.text = str(object.orbit_radius)
@@ -210,15 +210,15 @@ func _on_OrbitRadiusEdit_text_entered(new_text):
 
 func _on_OrbitPeriodEdit_text_entered(new_text):
 	if new_text.is_valid_float():
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
-			object.get_path(),{'orbit_period':max(float(new_text),0.0)},false,false,false,true))
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
+			object.get_path(),{'orbit_period':float(new_text)},false,false,false,true))
 	else:
 		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_start)
 	emit_signal('surrender_focus')
 
 func _on_OrbitPhaseEdit_text_entered(new_text):
 	if new_text.is_valid_float():
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 			object.get_path(),{'orbit_start':max(float(new_text),0.0)},false,false,false,true))
 	else:
 		$Basic/Top/OrbitPhaseEdit.text = str(object.orbit_start)
@@ -226,7 +226,7 @@ func _on_OrbitPhaseEdit_text_entered(new_text):
 
 func _on_Gate_toggled(button_pressed):
 	if ignore_signals: return
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'has_astral_gate':button_pressed},true,false,false,false))
 	emit_signal('surrender_focus')
 
@@ -234,25 +234,26 @@ func _on_Services_changed(_ignore=null,_ignore2=null):
 	if ignore_signals: return
 	var locations: PoolIntArray = $Basic/Services.get_selected_items()
 	var selections: Array = []
-	for i in range(len(locations)):
-		selections.append($Basic/Services.get_metadata(i))
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	for i in locations:
+		selections.append($Basic/Services.get_item_metadata(i))
+	print(str(selections))
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'services':selections},true,false,false,false))
 
 func _on_ColorScalingPicker_color_changed(color):
 	if ignore_signals: return
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'color_scaling':color},false,true,false,false))
 
 func _on_ColorAdditionPicker_color_changed(color):
 	if ignore_signals: return
 	var adjust: Color = Color(color.r*2.0-1.0,color.g*2.0-1.0,color.b*2.0-1.0,1.0)
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'color_addition':adjust},false,true,false,false))
 
 func _on_SeedEdit_text_entered(new_text):
 	if new_text.is_valid_integer():
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 			object.get_path(),{'shader_seed':int(new_text)},false,true,false,false))
 	else:
 		$Visual/Settings/SeedEdit.text = str(object.shader_seed)
@@ -260,7 +261,7 @@ func _on_SeedEdit_text_entered(new_text):
 
 func _on_RadiusEdit_text_entered(new_text):
 	if new_text.is_valid_float():
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 			object.get_path(),{'size':clamp(float(new_text),0.5,20.0)},false,true,false,false))
 	else:
 		$Visual/Settings/RadiusEdit.text = str(object.size)
@@ -275,13 +276,13 @@ func _on_Text_focus_exited():
 func _on_Randomize_pressed():
 	if ignore_signals: return
 	var new_seed: int = randi()%99999
-	universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'shader_seed':new_seed},false,true,false,false))
 
 func _on_RotationPeriodEdit_text_entered(new_text):
 	if new_text.is_valid_float():
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
-			object.get_path(),{'rotation_period':max(float(new_text),0.0)},false,false,false,true))
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
+			object.get_path(),{'rotation_period':float(new_text)},false,false,false,true))
 	else:
 		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_start)
 	emit_signal('surrender_focus')

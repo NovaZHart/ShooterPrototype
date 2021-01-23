@@ -18,6 +18,8 @@ var ui_scroll: float = 0.0
 var is_location_select_down: bool = false
 var was_location_select_down: bool = false
 
+var object_namer: PopupPanel
+
 var system
 var planet_mutex: Mutex = Mutex.new()
 var has_focus: bool = false
@@ -35,6 +37,7 @@ var camera_start = null
 signal select_space_object
 signal select_nothing
 signal view_center_changed
+signal make_new_space_object
 
 func full_game_state_path(var path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
@@ -164,14 +167,13 @@ func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 		if not parent_path:
 			parent_path = game_state.system.get_path()
 		print('add ',is_making.encode(),' in ',str(parent_path))
-		universe_editor.state.push(universe_editor.AddSpaceObject.new(
-			parent_path,is_making))
+		emit_signal('make_new_space_object',parent_path,is_making)
 		var _discard = stop_moving()
 	if is_moving and not Input.is_action_pressed('ui_location_select'):
 		print('done moving')
 		var data = game_state.universe.get_node_or_null(last_clicked)
 		var adjust: Dictionary = data.orbital_adjustments_to(planet_time,space_pos)
-		universe_editor.state.push(universe_editor.SpaceObjectDataChange.new(
+		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 			data.get_path(),adjust,false,false,false,true))
 		var _discard = stop_moving()
 		last_clicked = NodePath()
@@ -218,7 +220,7 @@ func _process(delta):
 		handle_mouse_action_active(mouse_pos,space_pos)
 		if selection and Input.is_action_just_released('ui_delete'):
 			var node = game_state.universe.get_node_or_null(selection)
-			universe_editor.state.push(universe_editor.RemoveSpaceObject.new(node,true))
+			universe_edits.state.push(universe_edits.RemoveSpaceObject.new(node,true))
 			selection = NodePath()
 		if arrow_move.length()>1e-5:
 			center_view($TopCamera.translation+arrow_move*delta*$TopCamera.size)
@@ -305,12 +307,14 @@ func clear():
 	planet_mutex.lock()
 	for planet in $Planets.get_children():
 		planet.queue_free()
+		$Planets.remove_child(planet)
 	planet_mutex.unlock()
 
 # warning-ignore:shadowed_variable
 func set_system(system: simple_tree.SimpleNode) -> bool:
 	self.system=system
 	clear()
+	var _discard = stop_moving()
 	system.fill_system(self,0.0,0.0,detail_level,false)
 	update_space_background()
 	return true

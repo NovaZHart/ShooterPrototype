@@ -82,6 +82,34 @@ func set_system(var s: String):
 		player_location = universe.get_path_to(system)
 	return system
 
+func save_universe_as_json(filename: String) -> bool:
+	return universe.save_as_json(filename)
+
+func load_universe_from_json(file_path: String):
+	var system_path = system.get_path() if system else NodePath()
+	var player_path = player_location
+	system=null
+	player_location=NodePath()
+	if not universe.load_from_json(file_path):
+		push_error('Failed to load from json at path "'+file_path+'"')
+		return false
+	if player_path:
+		set_player_location(player_path)
+		return true
+	elif system_path:
+		set_system(system_path)
+		return true
+	else:
+		var system_names = universe.get_child_names()
+		if system_names:
+			set_system(system_names[0])
+			if system:
+				push_warning('After load, system '+str(system_path)
+					+' no longer exists. Will go to system '+system.get_path())
+				return true
+		push_error('After load, no systems exist. Universe is empty. Player is at an invalid location.')
+		return false
+	
 func get_player_location() -> NodePath: return player_location
 func set_player_location(s: NodePath):
 	var n = universe.get_node_or_null(s)

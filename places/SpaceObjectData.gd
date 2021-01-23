@@ -36,7 +36,7 @@ var display_name: String = 'Unnamed'
 var shader_seed: int = 0
 var rotation_period: float = 0.0 setget set_rotation_period
 var orbit_radius: float = 0.0 setget set_orbit_radius
-var orbit_period: float = 0.0 setget set_orbit_period
+var orbit_period: float = 0.0
 var orbit_start: float = 0.0
 var has_astral_gate: bool = false
 var services: Array = []
@@ -54,10 +54,6 @@ func set_size(p: float):
 func set_orbit_radius(p: float):
 	assert(p>=0)
 	orbit_radius = p
-
-func set_orbit_period(p: float):
-	assert(p>=0)
-	orbit_period = p
 
 func set_rotation_period(p: float):
 	assert(p>=0)
@@ -81,11 +77,15 @@ func encode() -> Dictionary:
 		'description': description,
 		'base': base_name,
 	}
+	maybe_add(result,'object_type',object_type,base)
 	maybe_add(result,'size',size,base)
 	maybe_add(result,'color_scaling',color_scaling,base)
+	maybe_add(result,'color_addition',color_addition,base)
 	maybe_add(result,'shader_seed',shader_seed,base)
+	maybe_add(result,'rotation_period',rotation_period,base)
 	maybe_add(result,'orbit_radius',orbit_radius,base)
 	maybe_add(result,'orbit_period',orbit_period,base)
+	maybe_add(result,'orbit_start',orbit_start,base)
 	maybe_add(result,'has_astral_gate',has_astral_gate,base)
 	return result
 
@@ -103,6 +103,7 @@ func _init(node_name,me: Dictionary ={}):
 	orbit_radius = get_it(me,base,'orbit_radius',20.0)
 	orbit_period = get_it(me,base,'orbit_period',20.0)
 	orbit_start = get_it(me,base,'orbit_start',0.0)
+	rotation_period = get_it(me,base,'rotation_period',0.0)
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
@@ -150,7 +151,7 @@ func planet_rotation(time: float) -> Vector3:
 	return Vector3(0.0,rotation_y,0.0)
 
 func planet_translation(time: float) -> Vector3:
-	var angle = 2*PI*time/orbit_period if (orbit_period>1e-6) else 0.0
+	var angle = 2*PI*time/orbit_period if abs(orbit_period)>1e-6 else 0.0
 	var loc = Vector3(orbit_radius*sin(angle+orbit_start),0,orbit_radius*cos(angle+orbit_start))
 	
 	var parent = get_parent()
@@ -159,7 +160,7 @@ func planet_translation(time: float) -> Vector3:
 	return loc
 
 func orbital_adjustments_to(time: float,new_location: Vector3,parent=null) -> Dictionary:
-	var angle = 2*PI*time/orbit_period if (orbit_period>1e-6) else 0.0
+	var angle = 2*PI*time/orbit_period if abs(orbit_period)>1e-6 else 0.0
 	if parent==null:
 		parent = get_parent()
 	var parent_translation: Vector3 = Vector3()
@@ -171,7 +172,7 @@ func orbital_adjustments_to(time: float,new_location: Vector3,parent=null) -> Di
 	print(angle,' ',parent,' ',parent_translation,' ',new_rad_loc,' ',new_radius)
 
 	var new_start = 0.0
-	if orbit_period>1e-6:
+	if abs(orbit_period)>1e-6:
 		var new_rel_loc = new_rad_loc
 		var new_angle = atan2(new_rel_loc.x,new_rel_loc.z)
 		new_start = fmod(new_angle - angle, 2*PI)

@@ -185,6 +185,7 @@ margin_bottom = 564.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 select_mode = 1
+allow_reselect = true
 
 [node name="Visual" type="GridContainer" parent="."]
 visible = false

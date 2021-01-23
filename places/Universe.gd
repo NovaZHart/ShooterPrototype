@@ -6,6 +6,7 @@ const SystemData = preload('res://places/SystemData.gd')
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 
+signal reset_system
 signal added_system
 signal erased_system
 signal added_link
@@ -53,7 +54,23 @@ func load_from_json(filename: String) -> bool:
 		return false
 	var encoded: String = file.get_as_text()
 	file.close()
-	return decode(encoded,filename)
+	var system_name = null
+	if game_state and game_state.system:
+		system_name = game_state.system.get_name()
+	var success = decode(encoded,filename)
+	emit_signal('reset_system')
+	if game_state:
+		if system_name:
+			var system = game_state.universe.get_node_or_null(system_name)
+			if system:
+				game_state.system = system
+			else:
+				print('no system')
+		else:
+			print('no sytem name')
+	else:
+		print('no game state')
+	return success
 
 func encode() -> String:
 	return JSON.print(encode_helper(children_),'  ')
@@ -148,7 +165,7 @@ func decode_helper(what,key=null):
 			return what.slice(1,len(what))
 		elif what[0]=='Vector3' and len(what)>=4:
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
-		elif what[0]=='Vector3' and len(what)>=5:
+		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0]=='SpaceObjectData' and len(what)>=2:
 			return SpaceObjectData.new(key,decode_helper(what[1]))

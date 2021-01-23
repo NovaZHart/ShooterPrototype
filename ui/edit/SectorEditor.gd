@@ -361,7 +361,7 @@ func edit_system(system):
 	if result and result['result']==RESULT_ACTION:
 		var old_name = system.display_name
 		system.display_name = result['display_name']
-		universe_editor.state.push(universe_editor.ChangeDisplayName.new(
+		universe_edits.state.push(universe_edits.ChangeDisplayName.new(
 			system.get_name(),old_name,result['display_name']))
 	set_process(true)
 
@@ -371,8 +371,8 @@ func handle_select(event: InputEvent):
 	if event.shift and selection is simple_tree.SimpleNode:
 		if target is simple_tree.SimpleNode and target.get_name()!=selection.get_name():
 			var link = game_state.universe.get_link_between(selection,target)
-			if link and universe_editor.state.push(
-					universe_editor.ChangeSelection.new(selection,link)):
+			if link and universe_edits.state.push(
+					universe_edits.ChangeSelection.new(selection,link)):
 #				change_selection_to(link)
 				last_position = $Camera.project_position(pos,-10)
 				last_screen_position = pos
@@ -380,7 +380,7 @@ func handle_select(event: InputEvent):
 				am_moving = false
 			return
 	if typeof(selection)!=typeof(target) or selection!=target:
-		universe_editor.state.push(universe_editor.ChangeSelection.new(selection,target))
+		universe_edits.state.push(universe_edits.ChangeSelection.new(selection,target))
 #	change_selection_to(target)
 	last_position = $Camera.project_position(pos,-10)
 	last_screen_position = pos
@@ -397,7 +397,7 @@ func handle_modify(event: InputEvent):
 			if not game_state.universe.get_link_between(selection,at):
 				var link = process_if(game_state.universe.add_link(selection,at))
 				if link:
-					universe_editor.state.push(universe_editor.AddLink.new(link))
+					universe_edits.state.push(universe_edits.AddLink.new(link))
 	elif not event.shift:
 		at = make_new_system(event)
 		while at is GDScriptFunctionState and at.is_valid():
@@ -405,7 +405,7 @@ func handle_modify(event: InputEvent):
 		if at:
 			if selection is simple_tree.SimpleNode and at!=selection:
 				process_if(game_state.universe.add_link(selection,at))
-			universe_editor.state.push(universe_editor.AddSystem.new(at))
+			universe_edits.state.push(universe_edits.AddSystem.new(at))
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $Camera.size
@@ -426,9 +426,9 @@ func save_load(save: bool) -> bool:
 	if not selected_file:
 		return false # canceled
 	elif save:
-		return game_state.universe.save_to_json(selected_file)
+		return game_state.universe.save_as_json(selected_file)
 	elif game_state.universe.load_from_json(selected_file):
-		universe_editor.state.clear()
+		universe_edits.state.clear()
 		set_process(true)
 		return true
 	return false
@@ -449,22 +449,22 @@ func _input(event):
 			var delta: Vector3 = pos3-last_position
 			if selection:
 				if selection is simple_tree.SimpleNode:
-					var top = universe_editor.state.top()
-					if not top or not top is universe_editor.MoveObject \
+					var top = universe_edits.state.top()
+					if not top or not top is universe_edits.MoveObject \
 							or not top.object==selection:
-						universe_editor.state.push(universe_editor.MoveObject.new(
+						universe_edits.state.push(universe_edits.MoveObject.new(
 							selection,'move_system'))
-						top=universe_editor.state.top()
+						top=universe_edits.state.top()
 					if process_if(game_state.universe.move_system(selection,delta)):
-						universe_editor.state.amend(delta)
+						universe_edits.state.amend(delta)
 				elif selection is Dictionary:
-					var top = universe_editor.state.top()
-					if not top or not top is universe_editor.MoveObject or \
+					var top = universe_edits.state.top()
+					if not top or not top is universe_edits.MoveObject or \
 							not top.object==selection:
-						universe_editor.state.push(universe_editor.MoveObject.new(selection,'move_link'))
-						top = universe_editor.state.top()
+						universe_edits.state.push(universe_edits.MoveObject.new(selection,'move_link'))
+						top = universe_edits.state.top()
 					if process_if(game_state.universe.move_link(selection,delta)):
-						universe_editor.state.amend(delta)
+						universe_edits.state.amend(delta)
 				last_position=pos3
 			else:
 				var pos3_start: Vector3 = $Camera.project_position(last_screen_position,-10)
@@ -492,18 +492,18 @@ func _input(event):
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_delete') and selection:
 		if selection is Dictionary:
-			universe_editor.state.push(universe_editor.EraseLink.new(selection))
+			universe_edits.state.push(universe_edits.EraseLink.new(selection))
 #			var _discard = erase_link(selection)
 			get_tree().set_input_as_handled()
 		elif selection is simple_tree.SimpleNode:
-			universe_editor.state.push(universe_editor.EraseSystem.new(selection))
+			universe_edits.state.push(universe_edits.EraseSystem.new(selection))
 #			var _discard = erase_system(selection)
 			get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_undo'):
-		universe_editor.state.undo()
+		universe_edits.state.undo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_redo'):
-		universe_editor.state.redo()
+		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
 	
 	var ui_zoom: int = 0

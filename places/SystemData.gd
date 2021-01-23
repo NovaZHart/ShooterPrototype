@@ -53,19 +53,24 @@ func encode() -> Dictionary:
 		'links':links,
 		'plasma_seed':plasma_seed,
 		'starfield_seed':starfield_seed,
+		'plasma_color':plasma_color,
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
 	return result
 
+func getdict(content: Dictionary, key, default):
+	var result = content.get(key,null)
+	return default if result==null else result
+
 func decode(content: Dictionary):
 	display_name = content.get('display_name','(unnamned)')
-	fleets = content.get('fleets',default_fleets)
-	links = content.get('links',{})
-	plasma_seed = content.get('plasma_seed',320918)
-	starfield_seed = content.get('starfield_seed',987686)
-	plasma_color = content.get('plasma_color',Color(0.07,0.07,.18,1.0))
-	set_position(content.get('position',Vector3()))
+	fleets = getdict(content,'fleets',default_fleets)
+	links = getdict(content,'links',{})
+	plasma_seed = getdict(content,'plasma_seed',320918)
+	starfield_seed = getdict(content,'starfield_seed',987686)
+	plasma_color = getdict(content,'plasma_color',Color(0.07,0.07,.18,1.0))
+	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):
 	decode(content)

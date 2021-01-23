@@ -19,12 +19,12 @@ func sync_system_data(bkg_update: bool,meta_update: bool):
 		$ColorPickerButton.color=system.plasma_color
 
 func _on_NameEdit_text_entered(new_text):
-	universe_editor.state.push(universe_editor.SystemDataChange.new(
+	universe_edits.state.push(universe_edits.SystemDataChange.new(
 		system.get_path(),{'display_name':new_text},false,true))
 
 func _on_PlasmaSeedEdit_text_entered(new_text):
 	if new_text.is_valid_integer():
-		universe_editor.state.push(universe_editor.SystemDataChange.new(
+		universe_edits.state.push(universe_edits.SystemDataChange.new(
 			system.get_path(),{'plasma_seed':int(new_text)},true,false))
 	else:
 		$PlasmaSeedEdit.text=str(system.plasma_seed)
@@ -32,7 +32,7 @@ func _on_PlasmaSeedEdit_text_entered(new_text):
 
 func _on_StarSeedEdit_text_entered(new_text):
 	if new_text.is_valid_integer():
-		universe_editor.state.push(universe_editor.SystemDataChange.new(
+		universe_edits.state.push(universe_edits.SystemDataChange.new(
 			system.get_path(),{'starfield_seed':int(new_text)},true,false))
 	else:
 		$StarSeedEdit.text=str(system.starfield_seed)
@@ -48,7 +48,7 @@ func _on_StarSeedEdit_focus_exited():
 	$StarSeedEdit.text=str(system.starfield_seed)
 
 func _on_ColorPickerButton_color_changed(color):
-	return universe_editor.state.push(universe_editor.SystemDataChange.new(
+	return universe_edits.state.push(universe_edits.SystemDataChange.new(
 			system.get_path(),{'plasma_color':color},true,false))
 
 func _on_ColorPickerButton_focus_exited():
@@ -56,5 +56,5 @@ func _on_ColorPickerButton_focus_exited():
 
 func _on_Button_pressed():
 	var changes = { 'plasma_seed':randi()%100000, 'starfield_seed':randi()%100000 }
-	return universe_editor.state.push(universe_editor.SystemDataChange.new(
+	return universe_edits.state.push(universe_edits.SystemDataChange.new(
 			system.get_path(),changes,true,false))
