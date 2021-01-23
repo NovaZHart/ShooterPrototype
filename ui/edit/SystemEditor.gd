@@ -73,6 +73,14 @@ func set_panel_type(var scene) -> Control:
 func give_focus_to_view():
 	$Split/Left.grab_focus()
 
+func _on_SystemView_request_focus():
+	if $PopUp.visible or $FileDialog.visible:
+		return
+	if $Split/Right/Bottom/Settings.has_method('get_have_picker') \
+			and $Split/Right/Bottom/Settings.have_picker:
+		return
+	$Split/Left.grab_focus()
+
 func update_system_data(_path: NodePath,bkg_update: bool,meta_update:bool): 
 	var success: bool = true
 	if bkg_update or meta_update:
@@ -253,6 +261,7 @@ func _on_Action_pressed():
 	$PopUp.visible=false
 
 func _on_Cancel_pressed():
+	print('cancel pressed')
 	popup_result = {
 		'id':$PopUp/A/A/IDEdit.text,
 		'display_name':$PopUp/A/A/NameEdit.text,
@@ -277,3 +286,6 @@ func _on_IDEdit_text_changed(_new_text):
 func _on_FileDialog_file_selected(path):
 	selected_file=path
 	$FileDialog.visible=false
+
+
+

@@ -38,6 +38,7 @@ signal select_space_object
 signal select_nothing
 signal view_center_changed
 signal make_new_space_object
+signal request_focus
 
 func full_game_state_path(var path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
@@ -124,6 +125,14 @@ func make_node_to_add():
 		else:
 			push_error('Selected node does not exist. Will make a child of system.')
 	return SpaceObjectData.new(system.make_child_name('unnamed'))
+
+func any_actions_present():
+	return Input.is_action_just_released('ui_location_select') or \
+		Input.is_action_pressed('ui_location_select') or \
+		Input.is_action_just_released('ui_location_modify') or \
+		Input.is_action_pressed('ui_location_modify') or \
+		Input.is_action_just_released('ui_location_slide') or \
+		Input.is_action_pressed('ui_location_slide')
 
 func start_moving(space_pos: Vector3,mouse_pos: Vector2):
 	last_position = space_pos
@@ -212,9 +221,13 @@ func update_planet_locations():
 	return success
 
 func _process(delta):
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
+	var view_rect: Rect2 = Rect2(Vector2(),get_viewport().get_size())
+	if any_actions_present():
+		if view_rect.has_point(mouse_pos):
+			emit_signal('request_focus')
 	if has_focus:
-		var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-		var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
 		handle_mouse_action_start(mouse_pos,space_pos)
 		handle_mouse_action_end(mouse_pos,space_pos)
 		handle_mouse_action_active(mouse_pos,space_pos)
@@ -281,7 +294,7 @@ func select_and_center_view(path: NodePath) -> bool:
 	if not full_path:
 		push_error('no object exists at path '+str(path))
 		return false
-	if last_position and last_clicked:
+	if is_moving or is_sliding or is_making:
 		return true
 	for child in $Planets.get_children():
 		var child_path = full_game_state_path(child.game_state_path)

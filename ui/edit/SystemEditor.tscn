@@ -42,7 +42,6 @@ focus_neighbour_top = NodePath(".")
 focus_neighbour_right = NodePath(".")
 focus_neighbour_bottom = NodePath(".")
 focus_mode = 2
-mouse_filter = 1
 mouse_default_cursor_shape = 3
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -199,6 +198,7 @@ text = "Informational text here"
 [connection signal="resized" from="Split/Left" to="Split/Left/View/SystemView" method="view_resized"]
 [connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
 [connection signal="make_new_space_object" from="Split/Left/View/SystemView" to="." method="_on_SystemView_make_new_space_object"]
+[connection signal="request_focus" from="Split/Left/View/SystemView" to="." method="_on_SystemView_request_focus"]
 [connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_select_nothing"]
 [connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_select_space_object"]
 [connection signal="center_on_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_center_on_node"]

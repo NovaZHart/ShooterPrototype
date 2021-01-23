@@ -102,3 +102,5 @@ margin_bottom = 156.0
 [connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
 [connection signal="color_changed" from="ColorPickerButton" to="." method="_on_ColorPickerButton_color_changed"]
 [connection signal="focus_exited" from="ColorPickerButton" to="." method="_on_ColorPickerButton_focus_exited"]
+[connection signal="picker_created" from="ColorPickerButton" to="." method="_on_ColorPickerButton_picker_created"]
+[connection signal="popup_closed" from="ColorPickerButton" to="." method="_on_ColorPickerButton_popup_closed"]

@@ -5,6 +5,9 @@ signal surrender_focus
 var text_change_tick: int = -1
 var object
 var ignore_signals: bool = false
+var have_picker: bool = false setget ,get_have_picker
+
+func get_have_picker() -> bool: return have_picker
 
 func is_SpaceObjectSettings(): pass # never called; must only exist
 
@@ -286,3 +289,9 @@ func _on_RotationPeriodEdit_text_entered(new_text):
 	else:
 		$Basic/Top/OrbitPeriodEdit.text = str(object.orbit_start)
 	emit_signal('surrender_focus')
+
+func _on_picker_created():
+	have_picker=true
+
+func _on_picker_closed():
+	have_picker=false

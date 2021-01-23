@@ -1,6 +1,9 @@
 extends GridContainer
 
 var system
+var have_picker: bool = false setget ,get_have_picker
+
+func get_have_picker() -> bool: return have_picker
 
 signal edit_complete
 
@@ -58,3 +61,9 @@ func _on_Button_pressed():
 	var changes = { 'plasma_seed':randi()%100000, 'starfield_seed':randi()%100000 }
 	return universe_edits.state.push(universe_edits.SystemDataChange.new(
 			system.get_path(),changes,true,false))
+
+func _on_ColorPickerButton_picker_created():
+	have_picker=true
+
+func _on_ColorPickerButton_popup_closed():
+	have_picker=false
