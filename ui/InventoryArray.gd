@@ -31,23 +31,26 @@ func create(nx_: int,ny_: int,mount_type_: String):
 			used.append(NodePath())
 			scenes.append(null)
 
-func content_for_design() -> Array:
-	var nodes = Dictionary()
-	var node_scenes = Dictionary()
+func content_for_design(mount_name: String): # -> MultiMount
+	var multimount = game_state.universe.MultiMount.new()
+	multimount.set_name(mount_name)
+	var paths_processed = {}
 	for j in range(ny):
 		for i in range(nx):
 			var path = used[j*nx+i]
-			if not path or nodes.has(path):
+			if not path or paths_processed.has(path):
 				continue
 			var node = get_node_or_null(path)
 			if node==null:
+				push_error('cannot find mount at path '+str(path))
 				continue
-			nodes[path]=node
-			node_scenes[path] = scenes[j*nx+i]
-	var content = []
-	for path in nodes:
-		content.append([ nodes[path].item_offset_x, nodes[path].item_offset_y, node_scenes[path] ])
-	return content
+			print('mount '+scenes[j*nx+i].resource_path)
+			var mounted = game_state.universe.MultiMounted.new(scenes[j*nx+i],
+				node.item_offset_x, node.item_offset_y)
+			mounted.set_name_with_prefix(mount_name)
+			multimount.add_child(mounted)
+			paths_processed[path]=node
+	return multimount
 
 func all_children_xy() -> Array:
 	var results: Dictionary = {}

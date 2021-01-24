@@ -1,6 +1,6 @@
 extends Spatial
 
-var design: Dictionary
+var design_path: NodePath
 var page: String = 'weapons'
 var item_aabb: AABB
 var item_collision_layer: int = 0
@@ -12,7 +12,7 @@ const y_axis: Vector3 = Vector3(0,1,0)
 func copy_only_item() -> Area:
 	var new: Area = Area.new()
 	new.set_script(get_script())
-	new.create_item(design)
+	new.create_item(game_state.ship_designs.get_node(design_path))
 	return new
 
 func combined_aabb(node: Node):
@@ -31,10 +31,10 @@ func set_collision_layer(layer: int):
 	if item!=null:
 		item.collision_layer = item_collision_layer
 
-func create_item(design_: Dictionary):
-	design = design_
+func create_item(design: simple_tree.SimpleNode):
+	design_path = design.get_path()
 	
-	var item: RigidBody = game_state.assemble_ship(design)
+	var item: RigidBody = design.assemble_ship()
 	page=item.help_page
 	item.random_height = false
 	item_aabb=combined_aabb(item)

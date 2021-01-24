@@ -7,6 +7,13 @@ var object
 var ignore_signals: bool = false
 var have_picker: bool = false setget ,get_have_picker
 
+func get_SystemData_anscestor(): # -> SimpleNode or null
+	var anscestor=get_parent()
+	while anscestor:
+		if anscestor.has_method('is_SystemData'):
+			return anscestor
+	return null
+
 func get_have_picker() -> bool: return have_picker
 
 func is_SpaceObjectSettings(): pass # never called; must only exist

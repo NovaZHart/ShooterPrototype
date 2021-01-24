@@ -125,24 +125,28 @@ func sorted_ship_children(ship: Node) -> Array:
 	just_mounts.sort_custom(CompareMountLocations,'cmp')
 	return just_mounts
 
-func add_multimount_contents(mount_name: String,design: Dictionary):
+func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 	# Load contents of a multimount from a design dictionary.
-	var contents: Array = design[mount_name]
-	for item in contents:
-		var scene: PackedScene = item[2]
+	var contents: simple_tree.SimpleNode = design.get_node_or_null(mount_name)
+	if not contents:
+		return
+	for item in contents.get_children():
+		if not item.has_method('is_MultiMounted'):
+			continue
+		var scene: PackedScene = item.scene
+		assert(scene)
 		var area: Area = Area.new()
 		area.set_script(InventorySlot)
-		area.create_item(scene,false,Vector2(item[0],item[1]))
-		area.my_x = item[0]
-		area.my_y = item[1]
+		area.create_item(scene,false,Vector2(item.x, item.y))
+		area.my_x = item.x
+		area.my_y = item.y
 		if not try_to_mount(area,mount_name,true):
 			area.queue_free()
 
-func make_ship(design: Dictionary):
+func make_ship(design: simple_tree.SimpleNode):
 	# Fills the screen with a ship hull and whatever was mounted inside it
-	var scene: PackedScene = design['hull']
-	hull_scene = scene
-	var ship = scene.instance()
+	hull_scene = design.hull
+	var ship = hull_scene.instance()
 	ship.name='Ship'
 	ship.collision_layer = SHIP_LAYER_MASK
 	ship.collision_mask = 0
@@ -174,19 +178,20 @@ func make_ship(design: Dictionary):
 				'box':mp.get_path(),'nx':nx,'ny':ny,'box_translation':mp.translation,
 				'multimount':multimount,
 			}
-	for mount_name in design:
-		if mounts.has(mount_name):
-			if mounts[mount_name]['multimount']:
+	for mount_name in design.get_child_names():
+		var mount = design.get_child_with_name(mount_name)
+		if mount and mounts.has(mount_name):
+			if mount.has_method('is_MultiMount'):
 				add_multimount_contents(mount_name,design)
 				continue
 			var area: Area = Area.new()
 			area.set_script(InventorySlot)
-			area.create_item(design[mount_name],false)
+			area.create_item(mount.scene,false)
 			if not try_to_mount(area,mount_name,true):
 				area.queue_free()
 		elif mount_name!='hull':
 			printerr('ShipEditor: mount "',mount_name,'" does not exist.')
-	$ShipInfo.process_command('ship info')
+	$Right/Split/ShipInfo.process_command('ship info')
 	ship_aabb = combined_aabb(ship)
 	ship_aabb = ship_aabb.merge(combined_aabb($MountPoints))
 	move_Camera_for_scene()
@@ -218,7 +223,7 @@ func add_available_item(scene: PackedScene):
 	$Available.add_child(area)
 	available_by_page[area.page]=area.get_path()
 
-func add_available_design(design_name: String, design: Dictionary):
+func add_available_design(design_name: String, design: simple_tree.SimpleNode):
 	# Adds a design to the list of ship designs.
 	var icon: Spatial = Spatial.new()
 	icon.set_script(HullIcon)
@@ -229,7 +234,7 @@ func add_available_design(design_name: String, design: Dictionary):
 	used_width += width
 #	area.name = item_name
 	$Available.add_child(icon)
-	designs_by_name[design_name]=design
+	designs_by_name[design_name]=design.get_path()
 
 func move_Camera_for_scene():
 	# Move the camera to fit the ship design, plus some space at the bottom
@@ -366,7 +371,7 @@ func deselect(there: Dictionary):
 				var inventory_array = get_node_or_null(mount['box'])
 				var slot_xy = inventory_array.slot_xy_for(area.translation,area.nx,area.ny)
 				command += ' '+str(slot_xy[0])+' '+str(slot_xy[1])
-			$ConsolePanel.process_command(command)
+			$Right/Split/Bottom/Help.process_command(command)
 #			var content: Reference = InventoryContent.new()
 #			content.fill_with(area)
 #			try_to_mount(content,target.get_mount_name(),false)
@@ -384,7 +389,7 @@ func select_collider(pos: Vector2, collider: Area, help: bool = true) -> Collisi
 	add_child(dup)
 	selected=true
 	if help:
-		$ConsolePanel.process_command('help '+dup.page)
+		$Right/Split/Bottom/Help.process_command('help '+dup.page)
 	var item = collider.get_node_or_null('item')
 	assert(item)
 	emit_signal('update_coloring',item.mount_size_x,item.mount_size_y,pos3,
@@ -416,7 +421,7 @@ func select_multimount(pos: Vector2, there: Dictionary):
 	var scene = parent.scene_at(xy[0],xy[1])
 	if scene==null:
 		return false
-	$ConsolePanel.process_command('uninstall '+parent.name+' '+str(xy[0])+' '+str(xy[1]))
+	$Right/Split/Bottom/Help.process_command('uninstall '+parent.name+' '+str(xy[0])+' '+str(xy[1]))
 	
 	var area: Area = Area.new()
 	area.name='Selected'
@@ -426,7 +431,7 @@ func select_multimount(pos: Vector2, there: Dictionary):
 	add_child(area)
 	area.name='Selected'
 	selected=true
-	$ConsolePanel.process_command('help '+area.page)
+	$Right/Split/Bottom/Help.process_command('help '+area.page)
 	emit_signal('update_coloring',area.nx,area.ny,pos3,area.mount_type)
 	return true
 
@@ -505,14 +510,14 @@ func select_installed(pos: Vector2, there: Dictionary):
 		for mount_name in mounts:
 			var mount: Dictionary = mounts[mount_name]
 			if mount['content'] == path:
-				$ConsolePanel.process_command('uninstall '+mount_name)
+				$Right/Split/Bottom/Help.process_command('uninstall '+mount_name)
 #				unmount(mount_name,0,0)
 
 		# Unmount the item from $Installed
 #		$Installed.remove_child(collider)
 #		collider.queue_free()
 		
-		$ConsolePanel.process_command('help '+new.page)
+		$Right/Split/Bottom/Help.process_command('help '+new.page)
 		return true
 	return false
 
@@ -527,7 +532,7 @@ func select_available(pos: Vector2, there: Dictionary):
 		return true
 	return false
 
-func load_design(design: Dictionary):
+func load_design(design: simple_tree.SimpleNode):
 	for child in $Installed.get_children():
 		child.queue_free()
 	for child in $MountPoints.get_children():
@@ -544,8 +549,12 @@ func select_hull(_pos: Vector2, there: Dictionary):
 	if collider==null:
 		return false
 	var parent = collider.get_parent()
-	load_design(parent.design)
-	return true
+	var design = game_state.ship_designs.get_node_or_null(parent.design_path)
+	if design:
+		load_design(design)
+		return true
+	push_error('No design at path '+str(parent.design_path))
+	return false
 
 func event_position(event: InputEvent):
 	# Get the best guess of the mouse position for the event.
@@ -616,34 +625,46 @@ func _unhandled_input(event: InputEvent):
 		get_tree().set_input_as_handled()
 
 func exit_scene():
-	game_state.player_ship_design = make_design()
-	print(string_design(game_state.player_ship_design))
+	game_state.player_ship_design = make_design(
+		'player_ship_design','Unnamed Player Ship Design')
+#	print(string_design(game_state.player_ship_design))
 	var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
-func string_design(design: Dictionary) -> String:
-	var s = '\t\t{\n'
-	for key in design:
-		var value = design[key]
-		if value is Array:
-			s += '\t\t\t"'+key+'": [\n'
-			for item in value:
-				s += '\t\t\t\t[ '+str(item[0])+', '+str(item[1])+', preload("'+item[2].resource_path+'") ],\n'
-			s += '\t\t\t]\n'
-		else:
-			s += '\t\t\t"'+key+'": preload("'+value.resource_path+'"),\n'
-	return s + '\t\t},\n'
+#func string_design(design) -> String:
+#	var s = '\t\t{\n'
+#	for key in design:
+#		var value = design[key]
+#		if value is Array:
+#			s += '\t\t\t"'+key+'": [\n'
+#			for item in value:
+#				s += '\t\t\t\t[ '+str(item[0])+', '+str(item[1])+', preload("'+item[2].resource_path+'") ],\n'
+#			s += '\t\t\t]\n'
+#		else:
+#			s += '\t\t\t"'+key+'": preload("'+value.resource_path+'"),\n'
+#	return s + '\t\t},\n'
 
-func make_design() -> Dictionary:
-	var design: Dictionary = {'hull':hull_scene}
+func make_design(design_id,display_name) -> Dictionary:
+	assert(hull_scene)
+	assert(hull_scene is PackedScene)
+	var design = game_state.universe.ShipDesign.new(display_name,hull_scene)
+	design.set_name(design_id)
+	var old_design = game_state.ship_designs.get_node_or_null(design_id)
+	if old_design:
+		game_state.ship_designs.remove_child(old_design)
+		old_design.queue_free()
+	game_state.ship_designs.add_child(design)
 	for mount_name in mounts:
 		var mount = mounts[mount_name]
 		if mount['multimount']:
 			var node = get_node_or_null(mount['box'])
 			if node==null:
 				printerr('null node for mount ',mount_name,' path ',str(mount['box']))
-			design[mount_name] = node.content_for_design()
+			var content: simple_tree.SimpleNode = node.content_for_design(mount_name)
+			design.add_child(content)
 		elif mount['scene']:
-			design[mount_name] = mount['scene']
+			var mounted = game_state.universe.Mounted.new(mount['scene'])
+			mounted.set_name(mount_name)
+			design.add_child(mounted)
 	return design
 
 func force_child_size(c: Control,size: Vector2,pos: Vector2):
@@ -705,8 +726,8 @@ func run(console,argv:PoolStringArray):
 		elif argv[1]=='info' and $Ship.has_method('get_bbcode'):
 			$Ship.repack_stats()
 			console.insert_bbcode(console.rewrite_tags($Ship.get_bbcode()))
-		elif argv[1]=='dump':
-			console.append_raw_text(string_design(make_design()))
+#		elif argv[1]=='dump':
+#			console.append_raw_text(string_design(make_design()))
 		else:
 			usage_ship(console,argv)
 	elif argv[0]=='exit':
@@ -722,13 +743,14 @@ func run(console,argv:PoolStringArray):
 			console.append('[code]name '+str(i)+'[/code]: '+np.get_name(i))
 	elif argv[0]=='design':
 		if len(argv)==3 and argv[1]=='load':
-			var design = designs_by_name.get(argv[2],null)
+			var design_path = designs_by_name.get(argv[2],NodePath())
+			var design = game_state.ship_designs.get_node_or_null(design_path)
 			if not design:
 				return console.append_raw_text('error: no design named "'+design+'". Try "list designs"')
 			load_design(design)
 		else:
 			usage_design(console,argv)
-		$ShipInfo.process_command('ship info')
+		$Right/Split/ShipInfo.process_command('ship info')
 	elif argv[0]=='uninstall':
 		if len(argv)==2 or len(argv)==4:
 			var mount=mounts.get(argv[1],null)
@@ -738,7 +760,7 @@ func run(console,argv:PoolStringArray):
 				unmount(argv[1],convert(argv[2],TYPE_INT),convert(argv[3],TYPE_INT))
 			else:
 				unmount(argv[1],-1,-1)
-			$ShipInfo.process_command('ship info')
+			$Right/Split/ShipInfo.process_command('ship info')
 	elif argv[0]=='install':
 		if len(argv)==3 or len(argv)==5:
 			var mount = mounts.get(argv[1],null)
@@ -760,7 +782,7 @@ func run(console,argv:PoolStringArray):
 				return console.append('Error: you must specify a location for this mount')
 			else:
 				try_to_mount(content,argv[1],false,console)
-			$ShipInfo.process_command('ship info')
+			$Right/Split/ShipInfo.process_command('ship info')
 		else:
 			usage_install(console,argv)
 	elif argv[0]=='list':
@@ -814,9 +836,9 @@ func run(console,argv:PoolStringArray):
 func _ready():
 	$SpaceBackground.update_from(game_state.system)
 	for command in [ 'ship','list','exit','design','install','uninstall','path' ]:
-		$ConsolePanel.add_command(command,self)
-	$ShipInfo/Console/Output.scroll_following=false
-	$ShipInfo.add_command('ship',self)
+		$Right/Split/Bottom/Help.add_command(command,self)
+	$Right/Split/ShipInfo/Console/Output.scroll_following=false
+	$Right/Split/ShipInfo.add_command('ship',self)
 	$Red.layers = RED_LIGHT_CULL_LAYER
 	$Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$SpaceBackground.center_view(130,90,0,120,0)
@@ -828,8 +850,9 @@ func _ready():
 	for avail in available_items:
 		_discard=add_available_item(avail)
 	for design_name in allowed_designs:
-		if game_state.ship_designs.has(design_name):
-			_discard=add_available_design(design_name,game_state.ship_designs[design_name])
+		var design = game_state.ship_designs.get_node_or_null(design_name)
+		if design:
+			_discard=add_available_design(design_name,design)
 	move_Available_for_scene()
 
 func _process(_delta):
@@ -837,10 +860,12 @@ func _process(_delta):
 	var pos3_ul: Vector3 = $Camera.project_position(Vector2(0,0),-10)
 	var pos3_lr: Vector3 = $Camera.project_position(view_size,-10)
 	$Camera.translation.z = abs(pos3_ul.z-pos3_lr.z)/6
-	$ShipInfo.rect_global_position=Vector2(view_size.x*2.0/3.0,0)
-	$ShipInfo.rect_size=Vector2(view_size.x/3.0,view_size.y*0.4)
-	$ConsolePanel.rect_global_position=Vector2(view_size.x*2.0/3,view_size.y*0.4)
-	$ConsolePanel.rect_size=Vector2(view_size.x/3.0,view_size.y*0.6)
+	$Right.rect_size=Vector2(view_size.x*1.0/3.0,view_size.y)
+	$Right.rect_global_position=Vector2(view_size.x*2.0/3.0,0.0)
+#	$Right/Split/ShipInfo.rect_global_position=Vector2(view_size.x*2.0/3.0,0)
+#	$Right/Split/ShipInfo.rect_size=Vector2(view_size.x/3.0,view_size.y*0.4)
+#	$Right/Split/Bottom/Help.rect_global_position=Vector2(view_size.x*2.0/3,view_size.y*0.4)
+#	$Right/Split/Bottom/Help.rect_size=Vector2(view_size.x/3.0,view_size.y*0.6)
 	$HScrollBar.rect_global_position=Vector2(0,view_size.y-12)
 	$HScrollBar.rect_size=Vector2(view_size.x*2.0/3.0,12)
 	var left3: Vector3 = $Camera.project_position(Vector2(0,view_size.y-12),-10)

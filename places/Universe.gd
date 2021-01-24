@@ -18,7 +18,13 @@ signal link_position_changed
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
 
-func is_Universe(): pass # never called; must only exist
+func is_Universe(): pass # for type detection; never called
+
+func lock():
+	data_mutex.lock()
+
+func unlock():
+	data_mutex.unlock()
 
 func has_links() -> bool:
 	return not not links
@@ -35,9 +41,198 @@ func has_link(arg1,arg2 = null) -> bool:
 		return links.has(link_key)
 	return links.has(arg1)
 
-func save_as_json(filename: String) -> bool:
+
+
+func decode_children(parent: simple_tree.SimpleNode, children):
+	if not children is Dictionary:
+		push_error("encoded parent's children are not stored in a Dictionary")
+		return
+	for child_name in children:
+		var decoded = decode_helper(children[child_name])
+		if not decoded.has_method('set_name'):
+			push_error('invalid child')
+		else:
+			decoded.set_name(child_name)
+			parent.add_child(decoded)
+
+func encode_children(parent: simple_tree.SimpleNode) -> Dictionary:
+	var result = {}
+	for child_name in parent.get_child_names():
+		result[child_name] = encode_helper(parent.get_child_with_name(child_name))
+	return result
+
+
+
+class Mounted extends simple_tree.SimpleNode:
+	var scene: PackedScene
+	func is_Mounted(): pass # for type detection; never called
+	func _init(scene_: PackedScene):
+		scene=scene_
+
+func encode_Mounted(m: Mounted):
+	return [ 'Mounted', encode_helper(m.scene) ]
+
+func decode_Mounted(v):
+	if not v is Array or not len(v)>1 or v[0]!='Mounted':
+		push_error('Invalid input to decode_Mounted')
+		return null
+	return Mounted.new(decode_helper(v[1]))
+
+
+
+class MultiMounted extends Mounted:
+	var x: int
+	var y: int
+	func is_MultiMounted(): pass # for type detection; never called
+	func _init(scene_: PackedScene,x_: int,y_: int).(scene_):
+		x=x_
+		y=y_
+	func set_name_with_prefix(prefix: String):
+		set_name(prefix+'_at_x'+str(x)+'_y'+str(y))
+
+func encode_MultiMounted(m: MultiMounted):
+	return [ 'MultiMounted', encode_helper(m.scene), m.x, m.y ]
+
+func decode_MultiMounted(v):
+	if not v is Array or not len(v)>3 or not v[0]=='MultiMounted':
+		push_error('Invalid input to decode_MultiMounted: '+str(v))
+		return null
+	var result = MultiMounted.new(decode_helper(v[1]),int(v[2]),int(v[3]))
+	if not result.scene:
+		push_error('Cannot decode multimount scene from: '+str(v))
+	return result
+
+
+class MultiMount extends simple_tree.SimpleNode:
+	func is_MultiMount(): pass # for type detection; never called
+
+func decode_MultiMount(v):
+	if not v is Array or not len(v)>0 or not v[0]=='MultiMount':
+		push_error('Invalid input to decode_MultiMount')
+		return null
+	var result = MultiMount.new()
+	if len(v)>1:
+		decode_children(result,v[1])
+	return result
+
+func encode_MultiMount(m: MultiMount):
+	return [ 'MultiMount', encode_children(m) ]
+
+
+
+class ShipDesign extends simple_tree.SimpleNode:
+	var display_name: String
+	var hull: PackedScene
+	
+	func is_ShipDesign(): pass # for type detection; never called
+	
+	func _init(display_name_: String, hull_: PackedScene):
+		display_name=display_name_
+		hull=hull_
+		assert(display_name)
+		assert(hull)
+		assert(hull is PackedScene)
+	
+	func assemble_part(body: Node, child: Node):
+		var part = get_node_or_null(child.name)
+		if not part:
+			return
+		elif part is MultiMount:
+			for part_name in part.get_child_names():
+				var content = part.get_child_with_name(part_name)
+				assert(content is MultiMounted)
+				var new_child: Node = content.scene.instance()
+				if new_child!=null:
+					new_child.item_offset_x = content.x
+					new_child.item_offset_y = content.y
+					new_child.transform = child.transform
+					new_child.name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
+					body.add_child(new_child)
+		else:
+			var new_child = part.scene.instance()
+			new_child.transform = child.transform
+			new_child.name = child.name
+			body.remove_child(child)
+			child.queue_free()
+			body.add_child(new_child)
+
+	func assemble_ship() -> Node:
+		var body = hull.instance()
+		if body == null:
+			push_error('assemble_ship: cannot instance scene: '+body)
+			return Node.new()
+		body.save_transforms()
+		for child in body.get_children():
+			if child is CollisionShape and child.scale.y<10:
+				child.scale.y=10
+			assemble_part(body,child)
+		body.pack_stats(true)
+		for child in body.get_children():
+			if child.has_method('is_not_mounted'):
+				# Unused slots are removed to save space in the scene tree
+				body.remove_child(child)
+				child.queue_free()
+		return body
+
+func encode_ShipDesign(d: ShipDesign):
+	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d) ]
+
+func decode_ShipDesign(v):
+	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
+		return null
+	var result = ShipDesign.new(str(v[1]), decode_helper(v[2]))
+	if len(v)>3:
+		decode_children(result,v[3])
+	return result
+
+func make_designs_from_Dictionary(ship_designs: Dictionary) -> simple_tree.SimpleNode:
+	var designs = simple_tree.SimpleNode.new()
+	designs.set_name('designs')
+	for design_name in ship_designs:
+		var design_dict = ship_designs[design_name]
+		if not design_dict or not design_dict is Dictionary or not \
+				design_dict.has('hull') or not design_dict['hull'] is PackedScene:
+			push_error('Design '+design_name+' is invalid.')
+			continue
+		var design = ShipDesign.new(design_name,design_dict['hull'])
+		design.set_name(design_name)
+		for key in design_dict:
+			if key=='hull':
+				continue
+			var value = design_dict[key]
+			if not value:
+				push_error('Design '+design_name+' has invalid component '+key)
+				continue
+			elif value is PackedScene:
+				var mount = Mounted.new(value)
+				mount.set_name(key)
+				design.add_child(mount)
+			elif value is Array:
+				var multimount = MultiMount.new()
+				multimount.set_name(key)
+				for v in value:
+					if not v is Array or len(v)!=3:
+						push_error('Design '+design_name+' has an invalid component inside '+key)
+						continue
+					var multimounted = MultiMounted.new(v[2],int(v[0]),int(v[1]))
+					multimounted.set_name_with_prefix(key)
+					multimount.add_child(multimounted)
+				design.add_child(multimount)
+			else:
+				push_error('Design '+design_name+' has invalid component '+key)
+				continue
+		designs.add_child(design)
+	var old_designs = get_node_or_null('designs')
+	if old_designs:
+		remove_child(old_designs)
+	add_child(designs)
+	return designs
+
+
+
+func save_places_as_json(filename: String) -> bool:
 	print('save to file "',filename,'"')
-	var encoded: String = encode()
+	var encoded: String = encode_places()
 	var file: File = File.new()
 	if file.open(filename, File.WRITE):
 		push_error('Cannot open file '+filename+'!!')
@@ -46,7 +241,7 @@ func save_as_json(filename: String) -> bool:
 	file.close()
 	return true
 
-func load_from_json(filename: String) -> bool:
+func load_places_from_json(filename: String) -> bool:
 	print('load from file "',filename,'"')
 	var file: File = File.new()
 	if file.open(filename, File.READ):
@@ -57,7 +252,7 @@ func load_from_json(filename: String) -> bool:
 	var system_name = null
 	if game_state and game_state.system:
 		system_name = game_state.system.get_name()
-	var success = decode(encoded,filename)
+	var success = decode_places(encoded,filename)
 	emit_signal('reset_system')
 	if game_state:
 		if system_name:
@@ -72,10 +267,9 @@ func load_from_json(filename: String) -> bool:
 		print('no game state')
 	return success
 
-func encode() -> String:
-	return JSON.print(encode_helper(children_),'  ')
 
-func decode(json_string,context: String) -> bool:
+
+func decode_places(json_string,context: String) -> bool:
 	var parsed: JSONParseResult = JSON.parse(json_string)
 	if parsed.error:
 		push_error(context+':'+str(parsed.error_line)+': '+parsed.error_string)
@@ -91,6 +285,10 @@ func decode(json_string,context: String) -> bool:
 			printerr('error: ignoring invalid system id: ',system_id)
 			continue
 		var system = content[system_id]
+		if system_id=='designs':
+			print('System parser: skip "designs" which is not a system')
+			_discard = add_child(system)
+			continue
 		if not system is simple_tree.SimpleNode or not system.has_method('is_SystemData'):
 			printerr('warning: system with id ',system_id,' is not a SystemData')
 		system.set_name(system_id)
@@ -105,47 +303,6 @@ func decode(json_string,context: String) -> bool:
 			printerr('warning: system with id ',system_id,' has invalid objects for destination systems in its links')
 		_discard = add_child(system)
 	return true
-
-func encode_helper(what):
-	if what is Dictionary:
-		var result = {}
-		for key in what:
-			result[encode_helper(key)] = encode_helper(what[key])
-		return result
-	elif what is Array:
-		var result = ['Array']
-		for value in what:
-			result.append(encode_helper(value))
-		return result
-	elif what is Resource:
-		return [ 'Resource', what.resource_path ]
-	elif what is Vector2:
-		return [ 'Vector2', what.x, what.y ]
-	elif what is Vector3:
-		return [ 'Vector3', what.x, what.y, what.z ]
-	elif what is Color:
-		return [ 'Color', what.r, what.g, what.b, what.a ]
-	elif what is simple_tree.SimpleNode and what.has_method('encode'):
-		var encoded = encode_helper(what.encode())
-		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'
-		var children = {}
-		var what_children = what.get_children()
-#		if what.astral_gate_path():
-#			assert(what_children)
-		for child in what_children:
-			assert(child is simple_tree.SimpleNode)
-			children[encode_helper(child.get_name())]=encode_helper(child)
-		encoded['objects'] = children
-		return [ type, encoded ]
-	elif what is simple_tree.SimpleNode and what.has_method('is_SystemData'):
-		return [ 'SystemData', what.encode() ]
-	elif what==null:
-		return []
-	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
-		return what
-	else:
-		printerr('encode_helper: do not know how to handle object ',str(what))
-		return []
 
 func decode_helper(what,key=null):
 	if what is Dictionary:
@@ -167,19 +324,84 @@ func decode_helper(what,key=null):
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
 		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
-		elif what[0]=='SpaceObjectData' and len(what)>=2:
+		elif what[0] == 'MultiMounted':
+			return decode_MultiMounted(what)
+		elif what[0] == 'MultiMount':
+			return decode_MultiMount(what)
+		elif what[0] == 'Mounted':
+			return decode_Mounted(what)
+		elif what[0] == 'ShipDesign':
+			return decode_ShipDesign(what)
+		elif what[0] == 'SpaceObjectData' and len(what)>=2:
 			return SpaceObjectData.new(key,decode_helper(what[1]))
-		elif what[0]=='SystemData' and len(what)>=2:
+		elif what[0] == 'SystemData' and len(what)>=2:
 			return SystemData.new(key,decode_helper(what[1]))
+		elif what[0] == 'SimpleNode' and len(what)>1:
+			var result = simple_tree.SimpleNode.new()
+			result.set_name(key)
+			decode_children(result,what[1])
+			return result
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
 	return null
 
-func lock():
-	data_mutex.lock()
 
-func unlock():
-	data_mutex.unlock()
+
+func encode_places() -> String:
+	return JSON.print(encode_helper(children_),'  ')
+
+func encode_helper(what):
+	if what is Dictionary:
+		var result = {}
+		for key in what:
+			result[encode_helper(key)] = encode_helper(what[key])
+		return result
+	elif what is Array:
+		var result = ['Array']
+		for value in what:
+			result.append(encode_helper(value))
+		return result
+	elif what is Resource:
+		return [ 'Resource', what.resource_path ]
+	elif what is Vector2:
+		return [ 'Vector2', what.x, what.y ]
+	elif what is Vector3:
+		return [ 'Vector3', what.x, what.y, what.z ]
+	elif what is Color:
+		return [ 'Color', what.r, what.g, what.b, what.a ]
+	elif what is MultiMounted:
+		return encode_MultiMounted(what)
+	elif what is MultiMount:
+		return encode_MultiMount(what)
+	elif what is Mounted:
+		return encode_Mounted(what)
+	elif what is ShipDesign:
+		return encode_ShipDesign(what)
+	elif what is simple_tree.SimpleNode and what.has_method('encode'):
+		var encoded = encode_helper(what.encode())
+		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'
+		var children = {}
+		var what_children = what.get_children()
+#		if what.astral_gate_path():
+#			assert(what_children)
+		for child in what_children:
+			assert(child is simple_tree.SimpleNode)
+			children[encode_helper(child.get_name())]=encode_helper(child)
+		encoded['objects'] = children
+		return [ type, encoded ]
+	elif what is simple_tree.SimpleNode and what.has_method('is_SystemData'):
+		return [ 'SystemData', what.encode() ]
+	elif what is simple_tree.SimpleNode:
+		return [ 'SimpleNode', encode_children(what) ]
+	elif what==null:
+		return []
+	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
+		return what
+	else:
+		printerr('encode_helper: do not know how to handle object ',str(what))
+		return []
+
+
 
 func make_key(id1: String, id2: String) -> Array:
 	return [id1,id2] if id1<id2 else [id2,id1]

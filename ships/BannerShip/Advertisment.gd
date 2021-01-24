@@ -2,9 +2,13 @@ extends Spatial
 
 var messages = [
 	"Buy Frey's Frog Legs: Alpha Hellscape 38B",
-	"Don't die!",
-	"This is a test message. Isn't it wonderful?",
+	"Why don't you stop dying?",
+	"Where is that fire button?",
 	"Can you dodge?",
+	"Your shields suck.",
+	"Is that armor cardboard?",
+	"Fear the purple dots of doom!",
+	"You would make an elegant corpse!"
 ]
 var message_index: int = -1
 	

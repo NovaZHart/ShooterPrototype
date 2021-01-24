@@ -16,11 +16,10 @@ var player_location: NodePath = NodePath() setget set_player_location,get_player
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
-var ship_designs: Dictionary = {}
+var ship_designs
 var universe
 var tree
-
-var player_ship_design: Dictionary
+var player_ship_design
 
 signal console_append
 
@@ -101,15 +100,15 @@ func set_system(var s):
 		return system
 
 func save_universe_as_json(filename: String) -> bool:
-	return universe.save_as_json(filename)
+	return universe.save_places_as_json(filename)
 
 func load_universe_from_json(file_path: String):
 	var system_path = system.get_path() if system else NodePath()
 	var player_path = player_location
 	system=null
 	player_location=NodePath()
-	if not universe.load_from_json(file_path):
-		push_error('Failed to load from json at path "'+file_path+'"')
+	if not universe.load_places_from_json(file_path):
+		push_error('Failed to load places from json at path "'+file_path+'"')
 		return false
 	if player_path:
 		set_player_location(player_path)
@@ -168,156 +167,17 @@ func get_info_or_null():
 		return n
 	return null
 
-func assemble_player_ship():
-	return assemble_ship(player_ship_design)
-
-func assemble_ship(design: Dictionary):
-	if not 'hull' in design or not design['hull'] is PackedScene:
-		push_error('assemble_ship: no hull provided')
+func assemble_player_ship(): # -> RigidBody or null
+	if not player_ship_design:
 		return null
-	var body_scene = design['hull']
-	var body = body_scene.instance()
-	if body == null:
-		push_error('assemble_ship: cannot instance scene: '+body_scene)
-		return Node.new()
-	body.save_transforms()
-	for child in body.get_children():
-		if child is CollisionShape and child.scale.y<10:
-			child.scale.y=10
-		if child.name!='hull' and design.has(child.name):
-			if design[child.name] is PackedScene:
-				var new_child: Node = design[child.name].instance()
-				if new_child!=null:
-					new_child.transform = child.transform
-					new_child.name = child.name
-					body.remove_child(child)
-					child.queue_free()
-					body.add_child(new_child)
-					continue
-			elif design[child.name] is Array:
-				for content in design[child.name]:
-					if len(content)<3:
-						continue
-					var scene = content[2]
-					if scene is PackedScene:
-						var new_child: Node = scene.instance()
-						if new_child!=null:
-							new_child.transform = child.transform
-							new_child.name = child.name+'_at_'+str(content[0])+'_'+str(content[1])
-							body.add_child(new_child)
-				continue
-	body.pack_stats(true)
-	for child in body.get_children():
-		if child.has_method('is_not_mounted'):
-			# Unused slots are removed to save space in the scene tree
-			body.remove_child(child)
-			child.queue_free()
-	return body
+	return player_ship_design.assemble_ship()
 
-func make_test_designs():
-	ship_designs = {
-		'warship_lasers':{
-			"hull": preload("res://ships/PurpleShips/WarshipHull.tscn"),
-			"PortMiddleGun": preload("res://weapons/GreenLaserGun.tscn"),
-			"PortOuterGun": preload("res://weapons/BlueLaserGun.tscn"),
-			"StarboardMiddleGun": preload("res://weapons/GreenLaserGun.tscn"),
-			"StarboardOuterGun": preload("res://weapons/BlueLaserGun.tscn"),
-			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
-			'Equipment': [
-				[ 0, 0, preload("res://equipment/repair/Shield2x2.tscn") ]
-			],
-		},
-		'warship_cyclotrons':{
-			"hull": preload("res://ships/PurpleShips/WarshipHull.tscn"),
-			"PortMiddleGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"PortOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"StarboardMiddleGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"StarboardOuterGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
-			'Equipment': [
-				[ 0, 0, preload("res://equipment/repair/Shield2x2.tscn") ]
-			],
-		},
-
-		'banner_default':{
-			"hull": preload("res://ships/BannerShip/BannerShipHull.tscn"),
-			"ForwardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
-			"PortGun": preload("res://weapons/GreenLaserGun.tscn"),
-			"StarboardGun": preload("res://weapons/GreenLaserGun.tscn"),
-			"AftPortTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
-			"AftStarboardTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
-			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
-			"Equipment": [
-				[ 0, 0, preload("res://equipment/repair/Shield3x3.tscn") ],
-				[ 3, 0, preload("res://equipment/repair/Shield3x3.tscn") ],
-			]
-		},
-
-		'curvy_cyclotrons':{
-			"hull": preload("res://ships/PurpleShips/CurvyWarshipHull.tscn"),
-			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"StarboardGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"Turret": preload("res://weapons/OrangeSpikeTurret.tscn"),
-			"Engine": preload("res://equipment/engines/Engine2x4.tscn"),
-			"PortEquipment": [
-				[ 0, 0, preload("res://equipment/repair/Shield2x2.tscn") ],
-				[ 0, 2, preload("res://equipment/repair/Shield2x1.tscn") ],
-			]
-		},
-
-		'interceptor_cyclotrons':{
-			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
-			"PortGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"Engine": preload("res://equipment/engines/Engine2x2.tscn"),
-			"StarboardGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			'Equipment': [
-				[ 0, 0, preload("res://equipment/repair/Shield2x1.tscn") ]
-			],
-		},
-		'interceptor_lasers':{
-			"hull": preload("res://ships/PurpleShips/InterceptorHull.tscn"),
-			"PortGun": preload("res://weapons/BlueLaserGun.tscn"),
-			"Engine": preload("res://equipment/engines/Engine2x2.tscn"),
-			"StarboardGun": preload("res://weapons/BlueLaserGun.tscn"),
-			'Equipment': [
-				[ 0, 0, preload("res://equipment/repair/Shield2x1.tscn") ]
-			],
-		},
-
-		'heavy_cyclotrons':{
-			"hull": preload("res://ships/PurpleShips/HeavyWarshipHull.tscn"),
-			"MidPortTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
-			"ForwardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
-			"PortSmallGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"StarboardSmallGun": preload("res://weapons/OrangeSpikeGun.tscn"),
-			"PortLargeGun": preload('res://weapons/PurpleHomingGun.tscn'),
-			"AftPortTurret": preload("res://weapons/BlueLaserTurret.tscn"),
-			"StarboardLargeGun": preload('res://weapons/PurpleHomingGun.tscn'),
-			"MidStarboardTurret": preload("res://weapons/OrangeSpikeTurret.tscn"),
-			"AftStarboardTurret": preload("res://weapons/BlueLaserTurret.tscn"),
-			"Engine": preload("res://equipment/engines/Engine4x4.tscn"),
-			'AftEquipment': [
-				[ 0, 0, preload("res://equipment/repair/Shield3x3.tscn") ]
-			],
-		},
-		'heavy_lasers':{
-			'hull':preload('res://ships/PurpleShips/HeavyWarshipHull.tscn'),
-			'PortLargeGun':preload('res://weapons/PurpleHomingGun.tscn'),
-			'StarboardLargeGun':preload('res://weapons/PurpleHomingGun.tscn'),
-			'PortSmallGun':preload('res://weapons/GreenLaserGun.tscn'),
-			'StarboardSmallGun':preload('res://weapons/GreenLaserGun.tscn'),
-			'ForwardTurret':preload('res://weapons/BlueLaserTurret.tscn'),
-			'AftPortTurret':preload('res://weapons/BlueLaserTurret.tscn'),
-			'AftStarboardTurret':preload('res://weapons/BlueLaserTurret.tscn'),
-			'MidPortTurret':preload('res://weapons/OrangeSpikeTurret.tscn'),
-			'MidStarboardTurret':preload('res://weapons/OrangeSpikeTurret.tscn'),
-			"Engine": preload("res://equipment/engines/Engine4x4.tscn"),
-			'AftEquipment': [
-				[ 0, 0, preload("res://equipment/repair/Shield3x3.tscn") ]
-			],
-		},
-	}
-	player_ship_design = ship_designs['warship_lasers']
+func assemble_ship(design_path: NodePath): # -> RigidBody or null
+	var design = ship_designs.get_node_or_null(design_path)
+	if not design:
+		push_error('assemble_ship: path "'+str(design_path)+'" has no ship design')
+		return null
+	return design.assemble_ship()
 
 func _init():
 	universe = Universe.new()
@@ -325,11 +185,21 @@ func _init():
 	assert(tree.root_==universe)
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
-	universe.load_from_json('res://places/universe.json')
+	universe.load_places_from_json('res://places/universe.json')
+	assert(universe.has_child('designs'))
+	ship_designs = universe.get_node('designs')
+	assert(ship_designs)
+	assert(ship_designs is simple_tree.SimpleNode)
+	assert(not ship_designs.has_method('is_SpaceObjectData'))
+	assert(not ship_designs.has_method('is_SystemData'))
 
 	set_player_location(NodePath('/root/alef_93/astra/pearl'))
 	assert(player_location)
 	assert(system)
+
+	var banner_godship = ship_designs.get_node_or_null('banner_godship')
+	assert(banner_godship)
+	player_ship_design = banner_godship
 
 	if not OS.has_feature('standalone'):
 #		print('Reducing ship count for debug build')
@@ -343,4 +213,4 @@ func _init():
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
 		'Shipyard',preload('res://ui/ShipEditor.tscn'))
-	make_test_designs()
+	

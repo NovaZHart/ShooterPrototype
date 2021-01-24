@@ -46,6 +46,9 @@ func is_SystemData(): pass # never called; must only exist
 func full_display_name():
 	return display_name
 
+func get_SystemData_anscestor(): # -> SimpleNode or null
+	return self
+
 func encode() -> Dictionary:
 	var result = {
 		'display_name':display_name,
@@ -108,8 +111,8 @@ func astral_gate_path() -> NodePath:
 				return p
 	return NodePath()
 
-func spawn_ship(var _system,var ship_design: Dictionary,team: int,angle: float,
-		add_radius: float,safe_zone: float,
+func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
+		team: int,angle: float,add_radius: float,safe_zone: float,
 		random_x: float, random_z: float, center: Vector3, is_player: bool):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
@@ -136,9 +139,10 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	for num_ship in fleet:
 		for _n in range(num_ship[0]):
 			var design_name: String = num_ship[1]
-			if design_name in game_state.ship_designs:
+			var design = game_state.ship_designs.get_node_or_null(design_name)
+			if design:
 				result.push_back(spawn_ship(
-					system,game_state.ship_designs[design_name],team,
+					system,design,team,
 					angle,add_radius,randf()*10-5,randf()*10-5,
 					safe_zone,planet.translation,false))
 			else:
