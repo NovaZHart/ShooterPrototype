@@ -13,6 +13,7 @@ class UndoStack extends Reference:
 	var undo_stack: Array = []
 	var redo_stack: Array = []
 	var verbose: bool = false
+	var activity: bool = false # true if anything was changed; used to detect unsaved changes
 # warning-ignore:shadowed_variable
 	func _init(verbose: bool = false):
 		self.verbose = verbose
@@ -33,12 +34,14 @@ class UndoStack extends Reference:
 			print('undo[',i,'] = ',undo_stack[i].as_string())
 			i-=1
 	func amend(arg) -> bool:
+		activity = true
 		if undo_stack:
 			var action = undo_stack[len(undo_stack)-1]
 			if action.amend(arg):
 				return true
 		return false
 	func push(action) -> bool:
+		activity = true
 		if verbose: print('UndoStack.push: pushing ',action.as_string())
 		if action.run():
 			if verbose: print('UndoStack.push: push successful for ',action.as_string())
@@ -51,6 +54,7 @@ class UndoStack extends Reference:
 		if verbose: dump()
 		return false
 	func undo() -> bool:
+		activity = true
 		if undo_stack:
 			var action = undo_stack.pop_back()
 			if verbose: print('UndoStack.undo: undoing ',action.as_string())
@@ -68,6 +72,7 @@ class UndoStack extends Reference:
 		dump()
 		return false
 	func redo() -> bool:
+		activity = true
 		if redo_stack:
 			var action = redo_stack.pop_back()
 			if verbose: print('UndoStack.redo: redoing ',action.as_string())

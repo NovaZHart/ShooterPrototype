@@ -12,8 +12,8 @@
       "links": {
         "alef_93": 1
       },
-      "plasma_seed": 320918,
-      "starfield_seed": 987686,
+      "plasma_seed": 56929,
+      "starfield_seed": 86942,
       "plasma_color": [
         "Color",
         0.07,
@@ -87,7 +87,7 @@
       "plasma_color": [
         "Color",
         0.160784,
-        0.070588,
+        0.047059,
         0.007843,
         1
       ],

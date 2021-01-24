@@ -14,6 +14,7 @@ export var detail_level: float = 150
 const y500: Vector3 = Vector3(0.0,500.0,0.0)
 const ANNOTATION_FOR_MAKING_OBJECTS: String = '-is_making-'
 
+var first_process: bool = true
 var play_speed: float = 0.0
 var planet_time: float = 0.0
 
@@ -233,6 +234,9 @@ func update_planet_locations():
 	return success
 
 func _process(delta):
+	if first_process:
+		first_process=false
+		return
 	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 	var space_pos: Vector3 = $TopCamera.project_position(mouse_pos,-10)
 	var view_rect: Rect2 = Rect2(Vector2(),get_viewport().get_size())

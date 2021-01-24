@@ -10,7 +10,7 @@ uniform float scale = 1.0; // actual width = u_scale*u_width
 
 void fragment() {
 	float r = clamp((UV.x-u_middle_radius) * 2.0/(u_width*scale),-1.0,1.0);
-	r *= r;
+	//r *= r;
 	float weight = 1.0-r*r;
 	ALPHA = weight*color.a;
 	ALBEDO = color.rgb;

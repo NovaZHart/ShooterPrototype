@@ -24,7 +24,7 @@ var highlight_link: Mesh
 var regular_link: Mesh
 var link_multimesh = MultiMesh.new()
 var link_data = PoolRealArray()
-
+var exit_confirmed = false
 var highlight_system: Mesh
 var regular_system: Mesh
 var system_multimesh = MultiMesh.new()
@@ -348,22 +348,29 @@ func make_new_system(event: InputEvent): # -> SimpleNode or null
 	return system
 
 func edit_system(system):
-	$PopUp/A/B/Action.text = 'Apply'
-	$PopUp/A/A/SystemID.text = system.get_name()
-	$PopUp/A/A/SystemID.editable = false
-	$PopUp/A/A/DisplayName.text = system['display_name']
-	popup_result = null
-	var _discard = validate_popup()
-	$PopUp.popup()
-	while $PopUp.visible:
-		yield(get_tree(),'idle_frame')
-	var result = popup_result
-	if result and result['result']==RESULT_ACTION:
-		var old_name = system.display_name
-		system.display_name = result['display_name']
-		universe_edits.state.push(universe_edits.ChangeDisplayName.new(
-			system.get_name(),old_name,result['display_name']))
-	set_process(true)
+	universe_edits.state.push(universe_edits.EnterSystemFromSector.new(system.get_path()))
+#	game_state.system=system
+#	get_tree().set_input_as_handled()
+#	if OK!=get_tree().change_scene('res://ui/edit/SystemEditor.tscn'):
+#		push_error('cannot change scene to SystemEditor')
+#	yield(get_tree(),'idle_frame')
+
+#	$PopUp/A/B/Action.text = 'Apply'
+#	$PopUp/A/A/SystemID.text = system.get_name()
+#	$PopUp/A/A/SystemID.editable = false
+#	$PopUp/A/A/DisplayName.text = system['display_name']
+#	popup_result = null
+#	var _discard = validate_popup()
+#	$PopUp.popup()
+#	while $PopUp.visible:
+#		yield(get_tree(),'idle_frame')
+#	var result = popup_result
+#	if result and result['result']==RESULT_ACTION:
+##		var old_name = system.display_name
+##		system.display_name = result['display_name']
+#		universe_edits.state.push(universe_edits.SystemDataChange.new(
+#			system.get_name(),{'display_name':result['display_name']},false,true))
+#	set_process(true)
 
 func handle_select(event: InputEvent):
 	var pos = event_position(event)
@@ -434,13 +441,16 @@ func save_load(save: bool) -> bool:
 	return false
 
 func _input(event):
+	# Ignore events if a popup is popped up
 	if $PopUp.visible:
 		if event.is_action_released('ui_cancel'):
 			_on_Cancel_pressed()
 			get_tree().set_input_as_handled()
-		return # only popup gets events when visible
+		return
 	elif $FileDialog.visible:
-		return # only file dialog gets events when visible
+		return
+	elif $ConfirmationDialog.visible:
+		return
 	
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_select'):
@@ -476,7 +486,19 @@ func _input(event):
 		else:
 			last_position=null
 
-	if event.is_action_pressed('ui_location_select'):
+	if event.is_action_released('ui_cancel'):
+		print('ui cancel')
+		if universe_edits.state.activity:
+			exit_confirmed=false
+			$ConfirmationDialog.popup()
+			while $ConfirmationDialog.visible:
+				yield(get_tree(),'idle_frame')
+		else:
+			exit_confirmed=true
+		if exit_confirmed:
+			get_tree().quit()
+		get_tree().set_input_as_handled()
+	elif event.is_action_pressed('ui_location_select'):
 		handle_select(event)
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_location_modify'):
@@ -484,13 +506,13 @@ func _input(event):
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_location_select'):
 		var _discard = cancel_drag()
-	elif event.is_action_pressed('ui_editor_save'):
+	elif event.is_action_released('ui_editor_save'):
 		save_load(true)
 		get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_editor_load'):
+	elif event.is_action_released('ui_editor_load'):
 		save_load(false)
 		get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_delete') and selection:
+	elif event.is_action_released('ui_delete') and selection:
 		if selection is Dictionary:
 			universe_edits.state.push(universe_edits.EraseLink.new(selection))
 #			var _discard = erase_link(selection)
@@ -499,10 +521,10 @@ func _input(event):
 			universe_edits.state.push(universe_edits.EraseSystem.new(selection))
 #			var _discard = erase_system(selection)
 			get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_undo'):
+	elif event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
 		get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_redo'):
+	elif event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
 	
@@ -565,3 +587,6 @@ func _on_Annotations_draw():
 func _on_FileDialog_file_selected(path):
 	selected_file=path
 	$FileDialog.visible=false
+
+func _on_ConfirmationDialog_confirmed():
+	exit_confirmed = true

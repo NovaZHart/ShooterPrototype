@@ -79,12 +79,26 @@ func set_stored_console(s: String): stored_console=s
 func get_stored_console() -> String: return stored_console
 
 func get_system(): return system
-func set_system(var s: String):
-	var system_for_name = universe.get_child_with_name(s)
-	if system_for_name:
-		system = system_for_name
-		player_location = universe.get_path_to(system)
-	return system
+func set_system(var s):
+	if s is NodePath:
+		var system_at_path = universe.get_node_or_null(s)
+		if not system_at_path.has_method('is_SystemData'):
+			push_error('Tried to go to a non-system at path '+str(s))
+			return system
+		system = system_at_path
+	elif s is simple_tree.SimpleNode:
+		var s_path = s.get_path()
+		var system_at_path = universe.get_node_or_null(s_path)
+		if not system_at_path.has_method('is_SystemData'):
+			push_error('Specified system is not in tree at path '+str(s_path))
+			return system
+		system = system_at_path
+	elif s is String:
+		var system_for_name = universe.get_child_with_name(s)
+		if system_for_name:
+			system = system_for_name
+			player_location = universe.get_path_to(system)
+		return system
 
 func save_universe_as_json(filename: String) -> bool:
 	return universe.save_as_json(filename)

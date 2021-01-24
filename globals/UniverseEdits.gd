@@ -89,7 +89,7 @@ class ChangeSelection extends undo_tool.Action:
 	func set_selection(_from,to) -> bool:
 		if system_editor:
 			return game_state.system_editor.change_selection_to(to,center_view)
-		return game_state.sector_editor.change_selection_to(null,center_view)
+		return game_state.sector_editor.change_selection_to(to,center_view)
 	func run() -> bool:
 		return set_selection(old_selection,new_selection)
 	func undo() -> bool:
@@ -97,23 +97,45 @@ class ChangeSelection extends undo_tool.Action:
 	func redo() -> bool:
 		return set_selection(old_selection,new_selection) and cancel_drag(old_selection,new_selection)
 
-class ChangeDisplayName extends undo_tool.Action: # change name from sector editor
-	# FIXME: replace with SystemDataChange
-	var editor: Node
-	var system_id: String
-	var old_name: String
-	var new_name: String
+class ExitToSector extends undo_tool.Action:
+	var from_system: NodePath
 	func as_string() -> String:
-		return 'ChangeDisplayName(system_id='+str(system_id)+',old_name='+ \
-			str(old_name)+',new_name='+str(new_name)+')'
-	func _init(system_id_: String,old_name_: String,new_name_: String):
-		self.system_id=system_id_
-		self.old_name=old_name_
-		self.new_name=new_name_
-	func undo() -> bool:
-		return game_state.sector_editor.process_if(game_state.universe.set_display_name(system_id,old_name))
-	func redo() -> bool:
-		return game_state.sector_editor.process_if(game_state.universe.set_display_name(system_id,new_name))
+		return 'ExitToSector(from_system='+str(from_system)+')'
+	func _init():
+		from_system = game_state.system.get_path()
+	func run():
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SectorEditor.tscn'):
+			push_error('cannot change scene to SectorEditor')
+			return false
+		return true
+	func undo():
+		game_state.system = from_system
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
+			push_error('cannot change scene to SystemEditor')
+			return false
+		return true
+
+class EnterSystemFromSector extends undo_tool.Action:
+	var from_system: NodePath
+	var to_system: NodePath
+	func as_string() -> String:
+		return 'EnterSystemFromSector(system_path='+str(to_system)+')'
+	func _init(to_system_: NodePath):
+		from_system = game_state.system.get_path()
+		to_system = game_state.universe.get_node(to_system_).get_path()
+	func run():
+		game_state.set_system(game_state.universe.get_node(to_system))
+		assert(game_state.system.get_path()==to_system)
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
+			push_error('cannot change scene to SystemEditor')
+			return false
+		return true
+	func undo():
+		game_state.system = from_system
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SectorEditor.tscn'):
+			push_error('cannot change scene to SectorEditor')
+			return false
+		return true
 
 class MoveObject extends undo_tool.Action:
 	var object
@@ -158,8 +180,9 @@ class SystemDataChange extends undo_tool.Action:
 		for key in new:
 			old[key]=system.get(key)
 			system.set(key,new[key])
-		return game_state.system_editor.update_system_data(system.get_path(),
-				background_update,metadata_update)
+		return game_state.sector_editor.process_if(
+			game_state.system_editor.update_system_data(system.get_path(),
+				background_update,metadata_update))
 	func undo() -> bool:
 		var system = game_state.universe.get_node_or_null(system_path)
 		if not system or not old:
@@ -167,8 +190,9 @@ class SystemDataChange extends undo_tool.Action:
 			return false
 		for key in old:
 			system.set(key,old[key])
-		return game_state.system_editor.update_system_data(system.get_path(),
-				background_update,metadata_update)
+		return game_state.sector_editor.process_if(
+			game_state.system_editor.update_system_data(system.get_path(),
+				background_update,metadata_update))
 	func redo() -> bool:
 		var system = game_state.universe.get_node_or_null(system_path)
 		if not system or not old:
@@ -176,9 +200,10 @@ class SystemDataChange extends undo_tool.Action:
 			return false
 		for key in new:
 			system.set(key,new[key])
-		return game_state.system_editor.update_system_data(system.get_path(),
-				background_update,metadata_update)
-
+		return game_state.sector_editor.process_if(
+			game_state.system_editor.update_system_data(system.get_path(),
+				background_update,metadata_update))
+#return game_state.sector_editor.process_if(game_state.universe.set_display_name(system_id,old_name))
 class AddSpaceObject extends undo_tool.Action:
 	var parent_path: NodePath
 	var child: simple_tree.SimpleNode

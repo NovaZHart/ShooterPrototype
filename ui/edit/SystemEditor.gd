@@ -196,23 +196,25 @@ func save_load(save: bool) -> bool:
 	return false
 
 func _unhandled_input(event):
-	if event.is_action_pressed('ui_undo'):
+	if event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
 		get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_redo'):
+	elif event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_editor_save'):
+	elif event.is_action_released('ui_editor_save'):
 		save_load(true)
 		get_tree().set_input_as_handled()
-	elif event.is_action_pressed('ui_editor_load'):
+	elif event.is_action_released('ui_editor_load'):
 		save_load(false)
 		get_tree().set_input_as_handled()
-	elif ($PopUp.visible or $FileDialog.visible) and event.is_action_pressed('ui_cancel'):
+	elif event.is_action_released('ui_cancel'):
 		if $PopUp.visible:
 			_on_Cancel_pressed()
-		if $FileDialog.visible:
+		elif $FileDialog.visible:
 			$FileDialog.visible=false
+		else:
+			universe_edits.state.push(universe_edits.ExitToSector.new())
 		get_tree().set_input_as_handled()
 	elif $PopUp.visible and event.is_action_pressed('ui_accept'):
 		_on_Action_pressed()

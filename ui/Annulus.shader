@@ -16,7 +16,7 @@ void vertex() {
 void fragment() {
 	float r = length(stored_vertex.xz);
 	float weight = clamp((r-r_mid) * 2.0/(thickness*scale),-1.0,1.0);
-	weight *= weight;
+//	weight *= weight;
 	weight = 1.0 - weight*weight;
 	ALBEDO = color.rgb*weight;
 	ALPHA = color.a*weight;
