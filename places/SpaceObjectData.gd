@@ -56,7 +56,6 @@ func set_orbit_radius(p: float):
 	orbit_radius = p
 
 func set_rotation_period(p: float):
-	assert(p>=0)
 	rotation_period = p
 
 func is_a_system() -> bool: return false
@@ -147,7 +146,7 @@ func full_display_name() -> String:
 	return fp
 
 func planet_rotation(time: float) -> Vector3:
-	var rotation_y = 2*PI*time/rotation_period if (rotation_period>1e-6) else 0.0
+	var rotation_y = 2*PI*time/rotation_period if abs(rotation_period)>1e-6 else 0.0
 	return Vector3(0.0,rotation_y,0.0)
 
 func planet_translation(time: float) -> Vector3:

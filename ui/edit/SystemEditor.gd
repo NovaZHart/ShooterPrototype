@@ -293,12 +293,3 @@ func _on_IDEdit_text_changed(_new_text):
 func _on_FileDialog_file_selected(path):
 	selected_file=path
 	$FileDialog.visible=false
-
-
-
-
-
-
-
-
-

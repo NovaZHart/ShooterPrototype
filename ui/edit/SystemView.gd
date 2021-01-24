@@ -1,15 +1,18 @@
 extends Spatial
 
-const SpaceObjectData=preload('res://places/SpaceObjectData.gd')
+const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
+const MapAnnotation: PackedScene = preload('res://ui/edit/MapAnnotation.tscn')
 
 export var label_font: Font
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 500
+export var in_game_max_camera_size: float = 150
 export var detail_level: float = 150
 
 const y500: Vector3 = Vector3(0.0,500.0,0.0)
+const ANNOTATION_FOR_MAKING_OBJECTS: String = '-is_making-'
 
 var play_speed: float = 0.0
 var planet_time: float = 0.0
@@ -40,6 +43,11 @@ signal view_center_changed
 signal make_new_space_object
 signal request_focus
 
+func _ready():
+	var annotate_making = MapAnnotation.instance()
+	annotate_making.name = ANNOTATION_FOR_MAKING_OBJECTS
+	$Annotation3D.add_child(annotate_making)
+
 func full_game_state_path(var path: NodePath):
 	var node = game_state.universe.get_node_or_null(path)
 	if node:
@@ -51,19 +59,19 @@ func full_game_state_path(var path: NodePath):
 func set_selection(what) -> bool:
 	if (what==null or not what) and selection:
 		selection=NodePath()
-		$Annotations.update()
+		$Annotation2D.update()
 		return stop_moving()
 	else:
 		var full_path = game_state.tree.make_absolute(what)
 		if full_path != game_state.tree.make_absolute(selection):
 			selection = what
-			$Annotations.update()
+			$Annotation2D.update()
 			return stop_moving()
 	return true # selection hasn't changed
 
 func gain_focus():
 	has_focus = true
-	$Annotations.update()
+	$Annotation2D.update()
 	return true
 
 func lose_focus() -> bool:
@@ -72,7 +80,7 @@ func lose_focus() -> bool:
 	was_location_select_down=false
 	ui_scroll=0
 	camera_start=null
-	$Annotations.update()
+	$Annotation2D.update()
 	return stop_moving()
 
 func stop_moving() -> bool:
@@ -82,7 +90,7 @@ func stop_moving() -> bool:
 	last_screen_position=null
 	is_sliding = false
 	start_position=null
-	$Annotations.update()
+	$Annotation2D.update()
 	return true
 
 func update_space_background(from=null) -> bool:
@@ -207,7 +215,8 @@ func handle_mouse_action_active(_mouse_pos: Vector2, space_pos: Vector3):
 			play_speed = 0
 	if ( (last_clicked and is_moving) or is_making ) and last_position:
 		last_position=space_pos
-		$Annotations.update()
+		$Annotation2D.update()
+		update_Annotation3D()
 
 func update_planet_locations():
 	var success: bool = true
@@ -219,7 +228,8 @@ func update_planet_locations():
 		else:
 			push_error('Planet data location ('+str(planet.game_state_path)+') does not exist.')
 			success=false
-	$Annotations.update()
+	$Annotation2D.update()
+	update_Annotation3D()
 	return success
 
 func _process(delta):
@@ -245,22 +255,35 @@ func _process(delta):
 		update_planet_locations()
 
 func set_zoom(zoom: float,original: float=-1) -> void:
-	$Annotations.update()
 	var from: float = original if original>1 else $TopCamera.size
 	var new_size: float = clamp(zoom*from,min_camera_size,max_camera_size)
 	if abs($TopCamera.size-new_size)>1e-5:
 		$TopCamera.size = new_size
 		center_view()
+	$Annotation2D.update()
+	update_Annotation3D()
 
 func spawn_planet(planet: Spatial) -> bool:
-	$Annotations.update()
 	planet_mutex.lock()
 	$Planets.add_child(planet)
+	var planet_data = game_state.universe.get_node(planet.game_state_path)
+	var parent_data = planet_data.get_parent() if planet_data else null
+	if parent_data:
+		var ann3 = MapAnnotation.instance()
+		ann3.object_path = planet_data.get_path()
+		ann3.name = planet.name
+		var old = $Annotation3D.get_node_or_null(ann3.name)
+		if old:
+			$Annotation3D.remove_child(old)
+			old.queue_free()
+		$Annotation3D.add_child(ann3)
+		call_deferred('update_Annotation3D')
 	planet_mutex.unlock()
+	$Annotation2D.update()
 	return true
 
 func remake_planet(game_state_path) -> bool:
-	$Annotations.update()
+	$Annotation2D.update()
 	var data = game_state.universe.get_node_or_null(game_state_path)
 	if data:
 		var planet: PhysicsBody = data.make_planet(detail_level,0.0)
@@ -272,7 +295,7 @@ func remake_planet(game_state_path) -> bool:
 	return false
 
 func erase_planet(game_state_path: NodePath) -> bool:
-	$Annotations.update()
+	$Annotation2D.update()
 	var full_path = full_game_state_path(game_state_path)
 	planet_mutex.lock()
 	for planet in $Planets.get_children():
@@ -281,13 +304,14 @@ func erase_planet(game_state_path: NodePath) -> bool:
 			planet_mutex.unlock()
 			return true
 	planet_mutex.unlock()
+	call_deferred('update_Annotation3D')
 	push_error('Could not find a planet to erase at path '+str(game_state_path))
 	return false
 
 func deselect():
 	var _discard = stop_moving()
 	selection = NodePath()
-	$Annotations.update()
+	$Annotation2D.update()
 
 func change_selection_to(path: NodePath,center_view: bool) -> bool:
 	var data = game_state.universe.get_node_or_null(path)
@@ -316,13 +340,16 @@ func center_view(center=null) -> void:
 	$ShipLight.translation.y = min(max_sun_height,max(min_sun_height,
 		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
 	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))
-	$Annotations.update()
+	$Annotation2D.update()
 
 func clear():
 	planet_mutex.lock()
 	for planet in $Planets.get_children():
 		planet.queue_free()
 		$Planets.remove_child(planet)
+	for annotation in $Annotation3D.get_children():
+		if annotation.name != ANNOTATION_FOR_MAKING_OBJECTS:
+			annotation.queue_free()
 	planet_mutex.unlock()
 
 # warning-ignore:shadowed_variable
@@ -334,7 +361,7 @@ func set_system(system: simple_tree.SimpleNode) -> bool:
 	update_space_background()
 	return true
 
-func _on_Annotations_draw():
+func _on_Annotation2D_draw():
 	var draw_color: Color = Color(system.plasma_color)
 	draw_color.v = 0.7
 	var box_color: Color = Color(draw_color)
@@ -348,7 +375,7 @@ func _on_Annotations_draw():
 		points[1]=Vector2(points[0].x,points[2].y)
 		points[3]=Vector2(points[2].x,points[0].y)
 		points[4]=points[0]
-		$Annotations.draw_polyline(points,box_color,1.5,true)
+		$Annotation2D.draw_polyline(points,box_color,1.5,true)
 	
 	var ascent: float = label_font.get_ascent()
 	
@@ -356,10 +383,10 @@ func _on_Annotations_draw():
 		var center2d: Vector2 = $TopCamera.unproject_position(last_position)
 		var pos2d: Vector2 = $TopCamera.unproject_position(
 			last_position+Vector3(-1.0,0,1.0)*is_making.size/sqrt(2))
-		$Annotations.draw_circle(center2d,pos2d.distance_to(center2d),box_color)
+		$Annotation2D.draw_circle(center2d,pos2d.distance_to(center2d),box_color)
 		pos2d = $TopCamera.unproject_position(
 			last_position+Vector3(-1.0,0,1.0)*is_making.size/sqrt(2))
-		$Annotations.draw_string(label_font,pos2d+Vector2(0,ascent), \
+		$Annotation2D.draw_string(label_font,pos2d+Vector2(0,ascent), \
 			is_making.display_name,draw_color)
 	
 	for planet in $Planets.get_children():
@@ -370,15 +397,45 @@ func _on_Annotations_draw():
 			var pos2d: Vector2 = $TopCamera.unproject_position(
 				planet.translation+Vector3(-1.0,0,1.0)*data.size/sqrt(2))
 			if full_path==selection:
-				$Annotations.draw_arc(center2d,pos2d.distance_to(center2d)+5,
+				$Annotation2D.draw_arc(center2d,pos2d.distance_to(center2d)+5,
 					PI/4,2.25*PI,80,box_color,6.0,true)
 			if is_moving and full_path==last_clicked and last_position:
 				var last_pos_2d = $TopCamera.unproject_position(last_position)
-				$Annotations.draw_circle(last_pos_2d,pos2d.distance_to(center2d),box_color)
+				$Annotation2D.draw_circle(last_pos_2d,pos2d.distance_to(center2d),box_color)
 				pos2d = $TopCamera.unproject_position(
 					last_position+Vector3(-1.0,0,1.0)*data.size/sqrt(2))
-			$Annotations.draw_string(label_font,pos2d+Vector2(0,ascent), \
+			$Annotation2D.draw_string(label_font,pos2d+Vector2(0,ascent), \
 				data.display_name,draw_color)
 
+func update_Annotation3D():
+	var new_u_scale = clamp($TopCamera.size/max_camera_size,0.1,1.0)
+	var draw_color: Color = Color(system.plasma_color)
+	
+	planet_mutex.lock()
+	
+	var deleteme = []
+	for ann3 in $Annotation3D.get_children():
+		if ann3.object_path:
+			var new_position = null
+			if is_moving and last_clicked==ann3.object_path:
+				new_position=last_position
+			if not ann3.update_from_path(new_u_scale,draw_color,planet_time,new_position):
+				deleteme.append(ann3)
+		elif is_making and last_position:
+			var center = Vector3(0,0,0)
+			if selection:
+				var selected_node = game_state.universe.get_node_or_null(selection)
+				if selected_node and selected_node.has_method('is_SpaceObjectData'):
+					center = selected_node.planet_translation(planet_time)
+			ann3.update_from_spec(new_u_scale,draw_color,last_position,center)
+		else:
+			ann3.visible=false
+	for ann3 in deleteme:
+		$Annotation3D.remove_child(ann3)
+		ann3.queue_free()
+	
+	planet_mutex.unlock()
+
 func view_resized():
-	$Annotations.update()
+	$Annotation2D.update()
+	call_deferred('update_Annotation3D')

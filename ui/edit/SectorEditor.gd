@@ -301,7 +301,7 @@ func deselect(what) -> bool:
 		return true
 	return false
 
-func change_selection_to(new_selection) -> bool:
+func change_selection_to(new_selection,_center: bool) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
 	game_state.universe.unlock()

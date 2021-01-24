@@ -4,21 +4,21 @@
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=2]
 [ext_resource path="res://ui/edit/SystemView.gd" type="Script" id=3]
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="DynamicFont" id=1]
 size = 18
 outline_size = 1
 outline_color = Color( 0, 0, 0, 1 )
 use_mipmaps = true
 font_data = ExtResource( 2 )
 
-[sub_resource type="Environment" id=1]
+[sub_resource type="Environment" id=2]
 
 [node name="SystemView" type="Spatial"]
 script = ExtResource( 3 )
-label_font = SubResource( 2 )
+label_font = SubResource( 1 )
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 1 )
+environment = SubResource( 2 )
 
 [node name="Planets" type="Spatial" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, 0 )
@@ -46,5 +46,7 @@ projection = 1
 fov = 96.768
 size = 200.0
 
-[node name="Annotations" type="Node2D" parent="."]
-[connection signal="draw" from="Annotations" to="." method="_on_Annotations_draw"]
+[node name="Annotation2D" type="Node2D" parent="."]
+
+[node name="Annotation3D" type="Spatial" parent="."]
+[connection signal="draw" from="Annotation2D" to="." method="_on_Annotation2D_draw"]
