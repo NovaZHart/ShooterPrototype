@@ -122,9 +122,9 @@ class EnterSystemFromSector extends undo_tool.Action:
 		return 'EnterSystemFromSector(system_path='+str(to_system)+')'
 	func _init(to_system_: NodePath):
 		from_system = game_state.system.get_path()
-		to_system = game_state.universe.get_node(to_system_).get_path()
+		to_system = game_state.systems.get_node(to_system_).get_path()
 	func run():
-		game_state.set_system(game_state.universe.get_node(to_system))
+		game_state.set_system(game_state.systems.get_node(to_system))
 		assert(game_state.system.get_path()==to_system)
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
 			push_error('cannot change scene to SystemEditor')
@@ -173,7 +173,7 @@ class SystemDataChange extends undo_tool.Action:
 		self.background_update=background_update_
 		self.metadata_update=metadata_update_
 	func run() -> bool:
-		var system = game_state.universe.get_node_or_null(system_path)
+		var system = game_state.systems.get_node_or_null(system_path)
 		if not system:
 			push_error('No system to edit in SystemDataChange')
 			return false
@@ -184,7 +184,7 @@ class SystemDataChange extends undo_tool.Action:
 			game_state.system_editor.update_system_data(system.get_path(),
 				background_update,metadata_update))
 	func undo() -> bool:
-		var system = game_state.universe.get_node_or_null(system_path)
+		var system = game_state.systems.get_node_or_null(system_path)
 		if not system or not old:
 			push_error('No system to edit in SystemDataChange')
 			return false
@@ -194,7 +194,7 @@ class SystemDataChange extends undo_tool.Action:
 			game_state.system_editor.update_system_data(system.get_path(),
 				background_update,metadata_update))
 	func redo() -> bool:
-		var system = game_state.universe.get_node_or_null(system_path)
+		var system = game_state.systems.get_node_or_null(system_path)
 		if not system or not old:
 			push_error('No system to edit in SystemDataChange')
 			return false
@@ -214,7 +214,7 @@ class AddSpaceObject extends undo_tool.Action:
 		child=child_
 	func run() -> bool:
 		print('add space object run')
-		var node: simple_tree.SimpleNode = game_state.universe.get_node_or_null(parent_path)
+		var node: simple_tree.SimpleNode = game_state.systems.get_node_or_null(parent_path)
 		if not node:
 			push_error('Cannot add space object because parent '+str(parent_path)+' does not exist.')
 			return false
@@ -224,7 +224,7 @@ class AddSpaceObject extends undo_tool.Action:
 			return false
 		return game_state.system_editor.add_space_object(parent_path,child)
 	func undo() -> bool:
-		var node: simple_tree.SimpleNode = game_state.universe.get_node_or_null(parent_path)
+		var node: simple_tree.SimpleNode = game_state.systems.get_node_or_null(parent_path)
 		if not node:
 			push_error('Cannot remove space object because parent '+str(parent_path)+' does not exist.')
 			return false
@@ -250,7 +250,7 @@ class RemoveSpaceObject extends undo_tool.Action:
 			push_error('Cannot remove a child that was already removed. Operation will fail.')
 		parent_path=parent_path_
 	func run() -> bool:
-		var node: simple_tree.SimpleNode = game_state.universe.get_node_or_null(parent_path)
+		var node: simple_tree.SimpleNode = game_state.systems.get_node_or_null(parent_path)
 		if not node:
 			push_error('Cannot remove space object because parent '+str(parent_path)+' does not exist.')
 			return false
@@ -259,7 +259,7 @@ class RemoveSpaceObject extends undo_tool.Action:
 			return false
 		return game_state.system_editor.remove_space_object(parent_path,child)
 	func undo() -> bool:
-		var node: simple_tree.SimpleNode = game_state.universe.get_node_or_null(parent_path)
+		var node: simple_tree.SimpleNode = game_state.systems.get_node_or_null(parent_path)
 		if not node:
 			push_error('Cannot add space object because parent '+str(parent_path)+' does not exist.')
 			return false
@@ -285,7 +285,7 @@ class DescriptionChange extends undo_tool.Action:
 		new_description = description
 		return true
 	func undo() -> bool:
-		var object = game_state.universe.get_node_or_null(object_path)
+		var object = game_state.systems.get_node_or_null(object_path)
 		if not object:
 			push_error('No space object to edit in SystemDataChange at '+str(object_path))
 			return false
@@ -293,7 +293,7 @@ class DescriptionChange extends undo_tool.Action:
 		return game_state.system_editor.update_space_object_data(object.get_path(),
 				false,false,true,false)
 	func redo() -> bool:
-		var object = game_state.universe.get_node_or_null(object_path)
+		var object = game_state.systems.get_node_or_null(object_path)
 		if not object:
 			push_error('No space object to edit in SystemDataChange at '+str(object_path))
 			return false
@@ -321,7 +321,7 @@ class SpaceObjectDataChange extends undo_tool.Action:
 		self.help=help_
 		self.location=location_
 	func run() -> bool:
-		var object = game_state.universe.get_node_or_null(object_path)
+		var object = game_state.systems.get_node_or_null(object_path)
 		if not object:
 			push_error('No space object to edit in SystemDataChange at '+str(object_path))
 			return false
@@ -331,7 +331,7 @@ class SpaceObjectDataChange extends undo_tool.Action:
 		return game_state.system_editor.update_space_object_data(object.get_path(),
 				basic,visual,help,location)
 	func undo() -> bool:
-		var object = game_state.universe.get_node_or_null(object_path)
+		var object = game_state.systems.get_node_or_null(object_path)
 		if not object or not old:
 			push_error('No space object to edit in SystemDataChange at '+str(object_path))
 			return false
@@ -340,7 +340,7 @@ class SpaceObjectDataChange extends undo_tool.Action:
 		return game_state.system_editor.update_space_object_data(object.get_path(),
 				basic,visual,help,location)
 	func redo() -> bool:
-		var object = game_state.universe.get_node_or_null(object_path)
+		var object = game_state.systems.get_node_or_null(object_path)
 		if not object or not old:
 			push_error('No space object to edit in SystemDataChange at '+str(object_path))
 			return false

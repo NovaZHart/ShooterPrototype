@@ -93,23 +93,23 @@ func _process(_delta):
 	var new_draw_commands: Array = []
 
 	game_state.universe.lock()
-	$Systems.visible=game_state.universe.has_children()
+	$Systems.visible=game_state.systems.has_children()
 	var view_rect: Rect2 = Rect2(Vector2(-20,-20),get_viewport().size+Vector2(20,20))
 	var text_offset: float = abs($Camera.unproject_position(Vector3()).x - \
 			$Camera.unproject_position(Vector3(system_scale,0,system_scale)).x)
 	var selected_system = ''
-	var child_names = game_state.universe.get_child_names()
+	var child_names = game_state.systems.get_child_names()
 	if selection and selection is simple_tree.SimpleNode:
 		selected_system=selection.get_name()
 	var selected_link = ['','']
 	if selection is Dictionary:
 		selected_link=selection['link_key']
-	if game_state.universe.has_children():
+	if game_state.systems.has_children():
 		system_data.resize(16*len(child_names))
 		var i: int=0
 		var ascent: float = label_font.get_ascent()
 		for system_id in child_names:
-			var system = game_state.universe.get_child_with_name(system_id)
+			var system = game_state.systems.get_child_with_name(system_id)
 			assert(system is simple_tree.SimpleNode)
 			var color: Color = system_color
 			var font: Font = label_font
@@ -267,7 +267,7 @@ func find_at_position(screen_position: Vector2):
 	var close_distsq = INF
 	
 	game_state.universe.lock()
-	for system_id in game_state.universe.get_child_names():
+	for system_id in game_state.systems.get_child_names():
 		var system = game_state.universe.get_system(system_id)
 		if not system:
 			continue
@@ -315,7 +315,7 @@ func validate_popup() -> bool:
 	if $PopUp/A/A/SystemID.editable:
 		if not $PopUp/A/A/SystemID.text:
 			info='Enter a system ID'
-		elif game_state.universe.has_system($PopUp/A/A/SystemID.text):
+		elif game_state.systems.has_child($PopUp/A/A/SystemID.text):
 			info='There is already a "'+$PopUp/A/A/SystemID.text+'" system!'
 		elif not $PopUp/A/A/SystemID.text[0].is_valid_identifier():
 			info='ID must begin with a letter or "_"'
@@ -349,28 +349,6 @@ func make_new_system(event: InputEvent): # -> SimpleNode or null
 
 func edit_system(system):
 	universe_edits.state.push(universe_edits.EnterSystemFromSector.new(system.get_path()))
-#	game_state.system=system
-#	get_tree().set_input_as_handled()
-#	if OK!=get_tree().change_scene('res://ui/edit/SystemEditor.tscn'):
-#		push_error('cannot change scene to SystemEditor')
-#	yield(get_tree(),'idle_frame')
-
-#	$PopUp/A/B/Action.text = 'Apply'
-#	$PopUp/A/A/SystemID.text = system.get_name()
-#	$PopUp/A/A/SystemID.editable = false
-#	$PopUp/A/A/DisplayName.text = system['display_name']
-#	popup_result = null
-#	var _discard = validate_popup()
-#	$PopUp.popup()
-#	while $PopUp.visible:
-#		yield(get_tree(),'idle_frame')
-#	var result = popup_result
-#	if result and result['result']==RESULT_ACTION:
-##		var old_name = system.display_name
-##		system.display_name = result['display_name']
-#		universe_edits.state.push(universe_edits.SystemDataChange.new(
-#			system.get_name(),{'display_name':result['display_name']},false,true))
-#	set_process(true)
 
 func handle_select(event: InputEvent):
 	var pos = event_position(event)
@@ -433,8 +411,8 @@ func save_load(save: bool) -> bool:
 	if not selected_file:
 		return false # canceled
 	elif save:
-		return game_state.universe.save_as_json(selected_file)
-	elif game_state.universe.load_from_json(selected_file):
+		return game_state.save_universe_as_json(selected_file)
+	elif game_state.load_universe_from_json(selected_file):
 		universe_edits.state.clear()
 		set_process(true)
 		return true
@@ -496,7 +474,8 @@ func _input(event):
 		else:
 			exit_confirmed=true
 		if exit_confirmed:
-			get_tree().quit()
+			universe_edits.state.clear()
+			get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_location_select'):
 		handle_select(event)
@@ -507,9 +486,11 @@ func _input(event):
 	elif event.is_action_released('ui_location_select'):
 		var _discard = cancel_drag()
 	elif event.is_action_released('ui_editor_save'):
+		assert(event.control)
 		save_load(true)
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_load'):
+		assert(event.control)
 		save_load(false)
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_delete') and selection:

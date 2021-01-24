@@ -43,7 +43,7 @@ func update_from_spec(new_u_scale: float,new_color: Color,new_position: Vector3,
 
 func update_from_path(new_u_scale: float,new_color: Color,planet_time: float,
 		position_override=null) -> bool:
-	var object = game_state.universe.get_node_or_null(object_path)
+	var object = game_state.systems.get_node_or_null(object_path)
 	if not object:
 		push_warning('No object exists at path '+str(object_path))
 		make_invalid()

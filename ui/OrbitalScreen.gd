@@ -73,7 +73,7 @@ func camera_and_label(system_name: String,planet_name: String):
 	$Camera.translate_object_local(Vector3(0.0,0.0,10.0))
 
 func astral_jump(system_node_name: String,planet_location: NodePath):
-	game_state.system=game_state.universe.get_node(system_node_name)
+	game_state.system=game_state.systems.get_node(system_node_name)
 	game_state.player_location=planet_location
 	planet.queue_free()
 	var planet_info = game_state.get_space_object_or_null()
@@ -89,6 +89,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	else:
 		$LocationLabel.text=planet_info.full_display_name()
 	camera_and_label(system_info.display_name,planet.display_name)
+	$SpaceBackground.update_from(game_state.system)
 	game_state.print_to_console("Jumped to "+planet_info.display_name+" in the " \
 		+system_info.display_name+" system.\n")
 	emit_signal('jump_complete')

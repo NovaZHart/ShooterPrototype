@@ -3,6 +3,9 @@ extends simple_tree.SimpleNode
 const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
 const SystemData = preload('res://places/SystemData.gd')
 
+var player_ship_design_name = 'player_ship_design'
+var systems: simple_tree.SimpleNode
+var ship_designs: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 
@@ -14,6 +17,14 @@ signal erased_link
 signal system_display_name_changed
 signal system_position_changed
 signal link_position_changed
+
+func _init():
+	systems = simple_tree.SimpleNode.new()
+	systems.set_name('systems')
+	assert(add_child(systems))
+	ship_designs = simple_tree.SimpleNode.new()
+	ship_designs.set_name('ship_designs')
+	assert(add_child(ship_designs))
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -28,12 +39,6 @@ func unlock():
 
 func has_links() -> bool:
 	return not not links
-
-func has_systems() -> bool:
-	return has_children()
-
-func has_system(id) -> bool:
-	return has_child(id)
 
 func has_link(arg1,arg2 = null) -> bool:
 	if arg2:
@@ -53,7 +58,8 @@ func decode_children(parent: simple_tree.SimpleNode, children):
 			push_error('invalid child')
 		else:
 			decoded.set_name(child_name)
-			parent.add_child(decoded)
+			if not parent.add_child(decoded):
+				push_error('decode_children failed to add child')
 
 func encode_children(parent: simple_tree.SimpleNode) -> Dictionary:
 	var result = {}
@@ -133,11 +139,14 @@ class ShipDesign extends simple_tree.SimpleNode:
 		assert(hull)
 		assert(hull is PackedScene)
 	
-	func assemble_part(body: Node, child: Node):
+	func assemble_part(body: Node, child: Node) -> bool:
 		var part = get_node_or_null(child.name)
 		if not part:
-			return
+			return false
 		elif part is MultiMount:
+#			if not part.get_child_names():
+#				push_warning('multimount has no contents')
+			var found = false
 			for part_name in part.get_child_names():
 				var content = part.get_child_with_name(part_name)
 				assert(content is MultiMounted)
@@ -148,13 +157,17 @@ class ShipDesign extends simple_tree.SimpleNode:
 					new_child.transform = child.transform
 					new_child.name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
 					body.add_child(new_child)
-		else:
+					found = true
+			return found
+		elif part is Mounted:
 			var new_child = part.scene.instance()
 			new_child.transform = child.transform
 			new_child.name = child.name
 			body.remove_child(child)
 			child.queue_free()
 			body.add_child(new_child)
+			return true
+		return false
 
 	func assemble_ship() -> Node:
 		var body = hull.instance()
@@ -162,10 +175,13 @@ class ShipDesign extends simple_tree.SimpleNode:
 			push_error('assemble_ship: cannot instance scene: '+body)
 			return Node.new()
 		body.save_transforms()
+		var found = false
 		for child in body.get_children():
 			if child is CollisionShape and child.scale.y<10:
 				child.scale.y=10
-			assemble_part(body,child)
+			found = assemble_part(body,child) or found
+		if not found:
+			push_warning('No parts found in ship')
 		body.pack_stats(true)
 		for child in body.get_children():
 			if child.has_method('is_not_mounted'):
@@ -185,49 +201,6 @@ func decode_ShipDesign(v):
 		decode_children(result,v[3])
 	return result
 
-func make_designs_from_Dictionary(ship_designs: Dictionary) -> simple_tree.SimpleNode:
-	var designs = simple_tree.SimpleNode.new()
-	designs.set_name('designs')
-	for design_name in ship_designs:
-		var design_dict = ship_designs[design_name]
-		if not design_dict or not design_dict is Dictionary or not \
-				design_dict.has('hull') or not design_dict['hull'] is PackedScene:
-			push_error('Design '+design_name+' is invalid.')
-			continue
-		var design = ShipDesign.new(design_name,design_dict['hull'])
-		design.set_name(design_name)
-		for key in design_dict:
-			if key=='hull':
-				continue
-			var value = design_dict[key]
-			if not value:
-				push_error('Design '+design_name+' has invalid component '+key)
-				continue
-			elif value is PackedScene:
-				var mount = Mounted.new(value)
-				mount.set_name(key)
-				design.add_child(mount)
-			elif value is Array:
-				var multimount = MultiMount.new()
-				multimount.set_name(key)
-				for v in value:
-					if not v is Array or len(v)!=3:
-						push_error('Design '+design_name+' has an invalid component inside '+key)
-						continue
-					var multimounted = MultiMounted.new(v[2],int(v[0]),int(v[1]))
-					multimounted.set_name_with_prefix(key)
-					multimount.add_child(multimounted)
-				design.add_child(multimount)
-			else:
-				push_error('Design '+design_name+' has invalid component '+key)
-				continue
-		designs.add_child(design)
-	var old_designs = get_node_or_null('designs')
-	if old_designs:
-		remove_child(old_designs)
-	add_child(designs)
-	return designs
-
 
 
 func save_places_as_json(filename: String) -> bool:
@@ -242,6 +215,8 @@ func save_places_as_json(filename: String) -> bool:
 	return true
 
 func load_places_from_json(filename: String) -> bool:
+	assert(children_.has('systems'))
+	assert(children_.has('ship_designs'))
 	print('load from file "',filename,'"')
 	var file: File = File.new()
 	if file.open(filename, File.READ):
@@ -253,45 +228,70 @@ func load_places_from_json(filename: String) -> bool:
 	if game_state and game_state.system:
 		system_name = game_state.system.get_name()
 	var success = decode_places(encoded,filename)
+	assert(children_.has('systems'))
+	assert(children_.has('ship_designs'))
 	emit_signal('reset_system')
+	assert(children_.has('systems'))
+	assert(children_.has('ship_designs'))
 	if game_state:
 		if system_name:
-			var system = game_state.universe.get_node_or_null(system_name)
+			var system = game_state.systems.get_node_or_null(system_name)
 			if system:
 				game_state.system = system
-			else:
-				print('no system')
-		else:
-			print('no sytem name')
-	else:
-		print('no game state')
+	assert(children_.has('systems'))
+	assert(children_.has('ship_designs'))
 	return success
 
 
 
 func decode_places(json_string,context: String) -> bool:
+	assert(children_.has('systems'))
+	assert(children_.has('ship_designs'))
 	var parsed: JSONParseResult = JSON.parse(json_string)
 	if parsed.error:
 		push_error(context+':'+str(parsed.error_line)+': '+parsed.error_string)
 		return false
 	var content = decode_helper(parsed.result)
 	if not content is Dictionary:
-		printerr('Can only load systems from a Dictionary!')
+		printerr(context+': error: can only load systems from a Dictionary!')
 		return false
-	var _discard = remove_all_children()
+	assert(children_.has('systems'))
+	assert(children_.has('ship_designs'))
 	links.clear()
-	for system_id in content:
+
+	var content_designs = content['ship_designs']
+	if content_designs or not content_designs is simple_tree.SimpleNode:
+		for design_name in ship_designs.get_child_names():
+			var design = ship_designs.get_child_with_name(design_name)
+			if design_name != player_ship_design_name:
+				var _discard = ship_designs.remove_child(design)
+		for design_name in content_designs.get_child_names():
+			var design = content_designs.get_child_with_name(design_name)
+			if design_name != player_ship_design_name:
+				content_designs.remove_child(design)
+				if not ship_designs.add_child(design):
+					push_error('Unable to add ship design with name '+design_name)
+	else:
+		push_error(context+': no ship_designs to load')
+		return false
+
+	var content_systems = content['systems']
+	if not content_systems or not content_systems is simple_tree.SimpleNode:
+		push_error(context+': no systems to load')
+		return false
+	for system_id in content_systems.get_child_names():
 		if not system_id is String or not system_id:
-			printerr('error: ignoring invalid system id: ',system_id)
+			printerr(context+': error: ignoring invalid system id: ',system_id)
 			continue
-		var system = content[system_id]
-		if system_id=='designs':
-			print('System parser: skip "designs" which is not a system')
-			_discard = add_child(system)
+		var system = content_systems.get_child_with_name(system_id)
+		if not system:
+			push_error(context+': error: system with id '+system_id+' is null')
 			continue
 		if not system is simple_tree.SimpleNode or not system.has_method('is_SystemData'):
-			printerr('warning: system with id ',system_id,' is not a SystemData')
-		system.set_name(system_id)
+			printerr(context+': warning: system with id ',system_id,' is not a SystemData')
+			continue
+		content_systems.remove_child(system)
+		var _discard = systems.add_child(system)
 		var bad_links = false
 		for to in system.links.keys():
 			if not to is String or not to or to==system_id:
@@ -301,7 +301,6 @@ func decode_places(json_string,context: String) -> bool:
 			links[link_key]={ 'type':'link', 'link_key':link_key }
 		if bad_links:
 			printerr('warning: system with id ',system_id,' has invalid objects for destination systems in its links')
-		_discard = add_child(system)
 	return true
 
 func decode_helper(what,key=null):
@@ -417,7 +416,7 @@ func get_link_between(from,to): # -> Dictionary or null
 	return links.get(link_key,null)
 
 func get_system(system_id: String): # -> Dictionary or null
-	return get_child_with_name(system_id)
+	return systems.get_child_with_name(system_id)
 
 func link_distsq(p: Vector3,link: Dictionary) -> float:
 	# modified from http://geomalgorithms.com/a02-_lines.html#Distance-to-Ray-or-Segment
@@ -440,11 +439,11 @@ func link_vectors(arg): # -> Dictionary or null
 	var link_key = arg
 	if arg is Dictionary:
 		link_key = link_key['link_key']
-	var from = get_child_with_name(link_key[0])
+	var from = systems.get_child_with_name(link_key[0])
 	if not from:
 		printerr('link_vectors: system ',link_key[0],' does not exist')
 		return null
-	var to = get_child_with_name(link_key[1])
+	var to = systems.get_child_with_name(link_key[1])
 	if not to:
 		printerr('link_vectors: system ',link_key[1],' does not exist')
 		return null
@@ -461,11 +460,11 @@ func link_sin_cos(arg): # -> Dictionary or null
 	var link_key = arg
 	if arg is Dictionary:
 		link_key=link_key['link_key']
-	var from = get_child_with_name(link_key[0])
+	var from = systems.get_child_with_name(link_key[0])
 	if not from:
 		printerr('link_sin_cos: system ',link_key[0],' does not exist')
 		return null
-	var to = get_child_with_name(link_key[1])
+	var to = systems.get_child_with_name(link_key[1])
 	if not to:
 		printerr('link_sin_cos: system ',link_key[1],' does not exist')
 		return null
@@ -492,11 +491,11 @@ func string_for(selection) -> String:
 func add_system(id: String,display_name: String,projected_position: Vector3) -> Dictionary:
 	data_mutex.lock()
 # warning-ignore:return_value_discarded
-	remove_child_with_name(id)
+	systems.remove_child_with_name(id)
 	var system = SystemData.new(id,{
 		'display_name': display_name,
 		'position': projected_position })
-	var _discard = add_child(system)
+	var _discard = systems.add_child(system)
 	data_mutex.unlock()
 	emit_signal('added_system',system)
 	return system
@@ -504,10 +503,10 @@ func add_system(id: String,display_name: String,projected_position: Vector3) -> 
 func restore_system(system) -> bool:
 	data_mutex.lock()
 	#var system_id: String = system.get_name()
-	var _discard = add_child(system)
+	var _discard = systems.add_child(system)
 	data_mutex.unlock()
 	for to_id in system.links:
-		var to = get_child_with_name(to_id)
+		var to = systems.get_child_with_name(to_id)
 		if to:
 			add_link(system,to)
 	emit_signal('added_system',system)
@@ -515,11 +514,11 @@ func restore_system(system) -> bool:
 
 func erase_system(system) -> bool:
 # warning-ignore:return_value_discarded
-	remove_child(system)
+	systems.remove_child(system)
 	var system_id=system.get_name()
 	data_mutex.lock()
 	for to_id in system.links:
-		var to = get_child_with_name(to_id)
+		var to = systems.get_child_with_name(to_id)
 		if not to:
 			printerr('missing system for link to ',to_id)
 			continue
@@ -545,8 +544,8 @@ func erase_link(link: Dictionary) -> bool:
 	var to_id = link['link_key'][1]
 	
 	data_mutex.lock()
-	var from = get_child_with_name(from_id)
-	var to = get_child_with_name(to_id)
+	var from = systems.get_child_with_name(from_id)
+	var to = systems.get_child_with_name(to_id)
 	var link_key = link['link_key']
 	var _discard = links.erase(link_key)
 	if from:
@@ -561,11 +560,11 @@ func erase_link(link: Dictionary) -> bool:
 func restore_link(link: Dictionary) -> bool:
 	data_mutex.lock()
 	var link_key = link['link_key']
-	var from = get_child_with_name(link_key[0])
+	var from = systems.get_child_with_name(link_key[0])
 	if not from:
 		data_mutex.unlock()
 		return false
-	var to = get_child_with_name(link_key[1])
+	var to = systems.get_child_with_name(link_key[1])
 	if not to:
 		data_mutex.unlock()
 		return false
@@ -603,7 +602,7 @@ func find_link(from,to):
 
 func set_display_name(system_id,display_name) -> bool:
 	data_mutex.lock()
-	var system = get_child_with_name(system_id)
+	var system = systems.get_child_with_name(system_id)
 	if not system:
 		data_mutex.unlock()
 		return false
@@ -629,7 +628,7 @@ func set_system_position(system,pos: Vector3) -> bool:
 func move_link(link,delta) -> bool:
 	data_mutex.lock()
 	for system_id in link['link_key']:
-		var system = get_child_with_name(system_id)
+		var system = systems.get_child_with_name(system_id)
 		if system:
 			system['position'] += delta
 			emit_signal('system_position_changed',system)

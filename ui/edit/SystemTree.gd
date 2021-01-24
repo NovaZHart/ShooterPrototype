@@ -41,7 +41,7 @@ func select_node_with_path(path) -> bool:
 	var node = null
 	var full_path = NodePath()
 	if path:
-		node = game_state.universe.get_node_or_null(path)
+		node = game_state.systems.get_node_or_null(path)
 		if node != null:
 			full_path = node.get_path()
 	return select_recurse(get_root(),full_path)
@@ -51,7 +51,7 @@ func sync_names_recursively(item):
 	while scan:
 		var path = scan.get_metadata(0)
 		if path and path is NodePath:
-			var node = game_state.universe.get_node_or_null(path)
+			var node = game_state.systems.get_node_or_null(path)
 			if node:
 				scan.set_text(0,node.display_name)
 		sync_names_recursively(scan.get_children())
@@ -74,7 +74,7 @@ func recurse_update_tree(item) -> bool: # true = delete me
 	assert(item)
 	assert(item is TreeItem)
 	var path: NodePath = item.get_metadata(0)
-	var node = game_state.universe.get_node_or_null(path)
+	var node = game_state.systems.get_node_or_null(path)
 	if not node:
 		print('update fail; no node at '+str(path))
 		return true

@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="ShooterPrototype"
-run/main_scene="res://ui/ShipEditor.tscn"
+run/main_scene="res://ui/ships/ShipEditor.tscn"
 config/icon="res://icon.png"
 
 [autoload]

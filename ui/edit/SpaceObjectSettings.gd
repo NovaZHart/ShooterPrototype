@@ -94,7 +94,7 @@ func set_object(object: simple_tree.SimpleNode):
 
 func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 		help: bool, location: bool) -> bool:
-	var node = game_state.universe.get_node_or_null(path)
+	var node = game_state.systems.get_node_or_null(path)
 	if node and node==object:
 		return sync_with_object(basic,visual,help,location,false)
 	return true
@@ -213,7 +213,7 @@ func _on_TypeOptions_item_selected(index):
 func _on_OrbitRadiusEdit_text_entered(new_text):
 	if new_text.is_valid_float():
 		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
-			object.get_path(),{'orbit_radius':max(float(new_text),5.0)},false,false,false,true))
+			object.get_path(),{'orbit_radius':float(new_text)},false,false,false,true))
 	else:
 		$Basic/Top/OrbitRadiusEdit.text = str(object.orbit_radius)
 	emit_signal('surrender_focus')

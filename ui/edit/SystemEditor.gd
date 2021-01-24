@@ -150,27 +150,27 @@ func _on_Left_focus_entered():
 	$Split/Left/View/SystemView.gain_focus()
 
 func _on_select_nothing():
-	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
+	var from = game_state.systems.get_node_or_null($Split/Left/View/SystemView.selection)
 	if from==null:
 		return
 	universe_edits.state.push(universe_edits.ChangeSelection.new(from,null,true))
 
 func _on_Tree_select_space_object(path: NodePath):
-	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
-	var to = game_state.universe.get_node_or_null(path)
+	var from = game_state.systems.get_node_or_null($Split/Left/View/SystemView.selection)
+	var to = game_state.systems.get_node_or_null(path)
 	if (not from and not to) or (from and to and from==to):
 		return # selection has not changed
 	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,true))
 
 func _on_System_View_select_space_object(path: NodePath):
-	var from = game_state.universe.get_node_or_null($Split/Left/View/SystemView.selection)
-	var to = game_state.universe.get_node_or_null(path)
+	var from = game_state.systems.get_node_or_null($Split/Left/View/SystemView.selection)
+	var to = game_state.systems.get_node_or_null(path)
 	if (not from and not to) or (from and to and from==to):
 		return # selection has not changed
 	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,false))
 
 func _on_Tree_center_on_node(path: NodePath):
-	var node = game_state.universe.get_node_or_null(path)
+	var node = game_state.systems.get_node_or_null(path)
 	if node!=null and node.has_method('is_SpaceObjectData'):
 		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
 
@@ -196,8 +196,19 @@ func save_load(save: bool) -> bool:
 	return false
 
 func _unhandled_input(event):
+	if $PopUp.visible or $FileDialog.visible:
+		if event.is_action_released('ui_cancel'):
+			if $PopUp.visible:
+				_on_Cancel_pressed()
+			elif $FileDialog.visible:
+				$FileDialog.visible=false
+		return # process nothing when a dialog is up
+	
 	if event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
+		get_tree().set_input_as_handled()
+	elif event.is_action_released('ui_cancel'):
+		universe_edits.state.push(universe_edits.ExitToSector.new())
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
@@ -207,14 +218,6 @@ func _unhandled_input(event):
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_load'):
 		save_load(false)
-		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_cancel'):
-		if $PopUp.visible:
-			_on_Cancel_pressed()
-		elif $FileDialog.visible:
-			$FileDialog.visible=false
-		else:
-			universe_edits.state.push(universe_edits.ExitToSector.new())
 		get_tree().set_input_as_handled()
 	elif $PopUp.visible and event.is_action_pressed('ui_accept'):
 		_on_Action_pressed()
@@ -253,7 +256,7 @@ func validate_popup() -> bool:
 			info='ID must begin with a letter or "_"'
 		elif not $PopUp/A/A/IDEdit.text.is_valid_identifier():
 			info='ID: only letters, numbers, "_"'
-		var parent = game_state.universe.get_node_or_null(parent_path)
+		var parent = game_state.systems.get_node_or_null(parent_path)
 		var child_name = is_making.get_name()
 		if parent and parent.has_child(child_name):
 			info='There is already an object "'+$PopUp/A/A/IDEdit.text+'"!'

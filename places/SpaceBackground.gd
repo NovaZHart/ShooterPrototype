@@ -67,9 +67,10 @@ func make_background_square(nx: float,nz: float,uv2) -> MeshInstance:
 	return bg
 
 func update_from(system_data) -> bool:
-	plasma_seed=system_data.plasma_seed
-	plasma_color=system_data.plasma_color
-	starfield_seed=system_data.starfield_seed
+	if system_data!=null:
+		plasma_seed=system_data.plasma_seed
+		plasma_color=system_data.plasma_color
+		starfield_seed=system_data.starfield_seed
 	return regenerate()
 
 func regenerate() -> bool:

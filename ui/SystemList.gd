@@ -22,10 +22,12 @@ func _ready():
 	anchor_top=0
 	anchor_bottom=0
 	var i=0
-	for node_name in game_state.universe.get_child_names():
-		var system = game_state.universe.get_node(node_name)
+	for node_name in game_state.systems.get_child_names():
+		var system = game_state.systems.get_node(node_name)
+		if not system.has_method('is_SystemData'):
+			continue
 		var gate_planet_path = system.astral_gate_path()
-		var gate_node = game_state.universe.get_node_or_null(gate_planet_path)
+		var gate_node = game_state.systems.get_node_or_null(gate_planet_path)
 		if gate_node == null:
 			print('no gate in system ',node_name,' for path ',gate_planet_path)
 			continue # no gate in this system

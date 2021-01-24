@@ -1,9 +1,9 @@
 extends Spatial
 
-const InventoryArray: Script = preload('res://ui/InventoryArray.gd')
-const InventoryContent: Script = preload('res://ui/InventoryContent.gd')
-const InventorySlot: Script = preload('res://ui/InventorySlot.gd')
-const HullIcon: Script = preload('res://ui/HullIcon.gd')
+const InventoryArray: Script = preload('res://ui/ships/InventoryArray.gd')
+const InventoryContent: Script = preload('res://ui/ships/InventoryContent.gd')
+const InventorySlot: Script = preload('res://ui/ships/InventorySlot.gd')
+const HullIcon: Script = preload('res://ui/ships/HullIcon.gd')
 
 const available_items: Array = [
 	preload('res://weapons/BlueLaserGun.tscn'),

@@ -16,9 +16,11 @@ var player_location: NodePath = NodePath() setget set_player_location,get_player
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
-var ship_designs
-var universe
+
 var tree
+var universe
+var systems
+var ship_designs
 var player_ship_design
 
 signal console_append
@@ -80,27 +82,30 @@ func get_stored_console() -> String: return stored_console
 func get_system(): return system
 func set_system(var s):
 	if s is NodePath:
-		var system_at_path = universe.get_node_or_null(s)
+		var system_at_path = systems.get_node_or_null(s)
 		if not system_at_path.has_method('is_SystemData'):
 			push_error('Tried to go to a non-system at path '+str(s))
 			return system
 		system = system_at_path
 	elif s is simple_tree.SimpleNode:
 		var s_path = s.get_path()
-		var system_at_path = universe.get_node_or_null(s_path)
+		var system_at_path = systems.get_node_or_null(s_path)
 		if not system_at_path.has_method('is_SystemData'):
 			push_error('Specified system is not in tree at path '+str(s_path))
 			return system
 		system = system_at_path
 	elif s is String:
-		var system_for_name = universe.get_child_with_name(s)
+		var system_for_name = systems.get_child_with_name(s)
 		if system_for_name:
 			system = system_for_name
-			player_location = universe.get_path_to(system)
+			player_location = systems.get_path_to(system)
 		return system
 
 func save_universe_as_json(filename: String) -> bool:
-	return universe.save_places_as_json(filename)
+	var success = universe.save_places_as_json(filename)
+	if success:
+		universe_edits.state.activity=false
+	return success
 
 func load_universe_from_json(file_path: String):
 	var system_path = system.get_path() if system else NodePath()
@@ -117,7 +122,7 @@ func load_universe_from_json(file_path: String):
 		set_system(system_path)
 		return true
 	else:
-		var system_names = universe.get_child_names()
+		var system_names = systems.get_child_names()
 		if system_names:
 			set_system(system_names[0])
 			if system:
@@ -129,40 +134,40 @@ func load_universe_from_json(file_path: String):
 	
 func get_player_location() -> NodePath: return player_location
 func set_player_location(s: NodePath):
-	var n = universe.get_node_or_null(s)
+	var n = systems.get_node_or_null(s)
 	if n!=null:
-		var loc = universe.get_path_to(n)
+		var loc = systems.get_path_to(n)
 		assert(loc)
 		var system_name = loc.get_name(0)
-		assert(universe.has_child(system_name))
-		if universe.has_child(system_name):
-			system = universe.get_child_with_name(system_name)
+		assert(systems.has_child(system_name))
+		if systems.has_child(system_name):
+			system = systems.get_child_with_name(system_name)
 			player_location = n.get_path()
 	else:
 		push_error('no SimpleNode at path '+str(s))
 	return player_location
 
 func get_player_translation(planet_time: float) -> Vector3:
-	var node = universe.get_node_or_null(player_location)
+	var node = systems.get_node_or_null(player_location)
 	if node==null or not node.has_method('planet_translation'):
 		return Vector3()
 	return node.planet_translation(planet_time)
 
 func get_space_object_unique_name() -> String:
-	var n = universe.get_node_or_null(player_location)
+	var n = systems.get_node_or_null(player_location)
 	if n!=null and n.has_method('is_SpaceObjectData'):
 		return n.make_unique_name()
 	return ""
 
 func get_space_object_or_null():
-	var n = universe.get_node_or_null(player_location)
+	var n = systems.get_node_or_null(player_location)
 	if n!=null and n.has_method('is_SpaceObjectData'):
 		return n
 	push_error('SimpleNode '+str(n)+' is not a SpaceObjectData')
 	return null
 
 func get_info_or_null():
-	var n: simple_tree.SimpleNode = universe.get_node_or_null(player_location)
+	var n: simple_tree.SimpleNode = systems.get_node_or_null(player_location)
 	if n!=null and n is simple_tree.SimpleNode:
 		return n
 	return null
@@ -183,17 +188,30 @@ func _init():
 	universe = Universe.new()
 	tree = simple_tree.SimpleTree.new(universe)
 	assert(tree.root_==universe)
+	assert(tree.root_.children_.has('ship_designs'))
+	assert(tree.root_.children_.has('systems'))
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
 	universe.load_places_from_json('res://places/universe.json')
-	assert(universe.has_child('designs'))
-	ship_designs = universe.get_node('designs')
+	assert(tree.root_.children_.has('ship_designs'))
+	assert(tree.root_.children_.has('systems'))
+	ship_designs = universe.ship_designs
+	systems = universe.systems
 	assert(ship_designs)
 	assert(ship_designs is simple_tree.SimpleNode)
 	assert(not ship_designs.has_method('is_SpaceObjectData'))
 	assert(not ship_designs.has_method('is_SystemData'))
 
-	set_player_location(NodePath('/root/alef_93/astra/pearl'))
+#	assert(systems.get_child_with_name('alef_93'))
+#	assert(systems.get_node_or_null(NodePath('alef_93')))
+#	assert(systems.get_node_or_null(NodePath('alef_93/astra')))
+	assert(tree.root_.children_.has('ship_designs'))
+	assert(tree.root_.children_.has('systems'))
+	assert(tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
+	var pearl = systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
+	print('systems: ',str(systems.get_child_names()))
+	assert(pearl)
+	set_player_location(pearl.get_path())
 	assert(player_location)
 	assert(system)
 
@@ -212,5 +230,5 @@ func _init():
 	services['info'] = PlanetServices.PlanetDescription.new(
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
-		'Shipyard',preload('res://ui/ShipEditor.tscn'))
+		'Shipyard',preload('res://ui/ships/ShipEditor.tscn'))
 	

@@ -194,7 +194,7 @@ func _ready():
 	for y in range(ny):
 		for x in range(nx):
 			var slot = Area.new()
-			slot.set_script(preload('res://ui/InventorySlot.gd'))
+			slot.set_script(preload('res://ui/ships/InventorySlot.gd'))
 			slot.name = 'slot_x'+str(x)+'_y'+str(y)
 			slot.create_only_box(1,1,mount_type)
 			slot.mount_name = name

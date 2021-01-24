@@ -198,5 +198,5 @@ void fragment() {
 	vec4 high_res_texture=bilinear_interp_texture(UV2,texture_albedo,texture_size,uv2_offset,uv2_whole);
 	vec4 star=star_overlay(UV);
 	vec4 lohi=mix(low_res_texture,high_res_texture,.3);
-	ALBEDO=mix(lohi.rgb,star.rgb,star.w);
+	ALBEDO=max(lohi.rgb,star.rgb);
 }

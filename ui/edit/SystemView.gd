@@ -50,7 +50,7 @@ func _ready():
 	$Annotation3D.add_child(annotate_making)
 
 func full_game_state_path(var path: NodePath):
-	var node = game_state.universe.get_node_or_null(path)
+	var node = game_state.systems.get_node_or_null(path)
 	if node:
 		return node.get_path()
 	else:
@@ -125,7 +125,7 @@ func handle_scroll():
 
 func make_node_to_add():
 	if selection:
-		var selected_node = game_state.universe.get_node_or_null(selection)
+		var selected_node = game_state.systems.get_node_or_null(selection)
 		if selected_node:
 			print('duplicate node '+str(selected_node.encode()))
 			var result = SpaceObjectData.new('unnamed',selected_node.encode())
@@ -181,7 +181,7 @@ func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 		print('should make')
 		var parent_path = selection
 		var adjust: Dictionary = is_making.orbital_adjustments_to(planet_time,space_pos,
-			game_state.universe.get_node_or_null(parent_path))
+			game_state.systems.get_node_or_null(parent_path))
 		is_making.orbit_start=adjust.orbit_start
 		is_making.orbit_radius=adjust.orbit_radius
 		if not parent_path:
@@ -191,7 +191,7 @@ func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 		var _discard = stop_moving()
 	if is_moving and not Input.is_action_pressed('ui_location_select'):
 		print('done moving')
-		var data = game_state.universe.get_node_or_null(last_clicked)
+		var data = game_state.systems.get_node_or_null(last_clicked)
 		var adjust: Dictionary = data.orbital_adjustments_to(planet_time,space_pos)
 		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 			data.get_path(),adjust,false,false,false,true))
@@ -222,7 +222,7 @@ func handle_mouse_action_active(_mouse_pos: Vector2, space_pos: Vector3):
 func update_planet_locations():
 	var success: bool = true
 	for planet in $Planets.get_children():
-		var data = game_state.universe.get_node_or_null(planet.game_state_path)
+		var data = game_state.systems.get_node_or_null(planet.game_state_path)
 		if data:
 			planet.translation = data.planet_translation(planet_time)
 			planet.rotation = data.planet_rotation(planet_time)
@@ -248,7 +248,7 @@ func _process(delta):
 		handle_mouse_action_end(mouse_pos,space_pos)
 		handle_mouse_action_active(mouse_pos,space_pos)
 		if selection and Input.is_action_just_released('ui_delete'):
-			var node = game_state.universe.get_node_or_null(selection)
+			var node = game_state.systems.get_node_or_null(selection)
 			universe_edits.state.push(universe_edits.RemoveSpaceObject.new(node,true))
 			selection = NodePath()
 		if arrow_move.length()>1e-5:
@@ -270,7 +270,7 @@ func set_zoom(zoom: float,original: float=-1) -> void:
 func spawn_planet(planet: Spatial) -> bool:
 	planet_mutex.lock()
 	$Planets.add_child(planet)
-	var planet_data = game_state.universe.get_node(planet.game_state_path)
+	var planet_data = game_state.systems.get_node(planet.game_state_path)
 	var parent_data = planet_data.get_parent() if planet_data else null
 	if parent_data:
 		var ann3 = MapAnnotation.instance()
@@ -288,7 +288,7 @@ func spawn_planet(planet: Spatial) -> bool:
 
 func remake_planet(game_state_path) -> bool:
 	$Annotation2D.update()
-	var data = game_state.universe.get_node_or_null(game_state_path)
+	var data = game_state.systems.get_node_or_null(game_state_path)
 	if data:
 		var planet: PhysicsBody = data.make_planet(detail_level,0.0)
 		if planet:
@@ -318,7 +318,7 @@ func deselect():
 	$Annotation2D.update()
 
 func change_selection_to(path: NodePath,center_view: bool) -> bool:
-	var data = game_state.universe.get_node_or_null(path)
+	var data = game_state.systems.get_node_or_null(path)
 	var full_path = data.get_path() if data else NodePath()
 	selection = full_path
 	if not full_path:
@@ -394,7 +394,7 @@ func _on_Annotation2D_draw():
 			is_making.display_name,draw_color)
 	
 	for planet in $Planets.get_children():
-		var data = game_state.universe.get_node_or_null(planet.game_state_path)
+		var data = game_state.systems.get_node_or_null(planet.game_state_path)
 		if data:
 			var center2d: Vector2 = $TopCamera.unproject_position(planet.translation)
 			var full_path = full_game_state_path(planet.game_state_path)
@@ -428,7 +428,7 @@ func update_Annotation3D():
 		elif is_making and last_position:
 			var center = Vector3(0,0,0)
 			if selection:
-				var selected_node = game_state.universe.get_node_or_null(selection)
+				var selected_node = game_state.systems.get_node_or_null(selection)
 				if selected_node and selected_node.has_method('is_SpaceObjectData'):
 					center = selected_node.planet_translation(planet_time)
 			ann3.update_from_spec(new_u_scale,draw_color,last_position,center)
