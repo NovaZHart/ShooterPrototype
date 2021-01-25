@@ -609,14 +609,42 @@
           ]
         }
       ],
-      "banner_godship": [
+      "godship": [
         "ShipDesign",
-        "banner_godship",
+        "God's Ship",
         [
           "Resource",
-          "res://ships/BannerShip/BannerShipHull.tscn"
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
         ],
         {
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
           "ForwardTurret": [
             "Mounted",
             [
@@ -624,28 +652,28 @@
               "res://weapons/BlueLaserTurret.tscn"
             ]
           ],
-          "PortGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
           "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "MidPortTurret": [
             "Mounted",
             [
               "Resource",
               "res://weapons/OrangeSpikeTurret.tscn"
             ]
           ],
-          "AftStarboardTurret": [
+          "MidStarboardTurret": [
             "Mounted",
             [
               "Resource",
@@ -656,13 +684,13 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/Engine4x4.tscn"
             ]
           ],
-          "Equipment": [
+          "AftEquipment": [
             "MultiMount",
             {
-              "Equipment_at_x0_y0": [
+              "AftEquipment_at_x0_y0": [
                 "MultiMounted",
                 [
                   "Resource",
@@ -670,43 +698,48 @@
                 ],
                 0,
                 0
-              ],
-              "Equipment_at_x3_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/BigEquipmentTest.tscn"
-                ],
-                3,
-                0
-              ],
-              "Equipment_at_x0_y3": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                3
-              ],
-              "Equipment_at_x2_y3": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                2,
-                3
-              ],
-              "Equipment_at_x4_y3": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                4,
-                3
               ]
+            }
+          ],
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                6
+              ],
             }
           ]
         }

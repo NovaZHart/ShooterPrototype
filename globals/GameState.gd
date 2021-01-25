@@ -215,7 +215,7 @@ func _init():
 	assert(player_location)
 	assert(system)
 
-	var banner_godship = ship_designs.get_node_or_null('banner_godship')
+	var banner_godship = ship_designs.get_node_or_null('godship')
 	assert(banner_godship)
 	player_ship_design = banner_godship
 
