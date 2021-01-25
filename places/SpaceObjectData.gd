@@ -142,7 +142,7 @@ func full_display_name() -> String:
 	if parent==null:
 		return fp
 	elif parent.is_a_planet() or parent.is_a_system():
-		return parent.full_display_name() + '_' + fp
+		return parent.full_display_name() + ' ' + fp
 	return fp
 
 func planet_rotation(time: float) -> Vector3:

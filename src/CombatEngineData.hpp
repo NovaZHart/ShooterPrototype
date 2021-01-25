@@ -140,13 +140,12 @@ namespace godot {
       const object_id id;
       const String name; // last element of node path
       const RID rid; // of rigid body
-      const real_t thrust, reverse_thrust;
-      const real_t max_angular_velocity;
+      const real_t thrust, reverse_thrust, turn_thrust;
       const real_t threat;
       const real_t max_shields, max_armor, max_structure;
       const real_t heal_shields, heal_armor, heal_structure;
       const AABB aabb;
-      const real_t radius;
+      const real_t turn_drag, radius;
       const int team, enemy_team, collision_layer, enemy_mask;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
@@ -176,6 +175,7 @@ namespace godot {
       Vector3 confusion, confusion_velocity;
 
       const real_t max_speed,turn_diameter_squared;
+      const real_t max_angular_velocity;
 
       inline Vector3 drag_force() const {
         return -linear_velocity*drag/inverse_mass;

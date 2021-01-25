@@ -213,7 +213,7 @@ Ship::Ship(const Ship &o):
   rid(o.rid),
   thrust(o.thrust),
   reverse_thrust(o.reverse_thrust),
-  max_angular_velocity(o.max_angular_velocity),
+  turn_thrust(o.turn_thrust),
   threat(o.threat),
   max_shields(o.max_shields),
   max_armor(o.max_armor),
@@ -222,6 +222,7 @@ Ship::Ship(const Ship &o):
   heal_armor(o.heal_armor),
   heal_structure(o.heal_structure),
   aabb(o.aabb),
+  turn_drag(o.turn_drag),
   radius(o.radius),
   collision_layer(o.collision_layer),
   enemy_mask(o.enemy_mask),
@@ -262,6 +263,7 @@ Ship::Ship(const Ship &o):
   confusion(o.confusion),
   confusion_velocity(o.confusion_velocity),
   max_speed(o.max_speed),
+  max_angular_velocity(o.max_angular_velocity),
   turn_diameter_squared(o.turn_diameter_squared)
 {}
 
@@ -272,7 +274,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   rid(get<RID>(dict,"rid")),
   thrust(get<real_t>(dict,"thrust")),
   reverse_thrust(get<real_t>(dict,"reverse_thrust",0)),
-  max_angular_velocity(get<real_t>(dict,"turn_rate")),
+  turn_thrust(get<real_t>(dict,"turn_thrust",0)),
   threat(get<real_t>(dict,"threat")),
   max_shields(get<real_t>(dict,"max_shields",0)),
   max_armor(get<real_t>(dict,"max_armor",0)),
@@ -281,6 +283,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   heal_armor(get<real_t>(dict,"heal_armor",0)),
   heal_structure(get<real_t>(dict,"heal_structure",0)),
   aabb(get<AABB>(dict,"aabb")),
+  turn_drag(get<real_t>(dict,"turn_drag")),
   radius((aabb.size.x+aabb.size.z)/2.0),
   team(clamp(get<int>(dict,"team"),0,1)),
   enemy_team(1-team),
@@ -332,6 +335,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   confusion_velocity(Vector3()),
 
   max_speed(max(thrust,reverse_thrust)/drag*inverse_mass),
+  max_angular_velocity(turn_thrust/turn_drag*inverse_mass*PI/30.0f), // convert from RPM
   turn_diameter_squared(make_turn_diameter_squared())
 {}
 

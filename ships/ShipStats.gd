@@ -5,6 +5,7 @@ export var help_page: String = 'hulls'
 export var base_mass: float = 50
 export var base_thrust: float = 3000
 export var base_reverse_thrust: float = 800
+export var base_turn_thrust: float = 100
 export var base_shields: float = 800
 export var base_armor: float = 500
 export var base_structure: float = 300
@@ -12,7 +13,8 @@ export var heal_shields: float = 20
 export var heal_armor: float = 5
 export var heal_structure: float = 0
 export var base_drag: float = 1.5
-export var base_turn_rate: float = 2
+export var base_turn_drag: float = 1.5
+#export var base_turn_rate: float = 2
 export var base_threat: float = -1
 export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
@@ -89,7 +91,8 @@ func add_stats(stats: Dictionary) -> void:
 		stats['rid']=get_rid()
 	stats['thrust']=base_thrust
 	stats['reverse_thrust']=base_reverse_thrust
-	stats['turn_rate']=base_turn_rate
+	stats['turn_thrust']=base_turn_thrust
+	#stats['turn_rate']=base_turn_rate
 	if base_threat<0:
 		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
 			heal_shields+heal_armor+heal_structure
@@ -106,6 +109,7 @@ func add_stats(stats: Dictionary) -> void:
 		stats['aabb']=AABB(-size*0.5,size)
 	elif is_inside_tree():
 		stats['aabb']=get_combined_aabb()
+	stats['turn_drag']=base_turn_drag
 	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
 	stats['team']=team
@@ -173,7 +177,7 @@ func get_bbcode() -> String:
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Turn rate:',s['turn_rate'])
+	bbcode += make_cell('Turn RPM:',round(s['turn_thrust']/max(1e-9,s['turn_drag']*s['mass'])*100)/100)
 
 	bbcode += '[cell][/cell][cell][/cell]'
 	bbcode += '[cell] [/cell]'
