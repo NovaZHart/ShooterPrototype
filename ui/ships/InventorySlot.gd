@@ -109,10 +109,11 @@ func create_only_box(nx_: int,ny_: int,mount_type_: String):
 	make_box()
 	assert(mount_type)
 
-func create_item(scene_: PackedScene,with_box: bool,position = null):
+func create_item(scene_: PackedScene,with_box: bool,position = null,item = null):
 	scene=scene_
 	
-	var item: Node = scene.instance()
+	if item == null:
+		item = scene.instance()
 	nx=item.mount_size_x
 	ny=item.mount_size_y
 	page=item.help_page

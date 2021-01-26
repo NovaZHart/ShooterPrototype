@@ -1,0 +1,328 @@
+extends Panel
+
+export var show_ships: bool = false # false = items, true = ships
+export var test_mode: bool = true
+export var min_aabb_scale: float = 4.0
+export var ship_border: float = 0.00
+
+const InventorySlot: GDScript = preload('res://ui/ships/InventorySlot.gd')
+const y500: Vector3 = Vector3(0,500,0)
+const cell_span: float = 0.25
+const cell_pad: float = cell_span/2.0
+
+var ship_zspan = 1.0 + 2.0*ship_border # must be >1.0
+var ship_xspan = ship_zspan
+var scenes = {} # key is resource_path, used to detect duplicate objects
+var design_names = {}
+var name2scene = {}
+var scroll_rate = 0.0
+var last_used_x_index: int = 0
+var camera_xspan
+
+var items_mutex: Mutex = Mutex.new()
+var items_updated: bool = false
+var resized: bool = true
+var selection: NodePath = NodePath()
+var viewport: Viewport
+var items: Spatial
+var camera: Camera
+var scrollbar: VScrollBar
+var scale: float = 6.0
+
+var regular_layer: int = 0
+var highlight_layer: int = 0
+
+func _ready():
+	viewport = $All/Top/View/Port
+	items = $All/Top/View/Port/Items
+	camera = $All/Top/View/Port/Camera
+	scrollbar = $All/Top/Scroll
+	viewport.transparent_bg = true
+	regular_layer = $All/Top/View/Port/Sun.layers
+	highlight_layer = $All/Top/View/Port/SelectBack.layers
+	$All/Top/View/Port/Sun.light_cull_mask = regular_layer
+	$All/Top/View/Port/SelectBack.light_cull_mask = highlight_layer
+	$All/Top/View/Port/SelectFront.light_cull_mask = highlight_layer
+	if show_ships:
+		insert_test_designs()
+	else:
+		insert_test_items()
+		$All/Buttons.remove_child($All/Buttons/Add)
+		$All/Buttons.remove_child($All/Buttons/Change)
+		$All/Buttons.remove_child($All/Buttons/Remove)
+		$All/Buttons.columns=2
+
+func deselect():
+	var node = get_node_or_null(selection)
+	if node:
+		set_layers(node,regular_layer)
+	selection=NodePath()
+
+func select(var node: Node):
+	if selection:
+		deselect()
+	selection=node.get_path()
+	set_layers(node,highlight_layer|regular_layer)
+
+func set_layers(node: Node, layers: int):
+	if node is VisualInstance:
+		node.layers = layers
+	for child in node.get_children():
+		set_layers(child,layers)
+
+func add_ship_design(design) -> bool:
+	if not show_ships:
+		push_error('Cannot load ships into this ItemPanel.')
+		return false
+	if not design.has_method('is_ShipDesign'):
+		push_warning('Tried to add a ship design that was not a ShipDesign')
+		return false
+	if design_names.has(design.get_name()):
+		push_warning('Already added ship design "'+design.get_name()+'".')
+		return false
+	var ship = design.assemble_ship()
+	if not ship is RigidBody:
+		push_error('Ship design "'+design.get_name()+'" is not a RigidBody.')
+		return false
+	ship.name = design.get_name()
+	items.add_child(ship)
+	var aabb: AABB = ship.get_combined_aabb()
+# warning-ignore:shadowed_variable
+	var scale: float = max(aabb.size.x,aabb.size.z)
+	scale = 1.0 / max(2.0,scale + 2.0/sqrt(max(scale,0.6)))
+	ship.scale = Vector3(scale,scale,scale)
+	design_names[ship.name] = design.get_path()
+	set_layers(ship,regular_layer)
+	return true
+
+func add_mountable_part(scene: PackedScene) -> bool:
+	if show_ships:
+		push_error('Cannot load items into this ItemPanel')
+	if scenes.has(scene.resource_path):
+		return false
+	var item = scene.instance()
+	if not item is MeshInstance:
+		push_error('Tried to add an item that was not a MeshInstance.')
+		return false
+	if not item.has_method('is_mount_point'):
+		push_error('Tried to add an item of an invalid type.')
+		return false
+	var area: Area = Area.new()
+	area.set_script(InventorySlot)
+	area.create_item(scene,true,null,item)
+	items_mutex.lock()
+	items.add_child(area)
+	items_updated = true
+	items_mutex.unlock()
+	scenes[scene.resource_path] = scene
+	name2scene[item.name] = scene
+	set_layers(area,regular_layer)
+	return true
+
+func insert_test_designs():
+	if not test_mode or not show_ships:
+		return
+	for design_name in game_state.ship_designs.get_child_names():
+		var design = game_state.ship_designs.get_child_with_name(design_name)
+		if design:
+			var _discard = add_ship_design(design)
+
+func insert_test_items():
+	if not test_mode or show_ships:
+		return
+	var insert_me = [
+		load('res://weapons/BlueLaserGun.tscn'),
+		load('res://weapons/GreenLaserGun.tscn'),
+		load('res://weapons/OrangeSpikeGun.tscn'),
+		load('res://weapons/PurpleHomingGun.tscn'),
+		load('res://weapons/OrangeSpikeTurret.tscn'),
+		load('res://weapons/BlueLaserTurret.tscn'),
+		load('res://equipment/engines/Engine2x2.tscn'),
+		load('res://equipment/engines/Engine2x4.tscn'),
+		load('res://equipment/engines/Engine4x4.tscn'),
+		load('res://equipment/repair/Shield2x1.tscn'),
+		load('res://equipment/repair/Shield2x2.tscn'),
+		load('res://equipment/repair/Shield3x3.tscn'),
+		load('res://equipment/EquipmentTest.tscn'),
+		load('res://equipment/BigEquipmentTest.tscn'),
+	]
+	for scene in insert_me:
+		var _discard = add_mountable_part(scene)
+
+func arrange_mountable_items():
+	var view_size: Vector2 = viewport.size
+	if view_size.x<=0 or view_size.y<=0:
+		return
+	
+	var screen_size: Vector2 = get_viewport().size
+	assert(screen_size)
+	var zoom: float = clamp($All/Buttons/Zoom.value,1.0,12.0)
+	var ship_pixel_height: float = max(40,screen_size.y/zoom)
+	camera_xspan = view_size.y/ship_pixel_height * ship_xspan
+	camera.size = camera_xspan
+	scrollbar.page = camera_xspan
+	
+	var view_start: Vector3 = camera.project_position(Vector2(0.0,0.0),-30.0)
+	var view_end: Vector3 = camera.project_position(viewport.size,-30.0)
+	#var view_height = abs(view_end.x-view_start.x)
+	var view_zspan = abs(view_end.z-view_start.z)
+
+# warning-ignore:narrowing_conversion
+	var cells_across: int = max(1,int(floor(view_zspan/cell_span)))
+	var z_start: float = -view_zspan/2.0
+	var x_start: float = 0.0
+	
+	var child_names: Array = []
+	for child in items.get_children():
+		child_names.append(child.name)
+	child_names.sort()
+	var next_child = 0
+	var row_max_zspan = max(6,cells_across-1)
+	var row_x_start: float = x_start
+	var infinity_guard: int = 0
+	var infinite_loop: int = 100000
+	while next_child<len(child_names):
+		infinity_guard+=1
+		assert(infinity_guard < infinite_loop)
+		# First pass: collect items that fit in this row:
+		var row: Array = []
+		var row_zspan: int = 0
+		var row_height: int = 0
+		while next_child<len(child_names) and row_zspan<row_max_zspan:
+			infinity_guard+=1
+			assert(infinity_guard < infinite_loop)
+			var child_name = child_names[next_child]
+			var item = items.get_node_or_null(child_name)
+			if not item:
+				next_child+=1
+				continue
+			var pad_span = ceil(cell_pad/cell_span*1.999)
+			var item_zspan = int(ceil(item.nx))
+			var full_zspan = item_zspan+pad_span
+			if row_zspan+full_zspan>row_max_zspan:
+				break
+			row.append(item)
+			row_zspan+=full_zspan
+			next_child+=1
+# warning-ignore:narrowing_conversion
+			row_height = max(row_height,int(ceil(item.ny))+pad_span)
+		
+		if not row:
+			break
+		
+		# Second pass: set translation and update height
+		var row_xspan: float = row_height*cell_span
+		var col_z: float = z_start
+		for item in row:
+			infinity_guard+=1
+			assert(infinity_guard < infinite_loop)
+			var item_zspan: float = int(ceil(item.nx))*cell_span+2*cell_pad
+			item.translation = Vector3(row_x_start-row_xspan/2, 0.0, col_z + item_zspan/2.0)
+			
+			col_z += item_zspan
+		row_x_start -= row_xspan
+	
+	scrollbar.min_value=0
+	scrollbar.max_value=-row_x_start # start of next row after the last
+	
+	camera.translation = Vector3(-camera_xspan/2-scrollbar.value, 50.0, 0.0)
+
+func arrange_ship_designs():
+	var view_size: Vector2 = viewport.size
+	if view_size.x<=0 or view_size.y<=0:
+		return
+	
+	var screen_size: Vector2 = get_viewport().size
+	assert(screen_size)
+	var zoom: float = clamp($All/Buttons/Zoom.value,1.0,12.0)
+	var ship_pixel_height: float = max(40,screen_size.y/zoom)
+	camera_xspan = view_size.y/ship_pixel_height * ship_xspan
+	camera.size = camera_xspan
+	scrollbar.page = camera_xspan
+	
+	var view_start: Vector3 = camera.project_position(Vector2(0.0,0.0),-30.0)
+	var view_end: Vector3 = camera.project_position(viewport.size,-30.0)
+	#var view_height = abs(view_end.x-view_start.x)
+	var view_zspan = abs(view_end.z-view_start.z)
+	
+# warning-ignore:narrowing_conversion
+	var ships_across: int = max(1,int(floor(view_zspan/ship_zspan)))
+	var z_start: float = -view_zspan/2.0 + ship_zspan/2.0
+	var x_start: float = -ship_xspan/2.0
+	
+	var children: Array = items.get_children()
+	var child_names: Array = []
+	for child in children:
+		child_names.append(child.name)
+	child_names.sort()
+	
+	var x_index: int = 0
+	var z_index: int = 0
+	last_used_x_index= 0
+	for child_name in child_names:
+		var trans = Vector3(x_start - ship_xspan*x_index,
+			1.0, z_start + ship_zspan*z_index)
+		last_used_x_index = x_index
+		var item_node = items.get_node_or_null(child_name)
+		if not item_node:
+			continue
+		item_node.translation = trans
+		if z_index == ships_across-1:
+			z_index = 0
+			x_index += 1
+		else:
+			z_index += 1
+	#var x_end = x_start + ship_xspan*(last_used_x_index-1)
+	scrollbar.min_value=0
+	scrollbar.max_value=ship_xspan*(1+last_used_x_index)
+	
+	camera.translation = Vector3(-camera_xspan/2-scrollbar.value, 50.0, 0.0)
+
+func arrange_items():
+	if show_ships:
+		arrange_ship_designs()
+	else:
+		arrange_mountable_items()
+
+func _process(delta):
+	items_mutex.lock()
+	if items_updated or resized:
+		items_updated = false
+		resized = false
+		arrange_items()
+	items_mutex.unlock()
+	
+	var view_rect: Rect2 = Rect2($All/Top/View.rect_global_position, $All/Top/View.rect_size)
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	if view_rect.has_point(mouse_pos):
+		if Input.is_action_just_released('wheel_up'):
+			scroll_rate = clamp(scroll_rate-0.2,-2.0,2.0)
+		elif Input.is_action_just_released('wheel_down'):
+			scroll_rate = clamp(scroll_rate+0.2,-2.0,2.0)
+		elif Input.is_action_just_pressed('ui_location_select'):
+			var space_pos: Vector3 = camera.project_position(mouse_pos,-30)
+			var space: PhysicsDirectSpaceState = items.get_world().direct_space_state
+			var result: Dictionary = space.intersect_ray(
+				space_pos-y500,space_pos+y500,[],2147483647,true,true)
+			var collider = result.get('collider',null)
+			if collider:
+				select(collider)
+			else:
+				deselect()
+	
+	if abs(scroll_rate) > .001:
+		scrollbar.value = clamp(scrollbar.value+scroll_rate,scrollbar.min_value,scrollbar.max_value)
+		scroll_rate*=pow(0.7,60*delta)
+
+func _on_View_resized():
+	$All/Top/View/Port.size = $All/Top/View.rect_size
+	resized = true
+
+func _on_Zoom_value_changed(value):
+	items_mutex.lock()
+	scale = value
+	resized = true
+	items_mutex.unlock()
+
+func _on_Scroll_value_changed(value):
+	camera.translation = Vector3(-camera_xspan/2-value, 50.0, 0.0)

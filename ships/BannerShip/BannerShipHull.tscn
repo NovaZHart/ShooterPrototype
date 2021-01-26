@@ -111,7 +111,6 @@ base_structure = 900.0
 heal_shields = 0.0
 heal_armor = 0.0
 heal_structure = 7.0
-base_drag = 1.5
 base_turn_drag = 0.45
 base_explosion_damage = 750.0
 base_explosion_radius = 7.5

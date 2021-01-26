@@ -3,6 +3,7 @@ extends Spatial
 export var nx: int = 2
 export var ny: int = 2
 export var mount_type: String = 'equipment'
+const multimount: bool = false
 
 const fail_cull_layer_mask: int = 8
 const okay_cull_layer_mask: int = 16

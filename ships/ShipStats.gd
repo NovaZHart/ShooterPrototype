@@ -31,6 +31,8 @@ var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
 
+func is_ShipStats(): pass # for type detection; never called
+
 func save_transforms():
 	for child in get_children():
 		if child is Spatial:
@@ -54,13 +56,17 @@ func init_ship_recursively(node: Node = self):
 			child.translation.y+=height
 		init_ship_recursively(child)
 
-func get_combined_aabb(node: Node = self):
-	var result: AABB = AABB()
-	if node is VisualInstance:
-		result = node.get_aabb()
-	for child in node.get_children():
-		result=result.merge(get_combined_aabb(child))
-	return result
+func get_combined_aabb(node: Node = self) -> AABB:
+	if override_size.length()>1e-5:
+		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
+		return AABB(-size*0.5,size)
+	else:
+		var result: AABB = AABB()
+		if node is VisualInstance:
+			result = node.get_aabb()
+		for child in node.get_children():
+			result=result.merge(get_combined_aabb(child))
+		return result
 
 func make_stats(node: Node, stats: Dictionary) -> Dictionary:
 	if node.has_method("add_stats"):
@@ -104,11 +110,7 @@ func add_stats(stats: Dictionary) -> void:
 	stats['heal_shields']=heal_shields
 	stats['heal_armor']=heal_armor
 	stats['heal_structure']=heal_structure
-	if override_size.length()>1e-5:
-		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
-		stats['aabb']=AABB(-size*0.5,size)
-	elif is_inside_tree():
-		stats['aabb']=get_combined_aabb()
+	stats['aabb']=get_combined_aabb()
 	stats['turn_drag']=base_turn_drag
 	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
@@ -138,11 +140,7 @@ func update_stats():
 		else:
 			wep['node_path'] = child.get_path()
 			assert(not wep['node_path'].is_empty())
-	if override_size.length()>1e-5:
-		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
-		combined_stats['aabb']=AABB(-size*0.5,size)
-	else:
-		combined_stats['aabb']=get_combined_aabb()
+	combined_stats['aabb']=get_combined_aabb()
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
