@@ -1,14 +1,18 @@
 extends Panel
 
 export var show_ships: bool = false # false = items, true = ships
-export var test_mode: bool = true
+export var test_mode: bool = false
 export var min_aabb_scale: float = 4.0
 export var ship_border: float = 0.00
+export var initial_scale: float = 2.0
 
 const InventorySlot: GDScript = preload('res://ui/ships/InventorySlot.gd')
 const y500: Vector3 = Vector3(0,500,0)
 const cell_span: float = 0.25
 const cell_pad: float = cell_span/2.0
+
+signal select_item
+signal deselect_item
 
 var ship_zspan = 1.0 + 2.0*ship_border # must be >1.0
 var ship_xspan = ship_zspan
@@ -27,12 +31,13 @@ var viewport: Viewport
 var items: Spatial
 var camera: Camera
 var scrollbar: VScrollBar
-var scale: float = 6.0
+var scale: float = initial_scale
 
 var regular_layer: int = 0
 var highlight_layer: int = 0
 
 func _ready():
+	$All/Buttons/Zoom.value = initial_scale
 	viewport = $All/Top/View/Port
 	items = $All/Top/View/Port/Items
 	camera = $All/Top/View/Port/Camera
@@ -43,20 +48,19 @@ func _ready():
 	$All/Top/View/Port/Sun.light_cull_mask = regular_layer
 	$All/Top/View/Port/SelectBack.light_cull_mask = highlight_layer
 	$All/Top/View/Port/SelectFront.light_cull_mask = highlight_layer
-	if show_ships:
-		insert_test_designs()
-	else:
-		insert_test_items()
+	if not show_ships:
 		$All/Buttons.remove_child($All/Buttons/Add)
 		$All/Buttons.remove_child($All/Buttons/Change)
 		$All/Buttons.remove_child($All/Buttons/Remove)
 		$All/Buttons.columns=2
 
-func deselect():
+func deselect(send_event=true):
 	var node = get_node_or_null(selection)
+	if send_event:
+		emit_signal('deselect_item',node)
+	selection=NodePath()
 	if node:
 		set_layers(node,regular_layer)
-	selection=NodePath()
 
 func select(var node: Node):
 	if selection:
@@ -119,34 +123,8 @@ func add_mountable_part(scene: PackedScene) -> bool:
 	set_layers(area,regular_layer)
 	return true
 
-func insert_test_designs():
-	if not test_mode or not show_ships:
-		return
-	for design_name in game_state.ship_designs.get_child_names():
-		var design = game_state.ship_designs.get_child_with_name(design_name)
-		if design:
-			var _discard = add_ship_design(design)
-
-func insert_test_items():
-	if not test_mode or show_ships:
-		return
-	var insert_me = [
-		load('res://weapons/BlueLaserGun.tscn'),
-		load('res://weapons/GreenLaserGun.tscn'),
-		load('res://weapons/OrangeSpikeGun.tscn'),
-		load('res://weapons/PurpleHomingGun.tscn'),
-		load('res://weapons/OrangeSpikeTurret.tscn'),
-		load('res://weapons/BlueLaserTurret.tscn'),
-		load('res://equipment/engines/Engine2x2.tscn'),
-		load('res://equipment/engines/Engine2x4.tscn'),
-		load('res://equipment/engines/Engine4x4.tscn'),
-		load('res://equipment/repair/Shield2x1.tscn'),
-		load('res://equipment/repair/Shield2x2.tscn'),
-		load('res://equipment/repair/Shield3x3.tscn'),
-		load('res://equipment/EquipmentTest.tscn'),
-		load('res://equipment/BigEquipmentTest.tscn'),
-	]
-	for scene in insert_me:
+func add_part_list(scenes: Array):
+	for scene in scenes:
 		var _discard = add_mountable_part(scene)
 
 func arrange_mountable_items():
@@ -284,6 +262,29 @@ func arrange_items():
 	else:
 		arrange_mountable_items()
 
+func input():
+	var view_pos = $All/Top/View.rect_global_position
+	var view_rect: Rect2 = Rect2(view_pos, $All/Top/View.rect_size)
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	if view_rect.has_point(mouse_pos):
+		if Input.is_action_just_released('wheel_up'):
+			scroll_rate = clamp(scroll_rate-0.2,-2.0,2.0)
+		elif Input.is_action_just_released('wheel_down'):
+			scroll_rate = clamp(scroll_rate+0.2,-2.0,2.0)
+		elif Input.is_action_just_pressed('ui_location_select'):
+			var space_pos: Vector3 = camera.project_position(mouse_pos-view_pos,-30)
+			var space: PhysicsDirectSpaceState = items.get_world().direct_space_state
+			var result: Dictionary = space.intersect_ray(
+				space_pos-y500,space_pos+y500,[],2147483647,true,true)
+			var collider = result.get('collider',null)
+			if collider:
+				print(mouse_pos,' => ',space_pos,' => ',collider.get_path())
+				select(collider)
+				emit_signal('select_item',collider)
+			else:
+				print(mouse_pos,' => ',space_pos,' => empty')
+				deselect()
+
 func _process(delta):
 	items_mutex.lock()
 	if items_updated or resized:
@@ -292,23 +293,8 @@ func _process(delta):
 		arrange_items()
 	items_mutex.unlock()
 	
-	var view_rect: Rect2 = Rect2($All/Top/View.rect_global_position, $All/Top/View.rect_size)
-	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
-	if view_rect.has_point(mouse_pos):
-		if Input.is_action_just_released('wheel_up'):
-			scroll_rate = clamp(scroll_rate-0.2,-2.0,2.0)
-		elif Input.is_action_just_released('wheel_down'):
-			scroll_rate = clamp(scroll_rate+0.2,-2.0,2.0)
-		elif Input.is_action_just_pressed('ui_location_select'):
-			var space_pos: Vector3 = camera.project_position(mouse_pos,-30)
-			var space: PhysicsDirectSpaceState = items.get_world().direct_space_state
-			var result: Dictionary = space.intersect_ray(
-				space_pos-y500,space_pos+y500,[],2147483647,true,true)
-			var collider = result.get('collider',null)
-			if collider:
-				select(collider)
-			else:
-				deselect()
+	if visible:
+		input()
 	
 	if abs(scroll_rate) > .001:
 		scrollbar.value = clamp(scrollbar.value+scroll_rate,scrollbar.min_value,scrollbar.max_value)
