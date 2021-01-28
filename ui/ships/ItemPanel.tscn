@@ -79,6 +79,9 @@ size = 5.0
 margin_left = 1012.0
 margin_right = 1024.0
 margin_bottom = 576.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Buttons" type="GridContainer" parent="All"]
 margin_top = 580.0
@@ -122,6 +125,7 @@ min_value = 3.0
 max_value = 14.0
 page = 1.0
 value = 5.0
+[connection signal="visibility_changed" from="." to="." method="_on_ItemPanel_visibility_changed"]
 [connection signal="resized" from="All/Top/View" to="." method="_on_View_resized"]
 [connection signal="value_changed" from="All/Top/Scroll" to="." method="_on_Scroll_value_changed"]
 [connection signal="value_changed" from="All/Buttons/Zoom" to="." method="_on_Zoom_value_changed"]

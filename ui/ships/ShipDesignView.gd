@@ -13,6 +13,7 @@ const SHIP_LIGHT_CULL_LAYER: int = 2
 const RED_LIGHT_CULL_LAYER: int = 8
 
 signal update_coloring
+signal pixel_height_changed
 
 var ship_aabb: AABB
 var root: simple_tree.SimpleNode
@@ -47,6 +48,12 @@ class MountData extends simple_tree.SimpleNode:
 			mp = ship_design_view.mount_point(nx,ny,loc,child.name,child.mount_type)
 		box_translation = mp.translation
 		box = mp.get_path()
+
+func get_cell_pixel_height() -> float:
+	var view_size: Vector2 = $Viewport.size
+	var ul_corner: Vector3 = $Viewport/Camera.project_position(Vector2(0,0),-10)
+	var lr_corner: Vector3 = $Viewport/Camera.project_position(view_size,-10)
+	return view_size.y * 0.135*2.0/max(abs(ul_corner.x-lr_corner.x),0.01)
 
 func _init():
 	root = simple_tree.SimpleNode.new()
@@ -328,6 +335,8 @@ func _ready():
 	$Viewport/Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$Viewport/SpaceBackground.center_view(130,90,0,120,0)
 	make_ship(game_state.player_ship_design)
+	emit_signal('pixel_height_changed',get_cell_pixel_height())
 
 func _on_ViewportContainer_resized():
 	$Viewport.size = rect_size
+	emit_signal('pixel_height_changed',get_cell_pixel_height())

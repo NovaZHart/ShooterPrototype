@@ -13,6 +13,7 @@ const cell_pad: float = cell_span/2.0
 
 signal select_item
 signal deselect_item
+signal drag_selection
 
 var ship_zspan = 1.0 + 2.0*ship_border # must be >1.0
 var ship_xspan = ship_zspan
@@ -27,6 +28,8 @@ var items_mutex: Mutex = Mutex.new()
 var items_updated: bool = false
 var resized: bool = true
 var selection: NodePath = NodePath()
+var selection_click: Vector2
+var selection_dragging: bool = false
 var viewport: Viewport
 var items: Spatial
 var camera: Camera
@@ -123,6 +126,7 @@ func add_mountable_part(scene: PackedScene) -> bool:
 	set_layers(area,regular_layer)
 	return true
 
+# warning-ignore:shadowed_variable
 func add_part_list(scenes: Array):
 	for scene in scenes:
 		var _discard = add_mountable_part(scene)
@@ -253,6 +257,9 @@ func arrange_ship_designs():
 	#var x_end = x_start + ship_xspan*(last_used_x_index-1)
 	scrollbar.min_value=0
 	scrollbar.max_value=ship_xspan*(1+last_used_x_index)
+	scrollbar.visible = scrollbar.page<scrollbar.max_value
+	scrollbar.page=min(scrollbar.page,scrollbar.max_value-scrollbar.min_value)
+	print(scrollbar.page,' ',scrollbar.value,' ',scrollbar.max_value,' ',scrollbar.visible)
 	
 	camera.translation = Vector3(-camera_xspan/2-scrollbar.value, 50.0, 0.0)
 
@@ -261,6 +268,15 @@ func arrange_items():
 		arrange_ship_designs()
 	else:
 		arrange_mountable_items()
+	
+	if scrollbar.page<scrollbar.max_value:
+		scrollbar.visible=true
+		$All/Top.columns=2
+	else:
+		scrollbar.visible=false
+		$All/Top.columns=1
+	
+	scrollbar.page=min(scrollbar.page,scrollbar.max_value-scrollbar.min_value)
 
 func input():
 	var view_pos = $All/Top/View.rect_global_position
@@ -281,9 +297,18 @@ func input():
 				print(mouse_pos,' => ',space_pos,' => ',collider.get_path())
 				select(collider)
 				emit_signal('select_item',collider)
+				selection_click = mouse_pos
 			else:
 				print(mouse_pos,' => ',space_pos,' => empty')
 				deselect()
+			selection_dragging=false
+		elif not show_ships and  selection and Input.is_action_pressed('ui_location_select'):
+			if not selection_dragging and mouse_pos.distance_to(selection_click)>3:
+				var selected_node = get_node_or_null(selection)
+				if selected_node:
+					selection_dragging=true
+					print('drag node ',str(selected_node),' with scene ',str(selected_node.scene.resource_path))
+					emit_signal('drag_selection',selected_node.scene)
 
 func _process(delta):
 	items_mutex.lock()
@@ -312,3 +337,7 @@ func _on_Zoom_value_changed(value):
 
 func _on_Scroll_value_changed(value):
 	camera.translation = Vector3(-camera_xspan/2-value, 50.0, 0.0)
+
+
+func _on_ItemPanel_visibility_changed():
+	arrange_items()
