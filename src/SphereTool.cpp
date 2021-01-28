@@ -241,15 +241,15 @@ void SphereTool::make_cube_sphere_v2(String name,Vector3 center, float float_rad
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[4]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[4]-v_start[0]);
-    normals[ivert] = Vector3( -normals[n].y,-normals[n].x, -normals[n].z);
-    verts[ivert] = Vector3( -verts[n].y,-verts[n].x, -verts[n].z);
+    normals[ivert] = Vector3( normals[n].y,-normals[n].x, normals[n].z);
+    verts[ivert] = Vector3( verts[n].y,-verts[n].x, verts[n].z);
   }
 
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[5]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[5]-v_start[0]);
-    normals[ivert] = Vector3(normals[n].y, normals[n].x, -normals[n].z);
-    verts[ivert] = Vector3(verts[n].y, verts[n].x, -verts[n].z);
+    normals[ivert] = Vector3(-normals[n].y, normals[n].x, normals[n].z);
+    verts[ivert] = Vector3(-verts[n].y, verts[n].x, verts[n].z);
   }
 
   Array content;
