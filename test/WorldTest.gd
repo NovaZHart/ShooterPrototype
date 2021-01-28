@@ -8,7 +8,7 @@ var tick: int = 0
 var noise_texture: ViewportTexture
 
 onready var SphereTool = preload('res://bin/spheretool.gdns')
-onready var simple_planet_shader = preload('res://places/SimplePlanet.shader')
+onready var simple_planet_shader = preload('res://places/SimplePlanetV2.shader')
 onready var simple_sun_shader = preload('res://places/SimpleSunV2.shader')
 onready var sphere_test_shader = preload('res://test/sphere_test.shader')
 onready var cube_tile_shader = preload("res://places/CubePlanetTilesV2.shader")
@@ -19,14 +19,12 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	view.size=Vector2(nx,ny)
 	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
-#	view.usage=Viewport.USAGE_2D
 	view.keep_3d_linear=true;
 	rect.rect_size=Vector2(nx,ny)
 	rect.set_material(shader)
 	rect.name='Content'
 	view.own_world=true
 	view.transparent_bg=true
-#	view.disable_3d=true
 	view.add_child(rect)
 	return view
 
@@ -54,24 +52,16 @@ func _ready():
 	add_child(view)
 	planet.make_cube_sphere_v2("CubePlanet",Vector3(0,0,0),2.5,56)
 	add_child(planet)
-#	yield(get_tree(),'idle_frame')
-#	yield(get_tree(),'idle_frame')
-#	var generated: ViewportTexture = view.get_texture()
 	
 	shade = ShaderMaterial.new()
-	shade.set_shader(sphere_test_shader)
+	shade.set_shader(simple_planet_shader)
 	shade.set_shader_param('xyz',xyz)
-#	shade.set_shader_param('precalculated',generated)
-#	shade.set_shader(simple_planet_shader)
-#	shade.set_shader_param('tile_size',int(subs))
-#	shade.set_shader_param('tile_pixel_size',int(subsubs))
-	#shade.set_shader_param('perlin_seed',int(4353534))
 	planet.material_override=shade
 	#get_viewport().msaa=Viewport.MSAA_4X
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	noise_texture=send_viewport_texture($CubePlanet,$CubeTiler,'generated',noise_texture)
+	noise_texture=send_viewport_texture($CubePlanet,$CubeTiler,'precalculated',noise_texture)
 	var ui_x: float = Input.get_action_strength("ui_down")-Input.get_action_strength("ui_up")
 	var ui_y: float = Input.get_action_strength("ui_right")-Input.get_action_strength("ui_left")
 	var ui_z: float = Input.get_action_strength("ui_page_up")-Input.get_action_strength("ui_page_down")
