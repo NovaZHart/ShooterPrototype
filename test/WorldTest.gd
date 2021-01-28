@@ -9,7 +9,9 @@ var noise_texture: ViewportTexture
 
 onready var SphereTool = preload('res://bin/spheretool.gdns')
 onready var simple_planet_shader = preload('res://places/SimplePlanet.shader')
-onready var cube_tile_shader = preload("res://places/CubePlanetTiles.shader")
+onready var simple_sun_shader = preload('res://places/SimpleSunV2.shader')
+onready var sphere_test_shader = preload('res://test/sphere_test.shader')
+onready var cube_tile_shader = preload("res://places/CubePlanetTilesV2.shader")
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
 	var view=Viewport.new()
@@ -17,13 +19,14 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	view.size=Vector2(nx,ny)
 	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
-	view.usage=Viewport.USAGE_2D
+#	view.usage=Viewport.USAGE_2D
+	view.keep_3d_linear=true;
 	rect.rect_size=Vector2(nx,ny)
 	rect.set_material(shader)
 	rect.name='Content'
 	view.own_world=true
 	view.transparent_bg=true
-	view.disable_3d=true
+#	view.disable_3d=true
 	view.add_child(rect)
 	return view
 
@@ -38,27 +41,37 @@ func send_viewport_texture(mesh: MeshInstance, viewport: Viewport, shader_param:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var subs: int = 48
-	var subsubs: int = subs*10
+	var planet = SphereTool.new()
+	var image: Image = planet.make_lookup_tiles_c224();
+	var xyz: ImageTexture = ImageTexture.new()
+	xyz.create_from_image(image)
+	
 	var shade=ShaderMaterial.new()
 	shade.shader=cube_tile_shader
-	shade.set_shader_param('tile_size',subs)
-	var view=make_viewport(512,512,shade)
+	shade.set_shader_param('xyz',xyz)
+	var view=make_viewport(2048,2048,shade)
 	view.name='CubeTiler'
 	add_child(view)
-	var planet = SphereTool.new()
-	planet.make_cube_sphere("CubePlanet",Vector3(0,0,0),2.5,subs)
+	planet.make_cube_sphere_v2("CubePlanet",Vector3(0,0,0),2.5,56)
 	add_child(planet)
-	shade=ShaderMaterial.new()
-	shade.set_shader(simple_planet_shader)
-	shade.set_shader_param('tile_size',int(subs))
-	shade.set_shader_param('tile_pixel_size',int(subsubs))
+#	yield(get_tree(),'idle_frame')
+#	yield(get_tree(),'idle_frame')
+#	var generated: ViewportTexture = view.get_texture()
+	
+	shade = ShaderMaterial.new()
+	shade.set_shader(sphere_test_shader)
+	shade.set_shader_param('xyz',xyz)
+#	shade.set_shader_param('precalculated',generated)
+#	shade.set_shader(simple_planet_shader)
+#	shade.set_shader_param('tile_size',int(subs))
+#	shade.set_shader_param('tile_pixel_size',int(subsubs))
 	#shade.set_shader_param('perlin_seed',int(4353534))
 	planet.material_override=shade
-	
+	#get_viewport().msaa=Viewport.MSAA_4X
+
 # Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta):
-	noise_texture=send_viewport_texture($CubePlanet,$CubeTiler,'precalculated',noise_texture)
+	noise_texture=send_viewport_texture($CubePlanet,$CubeTiler,'generated',noise_texture)
 	var ui_x: float = Input.get_action_strength("ui_down")-Input.get_action_strength("ui_up")
 	var ui_y: float = Input.get_action_strength("ui_right")-Input.get_action_strength("ui_left")
 	var ui_z: float = Input.get_action_strength("ui_page_up")-Input.get_action_strength("ui_page_down")
@@ -71,6 +84,7 @@ func _process(delta):
 	$Camera.rotate_z(camera_z_rot)
 	$Camera.translate_object_local(Vector3(0.0,0.0,camera_distance))
 	tick += 1
+	$CubePlanet.rotation.y += 0.003
 	if tick%20==0:
 		print(str(Engine.get_frames_per_second()),' ',camera_x_rot,',',
 			camera_y_rot,',',camera_z_rot)

@@ -18,6 +18,10 @@ struct DVector3 {
 		double coord[3]; // Not for direct access, use [] operator instead
 	};
 
+	inline operator Vector3 () const {
+		return Vector3(x,y,z);
+	}
+  
 	inline DVector3(double x, double y, double z) {
 		this->x = x;
 		this->y = y;
