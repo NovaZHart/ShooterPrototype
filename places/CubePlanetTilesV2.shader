@@ -176,7 +176,7 @@ void fragment() {
 	if(UV.x>0.75)
 		COLOR=vec4(0.0,0.0,0.0,0.0);
 	else {
-		float delta=0.1;
+		float delta=0.03;
 		vec4 perlin=multi_perlin(perlin_seed,perlin_cubes,normal,delta,perlin_type,true);
 		if(make_normals) {
 			COLOR=vec4(clamp(perlin.xyz,-1.0,1.0)*0.5+0.5,1.0);

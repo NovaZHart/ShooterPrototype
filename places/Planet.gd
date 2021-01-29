@@ -1,5 +1,7 @@
 extends KinematicBody
 
+const allowed_subdivisions = [ 14, 28, 56, 112, 224 ]
+
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
 var CubePlanetTiles = preload("CubePlanetTilesV2.shader")
@@ -57,6 +59,7 @@ func receive_damage(_f: float): pass
 func get_radius() -> float: return sphere.scale[0]
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
+# warning-ignore:shadowed_variable
 	var view=Viewport.new()
 	var rect=ColorRect.new()
 	view.size=Vector2(nx,ny)
@@ -79,8 +82,16 @@ func ship_can_land(ship: RigidBody) -> bool:
 	var my_size = sphere.scale[0]
 	return my_size >= (my_pos-ship_pos).length()
 
+func choose_subdivisions(wanted) -> int:
+	for allowed in allowed_subdivisions:
+		if wanted<=allowed:
+			return allowed
+	return allowed_subdivisions[len(allowed_subdivisions)-1]
+
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
+	var subs: int = choose_subdivisions(subdivisions)
+	print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
 	sphere = SphereTool.new()
 	sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,56)
 	var shade=ShaderMaterial.new()

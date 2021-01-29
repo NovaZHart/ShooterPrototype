@@ -181,10 +181,10 @@ func make_planet(detail: float=150, time: float=0):
 	var texture_size: int = int(round(pow(2,max(7,min(11,int(log(detail*size)/log(2)))))))
 	var planet=Planet.instance()
 	if object_type==STAR:
-		planet.make_sun(min(96,max(8,1+detail*size/60.0)),shader_seed,texture_size)
+		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size)
 		planet.has_astral_gate = true
 	else:
-		planet.make_planet(min(96,max(8,1+detail*size/60.0)),shader_seed,texture_size)
+		planet.make_planet(1+detail*size/30.0,shader_seed,texture_size)
 	
 	planet.color_sphere(color_scaling,color_addition)
 	var x0z = planet_translation(time)
