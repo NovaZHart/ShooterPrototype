@@ -19,26 +19,26 @@ uniform float normal_scale=0.10;
 //uniform float perlin_bias = 0.5;
 
 // blue planet
-//uniform int perlin_type=0;
-//uniform int perlin_seed=18492;
-//uniform vec3 color_scaling=vec3(0.909804,0.980392,0.980392);
-//uniform vec3 color_addition=vec3(0.207843,0.631373,0.662745);
-//uniform int color_scheme=2;
-//uniform float weight_power = 0.373333;
-//uniform float scale_power = 0.3577;
-//uniform float scale_start = 3.9;
-//uniform float perlin_bias = 0.5;
+uniform int perlin_type=0;
+uniform int perlin_seed=18492;
+uniform vec3 color_scaling=vec3(0.909804,0.980392,0.980392);
+uniform vec3 color_addition=vec3(0.207843,0.631373,0.662745);
+uniform int color_scheme=2;
+uniform float weight_power = 0.373333;
+uniform float scale_power = 0.3577;
+uniform float scale_start = 3.9;
+uniform float perlin_bias = 0.5;
 
 // yellow/black/red planet
-uniform int perlin_type=3;
-uniform int perlin_seed=58199;
-uniform vec3 color_scaling=vec3(0.988235,0.741176,0.741176);
-uniform vec3 color_addition=vec3(-0.35098,-0.454902,-0.817647);
-uniform int color_scheme=1;
-uniform float weight_power = 0.353333;
-uniform float scale_power = 0.2877;
-uniform float scale_start = 3.9;
-uniform float perlin_bias = 0.0;
+// uniform int perlin_type=3;
+// uniform int perlin_seed=58199;
+// uniform vec3 color_scaling=vec3(0.988235,0.741176,0.741176);
+// uniform vec3 color_addition=vec3(-0.35098,-0.454902,-0.817647);
+// uniform int color_scheme=1;
+// uniform float weight_power = 0.353333;
+// uniform float scale_power = 0.2877;
+// uniform float scale_start = 3.9;
+// uniform float perlin_bias = 0.0;
 
 float interp_order5_scalar(float t) {
 	// fifth-order interpolant for improved perlin noise
@@ -179,9 +179,7 @@ void fragment() {
 		float delta=0.1;
 		vec4 perlin=multi_perlin(perlin_seed,perlin_cubes,normal,delta,perlin_type,true);
 		if(make_normals) {
-//			vec3 perturbed_normal=normalize(normal*(1.0+normal*perlin.xyz*0.1));
 			COLOR=vec4(clamp(perlin.xyz,-1.0,1.0)*0.5+0.5,1.0);
-//			COLOR=vec4(normal*0.5+0.5,1.0);
 		} else {
 			float w = perlin.w;
 			if(color_scheme==1)

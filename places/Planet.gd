@@ -2,9 +2,9 @@ extends KinematicBody
 
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
-var CubePlanetTiles = preload("CubePlanetTiles.shader")
-var simple_planet_shader = preload('SimplePlanet.shader')
-var simple_sun_shader = preload('SimpleSun.shader')
+var CubePlanetTiles = preload("CubePlanetTilesV2.shader")
+var simple_planet_shader = preload('SimplePlanetV2.shader')
+var simple_sun_shader = preload('SimpleSunV2.shader')
 
 var combined_aabb setget ,get_combined_aabb
 var sphere_material: ShaderMaterial setget ,get_sphere_material
@@ -15,6 +15,7 @@ var display_name: String setget set_display_name,get_display_name
 var full_display_name: String setget set_full_display_name,get_full_display_name
 var has_astral_gate: bool = false
 var game_state_path: NodePath = NodePath() setget set_game_state_path,get_game_state_path
+var view_shade: ShaderMaterial
 
 func make_ai_info(_delta: float) -> Dictionary:
 	return {
@@ -56,17 +57,19 @@ func receive_damage(_f: float): pass
 func get_radius() -> float: return sphere.scale[0]
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
-	var viewport=Viewport.new()
+	var view=Viewport.new()
 	var rect=ColorRect.new()
-	viewport.size=Vector2(nx,ny)
-	viewport.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
-	viewport.render_target_update_mode=Viewport.UPDATE_ONCE
-	viewport.usage=Viewport.USAGE_2D
+	view.size=Vector2(nx,ny)
+	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
+	view.render_target_update_mode=Viewport.UPDATE_ONCE
+	view.keep_3d_linear=true;
 	rect.rect_size=Vector2(nx,ny)
 	rect.set_material(shader)
 	rect.name='Content'
-	viewport.add_child(rect)
-	return viewport
+	view.own_world=true
+	view.transparent_bg=true
+	view.add_child(rect)
+	return view
 
 func ship_can_land(ship: RigidBody) -> bool:
 	if ship.linear_velocity.length()>.2:
@@ -79,19 +82,21 @@ func ship_can_land(ship: RigidBody) -> bool:
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
 	sphere = SphereTool.new()
-	sphere.make_cube_sphere('Sphere',Vector3(0,0,0),1,subdivisions)
+	sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,56)
 	var shade=ShaderMaterial.new()
 	shade.set_shader(sphere_shader)
 	sphere.material_override=shade
 	sphere_material = sphere.material_override
+	sphere_material.set_shader_param('xyz',game_state.get_sphere_xyz_c224(sphere))
 	sphere.set_layer_mask(4)
 	sphere.name='Sphere'
 	
-	var view_shade=ShaderMaterial.new()
+	view_shade=ShaderMaterial.new()
 	view_shade.set_shader(CubePlanetTiles)
 	view=make_viewport(texture_size,texture_size,view_shade)
 	view_shade.set_shader_param('perlin_seed',int(random_seed))
 	view_shade.set_shader_param('perlin_type',int(noise_type))
+	view_shade.set_shader_param('xyz',game_state.sphere_xyz_c224)
 	view.name='View'
 	tile_material = view_shade
 	
@@ -99,9 +104,9 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	add_child(sphere)
 
 func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
-	sphere_material.set_shader_param('color_scaling',Vector3(scaling[0],scaling[1],scaling[2]))
-	sphere_material.set_shader_param('color_addition',Vector3(addition[0],addition[1],addition[2]))
-	sphere_material.set_shader_param('color_scheme',scheme)
+	view_shade.set_shader_param('color_scaling',Vector3(scaling[0],scaling[1],scaling[2]))
+	view_shade.set_shader_param('color_addition',Vector3(addition[0],addition[1],addition[2]))
+	view_shade.set_shader_param('color_scheme',scheme)
 
 func make_planet(subdivisions: int,random_seed: int,texture_size: int = 2048,
 		noise_type: int = 0):

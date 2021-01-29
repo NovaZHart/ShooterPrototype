@@ -22,7 +22,6 @@ typedef vector<vectorVector3> vectorVectorVector3;
 
 void SphereTool::_register_methods() {
   register_method("make_icosphere", &SphereTool::make_icosphere);
-  register_method("make_cube_sphere", &SphereTool::make_cube_sphere);
   register_method("make_cube_sphere_v2", &SphereTool::make_cube_sphere_v2);
   register_method("make_lookup_tiles_c224", &SphereTool::make_lookup_tiles_c224);
 }
@@ -100,60 +99,6 @@ void SphereTool::make_icosphere(String name, Vector3 center, float radius, int s
       add_tri_pair(tool,subverts,i,subs-i-1,true);
     }
   }
-  set_mesh(tool->commit(nullptr,Mesh::ARRAY_COMPRESS_DEFAULT));
-  set_name(name);
-  translate(center);
-  scale_object_local(Vector3(radius,radius,radius));
-}
-
-void SphereTool::make_cube_sphere(String name,Vector3 center, float float_radius, int subs) {
-  double radius = float_radius;
-  Ref<SurfaceTool> tool=SurfaceTool::_new();
-
-  const double pi = 3.14159265358979323846;
-
-  double angles[subs+1];
-  double sides[subs+1];
-  for(int i=0;i<=subs;i++) {
-    angles[i]=pi/2 * (i-(subs/2.0))/subs;
-    sides[i]=tan(angles[i])/sqrt(2);
-  }
-  tool->begin(Mesh::PRIMITIVE_TRIANGLES);
-
-  const int i_add[2][6] = { {0,0,1,1,1,0}, {0,0,1,1,0,1} };
-  const int j_add[2][6] = { {0,1,1,1,0,0}, {0,1,0,0,1,1} };
-  const double width = 1.0/sqrt(2.0), widthsq=0.5;
-  int u_add[6] = {subs,2*subs,3*subs,0,subs,0};
-  int v_add[6] = {subs,subs,subs,subs,0,0};
-  int ij_size = subs*4;
-  Vector3 vertex;
-
-  for(int itile=0;itile<6;itile++)
-    for(int j=0;j<subs;j++)
-      for(int i=0;i<subs;i++) {
-        int k=(i+j)%2; // Squares will be triangulated in alternating order, creating peaks
-        for(int t=0;t<6;t++) {
-          double u=u_add[itile]+i+i_add[k][t];
-          double v=v_add[itile]+j+j_add[k][t];
-          double x=sides[i+i_add[k][t]],y=sides[j+j_add[k][t]],z=width;
-          double l=sqrt(x*x+y*y+z*z);
-          tool->add_uv(Vector2(u/ij_size,v/ij_size));
-          x/=l;
-          y/=l;
-          z/=l;
-          switch(itile) {
-          case 1:  vertex=Vector3(z,y,-x);  break;
-          case 2:  vertex=Vector3(-x,y,-z); break;
-          case 3:  vertex=Vector3(-z,y,x);  break;
-          case 4:  vertex=Vector3(x,-z,y);  break;
-          case 5:  vertex=Vector3(x,z,-y);  break;
-          case 0:
-          default: vertex=Vector3(x,y,z);   break;
-          };
-          tool->add_normal(vertex);
-          tool->add_vertex(vertex);
-        }
-      }
   set_mesh(tool->commit(nullptr,Mesh::ARRAY_COMPRESS_DEFAULT));
   set_name(name);
   translate(center);
@@ -271,10 +216,10 @@ Ref<Image> make_lookup_tiles() {
   const int i_width = (tile_size+2*pad_size)*4;
   const int num_floats = i_width * j_height * 3;
   const float pi = 3.141592653589793f;
-  std::array<float, num_floats> floats;
+  float *floats = new float[num_floats];
+  memset(floats,0,sizeof(float)*num_floats);
+  //std::array<float, num_floats> floats = { 0.0f };
 
-  memset(floats.data(),0,sizeof(float)*num_floats);
-  
   float sides[tile_size];
   {
     float angles[tile_size];
@@ -458,9 +403,12 @@ Ref<Image> make_lookup_tiles() {
   {
     data_pool.resize(num_floats*sizeof(float));
     PoolByteArray::Write data_write = data_pool.write();
-    memcpy(data_write.ptr(), floats.data(), num_floats*sizeof(float));
+    memcpy(data_write.ptr(), floats, num_floats*sizeof(float));
   }
 
+  delete[] floats;
+  floats = nullptr;
+  
   Ref<Image> image = Image::_new();
   image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBF, data_pool);
   image->convert(Image::FORMAT_RGBH);

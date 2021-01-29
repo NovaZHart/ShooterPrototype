@@ -1,10 +1,11 @@
-extends Node
+extends Control
 
 onready var SystemSelector = preload('res://ui/SystemSelector.tscn')
 onready var ServiceSelector = preload('res://ui/ServiceSelector.tscn')
 
 var tick: int = 0
 var planet = null
+var planet_info = null
 var current_service: NodePath
 
 signal jump_complete
@@ -13,7 +14,7 @@ func _ready():
 	print('ready orbital screen')
 	combat_engine.clear_visuals()
 	var system_name = game_state.system.display_name
-	var planet_info = game_state.get_space_object_or_null()
+	planet_info = game_state.get_space_object_or_null()
 	assert(planet_info)
 	if planet_info==null:
 		# Cannot land here
@@ -29,18 +30,29 @@ func _ready():
 	$SpaceBackground.rotate_x(PI/2-0.575959)
 	$SpaceBackground.center_view(130,90,0,100,0)
 	$SpaceBackground.update_from(game_state.system)
+	get_viewport().msaa=Viewport.MSAA_4X
+	update_astral_gate()
+	$ServiceSelector.update_service_list()
+	
+#	if planet.has_astral_gate:
+#		var selector = SystemSelector.instance()
+#		var system_list = selector.get_node('SystemList')
+#		var _discard = system_list.connect('astral_jump',self,'astral_jump')
+#		_discard = connect('jump_complete',system_list,'update_selectability')
+#		add_child(selector)
+#	if not planet_info.services.empty():
+#		var selector = ServiceSelector.instance()
+#		var service_list = selector.get_node('ServiceList')
+#		var _discard = service_list.connect('service_activated',self,'activate_service')
+#		_discard = service_list.connect('deorbit_selected',self,'deorbit')
+#		add_child(selector)
+
+func update_astral_gate():
 	if planet.has_astral_gate:
-		var selector = SystemSelector.instance()
-		var system_list = selector.get_node('SystemList')
-		var _discard = system_list.connect('astral_jump',self,'astral_jump')
-		_discard = connect('jump_complete',system_list,'update_selectability')
-		add_child(selector)
-	elif not planet_info.services.empty():
-		var selector = ServiceSelector.instance()
-		var service_list = selector.get_node('ServiceList')
-		var _discard = service_list.connect('service_activated',self,'activate_service')
-		_discard = service_list.connect('deorbit_selected',self,'deorbit')
-		add_child(selector)
+		$SystemSelector.update_system_list()
+		$SystemSelector.visible=true
+	else:
+		$SystemSelector.visible=false
 
 func activate_service(service_name: String,var service):
 	if not service.is_available():
@@ -76,7 +88,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	game_state.system=game_state.systems.get_node(system_node_name)
 	game_state.player_location=planet_location
 	planet.queue_free()
-	var planet_info = game_state.get_space_object_or_null()
+	planet_info = game_state.get_space_object_or_null()
 	var system_info = game_state.system
 	if planet_info==null:
 		# Cannot land here
@@ -90,6 +102,8 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 		$LocationLabel.text=planet_info.full_display_name()
 	camera_and_label(system_info.display_name,planet.display_name)
 	$SpaceBackground.update_from(game_state.system)
+	$ServiceSelector.update_service_list()
+	update_astral_gate()
 	game_state.print_to_console("Jumped to "+planet_info.display_name+" in the " \
 		+system_info.display_name+" system.\n")
 	emit_signal('jump_complete')

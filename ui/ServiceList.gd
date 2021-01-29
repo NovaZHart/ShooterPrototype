@@ -19,6 +19,10 @@ func _ready():
 	anchor_right=0
 	anchor_top=0
 	anchor_bottom=0
+	update_service_list()
+
+func update_service_list():
+	clear()
 	var planet_info = game_state.get_space_object_or_null()
 	var service_names = [] if planet_info==null else planet_info.services
 	var i=0

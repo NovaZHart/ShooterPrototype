@@ -21,6 +21,10 @@ func _ready():
 	anchor_right=0
 	anchor_top=0
 	anchor_bottom=0
+	update_system_list()
+
+func update_system_list():
+	clear()
 	var i=0
 	for node_name in game_state.systems.get_child_names():
 		var system = game_state.systems.get_node(node_name)

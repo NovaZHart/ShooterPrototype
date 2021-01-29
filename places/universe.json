@@ -100,7 +100,9 @@
               "SpaceObjectData",
               {
                 "services": [
-                  "Array"
+                  "Array",
+                  "info",
+                  "shipeditor"
                 ],
                 "display_name": "Astra",
                 "description": "",

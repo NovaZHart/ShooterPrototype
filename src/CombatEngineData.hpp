@@ -174,8 +174,9 @@ namespace godot {
       real_t aim_multiplier, confusion_multiplier;
       Vector3 confusion, confusion_velocity;
 
-      const real_t max_speed,turn_diameter_squared;
+      const real_t max_speed;
       const real_t max_angular_velocity;
+      const real_t turn_diameter_squared;
 
       inline Vector3 drag_force() const {
         return -linear_velocity*drag/inverse_mass;
