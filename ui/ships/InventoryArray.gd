@@ -101,25 +101,19 @@ func slot_xy_for(loc: Vector3,slotx: int,sloty: int) -> Array:
 	var xy1 = Vector2(round(dtr.z-(slotx-1)/2.0),round(-dtr.x-(sloty-1)/2.0))
 	return [ clamp(int(xy1.x),0,nx-1), clamp(int(xy1.y),0,ny-1) ]
 
-func insert_at_grid_range(content,use_item_offset: bool,console=null) -> Array:
+func insert_at_grid_range(content,use_item_offset: bool,_console=null) -> Array:
 	if content.mount_type!=mount_type:
-		if console:
-			console.append_raw_text('multimount: cannot mount item with wrong type "'+content.mount_type+'"')
+		push_warning('multimount: cannot mount item with wrong type "'+content.mount_type+'"')
 		return []
 	elif content.nx>nx or content.ny>ny:
-		if console:
-			console.append_raw_text('multimount: cannot mount item ('+str(content.nx)+'x'+str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
+		push_warning('multimount: cannot mount item ('+str(content.nx)+'x'+str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
 		return []
 	# item location, upper-left (-x, -y) corner:
 	var xy1
 	if use_item_offset:
 		assert(content.my_x>=0 and content.my_y>=0)
-		if console:
-			console.append_raw_text('use item offset')
 		xy1 = Vector2(content.my_x,content.my_y)
 	else:
-		if console:
-			console.append_raw_text('use position')
 		var dtr = (content.translation-first-translation)/grid_cell_size
 		xy1 = Vector2(round(dtr.z-(content.nx-1)/2.0),round(-dtr.x-(content.ny-1)/2.0))
 	var y1 = clamp(int(xy1.y),0,ny-1)
@@ -127,22 +121,18 @@ func insert_at_grid_range(content,use_item_offset: bool,console=null) -> Array:
 	var x1 = clamp(int(xy1.x),0,nx-1)
 	var x2 = clamp(int(xy1.x)+content.nx,0,nx)
 	if x2-x1 < content.nx or y2-y1 < content.ny:
-		if console:
-			console.append_raw_text(str(xy1))
-			console.append_raw_text(str(int(xy1.x)+content.nx)+'x'+str(int(xy1.y)+content.ny))
-			console.append_raw_text(str(nx)+' '+str(ny)+' '+str(x2)+' '+str(y2))
-			console.append_raw_text('multimount: not enough space free to mount: '+str(content.nx)+'x'+str(content.ny)+' item does not fit in '+str(x2-x1)+'x'+str(y2-y1)+' space at location '+str(x1)+'x'+str(y1)+'.')
+		push_warning('multimount: not enough space free to mount: '+str(content.nx)+'x'+str(content.ny)+' item does not fit in '+str(x2-x1)+'x'+str(y2-y1)+' space at location '+str(x1)+'x'+str(y1)+'.')
 		return []
 	for y in range(y1,y2):
 		for x in range(x1,x2):
 			var path: NodePath = used[y*nx+x]
 			if not path.is_empty():
+				push_warning('multimount: something is already installed at '+str(x)+'x'+str(y))
 				return []
 	var scene: PackedScene = content.scene
 	var item: Spatial = scene.instance()
 	if not item is Spatial:
-		if console:
-			console.append_raw_text('multimount: scene "'+scene.resource_path+'" is not a Spatial.')
+		push_warning('multimount: scene "'+scene.resource_path+'" is not a Spatial.')
 		return []
 	item.translation = Vector3(-(xy1.y+(content.ny-1)/2.0),0,(xy1.x+(content.nx-1)/2.0))*grid_cell_size+first
 	item.item_offset_x = x1

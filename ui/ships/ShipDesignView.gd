@@ -28,6 +28,8 @@ var selection_click
 var selection_dragging = false
 var selected_scene
 var selection: NodePath = NodePath()
+var old_collider_path: NodePath = NodePath()
+var old_drag_location: Vector3 = Vector3(-9999,-9999,-9999)
 
 class MountData extends simple_tree.SimpleNode:
 	var nx: int
@@ -38,7 +40,7 @@ class MountData extends simple_tree.SimpleNode:
 	var box_translation: Vector3
 	var multimount: bool
 	var content: NodePath = NodePath()
-	var scene: PackedScene # Note: not initialized
+	var scene = null # : PackedScene or null
 	
 	func _init(child,ship_design_view: ViewportContainer):
 		var loc: Vector3 = Vector3(child.translation.x,0,child.translation.z)
@@ -56,6 +58,13 @@ class MountData extends simple_tree.SimpleNode:
 			mp = ship_design_view.mount_point(nx,ny,loc,child.name,child.mount_type)
 		box_translation = mp.translation
 		box = mp.get_path()
+
+func deselect():
+	selection=NodePath()
+	selection_click=null
+	selection_dragging=false
+	selected_scene=null
+	emit_signal('update_coloring',-1,-1,null,'')
 
 func get_cell_pixel_height() -> float:
 	var view_size: Vector2 = $Viewport.size
@@ -130,9 +139,52 @@ func _input(event):
 			if Input.is_action_pressed('ui_location_select'):
 				if not selection_dragging and mouse_pos.distance_to(selection_click)>3:
 					selection_dragging=true
+					var _discard = remove_selected_item()
 					emit_signal('drag_selection',selected_scene)
 			else:
 				selection_dragging=false
+
+func dragging_item(item: MeshInstance):
+	var pos2 = get_viewport().get_mouse_position() - rect_global_position
+	var pos3 = $Viewport/Camera.project_position(pos2,-10)
+	var space: PhysicsDirectSpaceState = $Viewport.world.direct_space_state
+	var there: Dictionary = space.intersect_ray(
+		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
+	var collider = there.get('collider',null)
+	var path = collider.get_path() if collider!=null else NodePath()
+	if old_collider_path!=path or old_drag_location.distance_to(pos3)>0.05:
+		if collider:
+			collider.update_coloring(item.item_size_x,item.item_size_y,pos3,item.mount_type)
+		else:
+			emit_signal('update_coloring',item.item_size_x,item.item_size_y,pos3,item.mount_type)
+	old_collider_path=path
+	old_drag_location=pos3
+
+func remove_selected_item() -> bool:
+	var selected_node = get_node_or_null(selection)
+	if not selected_node or not selected_node.has_method('is_InventorySlot'):
+		push_warning('Tried to remove a selected item when none was selected (selection='+str(selection)+')')
+		return false
+	elif selected_node.my_x<0 or selected_node.my_y<0:
+		print('remove from single mount')
+		return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
+			selected_node.mount_name, selected_node.my_x, selected_node.my_y))
+	var parent = selected_node.get_parent()
+	if not parent or not parent.has_method('is_InventoryArray'):
+		push_error('Multimount slot has no InventoryArray parent')
+		return false
+	
+	var item = parent.item_at(selected_node.my_x,selected_node.my_y)
+	if not item:
+		push_warning('Multimount slot has no item (selection='+str(selection)+')')
+		return false
+	print('remove from multimount')
+	print(selected_scene.resource_path)
+	print(parent.name)
+	print(item.item_offset_x)
+	print(item.item_offset_y)
+	return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
+		parent.name, item.item_offset_x, item.item_offset_y))
 
 func _init():
 	root = simple_tree.SimpleNode.new()
@@ -187,7 +239,90 @@ func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_type
 	$Viewport/MountPoints.add_child(box)
 	return box
 
+func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
+	deselect()
+	var pos2 = get_viewport().get_mouse_position() - rect_global_position
+	var pos3 = $Viewport/Camera.project_position(pos2,-10)
+	var space: PhysicsDirectSpaceState = $Viewport.world.direct_space_state
+	var there: Dictionary = space.intersect_ray(
+		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
+	var target: CollisionObject = there.get('collider',null)
+	if not target:
+		push_warning('No mount under that location.')
+		return false
+	var mount_name: String = target.get_mount_name()
+	var mount = mounts.get_child_with_name(mount_name)
+	if not mount_name:
+		push_error('Tried to drag into mount "'+mount_name+'" which does not exist.')
+		return false
+	if mount.mount_type != item.mount_type:
+		push_warning('Mount type mismatch: item='+item.mount_type+' mount='+mount.mount_type)
+		return false
+	var x = -1
+	var y = -1
+	if mount.multimount:
+		var inventory_array = get_node_or_null(mount.box)
+		var slot_xy = inventory_array.slot_xy_for(pos3,item.item_size_x,item.item_size_y)
+		x=slot_xy[0]
+		y=slot_xy[1]
+	return universe_edits.state.push(ship_edits.AddItem.new(scene,mount_name,x,y))
+
+func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
+	print('add item '+str(scene.resource_path)+' '+mount_name+' '+str(x)+' '+str(y))
+	var item = scene.instance()
+	var mount = mounts.get_node_or_null(mount_name)
+	if not mount or not mount is MountData:
+		push_error('tried to mount on a non-existent mount "'+mount_name+'"')
+		return false
+	var content = InventoryContent.new()
+	content.create(mount.transform.origin,item.item_size_x,item.item_size_y,item.mount_type,scene,x,y)
+	print('try to mount...')
+	return try_to_mount(content, mount_name, true)
+
+func remove_item(_scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
+	print('unmount from ship design view')
+	return unmount(mount_name,x,y)
+
+func unmount(mount_name: String,x: int,y: int) -> bool:
+	var mount = mounts.get_node_or_null(mount_name)
+	if mount.multimount and (x<0 or y<0):
+		push_error('Tried to mount from an unspecified location in a multimount')
+		return false
+	elif mount['multimount']:
+		var parent = get_node_or_null(mount.box)
+		if parent==null:
+			return false
+		var ship_mount = $Viewport/Ship.get_node_or_null(parent.name)
+		if ship_mount==null:
+			push_error('Cannot find ship mount "'+parent.name+'"')
+			return false
+		var scene_x_y = parent.remove_child_or_null(x,y)
+		var scene = scene_x_y[0]
+		if not scene:
+			return false
+		var child_name = 'cell_'+str(scene_x_y[1])+'_'+str(scene_x_y[2])
+		var old_child = ship_mount.get_node_or_null(child_name)
+		if old_child==null:
+			push_warning('Cannot find unmounted item "'+child_name+'" in ship.')
+		else:
+			ship_mount.remove_child(old_child) # make the node name available again
+			old_child.queue_free()
+		return true
+	else:
+		var child = $Viewport/Ship.get_node_or_null(mount_name)
+		if child!=null:
+			$Viewport/Ship.remove_child(child)
+			child.queue_free()
+		child = $Viewport/Installed.get_node_or_null(mount_name)
+		if child!=null:
+			$Viewport/Installed.remove_child(child)
+			child.queue_free()
+		mount.content = NodePath()
+		mount.scene = null
+		return true
+
 func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bool:
+	print('place in multimount '+str(content)+' '+str(mount)+' '+str(use_item_offset))
 	# Install a component (area) in the multimount.
 	# The location is based on the area location and item size.
 	var inventory_array = $Viewport.get_node_or_null(mount.box)
@@ -202,6 +337,8 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 	if not x_y:
 		push_warning('no x_y insert at grid range for '+mount.get_name())
 		return false
+	
+	assert(content.mount_type==mount.mount_type)
 	
 	var x: int = x_y[0]
 	var y: int = x_y[1]
@@ -355,7 +492,10 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# Install the item (area) in the specified mount, which may be a single
 	# or multimount.
+	print('try to mount '+str(content)+' '+str(mount_name)+' '+str(use_item_offset))
+	print(' content type => "'+content.mount_type+'"')
 	var mount = mounts.get_node_or_null(mount_name)
+	print(' mount type => "'+mount.mount_type+'"')
 	if not mount:
 		push_warning('no mounts for '+mount_name)
 		return false

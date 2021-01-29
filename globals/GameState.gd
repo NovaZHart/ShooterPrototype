@@ -26,7 +26,10 @@ var player_ship_design
 signal console_append
 
 class ShipEditorStub extends Panel:
-	pass # FIXME
+	func add_item(_scene: PackedScene, _mount_name:String, _x:int, _y:int) -> bool:
+		return true
+	func remove_item(_scene: PackedScene, _mount_name: String, _x: int, _y: int) -> bool:
+		return true
 
 class SectorEditorStub extends Spatial:
 	var selection = null
@@ -212,7 +215,7 @@ func _init():
 	assert(player_location)
 	assert(system)
 
-	var banner_godship = ship_designs.get_node_or_null('heavy_lasers')
+	var banner_godship = ship_designs.get_node_or_null('godship')
 	assert(banner_godship)
 	player_ship_design = banner_godship
 
