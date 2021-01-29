@@ -25,6 +25,7 @@ simple_tree="*res://globals/SimpleTree.gd"
 undo_tool="*res://globals/UndoTool.gd"
 game_state="*res://globals/GameState.gd"
 universe_edits="*res://globals/UniverseEdits.gd"
+ship_edits="*res://globals/ShipEdits.gd"
 combat_engine="*res://globals/CombatEngine.gd"
 mesh_loader="*res://globals/MeshLoaderNode.gd"
 

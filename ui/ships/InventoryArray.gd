@@ -17,6 +17,13 @@ var used: Array = []
 var scenes: Array = []
 var all_slots: Dictionary = {}
 
+func is_InventoryArray(): pass # used for type checking; never called
+
+func item_at(x: int, y: int): # -> Node or null
+	if y<0 or y>=ny or x<0 or x>=nx or not used[y*nx+x]:
+		return null
+	return get_node_or_null(used[y*nx+x])
+
 func scene_at(x: int,y: int): # -> PackedScene or null
 	if y<0 or y>=ny or x<0 or x>=nx:
 		return null
@@ -45,7 +52,6 @@ func content_for_design(mount_name: String): # -> MultiMount
 			if node==null:
 				push_error('cannot find mount at path '+str(path))
 				continue
-			print('mount '+scenes[j*nx+i].resource_path)
 			var mounted = game_state.universe.MultiMounted.new(scenes[j*nx+i],
 				node.item_offset_x, node.item_offset_y)
 			mounted.set_name_with_prefix(mount_name)

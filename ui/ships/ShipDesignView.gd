@@ -7,17 +7,27 @@ const InventorySlot: Script = preload('res://ui/ships/InventorySlot.gd')
 const SHIP_LAYER_MASK: int = 1
 const INSTALLED_LAYER_MASK: int = 2
 const MOUNT_POINT_LAYER_MASK: int = 4
+const MULTIMOUNT_LAYER_MASK: int = 32
 
 const ITEM_LIGHT_CULL_LAYER: int = 1
 const SHIP_LIGHT_CULL_LAYER: int = 2
 const RED_LIGHT_CULL_LAYER: int = 8
 
 signal update_coloring
+signal pixel_height_changed
+signal select_item
+signal deselect_item
+signal drag_selection
 
+const y500: Vector3 = Vector3(0,500,0)
 var ship_aabb: AABB
 var root: simple_tree.SimpleNode
 var mounts: simple_tree.SimpleNode
 var tree: simple_tree.SimpleTree
+var selection_click
+var selection_dragging = false
+var selected_scene
+var selection: NodePath = NodePath()
 
 class MountData extends simple_tree.SimpleNode:
 	var nx: int
@@ -41,12 +51,88 @@ class MountData extends simple_tree.SimpleNode:
 		multimount = child.mount_type=='equipment'
 		var mp
 		if multimount:
-			print('make multimount at '+child.name)
 			mp = ship_design_view.multimount_point(nx,ny,loc,child.mount_type,child.name)
 		else:
 			mp = ship_design_view.mount_point(nx,ny,loc,child.name,child.mount_type)
 		box_translation = mp.translation
 		box = mp.get_path()
+
+func get_cell_pixel_height() -> float:
+	var view_size: Vector2 = $Viewport.size
+	var ul_corner: Vector3 = $Viewport/Camera.project_position(Vector2(0,0),-10)
+	var lr_corner: Vector3 = $Viewport/Camera.project_position(view_size,-10)
+	return view_size.y * 0.135*2.0/max(abs(ul_corner.x-lr_corner.x),0.01)
+
+func at_position(pos,mask: int) -> Dictionary:
+	# Helper function to do an intersect_ray at a particular screen location.
+	if pos==null:
+		return {}
+	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
+	var from = $Viewport/Camera.project_ray_origin(pos)
+	from.y = $Viewport/Camera.translation.y+500
+	var to = from + $Viewport/Camera.project_ray_normal(pos)
+	to.y = $Viewport/Camera.translation.y-500
+	return space.intersect_ray(from,to,[],mask,true,true)
+
+func event_position(event: InputEvent):
+	# Get the best guess of the mouse position for the event.
+	if event is InputEventMouseButton:
+		return event.position
+	return get_viewport().get_mouse_position()
+
+func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: CollisionObject) -> bool:
+	var parent = collider.get_parent()
+	if parent==null:
+		printerr('Orphaned node found in select_multimount.')
+		return false
+	elif not parent.has_method('remove_child_or_null'):
+		printerr('Multimount slot does not have a multimount parent.')
+		return false
+	
+	var ship_mount = $Viewport/Ship.get_node_or_null(parent.name)
+	if ship_mount==null:
+		printerr('Cannot find ship mount "',parent.name,'"')
+		return false
+	
+	var xy = parent.slot_xy_for(space_pos,1,1)
+	var scene = parent.scene_at(xy[0],xy[1])
+	if scene:
+		emit_signal('select_item',collider)
+		selection_click = mouse_pos
+		selection = collider.get_path()
+		selected_scene = scene
+		return true
+	return false
+
+func _input(event):
+	var view_pos = rect_global_position
+	var view_rect: Rect2 = Rect2(view_pos, rect_size)
+	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	if view_rect.has_point(mouse_pos):
+		if event.is_action_pressed('ui_location_select'):
+			var space_pos: Vector3 = $Viewport/Camera.project_position(mouse_pos-view_pos,-30)
+			var space: PhysicsDirectSpaceState = $Viewport.get_world().direct_space_state
+			var result: Dictionary = space.intersect_ray(
+				space_pos-y500,space_pos+y500,[],INSTALLED_LAYER_MASK|MULTIMOUNT_LAYER_MASK,true,true)
+			var collider = result.get('collider',null)
+			if collider and collider.has_method('is_InventorySlot'):
+				if collider.my_x<0:
+					emit_signal('select_item',collider)
+					selection_click = mouse_pos
+					selection = collider.get_path()
+					selected_scene = collider.scene
+				elif not select_multimount(mouse_pos, space_pos, collider):
+					emit_signal('deselect_item')
+			else:
+				emit_signal('deselect_item')
+			selection_dragging=false
+		elif selection:
+			if Input.is_action_pressed('ui_location_select'):
+				if not selection_dragging and mouse_pos.distance_to(selection_click)>3:
+					selection_dragging=true
+					emit_signal('drag_selection',selected_scene)
+			else:
+				selection_dragging=false
 
 func _init():
 	root = simple_tree.SimpleNode.new()
@@ -106,15 +192,15 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 	# The location is based on the area location and item size.
 	var inventory_array = $Viewport.get_node_or_null(mount.box)
 	if inventory_array==null:
-		print('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
+		push_warning('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
 		return false
 	var ship_mount = $Viewport/Ship.get_node_or_null(mount.get_name())
 	if ship_mount==null:
-		print('no ship mount for '+mount.get_name())
+		push_warning('no ship mount for '+mount.get_name())
 		return false
 	var x_y = inventory_array.insert_at_grid_range(content,use_item_offset)
 	if not x_y:
-		print('no x_y insert at grid range for '+mount.get_name())
+		push_warning('no x_y insert at grid range for '+mount.get_name())
 		return false
 	
 	var x: int = x_y[0]
@@ -251,12 +337,10 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 	# Load contents of a multimount from a design dictionary.
 	var contents: simple_tree.SimpleNode = design.get_node_or_null(mount_name)
 	if not contents:
-		print('no node for multimount '+mount_name)
+		push_warning('no node for multimount '+mount_name)
 		return
-	var seen = false
 	for item in contents.get_children():
 		if not item.has_method('is_MultiMounted'):
-			print('not multimounted')
 			continue
 		var scene: PackedScene = item.scene
 		assert(scene)
@@ -266,28 +350,23 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 		area.my_x = item.x
 		area.my_y = item.y
 		if not try_to_mount(area,mount_name,true):
-			print('failed to mount')
 			area.queue_free()
-		seen = true
-	if not seen:
-		print('no contents in '+mount_name)
-	
+
 func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# Install the item (area) in the specified mount, which may be a single
 	# or multimount.
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount:
-		print('no mounts for '+mount_name)
+		push_warning('no mounts for '+mount_name)
 		return false
 	if content.mount_type!=mount.mount_type:
-		print('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
+		push_warning('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
 		return false
 	if not content.scene:
-		print('content has no scene '+mount_name)
+		push_warning('content has no scene '+mount_name)
 		return false
 	
 	if mount.multimount:
-		print('place in multimount')
 		return place_in_multimount(content,mount,use_item_offset)
 	return place_in_single_mount(content,mount)
 
@@ -328,6 +407,8 @@ func _ready():
 	$Viewport/Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$Viewport/SpaceBackground.center_view(130,90,0,120,0)
 	make_ship(game_state.player_ship_design)
+	emit_signal('pixel_height_changed',get_cell_pixel_height())
 
 func _on_ViewportContainer_resized():
 	$Viewport.size = rect_size
+	emit_signal('pixel_height_changed',get_cell_pixel_height())

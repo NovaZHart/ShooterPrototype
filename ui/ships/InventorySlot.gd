@@ -58,7 +58,9 @@ const item_scale: float = 0.125
 func get_mount_name() -> String:
 	return mount_name if mount_name else name
 
-func is_inventory_slot(): # never called; must only exist.
+func is_InventorySlot(): pass # used for type checking; never called
+
+func is_inventory_slot(): # never called; must only exist. FIXME: DELETE THIS
 	pass
 
 func color(mask: int):

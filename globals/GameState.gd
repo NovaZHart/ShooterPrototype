@@ -25,6 +25,9 @@ var player_ship_design
 
 signal console_append
 
+class ShipEditorStub extends Panel:
+	pass # FIXME
+
 class SectorEditorStub extends Spatial:
 	var selection = null
 	func process_if(_condition: bool) -> bool:
@@ -53,18 +56,12 @@ class SystemEditorStub extends Panel:
 		return true
 var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
+var ship_editor = ShipEditorStub.new()
 
 func switch_editors(what: Node):
-	if what is SectorEditorStub:
-		system_editor=SystemEditorStub.new()
-		sector_editor=what
-	elif what is SystemEditorStub:
-		system_editor=what
-		sector_editor=SectorEditorStub.new()
-	else:
-		push_error('Unrecognized type in switch_editors for node '+str(what))
-		system_editor=SystemEditorStub.new()
-		sector_editor=SectorEditorStub.new()
+	sector_editor = what if(what is SectorEditorStub) else SectorEditorStub.new()
+	system_editor = what if(what is SystemEditorStub) else SystemEditorStub.new()
+	ship_editor = what if(what is ShipEditorStub) else ShipEditorStub.new()
 
 func make_unique_ship_node_name():
 	var i: int = name_counter
@@ -215,7 +212,7 @@ func _init():
 	assert(player_location)
 	assert(system)
 
-	var banner_godship = ship_designs.get_node_or_null('godship')
+	var banner_godship = ship_designs.get_node_or_null('heavy_lasers')
 	assert(banner_godship)
 	player_ship_design = banner_godship
 
