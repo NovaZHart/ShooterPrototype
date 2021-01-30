@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://ui/ServiceList.gd" type="Script" id=2]
+[ext_resource path="res://ui/ServiceSelector.gd" type="Script" id=3]
 
 [sub_resource type="DynamicFont" id=1]
 size = 14
@@ -56,7 +57,11 @@ func _process(var _delta: float) -> void:
 	theme.default_font.size=max(min_font_size,font_size_goal*min(scale[0],scale[1]))
 "
 
-[node name="ServiceSelector" type="Node2D"]
+[node name="ServiceSelector" type="Control"]
+script = ExtResource( 3 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="ServiceList" type="ItemList" parent="."]
 margin_left = 8.0
@@ -82,4 +87,6 @@ script = SubResource( 5 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+[connection signal="deorbit_selected" from="ServiceList" to="." method="deorbit_selected"]
 [connection signal="item_selected" from="ServiceList" to="ServiceList" method="_on_item_selected"]
+[connection signal="service_activated" from="ServiceList" to="." method="service_activated"]

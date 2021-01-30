@@ -1,0 +1,1090 @@
+{
+  "systems": [
+    "SimpleNode",
+    {
+      "seti_alpha": [
+        "SystemData",
+        {
+          "display_name": "Seti-α",
+          "position": [
+            "Vector3",
+            1.975001,
+            0,
+            -0.275
+          ],
+          "links": {
+            "alef_93": 1,
+            "seti_beta": 1
+          },
+          "plasma_seed": 56929,
+          "starfield_seed": 86942,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "objects": {
+            "sun": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Seti-α",
+                "description": "",
+                "base": "yellow_sun",
+                "size": 12,
+                "shader_seed": 1231333334,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 0,
+                "orbit_start": 0,
+                "has_astral_gate": true,
+                "objects": {
+                  "storm": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info",
+                        "missing",
+                        "shipeditor"
+                      ],
+                      "display_name": "Storm",
+                      "description": "Description of Storm planet.",
+                      "base": "ocean_planet",
+                      "size": 5,
+                      "shader_seed": 321321321,
+                      "rotation_period": 0,
+                      "orbit_radius": 200,
+                      "orbit_period": 300,
+                      "orbit_start": 0,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "alef_93": [
+        "SystemData",
+        {
+          "display_name": "א-93",
+          "position": [
+            "Vector3",
+            16.150005,
+            0,
+            -16.374998
+          ],
+          "links": {
+            "seti_alpha": 1
+          },
+          "plasma_seed": 82597,
+          "starfield_seed": 42878,
+          "plasma_color": [
+            "Color",
+            0.160784,
+            0.047059,
+            0.007843,
+            1
+          ],
+          "objects": {
+            "astra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array",
+                  "info",
+                  "shipeditor"
+                ],
+                "display_name": "Astra",
+                "description": "",
+                "base": "blue_sun",
+                "size": 14,
+                "color_addition": [
+                  "Color",
+                  0.388235,
+                  0.466667,
+                  0.866667,
+                  1
+                ],
+                "shader_seed": 53820,
+                "rotation_period": 13,
+                "orbit_radius": 0,
+                "orbit_period": 0,
+                "orbit_start": 0,
+                "has_astral_gate": true,
+                "objects": {
+                  "hellscape": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info",
+                        "shipeditor"
+                      ],
+                      "display_name": "Hellscape",
+                      "description": "",
+                      "base": "fiery_rock",
+                      "size": 5.5,
+                      "color_scaling": [
+                        "Color",
+                        0.988235,
+                        0.741176,
+                        0.741176,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        -0.05098,
+                        -0.254902,
+                        -0.717647,
+                        1
+                      ],
+                      "shader_seed": 58199,
+                      "rotation_period": 3,
+                      "orbit_radius": 160.636551,
+                      "orbit_period": 91,
+                      "orbit_start": -0.044163,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ],
+                  "pearl": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info",
+                        "test",
+                        "alttest",
+                        "shipeditor"
+                      ],
+                      "display_name": "Pearl",
+                      "description": "Description of Pearl planet.",
+                      "base": "ice_planet",
+                      "size": 11,
+                      "color_scaling": [
+                        "Color",
+                        0.909804,
+                        0.980392,
+                        0.980392,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        0.207843,
+                        0.631373,
+                        0.662745,
+                        1
+                      ],
+                      "shader_seed": 18492,
+                      "rotation_period": 7,
+                      "orbit_radius": 348.036102,
+                      "orbit_period": 1092,
+                      "orbit_start": -0.006191,
+                      "has_astral_gate": false,
+                      "objects": {
+                        "ironclad": [
+                          "SpaceObjectData",
+                          {
+                            "services": [
+                              "Array",
+                              "info"
+                            ],
+                            "display_name": "Ironclad",
+                            "description": "Description of Pearl planet.",
+                            "base": "ice_planet",
+                            "size": 3,
+                            "color_scaling": [
+                              "Color",
+                              0.74902,
+                              0.964706,
+                              0.74902,
+                              1
+                            ],
+                            "color_addition": [
+                              "Color",
+                              -0.011765,
+                              0.003922,
+                              0.011765,
+                              1
+                            ],
+                            "shader_seed": 28185,
+                            "rotation_period": 5,
+                            "orbit_radius": 23.943014,
+                            "orbit_period": 13,
+                            "orbit_start": -1.561566,
+                            "has_astral_gate": false,
+                            "objects": {
+
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "seti_beta": [
+        "SystemData",
+        {
+          "display_name": "Seti-β",
+          "position": [
+            "Vector3",
+            3.675,
+            0,
+            4.275
+          ],
+          "links": {
+            "seti_alpha": 1
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.135742,
+            0.111328,
+            0.140625,
+            1
+          ],
+          "objects": {
+            "sun": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Sun",
+                "description": "",
+                "base": "",
+                "object_type": 1,
+                "size": 13,
+                "color_scaling": [
+                  "Color",
+                  0.870588,
+                  0.803922,
+                  0.533333,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.239216,
+                  -0.223529,
+                  -0.176471,
+                  1
+                ],
+                "shader_seed": 56574,
+                "rotation_period": 5,
+                "orbit_radius": 0,
+                "orbit_period": 0,
+                "orbit_start": 0,
+                "has_astral_gate": true,
+                "objects": {
+                  "new_kano": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "display_name": "New Kano",
+                      "description": "",
+                      "base": "",
+                      "object_type": 0,
+                      "size": 6,
+                      "color_scaling": [
+                        "Color",
+                        0.913725,
+                        0.772549,
+                        0.203922,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        0.043137,
+                        -0.419608,
+                        -0.537255,
+                        1
+                      ],
+                      "shader_seed": 5547,
+                      "rotation_period": 7,
+                      "orbit_radius": 123.676346,
+                      "orbit_period": 31,
+                      "orbit_start": 0,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ],
+                  "new_lagos": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "test",
+                        "info",
+                        "shipeditor"
+                      ],
+                      "display_name": "New Lagos",
+                      "description": "",
+                      "base": "",
+                      "object_type": 0,
+                      "size": 7,
+                      "color_scaling": [
+                        "Color",
+                        0.14902,
+                        0.145098,
+                        0.65098,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        -0.043137,
+                        -0.058824,
+                        0.372549,
+                        1
+                      ],
+                      "shader_seed": 67924,
+                      "rotation_period": 8,
+                      "orbit_radius": 369.066223,
+                      "orbit_period": 31,
+                      "orbit_start": 3,
+                      "has_astral_gate": false,
+                      "objects": {
+                        "new_ife": [
+                          "SpaceObjectData",
+                          {
+                            "services": [
+                              "Array",
+                              "info",
+                              "shipeditor"
+                            ],
+                            "display_name": "New Ife",
+                            "description": "",
+                            "base": "",
+                            "object_type": 0,
+                            "size": 4,
+                            "color_scaling": [
+                              "Color",
+                              0.172549,
+                              0.65098,
+                              0.145098,
+                              1
+                            ],
+                            "color_addition": [
+                              "Color",
+                              -0.043137,
+                              -0.058824,
+                              0.372549,
+                              1
+                            ],
+                            "shader_seed": 18492,
+                            "rotation_period": 8,
+                            "orbit_radius": 56.704685,
+                            "orbit_period": 31,
+                            "orbit_start": -0.600958,
+                            "has_astral_gate": false,
+                            "objects": {
+
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "ship_designs": [
+    "SimpleNode",
+    {
+      "warship_lasers": [
+        "ShipDesign",
+        "Laser Warship",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "warship_cyclotrons": [
+        "ShipDesign",
+        "Cyclotron Warship",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "banner_default": [
+        "ShipDesign",
+        "Banner Ship",
+        [
+          "Resource",
+          "res://ships/BannerShip/BannerShipHull.tscn"
+        ],
+        {
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "Equipment_at_x3_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                3,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "godship": [
+        "ShipDesign",
+        "God's Ship",
+        [
+          "Resource",
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+        ],
+        {
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/BigEquipmentTest.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                6
+              ]
+            }
+          ]
+        }
+      ],
+      "curvy_cyclotrons": [
+        "ShipDesign",
+        "Turret Warship",
+        [
+          "Resource",
+          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Turret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "PortEquipment": [
+            "MultiMount",
+            {
+              "PortEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "PortEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ]
+        }
+      ],
+      "interceptor_cyclotrons": [
+        "ShipDesign",
+        "Cyclotron Interceptor",
+        [
+          "Resource",
+          "res://ships/PurpleShips/InterceptorHull.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "interceptor_lasers": [
+        "ShipDesign",
+        "Laser Interceptor",
+        [
+          "Resource",
+          "res://ships/PurpleShips/InterceptorHull.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserGun.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "heavy_cyclotrons": [
+        "ShipDesign",
+        "Cyclotron Battleship",
+        [
+          "Resource",
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+        ],
+        {
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+      "heavy_lasers": [
+        "ShipDesign",
+        "Laser Battleship",
+        [
+          "Resource",
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+        ],
+        {
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

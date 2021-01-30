@@ -4,7 +4,7 @@
 
 [sub_resource type="PrismMesh" id=1]
 left_to_right = 0.3
-size = Vector3( 1, 4, 0.7 )
+size = Vector3( 0.7, 4, 0.7 )
 subdivide_width = 1
 subdivide_height = 1
 subdivide_depth = 1
@@ -14,13 +14,16 @@ mesh = SubResource( 1 )
 material/0 = null
 script = ExtResource( 1 )
 add_mass = 10.0
-add_thrust = 8000.0
-add_reverse_thrust = 1200.0
-add_heal_shields = 340.0
-add_heal_armor = 35.0
-add_drag = -0.5
-add_turn_rate = 1.0
+add_thrust = 13000.0
+add_reverse_thrust = 6500.0
+add_turn_thrust = 4000.0
+add_shields = 3300.0
+add_armor = 3300.0
+add_structure = 3300.0
+add_heal_shields = 650.0
+add_heal_armor = 650.0
+add_heal_structure = 650.0
+mult_drag = 0.68
 add_explosion_radius = 10.0
 item_size_x = 3
-item_size_y = 4
 help_page = "equipment/bigtest"

@@ -111,6 +111,6 @@ func add_stats(stats: Dictionary) -> void:
 		'projectile_mesh_path':projectile_mesh_path,
 		'position':Vector3(translation.x,0,translation.z),
 		'rotation':rotation,
-		'node_path':get_path(),
+		'node_path':(get_path() if is_inside_tree() else NodePath()),
 		'name':name,
 	})

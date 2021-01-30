@@ -3,6 +3,7 @@ extends MeshInstance
 export var add_mass: float = 1
 export var add_thrust: float = 0
 export var add_reverse_thrust: float = 0
+export var add_turn_thrust: float = 0
 export var add_shields: float = 0
 export var add_armor: float = 0
 export var add_structure: float = 0
@@ -10,7 +11,11 @@ export var add_heal_shields: float = 0
 export var add_heal_armor: float = 0
 export var add_heal_structure: float = 0
 export var add_drag: float = 0
-export var add_turn_rate: float = 0
+export var mult_drag: float = 1
+export var add_turn_drag: float = 0
+export var mult_turn_drag: float = 1
+#export var add_turn_rate: float = 0
+#export var mult_turn_rate: float = 1
 export var add_threat: float = 0
 export var add_explosion_damage: float = 0
 export var add_explosion_radius: float = 0
@@ -28,7 +33,7 @@ export var help_page: String = 'equipment'
 func is_mount_point(): # Never called; must only exist
 	pass
 
-func is_mounted(): # Never called; must only exist
+func is_not_mounted(): # Never called; must only exist
 	pass
 
 func get_mount_size_x() -> int:
@@ -39,11 +44,13 @@ func get_mount_size_y() -> int:
 
 func add_stats(stats: Dictionary) -> void:
 	if add_mass > 0:
-		stats['mass'] = max(1e-5,stats['mass']+add_mass)
+		stats['mass'] = max(1,stats['mass']+add_mass)
 	if add_thrust > 0:
 		stats['thrust'] = max(0,stats['thrust']+add_thrust)
 	if add_reverse_thrust>0:
 		stats['reverse_thrust'] = max(0,stats['reverse_thrust']+add_reverse_thrust)
+	if add_turn_thrust>0:
+		stats['turn_thrust'] = max(0,stats['turn_thrust']+add_turn_thrust)
 	if add_shields>0:
 		stats['max_shields'] = max(0,stats['max_shields']+add_shields)
 	if add_armor>0:
@@ -56,10 +63,12 @@ func add_stats(stats: Dictionary) -> void:
 		stats['heal_armor'] = max(0,stats['heal_armor']+add_heal_armor)
 	if add_heal_structure>0:
 		stats['heal_structure'] = max(0,stats['heal_structure']+add_heal_structure)
-	if add_drag>0:
-		stats['drag'] = max(1e-5,stats['drag']+add_drag)
-	if add_turn_rate>0:
-		stats['turn_rate'] = max(0,stats['turn_rate']+add_turn_rate)
+	if add_drag>0 or abs(mult_drag-1.0)>1e-6:
+		stats['drag'] = max(0.05,stats['drag']*mult_drag+add_drag)
+	if add_turn_drag>0 or abs(mult_turn_drag-1.0)>1e-6:
+		stats['turn_drag'] = max(0.005,stats['turn_drag']*mult_turn_drag+add_turn_drag)
+#	if add_turn_rate>0 or mult_turn_rate>0:
+#		stats['turn_rate'] = max(0,stats['turn_rate']*mult_turn_rate+add_turn_rate)
 	if add_threat>0:
 		stats['threat'] = max(0,stats['threat']+add_threat)
 	if add_explosion_damage>0:

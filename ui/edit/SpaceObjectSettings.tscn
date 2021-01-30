@@ -1,0 +1,391 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
+[ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=3]
+[ext_resource path="res://ui/edit/SpaceObjectSettings.gd" type="Script" id=4]
+
+[sub_resource type="World" id=1]
+environment = ExtResource( 3 )
+
+[node name="SpaceObjectSettings" type="TabContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 4 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Basic" type="GridContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Top" type="GridContainer" parent="Basic"]
+margin_right = 1016.0
+margin_bottom = 192.0
+size_flags_horizontal = 3
+columns = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IDLabel" type="Label" parent="Basic/Top"]
+margin_top = 5.0
+margin_right = 506.0
+margin_bottom = 19.0
+hint_tooltip = "Internal name for references to this object."
+mouse_filter = 1
+size_flags_horizontal = 3
+text = "Object ID"
+valign = 1
+
+[node name="IDEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
+margin_right = 1016.0
+margin_bottom = 24.0
+hint_tooltip = "Internal name for references to this object."
+size_flags_horizontal = 3
+editable = false
+caret_blink_speed = 0.5
+
+[node name="NameLabel" type="Label" parent="Basic/Top"]
+margin_top = 33.0
+margin_right = 506.0
+margin_bottom = 47.0
+hint_tooltip = "Name displayed in game."
+mouse_filter = 1
+text = "Display Name"
+valign = 1
+
+[node name="NameEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
+margin_top = 28.0
+margin_right = 1016.0
+margin_bottom = 52.0
+hint_tooltip = "Name displayed in game."
+caret_blink_speed = 0.5
+
+[node name="TypeLabel" type="Label" parent="Basic/Top"]
+margin_top = 56.0
+margin_right = 506.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Stars can have astral gates, and have emission shaders. Planets have albedo-based shaders."
+mouse_filter = 1
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "Type"
+valign = 1
+
+[node name="TypeOptions" type="OptionButton" parent="Basic/Top"]
+margin_left = 510.0
+margin_top = 56.0
+margin_right = 1016.0
+margin_bottom = 80.0
+hint_tooltip = "Stars can have astral gates, and have emission shaders. Planets have albedo-based shaders."
+size_flags_horizontal = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="OrbitRadiusLabel" type="Label" parent="Basic/Top"]
+margin_top = 89.0
+margin_right = 506.0
+margin_bottom = 103.0
+hint_tooltip = "How far the orbit is from the parent."
+mouse_filter = 1
+text = "Orbit Radius"
+valign = 1
+
+[node name="OrbitRadiusEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
+margin_top = 84.0
+margin_right = 1016.0
+margin_bottom = 108.0
+hint_tooltip = "How far the orbit is from the parent."
+caret_blink_speed = 0.5
+
+[node name="OrbitPeriodLabel" type="Label" parent="Basic/Top"]
+margin_top = 117.0
+margin_right = 506.0
+margin_bottom = 131.0
+hint_tooltip = "How long it takes to orbit once."
+mouse_filter = 1
+text = "Orbit Period"
+valign = 1
+
+[node name="OrbitPeriodEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
+margin_top = 112.0
+margin_right = 1016.0
+margin_bottom = 136.0
+hint_tooltip = "How long it takes to orbit once."
+caret_blink_speed = 0.5
+
+[node name="OrbitPhaseLabel" type="Label" parent="Basic/Top"]
+margin_top = 145.0
+margin_right = 506.0
+margin_bottom = 159.0
+hint_tooltip = "Starting position within orbit."
+mouse_filter = 1
+text = "Orbit Phase"
+valign = 1
+
+[node name="OrbitPhaseEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
+margin_top = 140.0
+margin_right = 1016.0
+margin_bottom = 164.0
+hint_tooltip = "Starting position within orbit."
+caret_blink_speed = 0.5
+
+[node name="RotationPeriodLabel" type="Label" parent="Basic/Top"]
+margin_top = 173.0
+margin_right = 506.0
+margin_bottom = 187.0
+text = "Rotation Period"
+
+[node name="RotationPeriodEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
+margin_top = 168.0
+margin_right = 1016.0
+margin_bottom = 192.0
+
+[node name="Gate" type="CheckButton" parent="Basic"]
+margin_top = 196.0
+margin_right = 1016.0
+margin_bottom = 236.0
+hint_tooltip = "Stars can have Astral Gates, which let you travel to other Astral Gates in the same network."
+text = "Has an Astral Gate?"
+clip_text = true
+align = 1
+
+[node name="ServiceLabel" type="Label" parent="Basic"]
+margin_top = 240.0
+margin_right = 1016.0
+margin_bottom = 264.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Services available on the planet or star. Not visible if there is an Astral Gate."
+mouse_filter = 1
+text = "Planet Services"
+valign = 2
+
+[node name="Services" type="ItemList" parent="Basic"]
+margin_top = 268.0
+margin_right = 1016.0
+margin_bottom = 564.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+select_mode = 1
+allow_reselect = true
+
+[node name="Visual" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="View" type="ViewportContainer" parent="Visual"]
+margin_right = 1016.0
+margin_bottom = 424.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="Port" type="Viewport" parent="Visual/View"]
+size = Vector2( 1016, 424 )
+own_world = true
+world = SubResource( 1 )
+handle_input_locally = false
+render_target_update_mode = 0
+
+[node name="Camera" type="Camera" parent="Visual/View/Port"]
+projection = 1
+size = 4.0
+
+[node name="SpaceBackground" parent="Visual/View/Port" instance=ExtResource( 2 )]
+transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -30, 0 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="Visual/View/Port"]
+transform = Transform( 0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0 )
+light_color = Color( 1, 0.992157, 0.929412, 1 )
+
+[node name="Settings" type="GridContainer" parent="Visual"]
+margin_top = 428.0
+margin_right = 1016.0
+margin_bottom = 564.0
+columns = 2
+
+[node name="RadiusLabel" type="Label" parent="Visual/Settings"]
+margin_right = 506.0
+margin_bottom = 24.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Radius of the space object."
+mouse_filter = 1
+size_flags_vertical = 5
+text = "Radius"
+valign = 1
+
+[node name="RadiusEdit" type="LineEdit" parent="Visual/Settings"]
+margin_left = 510.0
+margin_right = 1016.0
+margin_bottom = 24.0
+hint_tooltip = "Radius of the space object."
+
+[node name="SeedLabel" type="Label" parent="Visual/Settings"]
+margin_top = 33.0
+margin_right = 506.0
+margin_bottom = 47.0
+hint_tooltip = "Random seed for shader noise field."
+mouse_filter = 1
+text = "Shader Seed"
+
+[node name="SeedEdit" type="LineEdit" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 28.0
+margin_right = 1016.0
+margin_bottom = 52.0
+hint_tooltip = "Random seed for shader noise field."
+caret_blink_speed = 0.5
+
+[node name="Empty" type="Label" parent="Visual/Settings"]
+margin_top = 56.0
+margin_right = 506.0
+margin_bottom = 80.0
+rect_min_size = Vector2( 0, 24 )
+text = " "
+
+[node name="Randomize" type="Button" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 56.0
+margin_right = 1016.0
+margin_bottom = 80.0
+text = "Random Seed"
+
+[node name="ColorScalingPicker" type="ColorPickerButton" parent="Visual/Settings"]
+margin_top = 84.0
+margin_right = 506.0
+margin_bottom = 108.0
+hint_tooltip = "Shader generates a noise field and multiplies it by this color."
+size_flags_horizontal = 3
+
+[node name="ColorScalingLabel" type="Label" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 84.0
+margin_right = 1016.0
+margin_bottom = 108.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Shader generates a noise field and multiplies it by this color."
+mouse_filter = 1
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "Scale Color"
+valign = 1
+
+[node name="ColorAdditionPicker" type="ColorPickerButton" parent="Visual/Settings"]
+margin_top = 112.0
+margin_right = 506.0
+margin_bottom = 136.0
+hint_tooltip = "Shader adds 2*addition-1 to the randomly-generated noise field, after multiplying by scale."
+size_flags_horizontal = 3
+
+[node name="ColorAdditionLabel" type="Label" parent="Visual/Settings"]
+margin_left = 510.0
+margin_top = 112.0
+margin_right = 1016.0
+margin_bottom = 136.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Shader adds 2*addition-1 to the randomly-generated noise field, after multiplying by scale."
+mouse_filter = 1
+text = "Add Color"
+valign = 1
+
+[node name="Help" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="Help"]
+margin_top = -1.0
+margin_right = 1016.0
+margin_bottom = 23.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Description available in help system and when orbiting."
+mouse_filter = 1
+text = "In-Game Description"
+valign = 1
+
+[node name="Data" type="VSplitContainer" parent="Help"]
+margin_top = 28.0
+margin_right = 1016.0
+margin_bottom = 564.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Text" type="TextEdit" parent="Help/Data"]
+margin_right = 1016.0
+margin_bottom = 262.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+syntax_highlighting = true
+draw_tabs = true
+wrap_enabled = true
+
+[node name="Display" parent="Help/Data" instance=ExtResource( 1 )]
+follow_urls = false
+allow_input = false
+[connection signal="focus_exited" from="Basic/Top/IDEdit" to="." method="_on_IDEdit_focus_exited"]
+[connection signal="focus_exited" from="Basic/Top/NameEdit" to="." method="_on_NameEdit_focus_exited"]
+[connection signal="text_entered" from="Basic/Top/NameEdit" to="." method="_on_NameEdit_text_entered"]
+[connection signal="focus_exited" from="Basic/Top/TypeOptions" to="." method="_on_TypeOptions_focus_exited"]
+[connection signal="item_selected" from="Basic/Top/TypeOptions" to="." method="_on_TypeOptions_item_selected"]
+[connection signal="focus_exited" from="Basic/Top/OrbitRadiusEdit" to="." method="_on_OrbitRadiusEdit_focus_exited"]
+[connection signal="text_entered" from="Basic/Top/OrbitRadiusEdit" to="." method="_on_OrbitRadiusEdit_text_entered"]
+[connection signal="focus_exited" from="Basic/Top/OrbitPeriodEdit" to="." method="_on_OrbitPeriodEdit_focus_exited"]
+[connection signal="text_entered" from="Basic/Top/OrbitPeriodEdit" to="." method="_on_OrbitPeriodEdit_text_entered"]
+[connection signal="focus_exited" from="Basic/Top/OrbitPhaseEdit" to="." method="_on_OrbitPhaseEdit_focus_exited"]
+[connection signal="text_entered" from="Basic/Top/OrbitPhaseEdit" to="." method="_on_OrbitPhaseEdit_text_entered"]
+[connection signal="focus_exited" from="Basic/Top/RotationPeriodEdit" to="." method="_on_RotationPeriodEdit_focus_exited"]
+[connection signal="text_entered" from="Basic/Top/RotationPeriodEdit" to="." method="_on_RotationPeriodEdit_text_entered"]
+[connection signal="toggled" from="Basic/Gate" to="." method="_on_Gate_toggled"]
+[connection signal="item_activated" from="Basic/Services" to="." method="_on_Services_changed"]
+[connection signal="item_selected" from="Basic/Services" to="." method="_on_Services_changed"]
+[connection signal="multi_selected" from="Basic/Services" to="." method="_on_Services_changed"]
+[connection signal="nothing_selected" from="Basic/Services" to="." method="_on_Services_changed"]
+[connection signal="resized" from="Visual" to="." method="_on_Visual_resized"]
+[connection signal="visibility_changed" from="Visual/View" to="." method="_on_View_visibility_changed"]
+[connection signal="focus_exited" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_focus_exited"]
+[connection signal="text_entered" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_text_entered"]
+[connection signal="focus_exited" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_focus_exited"]
+[connection signal="text_entered" from="Visual/Settings/SeedEdit" to="." method="_on_SeedEdit_text_entered"]
+[connection signal="pressed" from="Visual/Settings/Randomize" to="." method="_on_Randomize_pressed"]
+[connection signal="color_changed" from="Visual/Settings/ColorScalingPicker" to="." method="_on_ColorScalingPicker_color_changed"]
+[connection signal="picker_created" from="Visual/Settings/ColorScalingPicker" to="." method="_on_picker_created"]
+[connection signal="popup_closed" from="Visual/Settings/ColorScalingPicker" to="." method="_on_picker_closed"]
+[connection signal="color_changed" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_ColorAdditionPicker_color_changed"]
+[connection signal="picker_created" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_picker_created"]
+[connection signal="popup_closed" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_picker_closed"]
+[connection signal="focus_exited" from="Help/Data/Text" to="." method="_on_Text_focus_exited"]
+[connection signal="text_changed" from="Help/Data/Text" to="." method="_on_Text_text_changed"]

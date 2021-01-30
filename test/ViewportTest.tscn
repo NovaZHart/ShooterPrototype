@@ -1,15 +1,21 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://places/CubePlanetTiles.shader" type="Shader" id=1]
-
+[ext_resource path="res://places/CubePlanetTilesV2.shader" type="Shader" id=1]
 
 [sub_resource type="ShaderMaterial" id=1]
 resource_local_to_scene = true
 shader = ExtResource( 1 )
-shader_param/perlin_seed = 9
 shader_param/perlin_cubes = 8
-shader_param/perlin_type = 1
 shader_param/normal_scale = 0.1
+shader_param/perlin_type = 1
+shader_param/perlin_seed = 9
+shader_param/color_scaling = Vector3( 0.988235, 0.741176, 0.741176 )
+shader_param/color_addition = Vector3( -0.35098, -0.454902, -0.817647 )
+shader_param/color_scheme = 1
+shader_param/weight_power = 0.353333
+shader_param/scale_power = 0.2877
+shader_param/scale_start = 3.9
+shader_param/perlin_bias = 0.0
 
 [sub_resource type="ViewportTexture" id=2]
 flags = 2

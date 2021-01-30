@@ -3,6 +3,7 @@ extends Spatial
 export var nx: int = 2
 export var ny: int = 2
 export var mount_type: String = 'equipment'
+const multimount: bool = false
 
 const fail_cull_layer_mask: int = 8
 const okay_cull_layer_mask: int = 16
@@ -15,6 +16,13 @@ var slots: Array = []
 var used: Array = []
 var scenes: Array = []
 var all_slots: Dictionary = {}
+
+func is_InventoryArray(): pass # used for type checking; never called
+
+func item_at(x: int, y: int): # -> Node or null
+	if y<0 or y>=ny or x<0 or x>=nx or not used[y*nx+x]:
+		return null
+	return get_node_or_null(used[y*nx+x])
 
 func scene_at(x: int,y: int): # -> PackedScene or null
 	if y<0 or y>=ny or x<0 or x>=nx:
@@ -31,23 +39,25 @@ func create(nx_: int,ny_: int,mount_type_: String):
 			used.append(NodePath())
 			scenes.append(null)
 
-func content_for_design() -> Array:
-	var nodes = Dictionary()
-	var node_scenes = Dictionary()
+func content_for_design(mount_name: String): # -> MultiMount
+	var multimount = game_state.universe.MultiMount.new()
+	multimount.set_name(mount_name)
+	var paths_processed = {}
 	for j in range(ny):
 		for i in range(nx):
 			var path = used[j*nx+i]
-			if not path or nodes.has(path):
+			if not path or paths_processed.has(path):
 				continue
 			var node = get_node_or_null(path)
 			if node==null:
+				push_error('cannot find mount at path '+str(path))
 				continue
-			nodes[path]=node
-			node_scenes[path] = scenes[j*nx+i]
-	var content = []
-	for path in nodes:
-		content.append([ nodes[path].item_offset_x, nodes[path].item_offset_y, node_scenes[path] ])
-	return content
+			var mounted = game_state.universe.MultiMounted.new(scenes[j*nx+i],
+				node.item_offset_x, node.item_offset_y)
+			mounted.set_name_with_prefix(mount_name)
+			multimount.add_child(mounted)
+			paths_processed[path]=node
+	return multimount
 
 func all_children_xy() -> Array:
 	var results: Dictionary = {}
@@ -91,25 +101,19 @@ func slot_xy_for(loc: Vector3,slotx: int,sloty: int) -> Array:
 	var xy1 = Vector2(round(dtr.z-(slotx-1)/2.0),round(-dtr.x-(sloty-1)/2.0))
 	return [ clamp(int(xy1.x),0,nx-1), clamp(int(xy1.y),0,ny-1) ]
 
-func insert_at_grid_range(content,use_item_offset: bool,console=null) -> Array:
+func insert_at_grid_range(content,use_item_offset: bool,_console=null) -> Array:
 	if content.mount_type!=mount_type:
-		if console:
-			console.append_raw_text('multimount: cannot mount item with wrong type "'+content.mount_type+'"')
+		push_warning('multimount: cannot mount item with wrong type "'+content.mount_type+'"')
 		return []
 	elif content.nx>nx or content.ny>ny:
-		if console:
-			console.append_raw_text('multimount: cannot mount item ('+str(content.nx)+'x'+str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
+		push_warning('multimount: cannot mount item ('+str(content.nx)+'x'+str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
 		return []
 	# item location, upper-left (-x, -y) corner:
 	var xy1
 	if use_item_offset:
 		assert(content.my_x>=0 and content.my_y>=0)
-		if console:
-			console.append_raw_text('use item offset')
 		xy1 = Vector2(content.my_x,content.my_y)
 	else:
-		if console:
-			console.append_raw_text('use position')
 		var dtr = (content.translation-first-translation)/grid_cell_size
 		xy1 = Vector2(round(dtr.z-(content.nx-1)/2.0),round(-dtr.x-(content.ny-1)/2.0))
 	var y1 = clamp(int(xy1.y),0,ny-1)
@@ -117,22 +121,18 @@ func insert_at_grid_range(content,use_item_offset: bool,console=null) -> Array:
 	var x1 = clamp(int(xy1.x),0,nx-1)
 	var x2 = clamp(int(xy1.x)+content.nx,0,nx)
 	if x2-x1 < content.nx or y2-y1 < content.ny:
-		if console:
-			console.append_raw_text(str(xy1))
-			console.append_raw_text(str(int(xy1.x)+content.nx)+'x'+str(int(xy1.y)+content.ny))
-			console.append_raw_text(str(nx)+' '+str(ny)+' '+str(x2)+' '+str(y2))
-			console.append_raw_text('multimount: not enough space free to mount: '+str(content.nx)+'x'+str(content.ny)+' item does not fit in '+str(x2-x1)+'x'+str(y2-y1)+' space at location '+str(x1)+'x'+str(y1)+'.')
+		push_warning('multimount: not enough space free to mount: '+str(content.nx)+'x'+str(content.ny)+' item does not fit in '+str(x2-x1)+'x'+str(y2-y1)+' space at location '+str(x1)+'x'+str(y1)+'.')
 		return []
 	for y in range(y1,y2):
 		for x in range(x1,x2):
 			var path: NodePath = used[y*nx+x]
 			if not path.is_empty():
+				push_warning('multimount: something is already installed at '+str(x)+'x'+str(y))
 				return []
 	var scene: PackedScene = content.scene
 	var item: Spatial = scene.instance()
 	if not item is Spatial:
-		if console:
-			console.append_raw_text('multimount: scene "'+scene.resource_path+'" is not a Spatial.')
+		push_warning('multimount: scene "'+scene.resource_path+'" is not a Spatial.')
 		return []
 	item.translation = Vector3(-(xy1.y+(content.ny-1)/2.0),0,(xy1.x+(content.nx-1)/2.0))*grid_cell_size+first
 	item.item_offset_x = x1
@@ -191,7 +191,7 @@ func _ready():
 	for y in range(ny):
 		for x in range(nx):
 			var slot = Area.new()
-			slot.set_script(preload('res://ui/InventorySlot.gd'))
+			slot.set_script(preload('res://ui/ships/InventorySlot.gd'))
 			slot.name = 'slot_x'+str(x)+'_y'+str(y)
 			slot.create_only_box(1,1,mount_type)
 			slot.mount_name = name

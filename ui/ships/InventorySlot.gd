@@ -58,8 +58,13 @@ const item_scale: float = 0.125
 func get_mount_name() -> String:
 	return mount_name if mount_name else name
 
-func is_inventory_slot(): # never called; must only exist.
+func is_InventorySlot(): pass # used for type checking; never called
+
+func is_inventory_slot(): # never called; must only exist. FIXME: DELETE THIS
 	pass
+
+func has_item() -> bool:
+	return get_node_or_null('item')!=null
 
 func color(mask: int):
 	for j in range(ny):
@@ -109,10 +114,11 @@ func create_only_box(nx_: int,ny_: int,mount_type_: String):
 	make_box()
 	assert(mount_type)
 
-func create_item(scene_: PackedScene,with_box: bool,position = null):
+func create_item(scene_: PackedScene,with_box: bool,position = null,item = null):
 	scene=scene_
 	
-	var item: Node = scene.instance()
+	if item == null:
+		item = scene.instance()
 	nx=item.mount_size_x
 	ny=item.mount_size_y
 	page=item.help_page

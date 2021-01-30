@@ -1,6 +1,7 @@
 extends Node2D
 
 var tick: int = 0
+var death_start: int = -1
 var last_back_command: int = -9999
 var double_down_active: bool = false
 var auto_target_flag: bool = false
@@ -64,6 +65,18 @@ func _input(event: InputEvent):
 		mouse_selection = that.get_rid()
 		mouse_selection_mutex.unlock()
 
+func handle_zoom(_delta: float):
+	var ui_zoom: int = int(Input.is_action_pressed("ui_page_up"))-int(Input.is_action_pressed("ui_page_down"))
+	if Input.is_action_just_released("wheel_up"):
+		ui_scroll=1.5
+	if Input.is_action_just_released("wheel_down"):
+		ui_scroll=-1.5
+	var zoom: float = pow(0.9,ui_zoom)*pow(0.9,3*ui_scroll)
+	ui_scroll*=0.7
+	if abs(ui_scroll)<.05:
+		ui_scroll=0
+	var _zoom_level = $System.set_zoom(zoom)
+
 func make_player_orders(_delta: float) -> Dictionary:
 	if Input.is_action_just_released('ui_down'):
 		if double_down_active:
@@ -82,16 +95,6 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var next_enemy: bool = Input.is_action_just_pressed('ui_next_enemy')
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
 
-	var ui_zoom: int = int(Input.is_action_pressed("ui_page_up"))-int(Input.is_action_pressed("ui_page_down"))
-	if Input.is_action_just_released("wheel_up"):
-		ui_scroll=1.5
-	if Input.is_action_just_released("wheel_down"):
-		ui_scroll=-1.5
-	var zoom: float = pow(0.9,ui_zoom)*pow(0.9,3*ui_scroll)
-	ui_scroll*=0.7
-	if abs(ui_scroll)<.05:
-		ui_scroll=0
-	var _zoom_level = $System.set_zoom(zoom)
 	
 	var nearest: int = PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
@@ -148,18 +151,29 @@ func make_player_orders(_delta: float) -> Dictionary:
 	return result
 
 func _enter_tree() -> void:
-	if mesh_loader.load_meshes() != OK:
-		printerr('Could not start the mesh loader.')
+#	if mesh_loader.load_meshes() != OK:
+#		printerr('Could not start the mesh loader.')
 	combat_engine.change_worlds(get_viewport().world)
 
-func _exit_tree() -> void:
-	mesh_loader.wait_for_thread()
+#func _exit_tree() -> void:
+#	mesh_loader.wait_for_thread()
 
 func _process(delta: float) -> void:
 	#warning-ignore:narrowing_conversion
 	tick += max(1,round(delta*60.0))
 	update_pause(delta)
-	$System.receive_player_orders(make_player_orders(delta))
+	handle_zoom(delta)
+	if get_tree().paused:
+		return
+	if $System.player_has_a_ship():
+		$System.receive_player_orders(make_player_orders(delta))
+	else:
+		if death_start<0:
+			death_start = tick
+		if tick-death_start>300 or Input.is_action_just_released('ui_cancel'):
+			var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+			yield(get_tree(),'idle_frame')
+
 
 # Called when the node enters the scene tree for the first time.
 func _ready():

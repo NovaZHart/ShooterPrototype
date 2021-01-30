@@ -7,7 +7,8 @@ var my_x: int = -1
 var my_y: int = -1
 var mount_type: String = ''
 var scene: PackedScene
-const InventorySlot: Script = preload('res://ui/InventorySlot.gd')
+const multimount: bool = false
+const InventorySlot: Script = preload('res://ui/ships/InventorySlot.gd')
 
 func create(translation_: Vector3,nx_: int,ny_: int,mount_type_: String,scene_: PackedScene,my_x_: int = -1,my_y_: int = -1):
 	translation=translation_

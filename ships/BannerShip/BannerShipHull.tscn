@@ -102,19 +102,20 @@ default_font = SubResource( 10 )
 [node name="BannerShip" type="RigidBody"]
 script = ExtResource( 1 )
 help_page = "hulls/banner_ship"
-base_mass = 175.0
-base_thrust = 2600.0
-base_shields = 2000.0
+base_mass = 150.0
+base_thrust = 2100.0
+base_turn_thrust = 1050.0
+base_shields = 1050.0
 base_armor = 1100.0
 base_structure = 900.0
 heal_shields = 0.0
 heal_armor = 0.0
 heal_structure = 7.0
-base_drag = 3.5
-base_turn_rate = 1.2
+base_turn_drag = 0.45
 base_explosion_damage = 750.0
 base_explosion_radius = 7.5
 base_explosion_impulse = 1075.0
+override_size = Vector3( 6, 0, 3 )
 
 [node name="GunMesh" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 0.997432, -0.0716189, 0, 0.0716189, 0.997432, 2.32337, -0.45044, 0.467378 )

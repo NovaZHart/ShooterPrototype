@@ -1,9 +1,10 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=2]
 [ext_resource path="res://ui/SystemList.gd" type="Script" id=3]
 [ext_resource path="res://ui/ResizingButton.gd" type="Script" id=4]
+[ext_resource path="res://ui/SystemSelector.gd" type="Script" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 14
@@ -24,12 +25,16 @@ font_data = ExtResource( 1 )
 [sub_resource type="Theme" id=6]
 default_font = SubResource( 5 )
 
-[node name="SystemSelector" type="Node2D"]
+[node name="SystemSelector" type="Control"]
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="SystemList" type="ItemList" parent="."]
-margin_left = 8.0
+margin_left = 792.0
 margin_top = 88.0
-margin_right = 232.0
+margin_right = 1016.0
 margin_bottom = 328.0
 theme = SubResource( 2 )
 script = ExtResource( 3 )
@@ -38,10 +43,10 @@ __meta__ = {
 }
 
 [node name="Title" type="Label" parent="."]
-margin_left = 8.0
+margin_left = 792.0
 margin_top = 56.0
-margin_right = 232.0
-margin_bottom = 88.0
+margin_right = 1016.0
+margin_bottom = 76.0
 theme = SubResource( 4 )
 text = "Astral Gate Destinations"
 align = 1
@@ -52,10 +57,10 @@ __meta__ = {
 }
 
 [node name="JumpButton" type="Button" parent="."]
-margin_left = 88.0
-margin_top = 336.0
-margin_right = 152.0
-margin_bottom = 362.0
+margin_left = 874.749
+margin_top = 345.664
+margin_right = 938.749
+margin_bottom = 371.664
 theme = SubResource( 6 )
 disabled = true
 text = "Jump"
@@ -64,7 +69,9 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 [connection signal="astral_jump" from="SystemList" to="JumpButton" method="_on_list_activate"]
+[connection signal="astral_jump" from="SystemList" to="." method="astral_jump"]
 [connection signal="item_activated" from="SystemList" to="SystemList" method="_on_item_activated"]
 [connection signal="item_selected" from="SystemList" to="SystemList" method="_on_item_selected"]
 [connection signal="selectable_item_selected" from="SystemList" to="JumpButton" method="_on_list_select"]
+[connection signal="selectable_item_selected" from="SystemList" to="." method="selectable_item_selected"]
 [connection signal="pressed" from="JumpButton" to="SystemList" method="_on_JumpButton_pressed"]

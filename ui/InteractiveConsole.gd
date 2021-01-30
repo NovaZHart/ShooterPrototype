@@ -74,8 +74,11 @@ func fqdn() -> String:
 func clean_input(input: String) -> String:
 	return input.replace('[','['+ZWSP).replace(']',']'+ZWSP)
 
-func insert_bbcode(what):
-	$Console/Output.parse_bbcode(what)
+func insert_bbcode(what,rewrite=false):
+	if rewrite:
+		$Console/Output.parse_bbcode(rewrite_tags(what))
+	else:
+		$Console/Output.parse_bbcode(what)
 
 func append_raw_text(what,ensure_eoln: bool = true):
 	$Console/Output.append_bbcode(clean_input(what))
@@ -105,6 +108,9 @@ func has_command_id(key: String) -> bool:
 	
 func add_command_id(key: String,value: int):
 	command_index[key]=value
+
+func scroll_to_line(line: int):
+	$Console/Output.scroll_to_line(line)
 
 func scroll_to_command_id(key: String):
 	if command_index.has(key):

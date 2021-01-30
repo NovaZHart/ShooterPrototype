@@ -1,10 +1,49 @@
 shader_type canvas_item;
 render_mode skip_vertex_transform;
 
-uniform int perlin_seed=9;
+uniform sampler2D xyz;
+
 uniform int perlin_cubes=8;
-uniform int perlin_type=2;
+
 uniform float normal_scale=0.10;
+
+// White/red sun:
+//uniform int perlin_type=1;
+//uniform int perlin_seed=56574;
+//uniform vec3 color_scaling=vec3(0.920588,0.853922,0.583333);
+//uniform vec3 color_addition=vec3(0.289216,-0.173529,-0.156471);
+//uniform int color_scheme=2;
+//uniform float weight_power = 0.373333;
+//uniform float scale_power = 0.3077;
+//uniform float scale_start = 3.9;
+//uniform float perlin_bias = 0.5;
+
+// blue planet
+uniform int perlin_type=0;
+uniform int perlin_seed=18492;
+uniform vec3 color_scaling=vec3(0.909804,0.980392,0.980392);
+uniform vec3 color_addition=vec3(0.207843,0.631373,0.662745);
+uniform int color_scheme=2;
+uniform float weight_power = 0.373333;
+uniform float scale_power = 0.3577;
+uniform float scale_start = 3.9;
+uniform float perlin_bias = 0.5;
+
+// yellow/black/red planet
+// uniform int perlin_type=3;
+// uniform int perlin_seed=58199;
+// uniform vec3 color_scaling=vec3(0.988235,0.741176,0.741176);
+// uniform vec3 color_addition=vec3(-0.35098,-0.454902,-0.817647);
+// uniform int color_scheme=1;
+// uniform float weight_power = 0.353333;
+// uniform float scale_power = 0.2877;
+// uniform float scale_start = 3.9;
+// uniform float perlin_bias = 0.0;
+
+float interp_order5_scalar(float t) {
+	// fifth-order interpolant for improved perlin noise
+	return t*t*t * (t * (t*6.0-15.0) + 10.0);
+}
 
 int bob_hash(int k) {
 	int a = k;
@@ -92,88 +131,62 @@ vec4 perlin_and_delta(int seed,float scale,int cubes,vec3 new_normal,float delta
 	if(type==1) {
 		float a=abs(c);
 		return vec4(abs(x)-a,abs(y)-a,abs(z)-a,a);
+	} else if(type==10) { // mix of types 1 and 0
+		float a=abs(c);
+		return 0.3*vec4(x-c,y-c,z-c,c) + 0.7*vec4(abs(x)-a,abs(y)-a,abs(z)-a,a);
 	}
-	return vec4(x-c,y-c,z-c,c);
-}
-
-
-vec3 sphere_normal_from_uv(vec2 uv,int tile) {
-	const float pi=3.141592653589793238;
-	vec2 ij = tan(pi/2.0*(fract(uv*4.0)-0.5))/sqrt(2.0);
-	vec3 side = vec3( ij.x, ij.y, 1.0/sqrt(2.0) );
-	
-	if(tile==5)
-		side = transpose(mat3(vec3(1.0,0.0,0.0),vec3(0.0,0.0,-1.0),vec3(0.0,1.0,0.0)))*side;
-	else if(tile==4)
-		side = transpose(mat3(vec3(0.0,0.0,-1.0),vec3(0.0,1.0,0.0),vec3(1.0,0.0,0.0)))*side;
-	else if(tile==2)
-		side = transpose(mat3(vec3(0.0,0.0,1.0),vec3(0.0,1.0,0.0),vec3(-1.0,0.0,0.0)))*side;
-	else if(tile==3)
-		side = transpose(mat3(vec3(-1.0,0.0,0.0),vec3(0.0,1.0,0.0),vec3(-0.0,0.0,-1.0)))*side;
-	else if(tile==6)
-		side = transpose(mat3(vec3(1.0,0.0,0.0),vec3(0.0,0.0,1.0),vec3(0.0,-1.0,0.0)))*side;
-	return normalize(side);
-}
-
-vec3 tile_tangent(int tile) {
-	int atile=abs(tile);
-	vec3 result=vec3(0.0,float(atile<5),float(atile>=5));
-	return atile==6 ? -result : result;
-}
-
-int tile_for_section(ivec2 section) {
-	ivec2 s2=ivec2(section.x,section.y%2);
-	int tile=0;
-	
-	if(s2[0]==1 && s2[1]==0) // tile 4
-		tile=5;
-	else if(s2[0]==0 && s2[1]==1) // tile 3
-		tile=4;
-	else if(s2[0]==2 && s2[1]==1) // tile 1
-		tile=2;
-	else if(s2[0]==3 && s2[1]==1) // tile 2
-		tile=3;
-	else if(s2[0]==0 && s2[1]==0) // tile 5
-		tile=6;
-	else if(s2[0]==1 && s2[1]==1) // tile 0
-		tile=1;
-		
-	if(section.y>1)
-		tile=-tile;
-		
-	return tile;
+	return vec4(x-c,y-c,z-c,c); // type 0
 }
 
 vec4 multi_perlin(int seed,int cubes,vec3 new_normal,float delta,int noise_type,bool grad) {
-	float start=0.5;
 	// vec4 perlin_and_delta(int seed,float scale,int cubes,vec3 new_normal,float delta,int type) {
-	vec4 p0=perlin_and_delta(seed,3.9,cubes,new_normal,delta,noise_type);
-	vec4 p1=perlin_and_delta(seed,1.2,cubes,new_normal,delta,noise_type)/3.0;
-	vec4 p2=perlin_and_delta(seed,0.371,cubes,new_normal,delta,noise_type)/9.0;
-	vec4 p3=perlin_and_delta(seed,0.104,cubes,new_normal,delta,noise_type)/27.0;
-	return 2.0*((p0+p1+p2+p3)/(1.0+1.0/3.0+1.0/9.0+1.0/27.0)+0.25);
+	vec4 result = vec4(0.0,0.0,0.0,0.0);
+	float weight=1.0;
+	float scale=scale_start;
+	float weight_sum = 0.0;
+	int type = noise_type;
+	if(type==3)
+		type=1;
+	for(int i=0;i<4;i++) {
+		result += perlin_and_delta(seed,scale,cubes,new_normal,delta,noise_type)*weight;
+		weight_sum+=weight;
+		weight*=weight_power;
+		scale*=scale_power;
+	}
+	if(noise_type==3)
+		result.w = sin(7.0*(new_normal.y+result.w));
+		result.xyz = -cos(7.0*(new_normal.y+result.xyz));
+//	vec4 p0=perlin_and_delta(seed,3.9,cubes,new_normal,delta,noise_type);
+//	vec4 p1=perlin_and_delta(seed,3.9*scale_power,cubes,new_normal,delta,noise_type)*weight_power;
+//	vec4 p2=perlin_and_delta(seed,3.9*scale_power*scale_power,cubes,new_normal,delta,noise_type)*weight_power*weight_power;
+//	vec4 p3=perlin_and_delta(seed,3.9*scale_power*scale_power*scale_power,cubes,new_normal,delta,noise_type)*weight_power*weight_power*weight_power;
+//	vec4 result = 2.0*((p0+p1+p2+p3)/(1.0+1.0/3.0+1.0/9.0+1.0/27.0));
+	result = 2.0*result/weight_sum;
+	result.w += perlin_bias;
+	return result;
 }
 
 void fragment() {
-	vec2 uvflip=vec2(UV.x,1.0-UV.y);
-	ivec2 section = ivec2(mod(uvflip*4.0,4.0));
-	int tile = tile_for_section(section);
+	vec2 uv_half = vec2(UV.x,UV.y*2.0);
+	bool make_normals = uv_half.y>1.0;
+	if(uv_half.y>1.0)
+		uv_half.y -= 1.0;
 	
-	if(tile==0)
+	vec3 normal = texture(xyz,vec2(uv_half.x,1.0-uv_half.y)).xyz;
+	if(UV.x>0.75)
 		COLOR=vec4(0.0,0.0,0.0,0.0);
 	else {
-		vec3 new_normal=normalize(sphere_normal_from_uv(uvflip,abs(tile)));
-		float delta=0.05;
-		vec4 perlin=multi_perlin(perlin_seed,perlin_cubes,new_normal,delta,perlin_type,true);
-		vec3 scaled=perlin.xyz*10.0;
-		vec3 perturbed_normal=normalize(new_normal*(1.0+normal_scale*scaled));
-//		vec3 binormal=normalize(cross(new_normal,tile_tangent(tile)));
-//		vec3 tangent=normalize(cross(binormal,new_normal));
-		if(tile>0)
-			COLOR=vec4(perlin.www,1.0);
-//			COLOR=vec4(perlin.w,dot(perturbed_normal,binormal)*0.5+0.5,
-//			           dot(perturbed_normal,tangent)*0.5+0.5,1.0);
-		else
-			COLOR=vec4(perturbed_normal*0.5+0.5,1.0);
+		float delta=0.03;
+		vec4 perlin=multi_perlin(perlin_seed,perlin_cubes,normal,delta,perlin_type,true);
+		if(make_normals) {
+			COLOR=vec4(clamp(perlin.xyz,-1.0,1.0)*0.5+0.5,1.0);
+		} else {
+			float w = perlin.w;
+			if(color_scheme==1)
+				w=interp_order5_scalar(w);
+			else
+				w*=w;
+			COLOR = vec4(w*color_scaling+color_addition,1.0);
+		}
 	}
 }

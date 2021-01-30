@@ -5,6 +5,7 @@ export var help_page: String = 'hulls'
 export var base_mass: float = 50
 export var base_thrust: float = 3000
 export var base_reverse_thrust: float = 800
+export var base_turn_thrust: float = 100
 export var base_shields: float = 800
 export var base_armor: float = 500
 export var base_structure: float = 300
@@ -12,7 +13,8 @@ export var heal_shields: float = 20
 export var heal_armor: float = 5
 export var heal_structure: float = 0
 export var base_drag: float = 1.5
-export var base_turn_rate: float = 2
+export var base_turn_drag: float = 1.5
+#export var base_turn_rate: float = 2
 export var base_threat: float = -1
 export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
@@ -28,6 +30,8 @@ var height: float = 5
 var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
+
+func is_ShipStats(): pass # for type detection; never called
 
 func save_transforms():
 	for child in get_children():
@@ -52,13 +56,17 @@ func init_ship_recursively(node: Node = self):
 			child.translation.y+=height
 		init_ship_recursively(child)
 
-func get_combined_aabb(node: Node = self):
-	var result: AABB = AABB()
-	if node is VisualInstance:
-		result = node.get_aabb()
-	for child in node.get_children():
-		result=result.merge(get_combined_aabb(child))
-	return result
+func get_combined_aabb(node: Node = self) -> AABB:
+	if override_size.length()>1e-5:
+		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
+		return AABB(-size*0.5,size)
+	else:
+		var result: AABB = AABB()
+		if node is VisualInstance:
+			result = node.get_aabb()
+		for child in node.get_children():
+			result=result.merge(get_combined_aabb(child))
+		return result
 
 func make_stats(node: Node, stats: Dictionary) -> Dictionary:
 	if node.has_method("add_stats"):
@@ -75,7 +83,7 @@ func repack_stats() -> Dictionary:
 func pack_stats(quiet: bool = false) -> Dictionary:
 	if not combined_stats.has('mass'):
 		if not quiet:
-			printerr('No stats in pack_stats! Making stats now.')
+			push_error('No stats in pack_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[]})
 	return combined_stats
 
@@ -85,10 +93,12 @@ func add_stats(stats: Dictionary) -> void:
 	stats['explosion_impulse']=base_explosion_impulse
 	stats['explosion_delay']=base_explosion_delay
 	stats['name']=name
-	stats['rid']=get_rid()
+	if is_inside_tree():
+		stats['rid']=get_rid()
 	stats['thrust']=base_thrust
 	stats['reverse_thrust']=base_reverse_thrust
-	stats['turn_rate']=base_turn_rate
+	stats['turn_thrust']=base_turn_thrust
+	#stats['turn_rate']=base_turn_rate
 	if base_threat<0:
 		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
 			heal_shields+heal_armor+heal_structure
@@ -100,11 +110,8 @@ func add_stats(stats: Dictionary) -> void:
 	stats['heal_shields']=heal_shields
 	stats['heal_armor']=heal_armor
 	stats['heal_structure']=heal_structure
-	if override_size.length()>1e-5:
-		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
-		stats['aabb']=AABB(-size*0.5,size)
-	else:
-		stats['aabb']=get_combined_aabb()
+	stats['aabb']=get_combined_aabb()
+	stats['turn_drag']=base_turn_drag
 	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
 	stats['team']=team
@@ -133,11 +140,7 @@ func update_stats():
 		else:
 			wep['node_path'] = child.get_path()
 			assert(not wep['node_path'].is_empty())
-	if override_size.length()>1e-5:
-		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
-		combined_stats['aabb']=AABB(-size*0.5,size)
-	else:
-		combined_stats['aabb']=get_combined_aabb()
+	combined_stats['aabb']=get_combined_aabb()
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
@@ -156,11 +159,11 @@ func get_bbcode() -> String:
 			if child.mount_type=='gun' or child.mount_type=='turret':
 				dps += child.damage / max(1.0/60,child.firing_delay)
 	
-	var s: Dictionary = pack_stats()
+	var s: Dictionary = pack_stats(true)
 	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
-	#var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n'
-	var bbcode = '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
-
+	var bbcode = '[b]Ship Design:[/b] [i]'+ship_display_name+'[/i]\n'
+	bbcode += '[b]ID:[/b] [code]'+name+'[/code]\n'
+	bbcode += '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
 	bbcode += '[cell] [/cell]'
@@ -172,7 +175,7 @@ func get_bbcode() -> String:
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Turn rate:',s['turn_rate'])
+	bbcode += make_cell('Turn RPM:',round(s['turn_thrust']/max(1e-9,s['turn_drag']*s['mass'])*100)/100)
 
 	bbcode += '[cell][/cell][cell][/cell]'
 	bbcode += '[cell] [/cell]'
@@ -206,7 +209,7 @@ func get_bbcode() -> String:
 func _ready():
 	var must_update: bool = false
 	if not combined_stats.has('mass'):
-		var _discard = pack_stats(true)
+		var _discard = pack_stats(false)
 	else:
 		must_update = true
 

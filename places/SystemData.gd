@@ -1,4 +1,4 @@
-extends Node
+extends simple_tree.SimpleNode
 
 var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
@@ -26,37 +26,67 @@ const default_fleets: Array = [
 	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':1 },
 ]
 
-const standalone_team_maximums: Array = [ 200,200 ]
-const standalone_max_ships: int = 300
-const debug_team_maximums: Array = [35, 35]
-const debug_max_ships: int = 60
-
-var team_maximums: Array = standalone_team_maximums
-var max_ships: int = standalone_max_ships
-
-var fleets: Array = default_fleets
+var fleets: Array
+var links: Dictionary
+var position: Vector3 setget set_position
+var plasma_seed: int
+var plasma_color: Color
+var starfield_seed: int
 
 var rng
+
+func set_position(v: Vector3):
+	position=Vector3(v.x,0.0,v.z)
 
 func is_a_system() -> bool: return true
 func is_a_planet() -> bool: return false
 
-func add_planet(var p):
-	add_child(p)
-	return self
+func is_SystemData(): pass # never called; must only exist
 
 func full_display_name():
 	return display_name
 
-func _init(the_name: String,the_fleets: Array=default_fleets):
-	display_name = the_name
-	fleets = the_fleets
+func get_SystemData_anscestor(): # -> SimpleNode or null
+	return self
+
+func encode() -> Dictionary:
+	var result = {
+		'display_name':display_name,
+		'position':position,
+		'links':links,
+		'plasma_seed':plasma_seed,
+		'starfield_seed':starfield_seed,
+		'plasma_color':plasma_color,
+	}
+	if fleets!=default_fleets:
+		result['fleets']=fleets.duplicate(true)
+	return result
+
+func getdict(content: Dictionary, key, default):
+	var result = content.get(key,null)
+	return default if result==null else result
+
+func decode(content: Dictionary):
+	display_name = content.get('display_name','(unnamned)')
+	fleets = getdict(content,'fleets',default_fleets)
+	links = getdict(content,'links',{})
+	plasma_seed = getdict(content,'plasma_seed',320918)
+	starfield_seed = getdict(content,'starfield_seed',987686)
+	plasma_color = getdict(content,'plasma_color',Color(0.07,0.07,.18,1.0))
+	set_position(getdict(content,'position',Vector3()))
+
+func _init(the_name,content: Dictionary):
+	decode(content)
+	if the_name:
+		set_name(the_name)
 	rng = RandomNumberGenerator.new()
 	rng.randomize()
-	if not OS.has_feature('standalone'):
-		print('Reducing ship count for debug build')
-		max_ships = debug_max_ships
-		team_maximums = debug_team_maximums
+	var objects = content.get('objects',{})
+	if objects and objects is Dictionary:
+		for key in objects:
+			var object = objects[key]
+			if object and object is simple_tree.SimpleNode:
+				var _discard = add_child(object,key)
 
 func increment_counter() -> int:
 	counter+=1
@@ -66,23 +96,23 @@ func get_display_name() -> String:
 	return display_name
 
 func num_planets():
-	var n=0
-	for child in get_children():
-		if child.is_a_planet():
-			n += 1+child.num_planets()
-	return n
+	return get_child_count()
+#	var n=0
+#	for child in get_children():
+#		if child.is_a_planet():
+#			n += 1+child.get_child_count()
+#	return n
 
 func astral_gate_path() -> NodePath:
 	for child in get_children():
-		if not child.is_a_planet():
-			continue
-		var p: NodePath = child.astral_gate_path()
-		if not p.is_empty():
-			return p
+		if child.has_method('astral_gate_path'):
+			var p: NodePath = child.astral_gate_path()
+			if not p.is_empty():
+				return p
 	return NodePath()
 
-func spawn_ship(var _system,var ship_design: Dictionary,team: int,angle: float,
-		add_radius: float,safe_zone: float,
+func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
+		team: int,angle: float,add_radius: float,safe_zone: float,
 		random_x: float, random_z: float, center: Vector3, is_player: bool):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
@@ -101,7 +131,10 @@ func fleet_size(var fleet: Array) -> int:
 
 func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	var planets: Array = system.get_node("Planets").get_children()
-	var planet: Spatial = planets[randi()%len(planets)]
+	var center: Vector3 = Vector3()
+	if planets:
+		var planet: Spatial = planets[randi()%len(planets)]
+		center = planet.translation
 	var result: Array = Array()
 	var add_radius = 100*sqrt(rng.randf())
 	var safe_zone = 25
@@ -109,11 +142,12 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	for num_ship in fleet:
 		for _n in range(num_ship[0]):
 			var design_name: String = num_ship[1]
-			if design_name in game_state.ship_designs:
+			var design = game_state.ship_designs.get_node_or_null(design_name)
+			if design:
 				result.push_back(spawn_ship(
-					system,game_state.ship_designs[design_name],team,
+					system,design,team,
 					angle,add_radius,randf()*10-5,randf()*10-5,
-					safe_zone,planet.translation,false))
+					safe_zone,center,false))
 			else:
 				printerr('No such design: ',design_name)
 	return result
@@ -134,20 +168,23 @@ func process_space(system,delta) -> Array:
 		var size: int = fleet_size(fleet['ships'])
 		var team: int = fleet['team']
 		var enemy: int = 1-team
-		if stats[team]['count']+size>team_maximums[team]:
+		if stats[team]['count']+size>game_state.team_maximums[team]:
 			continue
 		if stats[team]['threat'] > stats[enemy]['threat']*1.5 and stats[team]['count']>1:
 			continue
-		if stats[team]['count']+stats[enemy]['count']+size > max_ships:
+		if stats[team]['count']+stats[enemy]['count']+size > game_state.max_ships:
 			continue
 		result += spawn_fleet(system,fleet['ships'],team)
 		stats[team]['count'] += size
 	return result
 
-func fill_system(var system,planet_time: float,ship_time: float,detail: float) -> Array:
+func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true) -> Array:
+	system.update_space_background(self)
 	for child in get_children():
 		if child.is_a_planet():
-			child.fill_system(system,planet_time,ship_time,detail)
+			child.fill_system(system,planet_time,ship_time,detail,ships)
+	if not ships:
+		return []
 	var result = [spawn_player(system,planet_time)]
 	result += process_space(system,ship_time)
 	return result

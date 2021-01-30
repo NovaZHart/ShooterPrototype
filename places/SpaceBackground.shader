@@ -11,7 +11,7 @@ uniform float star_exponent=1.12;
 uniform int star_seed=91312;
 uniform int star_min=8;
 uniform int star_max=18;
-uniform vec3 color = vec3(0.4,0.4,1.0);
+uniform vec4 color = vec4(0.4,0.4,1.0,1.0);
 uniform bool make_plasma = true;
 uniform bool make_stars = false;
 uniform int pixels_per_star = 8000;
@@ -155,6 +155,20 @@ vec4 mult(int seed,vec2 uv,int min_scale,int max_scale,float weight_scale) {
 	return result*weight;
 }
 
+//vec3 kelvin_to_rgb(float kelvin) {
+//	if(kelvin<1000.0)
+//		return mix(vec3(0.5,0.0,0.0),vec3(1.0,0.2,0.0),kelvin/1000.0);
+//	else if(kelvin<4000.0)
+//		return mix(vec3(1.0,0.2,0.0),vec3(1.0,0.8,0.6),(kelvin-1000.0)/3000.0);
+//	else if(kelvin<6600.0)
+//		return mix(vec3(1.0,0.8,0.6),vec3(1.0,1.0,1.0),(kelvin-4000.0)/2600.0);
+//	else if(kelvin<40000.0)
+//		return mix(vec3(1.0,1.0,1.0),vec3(0.6,0.75,1.0),(kelvin-6600.0)/33400.0);
+//	else if(kelvin<1e6)
+//		return mix(vec3(0.6,0.75,1.0),vec3(0.0,0.0,0.5),kelvin/1e6);
+//	return vec3(0.0,0.0,0.5);
+//}
+
 void light() {}
 
 void fragment() {
@@ -162,7 +176,7 @@ void fragment() {
 	vec3 prgb,mhsv,mrgb;
 	if(make_plasma) {
 		prgbw = plasma(plasma_seed,UV,2<<plasma_min,2<<plasma_max,plasma_exponent);
-		prgb=vec3(prgbw.r*color.r,prgbw.g*color.g,prgbw.b*color.b)*pow(prgbw.w,3);
+		prgb=vec3(prgbw.r*color.r,prgbw.g*color.g,prgbw.b*color.b)*prgbw.w*prgbw.w*prgbw.w;
 	}
 	if(make_stars) {
 		m = mult(star_seed,UV,2<<star_min,2<<star_max,star_exponent);
@@ -176,7 +190,7 @@ void fragment() {
 			vec3 combined=(mrgb*4.0+prgb)/5.0;
 			COLOR=vec4(combined.r,combined.g,combined.b,1.0);
 		} else
-			COLOR=vec4(prgb.r/10.0,prgb.g/10.0,prgb.b/2.0,1.0);
+			COLOR=vec4(prgb.r,prgb.g,prgb.b,1.0);
 	} else if(make_stars)
 		//COLOR=vec4(mrgb.r*0.8,mrgb.g*0.8,mrgb.b*0.8,1.0); //step(m.a,0.02));
 		//COLOR=vec4(pow(m.r,.25),pow(m.g,.25),pow(m.b,.25),step(m.a,0.25));

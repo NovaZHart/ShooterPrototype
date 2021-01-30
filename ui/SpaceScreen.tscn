@@ -42,6 +42,7 @@ pause_mode = 2
 script = ExtResource( 2 )
 
 [node name="System" parent="." instance=ExtResource( 1 )]
+pause_mode = 1
 
 [node name="PlayerInfo" type="Node2D" parent="System"]
 script = ExtResource( 7 )

@@ -16,8 +16,8 @@ var player_orders_mutex: Mutex = Mutex.new()
 var ship_stats_requests: Dictionary = Dictionary()
 var ship_stats_requests_mutex: Mutex = Mutex.new()
 
-var terminate_ship_maker: bool = false
-var ship_maker_thread: Thread = Thread.new()
+#var terminate_ship_maker: bool = false
+#var ship_maker_thread: Thread = Thread.new()
 var ships_to_spawn: Array = Array()
 var ship_maker_mutex: Mutex = Mutex.new()
 
@@ -37,6 +37,18 @@ signal view_center_changed          #<-- visual thread
 signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
+
+func player_has_a_ship() -> bool:
+	return $Ships.get_node_or_null(player_ship_name)!=null
+
+func update_space_background(from=null):
+	if from==null:
+		from=game_state.system
+	var result = $SpaceBackground.update_from(from)
+	while result is GDScriptFunctionState and result.is_valid():
+		result = yield(result,'completed')
+	if not result:
+		push_error('space background regeneration failed')
 
 func get_player_rid() -> RID:
 	var player_ship = $Ships.get_node_or_null(player_ship_name)
@@ -171,15 +183,15 @@ func pack_planet_stats_if_not_sent() -> Array:
 		sent_planets = true
 	return new_planets_packed
 
-func make_ships(_ignored):
-	while not terminate_ship_maker:
-		ship_maker_mutex.lock()
-		var spawn_me = ships_to_spawn.pop_front()
-		ship_maker_mutex.unlock()
-		if spawn_me==null:
-			OS.delay_usec(100)
-		else:
-			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
+#func make_ships(_ignored):
+#	while not terminate_ship_maker:
+#		ship_maker_mutex.lock()
+#		var spawn_me = ships_to_spawn.pop_front()
+#		ship_maker_mutex.unlock()
+#		if spawn_me==null:
+#			OS.delay_usec(100)
+#		else:
+#			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
 func _physics_process(delta):
 	physics_tick += 1
@@ -188,6 +200,9 @@ func _physics_process(delta):
 	
 	ship_maker_mutex.lock()
 	ships_to_spawn = ships_to_spawn + make_me
+	var front = ships_to_spawn.pop_front()
+	if front:
+		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
 	
 	team_stats_mutex.lock()
@@ -280,9 +295,9 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 	if is_player:
 		receive_player_orders({})
 
-func spawn_ship(var ship_design: Dictionary, rotation: Vector3, translation: Vector3,
+func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		team: int, is_player: bool) -> void:
-	var ship = game_state.assemble_ship(ship_design)
+	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
 	ship.translation=translation
@@ -340,13 +355,13 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)
-	if ship_maker_thread.start(self,'make_ships',null)!=OK:
-		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
+#	if ship_maker_thread.start(self,'make_ships',null)!=OK:
+#		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
 
-func _exit_tree() -> void:
-	terminate_ship_maker=true
-	if ship_maker_thread.is_active():
-		ship_maker_thread.wait_to_finish()
+#func _exit_tree() -> void:
+#	terminate_ship_maker=true
+#	if ship_maker_thread.is_active():
+#		ship_maker_thread.wait_to_finish()
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size

@@ -1,6 +1,6 @@
 extends Node
 
-const MeshLoadingThread = preload('res://MeshLoadingThread.gd')
+const MeshLoadingThread = preload('res://globals/MeshLoadingThread.gd')
 var mesh_loading_thread = null
 var mesh_mutex: Mutex = Mutex.new()
 var meshes: Dictionary
