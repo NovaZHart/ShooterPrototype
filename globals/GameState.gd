@@ -22,6 +22,7 @@ var tree
 var universe
 var systems
 var ship_designs
+var fleets
 var player_ship_design
 
 signal console_append
@@ -213,6 +214,7 @@ func _init():
 	assert(tree.root_==universe)
 	assert(tree.root_.children_.has('ship_designs'))
 	assert(tree.root_.children_.has('systems'))
+	assert(tree.root_.children_.has('fleets'))
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
 	universe.load_places_from_json('res://places/universe.json')
@@ -220,6 +222,7 @@ func _init():
 	assert(tree.root_.children_.has('systems'))
 	ship_designs = universe.ship_designs
 	systems = universe.systems
+	fleets = universe.fleets
 	assert(ship_designs)
 	assert(ship_designs is simple_tree.SimpleNode)
 	assert(not ship_designs.has_method('is_SpaceObjectData'))

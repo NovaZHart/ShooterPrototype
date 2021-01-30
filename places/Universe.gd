@@ -6,6 +6,7 @@ const SystemData = preload('res://places/SystemData.gd')
 var player_ship_design_name = 'player_ship_design'
 var systems: simple_tree.SimpleNode
 var ship_designs: simple_tree.SimpleNode
+var fleets: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 
@@ -25,6 +26,9 @@ func _init():
 	ship_designs = simple_tree.SimpleNode.new()
 	ship_designs.set_name('ship_designs')
 	assert(add_child(ship_designs))
+	fleets = simple_tree.SimpleNode.new()
+	fleets.set_name('fleets')
+	assert(add_child(fleets))
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -204,6 +208,72 @@ func decode_ShipDesign(v):
 
 
 
+class Fleet extends simple_tree.SimpleNode:
+	var spawn_info: Dictionary = {}
+	var display_name: String = 'Unnamed'
+	func _init(display_name_, spawn_info_ = {}):
+		display_name = display_name_
+		set_spawn_info(spawn_info_)
+	func set_spawn_info(dict: Dictionary):
+		spawn_info.clear()
+		for key in dict:
+			if not key is String or not key:
+				push_warning('Ignoring invalid design name '+str(key))
+				continue
+			var value = dict[key]
+			var type = typeof(value)
+			if type!=TYPE_INT and type!=TYPE_REAL:
+				push_warning('Ignoring non-numeric count '+str(value)+' for design name '+key)
+				continue
+			var as_int = int(value)
+			if as_int>0:
+				spawn_info[key] = as_int
+			else:
+				push_warning('Design '+key+' has no ships: int(count)=int('+str(value)+')='+str(as_int))
+				continue
+	func add_spawn(design_name: String,count: int):
+		print('add_spawn(',design_name,',',str(count),')')
+		if count==0:
+			push_warning('Ignoring request to add no ships of type '+display_name)
+			return
+# warning-ignore:narrowing_conversion
+		var new_count: int = max(0, count + spawn_info.get(design_name,0))
+		if new_count:
+			spawn_info[design_name] = new_count
+		else:
+			print('Adding '+str(count)+' ships of type '+design_name+' reduces it to zero; removing design from spawns.')
+			remove_spawn(design_name)
+	func set_spawn(design_name: String,count: int):
+		if count>0:
+			spawn_info[design_name] = count
+		else:
+			remove_spawn(design_name)
+	func remove_spawn(design_name: String):
+		var _discard = spawn_info.erase(design_name)
+	func get_designs() -> Array:
+		return spawn_info.keys()
+	func spawn_count_for(design_name: String) -> int:
+		return spawn_info.get(design_name,0)
+	func as_dict() -> Dictionary:
+		return spawn_info.duplicate(true)
+
+func encode_Fleet(f: Fleet):
+	return [ 'Fleet', str(f.display_name), encode_helper(f.spawn_info) ]
+
+func decode_Fleet(v):
+	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='Fleet':
+		return null
+	var display_name = decode_helper(v[1])
+	if not display_name is String:
+		push_warning('Encoded fleet display name is not a String.')
+		display_name = str(display_name)
+	var spawn_info = decode_helper(v[2])
+	if not spawn_info is Dictionary:
+		push_error('Encoded fleet spawn info is not a Dictionary.')
+		return null
+	return Fleet.new(display_name,spawn_info)
+
+
 func save_places_as_json(filename: String) -> bool:
 	print('save to file "',filename,'"')
 	var encoded: String = encode_places()
@@ -218,6 +288,7 @@ func save_places_as_json(filename: String) -> bool:
 func load_places_from_json(filename: String) -> bool:
 	assert(children_.has('systems'))
 	assert(children_.has('ship_designs'))
+	assert(children_.has('fleets'))
 	print('load from file "',filename,'"')
 	var file: File = File.new()
 	if file.open(filename, File.READ):
@@ -229,24 +300,19 @@ func load_places_from_json(filename: String) -> bool:
 	if game_state and game_state.system:
 		system_name = game_state.system.get_name()
 	var success = decode_places(encoded,filename)
-	assert(children_.has('systems'))
-	assert(children_.has('ship_designs'))
 	emit_signal('reset_system')
-	assert(children_.has('systems'))
-	assert(children_.has('ship_designs'))
 	if game_state:
 		if system_name:
 			var system = game_state.systems.get_node_or_null(system_name)
 			if system:
 				game_state.system = system
-	assert(children_.has('systems'))
-	assert(children_.has('ship_designs'))
 	return success
 
 
 
 func decode_places(json_string,context: String) -> bool:
 	assert(children_.has('systems'))
+	assert(children_.has('fleets'))
 	assert(children_.has('ship_designs'))
 	var parsed: JSONParseResult = JSON.parse(json_string)
 	if parsed.error:
@@ -256,8 +322,6 @@ func decode_places(json_string,context: String) -> bool:
 	if not content is Dictionary:
 		printerr(context+': error: can only load systems from a Dictionary!')
 		return false
-	assert(children_.has('systems'))
-	assert(children_.has('ship_designs'))
 	links.clear()
 
 	var content_designs = content['ship_designs']
@@ -275,6 +339,18 @@ func decode_places(json_string,context: String) -> bool:
 	else:
 		push_error(context+': no ship_designs to load')
 		return false
+	
+	var content_fleets = content['fleets']
+	if content_fleets:
+		fleets.remove_all_children()
+		for fleet_name in content_fleets.get_child_names():
+			var fleet = content_fleets.get_child_with_name(fleet_name)
+			if not fleet or not fleet is Fleet:
+				push_error('Invalid fleet with name '+fleet_name)
+			elif not content_fleets.remove_child(fleet):
+				push_error('Unable to remove fleet '+fleet_name+' from internal data')
+			elif not fleets.add_child(fleet):
+				push_error('Unable to add fleet with name '+fleet_name)
 
 	var content_systems = content['systems']
 	if not content_systems or not content_systems is simple_tree.SimpleNode:
@@ -324,6 +400,8 @@ func decode_helper(what,key=null):
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
 		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
+		elif what[0] == 'Fleet':
+			return decode_Fleet(what)
 		elif what[0] == 'MultiMounted':
 			return decode_MultiMounted(what)
 		elif what[0] == 'MultiMount':
@@ -369,6 +447,8 @@ func encode_helper(what):
 		return [ 'Vector3', what.x, what.y, what.z ]
 	elif what is Color:
 		return [ 'Color', what.r, what.g, what.b, what.a ]
+	elif what is Fleet:
+		return encode_Fleet(what)
 	elif what is MultiMounted:
 		return encode_MultiMounted(what)
 	elif what is MultiMount:

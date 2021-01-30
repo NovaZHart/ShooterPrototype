@@ -1086,5 +1086,75 @@
         }
       ]
     }
+  ],
+  "fleets": [
+    "SimpleNode",
+    {
+      "raven_duo_cyclotrons": [
+        "Fleet",
+        "Raven Duo (Cyclotrons)",
+        {
+          "warship_cyclotrons": 2
+        }
+      ],
+      "eagle_duo_cyclotrons": [
+        "Fleet",
+        "Eagle Duo (Cyclotrons)",
+        {
+          "curvy_cyclotrons": 2
+        }
+      ],
+      "eagle_peregrine_lasers": [
+        "Fleet",
+        "Eagle and Peregrine (Lasers)",
+        {
+          "warship_lasers": 1,
+          "interceptor_lasers": 1
+        }
+      ],
+      "raven_peregrine_cyclotrons": [
+        "Fleet",
+        "Raven and Peregrine (Cyclotrons)",
+        {
+          "curvy_cyclotrons": 1,
+          "interceptor_cyclotrons": 1
+        }
+      ],
+      "peregrine_trio_lasers": [
+        "Fleet",
+        "Peregrine Trio (Lasers)",
+        {
+          "interceptor_lasers": 3
+        }
+      ],
+      "peregrine_trio_cyclotrons": [
+        "Fleet",
+        "Peregrine Trio (Cyclotrons)",
+        {
+          "interceptor_cyclotrons": 3
+        }
+      ],
+      "condor_lasers": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "heavy_lasers": 1
+        }
+      ],
+      "condor_cyclotrons": [
+        "Fleet",
+        "Condor (Cyclotrons)",
+        {
+          "heavy_cyclotrons": 1
+        }
+      ],
+      "banner_ship": [
+        "Fleet",
+        "Banner Ship",
+        {
+          "banner_default": 1
+        }
+      ]
+    }
   ]
 }

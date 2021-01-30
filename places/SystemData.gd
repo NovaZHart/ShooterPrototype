@@ -4,28 +4,27 @@ var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
 const default_fleets: Array = [
-	{ 'frequency':900, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':0 },
-	{ 'frequency':900, 'ships':[ [2, 'curvy_cyclotrons'] ], 'team':0 },
-	{ 'frequency':900, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':0 },
-	{ 'frequency':900, 'ships':[ [1, 'curvy_cyclotrons'], [1, 'interceptor_cyclotrons' ] ], 'team':0 },
-	{ 'frequency':1200, 'ships':[ [3, 'interceptor_lasers'] ], 'team':0 },
-	{ 'frequency':600, 'ships':[ [3, 'interceptor_lasers'] ], 'team':0 },
-	{ 'frequency':450, 'ships':[ [1, 'heavy_lasers'], ], 'team':0 },
-	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':0 },
-	{ 'frequency':100, 'ships':[ [1, 'banner_default'], ], 'team':0 },
+	{ 'frequency':900, 'fleet':'raven_duo_cyclotrons', 'team':0 },
+	{ 'frequency':900, 'fleet':'eagle_duo_cyclotrons', 'team':0 },
+	{ 'frequency':900, 'fleet':'eagle_peregrine_lasers', 'team':0 },
+	{ 'frequency':900, 'fleet':'raven_peregrine_cyclotrons', 'team':0 },
+	{ 'frequency':1200, 'fleet':'peregrine_trio_lasers', 'team':0 },
+	{ 'frequency':600, 'fleet':'peregrine_trio_cyclotrons', 'team':0 },
+	{ 'frequency':450, 'fleet':'condor_lasers', 'team':0 },
+	{ 'frequency':450, 'fleet':'condor_cyclotrons', 'team':0 },
+	{ 'frequency':100, 'fleet':'banner_ship', 'team':0 },
 	
 #	{ 'frequency':60, 'ships':[ [1, 'bannership_default'], [1, 'interceptor_default'] ], 'team':0 },
 
-	{ 'frequency':900, 'ships':[ [2, 'warship_cyclotrons'] ], 'team':1 },
-	{ 'frequency':900, 'ships':[ [2, 'curvy_cyclotrons'] ], 'team':1 },
-	{ 'frequency':900, 'ships':[ [1, 'warship_lasers'], [1, 'interceptor_lasers' ] ], 'team':1 },
-	{ 'frequency':900, 'ships':[ [1, 'curvy_cyclotrons'], [1, 'interceptor_cyclotrons' ] ], 'team':1 },
-	{ 'frequency':1200, 'ships':[ [3, 'interceptor_lasers'] ], 'team':1 },
-	{ 'frequency':600, 'ships':[ [3, 'interceptor_lasers'] ], 'team':1 },
-	{ 'frequency':450, 'ships':[ [1, 'heavy_lasers'], ], 'team':1 },
-	{ 'frequency':450, 'ships':[ [1, 'heavy_cyclotrons'], ], 'team':1 },
+	{ 'frequency':900, 'fleet':'raven_duo_cyclotrons', 'team':1 },
+	{ 'frequency':900, 'fleet':'eagle_duo_cyclotrons', 'team':1 },
+	{ 'frequency':900, 'fleet':'eagle_peregrine_lasers', 'team':1 },
+	{ 'frequency':900, 'fleet':'raven_peregrine_cyclotrons', 'team':1 },
+	{ 'frequency':1200, 'fleet':'peregrine_trio_lasers', 'team':1 },
+	{ 'frequency':600, 'fleet':'peregrine_trio_cyclotrons', 'team':1 },
+	{ 'frequency':450, 'fleet':'condor_lasers', 'team':1 },
+	{ 'frequency':450, 'fleet':'condor_cyclotrons', 'team':1 },
 ]
-
 var fleets: Array
 var links: Dictionary
 var position: Vector3 setget set_position
@@ -129,7 +128,7 @@ func fleet_size(var fleet: Array) -> int:
 		result += size
 	return result
 
-func spawn_fleet(system, fleet: Array,team: int) -> Array:
+func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array,team: int) -> Array:
 	var planets: Array = system.get_node("Planets").get_children()
 	var center: Vector3 = Vector3()
 	if planets:
@@ -139,9 +138,9 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	var add_radius = 100*sqrt(rng.randf())
 	var safe_zone = 25
 	var angle = rng.randf()*2*PI
-	for num_ship in fleet:
-		for _n in range(num_ship[0]):
-			var design_name: String = num_ship[1]
+	for design_name in design_names:
+		var num_ships = int(fleet_node.spawn_count_for(design_name))
+		for _n in range(num_ships):
 			var design = game_state.ship_designs.get_node_or_null(design_name)
 			if design:
 				result.push_back(spawn_ship(
@@ -149,7 +148,8 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 					angle,add_radius,randf()*10-5,randf()*10-5,
 					safe_zone,center,false))
 			else:
-				printerr('No such design: ',design_name)
+				push_warning('Fleet '+str(fleet_node.get_path())+
+					' wants to spawn missing design '+str(design.get_path()))
 	return result
 
 func spawn_player(system: Spatial,t: float):
@@ -165,7 +165,12 @@ func process_space(system,delta) -> Array:
 	for fleet in fleets:
 		if rng.randf_range(0.0,1.0) > delta*fleet['frequency']/3600:
 			continue
-		var size: int = fleet_size(fleet['ships'])
+		var fleet_name = fleet['fleet']
+		var fleet_node: simple_tree.SimpleNode = game_state.fleets.get_child_with_name(fleet_name)
+		if not fleet_node:
+			push_warning('System '+str(get_path())+' wants to spawn missing fleet "'+fleet_name+'"')
+		var designs = fleet_node.get_designs()
+		var size: int = len(designs)
 		var team: int = fleet['team']
 		var enemy: int = 1-team
 		if stats[team]['count']+size>game_state.team_maximums[team]:
@@ -174,7 +179,7 @@ func process_space(system,delta) -> Array:
 			continue
 		if stats[team]['count']+stats[enemy]['count']+size > game_state.max_ships:
 			continue
-		result += spawn_fleet(system,fleet['ships'],team)
+		result += spawn_fleet(system,fleet_node,designs,team)
 		stats[team]['count'] += size
 	return result
 
