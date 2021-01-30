@@ -241,5 +241,5 @@ func _init():
 	services['info'] = PlanetServices.PlanetDescription.new(
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
-		'Shipyard',preload('res://ui/ships/ShipEditor.tscn'))
+		'Shipyard',load('res://ui/ships/ShipDesignScreen.tscn'))
 	

@@ -166,7 +166,6 @@ func remove_selected_item() -> bool:
 		push_warning('Tried to remove a selected item when none was selected (selection='+str(selection)+')')
 		return false
 	elif selected_node.my_x<0 or selected_node.my_y<0:
-		print('remove from single mount')
 		return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
 			selected_node.mount_name, selected_node.my_x, selected_node.my_y))
 	var parent = selected_node.get_parent()
@@ -178,11 +177,6 @@ func remove_selected_item() -> bool:
 	if not item:
 		push_warning('Multimount slot has no item (selection='+str(selection)+')')
 		return false
-	print('remove from multimount')
-	print(selected_scene.resource_path)
-	print(parent.name)
-	print(item.item_offset_x)
-	print(item.item_offset_y)
 	return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
 		parent.name, item.item_offset_x, item.item_offset_y))
 
@@ -268,7 +262,6 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 	return universe_edits.state.push(ship_edits.AddItem.new(scene,mount_name,x,y))
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
-	print('add item '+str(scene.resource_path)+' '+mount_name+' '+str(x)+' '+str(y))
 	var item = scene.instance()
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount or not mount is MountData:
@@ -276,11 +269,9 @@ func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 		return false
 	var content = InventoryContent.new()
 	content.create(mount.transform.origin,item.item_size_x,item.item_size_y,item.mount_type,scene,x,y)
-	print('try to mount...')
 	return try_to_mount(content, mount_name, true)
 
 func remove_item(_scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
-	print('unmount from ship design view')
 	return unmount(mount_name,x,y)
 
 func unmount(mount_name: String,x: int,y: int) -> bool:
@@ -322,7 +313,6 @@ func unmount(mount_name: String,x: int,y: int) -> bool:
 		return true
 
 func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bool:
-	print('place in multimount '+str(content)+' '+str(mount)+' '+str(use_item_offset))
 	# Install a component (area) in the multimount.
 	# The location is based on the area location and item size.
 	var inventory_array = $Viewport.get_node_or_null(mount.box)
@@ -335,10 +325,7 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 		return false
 	var x_y = inventory_array.insert_at_grid_range(content,use_item_offset)
 	if not x_y:
-		push_warning('no x_y insert at grid range for '+mount.get_name())
 		return false
-	
-	assert(content.mount_type==mount.mount_type)
 	
 	var x: int = x_y[0]
 	var y: int = x_y[1]
@@ -400,6 +387,32 @@ func copy_to_installed(installed_name: String,child,display_location: Vector3) -
 	if area.name != installed_name:
 		printerr('Godot renamed installed item to '+area.name+' so I will not be able to remove it.')
 	return area.get_path()
+
+func make_design(design_id,display_name) -> Dictionary:
+	var ship = tree.get_node_or_null('/root/Ship')
+	if not ship:
+		push_error("Cannot encode a ship's design until a ship is loaded.")
+	var hull_scene = ship.hull
+	assert(hull_scene)
+	assert(hull_scene is PackedScene)
+	var design = game_state.universe.ShipDesign.new(display_name,hull_scene)
+	design.set_name(design_id)
+	for mount_name in mounts.get_child_names():
+		var mount = mounts.get_child_with_name(mount_name)
+		if not mount:
+			# Should never get here.
+			push_error('Internal error: mount has no child with a name from get_child_names')
+		elif mount.multimount:
+			var node = get_node_or_null(mount.box)
+			if node==null:
+				printerr('null node for mount ',mount_name,' path ',str(mount.box))
+			var content: simple_tree.SimpleNode = node.content_for_design(mount_name)
+			design.add_child(content)
+		elif mount.scene:
+			var mounted = game_state.universe.Mounted.new(mount.scene)
+			mounted.set_name(mount_name)
+			design.add_child(mounted)
+	return design
 
 func make_ship(design):
 	clear_ship()
@@ -492,10 +505,7 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# Install the item (area) in the specified mount, which may be a single
 	# or multimount.
-	print('try to mount '+str(content)+' '+str(mount_name)+' '+str(use_item_offset))
-	print(' content type => "'+content.mount_type+'"')
 	var mount = mounts.get_node_or_null(mount_name)
-	print(' mount type => "'+mount.mount_type+'"')
 	if not mount:
 		push_warning('no mounts for '+mount_name)
 		return false

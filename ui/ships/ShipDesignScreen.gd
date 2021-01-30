@@ -1,9 +1,10 @@
 extends game_state.ShipEditorStub
 
+export var game_editor_mode: bool = false
+
 var drag_scene
 
 func set_drag_scene(scene: PackedScene):
-	push_warning('set drag scene '+scene.resource_path)
 	assert(scene!=null)
 	assert(scene is PackedScene)
 	var old = $Drag/View.get_node_or_null('Item')
@@ -54,6 +55,22 @@ func _input(event):
 	elif event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
+	elif event.is_action_released('ui_cancel'):
+		if game_editor_mode:
+			pass # FIXME
+		else:
+			exit_to_orbit()
+	
+func exit_to_orbit():
+	var design = $All/Ship.make_design(
+		'player_ship_design','Unnamed Player Ship Design')
+	var node = game_state.ship_designs.get_node_or_null('player_ship_design')
+	if node:
+		game_state.ship_designs.remove_child(node)
+	game_state.ship_designs.add_child(design)
+	game_state.player_ship_design=design
+	game_state.switch_editors(null)
+	var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
 func _ready():
 	$Drag/View.transparent_bg = true
@@ -86,7 +103,6 @@ func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 	return $All/Ship.add_item(scene,mount_name,x,y)
 
 func remove_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
-	print('pass remove_item to ship design view')
 	return $All/Ship.remove_item(scene,mount_name,x,y)
 
 func show_edited_design_info():
