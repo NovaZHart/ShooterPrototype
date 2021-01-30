@@ -171,6 +171,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 
 	func assemble_ship() -> Node:
 		var body = hull.instance()
+		body.ship_display_name = display_name
 		if body == null:
 			push_error('assemble_ship: cannot instance scene: '+body)
 			return Node.new()

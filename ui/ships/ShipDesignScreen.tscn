@@ -33,23 +33,23 @@ __meta__ = {
 }
 
 [node name="Shop" type="VSplitContainer" parent="All"]
-margin_right = 380.0
+margin_right = 328.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.5
+size_flags_stretch_ratio = 1.2
 
 [node name="Info" parent="All/Shop" instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 380.0
+margin_right = 328.0
 margin_bottom = 236.0
 size_flags_stretch_ratio = 2.0
 allow_input = false
 
 [node name="Tabs" type="TabContainer" parent="All/Shop"]
 margin_top = 244.0
-margin_right = 380.0
+margin_right = 328.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -82,11 +82,61 @@ margin_bottom = -5.0
 show_ships = true
 initial_scale = 8.0
 
-[node name="Ship" parent="All" instance=ExtResource( 2 )]
+[node name="Show" type="Panel" parent="All"]
+margin_left = 336.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.5
+
+[node name="Grid" type="GridContainer" parent="All/Show"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Top" type="GridContainer" parent="All/Show/Grid"]
+margin_right = 688.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+columns = 4
+
+[node name="IDLabel" type="Label" parent="All/Show/Grid/Top"]
+margin_right = 24.0
+margin_bottom = 23.0
+text = "ID"
+
+[node name="IDEdit" type="LineEdit" parent="All/Show/Grid/Top"]
+margin_left = 28.0
+margin_right = 306.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "(alphanumeric key)"
+
+[node name="NameLabel" type="Label" parent="All/Show/Grid/Top"]
+margin_left = 310.0
+margin_right = 406.0
+margin_bottom = 23.0
+text = "Design Name"
+
+[node name="NameEdit" type="LineEdit" parent="All/Show/Grid/Top"]
+margin_left = 410.0
+margin_right = 688.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+placeholder_text = "(Human-Readable Ship Name)"
+
+[node name="Ship" parent="All/Show/Grid" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_left = 388.0
-margin_right = 1024.0
+margin_top = 27.0
+margin_right = 688.0
 margin_bottom = 600.0
 size_flags_stretch_ratio = 2.5
 
@@ -121,15 +171,49 @@ transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62
 projection = 1
 current = true
 size = 2.16
+
+[node name="FileDialog" type="FileDialog" parent="."]
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.9
+popup_exclusive = true
+resizable = true
+filters = PoolStringArray( "*.json ; JSON Files" )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+popup_exclusive = true
+window_title = "Exit without saving?"
+dialog_text = "Exit without saving?"
 [connection signal="deselect_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
 [connection signal="drag_selection" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
 [connection signal="select_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_select_item"]
 [connection signal="deselect_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_deselect_item"]
 [connection signal="drag_selection" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_drag_selection"]
 [connection signal="select_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_select_item"]
+[connection signal="add_design" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_add_design"]
+[connection signal="change_design" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_change_design"]
 [connection signal="deselect_item" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_deselect_item"]
+[connection signal="edit_design" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_edit_design"]
+[connection signal="remove_design" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_remove_design"]
 [connection signal="select_item" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_select_item"]
-[connection signal="deselect_item" from="All/Ship" to="." method="_on_Ship_deselect_item"]
-[connection signal="drag_selection" from="All/Ship" to="." method="_on_Ship_drag_selection"]
-[connection signal="pixel_height_changed" from="All/Ship" to="." method="_on_Ship_pixel_height_changed"]
-[connection signal="select_item" from="All/Ship" to="." method="_on_Ship_select_item"]
+[connection signal="focus_exited" from="All/Show/Grid/Top/IDEdit" to="." method="_on_IDEdit_focus_exited"]
+[connection signal="text_entered" from="All/Show/Grid/Top/IDEdit" to="." method="_on_IDEdit_text_entered"]
+[connection signal="focus_exited" from="All/Show/Grid/Top/NameEdit" to="." method="_on_NameEdit_focus_exited"]
+[connection signal="text_entered" from="All/Show/Grid/Top/NameEdit" to="." method="_on_NameEdit_text_entered"]
+[connection signal="deselect_item" from="All/Show/Grid/Ship" to="." method="_on_Ship_deselect_item"]
+[connection signal="design_changed" from="All/Show/Grid/Ship" to="." method="_on_Ship_design_changed"]
+[connection signal="drag_selection" from="All/Show/Grid/Ship" to="." method="_on_Ship_drag_selection"]
+[connection signal="pixel_height_changed" from="All/Show/Grid/Ship" to="." method="_on_Ship_pixel_height_changed"]
+[connection signal="select_item" from="All/Show/Grid/Ship" to="." method="_on_Ship_select_item"]
+[connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
+[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_ConfirmationDialog_confirmed"]

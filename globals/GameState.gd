@@ -31,6 +31,18 @@ class ShipEditorStub extends Panel:
 		return true
 	func remove_item(_scene: PackedScene, _mount_name: String, _x: int, _y: int) -> bool:
 		return true
+	func add_design(_design: simple_tree.SimpleNode) -> bool:
+		return true
+	func remove_design(_design: simple_tree.SimpleNode) -> bool:
+		return true
+	func set_edited_ship_display_name(_new_name: String) -> bool:
+		return true
+	func set_edited_ship_name(_new_name: String) -> bool:
+		return true
+	func set_edited_ship_design(_design: simple_tree.SimpleNode) -> bool:
+		return true
+	func cancel_drag() -> bool:
+		return true
 
 class SectorEditorStub extends Spatial:
 	var selection = null

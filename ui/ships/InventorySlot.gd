@@ -63,6 +63,9 @@ func is_InventorySlot(): pass # used for type checking; never called
 func is_inventory_slot(): # never called; must only exist. FIXME: DELETE THIS
 	pass
 
+func has_item() -> bool:
+	return get_node_or_null('item')!=null
+
 func color(mask: int):
 	for j in range(ny):
 		for i in range(nx):

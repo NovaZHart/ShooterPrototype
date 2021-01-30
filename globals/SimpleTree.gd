@@ -6,6 +6,7 @@ class NoRef:
 
 class SimpleNode extends Reference:
 	var name_: String
+	var name=null setget set_name, get_name
 	var parent_ = NoRef.new()
 	
 	var tree_ = NoRef.new()
@@ -94,8 +95,8 @@ class SimpleNode extends Reference:
 	func get_child_names():
 		return children_.keys()
 	
-	func get_child_with_name(name: String):
-		return children_.get(name,null)
+	func get_child_with_name(child_name: String):
+		return children_.get(child_name,null)
 
 	func get_children():
 		return children_.values()
@@ -109,11 +110,11 @@ class SimpleNode extends Reference:
 		var names = children_.keys()
 		if not names:
 			return false
-		for name in names:
-			var child = children_.get(name,null)
+		for child_name in names:
+			var child = children_.get(child_name,null)
 			if child:
 				child.clear_parent_()
-			var _discard = children_.erase(name)
+			var _discard = children_.erase(child_name)
 		return true
 
 	func remove_child(child: SimpleNode) -> bool:

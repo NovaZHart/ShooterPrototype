@@ -14,9 +14,14 @@ const cell_pad: float = cell_span/2.0
 signal select_item
 signal deselect_item
 signal drag_selection
+signal add_design
+signal change_design
+signal remove_design
+signal edit_design
 
 var ship_zspan = 1.0 + 2.0*ship_border # must be >1.0
 var ship_xspan = ship_zspan
+var last_click_tick = -9999999
 var scenes = {} # key is resource_path, used to detect duplicate objects
 var design_names = {}
 var scroll_rate = 0.0
@@ -38,6 +43,14 @@ var scale: float = initial_scale
 var regular_layer: int = 0
 var highlight_layer: int = 0
 
+func clear_items():
+	var _discard = deselect(false)
+	for child in $All/Top/View/Port/Items.get_children():
+		$All/Top/View/Port/Items.remove_child(child)
+		child.queue_free()
+	design_names.clear()
+	scenes.clear()
+
 func _ready():
 	$All/Buttons/Zoom.value = initial_scale
 	viewport = $All/Top/View/Port
@@ -51,10 +64,28 @@ func _ready():
 	$All/Top/View/Port/SelectBack.light_cull_mask = highlight_layer
 	$All/Top/View/Port/SelectFront.light_cull_mask = highlight_layer
 	if not show_ships:
-		$All/Buttons.remove_child($All/Buttons/Add)
-		$All/Buttons.remove_child($All/Buttons/Change)
-		$All/Buttons.remove_child($All/Buttons/Remove)
-		$All/Buttons.columns=2
+		forbid_edits(true)
+		$All/Top/View.hint_tooltip = 'Select a design to view it.'
+	else:
+		update_buttons()
+		$All/Top/View.hint_tooltip = 'Select an item to see stats; drag to install.'
+
+func forbid_edits(forbid_open):
+	var forbid_me = ['Add','Change','Remove']
+	if forbid_open:
+		forbid_me.append('Open')
+	for button_name in forbid_me:
+		var child = $All/Buttons.get_node_or_null(button_name)
+		if child:
+			$All/Buttons.remove_child(child)
+			child.queue_free()
+	$All/Buttons.columns = len($All/Buttons.get_children())
+
+func update_buttons():
+	for button_name in ['Change','Remove','Open']:
+		var child = $All/Buttons.get_node_or_null(button_name)
+		if child:
+			child.disabled = not selection
 
 func deselect(send_event=false) -> bool:
 	if not selection:
@@ -65,6 +96,7 @@ func deselect(send_event=false) -> bool:
 	selection=NodePath()
 	if node:
 		set_layers(node,regular_layer)
+	update_buttons()
 	return true
 
 func select(var node: Node,send_event=true) -> bool:
@@ -72,6 +104,7 @@ func select(var node: Node,send_event=true) -> bool:
 		var _discard = deselect(send_event)
 	selection=node.get_path()
 	set_layers(node,highlight_layer|regular_layer)
+	update_buttons()
 	return true
 
 func set_layers(node: Node, layers: int):
@@ -95,6 +128,10 @@ func add_ship_design(design) -> bool:
 		push_error('Ship design "'+design.get_name()+'" is not a RigidBody.')
 		return false
 	ship.name = design.get_name()
+	var old = items.get_node_or_null(design.get_name())
+	if old:
+		items.remove_child(old)
+		old.queue_free()
 	items.add_child(ship)
 	var aabb: AABB = ship.get_combined_aabb()
 # warning-ignore:shadowed_variable
@@ -103,7 +140,21 @@ func add_ship_design(design) -> bool:
 	ship.scale = Vector3(scale,scale,scale)
 	design_names[ship.name] = design.get_path()
 	set_layers(ship,regular_layer)
+	if selection and selection.get_name(selection.get_name_count()-1)==ship.name:
+		var _discard = deselect()
 	return true
+
+func remove_ship_design(design_name: String) -> bool:
+	var success = false
+	var old = items.get_node_or_null(design_name)
+	if old:
+		items.remove_child(old)
+		old.queue_free()
+		success = true
+	success = design_names.erase(design_name) or success
+	if selection and selection.get_name(selection.get_name_count()-1)==design_name:
+		var _discard = deselect()
+	return success
 
 func add_mountable_part(scene: PackedScene) -> bool:
 	if show_ships:
@@ -280,6 +331,8 @@ func arrange_items():
 	scrollbar.page=min(scrollbar.page,scrollbar.max_value-scrollbar.min_value)
 
 func input():
+	if get_tree().current_scene.popup_has_focus():
+		return
 	var view_pos = $All/Top/View.rect_global_position
 	var view_rect: Rect2 = Rect2(view_pos, $All/Top/View.rect_size)
 	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
@@ -294,12 +347,18 @@ func input():
 			var result: Dictionary = space.intersect_ray(
 				space_pos-y500,space_pos+y500,[],2147483647,true,true)
 			var collider = result.get('collider',null)
-			if collider:
-				var _discard = select(collider)
-				emit_signal('select_item',collider)
-				selection_click = mouse_pos
-			else:
+			if not collider:
 				var _discard = deselect(true)
+			else:
+				var click_tick = OS.get_ticks_msec()
+				if selection and selection == collider.get_path():
+					if click_tick - last_click_tick<400 and show_ships:
+						_on_Open_pressed()
+				elif collider:
+					var _discard = select(collider)
+					emit_signal('select_item',collider)
+					selection_click = mouse_pos
+				last_click_tick = click_tick
 			selection_dragging=false
 		elif not show_ships and  selection and Input.is_action_pressed('ui_location_select'):
 			if not selection_dragging and mouse_pos.distance_to(selection_click)>3:
@@ -339,3 +398,37 @@ func _on_Scroll_value_changed(value):
 
 func _on_ItemPanel_visibility_changed():
 	arrange_items()
+
+func _on_Add_pressed():
+	emit_signal('add_design',selection)
+
+func _on_Change_pressed():
+	if selection:
+		emit_signal('change_design',selection)
+
+func _on_Remove_pressed():
+	if selection:
+		emit_signal('remove_design',selection)
+
+func _on_Open_pressed():
+	if selection:
+		var design_name = selection.get_name(selection.get_name_count()-1)
+		var design_path = design_names.get(design_name,null)
+		if design_path:
+			var design = game_state.ship_designs.get_node_or_null(design_path)
+			if design:
+				emit_signal('edit_design',design)
+			else:
+				push_error('There is no design at path "'+str(design_path)+'" in game_state.ship_designs')
+		else:
+			push_error('Selection '+str(selection)+' has no design path.')
+
+func set_edited_item_id(design_name: String):
+	if not show_ships:
+		return
+	if game_state.ship_designs.get_child_with_name(design_name):
+		$All/Buttons/Add.disabled=true
+		$All/Buttons/Add.hint_tooltip='There is already a ship design with ID "'+design_name+'".'
+	else:
+		$All/Buttons/Add.disabled=false
+		$All/Buttons/Add.hint_tooltip="Add the design you're currently editing as a new design with id "+'"'+design_name+'"'

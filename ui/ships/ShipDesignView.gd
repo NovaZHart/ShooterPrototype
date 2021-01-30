@@ -18,6 +18,7 @@ signal pixel_height_changed
 signal select_item
 signal deselect_item
 signal drag_selection
+signal design_changed
 
 const y500: Vector3 = Vector3(0,500,0)
 var ship_aabb: AABB
@@ -114,6 +115,8 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: Collisi
 	return false
 
 func _input(event):
+	if get_tree().current_scene.popup_has_focus():
+		return
 	var view_pos = rect_global_position
 	var view_rect: Rect2 = Rect2(view_pos, rect_size)
 	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
@@ -259,6 +262,11 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 		var slot_xy = inventory_array.slot_xy_for(pos3,item.item_size_x,item.item_size_y)
 		x=slot_xy[0]
 		y=slot_xy[1]
+	var installed = $Viewport/Installed.get_node_or_null(mount_name)
+	if installed!=null and not universe_edits.state.push(
+			ship_edits.RemoveItem.new(installed.scene,mount_name,x,y)):
+		push_error('Could not remove item from '+mount_name)
+		return false
 	return universe_edits.state.push(ship_edits.AddItem.new(scene,mount_name,x,y))
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
@@ -443,11 +451,11 @@ func make_ship(design):
 		if child.get('mount_type')!=null:
 			_discard = mounts.add_child(MountData.new(child,self))
 
-	for mount_name in design.get_child_names():
-		var mount = design.get_child_with_name(mount_name)
+	for mount_name in decoded.get_child_names():
+		var mount = decoded.get_child_with_name(mount_name)
 		if mount and mounts.has_child(mount_name):
 			if mount.has_method('is_MultiMount'):
-				add_multimount_contents(mount_name,design)
+				add_multimount_contents(mount_name,decoded)
 				continue
 			var area: Area = Area.new()
 			area.set_script(InventorySlot)
@@ -459,6 +467,7 @@ func make_ship(design):
 	ship_aabb = combined_aabb(ship)
 	ship_aabb = ship_aabb.merge(combined_aabb($Viewport/MountPoints))
 	move_Camera_for_scene()
+	emit_signal('design_changed',decoded)
 	return ship
 
 func move_Camera_for_scene():
@@ -485,7 +494,8 @@ func combined_aabb(node: Node):
 
 func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 	# Load contents of a multimount from a design dictionary.
-	var contents: simple_tree.SimpleNode = design.get_node_or_null(mount_name)
+	var contents: simple_tree.SimpleNode = design.get_child_with_name(mount_name)
+	assert(contents)
 	if not contents:
 		push_warning('no node for multimount '+mount_name)
 		return

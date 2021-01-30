@@ -161,9 +161,9 @@ func get_bbcode() -> String:
 	
 	var s: Dictionary = pack_stats(true)
 	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
-	#var bbcode = '[center][b]Ship [i]'+ship_display_name+'[/i][/b][/center]\n\n'
-	var bbcode = '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
-
+	var bbcode = '[b]Ship Design:[/b] [i]'+ship_display_name+'[/i]\n'
+	bbcode += '[b]ID:[/b] [code]'+name+'[/code]\n'
+	bbcode += '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
 	bbcode += '[cell] [/cell]'
