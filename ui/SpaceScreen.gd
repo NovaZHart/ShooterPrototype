@@ -151,12 +151,12 @@ func make_player_orders(_delta: float) -> Dictionary:
 	return result
 
 func _enter_tree() -> void:
-	if mesh_loader.load_meshes() != OK:
-		printerr('Could not start the mesh loader.')
+#	if mesh_loader.load_meshes() != OK:
+#		printerr('Could not start the mesh loader.')
 	combat_engine.change_worlds(get_viewport().world)
 
-func _exit_tree() -> void:
-	mesh_loader.wait_for_thread()
+#func _exit_tree() -> void:
+#	mesh_loader.wait_for_thread()
 
 func _process(delta: float) -> void:
 	#warning-ignore:narrowing_conversion
