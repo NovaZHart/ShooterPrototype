@@ -19,6 +19,7 @@ public:
     void make_icosphere(String name,Vector3 center, float radius, int subs);
     void make_cube_sphere_v2(String name,Vector3 center, float radius, int subs);
     Ref<Image> make_lookup_tiles_c224() const;
+    Ref<Image> make_lookup_tiles_c112() const;
 };
 
 }

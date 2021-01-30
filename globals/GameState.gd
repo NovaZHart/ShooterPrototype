@@ -16,7 +16,7 @@ var player_location: NodePath = NodePath() setget set_player_location,get_player
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
-var sphere_xyz_c224
+var sphere_xyz
 
 var tree
 var universe
@@ -102,15 +102,15 @@ func set_system(var s):
 			player_location = systems.get_path_to(system)
 		return system
 
-func get_sphere_xyz_c224(sphere):
-	if not game_state.sphere_xyz_c224:
-		var xyz_data: Image = sphere.make_lookup_tiles_c224()
+func get_sphere_xyz(sphere):
+	if not sphere_xyz:
+		var xyz_data: Image = sphere.make_lookup_tiles_c112()
 		assert(xyz_data)
 		var xyz: ImageTexture = ImageTexture.new()
 		assert(xyz)
 		xyz.create_from_image(xyz_data)
-		sphere_xyz_c224 = xyz;
-	return sphere_xyz_c224
+		sphere_xyz = xyz;
+	return sphere_xyz
 
 func save_universe_as_json(filename: String) -> bool:
 	var success = universe.save_places_as_json(filename)

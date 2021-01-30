@@ -20,21 +20,24 @@ onready var TiledImageShader = preload("res://places/TiledImage.shader")
 onready var StarFieldGenerator = preload("res://places/StarFieldGenerator.shader")
 
 func send_viewport_texture(viewport: Viewport, shader_param: String,
-		tex: ViewportTexture, object: MeshInstance) -> ViewportTexture:
+		tex: ViewportTexture, object: MeshInstance, flags: int = -1) -> ViewportTexture:
 	if tex!=null:
 		return tex
 	tex=viewport.get_texture()
 	if tex!=null:
+		if flags>=0:
+			tex.flags = flags
 		object.material_override.set_shader_param(shader_param,tex)
 	return tex
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
-	var view=Viewport.new()
-	var rect=ColorRect.new()
+	var view: Viewport = Viewport.new()
+	var rect: ColorRect = ColorRect.new()
 	view.size=Vector2(nx,ny)
 	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
-	view.usage=Viewport.USAGE_2D
+	view.keep_3d_linear=true
+	#view.usage=Viewport.USAGE_2D
 	rect.rect_size=Vector2(nx,ny)
 	rect.set_material(shader)
 	rect.name='Content'
@@ -151,5 +154,6 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	view_mat.set_shader_param('uv2_range',uv2_range)
 
 func _process(var _delta):
-	background_texture=send_viewport_texture($CloudViewport,'texture_albedo',background_texture,background)
+	background_texture=send_viewport_texture($CloudViewport,'texture_albedo',
+		background_texture,background,Texture.FLAG_FILTER)
 	starfield=send_viewport_texture($StarFieldGenerator,'texture_starfield',starfield,background)

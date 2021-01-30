@@ -30,7 +30,6 @@ func _ready():
 	$SpaceBackground.rotate_x(PI/2-0.575959)
 	$SpaceBackground.center_view(130,90,0,100,0)
 	$SpaceBackground.update_from(game_state.system)
-	get_viewport().msaa=Viewport.MSAA_4X
 	update_astral_gate()
 	$ServiceSelector.update_service_list()
 	

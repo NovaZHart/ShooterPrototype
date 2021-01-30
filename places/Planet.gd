@@ -1,6 +1,7 @@
 extends KinematicBody
 
-const allowed_subdivisions = [ 14, 28, 56, 112, 224 ]
+const allowed_subdivisions = [ 14, 28] # , 56] # , 112 ]
+const allowed_texture_sizes = [ 128, 256, 512, 1024, 2048 ]
 
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
@@ -88,26 +89,38 @@ func choose_subdivisions(wanted) -> int:
 			return allowed
 	return allowed_subdivisions[len(allowed_subdivisions)-1]
 
+func choose_texture_size(x,y) -> int:
+	for allowed in allowed_texture_sizes:
+		if x<=allowed and y<=allowed:
+			return allowed
+	return allowed_texture_sizes[len(allowed_texture_sizes)-1]
+
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
 	var subs: int = choose_subdivisions(subdivisions)
 	print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
+	var tsize: int = choose_texture_size(texture_size,texture_size)
+	print('Requested texture size ',texture_size,'; using ',tsize)
+	
+	#var xyz_image = 
+	
 	sphere = SphereTool.new()
-	sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,56)
+	var xyz: ImageTexture = game_state.get_sphere_xyz(sphere)
+	sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,subs)
 	var shade=ShaderMaterial.new()
 	shade.set_shader(sphere_shader)
 	sphere.material_override=shade
 	sphere_material = sphere.material_override
-	sphere_material.set_shader_param('xyz',game_state.get_sphere_xyz_c224(sphere))
+#	sphere_material.set_shader_param('xyz',xyz)
 	sphere.set_layer_mask(4)
 	sphere.name='Sphere'
 	
 	view_shade=ShaderMaterial.new()
 	view_shade.set_shader(CubePlanetTiles)
-	view=make_viewport(texture_size,texture_size,view_shade)
+	view=make_viewport(tsize,tsize,view_shade)
 	view_shade.set_shader_param('perlin_seed',int(random_seed))
 	view_shade.set_shader_param('perlin_type',int(noise_type))
-	view_shade.set_shader_param('xyz',game_state.sphere_xyz_c224)
+	view_shade.set_shader_param('xyz',xyz)
 	view.name='View'
 	tile_material = view_shade
 	
@@ -153,8 +166,10 @@ func _process(var _delta) -> void:
 	if tex == null:
 		printerr('Planet texture is null!?')
 		return # should never get here in _process()
+	tex.flags = Texture.FLAG_FILTER
 	sphere.material_override.set_shader_param('precalculated',tex)
 	have_sent_texture = true
+	#$View.remove_child($View/Content)
 
 func pack_stats() -> Dictionary:
 	return {

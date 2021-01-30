@@ -111,7 +111,7 @@ func astral_gate_path() -> NodePath:
 				return p
 	return NodePath()
 
-func spawn_ship(var system,var ship_design: simple_tree.SimpleNode,
+func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 		team: int,angle: float,add_radius: float,safe_zone: float,
 		random_x: float, random_z: float, center: Vector3, is_player: bool):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
@@ -131,7 +131,10 @@ func fleet_size(var fleet: Array) -> int:
 
 func spawn_fleet(system, fleet: Array,team: int) -> Array:
 	var planets: Array = system.get_node("Planets").get_children()
-	var planet: Spatial = planets[randi()%len(planets)]
+	var center: Vector3 = Vector3()
+	if planets:
+		var planet: Spatial = planets[randi()%len(planets)]
+		center = planet.translation
 	var result: Array = Array()
 	var add_radius = 100*sqrt(rng.randf())
 	var safe_zone = 25
@@ -144,7 +147,7 @@ func spawn_fleet(system, fleet: Array,team: int) -> Array:
 				result.push_back(spawn_ship(
 					system,design,team,
 					angle,add_radius,randf()*10-5,randf()*10-5,
-					safe_zone,planet.translation,false))
+					safe_zone,center,false))
 			else:
 				printerr('No such design: ',design_name)
 	return result

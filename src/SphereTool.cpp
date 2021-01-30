@@ -24,6 +24,7 @@ void SphereTool::_register_methods() {
   register_method("make_icosphere", &SphereTool::make_icosphere);
   register_method("make_cube_sphere_v2", &SphereTool::make_cube_sphere_v2);
   register_method("make_lookup_tiles_c224", &SphereTool::make_lookup_tiles_c224);
+  register_method("make_lookup_tiles_c112", &SphereTool::make_lookup_tiles_c112);
 }
 
 SphereTool::SphereTool() {}
@@ -417,4 +418,8 @@ Ref<Image> make_lookup_tiles() {
 
 Ref<Image> SphereTool::make_lookup_tiles_c224() const {
   return make_lookup_tiles<224,16>();
+}
+
+Ref<Image> SphereTool::make_lookup_tiles_c112() const {
+  return make_lookup_tiles<112,8>();
 }

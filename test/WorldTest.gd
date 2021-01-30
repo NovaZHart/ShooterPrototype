@@ -40,7 +40,7 @@ func send_viewport_texture(mesh: MeshInstance, viewport: Viewport, shader_param:
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var planet = SphereTool.new()
-	var image: Image = planet.make_lookup_tiles_c224();
+	var image: Image = planet.make_lookup_tiles_c112();
 	var xyz: ImageTexture = ImageTexture.new()
 	xyz.create_from_image(image)
 	
