@@ -16,8 +16,8 @@ var player_orders_mutex: Mutex = Mutex.new()
 var ship_stats_requests: Dictionary = Dictionary()
 var ship_stats_requests_mutex: Mutex = Mutex.new()
 
-var terminate_ship_maker: bool = false
-var ship_maker_thread: Thread = Thread.new()
+#var terminate_ship_maker: bool = false
+#var ship_maker_thread: Thread = Thread.new()
 var ships_to_spawn: Array = Array()
 var ship_maker_mutex: Mutex = Mutex.new()
 
@@ -183,15 +183,15 @@ func pack_planet_stats_if_not_sent() -> Array:
 		sent_planets = true
 	return new_planets_packed
 
-func make_ships(_ignored):
-	while not terminate_ship_maker:
-		ship_maker_mutex.lock()
-		var spawn_me = ships_to_spawn.pop_front()
-		ship_maker_mutex.unlock()
-		if spawn_me==null:
-			OS.delay_usec(100)
-		else:
-			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
+#func make_ships(_ignored):
+#	while not terminate_ship_maker:
+#		ship_maker_mutex.lock()
+#		var spawn_me = ships_to_spawn.pop_front()
+#		ship_maker_mutex.unlock()
+#		if spawn_me==null:
+#			OS.delay_usec(100)
+#		else:
+#			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
 func _physics_process(delta):
 	physics_tick += 1
@@ -200,6 +200,9 @@ func _physics_process(delta):
 	
 	ship_maker_mutex.lock()
 	ships_to_spawn = ships_to_spawn + make_me
+	var front = ships_to_spawn.pop_front()
+	if front:
+		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
 	
 	team_stats_mutex.lock()
@@ -352,13 +355,13 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)
-	if ship_maker_thread.start(self,'make_ships',null)!=OK:
-		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
+#	if ship_maker_thread.start(self,'make_ships',null)!=OK:
+#		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
 
-func _exit_tree() -> void:
-	terminate_ship_maker=true
-	if ship_maker_thread.is_active():
-		ship_maker_thread.wait_to_finish()
+#func _exit_tree() -> void:
+#	terminate_ship_maker=true
+#	if ship_maker_thread.is_active():
+#		ship_maker_thread.wait_to_finish()
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size

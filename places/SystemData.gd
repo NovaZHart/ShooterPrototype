@@ -111,7 +111,7 @@ func astral_gate_path() -> NodePath:
 				return p
 	return NodePath()
 
-func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
+func spawn_ship(var system,var ship_design: simple_tree.SimpleNode,
 		team: int,angle: float,add_radius: float,safe_zone: float,
 		random_x: float, random_z: float, center: Vector3, is_player: bool):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
