@@ -67,7 +67,9 @@ func getdict(content: Dictionary, key, default):
 
 func decode(content: Dictionary):
 	display_name = content.get('display_name','(unnamned)')
-	fleets = getdict(content,'fleets',default_fleets)
+	fleets = getdict(content,'fleets',['abc'])
+	if len(fleets)==1 and fleets[0] is String and fleets[0]=='abc':
+		fleets=default_fleets.duplicate(true)
 	links = getdict(content,'links',{})
 	plasma_seed = getdict(content,'plasma_seed',320918)
 	starfield_seed = getdict(content,'starfield_seed',987686)

@@ -105,11 +105,12 @@ func update_space_background(from=null) -> bool:
 		return false
 	return true
 
-func handle_scroll():
-	if Input.is_action_just_released("wheel_up"):
-		ui_scroll=1.5
-	if Input.is_action_just_released("wheel_down"):
-		ui_scroll=-1.5
+func handle_scroll(mouse_in_rect):
+	if mouse_in_rect:
+		if Input.is_action_just_released("wheel_up"):
+			ui_scroll=1.5
+		if Input.is_action_just_released("wheel_down"):
+			ui_scroll=-1.5
 	arrow_move = Vector3(
 		float(Input.is_action_pressed('ui_up'))-float(Input.is_action_pressed('ui_down')),
 		0.0,
@@ -253,7 +254,7 @@ func _process(delta):
 			selection = NodePath()
 		if arrow_move.length()>1e-5:
 			center_view($TopCamera.translation+arrow_move*delta*$TopCamera.size)
-		handle_scroll()
+		handle_scroll(view_rect.has_point(mouse_pos))
 	if abs(play_speed)>1e-5:
 		planet_time += delta*0.5
 		update_planet_locations()

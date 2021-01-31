@@ -174,6 +174,24 @@ func _on_Tree_center_on_node(path: NodePath):
 	if node!=null and node.has_method('is_SpaceObjectData'):
 		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
 
+func add_spawned_fleet(index: int, data:Dictionary) -> bool:
+	print('add spawned fleet')
+	if $Split/Right/Bottom/Settings.has_method('add_spawned_fleet'):
+		return $Split/Right/Bottom/Settings.add_spawned_fleet(index,data)
+	return true
+
+func remove_spawned_fleet(index: int) -> bool:
+	print('remove spawned fleet')
+	if $Split/Right/Bottom/Settings.has_method('remove_spawned_fleet'):
+		return $Split/Right/Bottom/Settings.remove_spawned_fleet(index)
+	return true
+
+func change_fleet_data(index:int, key:String, value) -> bool:
+	print('change fleet data')
+	if $Split/Right/Bottom/Settings.has_method('change_fleet_data'):
+		return $Split/Right/Bottom/Settings.change_fleet_data(index,key,value)
+	return true
+
 func save_load(save: bool) -> bool:
 	if save:
 		$FileDialog.mode=FileDialog.MODE_SAVE_FILE
@@ -204,11 +222,19 @@ func _unhandled_input(event):
 				$FileDialog.visible=false
 		return # process nothing when a dialog is up
 	
+	if $Split/Right/Bottom/Settings.has_method('is_popup_visible') and \
+			$Split/Right/Bottom/Settings.is_popup_visible():
+		if event.is_action_released('ui_cancel'):
+			$Split/Right/Bottom/Settings.cancel_popup()
+		return # process nothing when a dialog is up
+	
+	var focused = get_focus_owner()
+	if focused is LineEdit or focused is TextEdit:
+		return # do not steal input from editors
+	print('focused = ',str(focused))
+	
 	if event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
-		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_cancel'):
-		universe_edits.state.push(universe_edits.ExitToSector.new())
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
@@ -221,6 +247,13 @@ func _unhandled_input(event):
 		get_tree().set_input_as_handled()
 	elif $PopUp.visible and event.is_action_pressed('ui_accept'):
 		_on_Action_pressed()
+		get_tree().set_input_as_handled()
+
+	if focused is Tree:
+		return # Do not exit when deselecting in a tree
+	
+	if event.is_action_released('ui_cancel'):
+		universe_edits.state.push(universe_edits.ExitToSector.new())
 		get_tree().set_input_as_handled()
 
 func _on_SystemView_make_new_space_object(parent_path_,is_making_):

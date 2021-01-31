@@ -1,106 +1,202 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://ui/edit/SystemSettings.gd" type="Script" id=1]
+[ext_resource path="res://ui/red-x-24.png" type="Texture" id=2]
 
-[node name="SystemSettings" type="GridContainer"]
+[node name="SystemSettings" type="TabContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-columns = 2
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+remove_fleet_texture = ExtResource( 2 )
 
-[node name="IDLabel" type="Label" parent="."]
+[node name="Fleets" type="GridContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="SelectFleet" type="PopupPanel" parent="Fleets"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+popup_exclusive = true
+
+[node name="All" type="GridContainer" parent="Fleets/SelectFleet"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="List" type="ItemList" parent="Fleets/SelectFleet/All"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Buttons" type="GridContainer" parent="Fleets/SelectFleet/All"]
+anchor_right = 1.0
+margin_top = 4.0
+margin_right = 89.0
+margin_bottom = 48.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="CreateFleet" type="Button" parent="Fleets/SelectFleet/All/Buttons"]
+margin_right = 89.0
+margin_bottom = 20.0
+text = "Create Fleet"
+
+[node name="Cancel" type="Button" parent="Fleets/SelectFleet/All/Buttons"]
+margin_top = 24.0
+margin_right = 89.0
+margin_bottom = 44.0
+text = "Cancel"
+
+[node name="Top" type="GridContainer" parent="Fleets"]
+margin_right = 1016.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="SpawnedHere" type="Label" parent="Fleets/Top"]
+margin_top = 3.0
+margin_right = 939.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+text = "Spawned Here"
+valign = 2
+
+[node name="AddFleetButton" type="Button" parent="Fleets/Top"]
+margin_left = 943.0
+margin_right = 1016.0
+margin_bottom = 20.0
+text = "Add Fleet"
+
+[node name="Spawned" type="Tree" parent="Fleets"]
+margin_top = 24.0
+margin_right = 1016.0
+margin_bottom = 560.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+hide_root = true
+
+[node name="Settings" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="IDLabel" type="Label" parent="Settings"]
 margin_top = 5.0
-margin_right = 510.0
+margin_right = 506.0
 margin_bottom = 19.0
 size_flags_horizontal = 3
 text = "ID"
 
-[node name="IDEdit" type="LineEdit" parent="."]
-margin_left = 514.0
-margin_right = 1024.0
+[node name="IDEdit" type="LineEdit" parent="Settings"]
+margin_left = 510.0
+margin_right = 1016.0
 margin_bottom = 24.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 editable = false
 
-[node name="NameLabel" type="Label" parent="."]
+[node name="NameLabel" type="Label" parent="Settings"]
 margin_top = 33.0
-margin_right = 510.0
+margin_right = 506.0
 margin_bottom = 47.0
 text = "Name"
 
-[node name="NameEdit" type="LineEdit" parent="."]
-margin_left = 514.0
+[node name="NameEdit" type="LineEdit" parent="Settings"]
+margin_left = 510.0
 margin_top = 28.0
-margin_right = 1024.0
+margin_right = 1016.0
 margin_bottom = 52.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="PlasmaSeedLabel" type="Label" parent="."]
+[node name="PlasmaSeedLabel" type="Label" parent="Settings"]
 margin_top = 61.0
-margin_right = 510.0
+margin_right = 506.0
 margin_bottom = 75.0
 text = "Cloud Seed"
 
-[node name="PlasmaSeedEdit" type="LineEdit" parent="."]
-margin_left = 514.0
+[node name="PlasmaSeedEdit" type="LineEdit" parent="Settings"]
+margin_left = 510.0
 margin_top = 56.0
-margin_right = 1024.0
+margin_right = 1016.0
 margin_bottom = 80.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="StarSeedLabel" type="Label" parent="."]
+[node name="StarSeedLabel" type="Label" parent="Settings"]
 margin_top = 89.0
-margin_right = 510.0
+margin_right = 506.0
 margin_bottom = 103.0
 text = "Starfield Seed"
 
-[node name="StarSeedEdit" type="LineEdit" parent="."]
-margin_left = 514.0
+[node name="StarSeedEdit" type="LineEdit" parent="Settings"]
+margin_left = 510.0
 margin_top = 84.0
-margin_right = 1024.0
+margin_right = 1016.0
 margin_bottom = 108.0
 size_flags_horizontal = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="Settings"]
 margin_top = 112.0
-margin_right = 510.0
+margin_right = 506.0
 margin_bottom = 132.0
 
-[node name="Button" type="Button" parent="."]
-margin_left = 514.0
+[node name="RandomizeSeeds" type="Button" parent="Settings"]
+margin_left = 510.0
 margin_top = 112.0
-margin_right = 1024.0
+margin_right = 1016.0
 margin_bottom = 132.0
 text = "Randomize Seeds"
 
-[node name="Label" type="Label" parent="."]
+[node name="Label" type="Label" parent="Settings"]
 margin_top = 139.0
-margin_right = 510.0
+margin_right = 506.0
 margin_bottom = 153.0
 text = "Plasma Color"
 
-[node name="ColorPickerButton" type="ColorPickerButton" parent="."]
-margin_left = 514.0
+[node name="ColorPickerButton" type="ColorPickerButton" parent="Settings"]
+margin_left = 510.0
 margin_top = 136.0
-margin_right = 1024.0
+margin_right = 1016.0
 margin_bottom = 156.0
-[connection signal="focus_exited" from="NameEdit" to="." method="_on_NameEdit_focus_exited"]
-[connection signal="text_entered" from="NameEdit" to="." method="_on_NameEdit_text_entered"]
-[connection signal="focus_exited" from="PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_focus_exited"]
-[connection signal="text_entered" from="PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_text_entered"]
-[connection signal="focus_exited" from="StarSeedEdit" to="." method="_on_StarSeedEdit_focus_exited"]
-[connection signal="text_entered" from="StarSeedEdit" to="." method="_on_StarSeedEdit_text_entered"]
-[connection signal="pressed" from="Button" to="." method="_on_Button_pressed"]
-[connection signal="color_changed" from="ColorPickerButton" to="." method="_on_ColorPickerButton_color_changed"]
-[connection signal="focus_exited" from="ColorPickerButton" to="." method="_on_ColorPickerButton_focus_exited"]
-[connection signal="picker_created" from="ColorPickerButton" to="." method="_on_ColorPickerButton_picker_created"]
-[connection signal="popup_closed" from="ColorPickerButton" to="." method="_on_ColorPickerButton_popup_closed"]
+[connection signal="pressed" from="Fleets/SelectFleet/All/Buttons/CreateFleet" to="." method="_on_CreateFleet_pressed"]
+[connection signal="pressed" from="Fleets/SelectFleet/All/Buttons/Cancel" to="." method="_on_Cancel_pressed"]
+[connection signal="pressed" from="Fleets/Top/AddFleetButton" to="." method="_on_AddFleetButton_pressed"]
+[connection signal="button_pressed" from="Fleets/Spawned" to="." method="_on_Spawned_button_pressed"]
+[connection signal="item_edited" from="Fleets/Spawned" to="." method="_on_Spawned_item_edited"]
+[connection signal="focus_exited" from="Settings/NameEdit" to="." method="_on_NameEdit_focus_exited"]
+[connection signal="text_entered" from="Settings/NameEdit" to="." method="_on_NameEdit_text_entered"]
+[connection signal="focus_exited" from="Settings/PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_focus_exited"]
+[connection signal="text_entered" from="Settings/PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_text_entered"]
+[connection signal="focus_exited" from="Settings/StarSeedEdit" to="." method="_on_StarSeedEdit_focus_exited"]
+[connection signal="text_entered" from="Settings/StarSeedEdit" to="." method="_on_StarSeedEdit_text_entered"]
+[connection signal="pressed" from="Settings/RandomizeSeeds" to="." method="_on_RandomizeSeeds_pressed"]
+[connection signal="color_changed" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_color_changed"]
+[connection signal="focus_exited" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_focus_exited"]
+[connection signal="picker_created" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_picker_created"]
+[connection signal="popup_closed" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_popup_closed"]

@@ -373,6 +373,8 @@ func handle_select(event: InputEvent):
 	am_moving = false
 
 func handle_modify(event: InputEvent):
+	if not selection is simple_tree.SimpleNode:
+		return
 	var loc: Vector2 = event_position(event)
 	var at = find_at_position(loc)
 	if at:

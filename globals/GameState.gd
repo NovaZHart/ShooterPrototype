@@ -71,6 +71,12 @@ class SystemEditorStub extends Panel:
 		return true
 	func cancel_drag() -> bool:
 		return true
+	func remove_spawned_fleet(_index: int) -> bool:
+		return true
+	func add_spawned_fleet(_index: int, _data:Dictionary) -> bool:
+		return true
+	func change_fleet_data(_index:int, _key:String, _value) -> bool:
+		return true
 var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
