@@ -190,8 +190,7 @@ func fill_system(var system,planet_time: float,ship_time: float,detail: float,sh
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail,ships)
-	if not ships:
-		return []
 	var result = [spawn_player(system,planet_time)]
-	result += process_space(system,ship_time)
+	if ships:
+		result += process_space(system,ship_time)
 	return result

@@ -164,7 +164,7 @@ ui_location_slide={
 
 [physics]
 
-common/physics_jitter_fix=1.0
+common/physics_jitter_fix=0.0
 3d/physics_engine="Bullet"
 3d/active_soft_world=false
 2d/default_gravity=0
