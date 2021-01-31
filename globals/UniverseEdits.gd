@@ -320,12 +320,10 @@ class AddSpaceObject extends undo_tool.Action:
 		parent_path=parent_path_
 		child=child_
 	func run() -> bool:
-		print('add space object run')
 		var node: simple_tree.SimpleNode = game_state.systems.get_node_or_null(parent_path)
 		if not node:
 			push_error('Cannot add space object because parent '+str(parent_path)+' does not exist.')
 			return false
-		print('add space object add child')
 		if not node.add_child(child):
 			push_error('Unable to add child to '+str(parent_path))
 			return false

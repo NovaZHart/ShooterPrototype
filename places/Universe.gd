@@ -249,7 +249,6 @@ class Fleet extends simple_tree.SimpleNode:
 				push_warning('Design '+key+' has no ships: int(count)=int('+str(value)+')='+str(as_int))
 				continue
 	func add_spawn(design_name: String,count: int):
-		print('add_spawn(',design_name,',',str(count),')')
 		if count==0:
 			push_warning('Ignoring request to add no ships of type '+display_name)
 			return
@@ -258,7 +257,6 @@ class Fleet extends simple_tree.SimpleNode:
 		if new_count:
 			spawn_info[design_name] = new_count
 		else:
-			print('Adding '+str(count)+' ships of type '+design_name+' reduces it to zero; removing design from spawns.')
 			remove_spawn(design_name)
 	func set_spawn(design_name: String,count: int):
 		if count>0:

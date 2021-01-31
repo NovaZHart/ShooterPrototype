@@ -25,10 +25,12 @@ func is_popup_visible() -> bool:
 func cancel_popup():
 	var popup = get_node_or_null(popup_path)
 	if popup:
-		popup.visible=false
 		popup_cancel=true
 		popup_path=NodePath()
-		popup.queue_free()
+		if popup:
+			popup.visible=false
+		if popup:
+			popup.queue_free()
 
 # warning-ignore:shadowed_variable
 func set_system(system: simple_tree.SimpleNode):
@@ -50,7 +52,16 @@ func _on_popup_accept_fleet(fleet: NodePath):
 	if popup:
 		popup.visible=false
 
-func select_fleet(select_id: String = '') -> String:
+func select_fleet() -> String:
+	var old_popup = get_tree().root.get_node_or_null(popup_path)
+	if old_popup:
+		# "Add Fleet" pressed while fleet selection popup is open.
+		old_popup.queue_free()
+		popup_cancel = true
+		popup_selection = NodePath()
+		popup_path = NodePath()
+		return ''
+	
 	var popup = FleetSelectionPopup.instance()
 	if OK!=popup.connect('cancel',self,'_on_popup_cancel'):
 		push_error('Could not connect to FleetSelectionPopup cancel signal.')
@@ -64,11 +75,14 @@ func select_fleet(select_id: String = '') -> String:
 	popup_cancel = null
 	popup_selection = NodePath()
 	get_tree().root.add_child(popup)
+	popup_path = popup.get_path()
 	popup.popup()
 	while popup_cancel==null:
 		yield(get_tree(),'idle_frame')
-	popup.visible=false
-	popup.queue_free()
+	if popup:
+		popup.visible=false
+	if popup:
+		popup.queue_free()
 	if popup_cancel or not popup_selection:
 		return ''
 	var fleet = game_state.fleets.get_node_or_null(popup_selection)
@@ -117,7 +131,6 @@ func _process(_delta):
 		$Fleets/Spawned.set_column_min_width(3,16)
 
 func init_fleet_list():
-	print('init fleet list')
 	var tree: Tree = $Fleets/Spawned
 	tree.clear()
 	var root = tree.create_item()
@@ -129,7 +142,6 @@ func init_fleet_list():
 		if fleet_data==null or not fleet_data is Dictionary:
 			push_error('Fleet data entry is not a dictionary: '+str(fleet_data))
 			continue
-		print('add item for '+str(fleet_data))
 		var fleet_item: TreeItem = tree.create_item(root)
 		fill_item_from_fleet_entry(fleet_item,fleet_data)
 
@@ -140,7 +152,6 @@ func add_spawned_fleet(index: int, data:Dictionary) -> bool:
 	return true
 
 func remove_spawned_fleet(remove_index: int) -> bool:
-	print('remove spawned fleet in SystemSettings')
 	var parent = $Fleets/Spawned.get_root()
 	var scan = parent.get_children()
 	var index = -1
@@ -162,7 +173,6 @@ func column_of_key(key) -> int:
 	else:                       return -1
 
 func change_fleet_data(change_index:int, key:String, value) -> bool:
-	print('change fleet data in SystemSettings')
 	var column = column_of_key(key)
 	if column<0:
 		return false
@@ -275,15 +285,13 @@ func _on_Spawned_button_pressed(item, _column, _id):
 
 
 func _on_AddFleetButton_pressed():
-	var selection = select_fleet('')
+	var selection = select_fleet()
 	while selection is GDScriptFunctionState and selection.is_valid():
 		selection = yield(selection,'completed')
 	if selection is String and selection:
 		var data = { 'fleet': selection, 'team': 0, 'frequency': 7200, }
 		universe_edits.state.push(universe_edits.SystemAddFleet.new(
 			system.get_path(),data))
-	else:
-		print('canceled fleet addition')
 
 func _on_CreateFleet_pressed():
 	popup_cancel=false

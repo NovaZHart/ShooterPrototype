@@ -79,6 +79,9 @@ func _on_SystemView_request_focus():
 	if $Split/Right/Bottom/Settings.has_method('get_have_picker') \
 			and $Split/Right/Bottom/Settings.have_picker:
 		return
+	if $Split/Right/Bottom/Settings.has_method('is_popup_visible') and \
+			$Split/Right/Bottom/Settings.is_popup_visible():
+		return
 	$Split/Left.grab_focus()
 
 func update_system_data(_path: NodePath,bkg_update: bool,meta_update:bool): 
@@ -105,7 +108,6 @@ func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 	return success
 
 func add_space_object(_parent: NodePath, _child) -> bool:
-	print('add space object pass through')
 	$Split/Right/Top/Tree.update_system()
 	$Split/Left/View/SystemView.set_system(game_state.system)
 	return true
@@ -175,19 +177,16 @@ func _on_Tree_center_on_node(path: NodePath):
 		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
 
 func add_spawned_fleet(index: int, data:Dictionary) -> bool:
-	print('add spawned fleet')
 	if $Split/Right/Bottom/Settings.has_method('add_spawned_fleet'):
 		return $Split/Right/Bottom/Settings.add_spawned_fleet(index,data)
 	return true
 
 func remove_spawned_fleet(index: int) -> bool:
-	print('remove spawned fleet')
 	if $Split/Right/Bottom/Settings.has_method('remove_spawned_fleet'):
 		return $Split/Right/Bottom/Settings.remove_spawned_fleet(index)
 	return true
 
 func change_fleet_data(index:int, key:String, value) -> bool:
-	print('change fleet data')
 	if $Split/Right/Bottom/Settings.has_method('change_fleet_data'):
 		return $Split/Right/Bottom/Settings.change_fleet_data(index,key,value)
 	return true
@@ -218,20 +217,22 @@ func _unhandled_input(event):
 		if event.is_action_released('ui_cancel'):
 			if $PopUp.visible:
 				_on_Cancel_pressed()
+				get_tree().set_input_as_handled()
 			elif $FileDialog.visible:
 				$FileDialog.visible=false
+				get_tree().set_input_as_handled()
 		return # process nothing when a dialog is up
 	
 	if $Split/Right/Bottom/Settings.has_method('is_popup_visible') and \
 			$Split/Right/Bottom/Settings.is_popup_visible():
 		if event.is_action_released('ui_cancel'):
 			$Split/Right/Bottom/Settings.cancel_popup()
+			get_tree().set_input_as_handled()
 		return # process nothing when a dialog is up
 	
 	var focused = get_focus_owner()
 	if focused is LineEdit or focused is TextEdit:
 		return # do not steal input from editors
-	print('focused = ',str(focused))
 	
 	if event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
@@ -306,7 +307,6 @@ func _on_Action_pressed():
 	$PopUp.visible=false
 
 func _on_Cancel_pressed():
-	print('cancel pressed')
 	popup_result = {
 		'id':$PopUp/A/A/IDEdit.text,
 		'display_name':$PopUp/A/A/NameEdit.text,

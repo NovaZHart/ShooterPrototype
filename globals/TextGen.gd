@@ -125,7 +125,7 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 
 		return bbcode+'[/table]\n'
 
-func make_ship_bbcode(ship_stats,with_contents=true,annotation='') -> String:
+func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=false) -> String:
 	var contents: String = '' #'[b]Contents:[/b]\n'
 	
 	var dps: float = 0
@@ -149,7 +149,8 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='') -> String:
 	var s = ship_stats
 	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
 	var bbcode = '[b]Ship Design:[/b] [i]'+s['display_name']+'[/i]'+annotation+'\n'
-	bbcode += '[b]ID:[/b] [code]'+s['name']+'[/code]\n'
+	if show_id:
+		bbcode += '[b]ID:[/b] [code]'+s['name']+'[/code]\n'
 	bbcode += '[b]Hull:[/b] {ref '+s['help_page']+'}\n[table=5]'
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])

@@ -201,6 +201,8 @@ func remove_design(design: simple_tree.SimpleNode) -> bool:
 func show_edited_design_info():
 	var ship = $All/Show/Grid/Ship/Viewport.get_node_or_null('Ship')
 	if ship:
+		ship.repack_stats()
+		ship.ship_display_name = design_display_name
 		show_design_info(ship)
 
 func show_help_page(page):

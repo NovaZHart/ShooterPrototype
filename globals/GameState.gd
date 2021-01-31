@@ -243,7 +243,6 @@ func _init():
 	assert(tree.root_.children_.has('systems'))
 	assert(tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
 	var pearl = systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
-	print('systems: ',str(systems.get_child_names()))
 	assert(pearl)
 	set_player_location(pearl.get_path())
 	assert(player_location)

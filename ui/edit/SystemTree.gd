@@ -62,10 +62,8 @@ func sync_metadata():
 	return true
 
 func update_system():
-	print('tree update system')
 	var root: TreeItem = get_root()
 	if root:
-		assert(root!=null)
 		assert(root is TreeItem)
 		if recurse_update_tree(root):
 			clear()
@@ -76,7 +74,6 @@ func recurse_update_tree(item) -> bool: # true = delete me
 	var path: NodePath = item.get_metadata(0)
 	var node = game_state.systems.get_node_or_null(path)
 	if not node:
-		print('update fail; no node at '+str(path))
 		return true
 	var remove = []
 	var paths = {}
@@ -85,7 +82,6 @@ func recurse_update_tree(item) -> bool: # true = delete me
 			push_error('item.get_children() returned a bad value '+str(scan))
 			continue
 		var abspath = game_state.tree.make_absolute(scan.get_metadata(0))
-		print('scan '+str(scan)+' abspath '+str(abspath))
 		if recurse_update_tree(scan):
 			remove.append(scan)
 		elif abspath:
@@ -95,7 +91,6 @@ func recurse_update_tree(item) -> bool: # true = delete me
 	for child in node.get_children():
 		var child_path = game_state.tree.make_absolute(child.get_path())
 		if not paths.has(child_path):
-			print(child_path,' is not in ',str(paths))
 			recurse_fill_tree(child,item)
 	return false
 

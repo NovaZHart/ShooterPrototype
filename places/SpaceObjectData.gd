@@ -168,7 +168,6 @@ func orbital_adjustments_to(time: float,new_location: Vector3,parent=null) -> Di
 	var new_rad_loc = new_location-parent_translation
 	new_rad_loc.y=0
 	var new_radius = new_rad_loc.length()
-	print(angle,' ',parent,' ',parent_translation,' ',new_rad_loc,' ',new_radius)
 
 	var new_start = 0.0
 	if abs(orbit_period)>1e-6:
