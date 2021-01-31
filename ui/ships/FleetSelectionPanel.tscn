@@ -1,0 +1,39 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/ships/FleetSelectionPanel.gd" type="Script" id=2]
+
+[node name="Panel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Grid" type="HSplitContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Tree" type="Tree" parent="Grid"]
+margin_right = 506.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+hide_root = true
+
+[node name="Info" parent="Grid" instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 518.0
+margin_right = 1024.0
+margin_bottom = 600.0
+allow_input = false
+[connection signal="item_activated" from="Grid/Tree" to="." method="_on_Tree_item_activated"]
+[connection signal="item_selected" from="Grid/Tree" to="." method="_on_Tree_item_selected"]
+[connection signal="nothing_selected" from="Grid/Tree" to="." method="_on_Tree_nothing_selected"]

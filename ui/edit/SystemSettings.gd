@@ -1,22 +1,34 @@
 extends TabContainer
 
 export var remove_fleet_texture: Texture
+export var FleetSelectionPopup: PackedScene = preload('res://ui/ships/FleetSelectionPopup.tscn')
 
-var popup_cancel: bool = false
 var system
 var have_picker: bool = false setget ,get_have_picker
 
+var popup_cancel = null
+var popup_path: NodePath = NodePath()
+var popup_selection: NodePath = NodePath()
+
 signal edit_complete
+
+func _exit_tree():
+	var popup = get_node_or_null(popup_path)
+	if popup:
+		popup.queue_free()
 
 func get_have_picker() -> bool: return have_picker
 
 func is_popup_visible() -> bool:
-	return $Fleets/SelectFleet.visible
+	return popup_path and get_node_or_null(popup_path)
 
 func cancel_popup():
-	if $Fleets/SelectFleet.visible:
+	var popup = get_node_or_null(popup_path)
+	if popup:
+		popup.visible=false
 		popup_cancel=true
-		$Fleets/SelectFleet.visible=false
+		popup_path=NodePath()
+		popup.queue_free()
 
 # warning-ignore:shadowed_variable
 func set_system(system: simple_tree.SimpleNode):
@@ -24,30 +36,46 @@ func set_system(system: simple_tree.SimpleNode):
 	sync_system_data(true,true)
 	init_fleet_list()
 
+func _on_popup_cancel():
+	var popup = get_node_or_null(popup_path)
+	popup_selection=NodePath()
+	popup_cancel=true
+	if popup:
+		popup.visible=false
+
+func _on_popup_accept_fleet(fleet: NodePath):
+	var popup = get_node_or_null(popup_path)
+	popup_selection=fleet
+	popup_cancel=false
+	if popup:
+		popup.visible=false
+
 func select_fleet(select_id: String = '') -> String:
-	var list: ItemList = $Fleets/SelectFleet/All/List
-	list.clear()
-	var select_index = -1
-	for fleet_id in game_state.fleets.get_child_names():
-		var fleet = game_state.fleets.get_child_with_name(fleet_id)
-		list.add_item(fleet.display_name+' ('+fleet.name+')')
-		if fleet_id == select_id:
-			select_index = list.get_item_count()
-	if select_index>=0:
-		list.select(select_index)
-		$Fleets/SelectFleet/All/Buttons/CreateFleet.disabled=false
-		$Fleets/SelectFleet/All/Buttons/CreateFleet.hint_tooltip='Add this fleet to the list of spawned fleets.'
-	else:
-		$Fleets/SelectFleet/All/Buttons/CreateFleet.disabled=true
-		$Fleets/SelectFleet/All/Buttons/CreateFleet.hint_tooltip='Select a fleet first.'
-	popup_cancel = true
-	$Fleets/SelectFleet.popup()
-	while $Fleets/SelectFleet.visible:
+	var popup = FleetSelectionPopup.instance()
+	if OK!=popup.connect('cancel',self,'_on_popup_cancel'):
+		push_error('Could not connect to FleetSelectionPopup cancel signal.')
+		popup.queue_free()
+		return
+	if OK!=popup.connect('accept_fleet',self,'_on_popup_accept_fleet'):
+		push_error('Could not connect to FleetSelectionPopup accept_fleet signal.')
+		popup.queue_free()
+		return
+	
+	popup_cancel = null
+	popup_selection = NodePath()
+	get_tree().root.add_child(popup)
+	popup.popup()
+	while popup_cancel==null:
 		yield(get_tree(),'idle_frame')
-	var selected: PoolIntArray = list.get_selected_items()
-	if not len(selected):
+	popup.visible=false
+	popup.queue_free()
+	if popup_cancel or not popup_selection:
 		return ''
-	return list.get_item_text(selected[0])
+	var fleet = game_state.fleets.get_node_or_null(popup_selection)
+	if not fleet:
+		push_error('No fleet found at path "'+str(popup_selection)+'"')
+		return ''
+	return fleet.name
 
 func sync_system_data(bkg_update: bool,meta_update: bool):
 	if meta_update:
@@ -254,6 +282,8 @@ func _on_AddFleetButton_pressed():
 		var data = { 'fleet': selection, 'team': 0, 'frequency': 7200, }
 		universe_edits.state.push(universe_edits.SystemAddFleet.new(
 			system.get_path(),data))
+	else:
+		print('canceled fleet addition')
 
 func _on_CreateFleet_pressed():
 	popup_cancel=false

@@ -30,6 +30,8 @@ export var mount_size_y: int = 0 setget ,get_mount_size_y
 export var mount_type: String = 'equipment'
 export var help_page: String = 'equipment'
 
+var cached_stats
+
 func is_mount_point(): # Never called; must only exist
 	pass
 
@@ -42,7 +44,38 @@ func get_mount_size_x() -> int:
 func get_mount_size_y() -> int:
 	return mount_size_y if mount_size_y>0 else item_size_y
 
-func add_stats(stats: Dictionary) -> void:
+func pack_stats() -> Dictionary:
+	if not cached_stats:
+		cached_stats = {
+			'name':name,
+			'mount_type':mount_type,
+			'help_page':help_page,
+			'item_size_x':item_size_x,
+			'item_size_y':item_size_y,
+			'add_mass':add_mass,
+			'add_thrust':add_thrust,
+			'add_reverse_thrust':add_reverse_thrust,
+			'add_turn_thrust':add_turn_thrust,
+			'add_shields':add_shields,
+			'add_armor':add_armor,
+			'add_structure':add_structure,
+			'add_heal_shields':add_heal_shields,
+			'add_heal_armor':add_heal_armor,
+			'add_heal_structure':add_heal_structure,
+			'add_drag':add_drag,
+			'mult_drag':mult_drag,
+			'add_turn_drag':add_turn_drag,
+			'mult_turn_drag':mult_turn_drag,
+			'add_threat':add_threat,
+			'add_explosion_damage':add_explosion_damage,
+			'add_explosion_radius':add_explosion_radius,
+			'add_explosion_impulse':add_explosion_impulse,
+			'add_explosion_delay':add_explosion_delay,
+		}
+	return cached_stats
+
+func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
+	stats['equipment'].append(pack_stats())
 	if add_mass > 0:
 		stats['mass'] = max(1,stats['mass']+add_mass)
 	if add_thrust > 0:

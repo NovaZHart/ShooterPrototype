@@ -82,6 +82,8 @@ var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
 
 func switch_editors(what: Node):
+	for design in ship_designs.get_children():
+		design.clear_cached_stats()
 	sector_editor = what if(what is SectorEditorStub) else SectorEditorStub.new()
 	system_editor = what if(what is SystemEditorStub) else SystemEditorStub.new()
 	ship_editor = what if(what is ShipEditorStub) else ShipEditorStub.new()

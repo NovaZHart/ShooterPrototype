@@ -133,6 +133,7 @@ func encode_MultiMount(m: MultiMount):
 class ShipDesign extends simple_tree.SimpleNode:
 	var display_name: String
 	var hull: PackedScene
+	var cached_stats = null
 	
 	func is_ShipDesign(): pass # for type detection; never called
 	
@@ -142,6 +143,19 @@ class ShipDesign extends simple_tree.SimpleNode:
 		assert(display_name)
 		assert(hull)
 		assert(hull is PackedScene)
+	
+	func get_stats() -> Dictionary:
+		if not cached_stats:
+			var _discard = assemble_ship()
+		return cached_stats
+	
+	func clear_cached_stats():
+		cached_stats=null
+	
+	func cache_remove_instance_info():
+		cached_stats.erase('rid')
+		for i in range(len(cached_stats['weapons'])):
+			cached_stats['weapons'][i]['node_path']=NodePath()
 	
 	func assemble_part(body: Node, child: Node) -> bool:
 		var part = get_node_or_null(child.name)
@@ -187,12 +201,15 @@ class ShipDesign extends simple_tree.SimpleNode:
 			found = assemble_part(body,child) or found
 		if not found:
 			push_warning('No parts found in ship')
-		body.pack_stats(true)
+		var stats = body.pack_stats(true)
 		for child in body.get_children():
 			if child.has_method('is_not_mounted'):
 				# Unused slots are removed to save space in the scene tree
 				body.remove_child(child)
 				child.queue_free()
+		if not cached_stats:
+			cached_stats = stats.duplicate(true)
+			cache_remove_instance_info()
 		return body
 
 func encode_ShipDesign(d: ShipDesign):
@@ -342,7 +359,7 @@ func decode_places(json_string,context: String) -> bool:
 	
 	var content_fleets = content['fleets']
 	if content_fleets:
-		fleets.remove_all_children()
+		var _discard = fleets.remove_all_children()
 		for fleet_name in content_fleets.get_child_names():
 			var fleet = content_fleets.get_child_with_name(fleet_name)
 			if not fleet or not fleet is Fleet:

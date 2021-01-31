@@ -26,6 +26,8 @@ export var mount_type: String = 'gun'
 export var help_page: String = 'weapons'
 
 var cached_bbcode = null
+var cached_stats = null
+var skipped_runtime_stats: bool = true
 
 func is_mount_point(): # Never called; must only exist
 	pass
@@ -38,9 +40,6 @@ func approximate_range() -> float:
 		return max(initial_velocity,projectile_thrust/projectile_drag)*max(1.0/60,projectile_lifetime)
 	return initial_velocity*max(1.0/60,projectile_lifetime)
 
-func make_cell(var a,var b):
-	return '[cell]'+str(a)+'[/cell][cell]'+str(b)+'[/cell]'
-
 func get_bbcode_for_ship_table() -> String:
 	return '[b]'+name.capitalize() + ':[/b] {ref '+help_page+'}\n' + get_bbcode()
 #		+ '[cell] DPS ' + str(round(damage/max(1.0/60,firing_delay)*10)/10) + '[/cell]' \
@@ -48,35 +47,7 @@ func get_bbcode_for_ship_table() -> String:
 
 func get_bbcode() -> String:
 	if cached_bbcode == null:
-		var bbcode: String = '[table=2]'
-		
-		# Weapon stats:
-		bbcode += make_cell('type',mount_type)
-		bbcode += make_cell('size',str(item_size_x)+'x'+str(item_size_y))
-		bbcode += make_cell('weapon mass',weapon_mass)
-		bbcode += make_cell('structure bonus',weapon_structure)
-		if turn_rate: bbcode += make_cell('turret turn rate',turn_rate)
-		
-		# Projectile stats:
-		if damage:
-			if firing_delay<=1.0/60:
-				bbcode += make_cell('shots per second','60 (continuous fire)')
-			else:
-				bbcode += make_cell('shots per second',ceil(1.0/max(1.0/60,firing_delay)))
-			bbcode += make_cell('damage per shot',damage)
-			bbcode += make_cell('damage per second',round(damage/max(1.0/60,firing_delay)*10)/10)
-		if impulse:
-			bbcode += make_cell('hit force per second',round(impulse/max(1.0/60,firing_delay)*10)/10)
-		if detonation_range: bbcode += make_cell('detonation range',detonation_range)
-		if blast_radius: bbcode += make_cell('blast radius',blast_radius)
-		bbcode += make_cell('range',round(approximate_range()*100)/100)
-		if guided:
-			bbcode += make_cell('guidance','interception' if guidance_uses_velocity else 'homing')
-			bbcode += make_cell('turn rate',projectile_turn_rate)
-		else:
-			bbcode += make_cell('guidance','unguided')
-
-		cached_bbcode = bbcode+'[/table]\n'
+		cached_bbcode = text_gen.make_weapon_bbcode(pack_stats(true))
 	return cached_bbcode
 
 func get_mount_size_x() -> int:
@@ -85,32 +56,49 @@ func get_mount_size_x() -> int:
 func get_mount_size_y() -> int:
 	return mount_size_y if mount_size_y>0 else item_size_y
 
-func add_stats(stats: Dictionary) -> void:
-	var th = threat
-	if th<0:
-		th = 1.0/max(firing_delay,1.0/60) * damage
+func pack_stats(skip_runtime_stats=false) -> Dictionary:
+	if not cached_stats:
+		var th = threat
+		if th<0:
+			th = 1.0/max(firing_delay,1.0/60) * damage
+		cached_stats = {
+			'damage':damage,
+			'impulse':impulse,
+			'initial_velocity':initial_velocity,
+			'projectile_mass':projectile_mass,
+			'projectile_drag':projectile_drag,
+			'projectile_thrust':projectile_thrust,
+			'projectile_lifetime':projectile_lifetime,
+			'projectile_turn_rate':projectile_turn_rate,
+			'firing_delay':firing_delay,
+			'turn_rate':turn_rate,
+			'blast_radius':blast_radius,
+			'detonation_range':detonation_range,
+			'threat':th,
+			'guided':guided,
+			'guidance_uses_velocity':guidance_uses_velocity,
+			'projectile_mesh_path':projectile_mesh_path,
+			'position':Vector3(translation.x,0,translation.z),
+			'rotation':rotation,
+			'node_path':(get_path() if (not skip_runtime_stats and is_inside_tree()) else NodePath()),
+			'name':name,
+			
+			# Used for text generation, not CombatEngine:
+			'help_page':help_page,
+			'item_size_x':item_size_x,
+			'item_size_y':item_size_y,
+			'weapon_mass':weapon_mass,
+			'weapon_structure':weapon_structure,
+			'mount_type':mount_type,
+		}
+		skipped_runtime_stats=skip_runtime_stats
+	elif not skip_runtime_stats and skipped_runtime_stats:
+		cached_stats['node_path'] = get_path()
+		skipped_runtime_stats=false
+	return cached_stats
+
+func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['mass'] += weapon_mass
 	stats['max_structure'] += weapon_structure
-	stats['threat'] += th
-	stats['weapons'].append({
-		'damage':damage,
-		'impulse':impulse,
-		'initial_velocity':initial_velocity,
-		'projectile_mass':projectile_mass,
-		'projectile_drag':projectile_drag,
-		'projectile_thrust':projectile_thrust,
-		'projectile_lifetime':projectile_lifetime,
-		'projectile_turn_rate':projectile_turn_rate,
-		'firing_delay':firing_delay,
-		'turn_rate':turn_rate,
-		'blast_radius':blast_radius,
-		'detonation_range':detonation_range,
-		'threat':th,
-		'guided':guided,
-		'guidance_uses_velocity':guidance_uses_velocity,
-		'projectile_mesh_path':projectile_mesh_path,
-		'position':Vector3(translation.x,0,translation.z),
-		'rotation':rotation,
-		'node_path':(get_path() if is_inside_tree() else NodePath()),
-		'name':name,
-	})
+	stats['weapons'].append(pack_stats(skip_runtime_stats))
+	stats['threat'] += cached_stats['threat']

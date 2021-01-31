@@ -22,6 +22,7 @@ config/icon="res://icon.png"
 [autoload]
 
 simple_tree="*res://globals/SimpleTree.gd"
+text_gen="*res://globals/TextGen.gd"
 undo_tool="*res://globals/UndoTool.gd"
 game_state="*res://globals/GameState.gd"
 universe_edits="*res://globals/UniverseEdits.gd"

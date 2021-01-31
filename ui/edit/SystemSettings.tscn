@@ -22,44 +22,6 @@ margin_top = 32.0
 margin_right = -4.0
 margin_bottom = -4.0
 
-[node name="SelectFleet" type="PopupPanel" parent="Fleets"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-popup_exclusive = true
-
-[node name="All" type="GridContainer" parent="Fleets/SelectFleet"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="List" type="ItemList" parent="Fleets/SelectFleet/All"]
-anchor_right = 1.0
-anchor_bottom = 1.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
-[node name="Buttons" type="GridContainer" parent="Fleets/SelectFleet/All"]
-anchor_right = 1.0
-margin_top = 4.0
-margin_right = 89.0
-margin_bottom = 48.0
-size_flags_horizontal = 3
-columns = 2
-
-[node name="CreateFleet" type="Button" parent="Fleets/SelectFleet/All/Buttons"]
-margin_right = 89.0
-margin_bottom = 20.0
-text = "Create Fleet"
-
-[node name="Cancel" type="Button" parent="Fleets/SelectFleet/All/Buttons"]
-margin_top = 24.0
-margin_right = 89.0
-margin_bottom = 44.0
-text = "Cancel"
-
 [node name="Top" type="GridContainer" parent="Fleets"]
 margin_right = 1016.0
 margin_bottom = 20.0
@@ -83,7 +45,7 @@ text = "Add Fleet"
 [node name="Spawned" type="Tree" parent="Fleets"]
 margin_top = 24.0
 margin_right = 1016.0
-margin_bottom = 560.0
+margin_bottom = 564.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
@@ -184,8 +146,6 @@ margin_left = 510.0
 margin_top = 136.0
 margin_right = 1016.0
 margin_bottom = 156.0
-[connection signal="pressed" from="Fleets/SelectFleet/All/Buttons/CreateFleet" to="." method="_on_CreateFleet_pressed"]
-[connection signal="pressed" from="Fleets/SelectFleet/All/Buttons/Cancel" to="." method="_on_Cancel_pressed"]
 [connection signal="pressed" from="Fleets/Top/AddFleetButton" to="." method="_on_AddFleetButton_pressed"]
 [connection signal="button_pressed" from="Fleets/Spawned" to="." method="_on_Spawned_button_pressed"]
 [connection signal="item_edited" from="Fleets/Spawned" to="." method="_on_Spawned_item_edited"]
