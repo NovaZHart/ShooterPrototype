@@ -122,3 +122,75 @@ class SetEditedShipDesign extends undo_tool.Action:
 		return game_state.ship_editor.set_edited_ship_design(new)
 	func undo():
 		return game_state.ship_editor.set_edited_ship_design(old)
+
+class ChangeSpawnCount extends undo_tool.Action:
+	var fleet_path: NodePath
+	var design_path: NodePath
+	var old_count: int
+	var new_count: int
+	func as_string():
+		return 'ChangeSpawnCount(' \
+			+'fleet_path='+str(fleet_path)+', design_path='+str(design_path) \
+			+'old_count='+str(old_count)+', new_count='+str(new_count)+')'
+	func _init(fleet_path_: NodePath, design_path_: NodePath, new_count_: int):
+		fleet_path=fleet_path_
+		design_path=design_path_
+		new_count=new_count_
+	func run() -> bool:
+		var fleet = game_state.fleets.get_node_or_null(fleet_path)
+		var design_name = design_path.get_name(design_path.get_name_count()-1)
+		if not fleet:
+			return false
+		old_count = fleet.spawn_count_for(design_name)
+		return true
+	func undo() -> bool:
+		return game_state.fleet_editor.change_spawn_count(
+			fleet_path,design_path,old_count)
+	func redo() -> bool:
+		return game_state.fleet_editor.change_spawn_count(
+			fleet_path,design_path,new_count)
+
+class ChangeFleetSelection extends undo_tool.Action:
+	var old_path: NodePath
+	var old_index: int
+	var old_column: int
+	var new_path: NodePath
+	var new_index: int
+	var new_column: int
+	func as_string():
+		return 'ChangeFleetSelection(' \
+			+ 'old='+str(old_path)+'@'+str(old_index)+':'+str(old_column) \
+			+ ',new='+str(new_path)+'@'+str(new_index)+':'+str(new_column)+')'
+	func _init(old_path_: NodePath, old_index_: int, old_column_: int, \
+			new_path_: NodePath, new_index_: int, new_column_: int):
+		old_path = old_path_
+		old_index = old_index_
+		old_column = old_column_
+		new_path = new_path_
+		new_index = new_index_
+		new_column = new_column_
+	func undo() -> bool:
+		return game_state.fleet_editor.select_fleet(old_path,old_index,old_column)
+	func redo() -> bool:
+		return game_state.fleet_editor.select_fleet(new_path,new_index,old_column)
+
+class RemoveFleet extends undo_tool.Action:
+	var old_path: NodePath
+	var old_column: int
+	var old_fleet
+	func as_string():
+		return 'RemoveFleet(old='+str(old_path)+':'+str(old_column)+',...)'
+	func _init(old_path_: NodePath, old_column_: int):
+		old_path = old_path_
+		old_column = old_column_
+	func run():
+		old_fleet = game_state.fleets.get_node_or_null(old_path)
+		if not old_fleet:
+			return false
+		return game_state.fleets.remove_child(old_fleet)
+	func undo():
+		return game_state.fleets.add_child(old_fleet) and \
+			game_state.fleet_editor.add_fleet(old_path,old_column,old_fleet)
+	func redo():
+		return game_state.fleets.remove_child(old_fleet) and \
+			game_state.fleet_editor.remove_fleet(old_path,old_column,old_fleet)

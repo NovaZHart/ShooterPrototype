@@ -27,6 +27,14 @@ var player_ship_design
 
 signal console_append
 
+class FleetEditorStub extends Panel:
+	func select_fleet(_fleet_path,_ship_index,_column) -> bool:
+		return true
+	func add_fleet(_fleet_path,_selected_column,_fleet) -> bool:
+		return true
+	func remove_fleet(_fleet_path,_selected_column,_fleet) -> bool:
+		return true
+
 class ShipEditorStub extends Panel:
 	func add_item(_scene: PackedScene, _mount_name:String, _x:int, _y:int) -> bool:
 		return true
@@ -80,13 +88,17 @@ class SystemEditorStub extends Panel:
 var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
+var fleet_editor = ShipEditorStub.new()
 
 func switch_editors(what: Node):
 	for design in ship_designs.get_children():
 		design.clear_cached_stats()
+	for design in fleets.get_children():
+		design.clear_cached_stats()
 	sector_editor = what if(what is SectorEditorStub) else SectorEditorStub.new()
 	system_editor = what if(what is SystemEditorStub) else SystemEditorStub.new()
 	ship_editor = what if(what is ShipEditorStub) else ShipEditorStub.new()
+	fleet_editor = what if(what is FleetEditorStub) else FleetEditorStub.new()
 
 func make_unique_ship_node_name():
 	var i: int = name_counter

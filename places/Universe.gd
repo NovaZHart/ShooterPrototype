@@ -228,6 +228,9 @@ func decode_ShipDesign(v):
 class Fleet extends simple_tree.SimpleNode:
 	var spawn_info: Dictionary = {}
 	var display_name: String = 'Unnamed'
+	
+	func is_Fleet(): pass # for type detection; never called
+	
 	func _init(display_name_, spawn_info_ = {}):
 		display_name = display_name_
 		set_spawn_info(spawn_info_)

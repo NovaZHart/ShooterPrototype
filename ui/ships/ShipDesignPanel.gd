@@ -109,7 +109,7 @@ func update_buttons():
 		Remove.disabled = disable_Remove or not selected_design
 	var Add = $All/Buttons.get_node_or_null('Add')
 	if Add:
-		Add.disabled = disable_Add
+		Add.disabled = disable_Add or not selected_design
 	$All/Buttons.columns = $All/Buttons.get_child_count()
 
 func _ready():
@@ -138,7 +138,7 @@ func _input(event):
 	var up = event.is_action_pressed('wheel_up')
 	var down = event.is_action_pressed('wheel_down')
 	if up or down:
-		var rect: Rect2 = Rect2(rect_global_position, rect_size)
+		var rect: Rect2 = Rect2($All/Top/List.rect_global_position, $All/Top/List.rect_size)
 		if not rect.has_point(event_position(event)):
 			return
 		if down and $All/Top/Scroll.value<$All/Top/Scroll.max_value:

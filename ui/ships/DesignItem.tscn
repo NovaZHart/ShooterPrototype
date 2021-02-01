@@ -29,7 +29,7 @@ size_flags_vertical = 0
 stretch = true
 
 [node name="Port" type="Viewport" parent="View"]
-size = Vector2( 40, 40 )
+size = Vector2( 0, 600 )
 own_world = true
 world = SubResource( 1 )
 handle_input_locally = false
@@ -75,8 +75,6 @@ custom_fonts/italics_font = ExtResource( 6 )
 custom_fonts/bold_font = ExtResource( 5 )
 custom_fonts/normal_font = ExtResource( 3 )
 bbcode_enabled = true
-bbcode_text = "[i][color=blue]Insert text here[/color][/i]"
-text = "Insert text here"
 scroll_active = false
 [connection signal="item_rect_changed" from="." to="." method="_on_DesignItem_item_rect_changed"]
 [connection signal="resized" from="." to="." method="_on_DesignItem_resized"]

@@ -48,8 +48,8 @@ func set_design(new_path: NodePath) -> bool:
 	var basic_bbcode = '[b][i]'+design.display_name+'[/i][/b]:' \
 		+ ' Damage [color=#ff7788]'+sum['dps']+'/s[/color]' \
 		+ ' Range [color=#ff7788]'+sum['weapon_range']+'[/color]' \
-		+ ' ([color=#ff7788]'+sum['guns']+'[/color] guns, ' \
-		+ '[color=#ff7788]'+sum['turrets']+'[/color] turrets)' \
+		+ ' (Guns: [color=#ff7788]'+sum['guns']+'[/color], ' \
+		+ 'Turrets: [color=#ff7788]'+sum['turrets']+'[/color])' \
 		+'\n' \
 		+ 'Shields: [color=#aabbff]'+str(round(stats['max_shields']))+'[/color]' \
 		+ ', Armor: [color=#eedd99]'+str(round(stats['max_armor']))+'[/color]' \
