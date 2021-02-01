@@ -162,8 +162,6 @@ func _input(event):
 		var rect: Rect2 = Rect2(rect_global_position, rect_size)
 		if not rect.has_point(event_position(event)):
 			return
-		if not has_focus():
-			grab_focus()
 		if selected:
 			deselect()
 		else:
