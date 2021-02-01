@@ -139,12 +139,7 @@ func exit_to_orbit():
 
 func reset_parts_and_designs():
 	var _discard = cancel_drag()
-	$All/Shop/Tabs/Designs.clear_items()
-	for design_name in game_state.ship_designs.get_child_names():
-		var design = game_state.ship_designs.get_child_with_name(design_name)
-		if design:
-			_discard = $All/Shop/Tabs/Designs.add_ship_design(design)
-	$All/Shop/Tabs/Designs.arrange_items()
+	$All/Shop/Tabs/Designs.set_designs(game_state.ship_designs.get_child_names())
 	$All/Shop/Tabs/Weapons.clear_items()
 	$All/Shop/Tabs/Weapons.add_part_list([
 		preload('res://weapons/BlueLaserGun.tscn'),
@@ -168,7 +163,7 @@ func reset_parts_and_designs():
 	])
 	$All/Shop/Tabs/Equipment.arrange_items()
 	show_edited_design_info()
-	$All/Shop/Tabs/Designs.set_edited_item_id(design_id)
+#	$All/Shop/Tabs/Designs.set_edited_item_id(design_id)
 
 func _ready():
 	$Drag/View.transparent_bg = true
@@ -190,12 +185,12 @@ func remove_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 
 func add_design(design: simple_tree.SimpleNode) -> bool:
 	$All/Shop/Tabs/Designs.add_ship_design(design)
-	$All/Shop/Tabs/Designs.arrange_items()
+	#$All/Shop/Tabs/Designs.arrange_items()
 	return true
 
 func remove_design(design: simple_tree.SimpleNode) -> bool:
-	$All/Shop/Tabs/Designs.remove_ship_design(design.name)
-	$All/Shop/Tabs/Designs.arrange_items()
+	$All/Shop/Tabs/Designs.remove_ship_design(design)
+	#$All/Shop/Tabs/Designs.arrange_items()
 	return true
 
 func show_edited_design_info():
@@ -217,56 +212,43 @@ func show_design_info(ship: RigidBody):
 	$All/Shop/Info.insert_bbcode(rewrite)
 	$All/Shop/Info.scroll_to_line(0)
 
-func _on_Designs_deselect_item(_ship_or_null):
-	show_edited_design_info()
-	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Show/Grid/Ship.deselect()
-
-func _on_Designs_select_item(ship):
-	if ship:
-		show_design_info(ship)
-	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Show/Grid/Ship.deselect()
-
 func _on_Weapons_select_item(item):
 	if item.page:
 		show_help_page(item.page)
 	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Designs.deselect(false)
+	$All/Shop/Tabs/Designs.deselect()
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Weapons_deselect_item(_item_or_null):
 	show_edited_design_info()
 	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Designs.deselect(false)
+	$All/Shop/Tabs/Designs.deselect()
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Ship_deselect_item():
 	show_edited_design_info()
 	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Designs.deselect(false)
+	$All/Shop/Tabs/Designs.deselect()
 	$All/Shop/Tabs/Weapons.deselect(false)
 
 func _on_Equipment_deselect_item(_item_or_null):
 	show_edited_design_info()
 	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Shop/Tabs/Designs.deselect(false)
+	$All/Shop/Tabs/Designs.deselect()
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Equipment_select_item(item):
 	if item.page:
 		show_help_page(item.page)
 	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Shop/Tabs/Designs.deselect(false)
+	$All/Shop/Tabs/Designs.deselect()
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Ship_select_item(item):
 	if item.page:
 		show_help_page(item.page)
 	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Shop/Tabs/Designs.deselect(false)
+	$All/Shop/Tabs/Designs.deselect()
 	$All/Shop/Tabs/Equipment.deselect(false)
 
 func _on_Ship_pixel_height_changed(_size: float):
@@ -281,19 +263,6 @@ func _on_Weapons_drag_selection(scene: PackedScene):
 func _on_Ship_drag_selection(scene: PackedScene):
 	set_drag_scene(scene)
 
-func _on_Designs_add_design(_path):
-	universe_edits.state.push(ship_edits.AddOrChangeDesign.new(
-		make_edited_ship_design()))
-
-func _on_Designs_change_design(path):
-	var design = make_edited_ship_design()
-	design.name = path.get_name(path.get_name_count()-1)
-	universe_edits.state.push(ship_edits.AddOrChangeDesign.new(design))
-
-func _on_Designs_remove_design(path):
-	var design_name = path.get_name(path.get_name_count()-1)
-	universe_edits.state.push(ship_edits.RemoveDesign.new(design_name))
-
 func set_edited_ship_display_name(new_name: String) -> bool:
 	if not new_name:
 		return false
@@ -306,7 +275,7 @@ func set_edited_ship_name(new_name: String) -> bool:
 		return false
 	design_id = new_name
 	$All/Show/Grid/Top/IDEdit.text = new_name
-	$All/Shop/Tabs/Designs.set_edited_item_id(new_name)
+	#$All/Shop/Tabs/Designs.set_edited_item_id(new_name)
 	return true
 
 func set_edited_ship_design(design: simple_tree.SimpleNode) -> bool:
@@ -315,7 +284,7 @@ func set_edited_ship_design(design: simple_tree.SimpleNode) -> bool:
 	design_display_name = design.display_name
 	$All/Show/Grid/Top/IDEdit.text = design_id
 	$All/Show/Grid/Top/NameEdit.text = design_display_name
-	$All/Shop/Tabs/Designs.set_edited_item_id(design_id)
+	#$All/Shop/Tabs/Designs.set_edited_item_id(design_id)
 	return true
 
 func _on_IDEdit_focus_exited():
@@ -352,7 +321,43 @@ func _on_FileDialog_file_selected(path):
 func _on_ConfirmationDialog_confirmed():
 	exit_confirmed = true
 
-func _on_Designs_edit_design(design):
+func _on_Designs_add(_design_path):
+	universe_edits.state.push(ship_edits.AddOrChangeDesign.new(
+		make_edited_ship_design()))
+
+func _on_Designs_change(design_path):
+	var design = make_edited_ship_design()
+	design.name = design_path.get_name(design_path.get_name_count()-1)
+	universe_edits.state.push(ship_edits.AddOrChangeDesign.new(design))
+
+func _on_Designs_select(design_path):
+	print('select ',design_path)
+	if design_path:
+		print('true ',design_path)
+		var ship = $All/Shop/Tabs/Designs.assemble_design()
+		assert(ship)
+		if ship:
+			print('show design info ',ship)
+			show_design_info(ship)
+	$All/Shop/Tabs/Equipment.deselect(false)
+	$All/Shop/Tabs/Weapons.deselect(false)
+	$All/Show/Grid/Ship.deselect()
+
+func _on_Designs_remove(design_path):
+	var design_name = design_path.get_name(design_path.get_name_count()-1)
+	universe_edits.state.push(ship_edits.RemoveDesign.new(design_name))
+
+func _on_Designs_open(design_path):
+	var design = game_state.ship_designs.get_node_or_null(design_path)
 	if design and design is simple_tree.SimpleNode:
 		universe_edits.state.push(ship_edits.SetEditedShipDesign.new(
 			make_edited_ship_design(),design))
+
+func _on_Designs_select_nothing():
+	show_edited_design_info()
+	$All/Shop/Tabs/Equipment.deselect(false)
+	$All/Shop/Tabs/Weapons.deselect(false)
+	$All/Show/Grid/Ship.deselect()
+
+func _on_Designs_deselect(_design_path):
+	_on_Designs_select_nothing()
