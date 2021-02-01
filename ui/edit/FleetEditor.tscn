@@ -37,20 +37,56 @@ size_flags_vertical = 3
 margin_right = 506.0
 margin_bottom = 20.0
 size_flags_horizontal = 3
-columns = 2
-
-[node name="FleetLabel" type="Label" parent="Split/Left/Buttons"]
-margin_top = 3.0
-margin_right = 39.0
-margin_bottom = 17.0
-text = "Fleets"
+columns = 7
 
 [node name="AddFleet" type="Button" parent="Split/Left/Buttons"]
-margin_left = 43.0
-margin_right = 116.0
+margin_right = 73.0
 margin_bottom = 20.0
 grow_horizontal = 0
 text = "Add Fleet"
+
+[node name="FleetLabel" type="Label" parent="Split/Left/Buttons"]
+margin_left = 77.0
+margin_top = 3.0
+margin_right = 254.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+text = "Fleets"
+
+[node name="Save" type="Button" parent="Split/Left/Buttons"]
+margin_left = 258.0
+margin_right = 299.0
+margin_bottom = 20.0
+hint_tooltip = "Save the universe to a json file."
+text = "Save"
+
+[node name="Load" type="Button" parent="Split/Left/Buttons"]
+margin_left = 303.0
+margin_right = 345.0
+margin_bottom = 20.0
+hint_tooltip = "Load the universe from  a json file."
+text = "Load"
+
+[node name="Undo" type="Button" parent="Split/Left/Buttons"]
+margin_left = 349.0
+margin_right = 395.0
+margin_bottom = 20.0
+hint_tooltip = "Undo the last action."
+text = "Undo"
+
+[node name="Redo" type="Button" parent="Split/Left/Buttons"]
+margin_left = 399.0
+margin_right = 443.0
+margin_bottom = 20.0
+hint_tooltip = "Undo the undo; reapply the action."
+text = "Redo"
+
+[node name="System" type="Button" parent="Split/Left/Buttons"]
+margin_left = 447.0
+margin_right = 506.0
+margin_bottom = 20.0
+hint_tooltip = "Return to the System Editor."
+text = "System"
 
 [node name="Tree" type="Tree" parent="Split/Left"]
 margin_top = 24.0
@@ -86,6 +122,11 @@ show_Change = false
 show_Remove = false
 show_Cancel = false
 [connection signal="pressed" from="Split/Left/Buttons/AddFleet" to="." method="_on_AddFleet_pressed"]
+[connection signal="pressed" from="Split/Left/Buttons/Save" to="." method="_on_Save_pressed"]
+[connection signal="pressed" from="Split/Left/Buttons/Load" to="." method="_on_Load_pressed"]
+[connection signal="pressed" from="Split/Left/Buttons/Undo" to="." method="_on_Undo_pressed"]
+[connection signal="pressed" from="Split/Left/Buttons/Redo" to="." method="_on_Redo_pressed"]
+[connection signal="pressed" from="Split/Left/Buttons/System" to="." method="_on_System_pressed"]
 [connection signal="button_pressed" from="Split/Left/Tree" to="." method="_on_Tree_button_pressed"]
 [connection signal="item_edited" from="Split/Left/Tree" to="." method="_on_Tree_item_edited"]
 [connection signal="item_selected" from="Split/Left/Tree" to="." method="_on_Tree_item_selected"]

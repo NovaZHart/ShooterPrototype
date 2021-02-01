@@ -35,21 +35,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="ConfirmationDialog" type="ConfirmationDialog" parent="."]
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-margin_left = -104.0
-margin_top = -35.0
-margin_right = 104.0
-margin_bottom = 35.0
-grow_horizontal = 2
-grow_vertical = 2
-popup_exclusive = true
-window_title = "Exit without saving?"
-dialog_text = "Exit without saving?"
-
 [node name="All" type="HSplitContainer" parent="."]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -201,7 +186,6 @@ projection = 1
 current = true
 size = 2.16
 [connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
-[connection signal="confirmed" from="ConfirmationDialog" to="." method="_on_ConfirmationDialog_confirmed"]
 [connection signal="add" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_add"]
 [connection signal="change" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_change"]
 [connection signal="deselect" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_deselect"]

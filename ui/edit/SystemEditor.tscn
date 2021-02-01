@@ -34,7 +34,7 @@ __meta__ = {
 }
 
 [node name="Left" type="ViewportContainer" parent="Split"]
-margin_right = 725.0
+margin_right = 696.0
 margin_bottom = 600.0
 focus_neighbour_left = NodePath(".")
 focus_neighbour_top = NodePath(".")
@@ -48,30 +48,79 @@ size_flags_stretch_ratio = 2.5
 stretch = true
 
 [node name="View" type="Viewport" parent="Split/Left"]
-size = Vector2( 100, 100 )
+size = Vector2( 696, 600 )
 handle_input_locally = false
 render_target_update_mode = 3
 
 [node name="SystemView" parent="Split/Left/View" instance=ExtResource( 1 )]
 
 [node name="Right" type="VSplitContainer" parent="Split"]
-margin_left = 737.0
+margin_left = 708.0
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Top" type="Panel" parent="Split/Right"]
-margin_right = 287.0
-margin_bottom = 144.0
+[node name="Top" type="GridContainer" parent="Split/Right"]
+margin_right = 316.0
+margin_bottom = 184.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.4
+
+[node name="Buttons" type="GridContainer" parent="Split/Right/Top"]
+margin_right = 316.0
+margin_bottom = 21.0
+size_flags_vertical = 0
+columns = 6
+
+[node name="Sector" type="Button" parent="Split/Right/Top/Buttons"]
+margin_right = 60.0
+margin_bottom = 21.0
+text = "Sector"
+
+[node name="Save" type="Button" parent="Split/Right/Top/Buttons"]
+margin_left = 64.0
+margin_right = 108.0
+margin_bottom = 21.0
+text = "Save"
+
+[node name="Load" type="Button" parent="Split/Right/Top/Buttons"]
+margin_left = 112.0
+margin_right = 156.0
+margin_bottom = 21.0
+text = "Load"
+
+[node name="Undo" type="Button" parent="Split/Right/Top/Buttons"]
+margin_left = 160.0
+margin_right = 204.0
+margin_bottom = 21.0
+text = "Undo"
+
+[node name="Redo" type="Button" parent="Split/Right/Top/Buttons"]
+margin_left = 208.0
+margin_right = 252.0
+margin_bottom = 21.0
+text = "Redo"
+
+[node name="Fleets" type="Button" parent="Split/Right/Top/Buttons"]
+margin_left = 256.0
+margin_right = 316.0
+margin_bottom = 21.0
+text = "Fleets"
+
+[node name="Tree" parent="Split/Right/Top" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 25.0
+margin_right = 316.0
+margin_bottom = 184.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Tree" parent="Split/Right/Top" instance=ExtResource( 3 )]
-
 [node name="Bottom" type="Panel" parent="Split/Right"]
-margin_top = 156.0
-margin_right = 287.0
+margin_top = 196.0
+margin_right = 316.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -82,18 +131,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="FileDialog" type="FileDialog" parent="."]
-anchor_left = 0.1
-anchor_top = 0.1
-anchor_right = 0.9
-anchor_bottom = 0.9
-popup_exclusive = true
-resizable = true
-filters = PoolStringArray( "*.json ; JSON Files" )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -199,10 +236,15 @@ text = "Informational text here"
 [connection signal="request_focus" from="Split/Left/View/SystemView" to="." method="_on_SystemView_request_focus"]
 [connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_select_nothing"]
 [connection signal="select_space_object" from="Split/Left/View/SystemView" to="." method="_on_System_View_select_space_object"]
+[connection signal="pressed" from="Split/Right/Top/Buttons/Sector" to="." method="_on_Sector_pressed"]
+[connection signal="pressed" from="Split/Right/Top/Buttons/Save" to="." method="_on_Save_pressed"]
+[connection signal="pressed" from="Split/Right/Top/Buttons/Load" to="." method="_on_Load_pressed"]
+[connection signal="pressed" from="Split/Right/Top/Buttons/Undo" to="." method="_on_Undo_pressed"]
+[connection signal="pressed" from="Split/Right/Top/Buttons/Redo" to="." method="_on_Redo_pressed"]
+[connection signal="pressed" from="Split/Right/Top/Buttons/Fleets" to="." method="_on_Fleets_pressed"]
 [connection signal="center_on_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_center_on_node"]
 [connection signal="deselect_node" from="Split/Right/Top/Tree" to="." method="_on_select_nothing"]
 [connection signal="select_node" from="Split/Right/Top/Tree" to="." method="_on_Tree_select_space_object"]
-[connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
 [connection signal="text_changed" from="PopUp/A/A/IDEdit" to="." method="_on_IDEdit_text_changed"]
 [connection signal="text_entered" from="PopUp/A/A/IDEdit" to="." method="_on_IDEdit_text_entered"]
 [connection signal="text_changed" from="PopUp/A/A/NameEdit" to="." method="_on_NameEdit_text_changed"]

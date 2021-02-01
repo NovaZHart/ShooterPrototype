@@ -4,26 +4,31 @@ class FleetTreeSelection extends Object:
 	var path: NodePath = NodePath()
 	var ship_index: int = -1
 	var column: int = 0
+	func same_item_as(sel) -> bool:
+		return sel.ship_index==ship_index and sel.path==path
 	func _init(tree,editor):
-		if not tree or not editor:
+		if not tree and not editor:
 			return # null,null => deselected settings
 		if not tree:
-			tree = editor.get_node_or_null('H/Tree')
+			tree = editor.get_node_or_null('Split/Left/Tree')
 		if not tree:
+			push_error('Cannot find tree in FleetTreeSelection._init()')
 			return null
 		var item = tree.get_selected()
-		column = tree.get_selected_column()
 		if not item:
-			return
-		var fleet_path = item.get_metadata(0)
-		path = item.get_metadata(1)
-		if not fleet_path:
-			return
-		var fleet = editor.tree_find_meta(tree.get_root(),1,fleet_path)
+			return # nothing is selected
+		column = tree.get_selected_column()
+		path = item.get_metadata(0)
+		var item_path = item.get_metadata(1)
+		if not path:
+			path = item_path
+			return # fleet is selected
+		var fleet = editor.tree_find_meta(tree.get_root(),1,path)
 		if not fleet:
+			push_error('Fleet '+str(path)+' is not in the tree.')
 			path=NodePath()
 			return
-		ship_index = editor.tree_find_meta_index(fleet,1,path)
+		ship_index = editor.tree_find_meta_index(fleet,1,item_path)
 
 class RemoveDesign extends undo_tool.Action:
 	var old_design
@@ -194,7 +199,7 @@ class ChangeFleetDisplayName extends undo_tool.Action:
 	var new_name
 	func as_string():
 		return 'ChangeFleetDisplayName(path='+str(fleet_path)+',old='+\
-			old_name+'new='+new_name+')'
+			str(old_name)+'new='+str(new_name)+')'
 	func _init(fleet_path_,new_name_):
 		fleet_path=fleet_path_
 		new_name=new_name_
@@ -230,16 +235,16 @@ class ChangeFleetSpawnCount extends undo_tool.Action:
 		design_path=design_path_
 		new_count=new_count_
 		send_event_in_run=send_event_in_run_
-	func set_count(value: int, save=false) -> bool:
+	func set_count(value: int, called_from_run=false) -> bool:
 		var fleet = game_state.fleets.get_node_or_null(fleet_path)
 		if not fleet:
 			push_error('There is no fleet at path '+str(fleet_path))
 			return false
 		var design_name = design_path.get_name(design_path.get_name_count()-1)
-		if save:
+		if called_from_run:
 			old_count = fleet.spawn_count_for(design_name)
 		fleet.set_spawn(design_name,value)
-		return not send_event_in_run or \
+		return (called_from_run and not send_event_in_run) or \
 			game_state.fleet_editor.set_spawn_count(fleet_path,design_path,value)
 	func run() -> bool:
 		return set_count(new_count,true)
@@ -297,3 +302,148 @@ class RemoveFleet extends undo_tool.Action:
 		return game_state.fleets.remove_child(old_fleet) and \
 			game_state.fleet_editor.remove_fleet(old_path) and \
 			game_state.fleet_editor.select_fleet(old_selection)
+
+class SystemEditorToFleetEditor extends undo_tool.Action:
+	var old_tree_selection: FleetTreeSelection
+	var new_tree_selection: FleetTreeSelection
+	func as_string() -> String:
+		return 'SystemEditorToFleetEditor('+ \
+			'old_tree_selection='+str(old_tree_selection)+','+ \
+			'new_tree_selection='+str(new_tree_selection)+')'
+	func _init():
+		old_tree_selection = game_state.fleet_tree_selection
+	func run() -> bool:
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
+			push_error('cannot change scene to FleetEditor')
+			return false
+		new_tree_selection = FleetTreeSelection.new(null,game_state.fleet_editor)
+		return true
+	func redo() -> bool:
+		game_state.fleet_tree_selection = new_tree_selection
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
+			push_error('cannot change scene to FleetEditor')
+			return false
+		return true
+	func undo() -> bool:
+		game_state.fleet_tree_selection = old_tree_selection
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
+			push_error('cannot change scene to SystemEditor')
+			return false
+		return true
+
+class FleetEditorToSystemEditor extends undo_tool.Action:
+	var tree_selection: FleetTreeSelection
+	func as_string() -> String:
+		return 'FleetEditorToSystemEditor(tree_selection='+str(tree_selection)+')'
+	func _init():
+		tree_selection = FleetTreeSelection.new(null,game_state.fleet_editor)
+	func run() -> bool:
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
+			push_error('cannot change scene to SystemEditor')
+			return false
+		return true
+	func undo() -> bool:
+		game_state.fleet_tree_selection = tree_selection
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
+			push_error('cannot change scene to FleetEditor')
+			return false
+		return true
+
+class ShipEditorToFleetEditor extends undo_tool.Action:
+	var old_design = null
+	var tree_selection: FleetTreeSelection
+	var new_design = null
+	func as_string() -> String:
+		return 'ShipEditorToFleetEditor()'
+
+	func set_design(design) -> bool:
+		if not design:
+			return true
+		var decoded = game_state.universe.decode_helper(design)
+		var design_node = game_state.ship_designs.get_child_with_name('player_ship_design')
+		if design_node and not game_state.ship_designs.remove_child(design_node):
+			push_error('cannot remove old player ship design')
+			return false
+		decoded.name='player_ship_design'
+		if not game_state.ship_designs.add_child(decoded):
+			var _discard = game_state.ship_designs.add_child(design_node)
+			push_error('cannot add player_ship_design to tree')
+			return false
+		game_state.player_ship_design=decoded
+		return true
+	func run():
+		old_design = game_state.universe.encode_helper(game_state.player_ship_design)
+		new_design = game_state.ship_editor.make_edited_ship_design()
+		if not new_design.has_method('is_ShipDesign'):
+			new_design = old_design
+		else:
+			new_design = game_state.universe.encode_helper(new_design)
+		if not redo():
+			return false
+		tree_selection = FleetTreeSelection.new(null,game_state.fleet_editor)
+		return true
+	func undo() -> bool:
+		if not set_design(old_design):
+			return false
+		if OK!=Engine.get_main_loop().change_scene('res://ui/ships/ShipDesignScreen.tscn'):
+			push_error('cannot change scene to ShipEditor')
+			return false
+		return true
+	func redo() -> bool:
+		game_state.fleet_tree_selection = tree_selection
+		if not set_design(new_design):
+			return false
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
+			push_error('cannot change scene to FleetEditor')
+			return false
+		return true
+
+class FleetEditorToShipEditor extends undo_tool.Action:
+	var tree_selection: FleetTreeSelection
+	var old_design = null
+	var new_design = null
+	var design_to_edit: NodePath
+	func as_string() -> String:
+		return 'FleetEditorToShipEditor(tree_selection='+str(tree_selection)+')'
+	func _init(design_to_edit_: NodePath = NodePath()):
+		tree_selection = FleetTreeSelection.new(null,game_state.fleet_editor)
+		design_to_edit = design_to_edit_
+	func set_design(design) -> bool:
+		if not design:
+			return true
+		var decoded = game_state.universe.decode_helper(design)
+		var design_node = game_state.ship_designs.get_child_with_name('player_ship_design')
+		if design_node and not game_state.ship_designs.remove_child(design_node):
+			push_error('cannot remove old player ship design')
+			return false
+		decoded.name='player_ship_design'
+		if not game_state.ship_designs.add_child(decoded):
+			var _discard = game_state.ship_designs.add_child(design_node)
+			push_error('cannot add player_ship_design to tree')
+			return false
+		game_state.player_ship_design=decoded
+		return true
+	func run() -> bool:
+		if not design_to_edit.is_empty():
+			var design = game_state.ship_designs.get_node_or_null(design_to_edit)
+			if not design:
+				push_error("There is no design at path "+str(design_to_edit))
+				return false
+			new_design = game_state.universe.encode_helper(design)
+			old_design = game_state.universe.encode_helper(game_state.player_ship_design)
+		return redo()
+	func undo() -> bool:
+		if not set_design(old_design):
+			return false
+		game_state.fleet_tree_selection = tree_selection
+		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
+			push_error('cannot change scene to FleetEditor')
+			return false
+		return true
+	func redo() -> bool:
+		if not set_design(new_design):
+			return false
+		if OK!=Engine.get_main_loop().change_scene('res://ui/ships/ShipDesignScreen.tscn'):
+			push_error('cannot change scene to ShipEditor')
+			return false
+		return true

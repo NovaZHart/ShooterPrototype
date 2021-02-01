@@ -54,6 +54,8 @@ class ShipEditorStub extends Panel:
 		return true
 	func set_edited_ship_design(_design: simple_tree.SimpleNode) -> bool:
 		return true
+	func make_edited_ship_design() -> simple_tree.SimpleNode:
+		return simple_tree.SimpleNode.new()
 	func cancel_drag() -> bool:
 		return true
 
@@ -93,6 +95,8 @@ var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
 var fleet_editor = ShipEditorStub.new()
+var fleet_tree_selection = null
+var game_editor_mode = false
 
 func switch_editors(what: Node):
 	for design in ship_designs.get_children():

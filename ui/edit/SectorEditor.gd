@@ -40,12 +40,18 @@ var am_moving = false
 var draw_commands: Array = []
 var draw_mutex: Mutex = Mutex.new()
 
+func _exit_tree():
+	game_state.game_editor_mode=false
+
 func cancel_drag() -> bool:
 	last_position=null
 	last_screen_position=null
 	camera_start=null
 	am_moving = false
 	return true
+
+func _enter_tree():
+	game_state.game_editor_mode=true
 
 func _ready():
 	game_state.switch_editors(self)

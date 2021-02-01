@@ -9,10 +9,17 @@ const RESULT_ACTION: int = 02
 var selected_file = null
 var selection: NodePath = NodePath()
 var last_space_object_tab: int = 0
-
+var file_dialog_path: NodePath = NodePath()
 var popup_result = null
 var parent_path = null
 var is_making = null
+
+func _exit_tree():
+	universe_edits.state.disconnect('undo_stack_changed',self,'update_buttons')
+	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
+
+func _enter_tree():
+	game_state.game_editor_mode=true
 
 func _ready():
 	$Split/Left.set_focus_mode(Control.FOCUS_CLICK)
@@ -20,8 +27,15 @@ func _ready():
 	$Split/Right/Top/Tree.set_system(game_state.system)
 	$Split/Left/View.size=$Split/Left.rect_size
 	$Split/Left/View/SystemView.center_view(Vector3(0.0,0.0,0.0))
+	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
+	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
 	give_focus_to_view()
 	game_state.switch_editors(self)
+	update_buttons()
+
+func update_buttons():
+	$Split/Right/Top/Buttons/Redo.disabled = universe_edits.state.redo_stack.empty()
+	$Split/Right/Top/Buttons/Undo.disabled = universe_edits.state.undo_stack.empty()
 
 func _on_Left_resized():
 	$Split/Left/View.size=$Split/Left.rect_size
@@ -74,7 +88,7 @@ func give_focus_to_view():
 	$Split/Left.grab_focus()
 
 func _on_SystemView_request_focus():
-	if $PopUp.visible or $FileDialog.visible:
+	if $PopUp.visible or not file_dialog_path.is_empty():
 		return
 	if $Split/Right/Bottom/Settings.has_method('get_have_picker') \
 			and $Split/Right/Bottom/Settings.have_picker:
@@ -191,35 +205,57 @@ func change_fleet_data(index:int, key:String, value) -> bool:
 		return $Split/Right/Bottom/Settings.change_fleet_data(index,key,value)
 	return true
 
+func _on_FileDialog_file_selected(path: String, node: FileDialog):
+	selected_file=path
+	node.visible=false
+
 func save_load(save: bool) -> bool:
-	if save:
-		$FileDialog.mode=FileDialog.MODE_SAVE_FILE
-	else:
-		$FileDialog.mode=FileDialog.MODE_OPEN_FILE
+	var dialog = get_viewport().get_node_or_null(file_dialog_path)
+	if dialog:
+		selected_file=null
+		dialog.visible=false
+		get_viewport().remove_child(dialog)
+		file_dialog_path=NodePath()
+		return
+	
+	dialog = FileDialog.new()
+	dialog.connect('file_selected',self,'_on_FileDialog_file_selected',[dialog])
+	dialog.popup_exclusive = true
+	dialog.mode = FileDialog.MODE_SAVE_FILE if save else FileDialog.MODE_OPEN_FILE
+	get_viewport().add_child(dialog)
+	dialog.rect_global_position=get_viewport().size*0.1
+	dialog.rect_size=get_viewport().size*0.8
 	selected_file=null
-	$FileDialog.popup()
-	while $FileDialog.visible:
+	file_dialog_path = dialog.get_path()
+	
+	dialog.popup()
+	while dialog and dialog.visible:
 		yield(get_tree(),'idle_frame')
+	dialog.disconnect('file_selected',self,'_on_FileDialog_file_selected')
+	get_viewport().remove_child(dialog)
+	dialog.queue_free()
+	file_dialog_path = NodePath()
+	
 	if not selected_file:
 		return false # canceled
 	elif save:
 		return game_state.save_universe_as_json(selected_file)
 	elif game_state.load_universe_from_json(selected_file):
-		$Split/Left/View/SystemView.clear()
-		$Split/Left/View/SystemView.set_system(game_state.system)
-		$Split/Right/Top/Tree.set_system(game_state.system)
 		universe_edits.state.clear()
+		set_process(true)
 		return true
 	return false
 
 func _unhandled_input(event):
-	if $PopUp.visible or $FileDialog.visible:
+	if $PopUp.visible or not file_dialog_path.is_empty():
 		if event.is_action_released('ui_cancel'):
 			if $PopUp.visible:
 				_on_Cancel_pressed()
 				get_tree().set_input_as_handled()
-			elif $FileDialog.visible:
-				$FileDialog.visible=false
+			elif not file_dialog_path.is_empty():
+				var dialog = get_node_or_null(file_dialog_path)
+				if dialog:
+					dialog.visible=false
 				get_tree().set_input_as_handled()
 		return # process nothing when a dialog is up
 	
@@ -235,16 +271,16 @@ func _unhandled_input(event):
 		return # do not steal input from editors
 	
 	if event.is_action_released('ui_undo'):
-		universe_edits.state.undo()
+		_on_Undo_pressed()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_redo'):
-		universe_edits.state.redo()
+		_on_Redo_pressed()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_save'):
-		save_load(true)
+		_on_Save_pressed()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_load'):
-		save_load(false)
+		_on_Load_pressed()
 		get_tree().set_input_as_handled()
 	elif $PopUp.visible and event.is_action_pressed('ui_accept'):
 		_on_Action_pressed()
@@ -254,7 +290,7 @@ func _unhandled_input(event):
 		return # Do not exit when deselecting in a tree
 	
 	if event.is_action_released('ui_cancel'):
-		universe_edits.state.push(universe_edits.ExitToSector.new())
+		_on_Sector_pressed()
 		get_tree().set_input_as_handled()
 
 func _on_SystemView_make_new_space_object(parent_path_,is_making_):
@@ -328,6 +364,20 @@ func _on_NameEdit_text_changed(_new_text):
 func _on_IDEdit_text_changed(_new_text):
 	var _discard = validate_popup()
 
-func _on_FileDialog_file_selected(path):
-	selected_file=path
-	$FileDialog.visible=false
+func _on_Sector_pressed():
+	universe_edits.state.push(universe_edits.SystemEditorToSectorEditor.new())
+
+func _on_Save_pressed():
+	save_load(true)
+
+func _on_Undo_pressed():
+	universe_edits.state.undo()
+
+func _on_Fleets_pressed():
+	universe_edits.state.push(ship_edits.SystemEditorToFleetEditor.new())
+
+func _on_Load_pressed():
+	save_load(false)
+
+func _on_Redo_pressed():
+	universe_edits.state.redo()

@@ -1,6 +1,6 @@
 extends Node
 
-var state = undo_tool.UndoStack.new(false)
+var state = undo_tool.UndoStack.new(true)
 const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
 
 class AddSystem extends undo_tool.Action:
@@ -97,10 +97,10 @@ class ChangeSelection extends undo_tool.Action:
 	func redo() -> bool:
 		return set_selection(old_selection,new_selection) and cancel_drag(old_selection,new_selection)
 
-class ExitToSector extends undo_tool.Action:
+class SystemEditorToSectorEditor extends undo_tool.Action:
 	var from_system: NodePath
 	func as_string() -> String:
-		return 'ExitToSector(from_system='+str(from_system)+')'
+		return 'SystemEditorToSectorEditor(from_system='+str(from_system)+')'
 	func _init():
 		from_system = game_state.system.get_path()
 	func run():

@@ -70,7 +70,7 @@ func _ready():
 		update_buttons()
 		$All/Top/View.hint_tooltip = 'Select an item to see stats; drag to install.'
 
-func forbid_edits(forbid_open):
+func forbid_edits(forbid_open=false):
 	var forbid_me = ['Add','Change','Remove']
 	if forbid_open:
 		forbid_me.append('Open')

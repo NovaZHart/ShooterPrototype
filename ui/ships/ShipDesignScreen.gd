@@ -1,15 +1,13 @@
 extends game_state.ShipEditorStub
 
-export var game_editor_mode: bool = true
-
 var drag_scene
 var design_display_name: String = 'Uninitialized'
 var design_id: String = 'uninitialized'
 var selected_file
-var exit_confirmed = not game_editor_mode
+var exit_confirmed = not game_state.game_editor_mode
 
 func popup_has_focus() -> bool:
-	return $FileDialog.visible or $ConfirmationDialog.visible
+	return $FileDialog.visible
 
 func cancel_drag() -> bool:
 	drag_scene=null
@@ -95,15 +93,9 @@ func _input(event):
 	elif event.is_action_released('ui_cancel'):
 		var _discard = cancel_drag()
 		# FIXME: exit to prior editor in game edit mode.
-		if game_editor_mode and universe_edits.state.activity:
-			exit_confirmed=false
-			$ConfirmationDialog.popup()
-			while $ConfirmationDialog.visible:
-				yield(get_tree(),'idle_frame')
+		if game_state.game_editor_mode:
+			universe_edits.state.push(ship_edits.ShipEditorToFleetEditor.new())
 		else:
-			exit_confirmed=true
-		if exit_confirmed:
-			universe_edits.state.clear()
 			exit_to_orbit()
 
 func save_load(save: bool) -> bool:
@@ -169,7 +161,7 @@ func _ready():
 	$Drag/View.transparent_bg = true
 	reset_parts_and_designs()
 	game_state.switch_editors(self)
-	if not game_editor_mode:
+	if not game_state.game_editor_mode:
 		$All/Shop/Tabs/Designs.forbid_edits()
 		$All/Shop/Tabs/Weapons.forbid_edits()
 		$All/Shop/Tabs/Equipment.forbid_edits()

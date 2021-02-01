@@ -3,27 +3,49 @@ extends game_state.FleetEditorStub
 export var IDNamePopup: PackedScene
 export var remove_item_texture: Texture
 
-var last_tree_selection: ship_edits.FleetTreeSelection
+#var last_tree_selection: ship_edits.FleetTreeSelection
+var selected_file=null
 var id_name_popup_path: NodePath = NodePath()
+var file_dialog_path: NodePath = NodePath()
+
+func _enter_tree():
+	game_state.game_editor_mode=true
 
 func _exit_tree():
 	game_state.switch_editors(null)
+	universe_edits.state.disconnect('undo_stack_changed',self,'update_buttons')
+	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
 
 func _ready():
 	game_state.switch_editors(self)
 	var _discard = $Split/Left/Tree.create_item()
 	$Split/Left/Tree.set_column_expand(0,false)
 	_discard = fill_all_fleet_info()
-	last_tree_selection = ship_edits.FleetTreeSelection.new($Split/Left/Tree,self)
 	$Split/Right/Designs.set_designs(game_state.ship_designs.get_child_names())
+	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
+	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
+	if game_state.fleet_tree_selection!=null:
+		print('revert to saved selection')
+		_discard = select_fleet(game_state.fleet_tree_selection,false)
+	else:
+		print('no saved selection, so construct one')
+		game_state.fleet_tree_selection = ship_edits.FleetTreeSelection.new(
+			$Split/Left/Tree,self)
+
+	update_buttons()
 
 func _process(_delta):
 	if visible:
 		var spawned_size = $Split/Left/Tree.rect_size
 		$Split/Left/Tree.set_column_min_width(0,clamp(spawned_size.x*0.15,40,100))
 
+func update_buttons():
+	$Split/Left/Buttons/Redo.disabled = universe_edits.state.redo_stack.empty()
+	$Split/Left/Buttons/Undo.disabled = universe_edits.state.undo_stack.empty()
+
 func popup_has_focus() -> bool:
-	return not id_name_popup_path.is_empty()
+	return not id_name_popup_path.is_empty() or \
+		not file_dialog_path.is_empty()
 
 func tree_find_meta(parent: TreeItem,column: int,meta): # -> TreeItem or null
 	var scan = parent.get_children()
@@ -35,7 +57,6 @@ func tree_find_meta(parent: TreeItem,column: int,meta): # -> TreeItem or null
 		if scan_meta == meta:
 			return scan
 		scan = scan.get_next()
-	push_warning('no meta item for '+str(column)+' '+str(meta))
 	return null
 
 func tree_find_meta_index(parent: TreeItem,column: int,meta) -> int:
@@ -50,7 +71,6 @@ func tree_find_meta_index(parent: TreeItem,column: int,meta) -> int:
 		if scan_meta == meta:
 			return index
 		scan = scan.get_next()
-	push_warning('no meta index for '+str(column)+' '+str(meta))
 	return -1
 
 func get_nth_child(parent: TreeItem,n: int): # -> TreeItem or null
@@ -80,7 +100,7 @@ func index_for_new_item(parent: TreeItem, column: int, meta) -> int:
 		scan = scan.get_next()
 	return -1
 
-func find_item(fleet_path: NodePath,ship_index: int=-1): # -> TreeItem or null
+func find_fleet_item(fleet_path: NodePath,ship_index: int=-1): # -> TreeItem or null
 	var fleet_item = tree_find_meta($Split/Left/Tree.get_root(),1,fleet_path)
 	if not fleet_item:
 		print('no fleet item')
@@ -88,7 +108,7 @@ func find_item(fleet_path: NodePath,ship_index: int=-1): # -> TreeItem or null
 	return fleet_item if ship_index<0 else get_nth_child(fleet_item,ship_index)
 
 func set_spawn_count(fleet_path: NodePath,design_path: NodePath,value: int) -> bool:
-	var fleet_item = find_item(fleet_path,-1)
+	var fleet_item = find_fleet_item(fleet_path,-1)
 	if not fleet_item:
 		push_error('There is no fleet '+str(fleet_path)+' in the fleet tree.')
 		return false
@@ -120,7 +140,7 @@ func add_fleet(fleet: simple_tree.SimpleNode) -> bool:
 	return fill_fleet_info(fleet,fleet_item)
 
 func set_fleet_display_name(fleet_path,value) -> bool:
-	var fleet = find_item(fleet_path,-1)
+	var fleet = find_fleet_item(fleet_path,-1)
 	if not fleet:
 		push_error('There is no fleet '+str(fleet_path)+' in the fleet tree.')
 		return false
@@ -128,21 +148,23 @@ func set_fleet_display_name(fleet_path,value) -> bool:
 	return true
 
 func remove_fleet(fleet_path: NodePath) -> bool:
-	var item = find_item(fleet_path,-1)
+	var item = find_fleet_item(fleet_path,-1)
 	if not item:
 		push_error('There is no fleet '+str(fleet_path)+' in the fleet tree.')
 		return false
 	$Split/Left/Tree.get_root().remove_child(item)
 	return true
 
-func select_fleet(sel: ship_edits.FleetTreeSelection) -> bool:
+func select_fleet(sel: ship_edits.FleetTreeSelection,send_action=true) -> bool:
 	if not sel.path:
 		return tree_deselect()
-	var item = find_item(sel.path,sel.ship_index)
+	var item = find_fleet_item(sel.path,sel.ship_index)
 	if item:
 		item.select(sel.column)
 		var _discard = show_stats(item.get_metadata(1))
-		last_tree_selection = ship_edits.FleetTreeSelection.new($Split/Left/Tree,self)
+		if send_action:
+			game_state.fleet_tree_selection = \
+				ship_edits.FleetTreeSelection.new($Split/Left/Tree,self)
 		return true
 	else:
 		push_error('There is no fleet with path '+sel.path+' in tree.')
@@ -155,7 +177,7 @@ func tree_deselect() -> bool:
 	if item and column>=0:
 		item.deselect(column)
 		$Split/Right/Info.clear()
-	last_tree_selection = ship_edits.FleetTreeSelection.new(null,null)
+	game_state.fleet_tree_selection = ship_edits.FleetTreeSelection.new(null,null)
 	return true
 
 func _unhandled_input(event):
@@ -166,24 +188,20 @@ func _unhandled_input(event):
 		return
 	
 	if event.is_action_released('ui_undo'):
-		universe_edits.state.undo()
-		get_tree().set_input_as_handled()
+		_on_Undo_pressed()
 	elif event.is_action_released('ui_redo'):
-		universe_edits.state.redo()
-		get_tree().set_input_as_handled()
-#	elif event.is_action_released('ui_editor_save'):
-#		save_load(true)
-#		get_tree().set_input_as_handled()
-#	elif event.is_action_released('ui_editor_load'):
-#		save_load(false)
-#		get_tree().set_input_as_handled()
-
+		_on_Redo_pressed()
+	elif event.is_action_released('ui_editor_save'):
+		_on_Save_pressed()
+	elif event.is_action_released('ui_editor_load'):
+		_on_Load_pressed()
 	if focused is Tree:
 		return # Do not exit when deselecting in a tree
 	
 	if event.is_action_released('ui_cancel'):
-		universe_edits.state.push(universe_edits.ExitToSector.new())
-		get_tree().set_input_as_handled()
+		_on_System_pressed()
+#		universe_edits.state.push(universe_edits.ExitToSector.new())
+#		get_tree().set_input_as_handled()
 
 func fill_ship_info(fleet,design,design_item,design_name) -> bool:
 	design_item.set_text_align(0,TreeItem.ALIGN_CENTER)
@@ -283,7 +301,7 @@ func _on_Designs_add(design_path):
 			design_item = tree_find_meta(fleet_item,1,design_path)
 		else:
 			design_item = selected_item
-			fleet_item = find_item(fleet_path,-1)
+			fleet_item = find_fleet_item(fleet_path,-1)
 		if not fleet_item:
 			push_error('There is no fleet at path '+str(fleet_path)+ \
 				' specified by currently selected item.')
@@ -314,18 +332,20 @@ func _on_Designs_select_nothing():
 func _on_Designs_deselect(_design_path):
 	_on_Designs_select_nothing()
 
-func _on_Designs_open():
-	pass # Replace with function body.
+func _on_Designs_open(design_path):
+	universe_edits.state.push(ship_edits.FleetEditorToShipEditor.new(design_path))
 
 func _on_Tree_item_selected():
 	print('tree item selected')
-	var old = last_tree_selection
+	var old = game_state.fleet_tree_selection
 	var new = ship_edits.FleetTreeSelection.new($Split/Left/Tree,self)
+	if old.same_item_as(new):
+		return
 	var _discard = show_stats_from_tree()
 	universe_edits.state.push(ship_edits.ChangeFleetSelection.new(old, new))
 
 func _on_Tree_nothing_selected():
-	var old = last_tree_selection
+	var old = game_state.fleet_tree_selection
 	var _discard = show_stats_from_tree()
 	var new = ship_edits.FleetTreeSelection.new(null,null)
 	universe_edits.state.push(ship_edits.ChangeFleetSelection.new(old,new))
@@ -341,18 +361,19 @@ func _on_Tree_item_edited():
 			item.get_metadata(0),item.get_metadata(1),item.get_range(0),false))
 
 func _on_Tree_button_pressed(item, _column, _id):
-	var fleet_path = item.get_metadata(0)
+	var fleet_path: NodePath = item.get_metadata(0)
+	var item_path: NodePath = item.get_metadata(1)
 	if fleet_path.is_empty():
-		var index = tree_find_meta_index($Split/Left/Tree.get_root(),1,item.get_metadata(1))
-		universe_edits.state.push(ship_edits.RemoveFleet.new(item.get_metadata(1),index))
+		var index = tree_find_meta_index($Split/Left/Tree.get_root(),1,item_path)
+		universe_edits.state.push(ship_edits.RemoveFleet.new(item_path,index))
 	else:
-		var parent = find_item(item.get_metadata(0),-1)
+		var parent = find_fleet_item(fleet_path,-1)
 		if not parent:
 			push_error('cannot find fleet parent at path '+str(fleet_path))
 		else:
 			parent.remove_child(item)
 			universe_edits.state.push(ship_edits.ChangeFleetSpawnCount.new(
-				item.get_metadata(0),item.get_metadata(1),int(item.get_text(0)),false))
+				fleet_path,item_path,int(item.get_text(0)),false))
 
 func add_fleet_with_popup(send_edit: bool):
 	var id_name_popup = get_node_or_null(id_name_popup_path)
@@ -381,5 +402,65 @@ func add_fleet_with_popup(send_edit: bool):
 	id_name_popup.queue_free()
 	return fleet
 
+func _on_FileDialog_file_selected(path: String, node: FileDialog):
+	selected_file=path
+	node.visible=false
+
+func save_load(save: bool) -> bool:
+	var dialog = get_viewport().get_node_or_null(file_dialog_path)
+	if dialog:
+		selected_file=null
+		dialog.visible=false
+		get_viewport().remove_child(dialog)
+		file_dialog_path=NodePath()
+		return
+	
+	dialog = FileDialog.new()
+	dialog.connect('file_selected',self,'_on_FileDialog_file_selected',[dialog])
+	dialog.popup_exclusive = true
+	dialog.mode = FileDialog.MODE_SAVE_FILE if save else FileDialog.MODE_OPEN_FILE
+	get_viewport().add_child(dialog)
+	dialog.rect_global_position=get_viewport().size*0.1
+	dialog.rect_size=get_viewport().size*0.8
+	selected_file=null
+	file_dialog_path = dialog.get_path()
+	
+	dialog.popup()
+	while dialog and dialog.visible:
+		yield(get_tree(),'idle_frame')
+	dialog.disconnect('file_selected',self,'_on_FileDialog_file_selected')
+	get_viewport().remove_child(dialog)
+	dialog.queue_free()
+	file_dialog_path = NodePath()
+	
+	if not selected_file:
+		return false # canceled
+	elif save:
+		return game_state.save_universe_as_json(selected_file)
+	elif game_state.load_universe_from_json(selected_file):
+		universe_edits.state.clear()
+		set_process(true)
+		return true
+	return false
+
 func _on_AddFleet_pressed():
 	var _discard = add_fleet_with_popup(true)
+
+func _on_Save_pressed():
+	save_load(true)
+	get_tree().set_input_as_handled()
+
+func _on_Load_pressed():
+	save_load(false)
+	get_tree().set_input_as_handled()
+
+func _on_Undo_pressed():
+	universe_edits.state.undo()
+	get_tree().set_input_as_handled()
+
+func _on_Redo_pressed():
+	universe_edits.state.redo()
+	get_tree().set_input_as_handled()
+
+func _on_System_pressed():
+	universe_edits.state.push(ship_edits.FleetEditorToSystemEditor.new())
