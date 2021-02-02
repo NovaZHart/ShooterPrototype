@@ -2,6 +2,7 @@ extends game_state.SectorEditorStub
 
 #extends Spatial
 
+export var IDNamePopup: PackedScene
 export var connected_color = Color(0.4,0.8,1.0)
 export var highlight_color = Color(1.0,0.9,0.5)
 export var system_color = Color(0.1,0.2,0.6)
@@ -29,9 +30,7 @@ var highlight_system: Mesh
 var regular_system: Mesh
 var system_multimesh = MultiMesh.new()
 var system_data = PoolRealArray()
-var selected_file = null
 
-var popup_result = null
 var ui_scroll: float = 0
 var last_position = null
 var last_screen_position = null
@@ -40,12 +39,23 @@ var am_moving = false
 var draw_commands: Array = []
 var draw_mutex: Mutex = Mutex.new()
 
+var id_name_popup_path: NodePath = NodePath()
+
+func _exit_tree():
+	game_state.game_editor_mode=false
+	var popup = get_viewport().get_node_or_null(id_name_popup_path)
+	if popup:
+		popup.queue_free()
+
 func cancel_drag() -> bool:
 	last_position=null
 	last_screen_position=null
 	camera_start=null
 	am_moving = false
 	return true
+
+func _enter_tree():
+	game_state.game_editor_mode=true
 
 func _ready():
 	game_state.switch_editors(self)
@@ -301,51 +311,47 @@ func deselect(what) -> bool:
 		return true
 	return false
 
-func change_selection_to(new_selection,_center: bool) -> bool:
+func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
 	game_state.universe.unlock()
 	set_process(true)
 	return true
 
-func validate_popup() -> bool:
-	var info: String = ''
-	if $PopUp/A/A/DisplayName.editable and not $PopUp/A/A/DisplayName.text:
-		info='Enter a human-readable name to display.'
-	if $PopUp/A/A/SystemID.editable:
-		if not $PopUp/A/A/SystemID.text:
-			info='Enter a system ID'
-		elif game_state.systems.has_child($PopUp/A/A/SystemID.text):
-			info='There is already a "'+$PopUp/A/A/SystemID.text+'" system!'
-		elif not $PopUp/A/A/SystemID.text[0].is_valid_identifier():
-			info='ID must begin with a letter or "_"'
-		elif not $PopUp/A/A/SystemID.text.is_valid_identifier():
-			info='ID: only letters, numbers, "_"'
-	$PopUp/A/B/Info.text=info
-	$PopUp/A/B/Action.disabled = not not info
-	return not info
-
 func make_new_system(event: InputEvent): # -> SimpleNode or null
+	print('make new system')
+	var popup = get_viewport().get_node_or_null(id_name_popup_path)
+	if popup:
+		popup.visible=false
+		push_error('popup already exists')
+		return null
+	
 	var screen_position: Vector2 = event_position(event)
 	var pos3 = $Camera.project_position(screen_position,-10)
 	pos3.y=0
-	$PopUp/A/B/Action.text = 'Create'
-	$PopUp/A/A/SystemID.text = ''
-	$PopUp/A/A/SystemID.editable = true
-	$PopUp/A/A/DisplayName.text = ''
-	popup_result = null
-	var _discard = validate_popup()
-	$PopUp.popup()
-	while $PopUp.visible:
+	
+	popup = IDNamePopup.instance()
+	popup.set_data('','','Create',true)
+	get_viewport().add_child(popup)
+	id_name_popup_path = popup.get_path()
+	popup.popup()
+	
+	while popup.visible:
 		yield(get_tree(),'idle_frame')
-	var result = popup_result
+	var result = popup.result.duplicate()
+	
+	get_viewport().remove_child(popup)
+	popup.queue_free()
+	id_name_popup_path=NodePath()
+
 	var system = null
-	if result and result['result']==RESULT_ACTION:
-		system = game_state.universe.add_system(result['id'],result['display_name'],pos3)
+	if result and result[0]:
+		system = game_state.universe.add_system(result[1],result[2],pos3)
 		if system and not selection:
 			selection=system
 	set_process(true)
 	return system
+
 
 func edit_system(system):
 	universe_edits.state.push(universe_edits.EnterSystemFromSector.new(system.get_path()))
@@ -373,24 +379,37 @@ func handle_select(event: InputEvent):
 	am_moving = false
 
 func handle_modify(event: InputEvent):
+	print('handle modify')
+#	if not selection is simple_tree.SimpleNode:
+#		print('selection is not simple node')
+#		return
 	var loc: Vector2 = event_position(event)
 	var at = find_at_position(loc)
 	if at:
+		print('at')
 		if selection and at is simple_tree.SimpleNode:
+			print('sel and at is node')
 			if at.get_name()==selection.get_name():
+				print('edit system')
 				return edit_system(selection)
 			if not game_state.universe.get_link_between(selection,at):
+				print('make link')
 				var link = process_if(game_state.universe.add_link(selection,at))
 				if link:
+					print('really make link')
 					universe_edits.state.push(universe_edits.AddLink.new(link))
 	elif not event.shift:
+		print('no at and no shift so make system')
 		at = make_new_system(event)
 		while at is GDScriptFunctionState and at.is_valid():
 			at = yield(at,'completed')
 		if at:
+			print('at now')
 			if selection is simple_tree.SimpleNode and at!=selection:
 				process_if(game_state.universe.add_link(selection,at))
 			universe_edits.state.push(universe_edits.AddSystem.new(at))
+		else:
+			print('no at')
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $Camera.size
@@ -399,37 +418,10 @@ func set_zoom(zoom: float,original: float=-1) -> void:
 		$Camera.size = new
 		set_process(true)
 
-func save_load(save: bool) -> bool:
-	if save:
-		$FileDialog.mode=FileDialog.MODE_SAVE_FILE
-	else:
-		$FileDialog.mode=FileDialog.MODE_OPEN_FILE
-	selected_file=null
-	$FileDialog.popup()
-	while $FileDialog.visible:
-		yield(get_tree(),'idle_frame')
-	if not selected_file:
-		return false # canceled
-	elif save:
-		return game_state.save_universe_as_json(selected_file)
-	elif game_state.load_universe_from_json(selected_file):
-		universe_edits.state.clear()
-		set_process(true)
-		return true
-	return false
-
-func _input(event):
+func _unhandled_input(event):
 	# Ignore events if a popup is popped up
-	if $PopUp.visible:
-		if event.is_action_released('ui_cancel'):
-			_on_Cancel_pressed()
-			get_tree().set_input_as_handled()
+	if get_viewport().get_modal_stack_top():
 		return
-	elif $FileDialog.visible:
-		return
-	elif $ConfirmationDialog.visible:
-		return
-	
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_select'):
 			var pos2: Vector2 = event_position(event)
@@ -465,7 +457,6 @@ func _input(event):
 			last_position=null
 
 	if event.is_action_released('ui_cancel'):
-		print('ui cancel')
 		if universe_edits.state.activity:
 			exit_confirmed=false
 			$ConfirmationDialog.popup()
@@ -475,7 +466,7 @@ func _input(event):
 			exit_confirmed=true
 		if exit_confirmed:
 			universe_edits.state.clear()
-			get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+			var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_location_select'):
 		handle_select(event)
@@ -486,12 +477,10 @@ func _input(event):
 	elif event.is_action_released('ui_location_select'):
 		var _discard = cancel_drag()
 	elif event.is_action_released('ui_editor_save'):
-		assert(event.control)
-		save_load(true)
+		$Autosave.save_load(true)
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_load'):
-		assert(event.control)
-		save_load(false)
+		$Autosave.save_load(false)
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_delete') and selection:
 		if selection is Dictionary:
@@ -528,46 +517,12 @@ func _input(event):
 		ui_scroll=0
 	set_zoom(zoom)
 
-func _on_Action_pressed():
-	popup_result = {
-		'id':$PopUp/A/A/SystemID.text,
-		'display_name':$PopUp/A/A/DisplayName.text,
-		'result': (RESULT_ACTION if validate_popup() else RESULT_CANCEL)
-	}
-	$PopUp.visible=false
-
-func _on_Cancel_pressed():
-	popup_result = {
-		'id':$PopUp/A/A/SystemID.text,
-		'display_name':$PopUp/A/A/DisplayName.text,
-		'result': RESULT_CANCEL
-	}
-	$PopUp.visible=false
-
-func _on_SystemID_text_changed(_new_text):
-	var _discard = validate_popup()
-
-func _on_DisplayName_text_changed(_new_text):
-	var _discard = validate_popup()
-
-func _on_DisplayName_text_entered(_new_text):
-	if validate_popup():
-		_on_Action_pressed()
-
-func _on_SystemID_text_entered(_new_text):
-	if validate_popup():
-		_on_Action_pressed()
-
 func _on_Annotations_draw():
 	draw_mutex.lock()
 	var commands = draw_commands.duplicate()
 	draw_mutex.unlock()
 	for command in commands:
 		$Annotations.callv(command[0],command.slice(1,len(command)))
-
-func _on_FileDialog_file_selected(path):
-	selected_file=path
-	$FileDialog.visible=false
 
 func _on_ConfirmationDialog_confirmed():
 	exit_confirmed = true

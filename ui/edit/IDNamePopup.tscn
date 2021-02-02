@@ -1,0 +1,99 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ui/Console.tres" type="Theme" id=1]
+[ext_resource path="res://ui/edit/IDNamePopup.gd" type="Script" id=2]
+
+[node name="PopupPanel" type="PopupPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_left = 7.0
+margin_top = 7.0
+margin_right = 7.0
+margin_bottom = 7.0
+grow_horizontal = 2
+grow_vertical = 2
+theme = ExtResource( 1 )
+popup_exclusive = true
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Split" type="GridContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 8.0
+margin_top = 8.0
+margin_right = -8.0
+margin_bottom = -8.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="Split"]
+margin_right = 744.0
+margin_bottom = 23.0
+text = "Choose an internal ID and displayed name.                                                   "
+
+[node name="Labels" type="GridContainer" parent="Split"]
+margin_top = 27.0
+margin_right = 744.0
+margin_bottom = 77.0
+grow_horizontal = 2
+grow_vertical = 2
+columns = 2
+
+[node name="IDLabel" type="Label" parent="Split/Labels"]
+margin_right = 120.0
+margin_bottom = 23.0
+text = "Internal ID"
+align = 2
+
+[node name="IDEdit" type="LineEdit" parent="Split/Labels"]
+margin_left = 124.0
+margin_right = 744.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+
+[node name="NameLabel" type="Label" parent="Split/Labels"]
+margin_top = 27.0
+margin_right = 120.0
+margin_bottom = 50.0
+text = "Displayed Name"
+align = 2
+
+[node name="NameEdit" type="LineEdit" parent="Split/Labels"]
+margin_left = 124.0
+margin_top = 27.0
+margin_right = 744.0
+margin_bottom = 50.0
+
+[node name="Buttons" type="GridContainer" parent="Split"]
+margin_top = 81.0
+margin_right = 744.0
+margin_bottom = 104.0
+columns = 3
+
+[node name="Accept" type="Button" parent="Split/Buttons"]
+margin_right = 60.0
+margin_bottom = 23.0
+text = "Accept"
+
+[node name="Cancel" type="Button" parent="Split/Buttons"]
+margin_left = 64.0
+margin_right = 124.0
+margin_bottom = 23.0
+text = "Cancel"
+
+[node name="Info" type="Label" parent="Split/Buttons"]
+margin_left = 128.0
+margin_right = 136.0
+margin_bottom = 23.0
+[connection signal="text_changed" from="Split/Labels/IDEdit" to="." method="_on_IDEdit_text_changed"]
+[connection signal="text_changed" from="Split/Labels/NameEdit" to="." method="_on_NameEdit_text_changed"]
+[connection signal="pressed" from="Split/Buttons/Accept" to="." method="_on_Accept_pressed"]
+[connection signal="pressed" from="Split/Buttons/Cancel" to="." method="_on_Cancel_pressed"]

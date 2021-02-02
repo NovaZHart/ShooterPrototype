@@ -105,11 +105,12 @@ func update_space_background(from=null) -> bool:
 		return false
 	return true
 
-func handle_scroll():
-	if Input.is_action_just_released("wheel_up"):
-		ui_scroll=1.5
-	if Input.is_action_just_released("wheel_down"):
-		ui_scroll=-1.5
+func handle_scroll(mouse_in_rect):
+	if mouse_in_rect:
+		if Input.is_action_just_released("wheel_up"):
+			ui_scroll=1.5
+		if Input.is_action_just_released("wheel_down"):
+			ui_scroll=-1.5
 	arrow_move = Vector3(
 		float(Input.is_action_pressed('ui_up'))-float(Input.is_action_pressed('ui_down')),
 		0.0,
@@ -127,7 +128,6 @@ func make_node_to_add():
 	if selection:
 		var selected_node = game_state.systems.get_node_or_null(selection)
 		if selected_node:
-			print('duplicate node '+str(selected_node.encode()))
 			var result = SpaceObjectData.new('unnamed',selected_node.encode())
 			result.display_name = result.display_name+' DUP'
 			return result
@@ -159,7 +159,6 @@ func handle_mouse_action_start(mouse_pos: Vector2, space_pos: Vector3):
 		var _discard = stop_moving()
 		is_making = make_node_to_add()
 		start_moving(space_pos,mouse_pos)
-		print('start making ',is_making.encode(),' at ',space_pos)
 	elif Input.is_action_just_pressed('ui_location_select'):
 		var _discard = stop_moving()
 		var space: PhysicsDirectSpaceState = get_world().direct_space_state
@@ -178,7 +177,6 @@ func handle_mouse_action_start(mouse_pos: Vector2, space_pos: Vector3):
 
 func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 	if is_making and not Input.is_action_pressed('ui_location_modify'):
-		print('should make')
 		var parent_path = selection
 		var adjust: Dictionary = is_making.orbital_adjustments_to(planet_time,space_pos,
 			game_state.systems.get_node_or_null(parent_path))
@@ -186,11 +184,9 @@ func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 		is_making.orbit_radius=adjust.orbit_radius
 		if not parent_path:
 			parent_path = game_state.system.get_path()
-		print('add ',is_making.encode(),' in ',str(parent_path))
 		emit_signal('make_new_space_object',parent_path,is_making)
 		var _discard = stop_moving()
 	if is_moving and not Input.is_action_pressed('ui_location_select'):
-		print('done moving')
 		var data = game_state.systems.get_node_or_null(last_clicked)
 		var adjust: Dictionary = data.orbital_adjustments_to(planet_time,space_pos)
 		universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
@@ -211,7 +207,6 @@ func handle_mouse_action_active(_mouse_pos: Vector2, space_pos: Vector3):
 			center_view(camera_start + pos_diff)
 	if last_position and Input.is_action_pressed('ui_location_select'):
 		if last_clicked and not is_moving and space_pos.distance_to(start_position)>0.25:
-			print('start moving due to 0.25 movement')
 			is_moving = true
 			play_speed = 0
 	if ( (last_clicked and is_moving) or is_making ) and last_position:
@@ -253,7 +248,7 @@ func _process(delta):
 			selection = NodePath()
 		if arrow_move.length()>1e-5:
 			center_view($TopCamera.translation+arrow_move*delta*$TopCamera.size)
-		handle_scroll()
+		handle_scroll(view_rect.has_point(mouse_pos))
 	if abs(play_speed)>1e-5:
 		planet_time += delta*0.5
 		update_planet_locations()

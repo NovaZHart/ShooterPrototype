@@ -33,10 +33,20 @@ var latest_target_info: Dictionary = Dictionary()
 var Landing = preload('res://ui/OrbitalScreen.tscn')
 var TargetDisplay = preload('res://ui/TargetDisplay.tscn')
 
+var old_target_fps = null
+
 signal view_center_changed          #<-- visual thread
 signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
+
+func _enter_tree():
+	old_target_fps = Engine.target_fps
+	Engine.target_fps = Engine.iterations_per_second
+
+func _exit_tree():
+	if old_target_fps != null:
+		Engine.target_fps = old_target_fps
 
 func player_has_a_ship() -> bool:
 	return $Ships.get_node_or_null(player_ship_name)!=null
@@ -342,16 +352,30 @@ func clear() -> void: # must be called in visual thread
 	combat_engine_mutex.unlock()
 
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
-	game_state.system.fill_system(self,planet_time,ship_time,detail)
+	get_tree().paused=true
+	#game_state.system.fill_system(self,planet_time,ship_time,detail)
 	var make_me: Array = game_state.system.fill_system(self,planet_time,ship_time,detail)
-	team_stats_mutex.lock()
-	for ship in make_me:
-		var team: int = ship[4] # "team" argument to spawn_ship
-		team_stats[team]['count']+=1
-	team_stats_mutex.unlock()
-	for call_arg in make_me:
-		callv(call_arg[0],call_arg.slice(1,len(call_arg)))
+
+	ship_maker_mutex.lock()
+	var front = make_me.pop_front()
+	if front:
+		# Player ship (if any) is always the first.
+		callv(front[0],front.slice(1,len(front)))
+	# Other ships can wait until later frames
+	ships_to_spawn = ships_to_spawn + make_me
+	ship_maker_mutex.unlock()
+
+#	team_stats_mutex.lock()
+#	for ship in make_me:
+#		var team: int = ship[4] # "team" argument to spawn_ship
+#		team_stats[team]['count']+=1
+#	team_stats_mutex.unlock()
+#	for call_arg in make_me:
+#		callv(call_arg[0],call_arg.slice(1,len(call_arg)))
 	center_view()
+	VisualServer.force_sync()
+	yield(get_tree(),'idle_frame')
+	get_tree().paused=false
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)

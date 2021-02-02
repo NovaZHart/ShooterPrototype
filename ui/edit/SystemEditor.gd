@@ -1,18 +1,28 @@
 extends game_state.SystemEditorStub
 
+export var IDNamePopup: PackedScene
+
 const SystemSettings: PackedScene = preload('res://ui/edit/SystemSettings.tscn')
 const SpaceObjectSettings: PackedScene = preload('res://ui/edit/SpaceObjectSettings.tscn')
 const RESULT_NONE: int = 0
 const RESULT_CANCEL: int = 1
 const RESULT_ACTION: int = 02
 
-var selected_file = null
 var selection: NodePath = NodePath()
 var last_space_object_tab: int = 0
-
-var popup_result = null
 var parent_path = null
 var is_making = null
+var id_name_popup_path: NodePath = NodePath()
+
+func _exit_tree():
+	universe_edits.state.disconnect('undo_stack_changed',self,'update_buttons')
+	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
+	var popup = get_viewport().get_node_or_null(id_name_popup_path)
+	if popup:
+		popup.queue_free()
+
+func _enter_tree():
+	game_state.game_editor_mode=true
 
 func _ready():
 	$Split/Left.set_focus_mode(Control.FOCUS_CLICK)
@@ -20,8 +30,15 @@ func _ready():
 	$Split/Right/Top/Tree.set_system(game_state.system)
 	$Split/Left/View.size=$Split/Left.rect_size
 	$Split/Left/View/SystemView.center_view(Vector3(0.0,0.0,0.0))
+	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
+	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
 	give_focus_to_view()
 	game_state.switch_editors(self)
+	update_buttons()
+
+func update_buttons():
+	$Split/Right/Top/Buttons/Redo.disabled = universe_edits.state.redo_stack.empty()
+	$Split/Right/Top/Buttons/Undo.disabled = universe_edits.state.undo_stack.empty()
 
 func _on_Left_resized():
 	$Split/Left/View.size=$Split/Left.rect_size
@@ -74,10 +91,13 @@ func give_focus_to_view():
 	$Split/Left.grab_focus()
 
 func _on_SystemView_request_focus():
-	if $PopUp.visible or $FileDialog.visible:
+	if get_viewport().get_modal_stack_top():
 		return
 	if $Split/Right/Bottom/Settings.has_method('get_have_picker') \
 			and $Split/Right/Bottom/Settings.have_picker:
+		return
+	if $Split/Right/Bottom/Settings.has_method('is_popup_visible') and \
+			$Split/Right/Bottom/Settings.is_popup_visible():
 		return
 	$Split/Left.grab_focus()
 
@@ -105,7 +125,6 @@ func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 	return success
 
 func add_space_object(_parent: NodePath, _child) -> bool:
-	print('add space object pass through')
 	$Split/Right/Top/Tree.update_system()
 	$Split/Left/View/SystemView.set_system(game_state.system)
 	return true
@@ -174,127 +193,102 @@ func _on_Tree_center_on_node(path: NodePath):
 	if node!=null and node.has_method('is_SpaceObjectData'):
 		$Split/Left/View/SystemView.select_and_center_view(node.get_path())
 
-func save_load(save: bool) -> bool:
-	if save:
-		$FileDialog.mode=FileDialog.MODE_SAVE_FILE
-	else:
-		$FileDialog.mode=FileDialog.MODE_OPEN_FILE
-	selected_file=null
-	$FileDialog.popup()
-	while $FileDialog.visible:
-		yield(get_tree(),'idle_frame')
-	if not selected_file:
-		return false # canceled
-	elif save:
-		return game_state.save_universe_as_json(selected_file)
-	elif game_state.load_universe_from_json(selected_file):
-		$Split/Left/View/SystemView.clear()
-		$Split/Left/View/SystemView.set_system(game_state.system)
-		$Split/Right/Top/Tree.set_system(game_state.system)
-		universe_edits.state.clear()
-		return true
-	return false
+func add_spawned_fleet(index: int, data:Dictionary) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('add_spawned_fleet'):
+		return $Split/Right/Bottom/Settings.add_spawned_fleet(index,data)
+	return true
+
+func remove_spawned_fleet(index: int) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('remove_spawned_fleet'):
+		return $Split/Right/Bottom/Settings.remove_spawned_fleet(index)
+	return true
+
+func change_fleet_data(index:int, key:String, value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('change_fleet_data'):
+		return $Split/Right/Bottom/Settings.change_fleet_data(index,key,value)
+	return true
 
 func _unhandled_input(event):
-	if $PopUp.visible or $FileDialog.visible:
-		if event.is_action_released('ui_cancel'):
-			if $PopUp.visible:
-				_on_Cancel_pressed()
-			elif $FileDialog.visible:
-				$FileDialog.visible=false
+	if get_viewport().get_modal_stack_top():
 		return # process nothing when a dialog is up
 	
+	if $Split/Right/Bottom/Settings.has_method('is_popup_visible') and \
+			$Split/Right/Bottom/Settings.is_popup_visible():
+		if event.is_action_released('ui_cancel'):
+			$Split/Right/Bottom/Settings.cancel_popup()
+			get_tree().set_input_as_handled()
+		return # process nothing when a dialog is up
+	
+	var focused = get_focus_owner()
+	if focused is LineEdit or focused is TextEdit:
+		return # do not steal input from editors
+	
 	if event.is_action_released('ui_undo'):
-		universe_edits.state.undo()
-		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_cancel'):
-		universe_edits.state.push(universe_edits.ExitToSector.new())
+		_on_Undo_pressed()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_redo'):
-		universe_edits.state.redo()
+		_on_Redo_pressed()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_save'):
-		save_load(true)
+		_on_Save_pressed()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_editor_load'):
-		save_load(false)
+		_on_Load_pressed()
 		get_tree().set_input_as_handled()
-	elif $PopUp.visible and event.is_action_pressed('ui_accept'):
-		_on_Action_pressed()
+
+	if focused is Tree:
+		return # Do not exit when deselecting in a tree
+	
+	if event.is_action_released('ui_cancel'):
+		_on_Sector_pressed()
 		get_tree().set_input_as_handled()
 
 func _on_SystemView_make_new_space_object(parent_path_,is_making_):
+	var popup = get_viewport().get_node_or_null(id_name_popup_path)
+	if popup:
+		popup.visible=false
+		push_error('popup already exists')
+		return null
+	
 	parent_path = parent_path_
 	is_making = is_making_
-	$PopUp/A/B/Action.text = 'Create'
-	$PopUp/A/A/IDEdit.text = ''
-	$PopUp/A/A/IDEdit.editable = true
-	$PopUp/A/A/NameEdit.text = ''
-	popup_result = null
-	var _discard = validate_popup()
-	$PopUp.popup()
-	while $PopUp.visible:
+	
+	popup = IDNamePopup.instance()
+	popup.set_data('','','Create',true)
+	get_viewport().add_child(popup)
+	id_name_popup_path = popup.get_path()
+	popup.popup()
+	
+	while popup.visible:
 		yield(get_tree(),'idle_frame')
-	var result = popup_result
-	if result and result['result']==RESULT_ACTION:
-		is_making.set_name(result['id'])
-		is_making.display_name = result['display_name']
+	var result = popup.result.duplicate()
+	
+	get_viewport().remove_child(popup)
+	popup.queue_free()
+	id_name_popup_path=NodePath()
+	
+	if result and result[0]:
+		is_making.set_name(result[1])
+		is_making.display_name = result[2]
 		universe_edits.state.push(universe_edits.AddSpaceObject.new(
 			parent_path,is_making))
 	parent_path = null
 	is_making = null
-	popup_result = null
 
-func validate_popup() -> bool:
-	var info: String = ''
-	if $PopUp/A/A/NameEdit.editable and not $PopUp/A/A/NameEdit.text:
-		info='Enter a human-readable name to display.'
-	if $PopUp/A/A/IDEdit.editable:
-		if not $PopUp/A/A/IDEdit.text:
-			info='Enter a space object ID'
-		elif not $PopUp/A/A/IDEdit.text[0].is_valid_identifier():
-			info='ID must begin with a letter or "_"'
-		elif not $PopUp/A/A/IDEdit.text.is_valid_identifier():
-			info='ID: only letters, numbers, "_"'
-		var parent = game_state.systems.get_node_or_null(parent_path)
-		var child_name = is_making.get_name()
-		if parent and parent.has_child(child_name):
-			info='There is already an object "'+$PopUp/A/A/IDEdit.text+'"!'
-	$PopUp/A/B/Info.text=info
-	$PopUp/A/B/Action.disabled = not not info
-	return not info
+func _on_Sector_pressed():
+	universe_edits.state.push(universe_edits.SystemEditorToSectorEditor.new())
 
-func _on_Action_pressed():
-	popup_result = {
-		'id':$PopUp/A/A/IDEdit.text,
-		'display_name':$PopUp/A/A/NameEdit.text,
-		'result': (RESULT_ACTION if validate_popup() else RESULT_CANCEL)
-	}
-	$PopUp.visible=false
+func _on_Save_pressed():
+	$Autosave.save_load(true)
 
-func _on_Cancel_pressed():
-	print('cancel pressed')
-	popup_result = {
-		'id':$PopUp/A/A/IDEdit.text,
-		'display_name':$PopUp/A/A/NameEdit.text,
-		'result': RESULT_CANCEL
-	}
-	$PopUp.visible=false
+func _on_Undo_pressed():
+	universe_edits.state.undo()
 
-func _on_NameEdit_text_entered(_new_text):
-	if validate_popup():
-		_on_Action_pressed()
+func _on_Fleets_pressed():
+	universe_edits.state.push(ship_edits.SystemEditorToFleetEditor.new())
 
-func _on_IDEdit_text_entered(_new_text):
-	if validate_popup():
-		_on_Action_pressed()
+func _on_Load_pressed():
+	$Autosave.save_load(false)
 
-func _on_NameEdit_text_changed(_new_text):
-	var _discard = validate_popup()
-
-func _on_IDEdit_text_changed(_new_text):
-	var _discard = validate_popup()
-
-func _on_FileDialog_file_selected(path):
-	selected_file=path
-	$FileDialog.visible=false
+func _on_Redo_pressed():
+	universe_edits.state.redo()

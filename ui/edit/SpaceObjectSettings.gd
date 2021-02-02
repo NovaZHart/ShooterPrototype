@@ -151,10 +151,8 @@ func display_description(visual_update: bool, send_text: bool):
 	if send_text:
 		var top = universe_edits.state.top()
 		if top and top is universe_edits.DescriptionChange and top.object_path==object.get_path():
-			print('amend')
 			top.amend(just_text)
 		else:
-			print('replace')
 			var old_description = object.description
 			object.description = just_text
 			universe_edits.state.push(universe_edits.DescriptionChange.new(
@@ -246,7 +244,6 @@ func _on_Services_changed(_ignore=null,_ignore2=null):
 	var selections: Array = []
 	for i in locations:
 		selections.append($Basic/Services.get_item_metadata(i))
-	print(str(selections))
 	universe_edits.state.push(universe_edits.SpaceObjectDataChange.new(
 		object.get_path(),{'services':selections},true,false,false,false))
 

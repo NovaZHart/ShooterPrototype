@@ -22,7 +22,8 @@ export var base_explosion_impulse: float = 500
 export var base_explosion_delay: int = 10
 export var override_size: Vector3 = Vector3(0,0,0)
 
-var combined_stats: Dictionary = {'weapons':[]}
+var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
+var non_weapon_stats: Array = []
 var team: int = 0
 var enemy_team: int = 1
 var enemy_mask: int = 2
@@ -30,6 +31,8 @@ var height: float = 5
 var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
+
+var skipped_runtime_stats: bool = true
 
 func is_ShipStats(): pass # for type detection; never called
 
@@ -68,32 +71,38 @@ func get_combined_aabb(node: Node = self) -> AABB:
 			result=result.merge(get_combined_aabb(child))
 		return result
 
-func make_stats(node: Node, stats: Dictionary) -> Dictionary:
+func make_stats(node: Node, stats: Dictionary,skip_runtime_stats=false) -> Dictionary:
 	if node.has_method("add_stats"):
-		node.add_stats(stats)
+		node.add_stats(stats,skip_runtime_stats)
 	var children: Array = node.get_children()
 	for child in children:
-		var _discard = make_stats(child,stats)
+		var _discard = make_stats(child,stats,skip_runtime_stats)
 	return stats
 
-func repack_stats() -> Dictionary:
-	combined_stats = make_stats(self,{'weapons':[]})
+func repack_stats(skip_runtime_stats=false) -> Dictionary:
+	var new_stats = make_stats(self,{'weapons':[],'equipment':[]},
+		skip_runtime_stats and skipped_runtime_stats)
+	if not new_stats['equipment'] and combined_stats and combined_stats['equipment']:
+		new_stats['equipment'] = combined_stats['equipment']
+	combined_stats = new_stats
 	return combined_stats
 	
-func pack_stats(quiet: bool = false) -> Dictionary:
+func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('mass'):
 		if not quiet:
 			push_error('No stats in pack_stats! Making stats now.')
-		combined_stats = make_stats(self,{'weapons':[]})
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	elif not skip_runtime_stats and skipped_runtime_stats:
+		update_stats()
 	return combined_stats
 
-func add_stats(stats: Dictionary) -> void:
+func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['explosion_damage']=base_explosion_damage
 	stats['explosion_radius']=base_explosion_radius
 	stats['explosion_impulse']=base_explosion_impulse
 	stats['explosion_delay']=base_explosion_delay
 	stats['name']=name
-	if is_inside_tree():
+	if not skip_runtime_stats and is_inside_tree():
 		stats['rid']=get_rid()
 	stats['thrust']=base_thrust
 	stats['reverse_thrust']=base_reverse_thrust
@@ -122,6 +131,12 @@ func add_stats(stats: Dictionary) -> void:
 	stats['mass']=base_mass
 	stats['drag']=base_drag
 	stats['weapons']=Array()
+	stats['equipment']=Array()
+	
+	# Used for text generation, not CombatEngine:
+	stats['display_name']=ship_display_name
+	stats['help_page']=help_page
+	skipped_runtime_stats = skip_runtime_stats
 
 func update_stats():
 	combined_stats['team']=team
@@ -141,6 +156,7 @@ func update_stats():
 			wep['node_path'] = child.get_path()
 			assert(not wep['node_path'].is_empty())
 	combined_stats['aabb']=get_combined_aabb()
+	skipped_runtime_stats=false
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
@@ -151,60 +167,7 @@ func max_and_repair(key,maxval,repairval) -> String:
 	return make_cell(key,maxval)
 
 func get_bbcode() -> String:
-	var contents: String = '' #'[b]Contents:[/b]\n'
-	var dps: float = 0
-	for child in get_children():
-		if child.has_method('get_bbcode_for_ship_table'):
-			contents += child.get_bbcode_for_ship_table()+'\n'
-			if child.mount_type=='gun' or child.mount_type=='turret':
-				dps += child.damage / max(1.0/60,child.firing_delay)
-	
-	var s: Dictionary = pack_stats(true)
-	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
-	var bbcode = '[b]Ship Design:[/b] [i]'+ship_display_name+'[/i]\n'
-	bbcode += '[b]ID:[/b] [code]'+name+'[/code]\n'
-	bbcode += '[b]Hull:[/b] {ref '+help_page+'}\n[table=5]'
-
-	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Damage:',str(round(dps))+'/s')
-
-	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*s['mass'])*10)/10)
-
-	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Turn RPM:',round(s['turn_thrust']/max(1e-9,s['turn_drag']*s['mass'])*100)/100)
-
-	bbcode += '[cell][/cell][cell][/cell]'
-	bbcode += '[cell] [/cell]'
-	bbcode += '[cell]Death Explosion[/cell][cell][/cell]'
-
-	bbcode += make_cell('Mass:',s['mass'])
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Radius:',s['explosion_radius'])
-
-	bbcode += make_cell('Drag:',s['drag'])
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Damage:',s['explosion_damage'])
-
-	bbcode += make_cell('Thrust:',s['thrust'])
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Delay:',str(round(1.0/max(1.0/60,s['explosion_delay'])*10)/10)+'s')
-
-	if s['reverse_thrust']>0:
-		bbcode += make_cell('Reverse:',s['reverse_thrust'])
-	else:
-		bbcode += '[cell][/cell][cell][/cell]'
-	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Hit Force:',s['explosion_impulse'])
-	
-	bbcode += '[/table]\n\n'
-
-	if contents:
-		bbcode += contents
-	return bbcode
+	return text_gen.make_ship_bbcode(pack_stats(true),true,'')
 
 func _ready():
 	var must_update: bool = false
@@ -224,7 +187,6 @@ func _ready():
 		update_stats()
 	
 	if random_height:
-		#height = (randi()%5)*1.99 - 1.48
 		height = (randi()%11)*1.99 - 8.445
 	collision_mask=0
 	mass=combined_stats['mass']
@@ -241,4 +203,3 @@ func _ready():
 	for child in get_children():
 		if child is VisualInstance or child is Position3D:
 			child.translation.y+=height
-	#init_ship_recursively()

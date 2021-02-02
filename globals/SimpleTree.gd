@@ -88,8 +88,9 @@ class SimpleNode extends Reference:
 
 	func get_parent():
 		var p = parent_.get_ref()
-		if not p:
-			push_error('tried to get parent of orphaned node')
+#		if not p:
+#			# This is not really an error. Uncomment for debugging.
+#			push_error('tried to get parent of orphaned node')
 		return p
 
 	func get_child_names():
@@ -138,10 +139,8 @@ class SimpleNode extends Reference:
 		for _x in range(100):
 			var check: String = ( '%s@%08x' % [ base, randi()%4294967296 ] )
 			if not check in children_:
-				print('name ',check)
 				return check
 		var last_resort: String = '%s@%x'%[base,randi()] # hope for the best
-		print('name ',last_resort)
 		return last_resort
 
 	func add_child(child: SimpleNode, child_name = null) -> bool:

@@ -22,9 +22,22 @@ var tree
 var universe
 var systems
 var ship_designs
+var fleets
 var player_ship_design
 
 signal console_append
+
+class FleetEditorStub extends Panel:
+	func select_fleet(_selection) -> bool:
+		return true
+	func add_fleet(_fleet) -> bool:
+		return true
+	func remove_fleet(_fleet_path:NodePath) -> bool:
+		return true
+	func set_fleet_display_name(_fleet_path:NodePath,_value:int) -> bool:
+		return true
+	func set_spawn_count(_fleet_path: NodePath,_design_path: NodePath,_value:int) -> bool:
+		return true
 
 class ShipEditorStub extends Panel:
 	func add_item(_scene: PackedScene, _mount_name:String, _x:int, _y:int) -> bool:
@@ -41,14 +54,16 @@ class ShipEditorStub extends Panel:
 		return true
 	func set_edited_ship_design(_design: simple_tree.SimpleNode) -> bool:
 		return true
+	func make_edited_ship_design() -> simple_tree.SimpleNode:
+		return simple_tree.SimpleNode.new()
 	func cancel_drag() -> bool:
 		return true
 
-class SectorEditorStub extends Spatial:
+class SectorEditorStub extends Panel:
 	var selection = null
 	func process_if(_condition: bool) -> bool:
 		return true
-	func change_selection_to(_what, _center: bool) -> bool:
+	func change_selection_to(_what, _center: bool = false) -> bool:
 		return true
 	func deselect(_what) -> bool:
 		return true
@@ -70,14 +85,26 @@ class SystemEditorStub extends Panel:
 		return true
 	func cancel_drag() -> bool:
 		return true
+	func remove_spawned_fleet(_index: int) -> bool:
+		return true
+	func add_spawned_fleet(_index: int, _data:Dictionary) -> bool:
+		return true
+	func change_fleet_data(_index:int, _key:String, _value) -> bool:
+		return true
 var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
+var fleet_editor = ShipEditorStub.new()
+var fleet_tree_selection = null
+var game_editor_mode = false
 
 func switch_editors(what: Node):
+	for design in ship_designs.get_children():
+		design.clear_cached_stats()
 	sector_editor = what if(what is SectorEditorStub) else SectorEditorStub.new()
 	system_editor = what if(what is SystemEditorStub) else SystemEditorStub.new()
 	ship_editor = what if(what is ShipEditorStub) else ShipEditorStub.new()
+	fleet_editor = what if(what is FleetEditorStub) else FleetEditorStub.new()
 
 func make_unique_ship_node_name():
 	var i: int = name_counter
@@ -213,6 +240,7 @@ func _init():
 	assert(tree.root_==universe)
 	assert(tree.root_.children_.has('ship_designs'))
 	assert(tree.root_.children_.has('systems'))
+	assert(tree.root_.children_.has('fleets'))
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
 	universe.load_places_from_json('res://places/universe.json')
@@ -220,6 +248,7 @@ func _init():
 	assert(tree.root_.children_.has('systems'))
 	ship_designs = universe.ship_designs
 	systems = universe.systems
+	fleets = universe.fleets
 	assert(ship_designs)
 	assert(ship_designs is simple_tree.SimpleNode)
 	assert(not ship_designs.has_method('is_SpaceObjectData'))
@@ -232,7 +261,6 @@ func _init():
 	assert(tree.root_.children_.has('systems'))
 	assert(tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
 	var pearl = systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
-	print('systems: ',str(systems.get_child_names()))
 	assert(pearl)
 	set_player_location(pearl.get_path())
 	assert(player_location)

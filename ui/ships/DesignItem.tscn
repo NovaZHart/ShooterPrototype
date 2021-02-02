@@ -1,0 +1,84 @@
+[gd_scene load_steps=10 format=2]
+
+[ext_resource path="res://ui/ships/DesignItem.gd" type="Script" id=1]
+[ext_resource path="res://ui/ConsoleBoldItalic.tres" type="DynamicFont" id=2]
+[ext_resource path="res://ui/ConsoleNormal.tres" type="DynamicFont" id=3]
+[ext_resource path="res://ui/ConsoleMono.tres" type="DynamicFont" id=4]
+[ext_resource path="res://ui/ConsoleBold.tres" type="DynamicFont" id=5]
+[ext_resource path="res://ui/ConsoleItalic.tres" type="DynamicFont" id=6]
+[ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=7]
+[ext_resource path="res://ui/ConsoleSmallCode.tres" type="DynamicFont" id=8]
+
+[sub_resource type="World" id=1]
+environment = ExtResource( 7 )
+
+[node name="DesignItem" type="Control"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+small_code = ExtResource( 8 )
+
+[node name="View" type="ViewportContainer" parent="."]
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 0
+size_flags_vertical = 0
+stretch = true
+
+[node name="Port" type="Viewport" parent="View"]
+size = Vector2( 0, 600 )
+own_world = true
+world = SubResource( 1 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="View/Port"]
+transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 50, 0 )
+cull_mask = 17
+projection = 1
+
+[node name="Sun" type="DirectionalLight" parent="View/Port"]
+transform = Transform( 0.707107, 0, -0.707107, 0.353553, 0.866025, 0.353553, 0.612372, -0.5, 0.612372, 0, 0, 0 )
+light_cull_mask = 4293918721
+
+[node name="SelectBack" type="OmniLight" parent="View/Port"]
+transform = Transform( -0.841503, 0.12941, 0.524524, 0.353558, 0.866022, 0.353557, -0.408496, 0.482969, -0.774514, 200, 1000, -200 )
+layers = 16
+light_energy = 3.0
+light_cull_mask = 4293918736
+omni_range = 4096.0
+omni_attenuation = 0.0236831
+
+[node name="SelectFront" type="OmniLight" parent="View/Port"]
+transform = Transform( 0.707103, 1.40071e-06, -0.70711, 0.353558, 0.866022, 0.353557, 0.612374, -0.500006, 0.612367, -1000, 50, 1000 )
+layers = 16
+light_energy = 3.0
+light_cull_mask = 4293918736
+omni_range = 4096.0
+omni_attenuation = 0.0206173
+
+[node name="Annotation" type="Node2D" parent="View/Port"]
+
+[node name="Info" type="RichTextLabel" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+size_flags_horizontal = 0
+size_flags_vertical = 3
+custom_fonts/mono_font = ExtResource( 4 )
+custom_fonts/bold_italics_font = ExtResource( 2 )
+custom_fonts/italics_font = ExtResource( 6 )
+custom_fonts/bold_font = ExtResource( 5 )
+custom_fonts/normal_font = ExtResource( 3 )
+bbcode_enabled = true
+scroll_active = false
+[connection signal="item_rect_changed" from="." to="." method="_on_DesignItem_item_rect_changed"]
+[connection signal="resized" from="." to="." method="_on_DesignItem_resized"]
+[connection signal="visibility_changed" from="." to="." method="_on_DesignItem_visibility_changed"]
+[connection signal="draw" from="View/Port/Annotation" to="." method="_on_Annotation_draw"]

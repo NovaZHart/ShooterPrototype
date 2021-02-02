@@ -437,6 +437,7 @@ func make_ship(design):
 	ship.collision_mask = 0
 	ship.random_height = false
 	ship.retain_hidden_mounts = true
+	ship.ship_display_name = design.display_name
 	
 	set_layer_recursively(ship,SHIP_LIGHT_CULL_LAYER)
 	var existing = $Viewport.get_node_or_null('Ship')

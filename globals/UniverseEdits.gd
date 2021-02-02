@@ -1,6 +1,6 @@
 extends Node
 
-var state = undo_tool.UndoStack.new(false)
+var state = undo_tool.UndoStack.new(true)
 const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
 
 class AddSystem extends undo_tool.Action:
@@ -97,10 +97,10 @@ class ChangeSelection extends undo_tool.Action:
 	func redo() -> bool:
 		return set_selection(old_selection,new_selection) and cancel_drag(old_selection,new_selection)
 
-class ExitToSector extends undo_tool.Action:
+class SystemEditorToSectorEditor extends undo_tool.Action:
 	var from_system: NodePath
 	func as_string() -> String:
-		return 'ExitToSector(from_system='+str(from_system)+')'
+		return 'SystemEditorToSectorEditor(from_system='+str(from_system)+')'
 	func _init():
 		from_system = game_state.system.get_path()
 	func run():
@@ -156,6 +156,113 @@ class MoveObject extends undo_tool.Action:
 	func redo() -> bool:
 		return game_state.sector_editor.process_if(game_state.universe.call(function,object,delta)) \
 			and game_state.sector_editor.cancel_drag()
+
+
+class SystemRemoveFleet extends undo_tool.Action:
+	var system_path: NodePath
+	var fleet_index: int
+	var old_value
+	func as_string() -> String:
+		return 'SystemRemoveFleet(system_path='+str(system_path)+ \
+			',fleet_index='+str(fleet_index)+',old_value='+str(old_value)+')'
+	func _init(system_path_: NodePath, fleet_index_: int):
+		system_path=system_path_
+		fleet_index=fleet_index_
+	func validate_system(system,validate_index) -> bool:
+		if not system:
+			push_error('No system to edit in SystemDataChange')
+			return false
+		if validate_index and len(system.fleets)-1<fleet_index:
+			push_error('System '+str(system_path)+' has no fleet '+str(fleet_index))
+			return false
+		return true
+	func run() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not validate_system(system,true):
+			return false
+		old_value = system.fleets[fleet_index]
+		system.fleets.remove(fleet_index)
+		return game_state.system_editor.remove_spawned_fleet(fleet_index)
+	func undo() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not validate_system(system,false):
+			return false
+		system.fleets.insert(fleet_index,old_value)
+		return game_state.system_editor.add_spawned_fleet(fleet_index,old_value)
+	func redo() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not validate_system(system,true):
+			return false
+		system.fleets.remove(fleet_index)
+		return game_state.system_editor.remove_spawned_fleet(fleet_index)
+
+
+class SystemAddFleet extends undo_tool.Action:
+	var system_path: NodePath
+	var data
+	func as_string() -> String:
+		return 'SystemAddFleet(system_path='+str(system_path)+','+str(data)+')'
+	func _init(system_path_: NodePath, data_: Dictionary):
+		system_path=system_path_
+		data=data_
+	func run() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not system:
+			push_error('No system to edit in SystemDataChange')
+			return false
+		system.fleets.append(data)
+		return game_state.system_editor.add_spawned_fleet(len(system.fleets)-1,data)
+	func undo() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not system:
+			push_error('No system to edit in SystemDataChange')
+			return false
+		var _discard = system.fleets.pop_back()
+		return game_state.system_editor.remove_spawned_fleet(len(system.fleets))
+
+
+class SystemFleetDataChange extends undo_tool.Action:
+	var system_path: NodePath
+	var fleet_index: int
+	var key: String
+	var old_value
+	var new_value
+	func as_string() -> String:
+		return 'SystemFleetDataChange(system_path='+str(system_path)+ \
+			',fleet_index='+str(fleet_index)+',key='+str(key)+ \
+			',old_value='+str(old_value)+',new_value='+str(new_value)+')'
+	func _init(system_path_: NodePath, fleet_index_: int, key_: String, new_value_):
+		system_path=system_path_
+		fleet_index=fleet_index_
+		key=key_
+		new_value=new_value_
+	func validate_system(system) -> bool:
+		if not system:
+			push_error('No system to edit in SystemDataChange')
+			return false
+		if len(system.fleets)-1<fleet_index:
+			push_error('System '+str(system_path)+' has no fleet '+str(fleet_index))
+			return false
+		return true
+	func run() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not validate_system(system):
+			return false
+		old_value = system.fleets[fleet_index][key]
+		system.fleets[fleet_index][key]=new_value
+		return game_state.system_editor.change_fleet_data(fleet_index,key,new_value)
+	func undo() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not validate_system(system):
+			return false
+		system.fleets[fleet_index][key]=old_value
+		return game_state.system_editor.change_fleet_data(fleet_index,key,old_value)
+	func redo() -> bool:
+		var system = game_state.systems.get_node_or_null(system_path)
+		if not validate_system(system):
+			return false
+		system.fleets[fleet_index][key]=new_value
+		return game_state.system_editor.change_fleet_data(fleet_index,key,new_value)
 
 class SystemDataChange extends undo_tool.Action:
 	var old: Dictionary = {}
@@ -213,12 +320,10 @@ class AddSpaceObject extends undo_tool.Action:
 		parent_path=parent_path_
 		child=child_
 	func run() -> bool:
-		print('add space object run')
 		var node: simple_tree.SimpleNode = game_state.systems.get_node_or_null(parent_path)
 		if not node:
 			push_error('Cannot add space object because parent '+str(parent_path)+' does not exist.')
 			return false
-		print('add space object add child')
 		if not node.add_child(child):
 			push_error('Unable to add child to '+str(parent_path))
 			return false
