@@ -1,0 +1,75 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ui/edit/SystemTree.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/DialogPageSelector.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/DialogMapPanel.gd" type="Script" id=5]
+
+[node name="DialogMapPanel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 5 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="All" type="HSplitContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Info" type="GridContainer" parent="All"]
+margin_right = 295.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DialogPageSelector" parent="All/Info" instance=ExtResource( 4 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 295.0
+margin_bottom = 20.0
+enable_Map = false
+
+[node name="Bottom" type="VSplitContainer" parent="All/Info"]
+margin_top = 24.0
+margin_right = 295.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Tree" parent="All/Info/Bottom" instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 295.0
+margin_bottom = 207.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Console" parent="All/Info/Bottom" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 219.0
+margin_right = 295.0
+margin_bottom = 576.0
+size_flags_stretch_ratio = 1.7
+
+[node name="StarmapPanel" parent="All" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 307.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_stretch_ratio = 2.4
+[connection signal="page_selected" from="All/Info/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
+[connection signal="deselect_node" from="All/Info/Bottom/Tree" to="." method="_on_Tree_deselect_node"]
+[connection signal="select_node" from="All/Info/Bottom/Tree" to="." method="_on_Tree_select_node"]
+[connection signal="deselect" from="All/StarmapPanel" to="." method="_on_StarmapPanel_deselect"]
+[connection signal="select" from="All/StarmapPanel" to="." method="_on_StarmapPanel_select"]

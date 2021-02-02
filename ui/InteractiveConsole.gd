@@ -44,6 +44,28 @@ func _init():
 	if OK!=command_regex.compile('\\{(?<command>[^}]+)\\}'):
 		printerr('Help: cannot compile command regex')
 
+func get_command(name):
+	return commands.get(name,null)
+
+func restore_state(state):
+	if not state is Dictionary:
+		return
+	if state.has('Output'):
+		$Console/Output.parse_bbcode(state['Output'])
+		if state.has('command_index') and state['command_index'] is Dictionary:
+			command_index=state['command_index'].duplicate()
+		else:
+			command_index.clear()
+	if state.has('Input'):
+		$Console/Input.text = state['Input']
+
+func store_state():
+	return {
+		'Output':$Console/Output.text,
+		'Input':$Console/Input.text,
+		'command_index':command_index.duplicate()
+	}
+
 func rewrite_tags(s: String) -> String:
 	var t: String = s
 	for from_string in tag_filters:

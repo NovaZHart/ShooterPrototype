@@ -7,6 +7,7 @@ var player_ship_design_name = 'player_ship_design'
 var systems: simple_tree.SimpleNode
 var ship_designs: simple_tree.SimpleNode
 var fleets: simple_tree.SimpleNode
+var ui: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 
@@ -19,16 +20,24 @@ signal system_display_name_changed
 signal system_position_changed
 signal link_position_changed
 
+func mandatory_add_child(child: simple_tree.SimpleNode, child_name: String):
+	child.name=child_name
+	if not add_child(child):
+		push_error('Could not add '+child_name+' child to universe.')
+
 func _init():
 	systems = simple_tree.SimpleNode.new()
-	systems.set_name('systems')
-	assert(add_child(systems))
+	#systems.set_name('systems')
+	mandatory_add_child(systems,'systems')
 	ship_designs = simple_tree.SimpleNode.new()
-	ship_designs.set_name('ship_designs')
-	assert(add_child(ship_designs))
+	#ship_designs.set_name('ship_designs')
+	mandatory_add_child(ship_designs,'ship_designs')
 	fleets = simple_tree.SimpleNode.new()
-	fleets.set_name('fleets')
-	assert(add_child(fleets))
+	#fleets.set_name('fleets')
+	mandatory_add_child(fleets,'fleets')
+	ui = simple_tree.SimpleNode.new()
+	#ui.set_name('ui')
+	mandatory_add_child(ui,'ui')
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -225,6 +234,22 @@ func decode_ShipDesign(v):
 
 
 
+class UIState extends simple_tree.SimpleNode:
+	var ui_state
+	
+	func is_UIState(): pass # for type detection; never called
+	
+	func _init(state):
+		ui_state = state
+
+func encode_UIState(u: UIState):
+	return [ 'UIState', u.ui_state ]
+
+func decode_UIState(v):
+	if not v is Array or len(v)<2 or not v[0] is String or v[0]!='UIState':
+		return null
+	return UIState.new(decode_helper(v[1]))
+
 class Fleet extends simple_tree.SimpleNode:
 	var spawn_info: Dictionary = {}
 	var display_name: String = 'Unnamed'
@@ -420,6 +445,8 @@ func decode_helper(what,key=null):
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0] == 'Fleet':
 			return decode_Fleet(what)
+		elif what[0] == 'UIState':
+			return decode_UIState(what)
 		elif what[0] == 'MultiMounted':
 			return decode_MultiMounted(what)
 		elif what[0] == 'MultiMount':
@@ -467,6 +494,8 @@ func encode_helper(what):
 		return [ 'Color', what.r, what.g, what.b, what.a ]
 	elif what is Fleet:
 		return encode_Fleet(what)
+	elif what is UIState:
+		return encode_UIState(what)
 	elif what is MultiMounted:
 		return encode_MultiMounted(what)
 	elif what is MultiMount:

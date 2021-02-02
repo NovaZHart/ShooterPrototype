@@ -4,17 +4,17 @@
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=3]
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=4]
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="DynamicFont" id=1]
 size = 15
 use_filter = true
 font_data = ExtResource( 4 )
 
-[sub_resource type="DynamicFont" id=3]
+[sub_resource type="DynamicFont" id=2]
 size = 15
 use_filter = true
 font_data = ExtResource( 3 )
 
-[sub_resource type="Environment" id=1]
+[sub_resource type="Environment" id=3]
 background_mode = 1
 background_color = Color( 0.0156863, 0.0156863, 0.0588235, 1 )
 ambient_light_color = Color( 1, 1, 1, 1 )
@@ -28,8 +28,8 @@ script = ExtResource( 2 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
-label_font = SubResource( 2 )
-highlighted_font = SubResource( 3 )
+label_font = SubResource( 1 )
+highlighted_font = SubResource( 2 )
 
 [node name="View" type="ViewportContainer" parent="."]
 anchor_right = 1.0
@@ -53,7 +53,7 @@ projection = 1
 size = 45.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="View/Port"]
-environment = SubResource( 1 )
+environment = SubResource( 3 )
 
 [node name="Selection" type="MeshInstance" parent="View/Port"]
 visible = false

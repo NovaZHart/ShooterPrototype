@@ -33,6 +33,9 @@ var draw_commands: Array = []
 var draw_mutex: Mutex = Mutex.new()
 var name_bounds: Array = []
 
+signal select
+signal deselect
+
 func cancel_drag() -> bool:
 	last_position=null
 	last_screen_position=null
@@ -78,27 +81,31 @@ class Projector extends Reference:
 	var from2to3: Transform
 	var from3to2: Transform
 	var view_size: Vector2
-	func _init(camera,viewport):
+	var rect_global_position: Vector2
+	func _init(camera,viewport,rect_global_position_):
+		rect_global_position = rect_global_position_
 		view_size = viewport.size
 		var camera_scale = camera.size/view_size.y
 		from2to3 = camera.transform
 		from2to3 = from2to3.scaled(Vector3(camera_scale,1,camera_scale))
 		from2to3.origin = camera.translation
 		from3to2 = from2to3.affine_inverse()
-		from3to2.origin += Vector3(view_size.x/2,view_size.y/2,0)
-	func project_position(screen_point: Vector2,z_depth: float = 0) -> Vector3:
-		var vec3: Vector3 = Vector3(screen_point.x,view_size.y-screen_point.y,z_depth)
+		var view_offset: Vector2 = view_size/2.0
+		from3to2.origin += Vector3(view_offset.x,view_offset.y,0)
+	func project_position(view_point: Vector2,z_depth: float = 0) -> Vector3:
+		var centered = view_point-view_size/2
+		var vec3: Vector3 = Vector3(centered.x,-centered.y,z_depth)
 		return from2to3.xform(vec3)
 	func unproject_position(world_point: Vector3) -> Vector2:
-		var screen: Vector3 = from3to2.xform(world_point)
-		return Vector2(screen.x,view_size.y-screen.y)
+		var view_pos: Vector3 = from3to2.xform(world_point)
+		return Vector2(view_pos.x,view_size.y-view_pos.y)
 
 func draw_systems_and_links():
 	#var view_size: Vector2 = $View/Port.size
 	var system_scale: float = SYSTEM_SCALE*$View/Port/Camera.size
 	var link_scale: float = LINK_SCALE*$View/Port/Camera.size
 	
-	var proj: Projector = Projector.new($View/Port/Camera,$View/Port)
+	var proj: Projector = Projector.new($View/Port/Camera,$View/Port,rect_global_position)
 #	var camera_scale = $View/Port/Camera.size/view_size.y
 #	var from2to3 = $View/Port/Camera.transform
 #	from2to3 = from2to3.scaled(Vector3(camera_scale,1,camera_scale))
@@ -145,13 +152,14 @@ func draw_systems_and_links():
 					system['display_name'],system_name_color])
 				
 				# Bounding box of display name in 3d space
-				var ul2 = pos2+Vector2(text_offset,ascent-text_size.y)
-				var lr2 = pos2+Vector2(text_offset+text_size.x,ascent)
-				var ul3 = proj.project_position(ul2)
-				var lr3 = proj.project_position(lr2)
+				var ul2: Vector2 = pos2+Vector2(text_offset,ascent-text_size.y)
+				var lr2: Vector2 = pos2+Vector2(text_offset+text_size.x,ascent)
+				var ul3: Vector3 = proj.project_position(ul2,0)
+				var lr3: Vector3 = proj.project_position(lr2,0)
 				var aabb = AABB(Vector3(min(ul3.x,lr3.x),-20,min(ul3.z,lr3.z)),
 					Vector3(abs(ul3.x-lr3.x),40,abs(ul3.z-lr3.z)))
 				name_bounds.append([aabb,system.get_path(),(ul3+lr3)/2])
+				print('system ',system.display_name,' at ',system.position,' text at ',ul3,'...',lr3)
 			system_data[i +  0] = system_scale
 			system_data[i +  1] = 0.0
 			system_data[i +  2] = 0.0
@@ -312,11 +320,14 @@ func find_at_position(screen_position: Vector2):
 	closest=null
 	for pair in name_bounds:
 		if pair[0].has_point(pos3):
+			print('pair in name bounds')
 			var distsq = pos3.distance_squared_to(pair[2])
 			var system = game_state.systems.get_node_or_null(pair[1])
 			if system and distsq<close_distsq:
 				close_distsq=distsq
 				closest=system
+		else:
+			print(pair[0],' does not contain ',pos3)
 	
 	return closest
 # Logic to select links:
@@ -337,12 +348,17 @@ func deselect(what) -> bool:
 		(what is simple_tree.SimpleNode and selection is simple_tree.SimpleNode \
 		and what==selection):
 		selection=null
+		emit_signal('deselect')
 		return true
 	return false
 
 func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
+	if selection is simple_tree.SimpleNode:
+		emit_signal('select',selection)
+	elif selection==null:
+		emit_signal('deselect')
 	game_state.universe.unlock()
 	time_to_draw=true
 	return true
@@ -362,12 +378,17 @@ func set_zoom(zoom: float,focus: Vector3) -> void:
 	$View/Port/Camera.translation = f*start + center*(1-f)
 
 func _input(event):
-	# Ignore events if a popup is popped up
-	if get_viewport().get_modal_stack_top():
+	var scene = get_tree().current_scene
+	if scene and scene.has_method('popup_has_focus'):
+		if get_tree().current_scene.popup_has_focus():
+			return
+	elif not is_visible_in_tree():
+		return
+	var pos2: Vector2 = event_position(event)
+	if not get_global_rect().has_point(pos2):
 		return
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_slide'):
-			var pos2: Vector2 = event_position(event)
 			var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 			if not selection:
 				var pos3_start: Vector3 = $View/Port/Camera.project_position(last_screen_position,-10)
@@ -380,13 +401,13 @@ func _input(event):
 			var _discard = cancel_drag()
 
 	if event.is_action_pressed('ui_location_slide'):
-		last_screen_position = event_position(event)
+		last_screen_position = pos2
 		last_position = $View/Port/Camera.project_position(last_screen_position,-10)
 		camera_start = $View/Port/Camera.translation
 	elif event.is_action_released('ui_location_slide'):
 		var _discard = cancel_drag()
 	elif event.is_action_pressed('ui_location_select'):
-		var target = find_at_position(event_position(event))
+		var target = find_at_position(pos2)
 		if not target or target is simple_tree.SimpleNode:
 			universe_edits.state.push(universe_edits.ChangeSelection.new(
 				selection,target))

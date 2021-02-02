@@ -36,4 +36,4 @@ This massive ship is durable by every measure, and focuses on all-round firepowe
 @content
 The Banner Ships are iconic features of large commercial planets. They display rotating banners of advertisements for services available nearby. These ships double as a first line of defense against small attacks, holding off enemies long enough for warships to launch.
 
-@bbcode_from_scene res://ships/PurpleShips/BannerShipHull.tscn
+@bbcode_from_scene res://ships/BannerShip/BannerShipHull.tscn

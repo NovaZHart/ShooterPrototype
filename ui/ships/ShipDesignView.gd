@@ -115,7 +115,11 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: Collisi
 	return false
 
 func _input(event):
-	if get_tree().current_scene.popup_has_focus():
+	var scene = get_tree().current_scene
+	if scene and scene.has_method('popup_has_focus'):
+		if get_tree().current_scene.popup_has_focus():
+			return
+	elif not is_visible_in_tree():
 		return
 	var view_pos = rect_global_position
 	var view_rect: Rect2 = Rect2(view_pos, rect_size)

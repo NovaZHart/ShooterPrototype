@@ -1,0 +1,24 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://ui/DialogHelpPanel.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/DialogShipPanel.tscn" type="PackedScene" id=2]
+[ext_resource path="res://ui/MainDialog.gd" type="Script" id=3]
+[ext_resource path="res://ui/DialogMapPanel.tscn" type="PackedScene" id=5]
+
+[node name="MainDialog" type="Popup"]
+pause_mode = 2
+anchor_left = 0.1
+anchor_top = 0.1
+anchor_right = 0.9
+anchor_bottom = 0.9
+script = ExtResource( 3 )
+
+[node name="Help" parent="." instance=ExtResource( 1 )]
+visible = false
+
+[node name="Ship" parent="." instance=ExtResource( 2 )]
+
+[node name="Map" parent="." instance=ExtResource( 5 )]
+[connection signal="page_selected" from="Help" to="." method="_on_page_selected"]
+[connection signal="page_selected" from="Ship" to="." method="_on_page_selected"]
+[connection signal="page_selected" from="Map" to="." method="_on_page_selected"]

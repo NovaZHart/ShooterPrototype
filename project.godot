@@ -34,6 +34,10 @@ mesh_loader="*res://globals/MeshLoaderNode.gd"
 
 window/size/borderless=true
 
+[gui]
+
+theme/custom="res://ui/MainTheme.tres"
+
 [input]
 
 ui_accept={

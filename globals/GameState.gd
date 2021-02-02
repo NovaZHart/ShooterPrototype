@@ -23,6 +23,7 @@ var universe
 var systems
 var ship_designs
 var fleets
+var ui
 var player_ship_design
 
 signal console_append
@@ -249,6 +250,7 @@ func _init():
 	ship_designs = universe.ship_designs
 	systems = universe.systems
 	fleets = universe.fleets
+	ui = universe.ui
 	assert(ship_designs)
 	assert(ship_designs is simple_tree.SimpleNode)
 	assert(not ship_designs.has_method('is_SpaceObjectData'))
