@@ -1,0 +1,73 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://ui/StarmapPanel.gd" type="Script" id=2]
+[ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=4]
+
+[sub_resource type="DynamicFont" id=2]
+size = 15
+use_filter = true
+font_data = ExtResource( 4 )
+
+[sub_resource type="DynamicFont" id=3]
+size = 15
+use_filter = true
+font_data = ExtResource( 3 )
+
+[sub_resource type="Environment" id=1]
+background_mode = 1
+background_color = Color( 0.0156863, 0.0156863, 0.0588235, 1 )
+ambient_light_color = Color( 1, 1, 1, 1 )
+
+[node name="StarmapPanel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+label_font = SubResource( 2 )
+highlighted_font = SubResource( 3 )
+
+[node name="View" type="ViewportContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+focus_mode = 1
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Port" type="Viewport" parent="View"]
+size = Vector2( 1024, 600 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="View/Port"]
+transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 10, 0 )
+projection = 1
+size = 45.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="View/Port"]
+environment = SubResource( 1 )
+
+[node name="Selection" type="MeshInstance" parent="View/Port"]
+visible = false
+
+[node name="Systems" type="MultiMeshInstance" parent="View/Port"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3, 0 )
+visible = false
+
+[node name="Links" type="MultiMeshInstance" parent="View/Port"]
+visible = false
+
+[node name="OmniLight" type="OmniLight" parent="View/Port"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, 36 )
+
+[node name="Annotations" type="Node2D" parent="View/Port"]
+[connection signal="resized" from="." to="." method="_on_StarmapPanel_resized"]
+[connection signal="draw" from="View/Port/Annotations" to="." method="_on_Annotations_draw"]

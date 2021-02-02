@@ -6,27 +6,27 @@
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=4]
 [ext_resource path="res://ui/edit/Autosave.tscn" type="PackedScene" id=5]
 
-[sub_resource type="DynamicFont" id=1]
+[sub_resource type="DynamicFont" id=2]
 size = 15
 use_filter = true
 font_data = ExtResource( 3 )
 
-[sub_resource type="DynamicFont" id=2]
+[sub_resource type="DynamicFont" id=3]
 size = 15
 use_filter = true
 font_data = ExtResource( 4 )
 
-[sub_resource type="Environment" id=3]
+[sub_resource type="Environment" id=4]
 background_mode = 1
 background_color = Color( 0.0156863, 0.0156863, 0.0588235, 1 )
 ambient_light_color = Color( 1, 1, 1, 1 )
 
-[sub_resource type="DynamicFont" id=4]
+[sub_resource type="DynamicFont" id=5]
 size = 13
 use_filter = true
 font_data = ExtResource( 4 )
 
-[sub_resource type="DynamicFont" id=5]
+[sub_resource type="DynamicFont" id=6]
 size = 13
 use_filter = true
 font_data = ExtResource( 3 )
@@ -37,8 +37,8 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 IDNamePopup = ExtResource( 2 )
-label_font = SubResource( 1 )
-highlighted_font = SubResource( 2 )
+label_font = SubResource( 2 )
+highlighted_font = SubResource( 3 )
 
 [node name="Camera" type="Camera" parent="."]
 transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 10, 0 )
@@ -46,7 +46,7 @@ projection = 1
 size = 45.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource( 3 )
+environment = SubResource( 4 )
 
 [node name="Selection" type="MeshInstance" parent="."]
 visible = false
@@ -64,8 +64,8 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, 36 )
 [node name="RichTextLabel" type="RichTextLabel" parent="."]
 margin_right = 120.0
 size_flags_horizontal = 3
-custom_fonts/bold_font = SubResource( 4 )
-custom_fonts/normal_font = SubResource( 5 )
+custom_fonts/bold_font = SubResource( 5 )
+custom_fonts/normal_font = SubResource( 6 )
 bbcode_enabled = true
 bbcode_text = "[b]Controls:[/b]
 left: select
