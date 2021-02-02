@@ -49,6 +49,7 @@ class UndoStack extends Reference:
 		if undo_stack:
 			var action = undo_stack[len(undo_stack)-1]
 			if action.amend(arg):
+				emit_signal('undo_stack_changed')
 				return true
 		return false
 	func push(action) -> bool:

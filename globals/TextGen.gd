@@ -125,9 +125,10 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 
 		return bbcode+'[/table]\n'
 
-func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=false) -> String:
+func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) -> String:
 	var contents: String = '' #'[b]Contents:[/b]\n'
-	
+	if show_id==null:
+		show_id = game_state.game_editor_mode
 	var dps: float = 0
 	for weapon in ship_stats['weapons']:
 		if with_contents:

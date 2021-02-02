@@ -304,28 +304,19 @@ class RemoveFleet extends undo_tool.Action:
 			game_state.fleet_editor.select_fleet(old_selection)
 
 class SystemEditorToFleetEditor extends undo_tool.Action:
-	var old_tree_selection: FleetTreeSelection
-	var new_tree_selection: FleetTreeSelection
 	func as_string() -> String:
-		return 'SystemEditorToFleetEditor('+ \
-			'old_tree_selection='+str(old_tree_selection)+','+ \
-			'new_tree_selection='+str(new_tree_selection)+')'
-	func _init():
-		old_tree_selection = game_state.fleet_tree_selection
+		return 'SystemEditorToFleetEditor()'
 	func run() -> bool:
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
 			push_error('cannot change scene to FleetEditor')
 			return false
-		new_tree_selection = FleetTreeSelection.new(null,game_state.fleet_editor)
 		return true
 	func redo() -> bool:
-		game_state.fleet_tree_selection = new_tree_selection
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/FleetEditor.tscn'):
 			push_error('cannot change scene to FleetEditor')
 			return false
 		return true
 	func undo() -> bool:
-		game_state.fleet_tree_selection = old_tree_selection
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
 			push_error('cannot change scene to SystemEditor')
 			return false

@@ -6,7 +6,6 @@ export var remove_item_texture: Texture
 #var last_tree_selection: ship_edits.FleetTreeSelection
 var selected_file=null
 var id_name_popup_path: NodePath = NodePath()
-var file_dialog_path: NodePath = NodePath()
 
 func _enter_tree():
 	game_state.game_editor_mode=true
@@ -45,7 +44,7 @@ func update_buttons():
 
 func popup_has_focus() -> bool:
 	return not id_name_popup_path.is_empty() or \
-		not file_dialog_path.is_empty()
+		get_viewport().get_modal_stack_top()
 
 func tree_find_meta(parent: TreeItem,column: int,meta): # -> TreeItem or null
 	var scan = parent.get_children()
@@ -402,56 +401,15 @@ func add_fleet_with_popup(send_edit: bool):
 	id_name_popup.queue_free()
 	return fleet
 
-func _on_FileDialog_file_selected(path: String, node: FileDialog):
-	selected_file=path
-	node.visible=false
-
-func save_load(save: bool) -> bool:
-	var dialog = get_viewport().get_node_or_null(file_dialog_path)
-	if dialog:
-		selected_file=null
-		dialog.visible=false
-		get_viewport().remove_child(dialog)
-		file_dialog_path=NodePath()
-		return
-	
-	dialog = FileDialog.new()
-	dialog.connect('file_selected',self,'_on_FileDialog_file_selected',[dialog])
-	dialog.popup_exclusive = true
-	dialog.mode = FileDialog.MODE_SAVE_FILE if save else FileDialog.MODE_OPEN_FILE
-	get_viewport().add_child(dialog)
-	dialog.rect_global_position=get_viewport().size*0.1
-	dialog.rect_size=get_viewport().size*0.8
-	selected_file=null
-	file_dialog_path = dialog.get_path()
-	
-	dialog.popup()
-	while dialog and dialog.visible:
-		yield(get_tree(),'idle_frame')
-	dialog.disconnect('file_selected',self,'_on_FileDialog_file_selected')
-	get_viewport().remove_child(dialog)
-	dialog.queue_free()
-	file_dialog_path = NodePath()
-	
-	if not selected_file:
-		return false # canceled
-	elif save:
-		return game_state.save_universe_as_json(selected_file)
-	elif game_state.load_universe_from_json(selected_file):
-		universe_edits.state.clear()
-		set_process(true)
-		return true
-	return false
-
 func _on_AddFleet_pressed():
 	var _discard = add_fleet_with_popup(true)
 
 func _on_Save_pressed():
-	save_load(true)
+	$Autosave.save_load(true)
 	get_tree().set_input_as_handled()
 
 func _on_Load_pressed():
-	save_load(false)
+	$Autosave.save_load(false)
 	get_tree().set_input_as_handled()
 
 func _on_Undo_pressed():

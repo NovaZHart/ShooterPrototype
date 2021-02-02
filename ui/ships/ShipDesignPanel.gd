@@ -109,7 +109,7 @@ func update_buttons():
 		Remove.disabled = disable_Remove or not selected_design
 	var Add = $All/Buttons.get_node_or_null('Add')
 	if Add:
-		Add.disabled = disable_Add or not selected_design
+		Add.disabled = disable_Add
 	$All/Buttons.columns = $All/Buttons.get_child_count()
 
 func _ready():
@@ -190,6 +190,9 @@ func move_list_index(list,from_index,to_index,design_path,allow_add):
 	if design_path != list[to_index][1]:
 		node.set_design(design_path)
 		list[to_index][1]=design_path
+		var should_select = selected_design and selected_design==design_path
+		if node.selected != should_select:
+			return node.select(false) if should_select else node.deselect(false)
 
 func find_index(design_path,to_index,designs_shown,designs_to_show) -> int:
 	#var design_path = design_paths[first_design_shown+i]
@@ -204,9 +207,21 @@ func find_index(design_path,to_index,designs_shown,designs_to_show) -> int:
 				return j
 	return from_index
 
+func refresh():
+	design_mutex.lock()
+	for child in $All/Top/List.get_children():
+		child.refresh()
+	design_mutex.unlock()
+
+class NodePathSorter extends Reference:
+	func sort(a,b):
+		return str(a)<str(b)
+
 func update_designs(fill_missing: bool,lock_mutex: bool = true):
 	if lock_mutex:
 		design_mutex.lock()
+	
+	design_paths.sort_custom(NodePathSorter.new(),'sort')
 	
 	var count_designs_visible: int = $All/Top/List.get_child_count()
 	var first_design_shown: int = $All/Top/Scroll.value

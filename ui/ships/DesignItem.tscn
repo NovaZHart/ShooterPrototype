@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ui/ships/DesignItem.gd" type="Script" id=1]
 [ext_resource path="res://ui/ConsoleBoldItalic.tres" type="DynamicFont" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://ui/ConsoleBold.tres" type="DynamicFont" id=5]
 [ext_resource path="res://ui/ConsoleItalic.tres" type="DynamicFont" id=6]
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=7]
+[ext_resource path="res://ui/ConsoleSmallCode.tres" type="DynamicFont" id=8]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 7 )
@@ -20,6 +21,7 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+small_code = ExtResource( 8 )
 
 [node name="View" type="ViewportContainer" parent="."]
 anchor_bottom = 1.0

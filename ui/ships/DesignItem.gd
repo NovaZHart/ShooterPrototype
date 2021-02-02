@@ -2,6 +2,7 @@ extends Control
 
 export var info_min_fraction: float = 0.2
 export var annotation_color: Color = Color(0.4,0.5,0.9,0.7)
+export var small_code: Font
 
 var selected = false
 var hovering = false
@@ -18,6 +19,9 @@ signal deselect
 signal select_nothing
 
 func is_DesignItem(): pass # used for type checking; never called
+
+func refresh():
+	var _discard = set_design(design_path)
 
 func stat_summary(stats: Dictionary) -> Dictionary:
 	var dps: float = 0
@@ -45,18 +49,18 @@ func set_design(new_path: NodePath) -> bool:
 	if not stats or not stats is Dictionary:
 		return false
 	var sum = stat_summary(stats)
-	var basic_bbcode = '[b][i]'+design.display_name+'[/i][/b]:' \
+	var basic_bbcode = '[b][i]'+design.display_name+':[/i][/b]' \
 		+ ' Damage [color=#ff7788]'+sum['dps']+'/s[/color]' \
 		+ ' Range [color=#ff7788]'+sum['weapon_range']+'[/color]' \
 		+ ' (Guns: [color=#ff7788]'+sum['guns']+'[/color], ' \
-		+ 'Turrets: [color=#ff7788]'+sum['turrets']+'[/color])' \
-		+'\n' \
+		+ 'Turrets: [color=#ff7788]'+sum['turrets']+'[/color]) ' \
 		+ 'Shields: [color=#aabbff]'+str(round(stats['max_shields']))+'[/color]' \
 		+ ', Armor: [color=#eedd99]'+str(round(stats['max_armor']))+'[/color]' \
 		+ ', Structure: [color=#ffaaaa]'+str(round(stats['max_structure']))+'[/color]' \
-		+ ', Speed: [color=#aaffaa]'+sum['max_speed']+'[/color]' \
-		+'\n'
-		
+		+ ', Speed: [color=#aaffaa]'+sum['max_speed']+'[/color]'
+	if game_state.game_editor_mode:
+		var sc = small_code.resource_path
+		basic_bbcode = '[font='+sc+']'+design.name+'[/font] '+basic_bbcode
 	regular_bbcode = '[color=#aaaaaa]'+basic_bbcode+'[/color]'
 	highlight_bbcode = '[color=#eeeeee]'+basic_bbcode+'[/color]'
 	update_bbcode()

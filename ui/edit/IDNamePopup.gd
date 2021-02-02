@@ -1,15 +1,24 @@
 extends PopupPanel
 
+export var edit_ids: bool = true
 var used_ids = {}
 var result = [ null, null, null ]
+
+func set_data(id: String, display_name: String, accept_button_text: String,
+		change_edit_ids = null):
+	$Split/Labels/IDEdit.text = id
+	$Split/Labels/NameEdit.text = display_name
+	$Split/Buttons/Accept.text = accept_button_text
+	if change_edit_ids!=null:
+		edit_ids = not not change_edit_ids
+		$Split/Labels/IDEdit.editable = edit_ids
+	var _discard = validate_fields()
 
 func _input(event):
 	if event.is_action_pressed('ui_accept'):
 		accept_event()
+		get_tree().set_input_as_handled()
 		_on_Accept_pressed()
-	elif event.is_action_pressed('ui_cancel'):
-		accept_event()
-		_on_Cancel_pressed()
 
 func set_used_ids(ids):
 	used_ids.clear()
@@ -18,15 +27,18 @@ func set_used_ids(ids):
 
 func _ready():
 	var _discard = validate_fields()
+	$Split/Labels/IDEdit.editable = edit_ids
 
 func validate_fields() -> bool:
-	if not $Split/Labels/IDEdit.text.substr(0,1).is_valid_identifier():
-		$Split/Buttons/Info.text = 'ID must start with a letter or underscore'
-	elif not $Split/Labels/IDEdit.text.is_valid_identifier():
-		$Split/Buttons/Info.text = 'ID can have only letters, numbers, underscore'
-	elif used_ids.has($Split/Buttons/Info):
-		$Split/Buttons/Info.text = 'That ID is already used; pick another.'
-	elif not $Split/Labels/NameEdit.text.strip_edges():
+	if edit_ids:
+		if not $Split/Labels/IDEdit.text.substr(0,1).is_valid_identifier():
+			$Split/Buttons/Info.text = 'ID must start with a letter or underscore'
+		elif not $Split/Labels/IDEdit.text.is_valid_identifier():
+			$Split/Buttons/Info.text = 'ID can have only letters, numbers, underscore'
+		elif used_ids.has($Split/Buttons/Info):
+			$Split/Buttons/Info.text = 'That ID is already used; pick another.'
+	if not $Split/Buttons/Info.text and \
+			not $Split/Labels/NameEdit.text.strip_edges():
 		$Split/Buttons/Info.text = 'Specify a displayed name.'
 	else:
 		$Split/Buttons/Info.text = ''

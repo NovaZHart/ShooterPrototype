@@ -7,7 +7,7 @@ var selected_file
 var exit_confirmed = not game_state.game_editor_mode
 
 func popup_has_focus() -> bool:
-	return $FileDialog.visible
+	return not not get_viewport().get_modal_stack_top()
 
 func cancel_drag() -> bool:
 	drag_scene=null
@@ -57,11 +57,7 @@ func sync_drag_view(release: bool):
 func _input(event):
 	if popup_has_focus():
 		if event.is_action_released('ui_cancel'):
-			if $FileDialog.visible:
-				selected_file=null
-				$FileDialog.visible=false
-				get_tree().set_input_as_handled()
-			elif $ConfirmationDialog.visible:
+			if $ConfirmationDialog.visible:
 				exit_confirmed=false
 				$ConfirmationDialog.visible=false
 				get_tree().set_input_as_handled()
@@ -82,40 +78,20 @@ func _input(event):
 	elif event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_editor_save'):
+	elif game_state.game_editor_mode and event.is_action_released('ui_editor_save'):
 		var _discard = cancel_drag()
-		save_load(true)
+		$Autosave.save_load(true)
 		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_editor_load'):
+	elif game_state.game_editor_mode and event.is_action_released('ui_editor_load'):
 		var _discard = cancel_drag()
-		save_load(false)
+		$Autosave.save_load(false)
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_cancel'):
 		var _discard = cancel_drag()
-		# FIXME: exit to prior editor in game edit mode.
 		if game_state.game_editor_mode:
 			universe_edits.state.push(ship_edits.ShipEditorToFleetEditor.new())
 		else:
 			exit_to_orbit()
-
-func save_load(save: bool) -> bool:
-	if save:
-		$FileDialog.mode=FileDialog.MODE_SAVE_FILE
-	else:
-		$FileDialog.mode=FileDialog.MODE_OPEN_FILE
-	selected_file=null
-	$FileDialog.popup()
-	while $FileDialog.visible:
-		yield(get_tree(),'idle_frame')
-	if not selected_file:
-		return false # canceled
-	elif save:
-		return game_state.save_universe_as_json(selected_file)
-	elif game_state.load_universe_from_json(selected_file):
-		reset_parts_and_designs()
-		universe_edits.state.clear()
-		return true
-	return false
 
 func make_edited_ship_design() -> simple_tree.SimpleNode:
 	return $All/Show/Grid/Ship.make_design(design_id,design_display_name)
@@ -165,6 +141,7 @@ func _ready():
 		$All/Shop/Tabs/Designs.forbid_edits()
 		$All/Shop/Tabs/Weapons.forbid_edits()
 		$All/Shop/Tabs/Equipment.forbid_edits()
+		$All/Show/Grid/Top.visible=false
 
 func _exit_tree():
 	game_state.switch_editors(null)
@@ -177,11 +154,13 @@ func remove_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 
 func add_design(design: simple_tree.SimpleNode) -> bool:
 	$All/Shop/Tabs/Designs.add_ship_design(design)
+	$All/Shop/Tabs/Designs.refresh()
 	#$All/Shop/Tabs/Designs.arrange_items()
 	return true
 
 func remove_design(design: simple_tree.SimpleNode) -> bool:
 	$All/Shop/Tabs/Designs.remove_ship_design(design)
+	$All/Shop/Tabs/Designs.refresh()
 	#$All/Shop/Tabs/Designs.arrange_items()
 	return true
 
@@ -305,10 +284,6 @@ func _on_Ship_design_changed(design):
 	design_display_name = design.display_name
 	$All/Show/Grid/Top/IDEdit.text = design_id
 	$All/Show/Grid/Top/NameEdit.text = design_display_name
-
-func _on_FileDialog_file_selected(path):
-	selected_file=path
-	$FileDialog.visible=false
 
 func _on_ConfirmationDialog_confirmed():
 	exit_confirmed = true

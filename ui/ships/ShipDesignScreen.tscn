@@ -1,4 +1,4 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/ships/ShipDesignView.tscn" type="PackedScene" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://ui/ships/ShipDesignScreen.gd" type="Script" id=5]
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=6]
 [ext_resource path="res://ui/ships/ShipDesignPanel.tscn" type="PackedScene" id=7]
+[ext_resource path="res://ui/edit/Autosave.tscn" type="PackedScene" id=8]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 6 )
@@ -23,17 +24,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="FileDialog" type="FileDialog" parent="."]
-anchor_left = 0.1
-anchor_top = 0.1
-anchor_right = 0.9
-anchor_bottom = 0.9
-popup_exclusive = true
-resizable = true
-filters = PoolStringArray( "*.json ; JSON Files" )
-__meta__ = {
-"_edit_use_anchors_": false
-}
+[node name="Autosave" parent="." instance=ExtResource( 8 )]
 
 [node name="All" type="HSplitContainer" parent="."]
 anchor_right = 1.0
@@ -185,7 +176,6 @@ transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62
 projection = 1
 current = true
 size = 2.16
-[connection signal="file_selected" from="FileDialog" to="." method="_on_FileDialog_file_selected"]
 [connection signal="add" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_add"]
 [connection signal="change" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_change"]
 [connection signal="deselect" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_deselect"]

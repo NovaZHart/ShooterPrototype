@@ -59,11 +59,11 @@ class ShipEditorStub extends Panel:
 	func cancel_drag() -> bool:
 		return true
 
-class SectorEditorStub extends Spatial:
+class SectorEditorStub extends Panel:
 	var selection = null
 	func process_if(_condition: bool) -> bool:
 		return true
-	func change_selection_to(_what, _center: bool) -> bool:
+	func change_selection_to(_what, _center: bool = false) -> bool:
 		return true
 	func deselect(_what) -> bool:
 		return true
