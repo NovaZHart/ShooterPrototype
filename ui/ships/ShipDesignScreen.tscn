@@ -62,17 +62,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Designs" parent="All/Shop/Tabs" instance=ExtResource( 7 )]
-margin_left = 5.0
-margin_top = 30.0
-margin_right = -5.0
-margin_bottom = -5.0
-min_listed_designs = 3
-default_listed_designs = 4
-show_Cancel = false
-
 [node name="Equipment" parent="All/Shop/Tabs" instance=ExtResource( 3 )]
-visible = false
 margin_left = 5.0
 margin_top = 30.0
 margin_right = -5.0
@@ -86,6 +76,16 @@ margin_top = 30.0
 margin_right = -5.0
 margin_bottom = -5.0
 initial_scale = 10.0
+
+[node name="Designs" parent="All/Shop/Tabs" instance=ExtResource( 7 )]
+visible = false
+margin_left = 5.0
+margin_top = 30.0
+margin_right = -5.0
+margin_bottom = -5.0
+min_listed_designs = 3
+default_listed_designs = 4
+show_Cancel = false
 
 [node name="Show" type="Panel" parent="All"]
 margin_left = 336.0
@@ -176,6 +176,12 @@ transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62
 projection = 1
 current = true
 size = 2.16
+[connection signal="deselect_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
+[connection signal="drag_selection" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
+[connection signal="select_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_select_item"]
+[connection signal="deselect_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_deselect_item"]
+[connection signal="drag_selection" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_drag_selection"]
+[connection signal="select_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_select_item"]
 [connection signal="add" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_add"]
 [connection signal="change" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_change"]
 [connection signal="deselect" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_deselect"]
@@ -183,12 +189,6 @@ size = 2.16
 [connection signal="remove" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_remove"]
 [connection signal="select" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_select"]
 [connection signal="select_nothing" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_select_nothing"]
-[connection signal="deselect_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
-[connection signal="drag_selection" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
-[connection signal="select_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_select_item"]
-[connection signal="deselect_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_deselect_item"]
-[connection signal="drag_selection" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_drag_selection"]
-[connection signal="select_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_select_item"]
 [connection signal="focus_exited" from="All/Show/Grid/Top/IDEdit" to="." method="_on_IDEdit_focus_exited"]
 [connection signal="text_entered" from="All/Show/Grid/Top/IDEdit" to="." method="_on_IDEdit_text_entered"]
 [connection signal="focus_exited" from="All/Show/Grid/Top/NameEdit" to="." method="_on_NameEdit_focus_exited"]

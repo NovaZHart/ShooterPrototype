@@ -89,6 +89,7 @@ func _input(event):
 	elif event.is_action_released('ui_cancel'):
 		var _discard = cancel_drag()
 		if game_state.game_editor_mode:
+			print('game editor mode')
 			universe_edits.state.push(ship_edits.ShipEditorToFleetEditor.new())
 		else:
 			exit_to_orbit()
@@ -98,6 +99,7 @@ func make_edited_ship_design() -> simple_tree.SimpleNode:
 
 func exit_to_orbit():
 	var design = make_edited_ship_design()
+	design.name = 'player_ship_design'
 	var node = game_state.ship_designs.get_node_or_null('player_ship_design')
 	if node:
 		game_state.ship_designs.remove_child(node)
@@ -177,6 +179,7 @@ func show_help_page(page):
 		$All/Shop/Info.process_command('help '+page)
 
 func show_design_info(ship: RigidBody):
+	push_warning('show design info')
 	$All/Shop/Info.clear()
 	var bbcode = ship.get_bbcode()
 	var rewrite = $All/Shop/Info.rewrite_tags(bbcode)
@@ -187,39 +190,39 @@ func _on_Weapons_select_item(item):
 	if item.page:
 		show_help_page(item.page)
 	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Designs.deselect()
+	$All/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Weapons_deselect_item(_item_or_null):
 	show_edited_design_info()
 	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Designs.deselect()
+	$All/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Ship_deselect_item():
 	show_edited_design_info()
 	$All/Shop/Tabs/Equipment.deselect(false)
-	$All/Shop/Tabs/Designs.deselect()
+	$All/Shop/Tabs/Designs.deselect(false)
 	$All/Shop/Tabs/Weapons.deselect(false)
 
 func _on_Equipment_deselect_item(_item_or_null):
 	show_edited_design_info()
 	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Shop/Tabs/Designs.deselect()
+	$All/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Equipment_select_item(item):
 	if item.page:
 		show_help_page(item.page)
 	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Shop/Tabs/Designs.deselect()
+	$All/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Ship_select_item(item):
 	if item.page:
 		show_help_page(item.page)
 	$All/Shop/Tabs/Weapons.deselect(false)
-	$All/Shop/Tabs/Designs.deselect()
+	$All/Shop/Tabs/Designs.deselect(false)
 	$All/Shop/Tabs/Equipment.deselect(false)
 
 func _on_Ship_pixel_height_changed(_size: float):

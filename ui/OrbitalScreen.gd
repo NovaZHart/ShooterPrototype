@@ -7,6 +7,7 @@ var tick: int = 0
 var planet = null
 var planet_info = null
 var current_service: NodePath
+var old_msaa
 
 signal jump_complete
 
@@ -32,19 +33,11 @@ func _ready():
 	$SpaceBackground.update_from(game_state.system)
 	update_astral_gate()
 	$ServiceSelector.update_service_list()
-	
-#	if planet.has_astral_gate:
-#		var selector = SystemSelector.instance()
-#		var system_list = selector.get_node('SystemList')
-#		var _discard = system_list.connect('astral_jump',self,'astral_jump')
-#		_discard = connect('jump_complete',system_list,'update_selectability')
-#		add_child(selector)
-#	if not planet_info.services.empty():
-#		var selector = ServiceSelector.instance()
-#		var service_list = selector.get_node('ServiceList')
-#		var _discard = service_list.connect('service_activated',self,'activate_service')
-#		_discard = service_list.connect('deorbit_selected',self,'deorbit')
-#		add_child(selector)
+	old_msaa = get_viewport().msaa
+	get_viewport().msaa = Viewport.MSAA_4X
+
+func _exit_tree():
+	get_viewport().msaa = old_msaa
 
 func update_astral_gate():
 	if planet.has_astral_gate:

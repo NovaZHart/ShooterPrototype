@@ -14,45 +14,7 @@ __meta__ = {
 }
 remove_fleet_texture = ExtResource( 2 )
 
-[node name="Fleets" type="GridContainer" parent="."]
-anchor_right = 1.0
-anchor_bottom = 1.0
-margin_left = 4.0
-margin_top = 32.0
-margin_right = -4.0
-margin_bottom = -4.0
-
-[node name="Top" type="GridContainer" parent="Fleets"]
-margin_right = 1016.0
-margin_bottom = 20.0
-size_flags_horizontal = 3
-columns = 2
-
-[node name="SpawnedHere" type="Label" parent="Fleets/Top"]
-margin_top = 3.0
-margin_right = 939.0
-margin_bottom = 17.0
-size_flags_horizontal = 3
-text = "Spawned Here"
-valign = 2
-
-[node name="AddFleetButton" type="Button" parent="Fleets/Top"]
-margin_left = 943.0
-margin_right = 1016.0
-margin_bottom = 20.0
-text = "Add Fleet"
-
-[node name="Spawned" type="Tree" parent="Fleets"]
-margin_top = 24.0
-margin_right = 1016.0
-margin_bottom = 564.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-columns = 4
-hide_root = true
-
 [node name="Settings" type="GridContainer" parent="."]
-visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
 margin_left = 4.0
@@ -146,9 +108,44 @@ margin_left = 510.0
 margin_top = 136.0
 margin_right = 1016.0
 margin_bottom = 156.0
-[connection signal="pressed" from="Fleets/Top/AddFleetButton" to="." method="_on_AddFleetButton_pressed"]
-[connection signal="button_pressed" from="Fleets/Spawned" to="." method="_on_Spawned_button_pressed"]
-[connection signal="item_edited" from="Fleets/Spawned" to="." method="_on_Spawned_item_edited"]
+
+[node name="Fleets" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Top" type="GridContainer" parent="Fleets"]
+margin_right = 1016.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="SpawnedHere" type="Label" parent="Fleets/Top"]
+margin_top = 3.0
+margin_right = 939.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+text = "Spawned Here"
+valign = 2
+
+[node name="AddFleetButton" type="Button" parent="Fleets/Top"]
+margin_left = 943.0
+margin_right = 1016.0
+margin_bottom = 20.0
+text = "Add Fleet"
+
+[node name="Spawned" type="Tree" parent="Fleets"]
+margin_top = 24.0
+margin_right = 1016.0
+margin_bottom = 564.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+hide_root = true
 [connection signal="focus_exited" from="Settings/NameEdit" to="." method="_on_NameEdit_focus_exited"]
 [connection signal="text_entered" from="Settings/NameEdit" to="." method="_on_NameEdit_text_entered"]
 [connection signal="focus_exited" from="Settings/PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_focus_exited"]
@@ -160,3 +157,6 @@ margin_bottom = 156.0
 [connection signal="focus_exited" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_focus_exited"]
 [connection signal="picker_created" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_picker_created"]
 [connection signal="popup_closed" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_popup_closed"]
+[connection signal="pressed" from="Fleets/Top/AddFleetButton" to="." method="_on_AddFleetButton_pressed"]
+[connection signal="button_pressed" from="Fleets/Spawned" to="." method="_on_Spawned_button_pressed"]
+[connection signal="item_edited" from="Fleets/Spawned" to="." method="_on_Spawned_item_edited"]

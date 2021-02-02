@@ -28,7 +28,7 @@ heal_structure = 15.0
 base_drag = 1.9
 base_turn_drag = 0.5
 base_explosion_damage = 800.0
-base_explosion_radius = 8.0
+base_explosion_radius = 5.0
 base_explosion_impulse = 1200.0
 override_size = Vector3( 5.5, 0, 4 )
 

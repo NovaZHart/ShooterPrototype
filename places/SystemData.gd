@@ -164,6 +164,9 @@ func spawn_player(system: Spatial,t: float):
 func process_space(system,delta) -> Array:
 	var result: Array = Array()
 	var stats: Array = system.ship_stats_by_team().duplicate(true)
+	var total_ships: int = 0
+	for stat in stats:
+		total_ships += stat['count']
 	for fleet in fleets:
 		if rng.randf_range(0.0,1.0) > delta*fleet['frequency']/3600:
 			continue
@@ -175,11 +178,11 @@ func process_space(system,delta) -> Array:
 		var size: int = len(designs)
 		var team: int = fleet['team']
 		var enemy: int = 1-team
+		if total_ships + size > game_state.max_ships:
+			continue
 		if stats[team]['count']+size>game_state.team_maximums[team]:
 			continue
 		if stats[team]['threat'] > stats[enemy]['threat']*1.5 and stats[team]['count']>1:
-			continue
-		if stats[team]['count']+stats[enemy]['count']+size > game_state.max_ships:
 			continue
 		result += spawn_fleet(system,fleet_node,designs,team)
 		stats[team]['count'] += size

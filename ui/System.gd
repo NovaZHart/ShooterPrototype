@@ -1,4 +1,4 @@
-extends Spatial
+extends Node
 
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
@@ -39,6 +39,9 @@ signal view_center_changed          #<-- visual thread
 signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
+
+func get_world():
+	return get_viewport().get_world()
 
 func _enter_tree():
 	old_target_fps = Engine.target_fps
@@ -208,18 +211,18 @@ func _physics_process(delta):
 	
 	var make_me: Array = game_state.system.process_space(self,delta)
 	
+	team_stats_mutex.lock()
+	for ship in make_me:
+		var team: int = ship[4] # "team" argument to spawn_ship
+		team_stats[team]['count']+=1
+	team_stats_mutex.unlock()
+	
 	ship_maker_mutex.lock()
 	ships_to_spawn = ships_to_spawn + make_me
 	var front = ships_to_spawn.pop_front()
 	if front:
 		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
-	
-	team_stats_mutex.lock()
-	for ship in make_me:
-		var team: int = ship[4] # "team" argument to spawn_ship
-		team_stats[team]['count']+=1
-	team_stats_mutex.unlock()
 	
 	combat_engine_mutex.lock() # ensure clear() does not run during _physics_process()
 	
@@ -332,6 +335,7 @@ func clear() -> void: # must be called in visual thread
 	new_ships_mutex.lock()
 	player_orders_mutex.lock()
 	ship_stats_requests_mutex.lock()
+	team_stats_mutex.lock()
 	
 	combat_engine.clear_ai()
 	
@@ -339,12 +343,15 @@ func clear() -> void: # must be called in visual thread
 		ship.queue_free()
 	for planet in $Planets.get_children():
 		planet.queue_free()
-		
+	
+	team_stats = [{'count':0,'threat':0},{'count':0,'threat':0}]
+	
 	new_ships=Array()
 	player_orders=Array()
 	ship_stats_requests=Dictionary()
 	latest_target_info=Dictionary()
 	
+	team_stats_mutex.unlock()
 	ship_stats_requests_mutex.unlock()
 	player_orders_mutex.unlock()
 	new_ships_mutex.unlock()
@@ -354,8 +361,14 @@ func clear() -> void: # must be called in visual thread
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
 	#game_state.system.fill_system(self,planet_time,ship_time,detail)
+	
 	var make_me: Array = game_state.system.fill_system(self,planet_time,ship_time,detail)
-
+	team_stats_mutex.lock()
+	for ship in make_me:
+		var team: int = ship[4] # "team" argument to spawn_ship
+		team_stats[team]['count']+=1
+	team_stats_mutex.unlock()
+	
 	ship_maker_mutex.lock()
 	var front = make_me.pop_front()
 	if front:

@@ -9,7 +9,7 @@ ambient_light_color = Color( 0.666667, 0.666667, 1, 1 )
 ambient_light_energy = 0.1
 ambient_light_sky_contribution = 0.0
 
-[node name="System" type="Spatial"]
+[node name="System" type="Node"]
 script = ExtResource( 2 )
 
 [node name="ShipLight" type="OmniLight" parent="."]
@@ -38,7 +38,6 @@ projection = 1
 fov = 96.768
 size = 200.0
 
-[node name="Ships" type="Spatial" parent="."]
+[node name="Ships" type="Node" parent="."]
 
-[node name="Planets" type="Spatial" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -20, 0 )
+[node name="Planets" type="Node" parent="."]

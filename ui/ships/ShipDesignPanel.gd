@@ -78,7 +78,7 @@ func remove_ship_design(design: simple_tree.SimpleNode) -> bool:
 		return false
 	var design_path: NodePath = design.get_path()
 	if selected_design == design_path:
-		deselect()
+		deselect_impl()
 	design_mutex.lock()
 	var index = design_paths.find(design_path)
 	if index>=0:
@@ -134,6 +134,8 @@ func _ready():
 
 func _input(event):
 	if get_tree().current_scene.popup_has_focus():
+		return
+	if not is_visible_in_tree():
 		return
 	var up = event.is_action_pressed('wheel_up')
 	var down = event.is_action_pressed('wheel_down')
@@ -284,33 +286,38 @@ func set_designs(new_designs):
 	update_designs(true,false)
 	design_mutex.unlock()
 
-func deselect():
-	_on_DesignItem_select_nothing()
+func deselect(send_signal: bool = false):
+	deselect_impl(NodePath(),send_signal)
 
-func _on_DesignItem_select_nothing():
-	if selected_design:
+func deselect_impl(path: NodePath = NodePath(), send_signal: bool = true):
+	if not path:
 		set_selected_design(NodePath())
 		update_buttons()
-		emit_signal('select_nothing')
-
-func _on_DesignItem_deselect(path):
-	if not path:
-		_on_DesignItem_select_nothing()
+		if send_signal:
+			emit_signal('select_nothing')
 	elif selected_design==path:
 		set_selected_design(NodePath())
 		update_buttons()
-		emit_signal('deselect',selected_design)
+		if send_signal:
+			emit_signal('deselect',selected_design)
 
-func select(path: NodePath):
-	_on_DesignItem_select(path)
+func _on_DesignItem_select_nothing():
+	deselect_impl()
 
-func _on_DesignItem_select(path):
+func _on_DesignItem_deselect(path):
+	deselect_impl(path)
+
+func select(path: NodePath, send_signal: bool = true):
 	if not path:
-		_on_DesignItem_select_nothing()
+		deselect_impl(path,send_signal)
 	elif selected_design != path:
 		selected_design = path
 		update_buttons()
-		emit_signal('select',selected_design)
+		if send_signal:
+			emit_signal('select',selected_design)
+
+func _on_DesignItem_select(path):
+	select(path)
 
 func _on_Scroll_value_changed(_value):
 	update_designs(false)

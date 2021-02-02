@@ -271,9 +271,9 @@ func _init():
 	player_ship_design = banner_godship
 
 	if not OS.has_feature('standalone'):
-#		print('Reducing ship count for debug build')
 		max_ships = debug_max_ships
 		team_maximums = debug_team_maximums
+		print('Reducing ship count for debug build: ',max_ships,' ',team_maximums)
 	services['test'] = PlanetServices.ChildInstanceService.new(
 		'Service Text',preload('res://ui/TestService.tscn'))
 	services['alttest'] = PlanetServices.ChildInstanceService.new(

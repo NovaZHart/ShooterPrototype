@@ -333,6 +333,8 @@ func arrange_items():
 func input():
 	if get_tree().current_scene.popup_has_focus():
 		return
+	if not is_visible_in_tree():
+		return
 	var view_pos = $All/Top/View.rect_global_position
 	var view_rect: Rect2 = Rect2(view_pos, $All/Top/View.rect_size)
 	var mouse_pos: Vector2 = get_viewport().get_mouse_position()

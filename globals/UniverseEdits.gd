@@ -1,6 +1,6 @@
 extends Node
 
-var state = undo_tool.UndoStack.new(true)
+var state = undo_tool.UndoStack.new(false)
 const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
 
 class AddSystem extends undo_tool.Action:

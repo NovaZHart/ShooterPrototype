@@ -162,18 +162,19 @@ func update_hovering():
 func _input(event):
 	if get_tree().current_scene.popup_has_focus():
 		return
+	if not is_visible_in_tree():
+		return
 	if event.is_action_pressed('ui_location_select'):
-		var rect: Rect2 = Rect2(rect_global_position, rect_size)
-		if not rect.has_point(event_position(event)):
+		if not get_global_rect().has_point(event_position(event)):
 			return
+		print('intercept select')
 		if selected:
 			deselect()
 		else:
 			select()
 		get_tree().set_input_as_handled()
 	elif event is InputEventMouseMotion:
-		var rect: Rect2 = Rect2(rect_global_position, rect_size)
-		change_hover(rect.has_point(event_position(event)))
+		change_hover(get_global_rect().has_point(event_position(event)))
 
 func _ready():
 	regular_layer = $View/Port/Sun.layers
