@@ -18,6 +18,8 @@ var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_store
 var name_counter: int = 0
 var sphere_xyz
 
+var input_edit_state = undo_tool.UndoStack.new(false)
+
 var tree
 var universe
 var systems
@@ -27,6 +29,15 @@ var ui
 var player_ship_design
 
 signal console_append
+
+class KeyEditorStub extends Control:
+	func add_ui_for_action_event(_action: String, _event: InputEvent) -> bool:
+		return true
+	func remove_ui_for_action_event(_action: String, _event: InputEvent) -> bool:
+		return true
+	func change_ui_for_action_event(_action: String, _old_event: InputEvent,
+			_new_event: InputEvent) -> bool:
+		return true
 
 class FleetEditorStub extends Panel:
 	func select_fleet(_selection) -> bool:
@@ -96,10 +107,14 @@ var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
 var fleet_editor = ShipEditorStub.new()
+var key_editor = KeyEditorStub.new()
 var fleet_tree_selection = null
 var game_editor_mode = false
 
-func switch_editors(what: Node):
+func set_key_editor(what):
+	key_editor = what if(what is KeyEditorStub) else KeyEditorStub.new()
+
+func switch_editors(what):
 	for design in ship_designs.get_children():
 		design.clear_cached_stats()
 	sector_editor = what if(what is SectorEditorStub) else SectorEditorStub.new()

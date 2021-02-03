@@ -5,10 +5,11 @@
 [ext_resource path="res://ui/Console.gd" type="Script" id=3]
 [ext_resource path="res://ui/Minimap.gd" type="Script" id=4]
 [ext_resource path="res://ui/AutoInfoLabel.gd" type="Script" id=5]
-[ext_resource path="res://ui/MainDialogTrigger.tscn" type="PackedScene" id=6]
+[ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=6]
 [ext_resource path="res://ui/PlayerInfo.gd" type="Script" id=7]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=8]
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=9]
+
 
 [sub_resource type="DynamicFont" id=1]
 size = 13

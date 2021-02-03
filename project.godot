@@ -37,7 +37,7 @@ window/size/borderless=true
 
 [gui]
 
-theme/custom="res://ui/MainTheme.tres"
+theme/custom="res://ui/skins/MainTheme.tres"
 
 [input]
 
@@ -168,9 +168,9 @@ ui_location_slide={
 
 [physics]
 
-common/physics_jitter_fix=0.0
 3d/physics_engine="Bullet"
 3d/active_soft_world=false
+2d/thread_model=2
 2d/default_gravity=0
 2d/default_linear_damp=0.0
 2d/default_angular_damp=0.0
@@ -182,4 +182,7 @@ common/physics_jitter_fix=0.0
 
 threads/thread_model=2
 quality/reflections/high_quality_ggx=false
+quality/depth_prepass/enable=false
+quality/subsurface_scattering/quality=0
+quality/subsurface_scattering/weight_samples=false
 environment/default_environment="res://default_env.tres"

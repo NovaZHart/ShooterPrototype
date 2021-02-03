@@ -7,7 +7,7 @@ var tick: int = 0
 var planet = null
 var planet_info = null
 var current_service: NodePath
-var old_msaa
+#var old_msaa
 
 signal jump_complete
 
@@ -27,16 +27,22 @@ func _ready():
 	add_child(planet)
 	camera_and_label(system_name,planet_name)
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
-	$SpaceBackground.rotate_x(PI/2-0.575959)
-	$SpaceBackground.center_view(130,90,0,100,0)
-	$SpaceBackground.update_from(game_state.system)
+	$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
+	$View/Port/SpaceBackground.center_view(130,90,0,100,0)
+	$View/Port/SpaceBackground.update_from(game_state.system)
 	update_astral_gate()
 	$ServiceSelector.update_service_list()
-	old_msaa = get_viewport().msaa
-	get_viewport().msaa = Viewport.MSAA_4X
+	var _discard = get_viewport().connect('size_changed',self,'force_viewport_size')
+	force_viewport_size()
+#	old_msaa = get_viewport().msaa
+#	get_viewport().msaa = Viewport.MSAA_4X
 
-func _exit_tree():
-	get_viewport().msaa = old_msaa
+#func _exit_tree():
+#	get_viewport().msaa = old_msaa
+
+func force_viewport_size():
+	$View.rect_size=get_viewport().size
+	$View/Port.size = $View.rect_size
 
 func update_astral_gate():
 	if planet.has_astral_gate:
@@ -69,11 +75,11 @@ func camera_and_label(system_name: String,planet_name: String):
 	else:
 		$LocationLabel.text=system_name+' '+planet_name
 	planet.get_sphere().scale=Vector3(7,7,7)
-	$Camera.set_identity()
-	$Camera.rotate_x(-0.575959)
-	$Camera.rotate_y(-0.14399)
-	$Camera.size = 15
-	$Camera.translate_object_local(Vector3(0.0,0.0,10.0))
+	$View/Port/Camera.set_identity()
+	$View/Port/Camera.rotate_x(-0.575959)
+	$View/Port/Camera.rotate_y(-0.14399)
+	$View/Port/Camera.size = 15
+	$View/Port/Camera.translate_object_local(Vector3(0.0,0.0,10.0))
 
 func astral_jump(system_node_name: String,planet_location: NodePath):
 	game_state.system=game_state.systems.get_node(system_node_name)
@@ -92,7 +98,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	else:
 		$LocationLabel.text=planet_info.full_display_name()
 	camera_and_label(system_info.display_name,planet.display_name)
-	$SpaceBackground.update_from(game_state.system)
+	$View/Port/SpaceBackground.update_from(game_state.system)
 	$ServiceSelector.update_service_list()
 	update_astral_gate()
 	game_state.print_to_console("Jumped to "+planet_info.display_name+" in the " \

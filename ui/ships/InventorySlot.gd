@@ -147,7 +147,7 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 		make_box()
 	assert(mount_type)
 
-func place_near(mount: Vector3,space: PhysicsDirectSpaceState,mask: int):
+func place_near(mount: Vector3,space: PhysicsDirectSpaceState,_mask: int):
 	var badness: float = INF
 	var loc: Vector3 = mount
 	var angles: Array = []

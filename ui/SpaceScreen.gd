@@ -168,6 +168,8 @@ func _enter_tree() -> void:
 func _process(delta: float) -> void:
 	#warning-ignore:narrowing_conversion
 	tick += max(1,round(delta*60.0))
+	if dialog_paused:
+		return
 	update_pause(delta)
 	handle_zoom(delta)
 	if get_tree().paused:
