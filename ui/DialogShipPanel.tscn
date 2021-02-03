@@ -65,6 +65,7 @@ anchor_bottom = 0.0
 margin_left = 399.0
 margin_right = 1024.0
 margin_bottom = 600.0
+focus_mode = 2
 size_flags_stretch_ratio = 1.6
 [connection signal="page_selected" from="Split/Left/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="url_clicked" from="Split/Left/Consoles/Info" to="." method="_on_Info_url_clicked"]

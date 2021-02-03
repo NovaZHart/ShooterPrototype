@@ -5,7 +5,7 @@ signal page_selected
 func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)
 
-func _on_Tree_select_node():
+func _on_Tree_select_node(_path):
 	pass # Replace with function body.
 
 func _on_Tree_deselect_node():

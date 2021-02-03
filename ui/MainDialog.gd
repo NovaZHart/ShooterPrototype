@@ -3,7 +3,7 @@ extends Popup
 func _ready():
 	if get_tree().current_scene==self:
 		call_deferred('popup')
-	get_viewport().connect('size_changed',self,'auto_resize')
+	var _discard=get_viewport().connect('size_changed',self,'auto_resize')
 	auto_resize()
 
 func auto_resize():
@@ -23,5 +23,4 @@ func set_page(child_name):
 		node.visible=true
 
 func _on_page_selected(page):
-	print('requested to select page '+page)
 	set_page(page)

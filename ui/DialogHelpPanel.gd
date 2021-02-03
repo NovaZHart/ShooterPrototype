@@ -27,7 +27,6 @@ func _ready():
 			parent=child
 
 func _on_DialogPageSelector_page_selected(page):
-	print('select page '+page)
 	emit_signal('page_selected',page)
 
 

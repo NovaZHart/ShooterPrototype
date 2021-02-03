@@ -40,10 +40,6 @@ func assemble_design(): # => RigidBody or null
 		assert(design)
 		if design:
 			return design.assemble_ship()
-		else:
-			print('no design to update')
-	else:
-		print('not updating design')
 	return null
 
 func set_disable_Add(disabled: bool):

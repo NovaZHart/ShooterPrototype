@@ -159,7 +159,6 @@ func draw_systems_and_links():
 				var aabb = AABB(Vector3(min(ul3.x,lr3.x),-20,min(ul3.z,lr3.z)),
 					Vector3(abs(ul3.x-lr3.x),40,abs(ul3.z-lr3.z)))
 				name_bounds.append([aabb,system.get_path(),(ul3+lr3)/2])
-				print('system ',system.display_name,' at ',system.position,' text at ',ul3,'...',lr3)
 			system_data[i +  0] = system_scale
 			system_data[i +  1] = 0.0
 			system_data[i +  2] = 0.0
@@ -320,14 +319,11 @@ func find_at_position(screen_position: Vector2):
 	closest=null
 	for pair in name_bounds:
 		if pair[0].has_point(pos3):
-			print('pair in name bounds')
 			var distsq = pos3.distance_squared_to(pair[2])
 			var system = game_state.systems.get_node_or_null(pair[1])
 			if system and distsq<close_distsq:
 				close_distsq=distsq
 				closest=system
-		else:
-			print(pair[0],' does not contain ',pos3)
 	
 	return closest
 # Logic to select links:
@@ -378,14 +374,13 @@ func set_zoom(zoom: float,focus: Vector3) -> void:
 	$View/Port/Camera.translation = f*start + center*(1-f)
 
 func _input(event):
-	var scene = get_tree().current_scene
-	if scene and scene.has_method('popup_has_focus'):
-		if get_tree().current_scene.popup_has_focus():
-			return
-	elif not is_visible_in_tree():
+	var top = get_viewport().get_modal_stack_top()
+	if top and not in_top_dialog(self,top):
 		return
 	var pos2: Vector2 = event_position(event)
 	if not get_global_rect().has_point(pos2):
+		return
+	if not is_visible_in_tree():
 		return
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_slide'):
@@ -425,11 +420,19 @@ func _input(event):
 		ui_scroll=-1.5
 		get_tree().set_input_as_handled()
 
+func in_top_dialog(node,top) -> bool:
+	if node==null:
+		return false
+	if node==top:
+		return true
+	return in_top_dialog(node.get_parent(),top)
+
 func _process(_delta):
 	if time_to_draw:
 		draw_systems_and_links()
 
-	if get_viewport().get_modal_stack_top():
+	var top = get_viewport().get_modal_stack_top()
+	if top and not in_top_dialog(self,top):
 		return
 	
 	var ui_zoom: int = 0

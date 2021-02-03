@@ -12,7 +12,6 @@ var old_msaa
 signal jump_complete
 
 func _ready():
-	print('ready orbital screen')
 	combat_engine.clear_visuals()
 	var system_name = game_state.system.display_name
 	planet_info = game_state.get_space_object_or_null()
@@ -106,9 +105,14 @@ func deorbit():
 
 func _input(event):
 	if event.is_action_released('ui_depart'):
-		print('deorbit requested via ui_depart action')
 		get_tree().set_input_as_handled()
 		deorbit()
 
 func _process(delta):
 	planet.rotate_y(0.4*delta)
+
+func _on_MainDialogTrigger_dialog_hidden():
+	get_tree().paused = false
+
+func _on_MainDialogTrigger_dialog_shown():
+	get_tree().paused = true

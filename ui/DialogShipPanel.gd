@@ -34,6 +34,7 @@ func _ready():
 #	if state and state.has_method('is_UIState'):
 #		restore_state(state.ui_state)
 	show_ship_stats()
+	$Split/Ship/Viewport.own_world=true
 
 func show_ship_stats():
 	var ship = $Split/Ship/Viewport.get_node_or_null('Ship')

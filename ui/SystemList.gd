@@ -33,7 +33,6 @@ func update_system_list():
 		var gate_planet_path = system.astral_gate_path()
 		var gate_node = game_state.systems.get_node_or_null(gate_planet_path)
 		if gate_node == null:
-			print('no gate in system ',node_name,' for path ',gate_planet_path)
 			continue # no gate in this system
 		var gate_name = gate_node.display_name
 		if system.display_name==gate_name:
@@ -49,8 +48,6 @@ func update_selectability():
 		var system_and_gate = get_item_metadata(i)
 		var i_am_here = system_and_gate[0] == game_state.system.get_name() and \
 			system_and_gate[1] == game_state.player_location
-		print('system=',system_and_gate[0],' vs. ',game_state.system.get_name(),': ',i_am_here)
-		print('gate=',system_and_gate[1],' vs. ',game_state.player_location,': ',i_am_here)
 		set_item_disabled(i,i_am_here)
 		set_item_selectable(i,not i_am_here)
 

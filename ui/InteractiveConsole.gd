@@ -148,18 +148,18 @@ func add_command(name,object):
 func _ready():
 	commands = {
 		# For testing:
-		'echo':$Commands/Echo,
-		'parse':$Commands/Echo,
+		'echo':builtin_commands.Echo,
+		'parse':builtin_commands.Echo,
 		
 		# Basic functionality:
-		'clear':$Commands/Clear,
+		'clear':builtin_commands.Clear,
 		
 		# Help pages:
-		'ref':$Commands/Help,
-		'help':$Commands/Help,
-		'synopsis':$Commands/Help,
-		'search':$Commands/Help,
-		'invalid_command':$Commands/Help,
+		'ref':builtin_commands.Help,
+		'help':builtin_commands.Help,
+		'synopsis':builtin_commands.Help,
+		'search':builtin_commands.Help,
+		'invalid_command':builtin_commands.Help,
 	}
 	clear()
 	if initial_bbcode:

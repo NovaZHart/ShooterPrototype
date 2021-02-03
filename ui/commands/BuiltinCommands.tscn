@@ -1,8 +1,12 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=6 format=2]
 
 [ext_resource path="res://ui/commands/Echo.gd" type="Script" id=1]
 [ext_resource path="res://ui/commands/Clear.gd" type="Script" id=2]
 [ext_resource path="res://ui/commands/Help.gd" type="Script" id=3]
+[ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=4]
+
+[sub_resource type="World" id=1]
+environment = ExtResource( 4 )
 
 [node name="BuiltinCommands" type="Node"]
 
@@ -18,6 +22,7 @@ script = ExtResource( 3 )
 [node name="Viewport" type="Viewport" parent="Help"]
 size = Vector2( 64, 64 )
 own_world = true
+world = SubResource( 1 )
 render_target_v_flip = true
 render_target_clear_mode = 1
 render_target_update_mode = 0

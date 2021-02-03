@@ -60,6 +60,13 @@ class MountData extends simple_tree.SimpleNode:
 		box_translation = mp.translation
 		box = mp.get_path()
 
+func ship_world():
+	var ship = $Viewport.get_node_or_null('Ship')
+	if ship:
+		return ship.get_world()
+	push_error('Tried to get ship world with no ship')
+	return $Viewport.get_world()
+
 func deselect():
 	selection=NodePath()
 	selection_click=null
@@ -77,7 +84,7 @@ func at_position(pos,mask: int) -> Dictionary:
 	# Helper function to do an intersect_ray at a particular screen location.
 	if pos==null:
 		return {}
-	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
+	var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 	var from = $Viewport/Camera.project_ray_origin(pos)
 	from.y = $Viewport/Camera.translation.y+500
 	var to = from + $Viewport/Camera.project_ray_normal(pos)
@@ -113,6 +120,14 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: Collisi
 		selected_scene = scene
 		return true
 	return false
+#
+#
+#func in_top_dialog(node,top) -> bool:
+#	if node==null:
+#		return false
+#	if node==top:
+#		return true
+#	return in_top_dialog(node.get_parent(),top)
 
 func _input(event):
 	var scene = get_tree().current_scene
@@ -127,7 +142,7 @@ func _input(event):
 	if view_rect.has_point(mouse_pos):
 		if event.is_action_pressed('ui_location_select'):
 			var space_pos: Vector3 = $Viewport/Camera.project_position(mouse_pos-view_pos,-30)
-			var space: PhysicsDirectSpaceState = $Viewport.get_world().direct_space_state
+			var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 			var result: Dictionary = space.intersect_ray(
 				space_pos-y500,space_pos+y500,[],INSTALLED_LAYER_MASK|MULTIMOUNT_LAYER_MASK,true,true)
 			var collider = result.get('collider',null)
@@ -154,7 +169,7 @@ func _input(event):
 func dragging_item(item: MeshInstance):
 	var pos2 = get_viewport().get_mouse_position() - rect_global_position
 	var pos3 = $Viewport/Camera.project_position(pos2,-10)
-	var space: PhysicsDirectSpaceState = $Viewport.world.direct_space_state
+	var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 	var there: Dictionary = space.intersect_ray(
 		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
 	var collider = there.get('collider',null)
@@ -231,7 +246,7 @@ func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_type
 	var box: Area = Area.new()
 	box.set_script(InventorySlot)
 	box.create_only_box(width,height,mount_type)
-	box.place_near(loc,$Viewport.world.direct_space_state, \
+	box.place_near(loc,ship_world().direct_space_state, \
 		MOUNT_POINT_LAYER_MASK | SHIP_LAYER_MASK)
 	box.translation.y = loc.y
 	box.name=box_name
@@ -244,7 +259,7 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 	deselect()
 	var pos2 = get_viewport().get_mouse_position() - rect_global_position
 	var pos3 = $Viewport/Camera.project_position(pos2,-10)
-	var space: PhysicsDirectSpaceState = $Viewport.world.direct_space_state
+	var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 	var there: Dictionary = space.intersect_ray(
 		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
 	var target: CollisionObject = there.get('collider',null)
@@ -434,11 +449,11 @@ func make_ship(design):
 	decoded.set_name('Ship')
 	var _discard = root.add_child(decoded)
 
-	#var ship = decoded.assemble_ship(false)
+	#var ship = $Viewport.assemble_ship(decoded)
 	var ship = design.hull.instance()
 	ship.name='Ship'
 	ship.collision_layer = SHIP_LAYER_MASK
-	ship.collision_mask = 0
+	ship.collision_mask = SHIP_LAYER_MASK
 	ship.random_height = false
 	ship.retain_hidden_mounts = true
 	ship.ship_display_name = design.display_name

@@ -3,6 +3,7 @@ extends Node
 var LoadHelp = preload('res://help/LoadHelp.gd')
 var help_loader = LoadHelp.new()
 var help_pages: Dictionary = {}
+var made_help_tree = null
 
 func _init():
 	help_pages = help_loader.load_help_pages()
@@ -25,6 +26,9 @@ class page_sorter extends Reference:
 		return len(array1) < len(array2)
 
 func make_help_tree() -> Array:
+	if made_help_tree!=null:
+		return made_help_tree
+	
 	# Add missing parent pages
 	var all: Dictionary = {}
 	for id in help_pages.keys():
@@ -44,7 +48,8 @@ func make_help_tree() -> Array:
 		if not title:
 			title = id.capitalize()
 		titles[id] = title
-	return [ tree, titles ]
+	made_help_tree = [ tree, titles ]
+	return made_help_tree
 
 func page_tooltip(console,id: String):
 	var page = help_pages.get(id)

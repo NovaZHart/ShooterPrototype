@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/ships/ShipDesignView.tscn" type="PackedScene" id=2]
@@ -8,6 +8,7 @@
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=6]
 [ext_resource path="res://ui/ships/ShipDesignPanel.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/edit/Autosave.tscn" type="PackedScene" id=8]
+[ext_resource path="res://ui/MainDialogTrigger.tscn" type="PackedScene" id=9]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 6 )
@@ -24,6 +25,8 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="MainDialogTrigger" parent="." instance=ExtResource( 9 )]
+
 [node name="Autosave" parent="." instance=ExtResource( 8 )]
 
 [node name="All" type="HSplitContainer" parent="."]
@@ -36,25 +39,71 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Shop" type="VSplitContainer" parent="All"]
-margin_right = 328.0
+[node name="Left" type="GridContainer" parent="All"]
+margin_right = 288.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Buttons" type="GridContainer" parent="All/Left"]
+margin_right = 288.0
+margin_bottom = 23.0
+columns = 5
+
+[node name="Depart" type="Button" parent="All/Left/Buttons"]
+margin_right = 60.0
+margin_bottom = 23.0
+hint_tooltip = "Return to the System Editor."
+text = "Depart"
+
+[node name="Save" type="Button" parent="All/Left/Buttons"]
+margin_left = 64.0
+margin_right = 108.0
+margin_bottom = 23.0
+hint_tooltip = "Save the universe to a json file."
+text = "Save"
+
+[node name="Load" type="Button" parent="All/Left/Buttons"]
+margin_left = 112.0
+margin_right = 156.0
+margin_bottom = 23.0
+hint_tooltip = "Load the universe from  a json file."
+text = "Load"
+
+[node name="Undo" type="Button" parent="All/Left/Buttons"]
+margin_left = 160.0
+margin_right = 204.0
+margin_bottom = 23.0
+hint_tooltip = "Undo the last action."
+text = "Undo"
+
+[node name="Redo" type="Button" parent="All/Left/Buttons"]
+margin_left = 208.0
+margin_right = 252.0
+margin_bottom = 23.0
+hint_tooltip = "Undo the undo; reapply the action."
+text = "Redo"
+
+[node name="Shop" type="VSplitContainer" parent="All/Left"]
+margin_top = 27.0
+margin_right = 288.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.2
 
-[node name="Info" parent="All/Shop" instance=ExtResource( 1 )]
+[node name="Info" parent="All/Left/Shop" instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 328.0
-margin_bottom = 236.0
+margin_right = 288.0
+margin_bottom = 225.0
 size_flags_stretch_ratio = 2.0
 allow_input = false
 
-[node name="Tabs" type="TabContainer" parent="All/Shop"]
-margin_top = 244.0
-margin_right = 328.0
-margin_bottom = 600.0
+[node name="Tabs" type="TabContainer" parent="All/Left/Shop"]
+margin_top = 233.0
+margin_right = 288.0
+margin_bottom = 573.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 3.0
@@ -62,14 +111,14 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Equipment" parent="All/Shop/Tabs" instance=ExtResource( 3 )]
+[node name="Equipment" parent="All/Left/Shop/Tabs" instance=ExtResource( 3 )]
 margin_left = 5.0
 margin_top = 30.0
 margin_right = -5.0
 margin_bottom = -5.0
 initial_scale = 10.0
 
-[node name="Weapons" parent="All/Shop/Tabs" instance=ExtResource( 3 )]
+[node name="Weapons" parent="All/Left/Shop/Tabs" instance=ExtResource( 3 )]
 visible = false
 margin_left = 5.0
 margin_top = 30.0
@@ -77,7 +126,7 @@ margin_right = -5.0
 margin_bottom = -5.0
 initial_scale = 10.0
 
-[node name="Designs" parent="All/Shop/Tabs" instance=ExtResource( 7 )]
+[node name="Designs" parent="All/Left/Shop/Tabs" instance=ExtResource( 7 )]
 visible = false
 margin_left = 5.0
 margin_top = 30.0
@@ -88,7 +137,7 @@ default_listed_designs = 4
 show_Cancel = false
 
 [node name="Show" type="Panel" parent="All"]
-margin_left = 336.0
+margin_left = 296.0
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
@@ -105,7 +154,7 @@ __meta__ = {
 }
 
 [node name="Top" type="GridContainer" parent="All/Show/Grid"]
-margin_right = 688.0
+margin_right = 728.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
 columns = 4
@@ -117,21 +166,21 @@ text = "ID"
 
 [node name="IDEdit" type="LineEdit" parent="All/Show/Grid/Top"]
 margin_left = 28.0
-margin_right = 306.0
+margin_right = 326.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 placeholder_text = "(alphanumeric key)"
 
 [node name="NameLabel" type="Label" parent="All/Show/Grid/Top"]
-margin_left = 310.0
-margin_right = 406.0
+margin_left = 330.0
+margin_right = 426.0
 margin_bottom = 23.0
 text = "Design Name"
 
 [node name="NameEdit" type="LineEdit" parent="All/Show/Grid/Top"]
-margin_left = 410.0
-margin_right = 688.0
+margin_left = 430.0
+margin_right = 728.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -141,7 +190,7 @@ placeholder_text = "(Human-Readable Ship Name)"
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 27.0
-margin_right = 688.0
+margin_right = 728.0
 margin_bottom = 600.0
 size_flags_stretch_ratio = 2.5
 
@@ -176,19 +225,24 @@ transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62
 projection = 1
 current = true
 size = 2.16
-[connection signal="deselect_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
-[connection signal="drag_selection" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
-[connection signal="select_item" from="All/Shop/Tabs/Equipment" to="." method="_on_Equipment_select_item"]
-[connection signal="deselect_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_deselect_item"]
-[connection signal="drag_selection" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_drag_selection"]
-[connection signal="select_item" from="All/Shop/Tabs/Weapons" to="." method="_on_Weapons_select_item"]
-[connection signal="add" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_add"]
-[connection signal="change" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_change"]
-[connection signal="deselect" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_deselect"]
-[connection signal="open" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_open"]
-[connection signal="remove" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_remove"]
-[connection signal="select" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_select"]
-[connection signal="select_nothing" from="All/Shop/Tabs/Designs" to="." method="_on_Designs_select_nothing"]
+[connection signal="pressed" from="All/Left/Buttons/Depart" to="." method="_on_Depart_pressed"]
+[connection signal="pressed" from="All/Left/Buttons/Save" to="." method="_on_Save_pressed"]
+[connection signal="pressed" from="All/Left/Buttons/Load" to="." method="_on_Load_pressed"]
+[connection signal="pressed" from="All/Left/Buttons/Undo" to="." method="_on_Undo_pressed"]
+[connection signal="pressed" from="All/Left/Buttons/Redo" to="." method="_on_Redo_pressed"]
+[connection signal="deselect_item" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
+[connection signal="drag_selection" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
+[connection signal="select_item" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_select_item"]
+[connection signal="deselect_item" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_Weapons_deselect_item"]
+[connection signal="drag_selection" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_Weapons_drag_selection"]
+[connection signal="select_item" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_Weapons_select_item"]
+[connection signal="add" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_add"]
+[connection signal="change" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_change"]
+[connection signal="deselect" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_deselect"]
+[connection signal="open" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_open"]
+[connection signal="remove" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_remove"]
+[connection signal="select" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_select"]
+[connection signal="select_nothing" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_select_nothing"]
 [connection signal="focus_exited" from="All/Show/Grid/Top/IDEdit" to="." method="_on_IDEdit_focus_exited"]
 [connection signal="text_entered" from="All/Show/Grid/Top/IDEdit" to="." method="_on_IDEdit_text_entered"]
 [connection signal="focus_exited" from="All/Show/Grid/Top/NameEdit" to="." method="_on_NameEdit_focus_exited"]

@@ -32,13 +32,20 @@ const PLAYER_TARGET_PLANET: int = 48
 const PLAYER_TARGET_OVERRIDE: int = 64
 const PLAYER_TARGET_NOTHING: int = 240
 
+var pause_mutex: Mutex = Mutex.new()
+var dialog_paused: bool = false
+var was_paused: bool = false
+
 func update_pause(_delta: float) -> void:
 	if Input.is_action_just_released('ui_pause'):
-		get_tree().paused = not get_tree().paused
-		if get_tree().paused:
-			game_state.print_to_console('Pause.')
-		else:
-			game_state.print_to_console('Unpause.')
+		pause_mutex.lock()
+		if not dialog_paused:
+			get_tree().paused = not get_tree().paused
+			if get_tree().paused:
+				game_state.print_to_console('Pause.')
+			else:
+				game_state.print_to_console('Unpause.')
+		pause_mutex.unlock()
 
 func _input(event: InputEvent):
 	if not event.is_action_pressed('ui_location_select'):
@@ -184,3 +191,17 @@ func _ready():
 
 func get_player_system() -> Node:
 	return $Player
+
+
+func _on_MainDialogTrigger_dialog_hidden():
+	pause_mutex.lock()
+	get_tree().paused = was_paused
+	dialog_paused = false
+	pause_mutex.unlock()
+
+func _on_MainDialogTrigger_dialog_shown():
+	pause_mutex.lock()
+	was_paused = get_tree().paused
+	dialog_paused = true
+	get_tree().paused = true
+	pause_mutex.unlock()

@@ -167,7 +167,6 @@ func _input(event):
 	if event.is_action_pressed('ui_location_select'):
 		if not get_global_rect().has_point(event_position(event)):
 			return
-		print('intercept select')
 		if selected:
 			deselect()
 		else:
