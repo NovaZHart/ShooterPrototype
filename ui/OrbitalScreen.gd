@@ -19,7 +19,7 @@ func _ready():
 	if planet_info==null:
 		# Cannot land here
 		push_error('ERROR: NULL PLANET INFO')
-		var _discard=get_tree().change_scene('res://ui/SpaceScreen.tscn')
+		game_state.change_scene('res://ui/SpaceScreen.tscn')
 		return
 	planet=planet_info.make_planet(600,0)
 	var planet_name = planet.display_name
@@ -89,7 +89,8 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	var system_info = game_state.system
 	if planet_info==null:
 		# Cannot land here
-		var _discard=get_tree().change_scene('res://ui/SystemScreen.tscn')
+		game_state.change_scene('res://ui/SpaceScreen.tscn')
+		return
 	planet=planet_info.make_planet(600,0)
 	planet.translation = Vector3(0,0,0)
 	add_child(planet)
@@ -107,7 +108,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 
 func deorbit():
 	game_state.print_to_console('Departing '+$LocationLabel.text)
-	var _discard=get_tree().change_scene('res://ui/SpaceScreen.tscn')
+	game_state.change_scene('res://ui/SpaceScreen.tscn')
 
 func _input(event):
 	if event.is_action_released('ui_depart'):

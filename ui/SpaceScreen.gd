@@ -180,7 +180,10 @@ func _process(delta: float) -> void:
 		if death_start<0:
 			death_start = tick
 		if tick-death_start>300 or Input.is_action_just_released('ui_cancel'):
-			var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+#			if get_tree().current_scene.has_method('change_scene'):
+			game_state.change_scene('res://ui/OrbitalScreen.tscn')
+#			else:
+#				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 			yield(get_tree(),'idle_frame')
 
 

@@ -10,12 +10,17 @@ func _ready():
 	$All/Info.text = ''
 
 func _input(event):
-	if not is_visible_in_tree() or event is InputEventMouseMotion:
+	if not is_visible_in_tree():
+		print('skip - not visible in tree')
 		return
+	if event is InputEventMouseMotion:
+		print('skip - is mouse motion')
 	if not (event is InputEventKey or event is InputEventJoypadButton):
+		print('skip - not right event type')
 		$All/Info.text = 'Must be a keyboard or joypad button.'
 		return
 	if not event.is_action_type():
+		print('skip - is not action type')
 		$All/Info.text = 'Must be a keyboard or joypad button.'
 		return
 	for action in known_actions:
@@ -26,5 +31,6 @@ func _input(event):
 			if event_content['event'] == event:
 				$All/Info.text = 'Already used by '+action_text[action]+'.'
 				return
+	print('selected event')
 	selected_event = event
 	hide()

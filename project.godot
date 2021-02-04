@@ -16,7 +16,7 @@ _global_script_class_icons={
 [application]
 
 config/name="ShooterPrototype"
-run/main_scene="res://ui/ships/ShipDesignScreen.tscn"
+run/main_scene="res://ui/TopScene.tscn"
 config/icon="res://icon.png"
 
 [autoload]
@@ -34,6 +34,7 @@ builtin_commands="*res://globals/Commands.gd"
 [display]
 
 window/size/borderless=true
+window/size/fullscreen=true
 
 [gui]
 
@@ -177,6 +178,7 @@ ui_location_slide={
 3d/default_gravity=0.0
 3d/default_linear_damp=0.0
 3d/default_angular_damp=0.0
+common/enable_object_picking=false
 
 [rendering]
 

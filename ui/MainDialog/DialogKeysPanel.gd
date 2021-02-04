@@ -53,20 +53,26 @@ class ChangeActionEvent extends undo_tool.Action:
 		old_event=old_event_
 		new_event=new_event_
 	func run() -> bool:
+		print('run')
 		InputMap.action_erase_event(action,old_event)
 		InputMap.action_add_event(action,new_event)
+		game_state.key_editor.change_ui_for_action_event(action,old_event,new_event)
 		return true
 	func undo() -> bool:
 		InputMap.action_erase_event(action,new_event)
 		InputMap.action_add_event(action,old_event)
+		game_state.key_editor.change_ui_for_action_event(action,new_event,old_event)
 		return true
 
 var content = {}
 
 signal page_selected
 
-# Called when the node enters the scene tree for the first time.
+func _exit_tree():
+	game_state.set_key_editor(null)
+
 func _ready():
+	game_state.set_key_editor(self)
 	fill_keys()
 	update_disabled_flags()
 	$Scroll.rect_min_size.x = $Scroll/Panel.rect_size.x
@@ -169,10 +175,13 @@ func remove_ui_for_action_event(action: String, event: InputEvent) -> bool:
 
 func change_ui_for_action_event(action: String, old_event: InputEvent,
 		new_event: InputEvent) -> bool:
+	print('change ui for action event')
 	var action_content = content.get(action,null)
 	if not action_content:
+		print('action ',action,' has no content')
 		return false
 	for index in range(len(action_content['events'])):
+		print('index ',index)
 		if action_content['events'][index]['event'] == old_event:
 			print('match at index '+str(index))
 			action_content['events'][index]['event'] = new_event
@@ -180,6 +189,8 @@ func change_ui_for_action_event(action: String, old_event: InputEvent,
 			if button:
 				button.text = describe_event(new_event)
 			return true
+		else:
+			print('no match')
 	return false
 
 func fill_keys():
@@ -207,12 +218,15 @@ func update_disabled_flags():
 					remove.hint_tooltip = 'Remove this key.'
 
 func add_action_event(action,event,_path):
+	assert(event is InputEvent)
 	game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,event,true))
 
 func remove_action_event(action,event,_path):
+	assert(event is InputEvent)
 	game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,event,false))
 
 func change_action_event(action,event,_path):
+	assert(event is InputEvent)
 	var picker = get_node_or_null(picker_path)
 	if picker_path:
 		picker.visible=false
@@ -226,10 +240,15 @@ func change_action_event(action,event,_path):
 	picker.popup()
 	while picker.visible:
 		yield(get_tree(),'idle_frame')
-	picker_path=NodePath()
 	if picker.selected_event:
+		print('event selected')
 		game_state.input_edit_state.push(ChangeActionEvent.new(
 			action,event,picker.selected_event))
+	else:
+		print('no event picked')
+	if picker:
+		get_viewport().remove_child(picker)
+	picker_path=NodePath()
 
 func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)

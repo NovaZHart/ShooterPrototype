@@ -1,14 +1,16 @@
 extends KinematicBody
 
-const allowed_subdivisions = [ 14, 28] # , 56] # , 112 ]
-const allowed_texture_sizes = [ 128, 256, 512, 1024, 2048 ]
+const allowed_subdivisions = [ 8, 12, 14, 28] # , 56] # , 112 ]
+const allowed_texture_sizes = [ 128, 256, 512, 1024] #, 2048 ]
 
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
+#var CubePlanetTiles = preload("CubePlanetTilesNoNormal.shader")
 var CubePlanetTiles = preload("CubePlanetTilesV2.shader")
 var simple_planet_shader = preload('SimplePlanetV2.shader')
 var simple_sun_shader = preload('SimpleSunV2.shader')
 
+var tick: int =0
 var combined_aabb setget ,get_combined_aabb
 var sphere_material: ShaderMaterial setget ,get_sphere_material
 var tile_material: ShaderMaterial setget ,get_tile_material
@@ -97,10 +99,12 @@ func choose_texture_size(x,y) -> int:
 
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
-	var subs: int = choose_subdivisions(subdivisions)
+# warning-ignore:narrowing_conversion
+	var subs: int = clamp(subdivisions/4.0,6,28) # choose_subdivisions(subdivisions)
 	print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
-	var tsize: int = choose_texture_size(texture_size,texture_size)
-	print('Requested texture size ',texture_size,'; using ',tsize)
+	var u_size: int = choose_texture_size(texture_size,texture_size)
+	print('Requested texture size ',texture_size,'; using ',u_size)
+	var v_size: int = u_size/2
 	
 	#var xyz_image = 
 	
@@ -117,7 +121,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	
 	view_shade=ShaderMaterial.new()
 	view_shade.set_shader(CubePlanetTiles)
-	view=make_viewport(tsize,tsize,view_shade)
+	view=make_viewport(u_size,v_size,view_shade)
 	view_shade.set_shader_param('perlin_seed',int(random_seed))
 	view_shade.set_shader_param('perlin_type',int(noise_type))
 	view_shade.set_shader_param('xyz',xyz)
@@ -126,6 +130,8 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	
 	add_child(view)
 	add_child(sphere)
+	
+	tick=0
 
 func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
 	view_shade.set_shader_param('color_scaling',Vector3(scaling[0],scaling[1],scaling[2]))
@@ -158,7 +164,8 @@ func _init():
 	collision_layer = 1<<28
 
 func _process(var _delta) -> void:
-	if have_sent_texture: return
+	tick += 1
+	
 	if sphere==null or view==null:
 		push_error("Planet's child no longer exists!?")
 		return # child no longer exists?
@@ -166,9 +173,29 @@ func _process(var _delta) -> void:
 	if tex == null:
 		printerr('Planet texture is null!?')
 		return # should never get here in _process()
-	tex.flags = Texture.FLAG_FILTER
-	sphere.material_override.set_shader_param('precalculated',tex)
-	have_sent_texture = true
+
+	if tick==1:
+		sphere.material_override.set_shader_param('precalculated',tex)
+		return
+	
+	var data = tex.get_data()
+	if data == null:
+		printerr('Planet texture data is null!?')
+		return # should never here here either
+	
+	var copy = Image.new()
+	copy.copy_from(data)
+	var newtex = ImageTexture.new()
+	newtex.create_from_image(copy)
+	sphere.material_override.set_shader_param('precalculated',newtex)
+	#tex.flags = Texture.FLAG_FILTER
+	remove_child(view)
+	view.queue_free()
+	
+	view=null
+	view_shade=null
+	
+	set_process(false)
 	#$View.remove_child($View/Content)
 
 func pack_stats() -> Dictionary:

@@ -10,7 +10,6 @@
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=8]
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=9]
 
-
 [sub_resource type="DynamicFont" id=1]
 size = 13
 font_data = ExtResource( 9 )

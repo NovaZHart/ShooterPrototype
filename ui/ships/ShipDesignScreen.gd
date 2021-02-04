@@ -109,7 +109,7 @@ func exit_to_orbit():
 		game_state.ship_designs.remove_child(node)
 	game_state.ship_designs.add_child(design)
 	game_state.player_ship_design=design
-	var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func reset_parts_and_designs():
 	var _discard = cancel_drag()

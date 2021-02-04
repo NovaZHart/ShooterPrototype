@@ -19,8 +19,8 @@ class SceneChangeService extends Service:
 	var resource: PackedScene
 	func will_change_scene() -> bool:
 		return true
-	func create(tree: SceneTree) -> int:
-		return tree.change_scene_to(resource)
+	func create(_tree: SceneTree) -> int:
+		return game_state.change_scene(resource)
 	func _init(title: String,resource_: PackedScene).(title):
 		resource = resource_
 

@@ -9,7 +9,7 @@ var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
 
 var Universe = preload('res://places/Universe.gd')
-var PlanetServices = preload('res://ui/PlanetServices.gd')
+var PlanetServices = load('res://ui/PlanetServices.gd')
 
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
@@ -29,6 +29,15 @@ var ui
 var player_ship_design
 
 signal console_append
+
+func change_scene(to):
+	if get_tree().current_scene.has_method('change_scene'):
+		get_tree().current_scene.change_scene(to)
+		return OK
+	elif to is PackedScene:
+		return get_tree().change_scene_to(to)
+	else:
+		return get_tree().change_scene(to)
 
 class KeyEditorStub extends Control:
 	func add_ui_for_action_event(_action: String, _event: InputEvent) -> bool:

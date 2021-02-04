@@ -279,7 +279,9 @@ func _physics_process(delta):
 				else:
 					game_state.player_location=node.game_state_path
 				clear()
-				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+				get_tree().current_scene.change_scene(load('res://ui/OrbitalScreen.tscn'))
+				return
+#				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 		team_stats_mutex.lock()
 		team_stats[ship_node.team]['count'] -= 1
 		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))

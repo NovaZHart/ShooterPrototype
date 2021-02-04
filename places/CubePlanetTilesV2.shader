@@ -67,17 +67,6 @@ vec2 fuv2d(ivec3 uv) { // convert 3d spatial coords to 2d texture coords
 	return vec2(iuv2d(uv))/512.0;
 }
 
-vec4 check01(vec4 v) {
-	const vec4 bad=vec4(99999.9,99999.9,99999.9,99999.9);
-	const vec4 one=vec4(1.0,1.0,1.0,1.0);
-	const vec4 zero=vec4(0.0,0.0,0.0,0.0);
-	if(max(max(v.x,v.y),max(v.z,v.w))>1.001)
-		return bad;
-	if(min(min(v.x,v.y),min(v.z,v.w))<-0.001)
-		return bad;
-	return v;
-}
-
 float perlin_grad1(int hash,float x,float y,float z) {
 	// Gradients for improved perlin noise.
 	// Get gradient at cube corner specified by p
@@ -122,25 +111,19 @@ float improved_perlin(int seed,float scale,int cubes,vec3 new_normal) {
 	           mix(mix(p100,p101,weight.x),mix(p110,p111,weight.x),weight.y),weight.z)/2.0;
 }
 
-
-vec4 perlin_and_delta(int seed,float scale,int cubes,vec3 new_normal,float delta,int type) {
-	float x=improved_perlin(seed,scale,cubes,new_normal+vec3(delta,0.0,0.0));
-	float y=improved_perlin(seed,scale,cubes,new_normal+vec3(0.0,delta,0.0));
-	float z=improved_perlin(seed,scale,cubes,new_normal+vec3(0.0,0.0,delta));
+float apply_perlin_type(int seed,float scale,int cubes,vec3 new_normal,float delta,int type) {
 	float c=improved_perlin(seed,scale,cubes,new_normal);
-	if(type==1) {
+	if(type==1)
+		return abs(c);
+	else if(type==10) // mix of types 1 and 0
 		float a=abs(c);
-		return vec4(abs(x)-a,abs(y)-a,abs(z)-a,a);
-	} else if(type==10) { // mix of types 1 and 0
-		float a=abs(c);
-		return 0.3*vec4(x-c,y-c,z-c,c) + 0.7*vec4(abs(x)-a,abs(y)-a,abs(z)-a,a);
-	}
-	return vec4(x-c,y-c,z-c,c); // type 0
+		return 0.3*c + 0.7*abs(c);
+	return c;
 }
 
-vec4 multi_perlin(int seed,int cubes,vec3 new_normal,float delta,int noise_type,bool grad) {
+float multi_perlin_scalar(int seed,int cubes,vec3 new_normal,float delta,int noise_type,bool grad) {
 	// vec4 perlin_and_delta(int seed,float scale,int cubes,vec3 new_normal,float delta,int type) {
-	vec4 result = vec4(0.0,0.0,0.0,0.0);
+	float result = 0.0;
 	float weight=1.0;
 	float scale=scale_start;
 	float weight_sum = 0.0;
@@ -148,45 +131,29 @@ vec4 multi_perlin(int seed,int cubes,vec3 new_normal,float delta,int noise_type,
 	if(type==3)
 		type=1;
 	for(int i=0;i<4;i++) {
-		result += perlin_and_delta(seed,scale,cubes,new_normal,delta,noise_type)*weight;
+		result += apply_perlin_type(seed,scale,cubes,new_normal,delta,noise_type)*weight;
 		weight_sum+=weight;
 		weight*=weight_power;
 		scale*=scale_power;
 	}
 	if(noise_type==3)
-		result.w = sin(7.0*(new_normal.y+result.w));
-		result.xyz = -cos(7.0*(new_normal.y+result.xyz));
-//	vec4 p0=perlin_and_delta(seed,3.9,cubes,new_normal,delta,noise_type);
-//	vec4 p1=perlin_and_delta(seed,3.9*scale_power,cubes,new_normal,delta,noise_type)*weight_power;
-//	vec4 p2=perlin_and_delta(seed,3.9*scale_power*scale_power,cubes,new_normal,delta,noise_type)*weight_power*weight_power;
-//	vec4 p3=perlin_and_delta(seed,3.9*scale_power*scale_power*scale_power,cubes,new_normal,delta,noise_type)*weight_power*weight_power*weight_power;
-//	vec4 result = 2.0*((p0+p1+p2+p3)/(1.0+1.0/3.0+1.0/9.0+1.0/27.0));
+		result = sin(7.0*(new_normal.y+result));
 	result = 2.0*result/weight_sum;
-	result.w += perlin_bias;
+	result += perlin_bias;
 	return result;
 }
 
 void fragment() {
-	vec2 uv_half = vec2(UV.x,UV.y*2.0);
-	bool make_normals = uv_half.y>1.0;
-	if(uv_half.y>1.0)
-		uv_half.y -= 1.0;
-	
-	vec3 normal = texture(xyz,vec2(uv_half.x,1.0-uv_half.y)).xyz;
+	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
 	if(UV.x>0.75)
 		COLOR=vec4(0.0,0.0,0.0,0.0);
 	else {
 		float delta=0.03;
-		vec4 perlin=multi_perlin(perlin_seed,perlin_cubes,normal,delta,perlin_type,true);
-		if(make_normals) {
-			COLOR=vec4(clamp(perlin.xyz,-1.0,1.0)*0.5+0.5,1.0);
-		} else {
-			float w = perlin.w;
-			if(color_scheme==1)
-				w=interp_order5_scalar(w);
-			else
-				w*=w;
-			COLOR = vec4(w*color_scaling+color_addition,1.0);
-		}
+		float w = multi_perlin_scalar(perlin_seed,perlin_cubes,normal,delta,perlin_type,true);
+		if(color_scheme==1)
+			w=interp_order5_scalar(w);
+		else
+			w*=w;
+		COLOR = vec4(w*color_scaling+color_addition,1.0);
 	}
 }

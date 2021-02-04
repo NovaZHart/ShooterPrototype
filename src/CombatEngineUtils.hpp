@@ -18,7 +18,7 @@
 #include "DVector3.hpp"
 #include "CombatEngineData.hpp"
 
-#define ENABLE_PROFILING
+// #define ENABLE_PROFILING
 
 namespace godot {
 
@@ -50,11 +50,11 @@ namespace godot {
     }
   };
 
-  //#ifdef ENABLE_PROFILING
+#ifdef ENABLE_PROFILING
 #define FAST_PROFILING_FUNCTION static char __function_profiling_sig[1024] = {'\0'} ; FastProfiling __function_profiling_prof(__func__, __LINE__, __function_profiling_sig )
-// #else
-// #define FAST_PROFILING_FUNCTION
-// #endif
+#else
+#define FAST_PROFILING_FUNCTION
+#endif
 
   
   namespace CE {
