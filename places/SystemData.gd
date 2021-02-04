@@ -12,10 +12,10 @@ const default_fleets: Array = [
 	{ 'frequency':600, 'fleet':'peregrine_trio_cyclotrons', 'team':0 },
 	{ 'frequency':450, 'fleet':'condor_lasers', 'team':0 },
 	{ 'frequency':450, 'fleet':'condor_cyclotrons', 'team':0 },
-	{ 'frequency':100, 'fleet':'banner_ship', 'team':0 },
 	
-#	{ 'frequency':60, 'ships':[ [1, 'bannership_default'], [1, 'interceptor_default'] ], 'team':0 },
-
+#	Slow due to viewport:
+#	{ 'frequency':100, 'fleet':'banner_ship', 'team':0 },
+	
 	{ 'frequency':900, 'fleet':'raven_duo_cyclotrons', 'team':1 },
 	{ 'frequency':900, 'fleet':'eagle_duo_cyclotrons', 'team':1 },
 	{ 'frequency':900, 'fleet':'eagle_peregrine_lasers', 'team':1 },

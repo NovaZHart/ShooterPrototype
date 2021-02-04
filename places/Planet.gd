@@ -10,6 +10,8 @@ var CubePlanetTiles = preload("CubePlanetTilesV2.shader")
 var simple_planet_shader = preload('SimplePlanetV2.shader')
 var simple_sun_shader = preload('SimpleSunV2.shader')
 
+var u_size: int
+var v_size: int
 var tick: int =0
 var combined_aabb setget ,get_combined_aabb
 var sphere_material: ShaderMaterial setget ,get_sphere_material
@@ -21,6 +23,7 @@ var full_display_name: String setget set_full_display_name,get_full_display_name
 var has_astral_gate: bool = false
 var game_state_path: NodePath = NodePath() setget set_game_state_path,get_game_state_path
 var view_shade: ShaderMaterial
+var have_valid_texture: bool = false
 
 func make_ai_info(_delta: float) -> Dictionary:
 	return {
@@ -100,24 +103,30 @@ func choose_texture_size(x,y) -> int:
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
 # warning-ignore:narrowing_conversion
-	var subs: int = clamp(subdivisions/4.0,6,28) # choose_subdivisions(subdivisions)
-	print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
-	var u_size: int = choose_texture_size(texture_size,texture_size)
-	print('Requested texture size ',texture_size,'; using ',u_size)
-	var v_size: int = u_size/2
-	
+
 	#var xyz_image = 
 	
-	sphere = SphereTool.new()
-	var xyz: ImageTexture = game_state.get_sphere_xyz(sphere)
-	sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,subs)
-	var shade=ShaderMaterial.new()
-	shade.set_shader(sphere_shader)
-	sphere.material_override=shade
-	sphere_material = sphere.material_override
-#	sphere_material.set_shader_param('xyz',xyz)
-	sphere.set_layer_mask(4)
-	sphere.name='Sphere'
+	var xyz: ImageTexture
+	if not sphere:
+		var subs: int = clamp(subdivisions/4.0,6,28) # choose_subdivisions(subdivisions)
+		print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
+		u_size = choose_texture_size(texture_size,texture_size)
+		print('Requested texture size ',texture_size,'; using ',u_size)
+		v_size = u_size/2
+	
+		sphere = SphereTool.new()
+		xyz = game_state.get_sphere_xyz(sphere)
+		sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,subs)
+		var shade=ShaderMaterial.new()
+		shade.set_shader(sphere_shader)
+		sphere.material_override=shade
+		sphere_material = sphere.material_override
+	#	sphere_material.set_shader_param('xyz',xyz)
+		sphere.set_layer_mask(4)
+		sphere.name='Sphere'
+		add_child(sphere)
+	else:
+		xyz = game_state.get_sphere_xyz(sphere)
 	
 	view_shade=ShaderMaterial.new()
 	view_shade.set_shader(CubePlanetTiles)
@@ -129,9 +138,8 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	tile_material = view_shade
 	
 	add_child(view)
-	add_child(sphere)
-	
 	tick=0
+	set_process(true)
 
 func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
 	view_shade.set_shader_param('color_scaling',Vector3(scaling[0],scaling[1],scaling[2]))
@@ -175,7 +183,8 @@ func _process(var _delta) -> void:
 		return # should never get here in _process()
 
 	if tick==1:
-		sphere.material_override.set_shader_param('precalculated',tex)
+		if not have_valid_texture:
+			sphere.material_override.set_shader_param('precalculated',tex)
 		return
 	
 	var data = tex.get_data()
@@ -191,6 +200,7 @@ func _process(var _delta) -> void:
 	#tex.flags = Texture.FLAG_FILTER
 	remove_child(view)
 	view.queue_free()
+	have_valid_texture = true
 	
 	view=null
 	view_shade=null

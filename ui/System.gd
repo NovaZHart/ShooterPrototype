@@ -5,6 +5,8 @@ export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
 export var max_new_ships_per_tick: int = 1
+export var max_new_ships_per_early_tick: int = 5
+export var number_of_early_ticks: int = 20
 
 var combat_engine_mutex: Mutex = Mutex.new()
 var visual_tick: int = 0
@@ -219,8 +221,13 @@ func _physics_process(delta):
 	
 	ship_maker_mutex.lock()
 	ships_to_spawn = ships_to_spawn + make_me
-	var front = ships_to_spawn.pop_front()
-	if front:
+	var max_ships_to_spawn = max_new_ships_per_tick
+	if physics_tick<number_of_early_ticks:
+		max_ships_to_spawn = max_new_ships_per_early_tick
+	for _ship_spawn_count in range(max_ships_to_spawn):
+		var front = ships_to_spawn.pop_front()
+		if not front:
+			break
 		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
 	
@@ -320,10 +327,10 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	if is_player:
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
-		pass
+		add_spawned_ship(ship,true)
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
-	call_deferred('add_spawned_ship',ship,is_player)
+		call_deferred('add_spawned_ship',ship,false)
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)

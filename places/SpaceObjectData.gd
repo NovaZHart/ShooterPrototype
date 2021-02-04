@@ -176,9 +176,12 @@ func orbital_adjustments_to(time: float,new_location: Vector3,parent=null) -> Di
 		new_start = fmod(new_angle - angle, 2*PI)
 	return { 'orbit_radius':new_radius, 'orbit_start':new_start }
 
-func make_planet(detail: float=150, time: float=0):
+func make_planet(detail: float=150, time: float=0, planet = null):
 	var texture_size: int = int(round(pow(2,max(7,min(11,int(log(detail*size)/log(2)))))))
-	var planet=Planet.instance()
+	var place_sphere: bool = false
+	if not planet:
+		planet=Planet.instance()
+		place_sphere=true
 	if object_type==STAR:
 		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size)
 		planet.has_astral_gate = true
@@ -186,8 +189,9 @@ func make_planet(detail: float=150, time: float=0):
 		planet.make_planet(1+detail*size/30.0,shader_seed,texture_size)
 	
 	planet.color_sphere(color_scaling,color_addition)
-	var x0z = planet_translation(time)
-	planet.place_sphere(size,Vector3(x0z[0],-15,x0z[2]),planet_rotation(time))
+	if place_sphere:
+		var x0z = planet_translation(time)
+		planet.place_sphere(size,Vector3(x0z[0],-15,x0z[2]),planet_rotation(time))
 	
 	planet.name = make_unique_name()
 	planet.display_name = display_name

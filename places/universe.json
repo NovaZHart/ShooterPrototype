@@ -14,7 +14,8 @@
           ],
           "links": {
             "alef_93": 1,
-            "seti_beta": 1
+            "seti_beta": 1,
+            "seti-gamma": 1
           },
           "plasma_seed": 56929,
           "starfield_seed": 86942,
@@ -24,6 +25,89 @@
             0.07,
             0.18,
             1
+          ],
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
           ],
           "objects": {
             "sun": [
@@ -94,6 +178,89 @@
             0.047059,
             0.007843,
             1
+          ],
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
           ],
           "objects": {
             "astra": [
@@ -250,7 +417,8 @@
             4.275
           ],
           "links": {
-            "seti_alpha": 1
+            "seti_alpha": 1,
+            "seti-gamma": 1
           },
           "plasma_seed": 320918,
           "starfield_seed": 987686,
@@ -260,6 +428,89 @@
             0.111328,
             0.140625,
             1
+          ],
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
           ],
           "objects": {
             "sun": [
@@ -407,6 +658,299 @@
                       }
                     }
                   ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "seti-gamma": [
+        "SystemData",
+        {
+          "display_name": "Seti-ɣ",
+          "position": [
+            "Vector3",
+            -0.974998,
+            0,
+            4.8
+          ],
+          "links": {
+            "seti_beta": 1,
+            "seti_alpha": 1
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "fleets": [
+            "Array",
+            {
+              "frequency": 400,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 550,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 250,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 400,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 550,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 250,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "seti_gamma": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Seti-ɣ-1",
+                "description": "",
+                "base": "",
+                "object_type": 1,
+                "size": 15,
+                "color_scaling": [
+                  "Color",
+                  0.976471,
+                  0.984314,
+                  0.984314,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.364706,
+                  -0.270588,
+                  0.145098,
+                  1
+                ],
+                "shader_seed": 0,
+                "rotation_period": 0,
+                "orbit_radius": 19.677973,
+                "orbit_period": 20,
+                "orbit_start": 2.464206,
+                "has_astral_gate": true,
+                "objects": {
+
+                }
+              }
+            ],
+            "Seti-gamma-2": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Seti-ɣ-2",
+                "description": "",
+                "base": "",
+                "object_type": 1,
+                "size": 9,
+                "color_scaling": [
+                  "Color",
+                  0.517647,
+                  0.25098,
+                  0.25098,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.082353,
+                  -0.560784,
+                  -0.035294,
+                  1
+                ],
+                "shader_seed": 42447,
+                "rotation_period": 0,
+                "orbit_radius": 20.055475,
+                "orbit_period": 20,
+                "orbit_start": -0.374333,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ],
+            "kindra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array",
+                  "info",
+                  "shipeditor"
+                ],
+                "display_name": "Kindra",
+                "description": "",
+                "base": "",
+                "object_type": 0,
+                "size": 9,
+                "color_scaling": [
+                  "Color",
+                  0.862745,
+                  0.615686,
+                  0.615686,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.152941,
+                  0.207843,
+                  -0.301961,
+                  1
+                ],
+                "shader_seed": 0,
+                "rotation_period": 0,
+                "orbit_radius": 190.701416,
+                "orbit_period": 20,
+                "orbit_start": 0.639656,
+                "has_astral_gate": false,
+                "objects": {
+                  "yarra": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info",
+                        "shipeditor"
+                      ],
+                      "display_name": "Yarra",
+                      "description": "",
+                      "base": "",
+                      "object_type": 0,
+                      "size": 5,
+                      "color_scaling": [
+                        "Color",
+                        0.886275,
+                        0.772549,
+                        0.905882,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        0.47451,
+                        0.47451,
+                        0.72549,
+                        1
+                      ],
+                      "shader_seed": 96325,
+                      "rotation_period": 0,
+                      "orbit_radius": 39.730415,
+                      "orbit_period": 20,
+                      "orbit_start": 0.601413,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "gondra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Gondra",
+                "description": "",
+                "base": "",
+                "object_type": 0,
+                "size": 5,
+                "color_scaling": [
+                  "Color",
+                  0.894118,
+                  0.913725,
+                  0.294118,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.427451,
+                  -0.388235,
+                  -0.639216,
+                  1
+                ],
+                "shader_seed": 65871,
+                "rotation_period": 14,
+                "orbit_radius": 99.324524,
+                "orbit_period": 9,
+                "orbit_start": 0.720093,
+                "has_astral_gate": false,
+                "objects": {
+
                 }
               }
             ]
@@ -1155,6 +1699,12 @@
           "banner_default": 1
         }
       ]
+    }
+  ],
+  "ui": [
+    "SimpleNode",
+    {
+
     }
   ]
 }

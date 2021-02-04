@@ -137,7 +137,7 @@ func remove_space_object(_parent: NodePath, _child) -> bool:
 func cancel_drag() -> bool:
 	return $Split/Left/View/SystemView.stop_moving()
 
-func change_selection_to(node,center_view: bool) -> bool:
+func change_selection_to(node,center_view: bool = false) -> bool:
 	if node==null:
 		var _discard = set_panel_type(null)
 		selection = NodePath()

@@ -6,6 +6,7 @@ var starting_top: float
 var starting_bottom: float
 var starting_font_size: float
 const min_font_size: float = 9.0
+const max_font_size: float = 21.0
 
 func _ready():
 	starting_left=margin_left
@@ -35,4 +36,4 @@ func adjust_size() -> void:
 	margin_top = floor(starting_top*scale[1])
 	margin_bottom = ceil(starting_bottom*scale[1])
 	
-	theme.default_font.size=max(min_font_size,13*min(scale[0],scale[1]))
+	theme.default_font.size=clamp(14*min(scale[0],scale[1]),min_font_size,max_font_size)

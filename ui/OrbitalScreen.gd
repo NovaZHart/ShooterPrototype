@@ -84,22 +84,26 @@ func camera_and_label(system_name: String,planet_name: String):
 func astral_jump(system_node_name: String,planet_location: NodePath):
 	game_state.system=game_state.systems.get_node(system_node_name)
 	game_state.player_location=planet_location
-	planet.queue_free()
+#	planet.queue_free()
 	planet_info = game_state.get_space_object_or_null()
 	var system_info = game_state.system
 	if planet_info==null:
 		# Cannot land here
 		game_state.change_scene('res://ui/SpaceScreen.tscn')
 		return
-	planet=planet_info.make_planet(600,0)
+	
+	$View/Port/SpaceBackground.update_from(game_state.system)
+	yield(get_tree(),'idle_frame')
+	yield(get_tree(),'idle_frame')
+	
+	planet=planet_info.make_planet(600,0,planet)
 	planet.translation = Vector3(0,0,0)
-	add_child(planet)
 	if system_info.display_name == planet_info.display_name:
 		$LocationLabel.text=system_info.display_name
 	else:
 		$LocationLabel.text=planet_info.full_display_name()
+	yield(get_tree(),'idle_frame')
 	camera_and_label(system_info.display_name,planet.display_name)
-	$View/Port/SpaceBackground.update_from(game_state.system)
 	$ServiceSelector.update_service_list()
 	update_astral_gate()
 	game_state.print_to_console("Jumped to "+planet_info.display_name+" in the " \
@@ -115,7 +119,7 @@ func _input(event):
 		get_tree().set_input_as_handled()
 		deorbit()
 
-func _process(delta):
+func _physics_process(delta):
 	planet.rotate_y(0.4*delta)
 
 func _on_MainDialogTrigger_dialog_hidden():
