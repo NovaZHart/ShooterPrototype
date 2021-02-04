@@ -40,9 +40,9 @@ func change_scene(to):
 		return get_tree().change_scene(to)
 
 class KeyEditorStub extends Control:
-	func add_ui_for_action_event(_action: String, _event: InputEvent) -> bool:
+	func add_ui_for_action_event(_action: String, _event: InputEvent, _index: int) -> bool:
 		return true
-	func remove_ui_for_action_event(_action: String, _event: InputEvent) -> bool:
+	func remove_ui_for_action_event(_action: String, _event: InputEvent, _index: int) -> bool:
 		return true
 	func change_ui_for_action_event(_action: String, _old_event: InputEvent,
 			_new_event: InputEvent) -> bool:

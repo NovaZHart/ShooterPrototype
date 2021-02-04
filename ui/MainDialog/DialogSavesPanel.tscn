@@ -1,0 +1,71 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://ui/MainDialog/DialogPageSelector.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/MainDialog/DialogSavesPanel.gd" type="Script" id=2]
+[ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=3]
+
+[node name="DialogSavesPanel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Split" type="HSplitContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Left" type="GridContainer" parent="Split"]
+margin_right = 387.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="DialogPageSelector" parent="Split/Left" instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 387.0
+margin_bottom = 20.0
+enable_Saves = false
+
+[node name="Split" type="VSplitContainer" parent="Split/Left"]
+margin_top = 24.0
+margin_right = 387.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Info" parent="Split/Left/Split" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 387.0
+margin_bottom = 282.0
+initial_bbcode = "Select a save file."
+follow_urls = false
+allow_input = false
+
+[node name="Help" parent="Split/Left/Split" instance=ExtResource( 3 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 294.0
+margin_right = 387.0
+margin_bottom = 576.0
+
+[node name="Right" type="Tree" parent="Split"]
+margin_left = 399.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.6
+hide_root = true
+[connection signal="page_selected" from="Split/Left/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
+[connection signal="url_clicked" from="Split/Left/Split/Info" to="." method="_on_Info_url_clicked"]

@@ -91,3 +91,5 @@ margin_bottom = 17.0
 grow_horizontal = 2
 text = "            Input            "
 [connection signal="page_selected" from="Buttons/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
+[connection signal="pressed" from="Buttons/Undo" to="." method="_on_Undo_pressed"]
+[connection signal="pressed" from="Buttons/Redo" to="." method="_on_Redo_pressed"]

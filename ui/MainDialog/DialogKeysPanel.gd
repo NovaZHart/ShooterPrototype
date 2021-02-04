@@ -27,21 +27,31 @@ class AddOrRemoveActionEvent extends undo_tool.Action:
 	var action: String
 	var event: InputEvent
 	var add: bool
-	func _init(action_: String,event_: InputEvent,add_: bool):
+	var index: int
+	func _init(action_: String,event_: InputEvent,add_: bool,index_: int):
 		action=action_
 		event=event_
 		add=add_
+		index=index_
+		assert(event is InputEvent)
 	func run() -> bool:
+		assert(event is InputEvent)
+		print('run ',add)
 		if add:
 			InputMap.action_add_event(action,event)
+			game_state.key_editor.add_ui_for_action_event(action,event,index)
 		else:
+			game_state.key_editor.remove_ui_for_action_event(action,event,index)
 			InputMap.action_erase_event(action,event)
 		return true
 	func undo() -> bool:
+		print('undo ',add)
 		if add:
 			InputMap.action_erase_event(action,event)
+			game_state.key_editor.remove_ui_for_action_event(action,event,index)
 		else:
 			InputMap.action_add_event(action,event)
+			game_state.key_editor.add_ui_for_action_event(action,event,index)
 		return true
 
 class ChangeActionEvent extends undo_tool.Action:
@@ -68,14 +78,27 @@ var content = {}
 
 signal page_selected
 
+func _enter_tree():
+	game_state.game_editor_mode=true
+
 func _exit_tree():
+	game_state.input_edit_state.disconnect('undo_stack_changed',self,'update_buttons')
+	game_state.input_edit_state.disconnect('redo_stack_changed',self,'update_buttons')
 	game_state.set_key_editor(null)
+	input_state.save()
 
 func _ready():
+	game_state.input_edit_state.connect('undo_stack_changed',self,'update_buttons')
+	game_state.input_edit_state.connect('redo_stack_changed',self,'update_buttons')
 	game_state.set_key_editor(self)
 	fill_keys()
 	update_disabled_flags()
+	update_buttons()
 	$Scroll.rect_min_size.x = $Scroll/Panel.rect_size.x
+
+func update_buttons():
+	$Buttons/Redo.disabled = game_state.input_edit_state.redo_stack.empty()
+	$Buttons/Undo.disabled = game_state.input_edit_state.undo_stack.empty()
 
 func describe_event(event):
 	if event is InputEventKey:
@@ -89,7 +112,7 @@ func describe_event(event):
 	else:
 		return event.as_text()
 
-func add_button(text, callback, mode, action, event = null):
+func add_button(text, callback, mode, action, event = null, prior = null):
 	var button = Button.new()
 	button.text = text
 	if mode==ALIGN_LEFT:
@@ -98,13 +121,19 @@ func add_button(text, callback, mode, action, event = null):
 	elif mode==ALIGN_RIGHT:
 		button.size_flags_horizontal = 0
 		button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	$Scroll/Panel.add_child(button)
+	add_child_maybe_after($Scroll/Panel,button,prior)
 	button.connect('pressed', self, callback, [
 		action, event, button.get_path()
 	])
 	return button.get_path()
 
-func add_texture(texture, callback, mode, action, event = null):
+func add_child_maybe_after(parent,child, prior):
+	if prior:
+		parent.add_child_below_node(prior,child)
+	else:
+		parent.add_child(child)
+
+func add_texture(texture, callback, mode, action, event = null, prior = null):
 	var button = TextureButton.new()
 	button.texture_normal = texture
 	button.texture_disabled = EmptyTexture
@@ -116,16 +145,16 @@ func add_texture(texture, callback, mode, action, event = null):
 	elif mode==ALIGN_RIGHT:
 		button.size_flags_horizontal = 0
 		button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	$Scroll/Panel.add_child(button)
+	add_child_maybe_after($Scroll/Panel,button,prior)
 	button.connect('pressed', self, callback, [
 		action, event, button.get_path()
 	])
 	return button.get_path()
 
-func add_label(text):
+func add_label(text,prior=null):
 	var label = Label.new()
 	label.text = text
-	$Scroll/Panel.add_child(label)
+	add_child_maybe_after($Scroll/Panel,label,prior)
 	return label.get_path()
 
 class SortByValue extends Reference:
@@ -135,7 +164,8 @@ class SortByValue extends Reference:
 	func cmp(a,b):
 		return dict[a]<dict[b]
 
-func add_ui_for_action_event(action: String, event: InputEvent) -> bool:
+func add_ui_for_action_event(action: String, event: InputEvent, index: int) -> bool:
+	print('add ui for '+action+' event '+str(event))
 	if not action in content:
 		content[action] = {
 			'label': add_label(action_text[action]),
@@ -143,14 +173,50 @@ func add_ui_for_action_event(action: String, event: InputEvent) -> bool:
 			'empty': add_label(''),
 			'events': []
 		}
-	content[action]['events'].append({
-				'event': event,
-				'empty': add_label(''),
-				'remove': add_texture(RemoveTexture,'remove_action_event',ALIGN_LEFT,action,event),
-				'button': add_button(describe_event(event),'change_action_event',FILL,action,event),
-			})
+	
+	var prior = null
+	if index>=0:
+		var prior_path = null
+		if index==0:
+			prior_path = content[action]['empty']
+		else:
+			prior_path = content[action]['events'][index-1]['button']
+		prior = get_node_or_null(prior_path)
+		if not prior:
+			push_error('Node missing at path '+str(prior)+' when trying to add an event for '+action+' at index '+str(index))
+			return false
+	else:
+		index = len(content[action]['events'])
+	
+	var empty
+	var remove
+	var button
+	if prior:
+		button = add_button(describe_event(event),'change_action_event',FILL,action,event,prior)
+		remove = add_texture(RemoveTexture,'remove_action_event',ALIGN_LEFT,action,event,prior)
+		empty = add_label('',prior)
+	else:
+		empty = add_label('',prior)
+		remove = add_texture(RemoveTexture,'remove_action_event',ALIGN_LEFT,action,event,prior)
+		button = add_button(describe_event(event),'change_action_event',FILL,action,event,prior)
+		
+	content[action]['events'].insert(index,{
+		'event': event, 'empty':empty, 'remove':remove, 'button':button
+	})
+	
 	update_disabled_flags()
 	return true
+
+func index_of_action_event(action: String, event: InputEvent) -> int:
+	if not action in content:
+		push_warning('Tried to get index of an action "'+action+'" that was never added.')
+		return -1
+	var num_events = len(content[action]['events'])
+	for i in range(num_events):
+		if content[action]['events'][i]['event'] == event:
+			return i
+	push_warning('Could not find '+str(event)+' in action "'+action+'".')
+	return -1
 
 func remove_children_for_event(dict: Dictionary):
 	for key in dict:
@@ -160,18 +226,25 @@ func remove_children_for_event(dict: Dictionary):
 			if node:
 				node.queue_free()
 
-func remove_ui_for_action_event(action: String, event: InputEvent) -> bool:
+func remove_ui_for_action_event(action: String, event: InputEvent, index: int) -> bool:
+	print('remove ui for '+action)
 	var action_content = content.get(action,null)
 	if not action_content:
 		return false
-	for index in range(len(action_content['events'])):
-		if action_content['events'][index]['event'] == event:
-			print('match at index '+str(index))
-			remove_children_for_event(action_content['events'][index])
-			action_content['events'].remove(index)
-			update_disabled_flags()
-			return true
-	return false
+	if len(action_content['events']) <= index:
+		push_warning('Tried to remove event at index '+str(index) \
+			+' which is past the end of the action '+action \
+			+' array, length '+str(len(action_content['events'])))
+		return false
+	if action_content['events'][index]['event']!=event:
+		push_warning('Tried to move a mismatched event from index '+str(index) \
+			+' in action '+str(action)+'. Expected "'+str(event) \
+			+'", found "'+str(action_content['events'][index]['event']))
+		return false
+	remove_children_for_event(action_content['events'][index])
+	action_content['events'].remove(index)
+	update_disabled_flags()
+	return true
 
 func change_ui_for_action_event(action: String, old_event: InputEvent,
 		new_event: InputEvent) -> bool:
@@ -198,8 +271,8 @@ func fill_keys():
 	actions.sort_custom(SortByValue.new(action_text),'cmp')
 	for action in actions:
 		var events = InputMap.get_action_list(action)
-		for event in events:
-			var _discard = add_ui_for_action_event(action,event)
+		for n in range(len(events)):
+			var _discard = add_ui_for_action_event(action,events[n],-1)
 
 func update_disabled_flags():
 	for action in content:
@@ -217,38 +290,70 @@ func update_disabled_flags():
 					remove.disabled = false
 					remove.hint_tooltip = 'Remove this key.'
 
-func add_action_event(action,event,_path):
-	assert(event is InputEvent)
-	game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,event,true))
-
-func remove_action_event(action,event,_path):
-	assert(event is InputEvent)
-	game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,event,false))
-
-func change_action_event(action,event,_path):
-	assert(event is InputEvent)
+func pick_event(action: String):
 	var picker = get_node_or_null(picker_path)
-	if picker_path:
+	if picker:
+		assert(false)
+		print('picker path')
 		picker.visible=false
-		return
+		return null
+	print('make picker')
 	picker = KeyPicker.instance()
 	picker.replace_action = action
 	picker.action_text = action_text
 	picker.known_actions = content
 	get_viewport().add_child(picker)
 	picker_path = picker.get_path()
+	print('picker popup')
 	picker.popup()
+	assert(picker.visible)
 	while picker.visible:
 		yield(get_tree(),'idle_frame')
-	if picker.selected_event:
-		print('event selected')
-		game_state.input_edit_state.push(ChangeActionEvent.new(
-			action,event,picker.selected_event))
-	else:
-		print('no event picked')
+	var result = picker.selected_event
+	print('picker returned '+str(result))
 	if picker:
 		get_viewport().remove_child(picker)
 	picker_path=NodePath()
+	return result
+
+func add_action_event(action,_event,_path):
+	print("pick event")
+	var picked = pick_event(action)
+	while picked is GDScriptFunctionState and picked.is_valid():
+		picked = yield(picked, 'completed')
+	print('returned from pick event')
+	if picked:
+		assert(picked is InputEvent)
+		game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,picked,true,0))
+
+func remove_action_event(action,event,_path):
+	assert(event is InputEvent)
+	game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,event,false,
+		index_of_action_event(action,event)))
+
+func change_action_event(action,event,_path):
+	assert(event is InputEvent)
+	var picked = pick_event(action)
+	while picked is GDScriptFunctionState and picked.is_valid():
+		picked = yield(picked, 'completed')
+	if picked:
+		print('event selected')
+		game_state.input_edit_state.push(ChangeActionEvent.new(action,event,picked))
+	else:
+		print('no event picked')
 
 func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)
+
+func _input(event):
+	if is_visible_in_tree() and not picker_path:
+		if event.is_action_pressed('ui_undo'):
+			game_state.input_edit_state.undo()
+		elif event.is_action_pressed('ui_redo'):
+			game_state.input_edit_state.redo()
+
+func _on_Undo_pressed():
+	game_state.input_edit_state.undo()
+
+func _on_Redo_pressed():
+	game_state.input_edit_state.redo()

@@ -317,6 +317,60 @@ func decode_Fleet(v):
 	return Fleet.new(display_name,spawn_info)
 
 
+
+func decode_InputEvent(v):
+	if not v is Array or not len(v)==2:
+		push_warning('Unable to decode an input event from '+str(v))
+		return null
+	var dict = decode_helper(v[1])
+	var event = null
+	if v[0] == 'InputEventKey':
+		event = InputEventKey.new()
+		event.scancode = v['scancode']
+		event.unicode = v['unicode']
+	elif v[0] == 'InputEventJoypadButton':
+		event = InputEventJoypadButton.new()
+		event.button_index = v['button_index']
+		event.pressure = v['pressure']
+	
+	if event:
+		event.pressed = v['pressed']
+		event.alt = v['alt']
+		event.command = v['command']
+		event.control = v['control']
+		event.meta = v['meta']
+		event.shift = v['shift']
+		event.device = v['device']
+	
+	return event
+
+func encode_InputEvent(event: InputEvent):
+	if event is InputEventKey:
+		return [ 'InputEventKey', { 
+			'pressed': event.pressed,
+			'scancode': event.scancode,
+			'unicode': event.unicode,
+			'alt': event.alt,
+			'command': event.command,
+			'control': event.control,
+			'meta': event.meta,
+			'shift': event.shift,
+			'device': event.device
+		} ]
+	elif event is InputEventJoypadButton:
+		return [ 'InputEventJoypadButton', { 
+			'pressed': event.pressed,
+			'pressure': event.pressure,
+			'button_index': event.button_index,
+			'alt': event.alt,
+			'command': event.command,
+			'control': event.control,
+			'meta': event.meta,
+			'shift': event.shift,
+			'device': event.device
+		} ]
+
+
 func save_places_as_json(filename: String) -> bool:
 	print('save to file "',filename,'"')
 	var encoded: String = encode_places()
@@ -443,6 +497,8 @@ func decode_helper(what,key=null):
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
 		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
+		elif what[0].begins_with('InputEvent'):
+			return decode_InputEvent(what[0])
 		elif what[0] == 'Fleet':
 			return decode_Fleet(what)
 		elif what[0] == 'UIState':
@@ -492,6 +548,8 @@ func encode_helper(what):
 		return [ 'Vector3', what.x, what.y, what.z ]
 	elif what is Color:
 		return [ 'Color', what.r, what.g, what.b, what.a ]
+	elif what is InputEvent:
+		return encode_InputEvent(what)
 	elif what is Fleet:
 		return encode_Fleet(what)
 	elif what is UIState:

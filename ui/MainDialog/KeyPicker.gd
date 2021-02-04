@@ -6,10 +6,12 @@ var action_text: Dictionary = {}
 var selected_event = null
 
 func _ready():
+	print('picker ready')
 	$All/Instructions.text = 'Press a keyboard or joypad button.'
 	$All/Info.text = ''
 
 func _input(event):
+	print('picker event '+str(event))
 	if not is_visible_in_tree():
 		print('skip - not visible in tree')
 		return
@@ -30,6 +32,7 @@ func _input(event):
 		for event_content in action_content['events']:
 			if event_content['event'] == event:
 				$All/Info.text = 'Already used by '+action_text[action]+'.'
+				print('already used')
 				return
 	print('selected event')
 	selected_event = event

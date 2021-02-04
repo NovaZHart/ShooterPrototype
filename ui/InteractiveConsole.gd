@@ -61,7 +61,7 @@ func restore_state(state):
 
 func store_state():
 	return {
-		'Output':$Console/Output.text,
+		'Output':$Console/Output.bbcode_text,
 		'Input':$Console/Input.text,
 		'command_index':command_index.duplicate()
 	}

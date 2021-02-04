@@ -24,7 +24,7 @@ __meta__ = {
 }
 
 [node name="Left" type="GridContainer" parent="Split"]
-margin_right = 359.0
+margin_right = 295.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -32,13 +32,13 @@ size_flags_vertical = 3
 [node name="DialogPageSelector" parent="Split/Left" instance=ExtResource( 3 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 359.0
+margin_right = 295.0
 margin_bottom = 20.0
 enable_Help = false
 
 [node name="Tree" type="Tree" parent="Split/Left"]
 margin_top = 24.0
-margin_right = 359.0
+margin_right = 295.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -47,9 +47,9 @@ hide_root = true
 [node name="Help" parent="Split" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_left = 371.0
+margin_left = 307.0
 margin_right = 1024.0
 margin_bottom = 600.0
-size_flags_stretch_ratio = 1.8
+size_flags_stretch_ratio = 2.4
 [connection signal="page_selected" from="Split/Left/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="cell_selected" from="Split/Left/Tree" to="." method="_on_Tree_cell_selected"]

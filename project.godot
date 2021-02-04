@@ -30,6 +30,7 @@ ship_edits="*res://globals/ShipEdits.gd"
 combat_engine="*res://globals/CombatEngine.gd"
 mesh_loader="*res://globals/MeshLoaderNode.gd"
 builtin_commands="*res://globals/Commands.gd"
+input_state="*res://globals/InputState.gd"
 
 [display]
 
