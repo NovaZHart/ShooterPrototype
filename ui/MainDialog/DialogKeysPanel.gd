@@ -21,7 +21,28 @@ const action_text: Dictionary = {
 	'ui_deselect_target': 'Deselect Target',
 }
 
+var undo_stack_top_at_last_save = null
 var picker_path: NodePath = NodePath()
+var content = {}
+
+signal page_selected
+
+class SwapState extends undo_tool.Action:
+	var old_actions: Dictionary
+	var new_actions: Dictionary
+	func _init(new_actions_):
+		new_actions=new_actions_
+	func run() -> bool:
+		old_actions = input_state.encode_actions()
+		return redo()
+	func undo() -> bool:
+		input_state.set_actions(old_actions)
+		game_state.key_editor.reread_input_map()
+		return true
+	func redo() -> bool:
+		input_state.set_actions(new_actions)
+		game_state.key_editor.reread_input_map()
+		return true
 
 class AddOrRemoveActionEvent extends undo_tool.Action:
 	var action: String
@@ -74,10 +95,6 @@ class ChangeActionEvent extends undo_tool.Action:
 		game_state.key_editor.change_ui_for_action_event(action,new_event,old_event)
 		return true
 
-var content = {}
-
-signal page_selected
-
 func _enter_tree():
 	game_state.game_editor_mode=true
 
@@ -99,6 +116,10 @@ func _ready():
 func update_buttons():
 	$Buttons/Redo.disabled = game_state.input_edit_state.redo_stack.empty()
 	$Buttons/Undo.disabled = game_state.input_edit_state.undo_stack.empty()
+#	$Buttons/Save.disabled = undo_stack_top_at_last_save==null \
+#		or not game_state.input_edit_state.top() \
+#		or game_state.input_edit_state.top().get_instance_id() != \
+#		undo_stack_top_at_last_save
 
 func describe_event(event):
 	if event is InputEventKey:
@@ -266,7 +287,18 @@ func change_ui_for_action_event(action: String, old_event: InputEvent,
 			print('no match')
 	return false
 
+func reread_input_map():
+	while $Scroll/Panel.get_child_count() > 3:
+		var child = $Scroll/Panel.get_child(3)
+		if child:
+			$Scroll/Panel.remove_child(child)
+			child.queue_free()
+		else:
+			break # should never get here
+	fill_keys()
+
 func fill_keys():
+	content = {}
 	var actions = action_text.keys()
 	actions.sort_custom(SortByValue.new(action_text),'cmp')
 	for action in actions:
@@ -357,3 +389,14 @@ func _on_Undo_pressed():
 
 func _on_Redo_pressed():
 	game_state.input_edit_state.redo()
+
+func _on_Save_pressed():
+	input_state.save()
+#	undo_stack_top_at_last_save = game_state.input_edit_state.top().get_instance_id()
+#	update_buttons()
+
+func _on_Revert_pressed():
+	game_state.input_edit_state.push(SwapState.new(input_state.loaded_actions))
+
+func _on_Default_pressed():
+	game_state.input_edit_state.push(SwapState.new(input_state.default_actions))

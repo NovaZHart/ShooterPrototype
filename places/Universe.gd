@@ -318,30 +318,31 @@ func decode_Fleet(v):
 
 
 
-func decode_InputEvent(v):
-	if not v is Array or not len(v)==2:
-		push_warning('Unable to decode an input event from '+str(v))
+func decode_InputEvent(data):
+	if not data is Array or not len(data)==2:
+		push_warning('Unable to decode an input event from '+str(data))
 		return null
-	var dict = decode_helper(v[1])
+	print('decode input event')
+	var v = decode_helper(data[1])
 	var event = null
-	if v[0] == 'InputEventKey':
+	if data[0] == 'InputEventKey':
 		event = InputEventKey.new()
 		event.scancode = v['scancode']
 		event.unicode = v['unicode']
-	elif v[0] == 'InputEventJoypadButton':
+		event.alt = v['alt']
+		event.command = v['command']
+		event.control = v['control']
+		event.meta = v['meta']
+		event.shift = v['shift']
+	elif data[0] == 'InputEventJoypadButton':
 		event = InputEventJoypadButton.new()
 		event.button_index = v['button_index']
 		event.pressure = v['pressure']
 	
 	if event:
 		event.pressed = v['pressed']
-		event.alt = v['alt']
-		event.command = v['command']
-		event.control = v['control']
-		event.meta = v['meta']
-		event.shift = v['shift']
 		event.device = v['device']
-	
+	assert(event==null or event is InputEvent)
 	return event
 
 func encode_InputEvent(event: InputEvent):
@@ -362,13 +363,10 @@ func encode_InputEvent(event: InputEvent):
 			'pressed': event.pressed,
 			'pressure': event.pressure,
 			'button_index': event.button_index,
-			'alt': event.alt,
-			'command': event.command,
-			'control': event.control,
-			'meta': event.meta,
-			'shift': event.shift,
 			'device': event.device
 		} ]
+	else:
+		push_error('Cannot encode unrecognized object '+str(event))
 
 
 func save_places_as_json(filename: String) -> bool:
@@ -487,18 +485,24 @@ func decode_helper(what,key=null):
 	elif what is Array:
 		if not what:
 			return null
-		if what[0]=='Resource' and len(what)>1:
-			return ResourceLoader.load(str(what[1]))
-		elif what[0]=='Vector2' and len(what)>=3:
+		if not what[0] is String:
+			push_warning('Found an array that did not begin with a string when decoding. Returning null.')
+			return null
+		if what[0]=='Vector2' and len(what)>=3:
 			return Vector2(float(what[1]),float(what[2]))
 		elif what[0]=='Array':
-			return what.slice(1,len(what))
+			var result = []
+			result.resize(len(what)-1)
+			for n in range(1,len(what)):
+				result[n-1] = decode_helper(what[n])
+			return result
 		elif what[0]=='Vector3' and len(what)>=4:
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
 		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0].begins_with('InputEvent'):
-			return decode_InputEvent(what[0])
+			print('decode input event')
+			return decode_InputEvent(what)
 		elif what[0] == 'Fleet':
 			return decode_Fleet(what)
 		elif what[0] == 'UIState':
@@ -520,8 +524,11 @@ func decode_helper(what,key=null):
 			result.set_name(key)
 			decode_children(result,what[1])
 			return result
+		elif what[0]=='Resource' and len(what)>1:
+			return ResourceLoader.load(str(what[1]))
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
+	push_warning('Unrecognized type encountered in decode_helper; returning null.')
 	return null
 
 
@@ -540,8 +547,6 @@ func encode_helper(what):
 		for value in what:
 			result.append(encode_helper(value))
 		return result
-	elif what is Resource:
-		return [ 'Resource', what.resource_path ]
 	elif what is Vector2:
 		return [ 'Vector2', what.x, what.y ]
 	elif what is Vector3:
@@ -549,6 +554,7 @@ func encode_helper(what):
 	elif what is Color:
 		return [ 'Color', what.r, what.g, what.b, what.a ]
 	elif what is InputEvent:
+		print('encode input event')
 		return encode_InputEvent(what)
 	elif what is Fleet:
 		return encode_Fleet(what)
@@ -562,6 +568,8 @@ func encode_helper(what):
 		return encode_Mounted(what)
 	elif what is ShipDesign:
 		return encode_ShipDesign(what)
+	elif what is Resource:
+		return [ 'Resource', what.resource_path ]
 	elif what is simple_tree.SimpleNode and what.has_method('encode'):
 		var encoded = encode_helper(what.encode())
 		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'

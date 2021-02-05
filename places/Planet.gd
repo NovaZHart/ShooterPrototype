@@ -112,6 +112,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
 		u_size = choose_texture_size(texture_size,texture_size)
 		print('Requested texture size ',texture_size,'; using ',u_size)
+# warning-ignore:integer_division
 		v_size = u_size/2
 	
 		sphere = SphereTool.new()
