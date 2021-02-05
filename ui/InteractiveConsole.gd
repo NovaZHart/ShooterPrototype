@@ -86,7 +86,7 @@ func fqdn() -> String:
 	if not hostname:
 		hostname='orbit'
 	if not domain:
-		var loc = game_state.get_info_or_null()
+		var loc = Player.get_info_or_null()
 		if not loc:
 			domain='cosmos'
 		else:

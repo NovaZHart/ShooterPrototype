@@ -360,10 +360,10 @@ class ShipEditorToFleetEditor extends undo_tool.Action:
 			var _discard = game_state.ship_designs.add_child(design_node)
 			push_error('cannot add player_ship_design to tree')
 			return false
-		game_state.player_ship_design=decoded
+		Player.player_ship_design=decoded
 		return true
 	func run():
-		old_design = game_state.universe.encode_helper(game_state.player_ship_design)
+		old_design = game_state.universe.encode_helper(Player.player_ship_design)
 		new_design = game_state.ship_editor.make_edited_ship_design()
 		if not new_design.has_method('is_ShipDesign'):
 			new_design = old_design
@@ -412,7 +412,7 @@ class FleetEditorToShipEditor extends undo_tool.Action:
 			var _discard = game_state.ship_designs.add_child(design_node)
 			push_error('cannot add player_ship_design to tree')
 			return false
-		game_state.player_ship_design=decoded
+		Player.player_ship_design=decoded
 		return true
 	func run() -> bool:
 		if not design_to_edit.is_empty():
@@ -421,7 +421,7 @@ class FleetEditorToShipEditor extends undo_tool.Action:
 				push_error("There is no design at path "+str(design_to_edit))
 				return false
 			new_design = game_state.universe.encode_helper(design)
-			old_design = game_state.universe.encode_helper(game_state.player_ship_design)
+			old_design = game_state.universe.encode_helper(Player.player_ship_design)
 		return redo()
 	func undo() -> bool:
 		if not set_design(old_design):

@@ -6,9 +6,19 @@ var action_text: Dictionary = {}
 var selected_event = null
 
 func _ready():
-	print('picker ready')
+	if get_tree().current_scene==self:
+		call_deferred('popup')
 	$All/Instructions.text = 'Press a keyboard or joypad button.'
 	$All/Info.text = ''
+
+func _process(_delta):
+	if visible and not has_focus():
+		print('grab focus')
+		grab_focus()
+	if visible:
+		print('raise')
+		raise()
+		set_process_input(true)
 
 func _input(event):
 	print('picker event '+str(event))
@@ -17,13 +27,14 @@ func _input(event):
 		return
 	if event is InputEventMouseMotion:
 		print('skip - is mouse motion')
+		return
 	if not (event is InputEventKey or event is InputEventJoypadButton):
 		print('skip - not right event type')
-		$All/Info.text = 'Must be a keyboard or joypad button.'
+#		$All/Info.text = 'Must be a keyboard or joypad button.'
 		return
 	if not event.is_action_type():
 		print('skip - is not action type')
-		$All/Info.text = 'Must be a keyboard or joypad button.'
+#		$All/Info.text = 'Must be a keyboard or joypad button.'
 		return
 	for action in known_actions:
 		if action == replace_action:

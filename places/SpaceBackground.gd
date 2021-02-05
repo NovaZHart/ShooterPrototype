@@ -21,7 +21,6 @@ onready var StarFieldGenerator = preload("res://places/StarFieldGenerator.shader
 
 func update_texture(view: Viewport, object: MeshInstance, shader_param: String,
 		flags: int, has_valid_image: bool) -> bool:
-	print('update texture ',tick)
 	var tex = view.get_texture()
 	if tex == null:
 		printerr('Texture is null!?')

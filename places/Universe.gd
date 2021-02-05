@@ -167,7 +167,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 			cached_stats['weapons'][i]['node_path']=NodePath()
 	
 	func assemble_part(body: Node, child: Node) -> bool:
-		var part = get_node_or_null(child.name)
+		var part = get_child_with_name(child.name)
 		if not part:
 			return false
 		elif part is MultiMount:
@@ -322,7 +322,6 @@ func decode_InputEvent(data):
 	if not data is Array or not len(data)==2:
 		push_warning('Unable to decode an input event from '+str(data))
 		return null
-	print('decode input event')
 	var v = decode_helper(data[1])
 	var event = null
 	if data[0] == 'InputEventKey':
@@ -370,7 +369,6 @@ func encode_InputEvent(event: InputEvent):
 
 
 func save_places_as_json(filename: String) -> bool:
-	print('save to file "',filename,'"')
 	var encoded: String = encode_places()
 	var file: File = File.new()
 	if file.open(filename, File.WRITE):
@@ -384,7 +382,6 @@ func load_places_from_json(filename: String) -> bool:
 	assert(children_.has('systems'))
 	assert(children_.has('ship_designs'))
 	assert(children_.has('fleets'))
-	print('load from file "',filename,'"')
 	var file: File = File.new()
 	if file.open(filename, File.READ):
 		printerr('Cannot open file '+filename+'!!')
@@ -392,15 +389,14 @@ func load_places_from_json(filename: String) -> bool:
 	var encoded: String = file.get_as_text()
 	file.close()
 	var system_name = null
-	if game_state and game_state.system:
-		system_name = game_state.system.get_name()
+	if Player and Player.system:
+		system_name = Player.system.get_name()
 	var success = decode_places(encoded,filename)
 	emit_signal('reset_system')
-	if game_state:
-		if system_name:
-			var system = game_state.systems.get_node_or_null(system_name)
-			if system:
-				game_state.system = system
+	if system_name:
+		var system = game_state.systems.get_node_or_null(system_name)
+		if system:
+			Player.system = system
 	return success
 
 
@@ -501,8 +497,9 @@ func decode_helper(what,key=null):
 		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0].begins_with('InputEvent'):
-			print('decode input event')
 			return decode_InputEvent(what)
+		elif what[0] == 'NodePath' and len(what)>1:
+			return NodePath(what[1])
 		elif what[0] == 'Fleet':
 			return decode_Fleet(what)
 		elif what[0] == 'UIState':
@@ -554,8 +551,9 @@ func encode_helper(what):
 	elif what is Color:
 		return [ 'Color', what.r, what.g, what.b, what.a ]
 	elif what is InputEvent:
-		print('encode input event')
 		return encode_InputEvent(what)
+	elif what is NodePath:
+		return [ 'NodePath', str(what) ]
 	elif what is Fleet:
 		return encode_Fleet(what)
 	elif what is UIState:

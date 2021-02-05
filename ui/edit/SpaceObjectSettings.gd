@@ -32,7 +32,7 @@ func _ready():
 	$Basic/Top/TypeOptions.selected = 0
 	$Visual/View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
 	$Visual/View/Port/SpaceBackground.center_view(130,90,0,100,0)
-	$Visual/View/Port/SpaceBackground.update_from(game_state.system)
+	$Visual/View/Port/SpaceBackground.update_from(Player.system)
 	$Visual/View/Port/Camera.set_identity()
 	$Visual/View/Port/Camera.rotate_x(-0.575959)
 	$Visual/View/Port/Camera.rotate_y(-0.14399)
@@ -61,7 +61,7 @@ func generate_object_view():
 	object_node.translation = Vector3(0,0,0)
 	object_node.name = 'Object'
 	$Visual/View/Port.add_child(object_node)
-	$Visual/View/Port/SpaceBackground.update_from(game_state.system)
+	$Visual/View/Port/SpaceBackground.update_from(Player.system)
 	sync_view_size()
 
 func sync_view_size():

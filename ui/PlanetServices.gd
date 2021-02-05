@@ -33,10 +33,10 @@ class ChildInstanceService extends Service:
 
 class PlanetDescription extends ChildInstanceService:
 	func is_available() -> bool:
-		var info = game_state.get_space_object_or_null()
+		var info = Player.get_space_object_or_null()
 		return not info==null and not info.description.empty()
 	func create(_tree: SceneTree) -> Node:
-		var info = game_state.get_space_object_or_null()
+		var info = Player.get_space_object_or_null()
 		var scene = resource.instance()
 		var desc = '' if info==null else info.description
 		if not desc.empty():

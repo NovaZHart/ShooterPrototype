@@ -58,7 +58,7 @@ func player_has_a_ship() -> bool:
 
 func update_space_background(from=null):
 	if from==null:
-		from=game_state.system
+		from=Player.system
 	var result = $SpaceBackground.update_from(from)
 	while result is GDScriptFunctionState and result.is_valid():
 		result = yield(result,'completed')
@@ -211,7 +211,7 @@ func pack_planet_stats_if_not_sent() -> Array:
 func _physics_process(delta):
 	physics_tick += 1
 	
-	var make_me: Array = game_state.system.process_space(self,delta)
+	var make_me: Array = Player.system.process_space(self,delta)
 	
 	team_stats_mutex.lock()
 	for ship in make_me:
@@ -284,7 +284,7 @@ func _physics_process(delta):
 				if node==null:
 					push_warning('PLANET '+planet_name+' HAS NO NODE!')
 				else:
-					game_state.player_location=node.game_state_path
+					Player.player_location=node.game_state_path
 				clear()
 				get_tree().current_scene.change_scene(load('res://ui/OrbitalScreen.tscn'))
 				return
@@ -369,9 +369,9 @@ func clear() -> void: # must be called in visual thread
 
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
-	#game_state.system.fill_system(self,planet_time,ship_time,detail)
+	#Player.system.fill_system(self,planet_time,ship_time,detail)
 	
-	var make_me: Array = game_state.system.fill_system(self,planet_time,ship_time,detail)
+	var make_me: Array = Player.system.fill_system(self,planet_time,ship_time,detail)
 	team_stats_mutex.lock()
 	for ship in make_me:
 		var team: int = ship[4] # "team" argument to spawn_ship

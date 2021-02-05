@@ -26,8 +26,8 @@ func _enter_tree():
 
 func _ready():
 	$Split/Left.set_focus_mode(Control.FOCUS_CLICK)
-	$Split/Left/View/SystemView.set_system(game_state.system)
-	$Split/Right/Top/Tree.set_system(game_state.system)
+	$Split/Left/View/SystemView.set_system(Player.system)
+	$Split/Right/Top/Tree.set_system(Player.system)
 	$Split/Left/View.size=$Split/Left.rect_size
 	$Split/Left/View/SystemView.center_view(Vector3(0.0,0.0,0.0))
 	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
@@ -126,12 +126,12 @@ func update_space_object_data(path: NodePath, basic: bool, visual: bool,
 
 func add_space_object(_parent: NodePath, _child) -> bool:
 	$Split/Right/Top/Tree.update_system()
-	$Split/Left/View/SystemView.set_system(game_state.system)
+	$Split/Left/View/SystemView.set_system(Player.system)
 	return true
 
 func remove_space_object(_parent: NodePath, _child) -> bool:
 	$Split/Right/Top/Tree.update_system()
-	$Split/Left/View/SystemView.set_system(game_state.system)
+	$Split/Left/View/SystemView.set_system(Player.system)
 	return true
 
 func cancel_drag() -> bool:
@@ -145,8 +145,8 @@ func change_selection_to(node,center_view: bool = false) -> bool:
 		$Split/Right/Top/Tree.select_node_with_path(NodePath())
 	elif node.has_method('is_SystemData'):
 		var control: Control = set_panel_type(SystemSettings)
-		control.set_system(game_state.system)
-		selection = game_state.system.get_path()
+		control.set_system(Player.system)
+		selection = Player.system.get_path()
 		if control.connect('edit_complete',self,'give_focus_to_view')!=OK:
 			push_error('cannot connect edit_complete')
 		$Split/Left/View/SystemView.deselect()

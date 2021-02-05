@@ -46,8 +46,8 @@ func update_system_list():
 func update_selectability():
 	for i in range(get_item_count()):
 		var system_and_gate = get_item_metadata(i)
-		var i_am_here = system_and_gate[0] == game_state.system.get_name() and \
-			system_and_gate[1] == game_state.player_location
+		var i_am_here = system_and_gate[0] == Player.system.get_name() and \
+			system_and_gate[1] == Player.player_location
 		set_item_disabled(i,i_am_here)
 		set_item_selectable(i,not i_am_here)
 

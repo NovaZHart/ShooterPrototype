@@ -5,14 +5,13 @@ const standalone_max_ships: int = 300
 const debug_team_maximums: Array = [35, 35]
 const debug_max_ships: int = 60
 
+var current_day: float = 0
 var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
 
 var Universe = preload('res://places/Universe.gd')
 var PlanetServices = load('res://ui/PlanetServices.gd')
 
-var system setget set_system,get_system
-var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
@@ -26,8 +25,9 @@ var systems
 var ship_designs
 var fleets
 var ui
-var player_ship_design
 
+signal universe_preload
+signal universe_postload
 signal console_append
 
 func change_scene(to):
@@ -144,27 +144,6 @@ func print_to_console(s: String):
 func set_stored_console(s: String): stored_console=s
 func get_stored_console() -> String: return stored_console
 
-func get_system(): return system
-func set_system(var s):
-	if s is NodePath:
-		var system_at_path = systems.get_node_or_null(s)
-		if not system_at_path.has_method('is_SystemData'):
-			push_error('Tried to go to a non-system at path '+str(s))
-			return system
-		system = system_at_path
-	elif s is simple_tree.SimpleNode:
-		var s_path = s.get_path()
-		var system_at_path = systems.get_node_or_null(s_path)
-		if not system_at_path.has_method('is_SystemData'):
-			push_error('Specified system is not in tree at path '+str(s_path))
-			return system
-		system = system_at_path
-	elif s is String:
-		var system_for_name = systems.get_child_with_name(s)
-		if system_for_name:
-			system = system_for_name
-			player_location = systems.get_path_to(system)
-		return system
 
 func get_sphere_xyz(sphere):
 	if not sphere_xyz:
@@ -183,74 +162,11 @@ func save_universe_as_json(filename: String) -> bool:
 	return success
 
 func load_universe_from_json(file_path: String):
-	var system_path = system.get_path() if system else NodePath()
-	var player_path = player_location
-	system=null
-	player_location=NodePath()
+	emit_signal('universe_preload')
 	if not universe.load_places_from_json(file_path):
 		push_error('Failed to load places from json at path "'+file_path+'"')
 		return false
-	if player_path:
-		set_player_location(player_path)
-		return true
-	elif system_path:
-		set_system(system_path)
-		return true
-	else:
-		var system_names = systems.get_child_names()
-		if system_names:
-			set_system(system_names[0])
-			if system:
-				push_warning('After load, system '+str(system_path)
-					+' no longer exists. Will go to system '+system.get_path())
-				return true
-		push_error('After load, no systems exist. Universe is empty. Player is at an invalid location.')
-		return false
-	
-func get_player_location() -> NodePath: return player_location
-func set_player_location(s: NodePath):
-	var n = systems.get_node_or_null(s)
-	if n!=null:
-		var loc = systems.get_path_to(n)
-		assert(loc)
-		var system_name = loc.get_name(0)
-		assert(systems.has_child(system_name))
-		if systems.has_child(system_name):
-			system = systems.get_child_with_name(system_name)
-			player_location = n.get_path()
-	else:
-		push_error('no SimpleNode at path '+str(s))
-	return player_location
-
-func get_player_translation(planet_time: float) -> Vector3:
-	var node = systems.get_node_or_null(player_location)
-	if node==null or not node.has_method('planet_translation'):
-		return Vector3()
-	return node.planet_translation(planet_time)
-
-func get_space_object_unique_name() -> String:
-	var n = systems.get_node_or_null(player_location)
-	if n!=null and n.has_method('is_SpaceObjectData'):
-		return n.make_unique_name()
-	return ""
-
-func get_space_object_or_null():
-	var n = systems.get_node_or_null(player_location)
-	if n!=null and n.has_method('is_SpaceObjectData'):
-		return n
-	push_error('SimpleNode '+str(n)+' is not a SpaceObjectData')
-	return null
-
-func get_info_or_null():
-	var n: simple_tree.SimpleNode = systems.get_node_or_null(player_location)
-	if n!=null and n is simple_tree.SimpleNode:
-		return n
-	return null
-
-func assemble_player_ship(): # -> RigidBody or null
-	if not player_ship_design:
-		return null
-	return player_ship_design.assemble_ship()
+	emit_signal('universe_postload')
 
 func assemble_ship(design_path: NodePath): # -> RigidBody or null
 	var design = ship_designs.get_node_or_null(design_path)
@@ -285,17 +201,7 @@ func _init():
 #	assert(systems.get_node_or_null(NodePath('alef_93/astra')))
 	assert(tree.root_.children_.has('ship_designs'))
 	assert(tree.root_.children_.has('systems'))
-	assert(tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
-	var pearl = systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
-	assert(pearl)
-	set_player_location(pearl.get_path())
-	assert(player_location)
-	assert(system)
-
-	var banner_godship = ship_designs.get_node_or_null('godship')
-	assert(banner_godship)
-	player_ship_design = banner_godship
-
+	
 	if not OS.has_feature('standalone'):
 		max_ships = debug_max_ships
 		team_maximums = debug_team_maximums

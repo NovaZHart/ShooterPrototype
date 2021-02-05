@@ -13,8 +13,8 @@ signal jump_complete
 
 func _ready():
 	combat_engine.clear_visuals()
-	var system_name = game_state.system.display_name
-	planet_info = game_state.get_space_object_or_null()
+	var system_name = Player.system.display_name
+	planet_info = Player.get_space_object_or_null()
 	assert(planet_info)
 	if planet_info==null:
 		# Cannot land here
@@ -29,7 +29,7 @@ func _ready():
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
 	$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
 	$View/Port/SpaceBackground.center_view(130,90,0,100,0)
-	$View/Port/SpaceBackground.update_from(game_state.system)
+	$View/Port/SpaceBackground.update_from(Player.system)
 	update_astral_gate()
 	$ServiceSelector.update_service_list()
 	var _discard = get_viewport().connect('size_changed',self,'force_viewport_size')
@@ -82,17 +82,17 @@ func camera_and_label(system_name: String,planet_name: String):
 	$View/Port/Camera.translate_object_local(Vector3(0.0,0.0,10.0))
 
 func astral_jump(system_node_name: String,planet_location: NodePath):
-	game_state.system=game_state.systems.get_node(system_node_name)
-	game_state.player_location=planet_location
+	Player.system=game_state.systems.get_node(system_node_name)
+	Player.player_location=planet_location
 #	planet.queue_free()
-	planet_info = game_state.get_space_object_or_null()
-	var system_info = game_state.system
+	planet_info = Player.get_space_object_or_null()
+	var system_info = Player.system
 	if planet_info==null:
 		# Cannot land here
 		game_state.change_scene('res://ui/SpaceScreen.tscn')
 		return
 	
-	$View/Port/SpaceBackground.update_from(game_state.system)
+	$View/Port/SpaceBackground.update_from(Player.system)
 	yield(get_tree(),'idle_frame')
 	yield(get_tree(),'idle_frame')
 	

@@ -264,15 +264,15 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
 	var target: CollisionObject = there.get('collider',null)
 	if not target:
-		push_warning('No mount under that location.')
+		print('No mount under that location.')
 		return false
 	var mount_name: String = target.get_mount_name()
 	var mount = mounts.get_child_with_name(mount_name)
 	if not mount_name:
-		push_error('Tried to drag into mount "'+mount_name+'" which does not exist.')
+		push_warning('Tried to drag into mount "'+mount_name+'" which does not exist.')
 		return false
 	if mount.mount_type != item.mount_type:
-		push_warning('Mount type mismatch: item='+item.mount_type+' mount='+mount.mount_type)
+		print('Mount type mismatch: item='+item.mount_type+' mount='+mount.mount_type)
 		return false
 	var x = -1
 	var y = -1
@@ -321,7 +321,7 @@ func unmount(mount_name: String,x: int,y: int) -> bool:
 		var child_name = 'cell_'+str(scene_x_y[1])+'_'+str(scene_x_y[2])
 		var old_child = ship_mount.get_node_or_null(child_name)
 		if old_child==null:
-			push_warning('Cannot find unmounted item "'+child_name+'" in ship.')
+			print('Cannot find unmounted item "'+child_name+'" in ship.')
 		else:
 			ship_mount.remove_child(old_child) # make the node name available again
 			old_child.queue_free()
@@ -344,11 +344,11 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 	# The location is based on the area location and item size.
 	var inventory_array = $Viewport.get_node_or_null(mount.box)
 	if inventory_array==null:
-		push_warning('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
+		print('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
 		return false
 	var ship_mount = $Viewport/Ship.get_node_or_null(mount.get_name())
 	if ship_mount==null:
-		push_warning('no ship mount for '+mount.get_name())
+		print('no ship mount for '+mount.get_name())
 		return false
 	var x_y = inventory_array.insert_at_grid_range(content,use_item_offset)
 	if not x_y:
@@ -517,7 +517,7 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 	var contents: simple_tree.SimpleNode = design.get_child_with_name(mount_name)
 	assert(contents)
 	if not contents:
-		push_warning('no node for multimount '+mount_name)
+		print('no node for multimount '+mount_name)
 		return
 	for item in contents.get_children():
 		if not item.has_method('is_MultiMounted'):
@@ -537,10 +537,10 @@ func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# or multimount.
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount:
-		push_warning('no mounts for '+mount_name)
+		print('no mounts for '+mount_name)
 		return false
 	if content.mount_type!=mount.mount_type:
-		push_warning('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
+		print('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
 		return false
 	if not content.scene:
 		push_warning('content has no scene '+mount_name)
@@ -582,11 +582,11 @@ func set_layer_recursively(node: Node,layer: int):
 
 func _ready():
 	$Viewport.size = rect_size
-	$Viewport/SpaceBackground.update_from(game_state.system)
+	$Viewport/SpaceBackground.update_from(Player.system)
 	$Viewport/Red.layers = RED_LIGHT_CULL_LAYER
 	$Viewport/Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$Viewport/SpaceBackground.center_view(130,90,0,120,0)
-	make_ship(game_state.player_ship_design)
+	make_ship(Player.player_ship_design)
 	emit_signal('pixel_height_changed',get_cell_pixel_height())
 
 func _on_ViewportContainer_resized():

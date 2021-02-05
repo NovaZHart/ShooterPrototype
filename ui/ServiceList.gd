@@ -23,7 +23,7 @@ func _ready():
 
 func update_service_list():
 	clear()
-	var planet_info = game_state.get_space_object_or_null()
+	var planet_info = Player.get_space_object_or_null()
 	var service_names = [] if planet_info==null else planet_info.services
 	var i=0
 	for service_name in service_names:

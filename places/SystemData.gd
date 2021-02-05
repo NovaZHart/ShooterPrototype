@@ -157,8 +157,8 @@ func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array
 func spawn_player(system: Spatial,t: float):
 	var add_radius = 50*sqrt(rng.randf())
 	var angle = rng.randf()*2*PI
-	var center = game_state.get_player_translation(t)
-	return spawn_ship(system,game_state.player_ship_design,
+	var center = Player.get_player_translation(t)
+	return spawn_ship(system,Player.player_ship_design,
 		0,angle,add_radius,0,0,10,center,true)
 
 func process_space(system,delta) -> Array:

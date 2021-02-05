@@ -28,14 +28,11 @@ func encode_actions():
 
 func save():
 	var encoded = encode_actions()
-	print(str(encoded))
 	save_actions(encoded)
 	loaded_actions = encoded
 
 func set_actions(encoded):
-	print('decode '+str(encoded).substr(0,100))
 	var decoded = game_state.universe.decode_helper(encoded)
-	print('decoded as '+str(decoded).substr(0,100))
 	if not decoded:
 		push_error('Could not decode actions in set_actions')
 		return
@@ -44,9 +41,7 @@ func set_actions(encoded):
 			InputMap.add_action(action)
 		else:
 			InputMap.action_erase_events(action)
-		print(str(decoded[action]))
 		for event in decoded[action]:
-			print(str(event))
 			InputMap.action_add_event(action,event)
 
 func save_actions(encoded,path=input_path):
@@ -69,7 +64,6 @@ func load_actions(path=input_path):
 	if parsed.error:
 		push_error(path+':'+str(parsed.error_line)+': '+parsed.error_string)
 		return null
-	#print('loaded actions: '+str(parsed.result))
 	return parsed.result
 #	var decoded = game_state.universe.decode_helper(parsed.result)
 #	if not decoded or not decoded is Dictionary:
@@ -86,11 +80,8 @@ func _init():
 	
 	var file: File = File.new()
 	if file.file_exists(input_path):
-		push_warning('load from '+input_path)
 		loaded_actions = load_actions()
 	if not loaded_actions:
-		push_warning('could not load')
 		loaded_actions = encode_actions()
 	else:
-		push_warning('set loaded actions')
 		set_actions(loaded_actions)

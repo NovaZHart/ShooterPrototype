@@ -95,9 +95,6 @@ class ChangeActionEvent extends undo_tool.Action:
 		game_state.key_editor.change_ui_for_action_event(action,new_event,old_event)
 		return true
 
-func _enter_tree():
-	game_state.game_editor_mode=true
-
 func _exit_tree():
 	game_state.input_edit_state.disconnect('undo_stack_changed',self,'update_buttons')
 	game_state.input_edit_state.disconnect('redo_stack_changed',self,'update_buttons')
@@ -325,16 +322,13 @@ func update_disabled_flags():
 func pick_event(action: String):
 	var picker = get_node_or_null(picker_path)
 	if picker:
-		assert(false)
-		print('picker path')
 		picker.visible=false
 		return null
-	print('make picker')
 	picker = KeyPicker.instance()
 	picker.replace_action = action
 	picker.action_text = action_text
 	picker.known_actions = content
-	get_viewport().add_child(picker)
+	get_tree().root.add_child(picker)
 	picker_path = picker.get_path()
 	print('picker popup')
 	picker.popup()
@@ -344,7 +338,7 @@ func pick_event(action: String):
 	var result = picker.selected_event
 	print('picker returned '+str(result))
 	if picker:
-		get_viewport().remove_child(picker)
+		get_tree().root.remove_child(picker)
 	picker_path=NodePath()
 	return result
 

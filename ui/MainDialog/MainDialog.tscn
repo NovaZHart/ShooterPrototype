@@ -25,6 +25,14 @@ anchor_bottom = 0.9
 theme = SubResource( 2 )
 script = ExtResource( 2 )
 
+[node name="Keys" parent="." instance=ExtResource( 6 )]
+pause_mode = 2
+visible = false
+margin_left = 4.0
+margin_top = 4.0
+margin_right = -4.0
+margin_bottom = -4.0
+
 [node name="Help" parent="." instance=ExtResource( 3 )]
 visible = false
 margin_left = 4.0
@@ -46,13 +54,6 @@ margin_top = 4.0
 margin_right = -4.0
 margin_bottom = -4.0
 
-[node name="Keys" parent="." instance=ExtResource( 6 )]
-visible = false
-margin_left = 4.0
-margin_top = 4.0
-margin_right = -4.0
-margin_bottom = -4.0
-
 [node name="Saves" parent="." instance=ExtResource( 7 )]
 visible = false
 margin_left = 4.0
@@ -65,9 +66,9 @@ margin_left = 4.0
 margin_top = 4.0
 margin_right = -4.0
 margin_bottom = -4.0
+[connection signal="page_selected" from="Keys" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Help" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Ship" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Map" to="." method="_on_page_selected"]
-[connection signal="page_selected" from="Keys" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Saves" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Exit" to="." method="_on_page_selected"]

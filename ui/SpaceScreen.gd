@@ -189,7 +189,7 @@ func _process(delta: float) -> void:
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var system_name = game_state.system.display_name
+	var system_name = Player.system.display_name
 	$LocationLabel.text=system_name
 	game_state.print_to_console('Entered system '+system_name)
 	var _discard = $System.connect("view_center_changed",$System/Minimap,"view_center_changed")

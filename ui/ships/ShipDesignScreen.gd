@@ -108,7 +108,7 @@ func exit_to_orbit():
 	if node:
 		game_state.ship_designs.remove_child(node)
 	game_state.ship_designs.add_child(design)
-	game_state.player_ship_design=design
+	Player.player_ship_design=design
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func reset_parts_and_designs():

@@ -53,7 +53,7 @@ func _on_Ship_select_item(collider):
 		$Split/Left/Consoles/Help.process_command('help '+page)
 
 func _on_Info_url_clicked(meta):
-	$Split/Left/Consoles/Help.process_command('help '+meta)
+	$Split/Left/Consoles/Help.process_command(meta)
 
 func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)

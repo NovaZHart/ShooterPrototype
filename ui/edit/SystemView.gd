@@ -183,7 +183,7 @@ func handle_mouse_action_end(_mouse_pos: Vector2, space_pos: Vector3):
 		is_making.orbit_start=adjust.orbit_start
 		is_making.orbit_radius=adjust.orbit_radius
 		if not parent_path:
-			parent_path = game_state.system.get_path()
+			parent_path = Player.system.get_path()
 		emit_signal('make_new_space_object',parent_path,is_making)
 		var _discard = stop_moving()
 	if is_moving and not Input.is_action_pressed('ui_location_select'):

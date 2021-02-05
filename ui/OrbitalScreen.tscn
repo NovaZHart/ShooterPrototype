@@ -12,8 +12,6 @@
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=10]
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=11]
 
-
-
 [sub_resource type="DynamicFont" id=1]
 size = 13
 font_data = ExtResource( 1 )
