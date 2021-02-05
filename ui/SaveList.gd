@@ -1,16 +1,25 @@
 extends Tree
 
-export var allow_saving = true
+export var allow_saving = true setget set_allow_saving
 export var new_saves_string = '+ new save +'
 export var save_dir = 'user://saves'
 
 var root: TreeItem
 var new_save: TreeItem
 var read_data: bool = false
+var first_file_index: int = 1
 
 signal no_save_selected
 signal new_save
 signal save_selected
+
+func set_allow_saving(flag: bool):
+	if flag and first_file_index==0:
+		insert_new_slot_item()
+		allow_saving = flag
+	elif not flag and first_file_index==1:
+		root.remove_child(root.get_children())
+		allow_saving = flag
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -47,19 +56,49 @@ func insert_new_slot_item():
 	item.set_selectable(2,false)
 	new_save = item
 
-func insert_save_data(filename: String, data: Dictionary, index: int = 1):
-	var split = filename.split('/',false)
-	var basename = split[len(split)-1]
+func insert_save_data(savefile: String, data: Dictionary, index: int = 1):
+	var item = create_item(root,index)
+	write_save_data(item,savefile,data)
+
+func basename(savefile: String) -> String:
+	var split = savefile.split('/',false)
+	return split[len(split)-1]
+
+func write_save_data(item: TreeItem, savefile: String, data: Dictionary):
 	var location_text = 'Unknown Location'
 	var location = game_state.systems.get_node_or_null(data['player_location'])
 	if location:
 		location_text = location.full_display_name()
-	var item = create_item(root,index)
-	item.set_text(0,basename)
+	item.set_text(0,basename(savefile))
 	item.set_metadata(0,data)
 	item.set_text(1,data['player_name'])
 	item.set_metadata(1,'existing save')
 	item.set_text(2,location_text)
+
+func delete_save_data(savefile: String):
+	var text = basename(savefile)
+	var scan = root.get_children()
+	while scan:
+		if scan and scan.get_text(0)==text:
+			print('remove ',text)
+			var dir = Directory.new()
+			dir.remove(savefile)
+			root.remove_child(scan)
+			return
+		scan = scan.get_next()
+	push_warning(text+': could not find this in the list of saves')
+
+func replace_save_data(savefile: String,data: Dictionary):
+	var text = basename(savefile)
+	var scan = root.get_children()
+	while scan:
+		if scan and scan.get_text(0)==text:
+			root.remove_child(scan)
+			insert_save_data(text,data,0)
+			return
+		scan = scan.get_next()
+	push_warning(text+': could not find this in the list of saves')
+	insert_save_data(text,data,first_file_index)
 
 class SortByModificationTime extends Reference:
 	func cmp(a,b):
@@ -78,13 +117,13 @@ func fill_tree():
 		push_error('Cannot list user saves directory')
 		return
 	var files = []
-	var filename = dir.get_next()
+	var savefile = dir.get_next()
 	var file: File = File.new()
-	while filename:
-		var full_name = save_dir+'/'+filename
+	while savefile:
+		var full_name = save_dir+'/'+savefile
 		var data = Player.read_save_file(full_name)
-		files.append([filename, file.get_modified_time(full_name), data])
-		filename = dir.get_next()
+		files.append([savefile, file.get_modified_time(full_name), data])
+		savefile = dir.get_next()
 	if files:
 		files.sort_custom(SortByModificationTime.new(),'cmp')
 		for content in files:
