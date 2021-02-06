@@ -179,12 +179,12 @@ func _process(delta: float) -> void:
 	else:
 		if death_start<0:
 			death_start = tick
-		if tick-death_start>300 or Input.is_action_just_released('ui_cancel'):
+		if tick-death_start>300 or Input.is_action_just_released('ui_select'):
 #			if get_tree().current_scene.has_method('change_scene'):
-			game_state.change_scene('res://ui/OrbitalScreen.tscn')
+			game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 #			else:
 #				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
-			yield(get_tree(),'idle_frame')
+			#yield(get_tree(),'idle_frame')
 
 
 # Called when the node enters the scene tree for the first time.
