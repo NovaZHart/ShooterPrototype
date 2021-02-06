@@ -78,10 +78,12 @@ func _on_universe_postload():
 			if system:
 				push_warning('After load, system '+str(stored_system_path)
 					+' no longer exists. Will go to system '+system.get_path())
+				get_tree().get_root().change_scene('res://ui/OrbitalScreen.gd')
 				return true
 		push_error('After load, no systems exist. Universe is empty. Player is at an invalid location.')
 	stored_player_path = null
 	stored_system_path = null
+	get_tree().get_root().change_scene('res://ui/OrbitalScreen.gd')
 
 func get_system(): return system
 func set_system(var s):

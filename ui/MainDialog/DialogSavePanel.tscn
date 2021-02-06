@@ -2,10 +2,10 @@
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MainDialog/DialogPageSelector.tscn" type="PackedScene" id=2]
-[ext_resource path="res://ui/SaveList.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/SaveLoadControl.tscn" type="PackedScene" id=3]
 [ext_resource path="res://ui/MainDialog/DialogSavePanel.gd" type="Script" id=4]
 
-[node name="Panel" type="Panel"]
+[node name="DialogSavePanel" type="Panel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
@@ -25,7 +25,7 @@ __meta__ = {
 }
 
 [node name="Left" type="GridContainer" parent="All"]
-margin_right = 335.0
+margin_right = 359.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -33,13 +33,13 @@ size_flags_vertical = 3
 [node name="DialogPageSelector" parent="All/Left" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 335.0
+margin_right = 359.0
 margin_bottom = 20.0
 enable_Saves = false
 
 [node name="Console" type="VSplitContainer" parent="All/Left"]
 margin_top = 24.0
-margin_right = 335.0
+margin_right = 359.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -47,8 +47,9 @@ size_flags_vertical = 3
 [node name="Info" parent="All/Left/Console" instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 335.0
+margin_right = 359.0
 margin_bottom = 282.0
+initial_bbcode = ""
 follow_urls = false
 allow_input = false
 
@@ -56,18 +57,21 @@ allow_input = false
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 294.0
-margin_right = 335.0
+margin_right = 359.0
 margin_bottom = 576.0
 
-[node name="SaveList" parent="All" instance=ExtResource( 3 )]
+[node name="SaveLoadControl" parent="All" instance=ExtResource( 3 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_left = 347.0
+margin_left = 371.0
 margin_right = 1024.0
 margin_bottom = 600.0
-size_flags_stretch_ratio = 2.0
+size_flags_stretch_ratio = 1.8
 [connection signal="page_selected" from="All/Left/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="url_clicked" from="All/Left/Console/Info" to="All/Left/Console/Help" method="process_command"]
-[connection signal="new_save" from="All/SaveList" to="." method="_on_SaveList_new_save"]
-[connection signal="no_save_selected" from="All/SaveList" to="." method="_on_SaveList_no_save_selected"]
-[connection signal="save_selected" from="All/SaveList" to="." method="_on_SaveList_save_selected"]
+[connection signal="no_save_selected" from="All/SaveLoadControl" to="." method="_on_save_deselected"]
+[connection signal="save_created" from="All/SaveLoadControl" to="." method="_on_save_deselected"]
+[connection signal="save_deleted" from="All/SaveLoadControl" to="." method="_on_save_deselected"]
+[connection signal="save_replaced" from="All/SaveLoadControl" to="." method="_on_save_deselected"]
+[connection signal="save_selected" from="All/SaveLoadControl" to="." method="_on_save_selected"]
+[connection signal="saves_rescanned" from="All/SaveLoadControl" to="." method="_on_save_deselected"]

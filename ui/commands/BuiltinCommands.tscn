@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/commands/Echo.gd" type="Script" id=1]
 [ext_resource path="res://ui/commands/Clear.gd" type="Script" id=2]
 [ext_resource path="res://ui/commands/Help.gd" type="Script" id=3]
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=4]
+[ext_resource path="res://ui/commands/Location.gd" type="Script" id=5]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 4 )
@@ -35,3 +36,6 @@ projection = 1
 transform = Transform( 0.568682, 0.713083, -0.410016, -0.533025, 0.699113, 0.476576, 0.626486, -0.0524713, 0.777665, -2.816, 2.78, 3.67 )
 
 [node name="Content" type="Spatial" parent="Help/Viewport"]
+
+[node name="Location" type="Node" parent="."]
+script = ExtResource( 5 )

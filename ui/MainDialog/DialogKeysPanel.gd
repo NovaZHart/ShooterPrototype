@@ -12,11 +12,10 @@ const action_text: Dictionary = {
 	'ui_depart': 'Depart/Deorbit',
 	'ui_land': 'Orbit/Land',
 	'ui_pause': 'Pause',
-	'ui_next_enemy': 'Next Enemy',
-	'ui_next_planet': 'Next Planet/Star',
+	'ui_next_enemy': 'Select Enemy',
+	'ui_next_planet': 'Select Planet/Star',
 	'ui_select': 'Fire/Select',
 	'ui_intercept': 'Intercept',
-	'ui_evade': 'Evade',
 	'ui_toggle_auto_targeting': 'Toggle Auto-Targetting',
 	'ui_deselect_target': 'Deselect Target',
 }
@@ -108,12 +107,12 @@ func _ready():
 	fill_keys()
 	update_disabled_flags()
 	update_buttons()
-	$Scroll.rect_min_size.x = $Scroll/Panel.rect_size.x
+	$All/Right/Scroll.rect_min_size.x = $All/Right/Scroll/Panel.rect_size.x
 
 func update_buttons():
-	$Buttons/Redo.disabled = game_state.input_edit_state.redo_stack.empty()
-	$Buttons/Undo.disabled = game_state.input_edit_state.undo_stack.empty()
-#	$Buttons/Save.disabled = undo_stack_top_at_last_save==null \
+	$All/Right/Buttons/Redo.disabled = game_state.input_edit_state.redo_stack.empty()
+	$All/Right/Buttons/Undo.disabled = game_state.input_edit_state.undo_stack.empty()
+#	$All/Right/Buttons/Save.disabled = undo_stack_top_at_last_save==null \
 #		or not game_state.input_edit_state.top() \
 #		or game_state.input_edit_state.top().get_instance_id() != \
 #		undo_stack_top_at_last_save
@@ -139,7 +138,8 @@ func add_button(text, callback, mode, action, event = null, prior = null):
 	elif mode==ALIGN_RIGHT:
 		button.size_flags_horizontal = 0
 		button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	add_child_maybe_after($Scroll/Panel,button,prior)
+	add_child_maybe_after($All/Right/Scroll/Panel,button,prior)
+	var _discard = button.connect('mouse_entered',self,'show_help_for',[action])
 	button.connect('pressed', self, callback, [
 		action, event, button.get_path()
 	])
@@ -163,17 +163,23 @@ func add_texture(texture, callback, mode, action, event = null, prior = null):
 	elif mode==ALIGN_RIGHT:
 		button.size_flags_horizontal = 0
 		button.grow_horizontal = Control.GROW_DIRECTION_BEGIN
-	add_child_maybe_after($Scroll/Panel,button,prior)
+	add_child_maybe_after($All/Right/Scroll/Panel,button,prior)
 	button.connect('pressed', self, callback, [
 		action, event, button.get_path()
 	])
 	return button.get_path()
 
-func add_label(text,prior=null):
+func add_label(text,prior=null,action=null):
 	var label = Label.new()
 	label.text = text
-	add_child_maybe_after($Scroll/Panel,label,prior)
+	add_child_maybe_after($All/Right/Scroll/Panel,label,prior)
+	if action:
+		var _discard = label.connect('mouse_entered',self,'show_help_for',[action])
+		label.mouse_filter = Control.MOUSE_FILTER_PASS
 	return label.get_path()
+
+func show_help_for(action):
+	$All/Left/Consoles/Info.process_command('help controls/'+action)
 
 class SortByValue extends Reference:
 	var dict
@@ -186,7 +192,7 @@ func add_ui_for_action_event(action: String, event: InputEvent, index: int) -> b
 	print('add ui for '+action+' event '+str(event))
 	if not action in content:
 		content[action] = {
-			'label': add_label(action_text[action]),
+			'label': add_label(action_text[action],null,action),
 			'texture': add_texture(AddTexture, 'add_action_event', ALIGN_RIGHT, action),
 			'empty': add_label(''),
 			'events': []
@@ -285,10 +291,10 @@ func change_ui_for_action_event(action: String, old_event: InputEvent,
 	return false
 
 func reread_input_map():
-	while $Scroll/Panel.get_child_count() > 3:
-		var child = $Scroll/Panel.get_child(3)
+	while $All/Right/Scroll/Panel.get_child_count() > 3:
+		var child = $All/Right/Scroll/Panel.get_child(3)
 		if child:
-			$Scroll/Panel.remove_child(child)
+			$All/Right/Scroll/Panel.remove_child(child)
 			child.queue_free()
 		else:
 			break # should never get here

@@ -4,6 +4,7 @@ var commands
 var Echo
 var Help
 var Clear
+var Location
 
 func _init():
 	var BuiltinCommands = load('res://ui/commands/BuiltinCommands.tscn')
@@ -13,3 +14,4 @@ func _init():
 	Echo = $Commands/Echo
 	Help = $Commands/Help
 	Clear = $Commands/Clear
+	Location = $Commands/Location

@@ -29,6 +29,8 @@ var tag_filters = {
 	'[/command_font]':'[/code][/color]',
 	'[small_code]':'[code]',
 	'[/small_code]':'[/code]',
+	'[error_code]':'[code][color=#ff7788]',
+	'[/error_code]':'[/color][/code]',
 }
 
 var ZWSP: String = '\u200B' # zero-width space
@@ -160,6 +162,9 @@ func _ready():
 		'synopsis':builtin_commands.Help,
 		'search':builtin_commands.Help,
 		'invalid_command':builtin_commands.Help,
+		
+		# Other:
+		'location':builtin_commands.Location,
 	}
 	clear()
 	if initial_bbcode:

@@ -1,6 +1,6 @@
 extends Control
 
-export var allow_saving: bool = true
+export var allow_saving: bool = true setget set_allow_saving, get_allow_saving
 export var ConfirmDialog: PackedScene
 
 signal save_selected
@@ -14,6 +14,14 @@ signal no_save_selected
 var dialog_path: NodePath = NodePath()
 var dialog_cancel_pressed: bool
 var last_selected_savefile: String = ''
+
+func get_allow_saving() -> bool:
+	allow_saving = $SaveList.allow_saving
+	return allow_saving
+
+func set_allow_saving(flag: bool):
+	$SaveList.allow_saving = flag
+	allow_saving = flag
 
 func _ready():
 	$SaveList.allow_saving = allow_saving

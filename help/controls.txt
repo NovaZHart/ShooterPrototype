@@ -1,0 +1,53 @@
+@PAGE controls/ui_depart
+@title Depart/Deorbit
+@synopsis Leave orbit, or exit the shipyard.
+@content
+Press this in the shipyard screen to return to orbit, or in orbit to return to the surrounding star system.
+
+@PAGE controls/ui_land
+@title Orbit/Land/Dock
+@synopsis Orbit, land, or dock on the selected space object.
+@content
+Press this in space to orbit or land on a planet, or to dock in a space station.
+
+@PAGE controls/ui_pause
+@title Pause Game
+@synopsis Pauses and unpauses the game in space.
+@content
+Press this in space to pause the game, and again to unpause. This button does nothing anywhere else.
+
+@PAGE controls/ui_next_enemy
+@title Select Nearest or Next Enemy
+@synopsis With shift, next enemy; without shift, nearest enemy.
+@content
+In space, this selects enemies. Hold shift while pressing to select the next enemy in the system. Without shift, it selects the nearest enemy.
+
+@PAGE controls/ui_next_planet
+@title Select Nearest or Next Space Object
+@synopsis Select space objects that ships and land on, orbit, or dock in.
+@content
+In space, this selects a planet, star, or space station. Hold shift while pressing to select the next object. Don't hold shift, and it'll select the nearest.
+
+@PAGE controls/ui_select
+@title Fire weapons, or select items.
+@content
+Fires weapons while in space. In dialogs and shipyard, this selects items.
+
+
+@PAGE controls/ui_intercept
+@title Intercept Target
+@synopsis Tells auto-pilot to intercept the selected target.
+@content
+The auto-pilot will fly to the target, matching its position and velocity. If it is a stationary object, like a planet or star, then you'll come to a stop there. If it is a ship (friendly or enemy) then you'll fly to it, and match its speed (if your ship is fast enough).
+
+@PAGE controls/ui_toggle_auto_targeting
+@title Toggle Auto-Targeting
+@synopsis Turn on or off your ship's auto-targeting systems.
+@content
+When firing at a target without pressing left or right, your ship's auto-targeting system will turn to face the enemy. This key turns that system on or off.
+
+@PAGE controls/ui_deselect_target
+@title Deselect Target
+@synopsis Turns off targeting computre; targets nothing.
+@content
+Instructs your targeting computer to disengage. Whatever you were targeting, you'll stop targeting. This only affects your ship. Any homing projectiles will still follow their targets.
