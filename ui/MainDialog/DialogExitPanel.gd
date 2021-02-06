@@ -39,3 +39,6 @@ func _on_Button_pressed():
 
 func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)
+
+func _on_MainMenu_pressed():
+	game_state.change_scene('res://ui/MainScreen/MainScreen.tscn')

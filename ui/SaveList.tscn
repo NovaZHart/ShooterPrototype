@@ -15,6 +15,8 @@ __meta__ = {
 }
 [connection signal="cell_selected" from="." to="." method="_on_SaveList_cell_selected"]
 [connection signal="focus_exited" from="." to="." method="_on_SaveList_focus_exited"]
+[connection signal="item_activated" from="." to="." method="_on_SaveList_item_activated"]
+[connection signal="item_double_clicked" from="." to="." method="_on_SaveList_item_double_clicked"]
 [connection signal="item_edited" from="." to="." method="_on_SaveList_item_edited"]
 [connection signal="nothing_selected" from="." to="." method="_on_SaveList_nothing_selected"]
 [connection signal="visibility_changed" from="." to="." method="_on_SaveList_visibility_changed"]

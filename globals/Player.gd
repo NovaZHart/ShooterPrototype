@@ -49,7 +49,7 @@ func store_state():
 		'current_day': game_state.current_day,
 	}
 
-func restore_state(state: Dictionary):
+func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']
 	set_player_location(state['player_location'])
 	player_ship_design = state['player_ship_design']
@@ -59,7 +59,7 @@ func restore_state(state: Dictionary):
 	if old_design:
 		var _discard = game_state.ship_designs.remove_child(old_design)
 	var _discard = game_state.ship_designs.add_child(player_ship_design)
-	game_state.restore_from_load_page = true
+	game_state.restore_from_load_page = not not restore_from_load_page
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func _on_universe_preload():

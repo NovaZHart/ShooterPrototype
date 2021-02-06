@@ -78,6 +78,7 @@ hint_tooltip = "Re-read the saves directory and update the list."
 text = "Rescan"
 [connection signal="new_save" from="SaveList" to="." method="_on_SaveList_new_save"]
 [connection signal="no_save_selected" from="SaveList" to="." method="_on_SaveList_no_save_selected"]
+[connection signal="save_double_clicked" from="SaveList" to="." method="_on_SaveList_save_double_clicked"]
 [connection signal="save_selected" from="SaveList" to="." method="_on_SaveList_save_selected"]
 [connection signal="pressed" from="Center/Buttons/Load" to="." method="_on_Load_pressed"]
 [connection signal="pressed" from="Center/Buttons/Overwrite" to="." method="_on_Overwrite_pressed"]

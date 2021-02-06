@@ -12,6 +12,7 @@ var first_file_index: int = 1
 signal no_save_selected
 signal new_save
 signal save_selected
+signal save_double_clicked
 
 func has_save_files():
 	return utils.TreeItem_child_count_at_least(root,first_file_index+1)
@@ -36,7 +37,8 @@ func _ready():
 
 func _on_SaveList_visibility_changed():
 	if visible and not read_data:
-		fill_tree()
+		if not has_save_files():
+			fill_tree()
 		read_data = true
 
 func refill_tree():
@@ -176,3 +178,15 @@ func _on_SaveList_item_edited():
 		if text and text is String:
 			print('emit signal')
 			emit_signal('new_save',save_dir+'/'+text)
+
+func _on_SaveList_item_double_clicked():
+	print('cell selected')
+	var selected = get_selected()
+	var meta = selected.get_metadata(0)
+	if meta:
+		print('meta, so save double clicked')
+		emit_signal('save_double_clicked',save_dir+'/'+selected.get_text(0),meta)
+
+
+func _on_SaveList_item_activated():
+	_on_SaveList_item_double_clicked()

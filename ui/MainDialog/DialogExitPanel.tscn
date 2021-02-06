@@ -43,5 +43,17 @@ margin_top = 29.0
 margin_right = 175.0
 margin_bottom = 52.0
 text = "Terminate Execution"
+
+[node name="Control" type="Control" parent="Grid"]
+margin_top = 56.0
+margin_right = 175.0
+margin_bottom = 56.0
+
+[node name="MainMenu" type="Button" parent="Grid"]
+margin_top = 60.0
+margin_right = 175.0
+margin_bottom = 83.0
+text = "Go to Main Menu"
 [connection signal="page_selected" from="DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="pressed" from="Grid/Button" to="." method="_on_Button_pressed"]
+[connection signal="pressed" from="Grid/MainMenu" to="." method="_on_MainMenu_pressed"]

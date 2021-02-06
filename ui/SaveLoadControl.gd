@@ -1,6 +1,7 @@
 extends Control
 
 export var ConfirmDialog: PackedScene
+export var restore_from_load_page: bool = true
 
 signal save_selected
 signal game_loaded
@@ -102,7 +103,7 @@ func _on_Load_pressed():
 #			return
 		var read = Player.read_save_file(fil)
 		if read:
-			Player.call_deferred('restore_state',read)
+			Player.call_deferred('restore_state',read,restore_from_load_page)
 			emit_signal('game_loaded',fil)
 
 func _on_Delete_pressed():
@@ -152,3 +153,8 @@ func _on_Rescan_pressed():
 	if last_selected_savefile:
 		emit_signal('no_save_selected')
 	emit_signal('saves_rescanned')
+
+func _on_SaveList_save_double_clicked(savefile: String, data=null):
+	print('savelist save double clicked')
+	last_selected_savefile = savefile
+	_on_Load_pressed()

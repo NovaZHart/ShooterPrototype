@@ -20,3 +20,4 @@ anchor_right = 0.75
 anchor_bottom = 0.8
 grow_horizontal = 2
 grow_vertical = 2
+restore_from_load_page = false

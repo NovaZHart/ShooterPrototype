@@ -2,7 +2,7 @@ extends Panel
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	$Center/Grid/Message.text = ''
+	$Message.text = ''
 	$Center/Grid/PlayerName.grab_focus()
 
 func _input(event):
@@ -12,7 +12,7 @@ func _input(event):
 func maybe_start_game(player_name: String):
 	var clipped = player_name.strip_edges()
 	if not clipped:
-		$Center/Grid/Message.text = 'Enter a name first!'
+		$Message.text = 'Enter a name first!'
 		return
 	Player.player_name = clipped
 	game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
