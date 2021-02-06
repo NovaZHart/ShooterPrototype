@@ -13,13 +13,18 @@ signal no_save_selected
 signal new_save
 signal save_selected
 
+func has_save_files():
+	return utils.TreeItem_child_count_at_least(root,first_file_index+1)
+
 func set_allow_saving(flag: bool):
 	if flag and first_file_index==0:
 		insert_new_slot_item()
 		allow_saving = flag
+		first_file_index = 1
 	elif not flag and first_file_index==1:
-		root.remove_child(root.get_children())
+		utils.Tree_remove_subtree(root,root.get_children())
 		allow_saving = flag
+		first_file_index = 0
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
@@ -43,7 +48,7 @@ func refill_tree():
 func remake_new_slot_item():
 	if allow_saving:
 		if new_save:
-			root.remove_child(new_save)
+			utils.Tree_remove_subtree(root,new_save)
 		insert_new_slot_item()
 
 func insert_new_slot_item():
@@ -83,7 +88,8 @@ func delete_save_data(savefile: String):
 			print('remove ',text)
 			var dir = Directory.new()
 			dir.remove(savefile)
-			root.remove_child(scan)
+			utils.Tree_remove_subtree(root,scan)
+			update()
 			return
 		scan = scan.get_next()
 	push_warning(text+': could not find this in the list of saves')
@@ -93,8 +99,9 @@ func replace_save_data(savefile: String,data: Dictionary):
 	var scan = root.get_children()
 	while scan:
 		if scan and scan.get_text(0)==text:
-			root.remove_child(scan)
-			insert_save_data(text,data,0)
+			utils.Tree_remove_subtree(root,scan)
+			insert_save_data(text,data,first_file_index)
+			update()
 			return
 		scan = scan.get_next()
 	push_warning(text+': could not find this in the list of saves')
@@ -147,13 +154,15 @@ func _on_SaveList_cell_selected():
 		print('confused by cell selection')
 
 func _on_SaveList_nothing_selected():
+	print('nothing selected')
 	if allow_saving:
 		emit_signal('no_save_selected')
 		remake_new_slot_item()
 
 func _on_SaveList_focus_exited():
-	if allow_saving:
-		remake_new_slot_item()
+	print('focus exited')
+#	if allow_saving:
+#		remake_new_slot_item()
 
 func _on_SaveList_item_edited():
 	print('item edited')

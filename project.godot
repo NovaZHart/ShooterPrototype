@@ -21,6 +21,7 @@ config/icon="res://icon.png"
 
 [autoload]
 
+utils="*res://globals/Utils.gd"
 simple_tree="*res://globals/SimpleTree.gd"
 text_gen="*res://globals/TextGen.gd"
 undo_tool="*res://globals/UndoTool.gd"

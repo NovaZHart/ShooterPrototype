@@ -19,8 +19,9 @@ func _ready():
 	$SaveList.allow_saving = allow_saving
 
 func update_buttons(save_selected):
-	for child in $Center/Buttons.get_children():
-		if child.has_method('set_disabled'):
+	for child_name in [ 'Load', 'Overwrite', 'Delete' ]:
+		var child = $Center/Buttons.get_node_or_null(child_name)
+		if child:
 			child.set_disabled(not save_selected)
 
 func _on_SaveList_new_save(savefile):
@@ -33,7 +34,7 @@ func _on_SaveList_new_save(savefile):
 		$SaveList.insert_save_data(savefile,encoded)
 	last_selected_savefile = ''
 	update_buttons(false)
-	emit_signal('save_created')
+	emit_signal('save_created',savefile,encoded)
 
 func _on_SaveList_save_selected(savefile,data):
 	print('save list save selected')
@@ -83,6 +84,7 @@ func basename(savefile: String) -> String:
 	return split[len(split)-1]
 
 func _on_Load_pressed():
+	print('load')
 	if last_selected_savefile:
 		var confirmed = confirm('Load '+basename(last_selected_savefile)+'?')
 		while confirmed is GDScriptFunctionState and confirmed.is_valid():
@@ -95,6 +97,7 @@ func _on_Load_pressed():
 			emit_signal('game_loaded',last_selected_savefile)
 
 func _on_Delete_pressed():
+	print('delete')
 	if last_selected_savefile:
 		var savefile: String = last_selected_savefile
 		var confirmed = confirm('Delete '+basename(savefile)+'?')
@@ -107,6 +110,9 @@ func _on_Delete_pressed():
 			return
 		$SaveList.delete_save_data(savefile)
 		emit_signal('save_deleted',savefile)
+
+func has_save_files():
+	return $SaveList.has_save_files()
 
 func _on_Overwrite_pressed():
 	if last_selected_savefile:
@@ -124,11 +130,13 @@ func _on_Overwrite_pressed():
 			emit_signal('save_replaced',savefile,encoded)
 
 func _on_SaveList_no_save_selected():
+	print('deselect')
 	last_selected_savefile = ''
 	update_buttons(false)
 	emit_signal('no_save_selected')
 
 func _on_Rescan_pressed():
+	print('rescan')
 	last_selected_savefile = ''
 	update_buttons(false)
 	$SaveList.refill_tree()
