@@ -24,10 +24,8 @@ func _ready():
 	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
 	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
 	if game_state.fleet_tree_selection!=null:
-		print('revert to saved selection')
 		_discard = select_fleet(game_state.fleet_tree_selection,false)
 	else:
-		print('no saved selection, so construct one')
 		game_state.fleet_tree_selection = ship_edits.FleetTreeSelection.new(
 			$Split/Left/Tree,self)
 
@@ -83,7 +81,6 @@ func get_nth_child(parent: TreeItem,n: int): # -> TreeItem or null
 		if i==n:
 			return scan
 		scan = scan.get_next()
-	print('no nth child '+str(n))
 	return null
 
 func index_for_new_item(parent: TreeItem, column: int, meta) -> int:
@@ -102,7 +99,6 @@ func index_for_new_item(parent: TreeItem, column: int, meta) -> int:
 func find_fleet_item(fleet_path: NodePath,ship_index: int=-1): # -> TreeItem or null
 	var fleet_item = tree_find_meta($Split/Left/Tree.get_root(),1,fleet_path)
 	if not fleet_item:
-		print('no fleet item')
 		return null
 	return fleet_item if ship_index<0 else get_nth_child(fleet_item,ship_index)
 
@@ -170,7 +166,6 @@ func select_fleet(sel: ship_edits.FleetTreeSelection,send_action=true) -> bool:
 	return false
 
 func tree_deselect() -> bool:
-	print('tree deselect')
 	var item = $Split/Left/Tree.get_selected()
 	var column = $Split/Left/Tree.get_selected_column()
 	if item and column>=0:
@@ -307,7 +302,6 @@ func _on_Designs_add(design_path):
 			return
 		if design_item:
 			var count: int = design_item.get_range(0)+1
-			print('have design item count '+str(count))
 			universe_edits.state.push(ship_edits.ChangeFleetSpawnCount.new(
 				fleet_path,design_path,count,true))
 		else:
@@ -335,7 +329,6 @@ func _on_Designs_open(design_path):
 	universe_edits.state.push(ship_edits.FleetEditorToShipEditor.new(design_path))
 
 func _on_Tree_item_selected():
-	print('tree item selected')
 	var old = game_state.fleet_tree_selection
 	var new = ship_edits.FleetTreeSelection.new($Split/Left/Tree,self)
 	if old.same_item_as(new):
@@ -377,7 +370,6 @@ func _on_Tree_button_pressed(item, _column, _id):
 func add_fleet_with_popup(send_edit: bool):
 	var id_name_popup = get_node_or_null(id_name_popup_path)
 	if id_name_popup:
-		print('popup is up; close it')
 		id_name_popup=false
 		return
 	

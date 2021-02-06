@@ -1,0 +1,54 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ui/MainDialog/DialogPageSelector.gd" type="Script" id=1]
+
+[node name="DialogPageSelector" type="GridContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+columns = 6
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Help" type="Button" parent="."]
+margin_right = 42.0
+margin_bottom = 20.0
+text = "Help"
+
+[node name="Keys" type="Button" parent="."]
+margin_left = 46.0
+margin_right = 88.0
+margin_bottom = 20.0
+text = "Keys"
+
+[node name="Map" type="Button" parent="."]
+margin_left = 92.0
+margin_right = 131.0
+margin_bottom = 20.0
+text = "Map"
+
+[node name="Saves" type="Button" parent="."]
+margin_left = 135.0
+margin_right = 183.0
+margin_bottom = 20.0
+text = "Saves"
+
+[node name="Ship" type="Button" parent="."]
+margin_left = 187.0
+margin_right = 226.0
+margin_bottom = 20.0
+text = "Ship"
+
+[node name="Exit" type="Button" parent="."]
+margin_left = 230.0
+margin_right = 265.0
+margin_bottom = 20.0
+text = "Exit"
+[connection signal="pressed" from="Help" to="." method="_on_Help_pressed"]
+[connection signal="pressed" from="Keys" to="." method="_on_Keys_pressed"]
+[connection signal="pressed" from="Map" to="." method="_on_Map_pressed"]
+[connection signal="pressed" from="Saves" to="." method="_on_Saves_pressed"]
+[connection signal="pressed" from="Ship" to="." method="_on_Ship_pressed"]
+[connection signal="pressed" from="Exit" to="." method="_on_Exit_pressed"]

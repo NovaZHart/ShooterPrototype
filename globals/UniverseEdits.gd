@@ -102,14 +102,14 @@ class SystemEditorToSectorEditor extends undo_tool.Action:
 	func as_string() -> String:
 		return 'SystemEditorToSectorEditor(from_system='+str(from_system)+')'
 	func _init():
-		from_system = game_state.system.get_path()
+		from_system = Player.system.get_path()
 	func run():
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SectorEditor.tscn'):
 			push_error('cannot change scene to SectorEditor')
 			return false
 		return true
 	func undo():
-		game_state.system = from_system
+		Player.system = from_system
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
 			push_error('cannot change scene to SystemEditor')
 			return false
@@ -121,17 +121,17 @@ class EnterSystemFromSector extends undo_tool.Action:
 	func as_string() -> String:
 		return 'EnterSystemFromSector(system_path='+str(to_system)+')'
 	func _init(to_system_: NodePath):
-		from_system = game_state.system.get_path()
+		from_system = Player.system.get_path()
 		to_system = game_state.systems.get_node(to_system_).get_path()
 	func run():
-		game_state.set_system(game_state.systems.get_node(to_system))
-		assert(game_state.system.get_path()==to_system)
+		Player.set_system(game_state.systems.get_node(to_system))
+		assert(Player.system.get_path()==to_system)
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SystemEditor.tscn'):
 			push_error('cannot change scene to SystemEditor')
 			return false
 		return true
 	func undo():
-		game_state.system = from_system
+		Player.system = from_system
 		if OK!=Engine.get_main_loop().change_scene('res://ui/edit/SectorEditor.tscn'):
 			push_error('cannot change scene to SectorEditor')
 			return false

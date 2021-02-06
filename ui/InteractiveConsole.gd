@@ -29,6 +29,8 @@ var tag_filters = {
 	'[/command_font]':'[/code][/color]',
 	'[small_code]':'[code]',
 	'[/small_code]':'[/code]',
+	'[error_code]':'[code][color=#ff7788]',
+	'[/error_code]':'[/color][/code]',
 }
 
 var ZWSP: String = '\u200B' # zero-width space
@@ -43,6 +45,28 @@ signal url_clicked
 func _init():
 	if OK!=command_regex.compile('\\{(?<command>[^}]+)\\}'):
 		printerr('Help: cannot compile command regex')
+
+func get_command(name):
+	return commands.get(name,null)
+
+func restore_state(state):
+	if not state is Dictionary:
+		return
+	if state.has('Output'):
+		$Console/Output.parse_bbcode(state['Output'])
+		if state.has('command_index') and state['command_index'] is Dictionary:
+			command_index=state['command_index'].duplicate()
+		else:
+			command_index.clear()
+	if state.has('Input'):
+		$Console/Input.text = state['Input']
+
+func store_state():
+	return {
+		'Output':$Console/Output.bbcode_text,
+		'Input':$Console/Input.text,
+		'command_index':command_index.duplicate()
+	}
 
 func rewrite_tags(s: String) -> String:
 	var t: String = s
@@ -64,7 +88,7 @@ func fqdn() -> String:
 	if not hostname:
 		hostname='orbit'
 	if not domain:
-		var loc = game_state.get_info_or_null()
+		var loc = Player.get_info_or_null()
 		if not loc:
 			domain='cosmos'
 		else:
@@ -126,18 +150,21 @@ func add_command(name,object):
 func _ready():
 	commands = {
 		# For testing:
-		'echo':$Commands/Echo,
-		'parse':$Commands/Echo,
+		'echo':builtin_commands.Echo,
+		'parse':builtin_commands.Echo,
 		
 		# Basic functionality:
-		'clear':$Commands/Clear,
+		'clear':builtin_commands.Clear,
 		
 		# Help pages:
-		'ref':$Commands/Help,
-		'help':$Commands/Help,
-		'synopsis':$Commands/Help,
-		'search':$Commands/Help,
-		'invalid_command':$Commands/Help,
+		'ref':builtin_commands.Help,
+		'help':builtin_commands.Help,
+		'synopsis':builtin_commands.Help,
+		'search':builtin_commands.Help,
+		'invalid_command':builtin_commands.Help,
+		
+		# Other:
+		'location':builtin_commands.Location,
 	}
 	clear()
 	if initial_bbcode:

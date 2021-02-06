@@ -319,7 +319,6 @@ func change_selection_to(new_selection,_center: bool = false) -> bool:
 	return true
 
 func make_new_system(event: InputEvent): # -> SimpleNode or null
-	print('make new system')
 	var popup = get_viewport().get_node_or_null(id_name_popup_path)
 	if popup:
 		popup.visible=false
@@ -379,37 +378,26 @@ func handle_select(event: InputEvent):
 	am_moving = false
 
 func handle_modify(event: InputEvent):
-	print('handle modify')
 #	if not selection is simple_tree.SimpleNode:
-#		print('selection is not simple node')
 #		return
 	var loc: Vector2 = event_position(event)
 	var at = find_at_position(loc)
 	if at:
-		print('at')
 		if selection and at is simple_tree.SimpleNode:
-			print('sel and at is node')
 			if at.get_name()==selection.get_name():
-				print('edit system')
 				return edit_system(selection)
 			if not game_state.universe.get_link_between(selection,at):
-				print('make link')
 				var link = process_if(game_state.universe.add_link(selection,at))
 				if link:
-					print('really make link')
 					universe_edits.state.push(universe_edits.AddLink.new(link))
 	elif not event.shift:
-		print('no at and no shift so make system')
 		at = make_new_system(event)
 		while at is GDScriptFunctionState and at.is_valid():
 			at = yield(at,'completed')
 		if at:
-			print('at now')
 			if selection is simple_tree.SimpleNode and at!=selection:
 				process_if(game_state.universe.add_link(selection,at))
 			universe_edits.state.push(universe_edits.AddSystem.new(at))
-		else:
-			print('no at')
 
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $Camera.size
@@ -466,7 +454,8 @@ func _unhandled_input(event):
 			exit_confirmed=true
 		if exit_confirmed:
 			universe_edits.state.clear()
-			var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+			var _discard = game_state.call_deferred(
+				'change_scene','res://ui/MainScreen/MainScreen.tscn')
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_location_select'):
 		handle_select(event)

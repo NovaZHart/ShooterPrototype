@@ -1,0 +1,82 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
+[ext_resource path="res://ui/MainScreen/NewGame.gd" type="Script" id=2]
+
+[node name="NewGame" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource( 1 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Center" type="CenterContainer" parent="."]
+anchor_left = 0.35
+anchor_top = 0.2
+anchor_right = 0.65
+anchor_bottom = 0.8
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Grid" type="GridContainer" parent="Center"]
+margin_left = 33.0
+margin_top = 132.0
+margin_right = 273.0
+margin_bottom = 228.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="Center/Grid"]
+margin_right = 240.0
+margin_bottom = 17.0
+text = "Player Name"
+align = 1
+
+[node name="PlayerName" type="LineEdit" parent="Center/Grid"]
+margin_top = 21.0
+margin_right = 240.0
+margin_bottom = 48.0
+rect_min_size = Vector2( 200, 0 )
+placeholder_text = "Enter a name here."
+
+[node name="Center" type="CenterContainer" parent="Center/Grid"]
+margin_top = 52.0
+margin_right = 240.0
+margin_bottom = 75.0
+
+[node name="GridContainer" type="GridContainer" parent="Center/Grid/Center"]
+margin_left = 55.0
+margin_right = 185.0
+margin_bottom = 23.0
+columns = 2
+
+[node name="StartGame" type="Button" parent="Center/Grid/Center/GridContainer"]
+margin_right = 76.0
+margin_bottom = 23.0
+grow_horizontal = 2
+size_flags_horizontal = 3
+text = "Start Game"
+
+[node name="Cancel" type="Button" parent="Center/Grid/Center/GridContainer"]
+margin_left = 80.0
+margin_right = 130.0
+margin_bottom = 23.0
+size_flags_horizontal = 3
+text = "Cancel"
+
+[node name="Message" type="Label" parent="Center/Grid"]
+margin_top = 79.0
+margin_right = 240.0
+margin_bottom = 96.0
+text = "MMMMMMMMMMMMMMMMMMMM"
+align = 1
+[connection signal="text_entered" from="Center/Grid/PlayerName" to="." method="_on_PlayerName_text_entered"]
+[connection signal="pressed" from="Center/Grid/Center/GridContainer/StartGame" to="." method="_on_Button_pressed"]
+[connection signal="pressed" from="Center/Grid/Center/GridContainer/Cancel" to="." method="_on_Cancel_pressed"]

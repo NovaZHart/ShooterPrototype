@@ -5,6 +5,8 @@ export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
 export var max_new_ships_per_tick: int = 1
+export var max_new_ships_per_early_tick: int = 5
+export var number_of_early_ticks: int = 20
 
 var combat_engine_mutex: Mutex = Mutex.new()
 var visual_tick: int = 0
@@ -56,7 +58,7 @@ func player_has_a_ship() -> bool:
 
 func update_space_background(from=null):
 	if from==null:
-		from=game_state.system
+		from=Player.system
 	var result = $SpaceBackground.update_from(from)
 	while result is GDScriptFunctionState and result.is_valid():
 		result = yield(result,'completed')
@@ -209,7 +211,7 @@ func pack_planet_stats_if_not_sent() -> Array:
 func _physics_process(delta):
 	physics_tick += 1
 	
-	var make_me: Array = game_state.system.process_space(self,delta)
+	var make_me: Array = Player.system.process_space(self,delta)
 	
 	team_stats_mutex.lock()
 	for ship in make_me:
@@ -219,8 +221,13 @@ func _physics_process(delta):
 	
 	ship_maker_mutex.lock()
 	ships_to_spawn = ships_to_spawn + make_me
-	var front = ships_to_spawn.pop_front()
-	if front:
+	var max_ships_to_spawn = max_new_ships_per_tick
+	if physics_tick<number_of_early_ticks:
+		max_ships_to_spawn = max_new_ships_per_early_tick
+	for _ship_spawn_count in range(max_ships_to_spawn):
+		var front = ships_to_spawn.pop_front()
+		if not front:
+			break
 		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
 	
@@ -277,9 +284,11 @@ func _physics_process(delta):
 				if node==null:
 					push_warning('PLANET '+planet_name+' HAS NO NODE!')
 				else:
-					game_state.player_location=node.game_state_path
+					Player.player_location=node.game_state_path
 				clear()
-				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+				get_tree().current_scene.change_scene(load('res://ui/OrbitalScreen.tscn'))
+				return
+#				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 		team_stats_mutex.lock()
 		team_stats[ship_node.team]['count'] -= 1
 		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
@@ -318,10 +327,10 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	if is_player:
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
-		pass
+		add_spawned_ship(ship,true)
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
-	call_deferred('add_spawned_ship',ship,is_player)
+		call_deferred('add_spawned_ship',ship,false)
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)
@@ -360,9 +369,9 @@ func clear() -> void: # must be called in visual thread
 
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
-	#game_state.system.fill_system(self,planet_time,ship_time,detail)
+	#Player.system.fill_system(self,planet_time,ship_time,detail)
 	
-	var make_me: Array = game_state.system.fill_system(self,planet_time,ship_time,detail)
+	var make_me: Array = Player.system.fill_system(self,planet_time,ship_time,detail)
 	team_stats_mutex.lock()
 	for ship in make_me:
 		var team: int = ship[4] # "team" argument to spawn_ship

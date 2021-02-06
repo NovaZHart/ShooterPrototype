@@ -3,9 +3,53 @@ extends Node
 var LoadHelp = preload('res://help/LoadHelp.gd')
 var help_loader = LoadHelp.new()
 var help_pages: Dictionary = {}
+var made_help_tree = null
 
 func _init():
 	help_pages = help_loader.load_help_pages()
+
+class page_sorter extends Reference:
+	var all: Dictionary
+	var empty: Array = []
+	func _init(all_):
+		all=all_
+	func compare(key1,key2):
+		var array1: Array = all.get(key1,empty)
+		var array2: Array = all.get(key2,empty)
+# warning-ignore:narrowing_conversion
+		var min_len: int = min(len(array1),len(array2))
+		for i in range(min_len):
+			if array1[i]<array2[i]:
+				return true
+			elif array1[i]>array2[i]:
+				return false
+		return len(array1) < len(array2)
+
+func make_help_tree() -> Array:
+	if made_help_tree!=null:
+		return made_help_tree
+	
+	# Add missing parent pages
+	var all: Dictionary = {}
+	for id in help_pages.keys():
+		var split = id.split('/',false)
+		var combined
+		for i in range(len(split)):
+			combined = split[i] if not combined else combined+'/'+split[i]
+			all[combined]=split
+	
+	var tree: Array = all.keys()
+	tree.sort_custom(page_sorter.new(all),'compare')
+	
+	var titles: Dictionary = {}
+	for i in range(len(tree)):
+		var id = tree[i]
+		var title = help_pages[id].get('title','')
+		if not title:
+			title = id.capitalize()
+		titles[id] = title
+	made_help_tree = [ tree, titles ]
+	return made_help_tree
 
 func page_tooltip(console,id: String):
 	var page = help_pages.get(id)

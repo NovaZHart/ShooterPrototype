@@ -1,0 +1,80 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
+[ext_resource path="res://ui/MainScreen/MainScreen.gd" type="Script" id=2]
+
+[node name="MainScreen" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource( 1 )
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CenterContainer" type="CenterContainer" parent="."]
+anchor_left = 0.35
+anchor_top = 0.2
+anchor_right = 0.65
+anchor_bottom = 0.8
+margin_right = 40.0
+margin_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="GridContainer" type="GridContainer" parent="CenterContainer"]
+margin_left = 131.0
+margin_top = 136.0
+margin_right = 216.0
+margin_bottom = 264.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="NewGame" type="Button" parent="CenterContainer/GridContainer"]
+margin_right = 85.0
+margin_bottom = 23.0
+text = "New Game"
+
+[node name="HSeparator" type="HSeparator" parent="CenterContainer/GridContainer"]
+margin_top = 27.0
+margin_right = 85.0
+margin_bottom = 31.0
+
+[node name="LoadGame" type="Button" parent="CenterContainer/GridContainer"]
+margin_top = 35.0
+margin_right = 85.0
+margin_bottom = 58.0
+text = "Load Game"
+
+[node name="HSeparator3" type="HSeparator" parent="CenterContainer/GridContainer"]
+margin_top = 62.0
+margin_right = 85.0
+margin_bottom = 66.0
+
+[node name="Exit" type="Button" parent="CenterContainer/GridContainer"]
+margin_top = 70.0
+margin_right = 85.0
+margin_bottom = 93.0
+text = "Exit"
+
+[node name="HSeparator2" type="HSeparator" parent="CenterContainer/GridContainer"]
+margin_top = 97.0
+margin_right = 85.0
+margin_bottom = 101.0
+
+[node name="GameEditor" type="Button" parent="CenterContainer/GridContainer"]
+margin_top = 105.0
+margin_right = 85.0
+margin_bottom = 128.0
+text = "Game Editor"
+[connection signal="pressed" from="CenterContainer/GridContainer/NewGame" to="." method="_on_NewGame_pressed"]
+[connection signal="pressed" from="CenterContainer/GridContainer/LoadGame" to="." method="_on_LoadGame_pressed"]
+[connection signal="pressed" from="CenterContainer/GridContainer/Exit" to="." method="_on_Exit_pressed"]
+[connection signal="pressed" from="CenterContainer/GridContainer/GameEditor" to="." method="_on_GameEditor_pressed"]

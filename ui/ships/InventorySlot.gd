@@ -130,7 +130,7 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 		my_y = int(round(position.y))
 	
 	var shape: BoxShape = BoxShape.new()
-	shape.extents = Vector3(ny*item_scale,1,nx*item_scale)
+	shape.extents = Vector3(ny*item_scale,100,nx*item_scale)
 	var cshape: CollisionShape = CollisionShape.new()
 	cshape.shape = shape
 	cshape.name = 'collision'
@@ -147,8 +147,7 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 		make_box()
 	assert(mount_type)
 
-func place_near(mount: Vector3,space: PhysicsDirectSpaceState,mask: int):
-#	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
+func place_near(mount: Vector3,space: PhysicsDirectSpaceState,_mask: int):
 	var badness: float = INF
 	var loc: Vector3 = mount
 	var angles: Array = []
@@ -174,7 +173,7 @@ func place_near(mount: Vector3,space: PhysicsDirectSpaceState,mask: int):
 
 	query.margin=0.25
 	query.collide_with_areas=true
-	query.collision_mask = mask
+	#query.collision_mask = mask
 	query.shape_rid=shape.get_rid()
 	query.exclude = [get_rid()]
 	var unit: Vector3 = Vector3(mount.x,0,mount.z).normalized()

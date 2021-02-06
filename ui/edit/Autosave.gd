@@ -58,9 +58,9 @@ func rotate_autosave_files(exclude: Array) -> bool:
 	autosaves.sort()
 	var success = true
 	while len(autosaves)>max_autosaves:
-		var filename = autosaves.pop_front()
-		if filename and exclude.find(filename)<0 and OK!=dir.remove(filename):
-			push_warning('Cannot remove old autosave "'+filename+'"')
+		var savefile = autosaves.pop_front()
+		if savefile and exclude.find(savefile)<0 and OK!=dir.remove(savefile):
+			push_warning('Cannot remove old autosave "'+savefile+'"')
 			success = false
 	return success
 
@@ -75,13 +75,13 @@ func autosave():
 	var dir: Directory = Directory.new()
 	if not dir.dir_exists(autosave_dir) and OK!=dir.make_dir(autosave_dir):
 		push_error('Could not make directory "'+autosave_dir+'"')
-	var filename: String = make_autosave_filename()
-	printerr('Autosave to "'+filename+'"')
-	if not game_state.save_universe_as_json(filename):
+	var savefile: String = make_autosave_filename()
+	printerr('Autosave to "'+savefile+'"')
+	if not game_state.save_universe_as_json(savefile):
 		push_error('Autosave failed!')
-		if dir.file_exists(filename) and OK!=dir.remove(filename):
-			push_warning('Could not delete incomplete autosave file "'+filename+'"')
-	if not rotate_autosave_files([filename]):
+		if dir.file_exists(savefile) and OK!=dir.remove(savefile):
+			push_warning('Could not delete incomplete autosave file "'+savefile+'"')
+	if not rotate_autosave_files([savefile]):
 		push_warning('Autosave file rotation failed.')
 
 func _on_FileDialog_file_selected(path: String, node: FileDialog):

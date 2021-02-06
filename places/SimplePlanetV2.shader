@@ -11,7 +11,7 @@ void vertex() {
 }
 
 void fragment() {
-	vec2 uv_half = vec2(UV.x,UV.y/2.0);
+//	vec2 uv_half = vec2(UV.x,UV.y/2.0);
 	NORMAL = (INV_CAMERA_MATRIX*(WORLD_MATRIX*vec4(normalize(saved_vertex),0.0))).xyz;
 
 //	vec4 base = vec4(normalize(saved_vertex),0.0);
@@ -20,7 +20,8 @@ void fragment() {
 //	normal = WORLD_MATRIX*normal;
 //	NORMAL = (INV_CAMERA_MATRIX*normal).xyz;
 
-	ALBEDO = texture(precalculated,vec2(uv_half.x,uv_half.y+0.5)).rgb;
+	ALBEDO = texture(precalculated,UV).rgb;
+//	ALBEDO = texture(precalculated,vec2(uv_half.x,uv_half.y+0.5)).rgb;
 //	ALPHA = clamp(1.9*abs(NORMAL.z)*abs(NORMAL.z), 0.0, 1.0)*length(ALBEDO);
 }
 

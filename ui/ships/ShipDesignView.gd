@@ -60,6 +60,13 @@ class MountData extends simple_tree.SimpleNode:
 		box_translation = mp.translation
 		box = mp.get_path()
 
+func ship_world():
+	var ship = $Viewport.get_node_or_null('Ship')
+	if ship:
+		return ship.get_world()
+	push_error('Tried to get ship world with no ship')
+	return $Viewport.get_world()
+
 func deselect():
 	selection=NodePath()
 	selection_click=null
@@ -77,7 +84,7 @@ func at_position(pos,mask: int) -> Dictionary:
 	# Helper function to do an intersect_ray at a particular screen location.
 	if pos==null:
 		return {}
-	var space: PhysicsDirectSpaceState = get_viewport().world.direct_space_state
+	var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 	var from = $Viewport/Camera.project_ray_origin(pos)
 	from.y = $Viewport/Camera.translation.y+500
 	var to = from + $Viewport/Camera.project_ray_normal(pos)
@@ -113,9 +120,21 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: Collisi
 		selected_scene = scene
 		return true
 	return false
+#
+#
+#func in_top_dialog(node,top) -> bool:
+#	if node==null:
+#		return false
+#	if node==top:
+#		return true
+#	return in_top_dialog(node.get_parent(),top)
 
 func _input(event):
-	if get_tree().current_scene.popup_has_focus():
+	var scene = get_tree().current_scene
+	if scene and scene.has_method('popup_has_focus'):
+		if get_tree().current_scene.popup_has_focus():
+			return
+	elif not is_visible_in_tree():
 		return
 	var view_pos = rect_global_position
 	var view_rect: Rect2 = Rect2(view_pos, rect_size)
@@ -123,7 +142,7 @@ func _input(event):
 	if view_rect.has_point(mouse_pos):
 		if event.is_action_pressed('ui_location_select'):
 			var space_pos: Vector3 = $Viewport/Camera.project_position(mouse_pos-view_pos,-30)
-			var space: PhysicsDirectSpaceState = $Viewport.get_world().direct_space_state
+			var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 			var result: Dictionary = space.intersect_ray(
 				space_pos-y500,space_pos+y500,[],INSTALLED_LAYER_MASK|MULTIMOUNT_LAYER_MASK,true,true)
 			var collider = result.get('collider',null)
@@ -150,7 +169,7 @@ func _input(event):
 func dragging_item(item: MeshInstance):
 	var pos2 = get_viewport().get_mouse_position() - rect_global_position
 	var pos3 = $Viewport/Camera.project_position(pos2,-10)
-	var space: PhysicsDirectSpaceState = $Viewport.world.direct_space_state
+	var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 	var there: Dictionary = space.intersect_ray(
 		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
 	var collider = there.get('collider',null)
@@ -227,7 +246,7 @@ func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_type
 	var box: Area = Area.new()
 	box.set_script(InventorySlot)
 	box.create_only_box(width,height,mount_type)
-	box.place_near(loc,$Viewport.world.direct_space_state, \
+	box.place_near(loc,ship_world().direct_space_state, \
 		MOUNT_POINT_LAYER_MASK | SHIP_LAYER_MASK)
 	box.translation.y = loc.y
 	box.name=box_name
@@ -240,20 +259,20 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 	deselect()
 	var pos2 = get_viewport().get_mouse_position() - rect_global_position
 	var pos3 = $Viewport/Camera.project_position(pos2,-10)
-	var space: PhysicsDirectSpaceState = $Viewport.world.direct_space_state
+	var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 	var there: Dictionary = space.intersect_ray(
 		Vector3(pos3.x,-500,pos3.z),Vector3(pos3.x,500,pos3.z),[],36,false,true)
 	var target: CollisionObject = there.get('collider',null)
 	if not target:
-		push_warning('No mount under that location.')
+		print('No mount under that location.')
 		return false
 	var mount_name: String = target.get_mount_name()
 	var mount = mounts.get_child_with_name(mount_name)
 	if not mount_name:
-		push_error('Tried to drag into mount "'+mount_name+'" which does not exist.')
+		push_warning('Tried to drag into mount "'+mount_name+'" which does not exist.')
 		return false
 	if mount.mount_type != item.mount_type:
-		push_warning('Mount type mismatch: item='+item.mount_type+' mount='+mount.mount_type)
+		print('Mount type mismatch: item='+item.mount_type+' mount='+mount.mount_type)
 		return false
 	var x = -1
 	var y = -1
@@ -302,7 +321,7 @@ func unmount(mount_name: String,x: int,y: int) -> bool:
 		var child_name = 'cell_'+str(scene_x_y[1])+'_'+str(scene_x_y[2])
 		var old_child = ship_mount.get_node_or_null(child_name)
 		if old_child==null:
-			push_warning('Cannot find unmounted item "'+child_name+'" in ship.')
+			print('Cannot find unmounted item "'+child_name+'" in ship.')
 		else:
 			ship_mount.remove_child(old_child) # make the node name available again
 			old_child.queue_free()
@@ -325,11 +344,11 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 	# The location is based on the area location and item size.
 	var inventory_array = $Viewport.get_node_or_null(mount.box)
 	if inventory_array==null:
-		push_warning('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
+		print('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
 		return false
 	var ship_mount = $Viewport/Ship.get_node_or_null(mount.get_name())
 	if ship_mount==null:
-		push_warning('no ship mount for '+mount.get_name())
+		print('no ship mount for '+mount.get_name())
 		return false
 	var x_y = inventory_array.insert_at_grid_range(content,use_item_offset)
 	if not x_y:
@@ -430,11 +449,11 @@ func make_ship(design):
 	decoded.set_name('Ship')
 	var _discard = root.add_child(decoded)
 
-	#var ship = decoded.assemble_ship(false)
+	#var ship = $Viewport.assemble_ship(decoded)
 	var ship = design.hull.instance()
 	ship.name='Ship'
 	ship.collision_layer = SHIP_LAYER_MASK
-	ship.collision_mask = 0
+	ship.collision_mask = SHIP_LAYER_MASK
 	ship.random_height = false
 	ship.retain_hidden_mounts = true
 	ship.ship_display_name = design.display_name
@@ -498,7 +517,7 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 	var contents: simple_tree.SimpleNode = design.get_child_with_name(mount_name)
 	assert(contents)
 	if not contents:
-		push_warning('no node for multimount '+mount_name)
+		print('no node for multimount '+mount_name)
 		return
 	for item in contents.get_children():
 		if not item.has_method('is_MultiMounted'):
@@ -518,10 +537,10 @@ func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# or multimount.
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount:
-		push_warning('no mounts for '+mount_name)
+		print('no mounts for '+mount_name)
 		return false
 	if content.mount_type!=mount.mount_type:
-		push_warning('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
+		print('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
 		return false
 	if not content.scene:
 		push_warning('content has no scene '+mount_name)
@@ -563,11 +582,11 @@ func set_layer_recursively(node: Node,layer: int):
 
 func _ready():
 	$Viewport.size = rect_size
-	$Viewport/SpaceBackground.update_from(game_state.system)
+	$Viewport/SpaceBackground.update_from(Player.system)
 	$Viewport/Red.layers = RED_LIGHT_CULL_LAYER
 	$Viewport/Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$Viewport/SpaceBackground.center_view(130,90,0,120,0)
-	make_ship(game_state.player_ship_design)
+	make_ship(Player.player_ship_design)
 	emit_signal('pixel_height_changed',get_cell_pixel_height())
 
 func _on_ViewportContainer_resized():

@@ -7,6 +7,7 @@ var player_ship_design_name = 'player_ship_design'
 var systems: simple_tree.SimpleNode
 var ship_designs: simple_tree.SimpleNode
 var fleets: simple_tree.SimpleNode
+var ui: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 
@@ -19,16 +20,24 @@ signal system_display_name_changed
 signal system_position_changed
 signal link_position_changed
 
+func mandatory_add_child(child: simple_tree.SimpleNode, child_name: String):
+	child.name=child_name
+	if not add_child(child):
+		push_error('Could not add '+child_name+' child to universe.')
+
 func _init():
 	systems = simple_tree.SimpleNode.new()
-	systems.set_name('systems')
-	assert(add_child(systems))
+	#systems.set_name('systems')
+	mandatory_add_child(systems,'systems')
 	ship_designs = simple_tree.SimpleNode.new()
-	ship_designs.set_name('ship_designs')
-	assert(add_child(ship_designs))
+	#ship_designs.set_name('ship_designs')
+	mandatory_add_child(ship_designs,'ship_designs')
 	fleets = simple_tree.SimpleNode.new()
-	fleets.set_name('fleets')
-	assert(add_child(fleets))
+	#fleets.set_name('fleets')
+	mandatory_add_child(fleets,'fleets')
+	ui = simple_tree.SimpleNode.new()
+	#ui.set_name('ui')
+	mandatory_add_child(ui,'ui')
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -158,7 +167,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 			cached_stats['weapons'][i]['node_path']=NodePath()
 	
 	func assemble_part(body: Node, child: Node) -> bool:
-		var part = get_node_or_null(child.name)
+		var part = get_child_with_name(child.name)
 		if not part:
 			return false
 		elif part is MultiMount:
@@ -224,6 +233,22 @@ func decode_ShipDesign(v):
 	return result
 
 
+
+class UIState extends simple_tree.SimpleNode:
+	var ui_state
+	
+	func is_UIState(): pass # for type detection; never called
+	
+	func _init(state):
+		ui_state = state
+
+func encode_UIState(u: UIState):
+	return [ 'UIState', u.ui_state ]
+
+func decode_UIState(v):
+	if not v is Array or len(v)<2 or not v[0] is String or v[0]!='UIState':
+		return null
+	return UIState.new(decode_helper(v[1]))
 
 class Fleet extends simple_tree.SimpleNode:
 	var spawn_info: Dictionary = {}
@@ -292,8 +317,58 @@ func decode_Fleet(v):
 	return Fleet.new(display_name,spawn_info)
 
 
+
+func decode_InputEvent(data):
+	if not data is Array or not len(data)==2:
+		push_warning('Unable to decode an input event from '+str(data))
+		return null
+	var v = decode_helper(data[1])
+	var event = null
+	if data[0] == 'InputEventKey':
+		event = InputEventKey.new()
+		event.scancode = v['scancode']
+		event.unicode = v['unicode']
+		event.alt = v['alt']
+		event.command = v['command']
+		event.control = v['control']
+		event.meta = v['meta']
+		event.shift = v['shift']
+	elif data[0] == 'InputEventJoypadButton':
+		event = InputEventJoypadButton.new()
+		event.button_index = v['button_index']
+		event.pressure = v['pressure']
+	
+	if event:
+		event.pressed = v['pressed']
+		event.device = v['device']
+	assert(event==null or event is InputEvent)
+	return event
+
+func encode_InputEvent(event: InputEvent):
+	if event is InputEventKey:
+		return [ 'InputEventKey', { 
+			'pressed': event.pressed,
+			'scancode': event.scancode,
+			'unicode': event.unicode,
+			'alt': event.alt,
+			'command': event.command,
+			'control': event.control,
+			'meta': event.meta,
+			'shift': event.shift,
+			'device': event.device
+		} ]
+	elif event is InputEventJoypadButton:
+		return [ 'InputEventJoypadButton', { 
+			'pressed': event.pressed,
+			'pressure': event.pressure,
+			'button_index': event.button_index,
+			'device': event.device
+		} ]
+	else:
+		push_error('Cannot encode unrecognized object '+str(event))
+
+
 func save_places_as_json(filename: String) -> bool:
-	print('save to file "',filename,'"')
 	var encoded: String = encode_places()
 	var file: File = File.new()
 	if file.open(filename, File.WRITE):
@@ -307,7 +382,6 @@ func load_places_from_json(filename: String) -> bool:
 	assert(children_.has('systems'))
 	assert(children_.has('ship_designs'))
 	assert(children_.has('fleets'))
-	print('load from file "',filename,'"')
 	var file: File = File.new()
 	if file.open(filename, File.READ):
 		printerr('Cannot open file '+filename+'!!')
@@ -315,15 +389,14 @@ func load_places_from_json(filename: String) -> bool:
 	var encoded: String = file.get_as_text()
 	file.close()
 	var system_name = null
-	if game_state and game_state.system:
-		system_name = game_state.system.get_name()
+	if Player and Player.system:
+		system_name = Player.system.get_name()
 	var success = decode_places(encoded,filename)
 	emit_signal('reset_system')
-	if game_state:
-		if system_name:
-			var system = game_state.systems.get_node_or_null(system_name)
-			if system:
-				game_state.system = system
+	if system_name:
+		var system = game_state.systems.get_node_or_null(system_name)
+		if system:
+			Player.system = system
 	return success
 
 
@@ -408,18 +481,29 @@ func decode_helper(what,key=null):
 	elif what is Array:
 		if not what:
 			return null
-		if what[0]=='Resource' and len(what)>1:
-			return ResourceLoader.load(str(what[1]))
-		elif what[0]=='Vector2' and len(what)>=3:
+		if not what[0] is String:
+			push_warning('Found an array that did not begin with a string when decoding. Returning null.')
+			return null
+		if what[0]=='Vector2' and len(what)>=3:
 			return Vector2(float(what[1]),float(what[2]))
 		elif what[0]=='Array':
-			return what.slice(1,len(what))
+			var result = []
+			result.resize(len(what)-1)
+			for n in range(1,len(what)):
+				result[n-1] = decode_helper(what[n])
+			return result
 		elif what[0]=='Vector3' and len(what)>=4:
 			return Vector3(float(what[1]),float(what[2]),float(what[3]))
 		elif what[0]=='Color' and len(what)>=5:
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
+		elif what[0].begins_with('InputEvent'):
+			return decode_InputEvent(what)
+		elif what[0] == 'NodePath' and len(what)>1:
+			return NodePath(what[1])
 		elif what[0] == 'Fleet':
 			return decode_Fleet(what)
+		elif what[0] == 'UIState':
+			return decode_UIState(what)
 		elif what[0] == 'MultiMounted':
 			return decode_MultiMounted(what)
 		elif what[0] == 'MultiMount':
@@ -437,8 +521,11 @@ func decode_helper(what,key=null):
 			result.set_name(key)
 			decode_children(result,what[1])
 			return result
+		elif what[0]=='Resource' and len(what)>1:
+			return ResourceLoader.load(str(what[1]))
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
+	push_warning('Unrecognized type encountered in decode_helper; returning null.')
 	return null
 
 
@@ -457,16 +544,20 @@ func encode_helper(what):
 		for value in what:
 			result.append(encode_helper(value))
 		return result
-	elif what is Resource:
-		return [ 'Resource', what.resource_path ]
 	elif what is Vector2:
 		return [ 'Vector2', what.x, what.y ]
 	elif what is Vector3:
 		return [ 'Vector3', what.x, what.y, what.z ]
 	elif what is Color:
 		return [ 'Color', what.r, what.g, what.b, what.a ]
+	elif what is InputEvent:
+		return encode_InputEvent(what)
+	elif what is NodePath:
+		return [ 'NodePath', str(what) ]
 	elif what is Fleet:
 		return encode_Fleet(what)
+	elif what is UIState:
+		return encode_UIState(what)
 	elif what is MultiMounted:
 		return encode_MultiMounted(what)
 	elif what is MultiMount:
@@ -475,6 +566,8 @@ func encode_helper(what):
 		return encode_Mounted(what)
 	elif what is ShipDesign:
 		return encode_ShipDesign(what)
+	elif what is Resource:
+		return [ 'Resource', what.resource_path ]
 	elif what is simple_tree.SimpleNode and what.has_method('encode'):
 		var encoded = encode_helper(what.encode())
 		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'

@@ -1,0 +1,85 @@
+[gd_scene load_steps=4 format=2]
+
+[ext_resource path="res://ui/SaveList.tscn" type="PackedScene" id=1]
+[ext_resource path="res://ui/SaveLoadControl.gd" type="Script" id=2]
+[ext_resource path="res://ui/MainDialog/ConfirmationDialog.tscn" type="PackedScene" id=3]
+
+[node name="SaveLoadControl" type="GridContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+ConfirmDialog = ExtResource( 3 )
+
+[node name="SaveList" parent="." instance=ExtResource( 1 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 1024.0
+margin_bottom = 576.0
+
+[node name="Center" type="CenterContainer" parent="."]
+margin_top = 580.0
+margin_right = 1024.0
+margin_bottom = 600.0
+
+[node name="Buttons" type="GridContainer" parent="Center"]
+margin_left = 381.0
+margin_right = 643.0
+margin_bottom = 20.0
+columns = 7
+
+[node name="Load" type="Button" parent="Center/Buttons"]
+margin_right = 42.0
+margin_bottom = 20.0
+hint_tooltip = "Load this file."
+disabled = true
+text = "Load"
+
+[node name="HSeparator" type="HSeparator" parent="Center/Buttons"]
+margin_left = 46.0
+margin_right = 49.0
+margin_bottom = 20.0
+
+[node name="Overwrite" type="Button" parent="Center/Buttons"]
+margin_left = 53.0
+margin_right = 128.0
+margin_bottom = 20.0
+hint_tooltip = "Replace this file with a new save. This is irreversible!"
+disabled = true
+text = "Overwrite"
+
+[node name="HSeparator2" type="HSeparator" parent="Center/Buttons"]
+margin_left = 132.0
+margin_right = 135.0
+margin_bottom = 20.0
+
+[node name="Delete" type="Button" parent="Center/Buttons"]
+margin_left = 139.0
+margin_right = 194.0
+margin_bottom = 20.0
+hint_tooltip = "Delete the selected file. This is irreversible!"
+disabled = true
+text = "Delete"
+
+[node name="HSeparator3" type="HSeparator" parent="Center/Buttons"]
+margin_left = 198.0
+margin_right = 201.0
+margin_bottom = 20.0
+
+[node name="Rescan" type="Button" parent="Center/Buttons"]
+margin_left = 205.0
+margin_right = 262.0
+margin_bottom = 20.0
+hint_tooltip = "Re-read the saves directory and update the list."
+text = "Rescan"
+[connection signal="new_save" from="SaveList" to="." method="_on_SaveList_new_save"]
+[connection signal="no_save_selected" from="SaveList" to="." method="_on_SaveList_no_save_selected"]
+[connection signal="save_selected" from="SaveList" to="." method="_on_SaveList_save_selected"]
+[connection signal="pressed" from="Center/Buttons/Load" to="." method="_on_Load_pressed"]
+[connection signal="pressed" from="Center/Buttons/Overwrite" to="." method="_on_Overwrite_pressed"]
+[connection signal="pressed" from="Center/Buttons/Delete" to="." method="_on_Delete_pressed"]
+[connection signal="pressed" from="Center/Buttons/Rescan" to="." method="_on_Rescan_pressed"]

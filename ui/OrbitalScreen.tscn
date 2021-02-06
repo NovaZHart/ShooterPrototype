@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=18 format=2]
 
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://ui/OrbitalScreen.gd" type="Script" id=2]
@@ -9,6 +9,8 @@
 [ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=7]
 [ext_resource path="res://ui/SystemSelector.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/ServiceSelector.tscn" type="PackedScene" id=9]
+[ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=10]
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=11]
 
 [sub_resource type="DynamicFont" id=1]
 size = 13
@@ -32,20 +34,37 @@ font_data = ExtResource( 1 )
 default_font = SubResource( 5 )
 
 [node name="Landing" type="Control"]
+theme = ExtResource( 11 )
 script = ExtResource( 2 )
+
+[node name="View" type="ViewportContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Camera" type="Camera" parent="."]
+[node name="Port" type="Viewport" parent="View"]
+size = Vector2( 100, 100 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="View/Port"]
 projection = 1
 size = 4.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="View/Port"]
 environment = ExtResource( 7 )
 
-[node name="SpaceBackground" parent="." instance=ExtResource( 4 )]
+[node name="SpaceBackground" parent="View/Port" instance=ExtResource( 4 )]
 transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -30, 0 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="View/Port"]
+transform = Transform( 0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0 )
+light_color = Color( 1, 0.992157, 0.929412, 1 )
 
 [node name="Console" type="RichTextLabel" parent="."]
 pause_mode = 2
@@ -99,14 +118,15 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="DirectionalLight" type="DirectionalLight" parent="."]
-transform = Transform( 0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0 )
-light_color = Color( 1, 0.992157, 0.929412, 1 )
-
 [node name="ServiceSelector" parent="." instance=ExtResource( 9 )]
 
 [node name="SystemSelector" parent="." instance=ExtResource( 8 )]
+
+[node name="MainDialogTrigger" parent="." instance=ExtResource( 10 )]
 [connection signal="jump_complete" from="." to="SystemSelector" method="update_selectability"]
+[connection signal="resized" from="." to="." method="_on_Landing_resized"]
 [connection signal="deorbit_selected" from="ServiceSelector" to="." method="deorbit"]
 [connection signal="service_activated" from="ServiceSelector" to="." method="activate_service"]
 [connection signal="astral_jump" from="SystemSelector" to="." method="astral_jump"]
+[connection signal="dialog_hidden" from="MainDialogTrigger" to="." method="_on_MainDialogTrigger_dialog_hidden"]
+[connection signal="dialog_shown" from="MainDialogTrigger" to="." method="_on_MainDialogTrigger_dialog_shown"]

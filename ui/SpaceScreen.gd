@@ -32,13 +32,20 @@ const PLAYER_TARGET_PLANET: int = 48
 const PLAYER_TARGET_OVERRIDE: int = 64
 const PLAYER_TARGET_NOTHING: int = 240
 
+var pause_mutex: Mutex = Mutex.new()
+var dialog_paused: bool = false
+var was_paused: bool = false
+
 func update_pause(_delta: float) -> void:
 	if Input.is_action_just_released('ui_pause'):
-		get_tree().paused = not get_tree().paused
-		if get_tree().paused:
-			game_state.print_to_console('Pause.')
-		else:
-			game_state.print_to_console('Unpause.')
+		pause_mutex.lock()
+		if not dialog_paused:
+			get_tree().paused = not get_tree().paused
+			if get_tree().paused:
+				game_state.print_to_console('Pause.')
+			else:
+				game_state.print_to_console('Unpause.')
+		pause_mutex.unlock()
 
 func _input(event: InputEvent):
 	if not event.is_action_pressed('ui_location_select'):
@@ -161,6 +168,8 @@ func _enter_tree() -> void:
 func _process(delta: float) -> void:
 	#warning-ignore:narrowing_conversion
 	tick += max(1,round(delta*60.0))
+	if dialog_paused:
+		return
 	update_pause(delta)
 	handle_zoom(delta)
 	if get_tree().paused:
@@ -171,16 +180,33 @@ func _process(delta: float) -> void:
 		if death_start<0:
 			death_start = tick
 		if tick-death_start>300 or Input.is_action_just_released('ui_cancel'):
-			var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+#			if get_tree().current_scene.has_method('change_scene'):
+			game_state.change_scene('res://ui/OrbitalScreen.tscn')
+#			else:
+#				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 			yield(get_tree(),'idle_frame')
 
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	var system_name = game_state.system.display_name
+	var system_name = Player.system.display_name
 	$LocationLabel.text=system_name
 	game_state.print_to_console('Entered system '+system_name)
 	var _discard = $System.connect("view_center_changed",$System/Minimap,"view_center_changed")
 
 func get_player_system() -> Node:
 	return $Player
+
+
+func _on_MainDialogTrigger_dialog_hidden():
+	pause_mutex.lock()
+	get_tree().paused = was_paused
+	dialog_paused = false
+	pause_mutex.unlock()
+
+func _on_MainDialogTrigger_dialog_shown():
+	pause_mutex.lock()
+	was_paused = get_tree().paused
+	dialog_paused = true
+	get_tree().paused = true
+	pause_mutex.unlock()

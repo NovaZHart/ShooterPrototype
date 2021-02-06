@@ -19,8 +19,8 @@ class SceneChangeService extends Service:
 	var resource: PackedScene
 	func will_change_scene() -> bool:
 		return true
-	func create(tree: SceneTree) -> int:
-		return tree.change_scene_to(resource)
+	func create(_tree: SceneTree) -> int:
+		return game_state.change_scene(resource)
 	func _init(title: String,resource_: PackedScene).(title):
 		resource = resource_
 
@@ -33,10 +33,10 @@ class ChildInstanceService extends Service:
 
 class PlanetDescription extends ChildInstanceService:
 	func is_available() -> bool:
-		var info = game_state.get_space_object_or_null()
+		var info = Player.get_space_object_or_null()
 		return not info==null and not info.description.empty()
 	func create(_tree: SceneTree) -> Node:
-		var info = game_state.get_space_object_or_null()
+		var info = Player.get_space_object_or_null()
 		var scene = resource.instance()
 		var desc = '' if info==null else info.description
 		if not desc.empty():
