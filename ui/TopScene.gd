@@ -4,7 +4,7 @@ var scene_path: NodePath = NodePath()
 var scene_mutex: Mutex = Mutex.new()
 
 func _ready():
-	var _discard = change_scene(preload('res://ui/ships/ShipDesignScreen.tscn'))
+	var _discard = change_scene(preload('res://ui/MainScreen/MainScreen.tscn'))
 
 func popup_has_focus():
 	var scene = get_scene()
@@ -31,8 +31,8 @@ func change_scene(arg) -> bool:
 			scene_path = instance.get_path()
 			scene_mutex.unlock()
 			get_tree().paused = false
-			yield(get_tree(),'idle_frame')
-			get_tree().paused = was_paused
+			if was_paused:
+				get_tree().call_deferred('set_paused',was_paused)
 			return true
 	
 	scene_mutex.unlock()
