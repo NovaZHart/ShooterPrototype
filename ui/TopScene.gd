@@ -14,6 +14,7 @@ func popup_has_focus():
 		return not not get_viewport().get_modal_stack_top()
 
 func change_scene(arg) -> bool:
+	var was_paused = get_tree().paused
 	scene_mutex.lock()
 	var scene = arg
 	if not arg is PackedScene:
@@ -29,6 +30,9 @@ func change_scene(arg) -> bool:
 			add_child(instance)
 			scene_path = instance.get_path()
 			scene_mutex.unlock()
+			get_tree().paused = false
+			yield(get_tree(),'idle_frame')
+			get_tree().paused = was_paused
 			return true
 	
 	scene_mutex.unlock()

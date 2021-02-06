@@ -5,7 +5,11 @@ func _ready():
 		call_deferred('popup')
 	var _discard=get_viewport().connect('size_changed',self,'auto_resize')
 	auto_resize()
-	set_page('Keys')
+	if game_state.restore_from_load_page:
+		game_state.restore_from_load_page=false
+		set_page('Saves')
+	else:
+		set_page('Keys')
 
 func auto_resize():
 	var view_size = get_viewport().size

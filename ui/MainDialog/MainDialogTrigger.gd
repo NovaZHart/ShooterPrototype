@@ -7,6 +7,13 @@ var dialog_path: NodePath = NodePath()
 signal dialog_shown
 signal dialog_hidden
 
+func _ready():
+	if game_state.restore_from_load_page:
+		call_deferred('restore_from_load_page')
+
+func restore_from_load_page():
+	show_main_dialog()
+
 func _exit_tree():
 	if not dialog_path.is_empty():
 		var node = get_node_or_null(dialog_path)
@@ -14,18 +21,22 @@ func _exit_tree():
 			node.queue_free()
 
 func _input(event):
-	if dialog_path:
-		return
 	if not event.is_action_pressed('ui_cancel'):
 		return
 	var viewport: Viewport = get_viewport()
 	if viewport.get_modal_stack_top()!=null:
 		return
 	get_tree().set_input_as_handled()
+	show_main_dialog()
+
+func show_main_dialog():
+	if dialog_path:
+		return
 	var dialog = MainDialog.instance()
 	if OK!=dialog.connect('hide',self,'_on_MainDialog_hide'):
 		push_error('cannot connect to MainDialog hide signal')
 		return
+	var viewport: Viewport = get_viewport()
 	viewport.add_child(dialog)
 	dialog_path = dialog.get_path()
 	emit_signal('dialog_shown')

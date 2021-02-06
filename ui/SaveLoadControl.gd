@@ -93,16 +93,17 @@ func basename(savefile: String) -> String:
 
 func _on_Load_pressed():
 	print('load')
-	if last_selected_savefile:
-		var confirmed = confirm('Load '+basename(last_selected_savefile)+'?')
-		while confirmed is GDScriptFunctionState and confirmed.is_valid():
-			confirmed = yield(confirmed,'completed')
-		if not confirmed:
-			return
-		var read = Player.read_save_file(last_selected_savefile)
+	var fil = last_selected_savefile
+	if fil:
+#		var confirmed = confirm('Load '+basename(fil)+'?')
+#		while confirmed is GDScriptFunctionState and confirmed.is_valid():
+#			confirmed = yield(confirmed,'completed')
+#		if not confirmed:
+#			return
+		var read = Player.read_save_file(fil)
 		if read:
-			Player.restore_state(read)
-			emit_signal('game_loaded',last_selected_savefile)
+			Player.call_deferred('restore_state',read)
+			emit_signal('game_loaded',fil)
 
 func _on_Delete_pressed():
 	print('delete')

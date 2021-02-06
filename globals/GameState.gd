@@ -16,7 +16,7 @@ var services: Dictionary = {}
 var stored_console: String = '\n'.repeat(16) setget set_stored_console,get_stored_console
 var name_counter: int = 0
 var sphere_xyz
-
+var restore_from_load_page: bool = false
 var input_edit_state = undo_tool.UndoStack.new(false)
 
 var tree
