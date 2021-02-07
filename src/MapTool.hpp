@@ -18,11 +18,16 @@
 
 namespace godot {
 
+  typedef int object_id;
+
+  typedef pair<object_id,object_id> Link;
+
   struct IntLocation {
     int x, y;
   };
   
   struct SystemInfo {
+    object_id id;
     NodePath path;
     Vector3 position;
     String display_name;
@@ -32,6 +37,9 @@ namespace godot {
     SystemInfo(const SystemInfo &);
   };
 
+  typedef shared_ptr<SystemInfo> SystemInfoPtr;
+  typedef weak_ptr<SystemInfo> SystemInfoWeak;
+  
   template<>
   struct hash<IntLocation> {
     struct hash<int> int_hash;
@@ -52,11 +60,6 @@ namespace godot {
     }
   };
   
-  struct Link {
-    NodePath from_node, to_node;
-    Vector3 from_pos, to_pos;
-  };
-
   struct MapToolVisuals {
     MapToolVisuals();
     MapToolVisuals(const MapToolVisuals &v);
@@ -82,12 +85,12 @@ namespace godot {
 
   class DrawLabel {
   public:
-    DrawLabel(Ref<Font> font,Vector2 position,String label,Color color);
+    DrawLabel(bool highlighted_font,Vector2 position,String label,Color color);
     DrawLabel(const DrawLabel &);
     ~DrawLabel();
-    void draw(const Node2D &) const;
+    void draw(const Node2D &,const MapToolVisuals &) const;
   private:
-    Ref<Font> font;
+    bool highlighted_font;
     Vector2 position;
     String label;
     Color color;
@@ -118,10 +121,13 @@ namespace godot {
     typedef pair<position_citer,position_citer> position_crange;
   private:
     shared_ptr<MapToolVisuals> visuals;
-    Ref<MultiMesh> mm_links, mm_systems;
+    
     vector<Link> list_links;
-    unordered_map<NodePath,SystemInfo> hash_systems;
-    unordered_multimap<IntLocation,SystemInfo> positions;
+    
+    unordered_map<NodePath,SystemInfoPtr> node2id;
+    unordered_multimap<IntLocation,SystemInfoPtr> loc2id;
+    
+    Ref<MultiMesh> mm_links, mm_systems;
     PoolRealArray link_reals, system_reals;
     vector<DrawLabel> draw_commands;
   };

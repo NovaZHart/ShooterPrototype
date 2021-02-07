@@ -1,0 +1,11 @@
+[gd_resource type="NativeScript" load_steps=2 format=2]
+
+[sub_resource type="GDNativeLibrary" id=1]
+resource_name = "Starmap"
+entry/X11.64 = "res://bin/x11/libstarmap.so"
+dependency/X11.64 = [  ]
+
+[resource]
+resource_name = "Starmap"
+class_name = "Starmap"
+library = SubResource( 1 )

@@ -14,6 +14,7 @@ opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
 opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'bin/'))
 opts.Add(PathVariable('CombatEngine_target_name', 'The CombatEngine library name.', 'libcombatengine', PathVariable.PathAccept))
 opts.Add(PathVariable('SphereTool_target_name', 'The SphereTool library name.', 'libspheretool', PathVariable.PathAccept))
+opts.Add(PathVariable('Starmap_target_name', 'The Starmap library name.', 'libstarmap', PathVariable.PathAccept))
 opts.Add(PathVariable('GDNativeTestCode_target_name', 'The GDNativeTestCode library name.', 'libgdnativetestcode', PathVariable.PathAccept))
 
 SConscript(['godot-cpp/SConstruct'])
@@ -106,10 +107,12 @@ env.Append(CPPPATH=['src/'])
 GDNativeTestCode_library = env.SharedLibrary(target=env['target_path'] + env['GDNativeTestCode_target_name'] , source=Glob('src/GDNativeTestCode*.cpp'))
 CombatEngine_library = env.SharedLibrary(target=env['target_path'] + env['CombatEngine_target_name'] , source=Glob('src/CombatEngine*.cpp'))
 SphereTool_library = env.SharedLibrary(target=env['target_path'] + env['SphereTool_target_name'] , source=Glob('src/SphereTool*.cpp'))
+Starmap_library = env.SharedLibrary(target=env['target_path'] + env['Starmap_target_name'] , source=Glob('src/Starmap*.cpp'))
 
 Default(GDNativeTestCode_library)
 Default(CombatEngine_library)
 Default(SphereTool_library)
+Default(Starmap_library)
 
 # Generates help for the -h scons option.
 Help(opts.GenerateHelpText(env))

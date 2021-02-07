@@ -89,8 +89,9 @@ DrawLabel(const DrawLabel &o):
   font(o.font), position(o.position), label(o.label), color(o.color)
 {}
 ~DrawLabel() {}
-void draw(const Node2D &canvas) const {
-  canvas.draw_string(font,position,label,color);
+void draw(const Node2D &canvas,const MapToolVisuals &vis) const {
+  canvas.draw_string( (highlighted_font ? vis.highlighted_font : vis.label_font),
+                      position,label,color);
 }
 
 /* ------------------------------------------------------------------ */

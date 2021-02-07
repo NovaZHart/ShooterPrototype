@@ -8,12 +8,11 @@
           "display_name": "Seti-α",
           "position": [
             "Vector3",
-            1.975001,
+            4.825001,
             0,
-            -0.275
+            -0.649999
           ],
           "links": {
-            "alef_93": 1,
             "seti_beta": 1,
             "seti-gamma": 1
           },
@@ -168,7 +167,7 @@
             -16.374998
           ],
           "links": {
-            "seti_alpha": 1
+            "alef-85": 1
           },
           "plasma_seed": 82597,
           "starfield_seed": 42878,
@@ -412,13 +411,14 @@
           "display_name": "Seti-β",
           "position": [
             "Vector3",
-            3.675,
+            2.250004,
             0,
-            4.275
+            -4.2
           ],
           "links": {
             "seti_alpha": 1,
-            "seti-gamma": 1
+            "seti-gamma": 1,
+            "alef-85": 1
           },
           "plasma_seed": 320918,
           "starfield_seed": 987686,
@@ -543,7 +543,7 @@
                 "orbit_radius": 0,
                 "orbit_period": 0,
                 "orbit_start": 0,
-                "has_astral_gate": true,
+                "has_astral_gate": false,
                 "objects": {
                   "new_kano": [
                     "SpaceObjectData",
@@ -670,9 +670,9 @@
           "display_name": "Seti-ɣ",
           "position": [
             "Vector3",
-            -0.974998,
+            7.650002,
             0,
-            4.8
+            -3.599999
           ],
           "links": {
             "seti_beta": 1,
@@ -777,7 +777,7 @@
                 "services": [
                   "Array"
                 ],
-                "display_name": "Seti-ɣ-1",
+                "display_name": "Seti-ɣ",
                 "description": "",
                 "base": "",
                 "object_type": 1,
@@ -798,10 +798,10 @@
                 ],
                 "shader_seed": 0,
                 "rotation_period": 0,
-                "orbit_radius": 19.677973,
+                "orbit_radius": 11.598228,
                 "orbit_period": 20,
-                "orbit_start": 2.464206,
-                "has_astral_gate": true,
+                "orbit_start": -3.71873,
+                "has_astral_gate": false,
                 "objects": {
 
                 }
@@ -834,9 +834,9 @@
                 ],
                 "shader_seed": 42447,
                 "rotation_period": 0,
-                "orbit_radius": 20.055475,
+                "orbit_radius": 15.793585,
                 "orbit_period": 20,
-                "orbit_start": -0.374333,
+                "orbit_start": -0.540446,
                 "has_astral_gate": false,
                 "objects": {
 
@@ -872,9 +872,9 @@
                 ],
                 "shader_seed": 0,
                 "rotation_period": 0,
-                "orbit_radius": 190.701416,
+                "orbit_radius": 321.565399,
                 "orbit_period": 20,
-                "orbit_start": 0.639656,
+                "orbit_start": 0.684115,
                 "has_astral_gate": false,
                 "objects": {
                   "yarra": [
@@ -945,12 +945,194 @@
                 ],
                 "shader_seed": 65871,
                 "rotation_period": 14,
-                "orbit_radius": 99.324524,
+                "orbit_radius": 135.982407,
                 "orbit_period": 9,
-                "orbit_start": 0.720093,
+                "orbit_start": 0.658626,
                 "has_astral_gate": false,
                 "objects": {
 
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "alef-85": [
+        "SystemData",
+        {
+          "display_name": "א-85",
+          "position": [
+            "Vector3",
+            11.175005,
+            0,
+            -19.275
+          ],
+          "links": {
+            "alef_93": 1,
+            "seti_beta": 1
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "alef-85": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "א-85",
+                "description": "",
+                "base": "",
+                "object_type": 1,
+                "size": 13,
+                "color_scaling": [
+                  "Color",
+                  0.94902,
+                  0.356863,
+                  0.356863,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.019608,
+                  -0.137255,
+                  -0.607843,
+                  1
+                ],
+                "shader_seed": 58199,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 20,
+                "orbit_start": -1.570796,
+                "has_astral_gate": false,
+                "objects": {
+                  "Moranna": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "shipeditor"
+                      ],
+                      "display_name": "Moranna",
+                      "description": "",
+                      "base": "",
+                      "object_type": 0,
+                      "size": 8,
+                      "color_scaling": [
+                        "Color",
+                        0.45098,
+                        0.521569,
+                        0.972549,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        -0.568627,
+                        -0.035294,
+                        0.019608,
+                        1
+                      ],
+                      "shader_seed": 65871,
+                      "rotation_period": 0,
+                      "orbit_radius": 190.184326,
+                      "orbit_period": 20,
+                      "orbit_start": 0.528358,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
                 }
               }
             ]
