@@ -454,7 +454,7 @@ func _unhandled_input(event):
 			exit_confirmed=true
 		if exit_confirmed:
 			universe_edits.state.clear()
-			var _discard = game_state.call_deferred(
+			game_state.call_deferred(
 				'change_scene','res://ui/MainScreen/MainScreen.tscn')
 		get_tree().set_input_as_handled()
 	elif event.is_action_pressed('ui_location_select'):

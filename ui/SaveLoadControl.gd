@@ -154,7 +154,7 @@ func _on_Rescan_pressed():
 		emit_signal('no_save_selected')
 	emit_signal('saves_rescanned')
 
-func _on_SaveList_save_double_clicked(savefile: String, data=null):
+func _on_SaveList_save_double_clicked(savefile: String, _data=null):
 	print('savelist save double clicked')
 	last_selected_savefile = savefile
 	_on_Load_pressed()

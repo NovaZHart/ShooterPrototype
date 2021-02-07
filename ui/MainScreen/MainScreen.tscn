@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/MainScreen/MainScreen.gd" type="Script" id=2]
+[ext_resource path="res://ui/MainScreen/Title.tscn" type="PackedScene" id=3]
 
 [node name="MainScreen" type="Panel"]
 anchor_right = 1.0
@@ -72,6 +73,10 @@ margin_top = 105.0
 margin_right = 85.0
 margin_bottom = 128.0
 text = "Game Editor"
+
+[node name="Title" parent="." instance=ExtResource( 3 )]
+anchor_top = 0.2
+anchor_bottom = 0.2
 [connection signal="pressed" from="CenterContainer/GridContainer/NewGame" to="." method="_on_NewGame_pressed"]
 [connection signal="pressed" from="CenterContainer/GridContainer/LoadGame" to="." method="_on_LoadGame_pressed"]
 [connection signal="pressed" from="CenterContainer/GridContainer/Exit" to="." method="_on_Exit_pressed"]
