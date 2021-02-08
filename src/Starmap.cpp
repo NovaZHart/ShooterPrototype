@@ -209,12 +209,14 @@ void Starmap::set_systems(PoolStringArray new_system_names, PoolVector3Array new
   {
     int ngates = new_astral_gates.size();
     astral_gate_list.resize(ngates);
+    gate_set.clear();
     PoolIntArray::Read gate_read = new_astral_gates.read();
     const int *gates_in = gate_read.ptr();
     PoolIntArray::Write gate_write = astral_gate_list.write();
     int *gates_out = gate_write.ptr();
 
     for(int i=0;i<ngates;i++) {
+      gate_set.insert(gates_in[i]);
       gates_out[i] = gates_in[i];
       for(int j=0;j<i;j++)
         routes.emplace(gates_in[i],gates_in[j]);
@@ -446,6 +448,11 @@ void Starmap::_draw() {
       }
       system_scale *= camera_size;
 
+      if(gate_set.find(n)!=gate_set.end()) {
+        system_color.a = 0.1;
+        system_scale *= 1.25;
+      }
+      
       real_t ascent = label_font->get_ascent();
       Vector2 pos2 = proj.unproject_position(pos3);
       Vector2 text_size = label_font->get_string_size(system_name_ptr[n]);

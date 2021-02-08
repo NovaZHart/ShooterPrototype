@@ -207,6 +207,8 @@ namespace godot {
     PoolVector3Array system_locations;
     PoolIntArray link_list, astral_gate_list;
 
+    std::unordered_set<int> gate_set;
+    
     std::unordered_multimap<IntLocation,int,HashIntPair> system_map;
     typedef std::unordered_multimap<IntLocation,int,HashIntPair>::iterator system_map_iter;
     typedef std::unordered_multimap<IntLocation,int,HashIntPair>::const_iterator system_map_citer;

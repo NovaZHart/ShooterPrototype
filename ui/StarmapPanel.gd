@@ -1,5 +1,8 @@
 extends game_state.SectorEditorStub
 
+export var connected_location_color = Color(0.6,0.5,0.9)
+export var system_location_color = Color(0.7,0.6,1.0)
+
 export var connected_color = Color(0.4,0.8,1.0)
 export var highlight_color = Color(1.0,0.9,0.5)
 export var system_color = Color(0.1,0.2,0.6)
@@ -11,6 +14,7 @@ export var label_font: Font
 export var highlighted_font: Font
 
 const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
+const StarmapSystemShader: Shader = preload('res://ui/StarmapSystem.shader')
 const StarmapLibrary = preload('res://bin/Starmap.gdns')
 const SYSTEM_SCALE: float = 0.01
 const LINK_SCALE: float = 0.005
@@ -52,13 +56,16 @@ func _ready():
 	starmap.set_camera_path(NodePath('../Camera'))
 	$View/Port.add_child(starmap)
 	
+	var syspos = Player.system.position
+	$View/Port/Camera.translation = Vector3(syspos.x,$View/Port/Camera.translation.y,syspos.z)
+	
 	link_material = ShaderMaterial.new()
 	link_material.shader = MapItemShader
 	link_material.set_shader_param('poly',2)
 	starmap.set_line_material(link_material)
 	
 	system_material = ShaderMaterial.new()
-	system_material.shader = MapItemShader
+	system_material.shader = StarmapSystemShader
 	system_material.set_shader_param('poly',4)
 	starmap.set_circle_material(system_material)
 	
@@ -68,7 +75,7 @@ func _ready():
 		SYSTEM_SCALE,LINK_SCALE)
 		
 	send_systems_to_starmap()
-	starmap.update()
+	update_starmap_visuals()
 
 func _on_StarmapPanel_resized():
 	starmap.set_max_scale(SYSTEM_SCALE*2.0, LINK_SCALE*2.0, rect_global_position)
@@ -118,10 +125,32 @@ func send_systems_to_starmap():
 	
 	starmap.set_systems(display_name_pool, pos_pool, link_pool, gate_pool)
 
+func alpha(c: Color, a: float) -> Color:
+	return Color(c.r,c.g,c.b,a)
+
 func update_starmap_visuals():
 	starmap.clear_visuals()
+	var selection_index = -1
+	var location_index = system_index.get(Player.system.name,-1)
+	print('player location is #',location_index)
+	
 	if selection and selection.has_method('is_SystemData'):
-		var selection_index = system_index.get(selection.name,-1)
+		selection_index = system_index.get(selection.name,-1)
+	
+	if location_index==selection_index and location_index>=0:
+		starmap.add_system_visuals(PoolIntArray([selection_index]),
+			highlight_color, system_name_color, highlighted_font,
+			SYSTEM_SCALE*1.2)
+		starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
+			connected_color, LINK_SCALE*1.5)
+	else:
+		if location_index>=0:
+			starmap.add_system_visuals(PoolIntArray([location_index]),
+				system_location_color, system_name_color, label_font,
+				SYSTEM_SCALE*1.2)
+			starmap.add_adjacent_link_visuals(PoolIntArray([location_index]),
+				connected_location_color, LINK_SCALE*1.5)
+		
 		if selection_index>=0:
 			starmap.add_system_visuals(PoolIntArray([selection_index]),
 				highlight_color, system_name_color, highlighted_font,
