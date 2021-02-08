@@ -8,7 +8,7 @@
 #include <Shader.hpp>
 #include <Ref.hpp>
 #include <PoolArrays.hpp>
-#include <CanvasItem.hpp>
+#include <Node2D.hpp>
 #include <Material.hpp>
 #include <ArrayMesh.hpp>
 #include <Font.hpp>
@@ -149,8 +149,8 @@ namespace godot {
   };
 
   
-  class Starmap: public CanvasItem {
-    GODOT_CLASS(Starmap, CanvasItem)
+  class Starmap: public Node2D {
+    GODOT_CLASS(Starmap, Node2D)
     
   public:
     Starmap();
@@ -160,6 +160,7 @@ namespace godot {
 
     // NOTE: GDScript must call these five functions before displaying
     // the GDNative Starmap:
+    void set_camera_path(NodePath path);
     void set_line_material(Ref<Material> shader);
     void set_circle_material(Ref<Material> shader);
     void set_max_scale(real_t system_scale, real_t link_scale, Vector2 rect_global_position);
@@ -200,6 +201,7 @@ namespace godot {
   private:
     real_t max_system_scale, max_link_scale;
     Vector2 rect_global_position;
+    NodePath camera_path;
     
     PoolStringArray system_names;
     PoolVector3Array system_locations;

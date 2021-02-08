@@ -1,7 +1,14 @@
 #include "Starmap.hpp"
+#include <MultiMeshInstance.hpp>
+#include <assert.h>
 
 using namespace godot;
 using namespace std;
+
+template<class T>
+String str(const T &t) {
+  return static_cast<String>(Variant(t));
+}
 
 template<class T, class POOL>
 void copy_pool(const POOL &from_pool, POOL &to_pool) {
@@ -11,7 +18,7 @@ void copy_pool(const POOL &from_pool, POOL &to_pool) {
   typename POOL::Write write_to = to_pool.write();
   const T *from = read_from.ptr();
   T *to = write_to.ptr();
-  for(int i; i<size; i++)
+  for(int i=0; i<size; i++)
     to[i] = from[i];
 }
 
@@ -20,7 +27,7 @@ void copy_pool(const POOL &from_pool, unordered_set<T> &to_set) {
   int size = from_pool.size();
   typename POOL::Read read_from = from_pool.read();
   const T *from = read_from.ptr();
-  for(int i; i<size; i++)
+  for(int i=0; i<size; i++)
     to_set.insert(from[i]);
 }
 
@@ -36,7 +43,7 @@ void copy_pool(const POOL &from_pool, POOL &to_pool, unordered_set<T> &to_set) {
   T *to = write_to.ptr();
 
   to_set.clear();
-  for(int i; i<size; i++)
+  for(int i=0; i<size; i++)
     to_set.insert(to[i] = from[i]);
 }
 
@@ -66,7 +73,12 @@ SystemVisuals::SystemVisuals(const PoolIntArray &systems, Color system_color,
   system_scale(system_scale),
   font(label_font), systems()
 {
-  copy_pool<int>(systems,this->systems);
+  assert(font.is_valid());
+  PoolIntArray::Read read_from = systems.read();
+  const int *from = read_from.ptr();
+  for(int i=0, n=systems.size(); i<n; i++) {
+    this->systems.insert(from[i]);
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -104,16 +116,33 @@ Starmap::~Starmap() {}
 
 void Starmap::_init() {
   circle_mesh = make_circle_mesh(1.0f,32,Vector3(0.0f,0.0f,0.0f));
+  if(not circle_mesh.is_valid())
+    Godot::print("could not make circle mesh");
   circle_multimesh = Ref<MultiMesh>(MultiMesh::_new());
   circle_multimesh->set_mesh(circle_mesh);
+  circle_multimesh->set_transform_format(MultiMesh::TRANSFORM_3D);
+  circle_multimesh->set_custom_data_format(MultiMesh::CUSTOM_DATA_FLOAT);
 
   line_mesh = make_box_mesh(Vector3(-0.5f,-0.5f,-0.5f),0.5f,0.5f,2,2);
+  if(not line_mesh.is_valid())
+    Godot::print("could not make line mesh");
   line_multimesh = Ref<MultiMesh>(MultiMesh::_new());
   line_multimesh->set_mesh(line_mesh);
+  line_multimesh->set_transform_format(MultiMesh::TRANSFORM_3D);
+  line_multimesh->set_custom_data_format(MultiMesh::CUSTOM_DATA_FLOAT);
+
+  MultiMeshInstance *circle_instance = MultiMeshInstance::_new();
+  circle_instance->set_multimesh(circle_multimesh);
+  add_child(circle_instance,false);
+
+  MultiMeshInstance *line_instance = MultiMeshInstance::_new();
+  line_instance->set_multimesh(line_multimesh);
+  add_child(line_instance,false);
+  line_instance->set_translation(Vector3(0,-0.5,0));
 }
 
 void Starmap::_register_methods() { // FIXME: UPDATE THIS
-  register_method("_draw", &Starmap::_draw);
+  register_method("set_camera_path", &Starmap::set_camera_path);
   register_method("set_line_material", &Starmap::set_line_material);
   register_method("set_circle_material", &Starmap::set_circle_material);
   register_method("set_max_scale", &Starmap::set_max_scale);
@@ -129,11 +158,19 @@ void Starmap::_register_methods() { // FIXME: UPDATE THIS
   register_method("_draw", &Starmap::_draw);
 }
 
+void Starmap::set_camera_path(NodePath path) {
+  camera_path = path;
+}
+
 void Starmap::set_line_material(Ref<Material> material) {
+  if(not material.is_valid())
+    Godot::print("received null line material");
   line_mesh->surface_set_material(0,material);
 }
 
 void Starmap::set_circle_material(Ref<Material> material) {
+  if(not material.is_valid())
+    Godot::print("received null circle material");
   circle_mesh->surface_set_material(0,material);
 }
 
@@ -146,26 +183,25 @@ void Starmap::set_max_scale(real_t new_system_scale, real_t new_link_scale,
 }
 void Starmap::set_systems(PoolStringArray new_system_names, PoolVector3Array new_system_locations,
                           PoolIntArray new_links, PoolIntArray new_astral_gates) {
-  copy_pool<String>(new_system_names,system_names);
 
   routes.clear();
   system_links.clear();
 
   {
-    int nlinks = new_links.size();
-    link_list.resize(nlinks);
+    int nlinks = new_links.size()/2;
+    link_list.resize(nlinks*2);
     PoolIntArray::Read links_read = new_links.read();
     const int *links_in = links_read.ptr();
     PoolIntArray::Write links_write = link_list.write();
     int *links_out = links_write.ptr();
     for(int i=0;i<nlinks;i++) {
-      links_out[i+0] = links_in[i+0];
-      links_out[i+1] = links_in[i+1];
-      if(links_in[i+0]!=links_in[i+1]) {
-        routes.emplace(links_in[i+0],links_in[i+1]);
-        routes.emplace(links_in[i+1],links_in[i+0]);
-        system_links.emplace(links_in[i+0],links_in[i+1]);
-        system_links.emplace(links_in[i+1],links_in[i+0]);
+      links_out[i*2+0] = links_in[i*2+0];
+      links_out[i*2+1] = links_in[i*2+1];
+      if(links_in[i*2+0]!=links_in[i*2+1]) {
+        routes.emplace(links_in[i*2+0],links_in[i*2+1]);
+        routes.emplace(links_in[i*2+1],links_in[i*2+0]);
+        system_links.emplace(links_in[i*2+0],links_in[i*2+1]);
+        system_links.emplace(links_in[i*2+1],links_in[i*2+0]);
       }
     }
   }
@@ -196,15 +232,24 @@ void Starmap::set_systems(PoolStringArray new_system_names, PoolVector3Array new
     // will give false collision information.
     label_map.clear();
     label_map.reserve(10+nloc/2);
-    
+
     system_locations.resize(nloc);
     PoolVector3Array::Read read_system_locations = new_system_locations.read();
     const Vector3 *loc_in = read_system_locations.ptr();
     PoolVector3Array::Write write_system_locations = system_locations.write();
     Vector3 *loc_out = write_system_locations.ptr();
+
+    system_names.resize(nloc);
+    PoolStringArray::Read read_system_names = new_system_names.read();
+    const String *name_in = read_system_names.ptr();
+    PoolStringArray::Write write_system_names = system_names.write();
+    String *name_out = write_system_names.ptr();
+
     for(int i=0;i<nloc;i++) {
       loc_out[i] = loc_in[i];
+      loc_out[i].y = 0;
       system_map.emplace(loc_in[i],i);
+      name_out[i] = name_in[i];
     }
   }
   
@@ -213,6 +258,7 @@ void Starmap::set_systems(PoolStringArray new_system_names, PoolVector3Array new
 
 void Starmap::set_default_visuals(Color system_color, Color link_color, Color label_color,
                                   Ref<Font> label_font, real_t system_scale, real_t link_scale) {
+  assert(label_font.is_valid());
   default_system_visuals = shared_ptr<SystemVisuals>(new SystemVisuals(system_color, label_color, label_font, system_scale));
   default_link_visuals = shared_ptr<LinkVisuals>(new LinkVisuals(link_color, link_scale));
   update();
@@ -259,11 +305,11 @@ void Starmap::add_adjacent_link_visuals(PoolIntArray systems, Color link_color, 
   int size = systems.size();
   unordered_set<pair<int,int>,HashIntPair> links;
   
-  for(int i=0,n=systems.size();i<n-1;i++) {
+  for(int i=0,n=systems.size();i<n;i++) {
     system_links_range range = system_links.equal_range(sys[i]);
     for(system_links_iter it=range.first;it!=range.second;it++) {
-      links.emplace(sys[i],sys[i+1]);
-      links.emplace(sys[i+1],sys[i]);
+      links.emplace(sys[i],it->second);
+      links.emplace(it->second,sys[i]);
     }
   }
   link_visuals.emplace_back(new LinkVisuals(links, link_color, link_scale));
@@ -276,7 +322,8 @@ void Starmap::clear_visuals() {
   update();
 }
 
-int Starmap::system_at_location(Vector3 where, real_t epsilon) const {
+int Starmap::system_at_location(Vector3 wherein, real_t epsilon) const {
+  Vector3 where(wherein.x,0,wherein.z);
   Vector3 vespilon(epsilon,epsilon,epsilon);
   IntLocation start(where-vespilon);
   IntLocation end(where+vespilon);
@@ -312,6 +359,7 @@ int Starmap::system_at_location(Vector3 where, real_t epsilon) const {
       for(label_map_citer it = range.first; it!=range.second; it++) {
         if(it->second.aabb.grow(epsilon).has_point(where)) {
           Vector3 center = it->second.aabb.position + it->second.aabb.size/2;
+          center.y = 0;
           real_t distsq = where.distance_squared_to(center);
           if(best_index<0 or distsq<best_distsq) {
             best_index = it->second.system;
@@ -328,21 +376,28 @@ int Starmap::system_at_location(Vector3 where, real_t epsilon) const {
 
 void Starmap::_draw() {
   Viewport *viewport = get_viewport();
-  if(not viewport)
+  if(not viewport) {
+    Godot::print("no viewport");
     return;
+  }
 
-  Camera *zx_orthographic_camera = viewport->get_camera();
-  if(not zx_orthographic_camera)
+  Node *camera_node = get_node_or_null(camera_path);
+  if(not camera_node) {
+    Godot::print("No camera found in Starmap::_draw()");
     return;
+  } else if(not camera_node->is_class("Camera")) {
+    Godot::print("Camera is not Camera class in Starmap::_draw()");
+    return;
+  }
+  Camera *zx_orthographic_camera = static_cast<Camera*>(camera_node);
   
   Projector proj(*zx_orthographic_camera,*viewport,rect_global_position);
 
   real_t camera_size = zx_orthographic_camera->get_size();
 
   Rect2 view_rect = Rect2(Vector2(-20,-20),proj.view_size+Vector2(20,20));
-  real_t padding = max(proj.view_size.x,proj.view_size.y)*max(max_system_scale,max_link_scale);
+  real_t padding = max(max_system_scale,max_link_scale);
   Vector3 vadding(padding,padding,padding);
-
   int system_count = system_map.size();
   int link_count = link_list.size()/2;
 
@@ -352,13 +407,13 @@ void Starmap::_draw() {
   label_map.clear();
   
   if(system_count) {
+    circle_data.resize(system_count*16);
     PoolStringArray::Read system_names_read = system_names.read();
     const String *system_name_ptr = system_names_read.ptr();
-    circle_data.resize(system_count*16);
     PoolRealArray::Write circle_data_write = circle_data.write();
     real_t *circle_data_ptr = circle_data_write.ptr();
-    
-    // FIXME: check if system is on-screen before putting it in the multimesh.
+
+    memset(circle_data_ptr,0,sizeof(real_t)*16*system_count);
     
     int i=0;
     for(int n=0;n<system_count;n++) {
@@ -389,6 +444,7 @@ void Starmap::_draw() {
         system_color = default_system_visuals->system_color;
         system_scale = default_system_visuals->system_scale;
       }
+      system_scale *= camera_size;
 
       real_t ascent = label_font->get_ascent();
       Vector2 pos2 = proj.unproject_position(pos3);
@@ -405,7 +461,9 @@ void Starmap::_draw() {
       Vector3 ul3 = proj.project_position(ul2);
       Vector3 lr3 = proj.project_position(lr2);
       Vector3 min3 = Vector3(min(ul3.x,lr3.x),min(ul3.y,lr3.y),min(ul3.z,lr3.z));
+      min3.y = -100;
       Vector3 max3 = Vector3(max(ul3.x,lr3.x),max(ul3.y,lr3.y),max(ul3.z,lr3.z));
+      max3.y = 100;
       IntLocation imin3 = min3;
       IntLocation imax3 = max3;
       
@@ -416,7 +474,7 @@ void Starmap::_draw() {
       circle_data_ptr[i +  0] = system_scale;
       circle_data_ptr[i +  1] = 0.0;
       circle_data_ptr[i +  2] = 0.0;
-      circle_data_ptr[i +  3] = system_locations_ptr[n].x;
+      circle_data_ptr[i +  3] = pos3.x;
       circle_data_ptr[i +  4] = 0.0;
       circle_data_ptr[i +  5] = 1.0;
       circle_data_ptr[i +  6] = 0.0;
@@ -424,7 +482,7 @@ void Starmap::_draw() {
       circle_data_ptr[i +  8] = 0.0;
       circle_data_ptr[i +  9] = 0.0;
       circle_data_ptr[i + 10] = system_scale;
-      circle_data_ptr[i + 11] = system_locations_ptr[n].z;
+      circle_data_ptr[i + 11] = pos3.z;
       circle_data_ptr[i + 12] = system_color.r;
       circle_data_ptr[i + 13] = system_color.g;
       circle_data_ptr[i + 14] = system_color.b;
@@ -440,19 +498,31 @@ void Starmap::_draw() {
   } // end if(have systems)
 
   if(link_count) {
+    line_data.resize(link_count*16);
     PoolRealArray::Write line_data_write = line_data.write();
     real_t *line_data_ptr = line_data_write.ptr();
     PoolIntArray::Read link_list_read = link_list.read();
     const int *link_list_ptr = link_list_read.ptr();
 
-    int i = 0;
-    line_data.resize(16*link_count);
-    for(int n=0;n<link_count;n++,i+=16) {
-      int sys1_index = link_list_ptr[i*2+0];
-      const Vector3 &sys1_pos = system_locations_ptr[sys1_index];
+    memset(line_data_ptr,0,sizeof(real_t)*16*link_count);
 
-      int sys2_index = link_list_ptr[i*2+1];
-      const Vector3 &sys2_pos = system_locations_ptr[sys2_index];
+    int i = 0;
+    for(int n=0;n<link_count;n++) {
+      int sys1_index = link_list_ptr[n*2+0];
+      if(sys1_index<0 or sys1_index>=system_count) {
+        Godot::print(String("Link with out-of-bounds system index ")+
+                     static_cast<String>(Variant(sys1_index)));
+        continue;
+      }
+      Vector3 sys1_pos = system_locations_ptr[sys1_index];
+
+      int sys2_index = link_list_ptr[n*2+1];
+      if(sys2_index<0 or sys2_index>=system_count) {
+        Godot::print(String("Link with out-of-bounds system index ")+
+                     static_cast<String>(Variant(sys2_index)));
+        continue;
+      }
+      Vector3 sys2_pos = system_locations_ptr[sys2_index];
 
       pair<int,int> indices = pair<int,int>(sys1_index,sys2_index);
         
@@ -465,9 +535,9 @@ void Starmap::_draw() {
       Vector2 max_view = proj.unproject_position(max_pos);
 
       Rect2 padded_link_rect(min_view,max_view-min_view);
-      if(not view_rect.intersects(padded_link_rect))
-        // Link is definitely off-screen;
-        continue;
+      // if(not view_rect.intersects(padded_link_rect))
+      //   // Link is definitely off-screen;
+      //   continue;
 
       // How do we color and label this?
       bool found = false;
@@ -483,7 +553,8 @@ void Starmap::_draw() {
         link_color = default_link_visuals->link_color;
         link_scale = default_link_visuals->link_scale;
       }
-        
+      link_scale *= camera_size;
+
       Vector3 pos = (sys1_pos+sys2_pos)/2.0f;
       Vector3 diff = sys2_pos-sys1_pos;
       real_t link_len = diff.length();
@@ -533,36 +604,38 @@ Ref<ArrayMesh> Starmap::make_box_mesh(const Vector3 &from, real_t x_step,
   PoolVector2Array uv_data;
   vertex_data.resize(nx*nz*6);
   uv_data.resize(nx*nz*6);
-  PoolVector3Array::Write write_vertices = vertex_data.write();
-  PoolVector2Array::Write write_uv = uv_data.write();
-  Vector3 *vertices = write_vertices.ptr();
-  Vector2 *uv = write_uv.ptr();
-
-  int i = 0;
-  for(int zi=0;zi<nz;zi++)
-    for(int xi=0;xi<nx;xi++) {
-      Vector3 p00 = from+Vector3(xi*x_step,0,zi*z_step);
-      Vector3 p11 = from+Vector3((xi+1)*x_step,0,(zi+1)*z_step);
-      Vector3 p01 = Vector3(p00.x,from.y,p11.z);
-      Vector3 p10 = Vector3(p11.x,from.y,p00.z);
-      Vector2 u00 = Vector2(zi/float(nz),(nx-xi)/float(nx));
-      Vector2 u11 = Vector2((zi+1)/float(nz),(nx-xi-1)/float(nx));
-      Vector2 u01 = Vector2(u11.x,u00.y);
-      Vector2 u10 = Vector2(u00.x,u11.y);
-      vertices[i + 0] = p00;
-      uv      [i + 0] = u00;
-      vertices[i + 1] = p11;
-      uv      [i + 1] = u11;
-      vertices[i + 2] = p01;
-      uv      [i + 2] = u01;
-      vertices[i + 3] = p00;
-      uv      [i + 3] = u00;
-      vertices[i + 4] = p10;
-      uv      [i + 4] = u10;
-      vertices[i + 5] = p11;
-      uv      [i + 5] = u11;
-      i+=6;
-    }
+  {
+    PoolVector3Array::Write write_vertices = vertex_data.write();
+    PoolVector2Array::Write write_uv = uv_data.write();
+    Vector3 *vertices = write_vertices.ptr();
+    Vector2 *uv = write_uv.ptr();
+    
+    int i = 0;
+    for(int zi=0;zi<nz;zi++)
+      for(int xi=0;xi<nx;xi++) {
+        Vector3 p00 = from+Vector3(xi*x_step,0,zi*z_step);
+        Vector3 p11 = from+Vector3((xi+1)*x_step,0,(zi+1)*z_step);
+        Vector3 p01 = Vector3(p00.x,from.y,p11.z);
+        Vector3 p10 = Vector3(p11.x,from.y,p00.z);
+        Vector2 u00 = Vector2(zi/float(nz),(nx-xi)/float(nx));
+        Vector2 u11 = Vector2((zi+1)/float(nz),(nx-xi-1)/float(nx));
+        Vector2 u01 = Vector2(u11.x,u00.y);
+        Vector2 u10 = Vector2(u00.x,u11.y);
+        vertices[i + 0] = p00;
+        uv      [i + 0] = u00;
+        vertices[i + 1] = p11;
+        uv      [i + 1] = u11;
+        vertices[i + 2] = p01;
+        uv      [i + 2] = u01;
+        vertices[i + 3] = p00;
+        uv      [i + 3] = u00;
+        vertices[i + 4] = p10;
+        uv      [i + 4] = u10;
+        vertices[i + 5] = p11;
+        uv      [i + 5] = u11;
+        i+=6;
+      }
+  }
 
   return tri_to_mesh(vertex_data, uv_data);
 }
