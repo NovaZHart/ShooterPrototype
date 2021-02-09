@@ -148,6 +148,15 @@ namespace godot {
     std::unordered_set<int> systems;
   };
 
+  struct ExtraLine {
+    const Vector3 from, to;
+    const Color color;
+    const real_t scale;
+    ExtraLine(Vector3 from, Vector3 to, Color color, real_t scale):
+      from(from), to(to), color(color), scale(scale)
+    {}
+    ~ExtraLine() {}
+  };
   
   class Starmap: public Node2D {
     GODOT_CLASS(Starmap, Node2D)
@@ -160,6 +169,10 @@ namespace godot {
 
     // NOTE: GDScript must call these five functions before displaying
     // the GDNative Starmap:
+    void set_show_links(bool whut);
+    bool get_show_links() const;
+    void add_extra_line(Vector3 from, Vector3 to, Color link_color, real_t link_scale);
+    void clear_extra_lines();
     void set_camera_path(NodePath path);
     void set_line_material(Ref<Material> shader);
     void set_circle_material(Ref<Material> shader);
@@ -188,10 +201,6 @@ namespace godot {
 
     // Update multimeshes, redraw labels:
     void _draw();
-    
-    // FIXME: IMPLEMENT THIS:
-    // List of systems along the route.
-    // PoolIntArray calculate_route(int from, int to) const;
 
   private:
     static Ref<ArrayMesh> make_circle_mesh(real_t radius,int count,Vector3 center);
@@ -202,11 +211,12 @@ namespace godot {
     real_t max_system_scale, max_link_scale;
     Vector2 rect_global_position;
     NodePath camera_path;
-    
+    bool show_links;
     PoolStringArray system_names;
     PoolVector3Array system_locations;
     PoolIntArray link_list, astral_gate_list;
 
+    std::vector<ExtraLine> extra_lines;
     std::unordered_set<int> gate_set;
     
     std::unordered_multimap<IntLocation,int,HashIntPair> system_map;

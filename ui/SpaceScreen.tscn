@@ -10,12 +10,12 @@
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=8]
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=9]
 
-[sub_resource type="DynamicFont" id=1]
+[sub_resource type="DynamicFont" id=8]
 size = 13
 font_data = ExtResource( 9 )
 
 [sub_resource type="Theme" id=2]
-default_font = SubResource( 1 )
+default_font = SubResource( 8 )
 
 [sub_resource type="DynamicFont" id=3]
 size = 11
@@ -35,12 +35,12 @@ font_data = ExtResource( 9 )
 [sub_resource type="Theme" id=7]
 default_font = SubResource( 6 )
 
-[sub_resource type="DynamicFont" id=8]
+[sub_resource type="DynamicFont" id=10]
 size = 13
 font_data = ExtResource( 9 )
 
 [sub_resource type="Theme" id=9]
-default_font = SubResource( 8 )
+default_font = SubResource( 10 )
 
 [node name="SpaceScreen" type="Node2D"]
 pause_mode = 2

@@ -3,6 +3,7 @@ extends Spatial
 export var plasma_seed: int = 32091872
 export var starfield_seed: int = 9876867
 export var plasma_color: Color = Color(0.4,0.4,1.0,1.0)
+export var hyperspace: bool = false
 
 var uv_offset: Vector2 = Vector2(0.0,0.0)
 var uv2_offset: Vector2 = Vector2(0.0,0.0)
@@ -17,6 +18,7 @@ var have_sent_texture: Dictionary = {}
 
 onready var SpaceBackgroundShader = preload("res://places/SpaceBackground.shader")
 onready var TiledImageShader = preload("res://places/TiledImage.shader")
+onready var HyperspaceShader = preload("res://places/Hyperspace.shader")
 onready var StarFieldGenerator = preload("res://places/StarFieldGenerator.shader")
 
 func send_viewport_texture(viewport: Viewport, shader_param: String,
@@ -125,14 +127,17 @@ func _ready():
 		[Vector2(0,0),Vector2(background_uv2,background_uv2)])
 	background.name='Space'
 	var view_mat=ShaderMaterial.new()
-	view_mat.set_shader(TiledImageShader)
+	if hyperspace:
+		view_mat.set_shader(HyperspaceShader)
+	else:
+		view_mat.set_shader(TiledImageShader)
+		view_mat.set_shader_param('uv_whole',Vector2(1.0,1.0))
+		view_mat.set_shader_param('uv2_whole',Vector2(background_uv2,background_uv2))
+		view_mat.set_shader_param('texture_starfield',$StarFieldGenerator.get_texture())
 	view_mat.set_shader_param('texture_albedo',$CloudViewport.get_texture())
-	view_mat.set_shader_param('texture_starfield',$StarFieldGenerator.get_texture())
 	view_mat.set_shader_param('texture_size',Vector2(float(background_pixels),float(background_pixels)))
 	view_mat.set_shader_param('uv_offset',uv_offset)
 	view_mat.set_shader_param('uv2_offset',uv2_offset)
-	view_mat.set_shader_param('uv_whole',Vector2(1.0,1.0))
-	view_mat.set_shader_param('uv2_whole',Vector2(background_uv2,background_uv2))
 	background.material_override=view_mat
 	background.set_layer_mask_bit(1,true)
 	add_child(background)
@@ -141,6 +146,8 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	background.rotation = Vector3(0,0,0)
 	background.translation.x = x + (camera_min_height-background.translation.y)*tan(a)
 	background.translation.z = z
+	if hyperspace:
+		return
 	var view_mat=background.material_override
 	uv_offset=Vector2(fmod(-x/background_size/2,1.0),
 					  fmod(-z/background_size/2,1.0))
@@ -156,4 +163,6 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 func _process(var _delta):
 	background_texture=send_viewport_texture($CloudViewport,'texture_albedo',
 		background_texture,background,Texture.FLAG_FILTER)
-	starfield=send_viewport_texture($StarFieldGenerator,'texture_starfield',starfield,background)
+	if not hyperspace:
+		starfield=send_viewport_texture(
+			$StarFieldGenerator,'texture_starfield',starfield,background)

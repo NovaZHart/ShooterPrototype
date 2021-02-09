@@ -111,10 +111,14 @@ Vector2 Projector::unproject_position(const Vector3 &world_point) const {
 
 /* ------------------------------------------------------------------ */
 
-Starmap::Starmap() {} // FIXME: UPDATE THIS
+Starmap::Starmap() {}
 Starmap::~Starmap() {}
 
 void Starmap::_init() {
+  max_system_scale = default_system_scale;
+  max_link_scale = default_link_scale;
+  show_links = true;
+  
   circle_mesh = make_circle_mesh(1.0f,32,Vector3(0.0f,0.0f,0.0f));
   if(not circle_mesh.is_valid())
     Godot::print("could not make circle mesh");
@@ -142,6 +146,10 @@ void Starmap::_init() {
 }
 
 void Starmap::_register_methods() { // FIXME: UPDATE THIS
+  register_method("set_show_links", &Starmap::set_show_links);
+  register_method("get_show_links", &Starmap::get_show_links);
+  register_method("add_extra_line", &Starmap::add_extra_line);
+  register_method("clear_extra_lines", &Starmap::clear_extra_lines);
   register_method("set_camera_path", &Starmap::set_camera_path);
   register_method("set_line_material", &Starmap::set_line_material);
   register_method("set_circle_material", &Starmap::set_circle_material);
@@ -156,6 +164,22 @@ void Starmap::_register_methods() { // FIXME: UPDATE THIS
   register_method("clear_visuals", &Starmap::clear_visuals);
   register_method("system_at_location", &Starmap::system_at_location);
   register_method("_draw", &Starmap::_draw);
+}
+
+void Starmap::set_show_links(bool show) {
+  show_links = show;
+}
+
+bool Starmap::get_show_links() const {
+  return show_links;
+}
+
+void Starmap::add_extra_line(Vector3 from, Vector3 to, Color link_color, real_t link_scale) {
+  extra_lines.push_back(ExtraLine(from,to,link_color,link_scale));
+}
+
+void Starmap::clear_extra_lines() {
+  extra_lines.clear();
 }
 
 void Starmap::set_camera_path(NodePath path) {
@@ -402,6 +426,8 @@ void Starmap::_draw() {
   Vector3 vadding(padding,padding,padding);
   int system_count = system_map.size();
   int link_count = link_list.size()/2;
+  int extra_count = extra_lines.size();
+  int line_count = extra_count + int(show_links)*link_count;
 
   PoolVector3Array::Read system_locations_read = system_locations.read();
   const Vector3 *system_locations_ptr = system_locations_read.ptr();
@@ -503,65 +529,75 @@ void Starmap::_draw() {
     // There are no systems
     circle_multimesh->set_visible_instance_count(0);
   } // end if(have systems)
-
-  if(link_count) {
-    line_data.resize(link_count*16);
+  
+  if(line_count) {
+    line_data.resize(line_count*16);
     PoolRealArray::Write line_data_write = line_data.write();
     real_t *line_data_ptr = line_data_write.ptr();
     PoolIntArray::Read link_list_read = link_list.read();
     const int *link_list_ptr = link_list_read.ptr();
 
-    memset(line_data_ptr,0,sizeof(real_t)*16*link_count);
+    memset(line_data_ptr,0,sizeof(real_t)*16*line_count);
 
+    int extra_begin = show_links ? link_count : 0;
     int i = 0;
-    for(int n=0;n<link_count;n++) {
-      int sys1_index = link_list_ptr[n*2+0];
-      if(sys1_index<0 or sys1_index>=system_count) {
-        Godot::print(String("Link with out-of-bounds system index ")+
-                     static_cast<String>(Variant(sys1_index)));
-        continue;
-      }
-      Vector3 sys1_pos = system_locations_ptr[sys1_index];
-
-      int sys2_index = link_list_ptr[n*2+1];
-      if(sys2_index<0 or sys2_index>=system_count) {
-        Godot::print(String("Link with out-of-bounds system index ")+
-                     static_cast<String>(Variant(sys2_index)));
-        continue;
-      }
-      Vector3 sys2_pos = system_locations_ptr[sys2_index];
-
-      pair<int,int> indices = pair<int,int>(sys1_index,sys2_index);
-        
-      Vector3 min_pos = Vector3(min(sys1_pos.x,sys2_pos.x),min(sys1_pos.y,sys2_pos.y),
-                                min(sys1_pos.z,sys2_pos.z)) - vadding;
-      Vector3 max_pos = Vector3(max(sys1_pos.x,sys2_pos.x),max(sys1_pos.y,sys2_pos.y),
-                                max(sys1_pos.z,sys2_pos.z)) + vadding;
-
-      Vector2 min_view = proj.unproject_position(min_pos);
-      Vector2 max_view = proj.unproject_position(max_pos);
-
-      Rect2 padded_link_rect(min_view,max_view-min_view);
-      // if(not view_rect.intersects(padded_link_rect))
-      //   // Link is definitely off-screen;
-      //   continue;
-
-      // How do we color and label this?
-      bool found = false;
+    for(int n=0;n<line_count;n++) {
       Color link_color;
-      real_t link_scale = max_link_scale;
-      for(auto &visual : link_visuals)
-        if(visual->has(indices)) {
-          found=true;
-          link_color = visual->link_color;
-          link_scale = min(link_scale,visual->link_scale);
+      real_t link_scale;
+      Vector3 sys1_pos, sys2_pos;
+      if(n>=extra_begin) {
+        link_color = extra_lines[n-extra_begin].color;
+        link_scale = extra_lines[n-extra_begin].scale;
+        sys1_pos = extra_lines[n-extra_begin].from;
+        sys2_pos = extra_lines[n-extra_begin].to;
+      } else {
+        int sys1_index = link_list_ptr[n*2+0];
+        if(sys1_index<0 or sys1_index>=system_count) {
+          Godot::print(String("Link with out-of-bounds system index ")+
+                       static_cast<String>(Variant(sys1_index)));
+          continue;
         }
-      if(not found) {
-        link_color = default_link_visuals->link_color;
-        link_scale = default_link_visuals->link_scale;
-      }
-      link_scale *= camera_size;
+        sys1_pos = system_locations_ptr[sys1_index];
+        
+        int sys2_index = link_list_ptr[n*2+1];
+        if(sys2_index<0 or sys2_index>=system_count) {
+          Godot::print(String("Link with out-of-bounds system index ")+
+                       static_cast<String>(Variant(sys2_index)));
+          continue;
+        }
+        sys2_pos = system_locations_ptr[sys2_index];
+        
+        pair<int,int> indices = pair<int,int>(sys1_index,sys2_index);
+        
+        Vector3 min_pos = Vector3(min(sys1_pos.x,sys2_pos.x),min(sys1_pos.y,sys2_pos.y),
+                                  min(sys1_pos.z,sys2_pos.z)) - vadding;
+        Vector3 max_pos = Vector3(max(sys1_pos.x,sys2_pos.x),max(sys1_pos.y,sys2_pos.y),
+                                  max(sys1_pos.z,sys2_pos.z)) + vadding;
+        
+        Vector2 min_view = proj.unproject_position(min_pos);
+        Vector2 max_view = proj.unproject_position(max_pos);
+        
+        Rect2 padded_link_rect(min_view,max_view-min_view);
+        // if(not view_rect.intersects(padded_link_rect))
+        //   // Link is definitely off-screen;
+        //   continue;
 
+        // How do we color and label this?
+        link_scale = max_link_scale;
+        bool found = false;
+        for(auto &visual : link_visuals)
+          if(visual->has(indices)) {
+            found=true;
+            link_color = visual->link_color;
+            link_scale = min(link_scale,visual->link_scale);
+          }
+        if(not found) {
+          link_color = default_link_visuals->link_color;
+          link_scale = default_link_visuals->link_scale;
+        }
+      }
+
+      link_scale *= camera_size;
       Vector3 pos = (sys1_pos+sys2_pos)/2.0f;
       Vector3 diff = sys2_pos-sys1_pos;
       real_t link_len = diff.length();
@@ -586,10 +622,11 @@ void Starmap::_draw() {
       line_data_ptr[i + 15] = link_color.a;
       i+=16;
     }
-    line_multimesh->set_instance_count(link_count);
+    line_multimesh->set_instance_count(line_count);
     line_multimesh->set_visible_instance_count(i/16);
     line_multimesh->set_as_bulk_array(line_data);
   } else {
+    // There are no visible lines.
     line_multimesh->set_visible_instance_count(0);
   }
 }

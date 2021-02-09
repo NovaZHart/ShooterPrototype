@@ -4,6 +4,8 @@ var player_ship_design
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 var player_name = 'FIXME'
+var hyperspace_position: Vector3
+var destination_system: NodePath = NodePath()
 
 var stored_system_path
 var stored_player_path

@@ -3,6 +3,7 @@ extends game_state.SectorEditorStub
 export var connected_location_color = Color(0.6,0.5,0.9)
 export var system_location_color = Color(0.7,0.6,1.0)
 
+export var path_color = Color(0.6,0.5,0.9)
 export var connected_color = Color(0.4,0.8,1.0)
 export var highlight_color = Color(1.0,0.9,0.5)
 export var system_color = Color(0.1,0.2,0.6)
@@ -73,7 +74,8 @@ func _ready():
 	assert(label_font)
 	starmap.set_default_visuals(system_color,link_color,system_name_color,label_font,
 		SYSTEM_SCALE,LINK_SCALE)
-		
+	
+	starmap.set_show_links(false)
 	send_systems_to_starmap()
 	update_starmap_visuals()
 
@@ -130,6 +132,8 @@ func alpha(c: Color, a: float) -> Color:
 
 func update_starmap_visuals():
 	starmap.clear_visuals()
+	starmap.clear_extra_lines()
+	
 	var selection_index = -1
 	var location_index = system_index.get(Player.system.name,-1)
 	print('player location is #',location_index)
@@ -146,7 +150,7 @@ func update_starmap_visuals():
 	else:
 		if location_index>=0:
 			starmap.add_system_visuals(PoolIntArray([location_index]),
-				system_location_color, system_name_color, label_font,
+				system_location_color, system_name_color, highlighted_font,
 				SYSTEM_SCALE*1.2)
 			starmap.add_adjacent_link_visuals(PoolIntArray([location_index]),
 				connected_location_color, LINK_SCALE*1.5)
@@ -157,6 +161,10 @@ func update_starmap_visuals():
 				SYSTEM_SCALE)
 			starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
 				connected_color, LINK_SCALE)
+			if location_index>=0:
+				starmap.add_extra_line(pos_pool[location_index],
+					pos_pool[selection_index],path_color,LINK_SCALE*2.0)
+	
 	starmap.update()
 
 func event_position(event: InputEvent) -> Vector2:
@@ -222,8 +230,8 @@ func _input(event):
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_slide') or \
 				Input.is_action_pressed('ui_location_select'):
-			var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
-			if not selection:
+			if last_screen_position:
+				var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 				var pos3_start: Vector3 = $View/Port/Camera.project_position(last_screen_position,-10)
 				var pos_diff = pos3_start-pos3
 				pos_diff.y=0
@@ -244,10 +252,9 @@ func _input(event):
 		if (selection and not target) or target is simple_tree.SimpleNode:
 			universe_edits.state.push(universe_edits.ChangeSelection.new(
 				selection,target))
-		elif not selection and not target:
-			last_screen_position = pos2
-			last_position = $View/Port/Camera.project_position(last_screen_position,-10)
-			camera_start = $View/Port/Camera.translation
+		last_screen_position = pos2
+		last_position = $View/Port/Camera.project_position(last_screen_position,-10)
+		camera_start = $View/Port/Camera.translation
 		get_tree().set_input_as_handled()
 	elif event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
