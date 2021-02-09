@@ -146,14 +146,14 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	background.rotation = Vector3(0,0,0)
 	background.translation.x = x + (camera_min_height-background.translation.y)*tan(a)
 	background.translation.z = z
-	if hyperspace:
-		return
 	var view_mat=background.material_override
 	uv_offset=Vector2(fmod(-x/background_size/2,1.0),
 					  fmod(-z/background_size/2,1.0))
 	uv2_offset=uv_offset*background_uv2
 	view_mat.set_shader_param('uv_offset',uv_offset)
 	view_mat.set_shader_param('uv2_offset',uv2_offset)
+	if hyperspace:
+		return
 	var margin: float=(background_size-camera_size)/2.0
 	var margins: Vector2 = Vector2(margin,background_size-margin)/background_size
 	var uv2_range: Vector2 = margins*background_uv2

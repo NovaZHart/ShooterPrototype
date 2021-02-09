@@ -112,7 +112,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 
 func deorbit():
 	game_state.print_to_console('Departing '+$LocationLabel.text)
-	game_state.change_scene('res://ui/SpaceScreen.tscn')
+	game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 
 func _input(event):
 	if event.is_action_released('ui_depart'):

@@ -80,6 +80,12 @@ class ShipEditorStub extends Panel:
 	func cancel_drag() -> bool:
 		return true
 
+class HyperspaceStub extends Node2D:
+	func change_selection_to(_what, _center: bool = false) -> bool:
+		return true
+	func deselect(_what) -> bool:
+		return true
+
 class SectorEditorStub extends Panel:
 	var selection = null
 	func process_if(_condition: bool) -> bool:
@@ -116,6 +122,7 @@ var sector_editor = SectorEditorStub.new()
 var system_editor = SystemEditorStub.new()
 var ship_editor = ShipEditorStub.new()
 var fleet_editor = ShipEditorStub.new()
+var hyperspace = HyperspaceStub.new()
 var key_editor = KeyEditorStub.new()
 var fleet_tree_selection = null
 var game_editor_mode = false
@@ -130,6 +137,7 @@ func switch_editors(what):
 	system_editor = what if(what is SystemEditorStub) else SystemEditorStub.new()
 	ship_editor = what if(what is ShipEditorStub) else ShipEditorStub.new()
 	fleet_editor = what if(what is FleetEditorStub) else FleetEditorStub.new()
+	hyperspace = what if(what is HyperspaceStub) else HyperspaceStub.new()
 
 func make_unique_ship_node_name():
 	var i: int = name_counter

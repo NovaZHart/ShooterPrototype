@@ -5,10 +5,22 @@ var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 var player_name = 'FIXME'
 var hyperspace_position: Vector3
-var destination_system: NodePath = NodePath()
+var destination_system: NodePath = NodePath() setget set_destination_system
 
 var stored_system_path
 var stored_player_path
+signal destination_system_changed
+
+func set_destination_system(new_system: NodePath):
+	push_warning('set_destination_system '+str(new_system))
+	var node = game_state.systems.get_node_or_null(new_system)
+	if not node or not node.has_method('is_SystemData'):
+		if node:
+			push_warning('Tried to set destination system to something that is not a SystemData')
+		destination_system=NodePath()
+		return
+	destination_system = node.get_path()
+	emit_signal('destination_system_changed',destination_system)
 
 func read_save_file(filename):
 	var file: File = File.new()

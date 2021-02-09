@@ -42,6 +42,7 @@ signal select
 signal deselect
 
 func _init():
+	selection = game_state.systems.get_node_or_null(Player.destination_system)
 	starmap = StarmapLibrary.new()
 
 func cancel_drag() -> bool:
@@ -188,6 +189,7 @@ func deselect(what) -> bool:
 		(what is simple_tree.SimpleNode and selection is simple_tree.SimpleNode \
 		and what==selection):
 		selection=null
+		Player.destination_system = NodePath()
 		emit_signal('deselect')
 		update_starmap_visuals()
 		return true
@@ -196,6 +198,7 @@ func deselect(what) -> bool:
 func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
+	Player.destination_system = selection.get_path()
 	if selection is simple_tree.SimpleNode:
 		emit_signal('select',selection)
 	elif selection==null:

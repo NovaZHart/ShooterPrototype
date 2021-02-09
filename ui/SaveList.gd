@@ -182,6 +182,8 @@ func _on_SaveList_item_edited():
 func _on_SaveList_item_double_clicked():
 	print('cell selected')
 	var selected = get_selected()
+	if not selected:
+		return
 	var meta = selected.get_metadata(0)
 	if meta:
 		print('meta, so save double clicked')

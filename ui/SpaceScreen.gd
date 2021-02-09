@@ -98,10 +98,13 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var shoot: bool = Input.is_action_pressed('ui_select')
 	var land: bool = Input.is_action_just_pressed('ui_land')
 	var evade: bool = Input.is_action_just_pressed('ui_evade')
+	var jump: bool = Input.is_action_just_pressed('ui_depart')
 	var intercept: bool = Input.is_action_just_pressed('ui_intercept')
 	var next_enemy: bool = Input.is_action_just_pressed('ui_next_enemy')
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
 
+	if jump:
+		game_state.change_scene(preload('res://places/Hyperspace.tscn'))
 	
 	var nearest: int = PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
