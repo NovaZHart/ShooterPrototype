@@ -141,8 +141,8 @@ __meta__ = {
 }
 [connection signal="focus_entered" from="Split/Left" to="." method="_on_Left_focus_entered"]
 [connection signal="focus_exited" from="Split/Left" to="." method="_on_Left_focus_exited"]
-[connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
 [connection signal="resized" from="Split/Left" to="Split/Left/View/SystemView" method="view_resized"]
+[connection signal="resized" from="Split/Left" to="." method="_on_Left_resized"]
 [connection signal="make_new_space_object" from="Split/Left/View/SystemView" to="." method="_on_SystemView_make_new_space_object"]
 [connection signal="request_focus" from="Split/Left/View/SystemView" to="." method="_on_SystemView_request_focus"]
 [connection signal="select_nothing" from="Split/Left/View/SystemView" to="." method="_on_select_nothing"]

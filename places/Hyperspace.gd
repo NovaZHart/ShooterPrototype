@@ -5,6 +5,7 @@ export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
+export var hyperspace_ratio: float = 20
 
 # These must match src/CombatEngineData.hpp:
 const PLAYER_GOAL_LANDING_AI: int = 2
@@ -43,10 +44,36 @@ var combat_engine_mutex: Mutex = Mutex.new()
 var latest_target_info: Dictionary = Dictionary()
 var ship_stats: Dictionary = {}
 var first_visual_tick = true
+var interstellar_systems: Array = []
 
 signal view_center_changed
 
+func depart_hyperspace():
+	var ship = $Ships.get_node_or_null(player_ship_name)
+	if not ship:
+		return
+	var y500 = Vector3(0,500,0)
+	var space: PhysicsDirectSpaceState = get_world().direct_space_state
+	var there = space.intersect_ray(ship.translation-y500,ship.translation+y500,[ship.get_rid()])
+	var that = there.get('collider',null)
+	if that and that is Area:
+		var path = that.game_state_path
+		if path:
+			print('change scene to '+str(path))
+			Player.player_location = path
+			return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
+	var interstellar_name = interstellar_systems[randi()%len(interstellar_systems)]
+	var interstellar = game_state.systems.get_child_with_name(interstellar_name)
+	if not interstellar or not interstellar.has_method('is_SystemData'):
+		return
+	print('change scene to INTERSTELLAR '+str(interstellar.get_path()))
+	Player.player_location = interstellar.get_path()
+	Player.hyperspace_position = ship.translation/hyperspace_ratio
+	return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
+
 func _input(event: InputEvent):
+	if event.is_action_pressed('ui_depart'):
+		return depart_hyperspace()
 	if not event.is_action_pressed('ui_location_select'):
 		return
 	var selected_position = null
@@ -193,12 +220,19 @@ func _process(delta: float) -> void:
 func _ready():
 	var player_ship = Player.assemble_player_ship()
 	player_ship.name = player_ship_name
-	player_ship.translation = Player.system.position*20
+	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
 	player_ship.translation.y = 10
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):
 		push_error("Cannot connect to Player destination_system_changed signal.")
 	$Ships.add_child(player_ship)
 	for system_name in game_state.systems.get_child_names():
+		var system = game_state.systems.get_child_with_name(system_name)
+		if not system or not system.has_method('is_SystemData'):
+			continue
+		if not system.show_on_map:
+			if system_name.begins_with('interstellar'):
+				interstellar_systems.append(system_name)
+			continue
 		var system_entrance = SystemEntrance.instance()
 		if system_entrance.init_system(system_name):
 			$Systems.add_child(system_entrance)
@@ -298,7 +332,7 @@ func _physics_process(delta):
 				print('new target')
 				universe_edits.state.push(universe_edits.ChangeSelection.new(
 					old_target,new_target))
-
+	Player.hyperspace_position = player_ship.translation/hyperspace_ratio
 	
 	var _discard = result.erase('weapon_rotations')
 	ship_stats = result

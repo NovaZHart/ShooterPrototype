@@ -1,10 +1,9 @@
-[gd_scene load_steps=18 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://ui/OrbitalScreen.gd" type="Script" id=2]
 [ext_resource path="res://ui/FPSLabel.gd" type="Script" id=3]
 [ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=4]
-[ext_resource path="res://ui/Console.gd" type="Script" id=5]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=6]
 [ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=7]
 [ext_resource path="res://ui/SystemSelector.tscn" type="PackedScene" id=8]
@@ -20,18 +19,11 @@ font_data = ExtResource( 1 )
 default_font = SubResource( 1 )
 
 [sub_resource type="DynamicFont" id=3]
-size = 13
+size = 18
 font_data = ExtResource( 1 )
 
 [sub_resource type="Theme" id=4]
 default_font = SubResource( 3 )
-
-[sub_resource type="DynamicFont" id=5]
-size = 18
-font_data = ExtResource( 1 )
-
-[sub_resource type="Theme" id=6]
-default_font = SubResource( 5 )
 
 [node name="Landing" type="Control"]
 theme = ExtResource( 11 )
@@ -66,38 +58,12 @@ transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -30, 0 )
 transform = Transform( 0.5, 0, -0.866025, 0, 1, 0, 0.866025, 0, 0.5, 0, 0, 0 )
 light_color = Color( 1, 0.992157, 0.929412, 1 )
 
-[node name="Console" type="RichTextLabel" parent="."]
-pause_mode = 2
-margin_left = 16.0
-margin_top = 408.0
-margin_right = 472.0
-margin_bottom = 600.0
-theme = SubResource( 2 )
-text = "0
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11"
-scroll_active = false
-scroll_following = true
-script = ExtResource( 5 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [node name="FPSLabel" type="Label" parent="."]
 margin_left = 921.0
 margin_top = 27.0
 margin_right = 1024.0
 margin_bottom = 47.0
-theme = SubResource( 4 )
+theme = SubResource( 2 )
 text = "60 FPS"
 align = 2
 valign = 2
@@ -110,7 +76,7 @@ __meta__ = {
 margin_left = 792.0
 margin_right = 1024.0
 margin_bottom = 32.0
-theme = SubResource( 6 )
+theme = SubResource( 4 )
 text = "Planet Name"
 align = 2
 script = ExtResource( 6 )

@@ -95,6 +95,7 @@ func sync_system_data(bkg_update: bool,meta_update: bool):
 	if meta_update:
 		$Settings/IDEdit.text=system.get_name()
 		$Settings/NameEdit.text=system.display_name
+		$Settings/ShowOnMap.pressed=system.show_on_map
 	if bkg_update:
 		$Settings/PlasmaSeedEdit.text=str(system.plasma_seed)
 		$Settings/StarSeedEdit.text=str(system.starfield_seed)
@@ -300,3 +301,11 @@ func _on_CreateFleet_pressed():
 func _on_Cancel_pressed():
 	popup_cancel=true
 	$Fleets/SelectFleet.visible=false
+
+func _on_ShowOnMap_button_down():
+	universe_edits.state.push(universe_edits.SystemDataChange.new(
+		system.get_path(),{'show_on_map':true},true,false))
+
+func _on_ShowOnMap_button_up():
+	universe_edits.state.push(universe_edits.SystemDataChange.new(
+		system.get_path(),{'show_on_map':false},true,false))

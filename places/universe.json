@@ -25,6 +25,7 @@
             0.18,
             1
           ],
+          "show_on_map": true,
           "fleets": [
             "Array",
             {
@@ -178,6 +179,7 @@
             0.007843,
             1
           ],
+          "show_on_map": true,
           "fleets": [
             "Array",
             {
@@ -429,6 +431,7 @@
             0.140625,
             1
           ],
+          "show_on_map": true,
           "fleets": [
             "Array",
             {
@@ -687,6 +690,7 @@
             0.18,
             1
           ],
+          "show_on_map": true,
           "fleets": [
             "Array",
             {
@@ -980,6 +984,7 @@
             0.18,
             1
           ],
+          "show_on_map": true,
           "fleets": [
             "Array",
             {
@@ -1133,6 +1138,163 @@
                       }
                     }
                   ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "interstellar1": [
+        "SystemData",
+        {
+          "display_name": "Interstellar Space",
+          "position": [
+            "Vector3",
+            -4.083333,
+            0,
+            4.625
+          ],
+          "links": {
+
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.023529,
+            0.031373,
+            0.058824,
+            1
+          ],
+          "show_on_map": false,
+          "fleets": [
+            "Array",
+            {
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1,
+              "frequency": 10
+            },
+            {
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0,
+              "frequency": 3
+            }
+          ],
+          "objects": {
+            "rogue": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Rogue Planet",
+                "description": "",
+                "base": "",
+                "object_type": 1,
+                "size": 8,
+                "color_scaling": [
+                  "Color",
+                  0.776471,
+                  0.835294,
+                  0.960784,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.482353,
+                  -0.521569,
+                  -0.537255,
+                  1
+                ],
+                "shader_seed": 0,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 20,
+                "orbit_start": 0.515073,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "interstellar2": [
+        "SystemData",
+        {
+          "display_name": "Interstellar Space",
+          "position": [
+            "Vector3",
+            0.075,
+            0,
+            9.75
+          ],
+          "links": {
+
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "show_on_map": false,
+          "fleets": [
+            "Array",
+            {
+              "frequency": 3,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 10,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1,
+              "fleet": "condor_lasers",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "rogue": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "display_name": "Rogue Planet",
+                "description": "",
+                "base": "",
+                "object_type": 0,
+                "size": 7,
+                "color_scaling": [
+                  "Color",
+                  0.196078,
+                  0.137255,
+                  0.145098,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.47451,
+                  -0.035294,
+                  -0.035294,
+                  1
+                ],
+                "shader_seed": 58199,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 20,
+                "orbit_start": 0.18673,
+                "has_astral_gate": false,
+                "objects": {
+
                 }
               }
             ]

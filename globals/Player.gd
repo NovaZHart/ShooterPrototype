@@ -4,12 +4,15 @@ var player_ship_design
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
 var player_name = 'FIXME'
-var hyperspace_position: Vector3
+var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 
 var stored_system_path
 var stored_player_path
 signal destination_system_changed
+
+func set_hyperspace_position(new_position: Vector3):
+	hyperspace_position = Vector3(new_position.x,0,new_position.z)
 
 func set_destination_system(new_system: NodePath):
 	push_warning('set_destination_system '+str(new_system))
@@ -60,12 +63,15 @@ func store_state():
 		'player_name': player_name,
 		'player_location': player_location,
 		'player_ship_design': design,
+		'hyperspace_position': hyperspace_position,
 		'current_day': game_state.current_day,
 	}
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']
 	set_player_location(state['player_location'])
+	if state.has('hyperspace_position'):
+		set_hyperspace_position(state['hyperspace_position'])
 	player_ship_design = state['player_ship_design']
 	game_state.current_day = state['current_day']
 	player_ship_design.name = 'player_ship_design'
@@ -130,12 +136,13 @@ func set_player_location(s: NodePath):
 	var n = game_state.systems.get_node_or_null(s)
 	if n!=null:
 		var loc = game_state.systems.get_path_to(n)
-		assert(loc)
 		var system_name = loc.get_name(0)
-		assert(game_state.systems.has_child(system_name))
 		if game_state.systems.has_child(system_name):
 			system = game_state.systems.get_child_with_name(system_name)
 			player_location = n.get_path()
+			set_hyperspace_position(system.position)
+		else:
+			push_error('No system parent at path '+str(s))
 	else:
 		push_error('no SimpleNode at path '+str(s))
 	return player_location

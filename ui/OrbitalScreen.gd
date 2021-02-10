@@ -15,7 +15,6 @@ func _ready():
 	combat_engine.clear_visuals()
 	var system_name = Player.system.display_name
 	planet_info = Player.get_space_object_or_null()
-	assert(planet_info)
 	if planet_info==null:
 		# Cannot land here
 		push_error('ERROR: NULL PLANET INFO')

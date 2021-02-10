@@ -3,7 +3,6 @@
 [ext_resource path="res://ui/edit/SystemSettings.gd" type="Script" id=1]
 [ext_resource path="res://ui/skins/red-x-24.png" type="Texture" id=2]
 
-
 [node name="SystemSettings" type="TabContainer"]
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -110,6 +109,13 @@ margin_top = 136.0
 margin_right = 1016.0
 margin_bottom = 156.0
 
+[node name="ShowOnMap" type="CheckButton" parent="Settings"]
+margin_top = 160.0
+margin_right = 506.0
+margin_bottom = 200.0
+pressed = true
+text = "Show On Map"
+
 [node name="Fleets" type="GridContainer" parent="."]
 visible = false
 anchor_right = 1.0
@@ -158,6 +164,8 @@ hide_root = true
 [connection signal="focus_exited" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_focus_exited"]
 [connection signal="picker_created" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_picker_created"]
 [connection signal="popup_closed" from="Settings/ColorPickerButton" to="." method="_on_ColorPickerButton_popup_closed"]
+[connection signal="button_down" from="Settings/ShowOnMap" to="." method="_on_ShowOnMap_button_down"]
+[connection signal="button_up" from="Settings/ShowOnMap" to="." method="_on_ShowOnMap_button_up"]
 [connection signal="pressed" from="Fleets/Top/AddFleetButton" to="." method="_on_AddFleetButton_pressed"]
 [connection signal="button_pressed" from="Fleets/Spawned" to="." method="_on_Spawned_button_pressed"]
 [connection signal="item_edited" from="Fleets/Spawned" to="." method="_on_Spawned_item_edited"]

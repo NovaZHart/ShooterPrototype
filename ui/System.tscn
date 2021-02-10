@@ -23,7 +23,7 @@ omni_attenuation = 0.0228763
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -5, 0 )
 layers = 4
 light_cull_mask = 4293918724
-omni_range = 5000.0
+omni_range = 999999.0
 omni_attenuation = 0.0358968
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]

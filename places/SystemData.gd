@@ -31,6 +31,7 @@ var position: Vector3 setget set_position
 var plasma_seed: int
 var plasma_color: Color
 var starfield_seed: int
+var show_on_map: bool
 
 var rng
 
@@ -56,6 +57,7 @@ func encode() -> Dictionary:
 		'plasma_seed':plasma_seed,
 		'starfield_seed':starfield_seed,
 		'plasma_color':plasma_color,
+		'show_on_map':show_on_map,
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
@@ -74,6 +76,7 @@ func decode(content: Dictionary):
 	plasma_seed = getdict(content,'plasma_seed',320918)
 	starfield_seed = getdict(content,'starfield_seed',987686)
 	plasma_color = getdict(content,'plasma_color',Color(0.07,0.07,.18,1.0))
+	show_on_map = getdict(content,'show_on_map',true)
 	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):
@@ -190,6 +193,7 @@ func process_space(system,delta) -> Array:
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true) -> Array:
 	system.update_space_background(self)
+	system.raise_sun = not show_on_map
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail,ships)

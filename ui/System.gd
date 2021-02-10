@@ -32,6 +32,8 @@ const player_ship_name: String = 'player_ship' # name of player's ship node
 var sent_planets: bool = false
 var latest_target_info: Dictionary = Dictionary()
 
+var raise_sun: bool = false setget set_raise_sun
+
 var Landing = preload('res://ui/OrbitalScreen.tscn')
 var TargetDisplay = preload('res://ui/TargetDisplay.tscn')
 
@@ -41,6 +43,14 @@ signal view_center_changed          #<-- visual thread
 signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
+
+func set_raise_sun(flag: bool):
+	if raise_sun==flag:
+		return
+	if flag:
+		$PlanetLight.translation.y += 10000
+	else:
+		$PlanetLight.translation.y += 10000
 
 func get_world():
 	return get_viewport().get_world()

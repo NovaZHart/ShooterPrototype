@@ -20,6 +20,7 @@ const StarmapLibrary = preload('res://bin/Starmap.gdns')
 const SYSTEM_SCALE: float = 0.01
 const LINK_SCALE: float = 0.005
 const SELECT_EPSILON: float = 0.02
+const fake_system_name: String = '\t'
 
 var starmap
 var starmap_mutex: Mutex = Mutex.new()
@@ -58,7 +59,7 @@ func _ready():
 	starmap.set_camera_path(NodePath('../Camera'))
 	$View/Port.add_child(starmap)
 	
-	var syspos = Player.system.position
+	var syspos = Player.hyperspace_position
 	$View/Port/Camera.translation = Vector3(syspos.x,$View/Port/Camera.translation.y,syspos.z)
 	
 	link_material = ShaderMaterial.new()
@@ -90,12 +91,23 @@ func process_if(flag):
 
 func send_systems_to_starmap():
 	game_state.universe.lock()
-	var nsystems: int = game_state.systems.get_child_count()
-	var system_names: Array = game_state.systems.get_child_names()
+	var system_names: Array = []
 	system_index = {}
 	
-	for i in range(len(system_names)):
-		system_index[system_names[i]] = i
+	if not Player.system or not Player.system.show_on_map or \
+			Player.system.position.distance_to(Player.hyperspace_position)>0.1:
+		system_names.append(fake_system_name)
+		system_index[fake_system_name]=0
+	
+	for system_name in game_state.systems.get_child_names():
+		var system = game_state.systems.get_child_with_name(system_name)
+		if system and system.has_method('is_SystemData') and system.show_on_map:
+			system_names.append(system_name)
+			system_index[system_name] = len(system_names)-1
+	var nsystems: int = len(system_names)
+	print(nsystems)
+	print(system_names)
+	print(system_index)
 	
 	name_pool.resize(nsystems)
 	display_name_pool.resize(nsystems)
@@ -108,6 +120,9 @@ func send_systems_to_starmap():
 		var system_name = system_names[i]
 		name_pool[i] = system_name
 		display_name_pool[i] = name_pool[i]
+		if system_name == fake_system_name:
+			pos_pool[i] = Player.hyperspace_position
+			continue
 		var system = game_state.systems.get_child_with_name(system_name)
 		if not system or not system.has_method('is_SystemData'):
 			push_error('System "'+system_name+'" is in child list, but has no SystemData')
@@ -136,7 +151,11 @@ func update_starmap_visuals():
 	starmap.clear_extra_lines()
 	
 	var selection_index = -1
-	var location_index = system_index.get(Player.system.name,-1)
+	var location_index = -1
+	if system_index.has(fake_system_name):
+		location_index = 0
+	else:
+		system_index.get(Player.system.name,-1)
 	print('player location is #',location_index)
 	
 	if selection and selection.has_method('is_SystemData'):
@@ -198,9 +217,9 @@ func deselect(what) -> bool:
 func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
-	Player.destination_system = selection.get_path()
 	if selection is simple_tree.SimpleNode:
 		emit_signal('select',selection)
+		Player.destination_system = selection.get_path()
 	elif selection==null:
 		emit_signal('deselect')
 	game_state.universe.unlock()

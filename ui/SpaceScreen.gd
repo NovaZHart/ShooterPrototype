@@ -104,7 +104,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
 
 	if jump:
-		game_state.change_scene(preload('res://places/Hyperspace.tscn'))
+		game_state.call_deferred('change_scene',preload('res://places/Hyperspace.tscn'))
 	
 	var nearest: int = PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
@@ -178,7 +178,8 @@ func _process(delta: float) -> void:
 	if get_tree().paused:
 		return
 	if $System.player_has_a_ship():
-		$System.receive_player_orders(make_player_orders(delta))
+		if tick>2:
+			$System.receive_player_orders(make_player_orders(delta))
 	else:
 		if death_start<0:
 			death_start = tick
