@@ -6,6 +6,8 @@
         "SystemData",
         {
           "display_name": "Seti-α",
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
           "position": [
             "Vector3",
             4.825001,
@@ -161,6 +163,8 @@
         "SystemData",
         {
           "display_name": "א-93",
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
           "position": [
             "Vector3",
             16.150005,
@@ -411,6 +415,8 @@
         "SystemData",
         {
           "display_name": "Seti-β",
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
           "position": [
             "Vector3",
             2.250004,
@@ -671,6 +677,8 @@
         "SystemData",
         {
           "display_name": "Seti-ɣ",
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
           "position": [
             "Vector3",
             7.650002,
@@ -965,6 +973,8 @@
         "SystemData",
         {
           "display_name": "א-85",
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
           "position": [
             "Vector3",
             11.175005,
@@ -1148,6 +1158,8 @@
         "SystemData",
         {
           "display_name": "Interstellar Space",
+          "system_fuel_recharge": 1.5,
+          "center_fuel_recharge": 0.0,
           "position": [
             "Vector3",
             -4.083333,
@@ -1224,6 +1236,8 @@
         "SystemData",
         {
           "display_name": "Interstellar Space",
+          "system_fuel_recharge": 1.5,
+          "center_fuel_recharge": 0.0,
           "position": [
             "Vector3",
             0.075,

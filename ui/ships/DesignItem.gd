@@ -29,7 +29,8 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	var turrets: int = 0
 	var max_range: float = 0
 	var max_thrust = max(max(stats['reverse_thrust'],stats['thrust']),0)
-	var max_speed = round(max_thrust/max(1e-9,stats['drag']*stats['mass'])*10)/10
+	var mass = utils.ship_mass(stats)
+	var max_speed = round(max_thrust/max(1e-9,stats['drag']*mass)*10)/10
 	for weapon in stats['weapons']:
 		turrets += int(weapon['mount_type']=='turret')
 		guns += int(weapon['mount_type']=='gun')

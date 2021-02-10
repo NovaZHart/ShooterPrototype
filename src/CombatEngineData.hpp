@@ -142,23 +142,26 @@ namespace godot {
       const RID rid; // of rigid body
       const real_t thrust, reverse_thrust, turn_thrust;
       const real_t threat;
-      const real_t max_shields, max_armor, max_structure;
-      const real_t heal_shields, heal_armor, heal_structure;
+      const real_t max_shields, max_armor, max_structure, max_fuel;
+      const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
+      const real_t fuel_efficiency;
       const AABB aabb;
       const real_t turn_drag, radius;
+      const real_t empty_mass, cargo_mass, fuel_density, armor_density;
       const int team, enemy_team, collision_layer, enemy_mask;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       
       int explosion_tick;
-      
       fate_t fate;
-      
-      real_t shields, armor, structure;
+      real_t shields, armor, structure, fuel;
+
+      // Physics server state; do not change:
       Vector3 rotation, position, linear_velocity, angular_velocity, heading;
       real_t drag, inverse_mass;
       Vector3 inverse_inertia;
       Transform transform;
+      
       std::vector<Weapon> weapons;
       const WeaponRanges range;
       int tick, tick_at_last_shot;
@@ -170,17 +173,21 @@ namespace godot {
       real_t nearby_enemies_range;
       uint32_t random_state;
       Vector3 destination;
-
+      
       real_t aim_multiplier, confusion_multiplier;
       Vector3 confusion, confusion_velocity;
 
-      const real_t max_speed;
-      const real_t max_angular_velocity;
-      const real_t turn_diameter_squared;
+      // Cached calculations:
+      real_t max_speed;
+      real_t max_angular_velocity;
+      real_t turn_diameter_squared;
+      Vector3 drag_force;
+      
+      bool updated_mass_stats;
 
-      inline Vector3 drag_force() const {
-        return -linear_velocity*drag/inverse_mass;
-      }
+      bool update_from_physics_server(PhysicsServer *server);
+      void update_stats(PhysicsServer *state, bool update_server);
+      void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
 
       Ship(const Ship &other);
       Ship(Dictionary dict, object_id id, object_id &last_id,
@@ -215,6 +222,7 @@ namespace godot {
     typedef std::vector<std::pair<Vector3,ships_iter>> projectile_hit_list_t;
 
   
+    static constexpr real_t hyperspace_display_ratio = 20.0f;
 
 
     static const int PLAYER_GOAL_ATTACKER_AI = 1;

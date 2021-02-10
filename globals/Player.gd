@@ -6,10 +6,18 @@ var player_location: NodePath = NodePath() setget set_player_location,get_player
 var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
+var ship_combat_stats: Dictionary = {}
 
 var stored_system_path
 var stored_player_path
 signal destination_system_changed
+
+func set_ship_combat_stats(stats: Dictionary):
+	var subset = {}
+	for varname in [ 'fuel', 'armor', 'structure', 'shields' ]:
+		if stats.has(varname):
+			subset[varname] = stats[varname]
+	ship_combat_stats = subset
 
 func set_hyperspace_position(new_position: Vector3):
 	hyperspace_position = Vector3(new_position.x,0,new_position.z)

@@ -105,9 +105,6 @@ func send_systems_to_starmap():
 			system_names.append(system_name)
 			system_index[system_name] = len(system_names)-1
 	var nsystems: int = len(system_names)
-	print(nsystems)
-	print(system_names)
-	print(system_index)
 	
 	name_pool.resize(nsystems)
 	display_name_pool.resize(nsystems)
@@ -156,7 +153,6 @@ func update_starmap_visuals():
 		location_index = 0
 	else:
 		system_index.get(Player.system.name,-1)
-	print('player location is #',location_index)
 	
 	if selection and selection.has_method('is_SystemData'):
 		selection_index = system_index.get(selection.name,-1)

@@ -7,9 +7,11 @@ export var add_turn_thrust: float = 0
 export var add_shields: float = 0
 export var add_armor: float = 0
 export var add_structure: float = 0
+export var add_fuel: float = 0
 export var add_heal_shields: float = 0
 export var add_heal_armor: float = 0
 export var add_heal_structure: float = 0
+export var add_heal_fuel: float = 0
 export var add_drag: float = 0
 export var mult_drag: float = 1
 export var add_turn_drag: float = 0
@@ -59,9 +61,11 @@ func pack_stats() -> Dictionary:
 			'add_shields':add_shields,
 			'add_armor':add_armor,
 			'add_structure':add_structure,
+			'add_fuel':add_fuel,
 			'add_heal_shields':add_heal_shields,
 			'add_heal_armor':add_heal_armor,
 			'add_heal_structure':add_heal_structure,
+			'add_heal_fuel':add_heal_fuel,
 			'add_drag':add_drag,
 			'mult_drag':mult_drag,
 			'add_turn_drag':add_turn_drag,
@@ -77,7 +81,7 @@ func pack_stats() -> Dictionary:
 func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
 	stats['equipment'].append(pack_stats())
 	if add_mass > 0:
-		stats['mass'] = max(1,stats['mass']+add_mass)
+		stats['empty_mass'] = max(1,stats['empty_mass']+add_mass)
 	if add_thrust > 0:
 		stats['thrust'] = max(0,stats['thrust']+add_thrust)
 	if add_reverse_thrust>0:
@@ -90,12 +94,16 @@ func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
 		stats['max_armor'] = max(0,stats['max_armor']+add_armor)
 	if add_structure>0:
 		stats['max_structure'] = max(0,stats['max_structure']+add_structure)
+	if add_fuel>0:
+		stats['max_fuel'] = max(0,stats['max_fuel']+add_fuel)
 	if add_heal_shields>0:
 		stats['heal_shields'] = max(0,stats['heal_shields']+add_heal_shields)
 	if add_heal_armor>0:
 		stats['heal_armor'] = max(0,stats['heal_armor']+add_heal_armor)
 	if add_heal_structure>0:
 		stats['heal_structure'] = max(0,stats['heal_structure']+add_heal_structure)
+	if add_fuel>0:
+		stats['heal_fuel'] = max(0,stats['heal_fuel']+add_heal_fuel)
 	if add_drag>0 or abs(mult_drag-1.0)>1e-6:
 		stats['drag'] = max(0.05,stats['drag']*mult_drag+add_drag)
 	if add_turn_drag>0 or abs(mult_turn_drag-1.0)>1e-6:

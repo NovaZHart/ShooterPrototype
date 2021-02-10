@@ -51,7 +51,8 @@ func make_fleet_bbcode(fleet_id, fleet_display_name, design_count: Dictionary) -
 		if not design or not count_this_design:
 			continue
 		var stats = design.get_stats()
-		assert(stats.has('mass'))
+		assert(stats.has('empty_mass'))
+		var mass = utils.ship_mass(stats)
 		
 		var n = count_this_design # to make the code shorter
 		
@@ -66,7 +67,7 @@ func make_fleet_bbcode(fleet_id, fleet_display_name, design_count: Dictionary) -
 		for weapon in stats['weapons']:
 			dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])*n
 		var max_thrust = max(max(stats['reverse_thrust'],stats['thrust']),0)
-		var max_speed = max(0,max_thrust/max(1e-9,stats['drag']*stats['mass']))
+		var max_speed = max(0,max_thrust/max(1e-9,stats['drag']*mass))
 		fleet_max_speed = max(max_speed,fleet_max_speed)
 		fleet_min_speed = min(max_speed,fleet_min_speed)
 		fleet_speed_sum += fleet_max_speed*n
@@ -125,6 +126,8 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 
 		return bbcode+'[/table]\n'
 
+
+
 func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) -> String:
 	var contents: String = '' #'[b]Contents:[/b]\n'
 	if show_id==null:
@@ -148,6 +151,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 		contents='\n'
 	
 	var s = ship_stats
+	var mass = utils.ship_mass(s)
 	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
 	var bbcode = '[b]Ship Design:[/b] [i]'+s['display_name']+'[/i]'+annotation+'\n'
 	if show_id:
@@ -160,17 +164,24 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*s['mass'])*10)/10)
+	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*mass*10))/10)
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Turn RPM:',round(s['turn_thrust']/max(1e-9,s['turn_drag']*s['mass'])*100)/100)
+	bbcode += make_cell('Turn RPM:',round(s['turn_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
+
+	var k = s['max_fuel']*s['fuel_density']/s['empty_mass']
+	var d = s['max_fuel']*s['fuel_efficiency']/s['empty_mass']
+	var travel_distance = d * 1.0/k * log(1.0/(1.0+k))
+	bbcode += max_and_repair('Fuel:',s['max_fuel'],s['heal_fuel'])
+	bbcode += '[cell][/cell]'
+	bbcode += make_cell('Hyper.Travel:',str(round(travel_distance*10)/10)+'pc')
 
 	bbcode += '[cell][/cell][cell][/cell]'
 	bbcode += '[cell] [/cell]'
 	bbcode += '[cell]Death Explosion[/cell][cell][/cell]'
 
-	bbcode += make_cell('Mass:',s['mass'])
+	bbcode += make_cell('Mass:',mass)
 	bbcode += '[cell] [/cell]'
 	bbcode += make_cell('Radius:',s['explosion_radius'])
 

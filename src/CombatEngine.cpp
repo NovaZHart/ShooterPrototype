@@ -99,6 +99,7 @@ CombatEngine::~CombatEngine() {}
 void CombatEngine::_register_methods() {
   register_method("clear_ai", &CombatEngine::clear_ai);
   register_method("clear_visuals", &CombatEngine::clear_visuals);
+  register_method("set_system_stats", &CombatEngine::set_system_stats);
   register_method("prepare_visual_frame", &CombatEngine::prepare_visual_frame);
   register_method("update_overhead_view", &CombatEngine::update_overhead_view);
   register_method("draw_minimap_contents", &CombatEngine::draw_minimap_contents);
@@ -181,6 +182,12 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   return result;
 }
 
+void CombatEngine::set_system_stats(bool hyperspace, real_t system_fuel_recharge, real_t center_fuel_recharge) {
+  FAST_PROFILING_FUNCTION;
+  this->hyperspace = hyperspace;
+  this->system_fuel_recharge = system_fuel_recharge;
+  this->center_fuel_recharge = center_fuel_recharge;
+}
 
 void CombatEngine::prepare_visual_frame(RID new_scenario) {
   //NOTE: entry point from gdscript
@@ -354,6 +361,8 @@ void CombatEngine::step_all_ships() {
     } else {
       ai_step_ship(ship);
       negate_drag_force(ship);
+      if(ship.updated_mass_stats)
+        ship.update_stats(physics_server,true);
     }
   }
 }
@@ -368,22 +377,7 @@ void CombatEngine::update_ship_body_state() {
     Ship &ship = p_ship.second;
     if(ship.fate==FATED_TO_DIE)
       continue;
-    PhysicsDirectBodyState *state = physics_server->body_get_direct_state(ship.rid);
-    if(state) {
-      ship.transform=state->get_transform();
-      ship.rotation=ship.transform.basis.get_euler_xyz();
-      ship.heading=get_heading(ship);
-      ship.position=Vector3(ship.transform.origin.x,0,ship.transform.origin.z);
-      ship.linear_velocity=state->get_linear_velocity();
-      ship.angular_velocity=state->get_angular_velocity();
-      ship.inverse_inertia = state->get_inverse_inertia();
-      ship.inverse_mass = state->get_inverse_mass();
-      ship.drag = state->get_total_linear_damp();
-      if(!(ship.inverse_mass>0.0f) || ship.inverse_mass+1.0f==ship.inverse_mass)
-        // Safeguard to detect internal errors: inverse mass is NaN,
-        // non-finite, zero, or negative.
-        Godot::print_warning("invalid inverse mass",__FUNCTION__,__FILE__,__LINE__);
-    } else
+    if(not ship.update_from_physics_server(physics_server))
       ship.fate=FATED_TO_DIE; // Ship was removed, so treat it as dead.
   }
 }
@@ -471,8 +465,10 @@ void CombatEngine::update_player_orders(const Array &new_player_orders) {
 void CombatEngine::negate_drag_force(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   // Negate the drag force if the ship is below its max speed.
+  if(hyperspace and ship.fuel<=0) // except in hyperspace, if you ran out of fuel
+    return;
   if(ship.linear_velocity.length_squared()<ship.max_speed*ship.max_speed)
-    physics_server->body_add_central_force(ship.rid,-ship.drag_force());
+    physics_server->body_add_central_force(ship.rid,-ship.drag_force);
 }
 
 void CombatEngine::explode_ship(Ship &ship) {
@@ -520,9 +516,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
   // Increment this ship's internal time counters:
   ship.tick++;
 
-  ship.shields = min(ship.shields+ship.heal_shields*delta,ship.max_shields);
-  ship.armor = min(ship.armor+ship.heal_armor*delta,ship.max_armor);
-  ship.structure = min(ship.structure+ship.heal_structure*delta,ship.max_structure);
+  ship.heal(hyperspace,system_fuel_recharge,center_fuel_recharge,delta);
 
   for(auto &weapon : ship.weapons)
     weapon.firing_countdown = max(static_cast<real_t>(0.0),weapon.firing_countdown-delta);
@@ -1307,6 +1301,8 @@ void CombatEngine::request_rotation(Ship &ship, real_t rotation_factor) {
 
 void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
   FAST_PROFILING_FUNCTION;
+  if(hyperspace and ship.fuel<=0)
+    return;
   real_t ai_thrust = ship.thrust*clamp(forward,0.0f,1.0f) - ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
   Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(y_axis,ship.rotation.y);
   physics_server->body_add_central_force(ship.rid,v_thrust);

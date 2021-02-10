@@ -32,6 +32,8 @@ var plasma_seed: int
 var plasma_color: Color
 var starfield_seed: int
 var show_on_map: bool
+var system_fuel_recharge: float
+var center_fuel_recharge: float
 
 var rng
 
@@ -58,6 +60,8 @@ func encode() -> Dictionary:
 		'starfield_seed':starfield_seed,
 		'plasma_color':plasma_color,
 		'show_on_map':show_on_map,
+		'system_fuel_recharge':system_fuel_recharge,
+		'center_fuel_recharge':center_fuel_recharge,
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
@@ -77,6 +81,8 @@ func decode(content: Dictionary):
 	starfield_seed = getdict(content,'starfield_seed',987686)
 	plasma_color = getdict(content,'plasma_color',Color(0.07,0.07,.18,1.0))
 	show_on_map = getdict(content,'show_on_map',true)
+	system_fuel_recharge = getdict(content,'system_fuel_recharge',0.5)
+	center_fuel_recharge = getdict(content,'center_fuel_recharge',1.5)
 	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):

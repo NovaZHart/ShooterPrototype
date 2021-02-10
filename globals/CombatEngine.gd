@@ -34,6 +34,10 @@ func clear_visuals() -> void:
 	physics_mutex.unlock()
 	visual_mutex.unlock()
 
+func set_system_stats(hyperspace: bool = false, system_fuel_recharge: float = 0.5, 
+		center_fuel_recharge = 1.5):
+	native.set_system_stats(hyperspace, system_fuel_recharge, center_fuel_recharge)
+
 func change_worlds(world: World) -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
 	# the CombatEngine to discard everything: projectiles, ship stats,

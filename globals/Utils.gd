@@ -30,3 +30,8 @@ func TreeItem_child_count_at_least(item: TreeItem,min_children: int):
 			return true
 		scan = scan.get_next()
 	return false
+
+func ship_mass(ship_stats):
+	return ship_stats['empty_mass']+ship_stats.get('cargo_mass',0)+ \
+		ship_stats['max_fuel']*ship_stats['fuel_density']/1000.0+ \
+		ship_stats['max_armor']*ship_stats['armor_density']/1000.0

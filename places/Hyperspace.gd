@@ -5,7 +5,10 @@ export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
-export var hyperspace_ratio: float = 20
+export var auto_depart_without_fuel: float = 3.0
+
+# Must match CombatEngineData.hpp:
+const hyperspace_ratio: float = 20.0
 
 # These must match src/CombatEngineData.hpp:
 const PLAYER_GOAL_LANDING_AI: int = 2
@@ -46,6 +49,9 @@ var ship_stats: Dictionary = {}
 var first_visual_tick = true
 var interstellar_systems: Array = []
 
+var player_fuel: float = 10.0
+var stopped_without_fuel: float = 0.0 # seconds
+
 signal view_center_changed
 
 func depart_hyperspace():
@@ -59,7 +65,6 @@ func depart_hyperspace():
 	if that and that is Area:
 		var path = that.game_state_path
 		if path:
-			print('change scene to '+str(path))
 			Player.player_location = path
 			return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 	var interstellar_name = interstellar_systems[randi()%len(interstellar_systems)]
@@ -188,6 +193,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 func _enter_tree() -> void:
 	game_state.switch_editors(self)
 	combat_engine.change_worlds(get_viewport().world)
+	combat_engine.set_system_stats(true,-1.0,0.0)
 	old_target_fps = Engine.target_fps
 	Engine.target_fps = Engine.iterations_per_second
 
@@ -222,6 +228,7 @@ func _ready():
 	player_ship.name = player_ship_name
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
 	player_ship.translation.y = 10
+	player_ship.restore_combat_stats(Player.ship_combat_stats)
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):
 		push_error("Cannot connect to Player destination_system_changed signal.")
 	$Ships.add_child(player_ship)
@@ -236,7 +243,6 @@ func _ready():
 		var system_entrance = SystemEntrance.instance()
 		if system_entrance.init_system(system_name):
 			$Systems.add_child(system_entrance)
-			print('Add system entrance at ',system_entrance.translation)
 		else:
 			push_warning(system_name+': could not add system')
 	_on_destination_system_changed(Player.destination_system)
@@ -276,8 +282,6 @@ func _physics_process(delta):
 	
 	var new_ships_packed: Array = pack_ship_stats_if_not_sent().duplicate(true)
 	var new_systems_packed: Array = pack_system_stats_if_not_sent().duplicate(true)
-	if not sent_systems_and_player:
-		print('new systems paced: ',new_systems_packed)
 	sent_systems_and_player = true
 	
 	var player_ship = $Ships.get_node_or_null(player_ship_name)
@@ -303,6 +307,10 @@ func _physics_process(delta):
 		var ship: Dictionary = result[ship_name]
 		var fate: int = ship.get('fate',combat_engine.FATED_TO_FLY)
 		if fate<=0:
+			if ship_name==player_ship_name:
+				var stats = result[ship_name]
+				player_fuel = stats.get('fuel',10.0)
+				$PlayerInfo.update_ship_stats(result[ship_name])
 			continue # ship is still flying
 		player_died = player_died or ship_name == player_ship_name
 		var ship_node = $Ships.get_node_or_null(ship_name)
@@ -329,10 +337,16 @@ func _physics_process(delta):
 			var old_target = game_state.systems.get_node_or_null(Player.destination_system)
 			var new_target = game_state.systems.get_child_with_name(new_player_target_name)
 			if new_target and physics_tick>5:
-				print('new target')
 				universe_edits.state.push(universe_edits.ChangeSelection.new(
 					old_target,new_target))
+	
 	Player.hyperspace_position = player_ship.translation/hyperspace_ratio
+	if player_fuel<=0 and player_ship.linear_velocity.length()<0.1:
+		stopped_without_fuel+=delta
+		if stopped_without_fuel > auto_depart_without_fuel:
+			depart_hyperspace()
+	else:
+		stopped_without_fuel=0
 	
 	var _discard = result.erase('weapon_rotations')
 	ship_stats = result

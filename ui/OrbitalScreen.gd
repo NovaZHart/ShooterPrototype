@@ -33,6 +33,11 @@ func _ready():
 	$ServiceSelector.update_service_list()
 	var _discard = get_viewport().connect('size_changed',self,'force_viewport_size')
 	force_viewport_size()
+	_discard = Player.ship_combat_stats.erase('shields')
+	_discard = Player.ship_combat_stats.erase('structure')
+	if planet_info.services:
+		_discard = Player.ship_combat_stats.erase('armor')
+		_discard = Player.ship_combat_stats.erase('fuel')
 #	old_msaa = get_viewport().msaa
 #	get_viewport().msaa = Viewport.MSAA_4X
 

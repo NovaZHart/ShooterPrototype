@@ -218,12 +218,19 @@ Ship::Ship(const Ship &o):
   max_shields(o.max_shields),
   max_armor(o.max_armor),
   max_structure(o.max_structure),
+  max_fuel(o.max_fuel),
   heal_shields(o.heal_shields),
   heal_armor(o.heal_armor),
   heal_structure(o.heal_structure),
+  heal_fuel(o.heal_fuel),
+  fuel_efficiency(o.fuel_efficiency),
   aabb(o.aabb),
   turn_drag(o.turn_drag),
   radius(o.radius),
+  empty_mass(o.empty_mass),
+  cargo_mass(o.cargo_mass),
+  fuel_density(o.fuel_density),
+  armor_density(o.armor_density),
   collision_layer(o.collision_layer),
   enemy_mask(o.enemy_mask),
   team(o.team),
@@ -238,6 +245,7 @@ Ship::Ship(const Ship &o):
   shields(o.shields),
   armor(o.armor),
   structure(o.structure),
+  fuel(o.fuel),
   rotation(o.rotation),
   position(o.position),
   linear_velocity(o.linear_velocity),
@@ -264,7 +272,8 @@ Ship::Ship(const Ship &o):
   confusion_velocity(o.confusion_velocity),
   max_speed(o.max_speed),
   max_angular_velocity(o.max_angular_velocity),
-  turn_diameter_squared(o.turn_diameter_squared)
+  turn_diameter_squared(o.turn_diameter_squared),
+  updated_mass_stats(o.updated_mass_stats)
 {}
 
 Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
@@ -279,12 +288,19 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   max_shields(get<real_t>(dict,"max_shields",0)),
   max_armor(get<real_t>(dict,"max_armor",0)),
   max_structure(get<real_t>(dict,"max_structure")),
+  max_fuel(get<real_t>(dict,"max_fuel")),
   heal_shields(get<real_t>(dict,"heal_shields",0)),
   heal_armor(get<real_t>(dict,"heal_armor",0)),
   heal_structure(get<real_t>(dict,"heal_structure",0)),
+  heal_fuel(get<real_t>(dict,"heal_fuel",0)),
+  fuel_efficiency(get<real_t>(dict,"fuel_efficiency",1.0)),
   aabb(get<AABB>(dict,"aabb")),
   turn_drag(get<real_t>(dict,"turn_drag")),
   radius((aabb.size.x+aabb.size.z)/2.0),
+  empty_mass(get<real_t>(dict,"empty_mass",0)),
+  cargo_mass(get<real_t>(dict,"cargo_mass",0)),
+  fuel_density(get<real_t>(dict,"fuel_density",0)),
+  armor_density(get<real_t>(dict,"armor_density",0)),
   team(clamp(get<int>(dict,"team"),0,1)),
   enemy_team(1-team),
   collision_layer(1<<team),
@@ -302,6 +318,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   shields(get<real_t>(dict,"shields",max_shields)),
   armor(get<real_t>(dict,"armor",max_armor)),
   structure(get<real_t>(dict,"structure",max_structure)),
+  fuel(get<real_t>(dict,"fuel",max_fuel)),
   
   // These eight will be replaced by the PhysicsDirectBodyState every
   // timestep.  The GDScript code must make sure mass and drag are set
@@ -313,7 +330,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   angular_velocity(get<Vector3>(dict,"angular_velocity",Vector3(0,0,0))),
   heading(get_heading(*this)),
   drag(get<real_t>(dict,"drag")),
-  inverse_mass(1.0/get<real_t>(dict,"mass",1.0f)),
+  inverse_mass(1.0/(empty_mass+cargo_mass+fuel*fuel_density/1000.0+armor*armor_density/1000.0)),
   inverse_inertia(get<Vector3>(dict,"inverse_inertia",Vector3(0,1,0))),
   transform(get<Transform>(dict,"transform")),
   
@@ -336,11 +353,71 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
 
   max_speed(max(thrust,reverse_thrust)/drag*inverse_mass),
   max_angular_velocity(turn_thrust/turn_drag*inverse_mass*PI/30.0f), // convert from RPM
-  turn_diameter_squared(make_turn_diameter_squared())
+  turn_diameter_squared(make_turn_diameter_squared()),
+  updated_mass_stats(false)
 {}
 
 Ship::~Ship()
 {}
+
+bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
+  PhysicsDirectBodyState *state = physics_server->body_get_direct_state(rid);
+  if(not state)
+    return false;
+  transform=state->get_transform();
+  rotation=transform.basis.get_euler_xyz();
+  heading=get_heading(*this);
+  position=Vector3(transform.origin.x,0,transform.origin.z);
+  linear_velocity=state->get_linear_velocity();
+  angular_velocity=state->get_angular_velocity();
+  inverse_inertia = state->get_inverse_inertia();
+  inverse_mass = state->get_inverse_mass();
+  drag = state->get_total_linear_damp();
+  if(!(inverse_mass>0.0f) || inverse_mass+1.0f==inverse_mass)
+    // Safeguard to detect internal errors: inverse mass is NaN,
+    // non-finite, zero, or negative.
+    Godot::print_warning("invalid inverse mass",__FUNCTION__,__FILE__,__LINE__);
+  update_stats(physics_server,false);
+  return true;
+}
+
+void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
+  real_t new_mass = empty_mass+cargo_mass+fuel*fuel_density/max_fuel+armor*armor_density/max_armor;
+  real_t old_mass = 1.0/inverse_mass;
+  
+  inverse_mass = 1.0f/new_mass;
+  drag_force = -linear_velocity*drag/inverse_mass;
+  max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
+  max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f;
+  turn_diameter_squared = make_turn_diameter_squared();
+
+  if(fabsf(new_mass-old_mass)>0.01f)
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,1.0/inverse_mass);
+  updated_mass_stats = false;
+}
+
+void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {
+  shields = min(shields+heal_shields*delta,max_shields);
+  armor = min(armor+heal_armor*delta,max_armor);
+  structure = min(structure+heal_structure*delta,max_structure);
+
+  if(hyperspace and fuel>0.0f) {
+    real_t new_fuel = clamp(fuel-delta/inverse_mass*linear_velocity.length()/
+                            (hyperspace_display_ratio*fuel_efficiency*1000.0f),
+                            0.0f,max_fuel);
+    if(fabsf(fuel-new_fuel)>1e-6)
+      updated_mass_stats = true;
+    fuel = new_fuel;
+  } else if(fuel<max_fuel) {
+    real_t recharge = system_fuel_recharge;
+    real_t effective_distance = 10.0f+position.length()/hyperspace_display_ratio;
+    recharge += center_fuel_recharge*10.0f/effective_distance;
+    real_t new_fuel = clamp(fuel+delta*heal_fuel*recharge/1000.0f,0.0f,max_fuel);
+    if(fabsf(fuel-new_fuel)>1e-6)
+      updated_mass_stats = true;
+    fuel = new_fuel;
+  }
+}
 
 void Ship::update_confusion() {
   bool is_firing = tick_at_last_shot+1 <= tick;
@@ -370,7 +447,8 @@ real_t Ship::take_damage(real_t damage) {
       taken=min(armor,damage);
       damage-=taken;
       armor-=taken;
-
+      updated_mass_stats=true;
+      
       if(damage>0) {
         taken=min(structure,damage);
         damage-=taken;
@@ -428,31 +506,18 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["type"] = "ship";
   s["fate"] = int(fate);
   s["alive"] = fate!=FATED_TO_DIE;
-  // s["rotation"]=rotation;
-  // s["position"]=position;
-  // s["linear_velocity"]=linear_velocity;
-  // s["mass"]=1.0/inverse_mass;
-  // s["inverse_inertia"]=inverse_inertia;
-  // s["transform"]=transform;
+  s["mass"]=1.0/inverse_mass;
   s["name"]=name;
   s["rid"]=rid;
-  // s["drag"]=drag;
-  // s["thrust"]=thrust;
-  // s["reverse_thrust"]=reverse_thrust;
-  // s["turn_rate"]=max_angular_velocity;
-  // s["threat"]=threat;
   s["shields"]=shields;
+  s["fuel"]=fuel;
   s["armor"]=armor;
   s["structure"]=structure;
   s["max_shields"]=max_shields;
   s["max_armor"]=max_armor;
   s["max_structure"]=max_structure;
-  // s["heal_shields"]=heal_shields;
-  // s["heal_armor"]=heal_armor;
-  // s["heal_structure"]=heal_structure;
-  // s["aabb"]=aabb;
+  s["max_fuel"]=max_fuel;
   s["radius"] = radius;
-  // s["collision_layer"]=collision_layer;
   Dictionary r;
   {
     r["guns"]=range.guns;
@@ -462,11 +527,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
     r["all"]=range.all;
   }
   s["ranges"]=r;
-  // s["tick"]=tick;
-  // s["tick_at_last_shot"]=tick_at_last_shot;
   s["destination"]=destination;
-  // s["threat_vector"]=threat_vector;
-  // s["confusion"]=confusion;
 
   ships_const_iter target_p = ships.find(target);
   if(target_p!=ships.end() and target_p->second.structure>0) {
@@ -486,10 +547,6 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
     }
   }
 
-  // Array weapon_status;
-  // for(auto &weapon : weapons)
-  //   weapon_status.append(weapon.make_status_dict());
-  // s["weapons"]=weapon_status;
   return s;
 }
 

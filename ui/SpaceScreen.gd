@@ -164,6 +164,10 @@ func _enter_tree() -> void:
 #	if mesh_loader.load_meshes() != OK:
 #		printerr('Could not start the mesh loader.')
 	combat_engine.change_worlds(get_viewport().world)
+	var system = Player.system
+	if system:
+		combat_engine.set_system_stats(false,system.system_fuel_recharge,
+			system.center_fuel_recharge)
 
 #func _exit_tree() -> void:
 #	mesh_loader.wait_for_thread()

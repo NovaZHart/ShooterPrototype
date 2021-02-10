@@ -9,9 +9,12 @@ export var base_turn_thrust: float = 100
 export var base_shields: float = 800
 export var base_armor: float = 500
 export var base_structure: float = 300
+export var base_fuel: float = 100
 export var heal_shields: float = 20
 export var heal_armor: float = 5
 export var heal_structure: float = 0
+export var heal_fuel: float = 3
+export var fuel_efficiency: float = 0.9
 export var base_drag: float = 1.5
 export var base_turn_drag: float = 1.5
 #export var base_turn_rate: float = 2
@@ -20,6 +23,8 @@ export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
 export var base_explosion_impulse: float = 500
 export var base_explosion_delay: int = 10
+export var fuel_density: float = 10.0
+export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
@@ -88,13 +93,22 @@ func repack_stats(skip_runtime_stats=false) -> Dictionary:
 	return combined_stats
 	
 func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
-	if not combined_stats.has('mass'):
+	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in pack_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
 	elif not skip_runtime_stats and skipped_runtime_stats:
 		update_stats()
 	return combined_stats
+
+func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_error('No stats in restore_combat_stats! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	for varname in [ 'fuel', 'shields', 'armor', 'structure' ]:
+		if stats.has(varname):
+			combined_stats[varname] = clamp(stats[varname],0.0,combined_stats['max_'+varname])
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['explosion_damage']=base_explosion_damage
@@ -116,9 +130,12 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['max_shields']=base_shields
 	stats['max_armor']=base_armor
 	stats['max_structure']=base_structure
+	stats['max_fuel']=base_fuel
 	stats['heal_shields']=heal_shields
 	stats['heal_armor']=heal_armor
 	stats['heal_structure']=heal_structure
+	stats['heal_fuel']=heal_fuel
+	stats['fuel_efficiency']=fuel_efficiency
 	stats['aabb']=get_combined_aabb()
 	stats['turn_drag']=base_turn_drag
 	stats['enemy_mask']=enemy_mask
@@ -128,7 +145,9 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['rotation']=rotation
 	stats['position']=Vector3(translation.x,0,translation.z)
 	stats['transform']=transform
-	stats['mass']=base_mass
+	stats['empty_mass']=base_mass
+	stats['armor_density']=armor_density
+	stats['fuel_density']=fuel_density
 	stats['drag']=base_drag
 	stats['weapons']=Array()
 	stats['equipment']=Array()
@@ -171,7 +190,7 @@ func get_bbcode() -> String:
 
 func _ready():
 	var must_update: bool = false
-	if not combined_stats.has('mass'):
+	if not combined_stats.has('empty_mass'):
 		var _discard = pack_stats(false)
 	else:
 		must_update = true
@@ -189,7 +208,7 @@ func _ready():
 	if random_height:
 		height = (randi()%11)*1.99 - 8.445
 	collision_mask=0
-	mass=combined_stats['mass']
+	mass=utils.ship_mass(combined_stats)
 	linear_damp=combined_stats['drag']
 	gravity_scale=0
 	axis_lock_linear_y=true

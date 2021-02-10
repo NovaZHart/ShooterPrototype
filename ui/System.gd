@@ -319,6 +319,9 @@ func land_player() -> int:
 	return get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
 func add_spawned_ship(ship: RigidBody,is_player: bool):
+	if is_player:
+		print('restore combat stats ',Player.ship_combat_stats)
+		ship.restore_combat_stats(Player.ship_combat_stats)
 	$Ships.add_child(ship)
 	new_ships_mutex.lock()
 	new_ships.append(ship)
@@ -336,6 +339,7 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	if is_player:
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
+		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
