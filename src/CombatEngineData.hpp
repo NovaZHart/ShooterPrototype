@@ -229,6 +229,7 @@ namespace godot {
     static const int PLAYER_GOAL_LANDING_AI = 2;
     static const int PLAYER_GOAL_COWARD_AI = 3;
     static const int PLAYER_GOAL_INTERCEPT = 4;
+    static const int PLAYER_GOAL_JUMP = 5;
     
     static const int PLAYER_ORDERS_MAX_GOALS = 3;
 
