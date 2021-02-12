@@ -30,6 +30,7 @@
 #include <PoolArrays.hpp>
 
 #include "CombatEngineData.hpp"
+#include "VisualEffects.hpp"
 
 namespace godot {
       
@@ -50,6 +51,8 @@ namespace godot {
     // Members for the physics thread:
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
+    Ref<VisualEffects> visual_effects;
+    
     Ref<CylinderShape> search_cylinder;
     PhysicsServer *physics_server;
     PhysicsDirectSpaceState *space;
@@ -107,7 +110,7 @@ namespace godot {
     void _init();
     void clear_ai();
     void clear_visuals();
-
+    void set_visual_effects(Ref<VisualEffects> visual_effects);
     Array ai_step(real_t new_delta,Array new_ships,Array new_planets,
                   Array new_player_orders,RID player_ship_rid,
                   PhysicsDirectSpaceState *new_space,

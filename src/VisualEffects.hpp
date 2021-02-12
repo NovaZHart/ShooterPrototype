@@ -33,7 +33,6 @@ namespace godot {
     class VisualEffects: public Reference {
       GODOT_CLASS(VisualEffects, Reference)
 
-      std::mutex erasure_mutex;
       RID scenario;
       real_t delta;
       double now;
@@ -52,7 +51,8 @@ namespace godot {
       static void _register_methods();
 
       // Registered methods:
-      void free_effects();
+      void clear_all_effects();
+      void free_unused_effects();
       void set_shaders(Ref<Shader> spatial_rift_shader);
       void step_effects(real_t delta, AABB visible_area, RID scenario);
 

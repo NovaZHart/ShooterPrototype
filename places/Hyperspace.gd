@@ -11,17 +11,6 @@ export var auto_depart_without_fuel: float = 3.0
 const hyperspace_ratio: float = 20.0
 
 # These must match src/CombatEngineData.hpp:
-const PLAYER_GOAL_LANDING_AI: int = 2
-const PLAYER_ORDERS_MAX_GOALS: int = 3
-const PLAYER_ORDER_STOP_SHIP: int = 2
-const PLAYER_ORDER_MAINTAIN_SPEED: int = 4
-const PLAYER_TARGET_CONDITION: int = 3840
-const PLAYER_TARGET_NEXT: int = 256
-const PLAYER_TARGET_NEAREST: int = 512
-const PLAYER_TARGET_SELECTION: int = 240
-const PLAYER_TARGET_PLANET: int = 48
-const PLAYER_TARGET_OVERRIDE: int = 64
-const PLAYER_TARGET_NOTHING: int = 240
 
 const SystemEntrance = preload('res://places/SystemEntrance.tscn')
 const player_ship_name: String = 'player_ship' # name of player's ship node
@@ -62,7 +51,7 @@ func depart_hyperspace():
 	var space: PhysicsDirectSpaceState = get_world().direct_space_state
 	var there = space.intersect_ray(ship.translation-y500,ship.translation+y500,[ship.get_rid()])
 	var that = there.get('collider',null)
-	if that and that is Area:
+	if that and that is Area: # FIXME: This never works.
 		var path = that.game_state_path
 		if path:
 			Player.player_location = path
@@ -77,8 +66,6 @@ func depart_hyperspace():
 	return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 
 func _input(event: InputEvent):
-	if event.is_action_pressed('ui_depart'):
-		return depart_hyperspace()
 	if not event.is_action_pressed('ui_location_select'):
 		return
 	var selected_position = null
@@ -142,10 +129,11 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var land: bool = Input.is_action_just_pressed('ui_land')
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
 	var deselect: bool = Input.is_action_just_pressed('ui_deselect_target')
+	var depart: bool = Input.is_action_just_pressed('ui_depart')
 	
-	var nearest: int = PLAYER_TARGET_NEAREST
+	var nearest: int = combat_engine.PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
-		nearest = PLAYER_TARGET_NEXT
+		nearest = combat_engine.PLAYER_TARGET_NEXT
 	
 	if Input.is_action_just_pressed('ui_down') and visual_tick-last_back_command<15:
 		double_down_active=true
@@ -158,27 +146,28 @@ func make_player_orders(_delta: float) -> Dictionary:
 	mouse_selection_mutex.unlock()
 
 	var target_info: int = 0
-	if deselect:                target_info = PLAYER_TARGET_NOTHING
-	elif next_planet:           target_info = PLAYER_TARGET_PLANET|nearest
+	if deselect:                target_info = combat_engine.PLAYER_TARGET_NOTHING
+	elif next_planet:           target_info = combat_engine.PLAYER_TARGET_PLANET|nearest
 
 	var orders: int = 0
 	if double_down_active:
-		orders = PLAYER_ORDER_STOP_SHIP
+		orders = combat_engine.PLAYER_ORDER_STOP_SHIP
 		thrust = 0
-	elif not thrust:            orders = PLAYER_ORDER_MAINTAIN_SPEED
+	elif not thrust:            orders = combat_engine.PLAYER_ORDER_MAINTAIN_SPEED
 
 	if thrust:              goal=0
-	elif land:              goal=PLAYER_GOAL_LANDING_AI
+	elif land:              goal=combat_engine.PLAYER_GOAL_LANDING_AI
+	elif depart:            goal=combat_engine.PLAYER_GOAL_RIFT
 	
 	if first_visual_tick:
 		var node = $Systems.get_node_or_null(Player.system.name)
 		if node==null or not node is Area:
 			push_warning('Cannot find system '+Player.system.name)
 		else:
-			target_info = PLAYER_TARGET_OVERRIDE
+			target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 			target_rid = node.get_rid()
 	elif target_rid.get_id() and target_rid!=get_player_rid():
-		target_info = PLAYER_TARGET_OVERRIDE
+		target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 	
 	var result: Dictionary = Dictionary()
 	if thrust:                result['manual_thrust'] = float(thrust)
@@ -328,6 +317,8 @@ func _physics_process(delta):
 				clear()
 				game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 				return
+			elif fate==combat_engine.FATED_TO_RIFT:
+				depart_hyperspace()
 		ship_node.call_deferred("queue_free")
 	if not player_died:
 		# Update target information.

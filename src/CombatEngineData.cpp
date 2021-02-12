@@ -258,6 +258,7 @@ Ship::Ship(const Ship &o):
   weapons(o.weapons),
   tick(o.tick),
   tick_at_last_shot(o.tick_at_last_shot),
+  tick_at_rift_start(o.tick_at_rift_start),
   target(o.target),
   threat_vector(o.threat_vector),
   nearby_objects(o.nearby_objects),
@@ -273,7 +274,9 @@ Ship::Ship(const Ship &o):
   max_speed(o.max_speed),
   max_angular_velocity(o.max_angular_velocity),
   turn_diameter_squared(o.turn_diameter_squared),
-  updated_mass_stats(o.updated_mass_stats)
+  updated_mass_stats(o.updated_mass_stats),
+  immobile(o.immobile),
+  inactive(o.inactive)
 {}
 
 Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
@@ -338,6 +341,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   range(make_ranges(weapons)),
   tick(0),
   tick_at_last_shot(TICKS_LONG_AGO),
+  tick_at_rift_start(TICKS_LONG_AGO),
   target(-1),
   threat_vector(),
   nearby_objects(), nearby_enemies(),
@@ -354,7 +358,9 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   max_speed(max(thrust,reverse_thrust)/drag*inverse_mass),
   max_angular_velocity(turn_thrust/turn_drag*inverse_mass*PI/30.0f), // convert from RPM
   turn_diameter_squared(make_turn_diameter_squared()),
-  updated_mass_stats(false)
+  updated_mass_stats(false),
+  immobile(false),
+  inactive(false)
 {}
 
 Ship::~Ship()

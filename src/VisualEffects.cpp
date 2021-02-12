@@ -22,19 +22,26 @@ VisualEffects::~VisualEffects() {}
 VisualEffects::_init() {}
 
 void VisualEffects::_register_methods() {
-  register_method("free_effects", &VisualEffects::free_effects);
+  register_method("clear_all_effects", &VisualEffects::clear_all_effects);
+  register_method("free_unused_effects", &VisualEffects::free_unused_effects);
   register_method("set_shaders", &VisualEffects::set_shaders);
   register_method("step_effects", &VisualEffects::step_effects);
 }
 
-void VisualEffects::free_effects() {
-  lock_guard<mutex> lock(erasure_mutex);
+void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader) {
+  this->spatial_rift_shader = spatial_rift_shader;
+}
+
+void VisualEffects::clear_all_effects() {
+  mesh_effects.clear();
+}
+
+void VisualEffects::free_unused_effects() {
   for(mesh_effects_iter it=mesh_effects.begin();it!=mesh_effects.end();)
     it = it->dead ? mesh_effects.erase(it) : ++it;
 }
 
 void VisualEffects::step_effects(real_t delta, AABB visible_area, RID scenario) {
-  lock_guard<mutex> lock(erasure_mutex);
   this->delta=delta;
   this->scenario=scenario;
   now+=delta;
@@ -51,7 +58,7 @@ void VisualEffects::step_effects(real_t delta, AABB visible_area, RID scenario) 
     }
   }
   // FIXME: move this to another thread:
-  free_effects();
+  free_unused_effects();
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */

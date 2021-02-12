@@ -134,7 +134,7 @@ namespace godot {
       real_t guns, turrets, guided, unguided, all;
     };
 
-    enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2 };
+    enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
     
     struct Ship {
       const object_id id;
@@ -164,7 +164,7 @@ namespace godot {
       
       std::vector<Weapon> weapons;
       const WeaponRanges range;
-      int tick, tick_at_last_shot;
+      int tick, tick_at_last_shot, tick_at_rift_start;
       object_id target;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
@@ -183,12 +183,12 @@ namespace godot {
       real_t turn_diameter_squared;
       Vector3 drag_force;
       
-      bool updated_mass_stats;
+      bool updated_mass_stats, immobile, inactive;
 
       bool update_from_physics_server(PhysicsServer *server);
       void update_stats(PhysicsServer *state, bool update_server);
       void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
-
+      
       Ship(const Ship &other);
       Ship(Dictionary dict, object_id id, object_id &last_id,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh);
@@ -229,7 +229,7 @@ namespace godot {
     static const int PLAYER_GOAL_LANDING_AI = 2;
     static const int PLAYER_GOAL_COWARD_AI = 3;
     static const int PLAYER_GOAL_INTERCEPT = 4;
-    static const int PLAYER_GOAL_JUMP = 5;
+    static const int PLAYER_GOAL_RIFT = 5;
     
     static const int PLAYER_ORDERS_MAX_GOALS = 3;
 
