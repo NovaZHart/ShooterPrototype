@@ -10,6 +10,10 @@ const FATED_TO_DIE: int = 1
 const FATED_TO_LAND: int = 2
 const FATED_TO_RIFT: int = 3
 
+const ENTRY_COMPLETE: int = 0
+const ENTRY_FROM_ORBIT: int = 1
+const ENTRY_FROM_RIFT: int = 2
+
 const PLAYER_GOAL_ATTACKER_AI: int = 1
 const PLAYER_GOAL_LANDING_AI: int = 2
 const PLAYER_GOAL_COWARD_AI: int = 3
@@ -46,6 +50,7 @@ func clear_ai() -> void:
 	visual_mutex.lock()
 	physics_mutex.lock()
 	native_combat_engine.clear_ai()
+	native_visual_effects.clear_all_effects()
 	physics_mutex.unlock()
 	visual_mutex.unlock()
 
@@ -96,8 +101,12 @@ func ai_step(delta: float,new_ships: Array,new_planets: Array,
 	physics_mutex.unlock()
 	return results
 
-func step_visual_effects(delta: float, visible_area: AABB, world: World):
-	native_visual_effects.step_effects(delta,visible_area,world.scenario)
+func set_visible_region(visible_area: AABB,
+		visibility_expansion_rate: Vector3):
+	native_visual_effects.set_visible_region(visible_area,visibility_expansion_rate)
+
+func step_visual_effects(delta: float, world: World):
+	native_visual_effects.step_effects(delta,world.scenario)
 
 func draw_space(camera: Camera,viewport: Viewport) -> void:
 	# Call in VISUAL THREAD to update on-screen projectiles.

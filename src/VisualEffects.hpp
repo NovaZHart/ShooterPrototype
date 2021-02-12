@@ -9,12 +9,14 @@
 #include <Reference.hpp>
 #include <VisualServer.hpp>
 
+#include <cmath>
+
 #include "CombatEngineUtils.h"
 
 namespace godot {
   namespace CE {
     class VisualEffects;
-
+    
     struct MeshEffect {
       Ref<Mesh> mesh;
       Ref<ShaderMaterial> shader_material;
@@ -33,6 +35,8 @@ namespace godot {
     class VisualEffects: public Reference {
       GODOT_CLASS(VisualEffects, Reference)
 
+      AABB visible_area;
+      Vector3 visibility_expansion_rate;
       RID scenario;
       real_t delta;
       double now;
@@ -54,7 +58,8 @@ namespace godot {
       void clear_all_effects();
       void free_unused_effects();
       void set_shaders(Ref<Shader> spatial_rift_shader);
-      void step_effects(real_t delta, AABB visible_area, RID scenario);
+      void set_visual_region(AABB visible_area, Vector3 expansion_rate);
+      void step_effects(real_t delta, RID scenario);
 
       // Interface for CombatEngine:
       void add_spatial_rift(real_t lifetime, Vector3 position, real_t radius);

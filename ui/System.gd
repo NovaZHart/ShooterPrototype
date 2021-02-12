@@ -138,10 +138,24 @@ func sync_Ships_with_stat_requests() -> void:
 	ship_stats_requests=new_requests
 	ship_stats_requests_mutex.unlock()
 
-func _process(_delta) -> void:
+func visible_region() -> AABB:
+	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
+	var lr: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
+		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
+
+func visible_region_expansion_rate() -> Vector3:
+	var player_ship_stats = ship_stats.get(player_ship_name,null)
+	var rate: float = utils.ship_max_speed(player_ship_stats) if player_ship_stats else 0.0
+	return Vector3(rate,0,rate)
+
+func _process(delta) -> void:
 	visual_tick += 1
 	assert($TopCamera!=null)
 	combat_engine.draw_space($TopCamera,get_tree().root)
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
+	combat_engine.step_visual_effects(delta,get_viewport().world)
 	
 	if ship_stats==null:
 		return
@@ -330,7 +344,7 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 		receive_player_orders({})
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
-		team: int, is_player: bool) -> void:
+		team: int, is_player: bool, entry_method: int) -> void:
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
@@ -344,6 +358,7 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 		call_deferred('add_spawned_ship',ship,false)
+	ship.set_entry_method(entry_method)
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)
@@ -414,6 +429,9 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)
+	
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
 #	if ship_maker_thread.start(self,'make_ships',null)!=OK:
 #		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
 

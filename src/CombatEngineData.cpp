@@ -242,6 +242,7 @@ Ship::Ship(const Ship &o):
   explosion_delay(o.explosion_delay),
   explosion_tick(o.explosion_tick),
   fate(o.fate),
+  entry_method(o.entry_method),
   shields(o.shields),
   armor(o.armor),
   structure(o.structure),
@@ -316,6 +317,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   explosion_tick(0),
   
   fate(FATED_TO_FLY),
+  entry_method(get<int>(dict,"entry_method",ENTRY_COMPLETE)),
   //  turn_diameter(max_speed()*2.0/max_angular_velocity),
 
   shields(get<real_t>(dict,"shields",max_shields)),

@@ -135,6 +135,7 @@ namespace godot {
     };
 
     enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
+    enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2 };
     
     struct Ship {
       const object_id id;
@@ -154,6 +155,7 @@ namespace godot {
       
       int explosion_tick;
       fate_t fate;
+      entry_t entry_method;
       real_t shields, armor, structure, fuel;
 
       // Physics server state; do not change:
@@ -224,6 +226,9 @@ namespace godot {
   
     static constexpr real_t hyperspace_display_ratio = 20.0f;
 
+
+    const float SPATIAL_RIFT_LIFETIME_SECS = 3.0f;
+    const int SPATIAL_RIFT_LIFETIME_TICKS = int(roundf(SPATIAL_RIFT_LIFETIME_SECONDS*60.0f));
 
     static const int PLAYER_GOAL_ATTACKER_AI = 1;
     static const int PLAYER_GOAL_LANDING_AI = 2;

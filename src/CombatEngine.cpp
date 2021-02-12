@@ -490,7 +490,7 @@ void rift_ai(Ship &ship) {
     ship.inactive = true;
     ship.tick_at_rift_start = ship.tick;
     if(visual_effects.is_valid())
-      visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME*2,ship.position,ship.radius*2.0f);
+      visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME_SECS*2,ship.position,ship.radius*2.0f);
   }
 }
 
@@ -538,11 +538,15 @@ void CombatEngine::explode_ship(Ship &ship) {
 
 void CombatEngine::ai_step_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
+
   // Increment this ship's internal time counters:
   ship.tick++;
 
   ship.heal(hyperspace,system_fuel_recharge,center_fuel_recharge,delta);
 
+  if(ship.entry_method and init_ship(ship))
+    return;
+  
   for(auto &weapon : ship.weapons)
     weapon.firing_countdown = max(static_cast<real_t>(0.0),weapon.firing_countdown-delta);
   player_orders_iter orders_p = player_orders.find(ship.id);
@@ -560,11 +564,35 @@ void CombatEngine::ai_step_ship(Ship &ship) {
   }
 
   if(ship.tick_at_rift_start>=0)
-    rift_ai(ship);//and ship.tick-ship.tick_at_rift_start>=SPATIAL_RIFT_DURATION_TICKS)
+    rift_ai(ship);//and ship.tick-ship.tick_at_rift_start>=SPATIAL_RIFT_LIFETIME_TICKS)
     ship.fate = FATED_TO_RIFT;
   else
     // FIXME: replace this with a real ai  
     attacker_ai(ship);
+}
+
+bool CombatEngine::init_ship(Ship &ship) {
+  // return false = ship does nothing else this timestep
+  if(ship.entry_method == ENTRY_FROM_ORBIT) {
+    set_velocity(ship,ship.heading*ship.max_speed);
+    ship.entry_method=ENTRY_COMPLETE;
+    return false;
+  } else if(ship.entry_method != ENTRY_FROM_RIFT) {
+    ship.entry_method=ENTRY_COMPLETE;
+    return true;
+  }
+  if(tick==1) {
+    ship.immobile=true;
+    ship.inactive=true;
+    ship.tick_at_rift_start = ship.tick;
+    visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME_SECS*2,ship.position,ship.radius*2.0f);
+    return false;
+  } else if(ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS>=ship.tick) {
+    ship.tick_at_rift_start=TICKS_LONG_AGO;
+    ship.entry_method=ENTRY_COMPLETE;
+    return true;
+  }
+  return false;
 }
 
 bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {

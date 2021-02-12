@@ -12,6 +12,10 @@ var stored_system_path
 var stored_player_path
 signal destination_system_changed
 
+func is_entering_from_rift() -> bool:
+	var node = game_state.systems.get_node_or_null(player_location)
+	return not node or not node.has_method('is_SpaceObjectData')
+
 func set_ship_combat_stats(stats: Dictionary):
 	var subset = {}
 	for varname in [ 'fuel', 'armor', 'structure', 'shields' ]:

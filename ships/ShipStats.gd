@@ -28,6 +28,7 @@ export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
+var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []
 var team: int = 0
 var enemy_team: int = 1
@@ -51,6 +52,13 @@ func restore_transforms():
 		var child = get_node_or_null(key)
 		if child!=null:
 			child.transform=transforms[key]
+
+func set_entry_method(method: int, quiet: bool = false, skip_runtime_stats: bool = false):
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_error('No stats in set_entry_method! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	combined_stats['entry_method'] = method
 
 func set_team(new_team: int):
 	team=new_team

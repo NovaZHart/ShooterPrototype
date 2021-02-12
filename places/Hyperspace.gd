@@ -198,6 +198,17 @@ func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.unlock()
 	return true
 
+func visible_region() -> AABB:
+	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
+	var lr: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
+		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
+
+func visible_region_expansion_rate() -> Vector3:
+	var player_ship_stats = ship_stats.get(player_ship_name,null)
+	var rate: float = utils.ship_max_speed(player_ship_stats) if player_ship_stats else 0.0
+	return Vector3(rate,0,rate)
+
 func _process(delta: float) -> void:
 	#warning-ignore:narrowing_conversion
 	visual_tick += max(1,round(delta*60.0))
@@ -205,6 +216,9 @@ func _process(delta: float) -> void:
 		return
 	first_visual_tick = false
 	combat_engine.draw_space($TopCamera,get_tree().root)
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
+	combat_engine.step_visual_effects(delta,get_viewport().world)
 	update_pause(delta)
 	handle_zoom(delta)
 	if get_tree().paused:
@@ -218,23 +232,20 @@ func _ready():
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
 	player_ship.translation.y = 10
 	player_ship.restore_combat_stats(Player.ship_combat_stats)
+	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT)
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):
 		push_error("Cannot connect to Player destination_system_changed signal.")
 	$Ships.add_child(player_ship)
-	for system_name in game_state.systems.get_child_names():
-		var system = game_state.systems.get_child_with_name(system_name)
-		if not system or not system.has_method('is_SystemData'):
-			continue
-		if not system.show_on_map:
-			if system_name.begins_with('interstellar'):
-				interstellar_systems.append(system_name)
-			continue
+	interstellar_systems = game_state.universe.get_interstellar_systems().keys()
+	for system_name in interstellar_systems:
 		var system_entrance = SystemEntrance.instance()
 		if system_entrance.init_system(system_name):
 			$Systems.add_child(system_entrance)
 		else:
 			push_warning(system_name+': could not add system')
 	_on_destination_system_changed(Player.destination_system)
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
 
 func pack_ship_stats_if_not_sent():
 	if not sent_systems_and_player:

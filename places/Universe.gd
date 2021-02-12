@@ -59,7 +59,17 @@ func has_link(arg1,arg2 = null) -> bool:
 		return links.has(link_key)
 	return links.has(arg1)
 
-
+func get_interstellar_systems():
+	var interstellar_systems: Dictionary = {}
+	for system_name in systems.get_child_names():
+		var system = systems.get_child_with_name(system_name)
+		if not system or not system.has_method('is_SystemData'):
+			continue
+		if not system.show_on_map:
+			if system_name.begins_with('interstellar'):
+				interstellar_systems[system_name].append(system)
+			continue
+	return interstellar_systems
 
 func decode_children(parent: simple_tree.SimpleNode, children):
 	if not children is Dictionary:

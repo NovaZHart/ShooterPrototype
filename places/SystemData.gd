@@ -123,14 +123,17 @@ func astral_gate_path() -> NodePath:
 
 func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 		team: int,angle: float,add_radius: float,safe_zone: float,
-		random_x: float, random_z: float, center: Vector3, is_player: bool):
+		random_x: float, random_z: float, center: Vector3, from_rift: bool,
+		is_player: bool):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
-	
+	var entry_method = combat_engine.entry_from_orbit
+	if from_rift:
+		entry_method = combat_engine.entry_from_rift
 	# IMPORTANT: Return value must match what spawn_ship, init_system, and
 	#   _physics_process want in System.gd:
 	return ['spawn_ship',ship_design, Vector3(0,-1,0), Vector3(x,5,z),
-		team, is_player]
+		team, is_player, entry_method]
 
 func fleet_size(var fleet: Array) -> int:
 	var result: int = 0
@@ -142,12 +145,18 @@ func fleet_size(var fleet: Array) -> int:
 func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array,team: int) -> Array:
 	var planets: Array = system.get_node("Planets").get_children()
 	var center: Vector3 = Vector3()
+	var add_radius = rng.randf()*rng.randf()
+	var safe_zone = 25
+	var from_rift = false
 	if planets:
 		var planet: Spatial = planets[randi()%len(planets)]
 		center = planet.translation
+		add_radius *= planet.radius
+		safe_zone = 0
+		from_rift = true
+	else:
+		add_radius *= 100
 	var result: Array = Array()
-	var add_radius = 100*sqrt(rng.randf())
-	var safe_zone = 25
 	var angle = rng.randf()*2*PI
 	for design_name in design_names:
 		var num_ships = int(fleet_node.spawn_count_for(design_name))
@@ -157,7 +166,7 @@ func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array
 				result.push_back(spawn_ship(
 					system,design,team,
 					angle,add_radius,randf()*10-5,randf()*10-5,
-					safe_zone,center,false))
+					safe_zone,center,false,from_rift))
 			else:
 				push_warning('Fleet '+str(fleet_node.get_path())+
 					' wants to spawn missing design '+str(design.get_path()))
@@ -168,7 +177,7 @@ func spawn_player(system: Spatial,t: float):
 	var angle = rng.randf()*2*PI
 	var center = Player.get_player_translation(t)
 	return spawn_ship(system,Player.player_ship_design,
-		0,angle,add_radius,0,0,10,center,true)
+		0,angle,add_radius,0,0,10,center,true,Player.is_entering_from_rift())
 
 func process_space(system,delta) -> Array:
 	var result: Array = Array()

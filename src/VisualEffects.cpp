@@ -10,6 +10,8 @@ MeshEffect::~MeshEffect() {
 }
 
 VisualEffects::VisualEffects():
+  visible_area(Vector3(-100.0f,-50.0f,-100.0f),Vector3(200.0f,100.0f,200.0f)),
+  visibility_expansion_rate(Vector3(10.0f,0.0f,10.0f)),
   erasure_mutex(), scenario(), delta(1.0/60), now(0.0), last_id(0),
   mesh_effects(), vertex_holder(), spatial_rift_shader()
 {
@@ -41,7 +43,13 @@ void VisualEffects::free_unused_effects() {
     it = it->dead ? mesh_effects.erase(it) : ++it;
 }
 
-void VisualEffects::step_effects(real_t delta, AABB visible_area, RID scenario) {
+void VisualEffects::set_visual_region(AABB visible_area,Vector3 visibility_expansion_rate) {
+  this->visible_area = visible_area;
+  this->visibility_expansion_rate = Vector3(fabsf(visibility_expansion_rate.x),0.0f,
+                                            fabsf(visibility_expansion_rate.z));
+}
+
+void VisualEffects::step_effects(real_t delta, RID scenario) {
   this->delta=delta;
   this->scenario=scenario;
   now+=delta;
@@ -49,12 +57,21 @@ void VisualEffects::step_effects(real_t delta, AABB visible_area, RID scenario) 
     if(not it->ready or it->dead)
       continue;
     
-    if((now-it->start_time)>it->duration
-       or not visible_area.intersects(it->lifetime_aabb))
+    if((now-it->start_time)>it->duration)
       it->dead=true;
-    if(not it->dead and it->velocity and it->instance->get_id()) {
-      it->transform.origin += delta*it->velocity;
-      visual_server->instance_set_transform(*(it->instance),it->transform);
+    else {
+      AABB expanded(visible_area.position - visibility_expansion_rate*it->duration,
+                    visible_area.size + 2*visibility_expansion_rate*it->duration);
+      if(not expanded.intersects(it->lifetime_aabb))
+        it->dead=true;
+      else {
+        if(it->velocity and it->instance->get_id()) {
+          it->transform.origin += delta*it->velocity;
+          visual_server->instance_set_transform(*(it->instance),it->transform);
+        }
+        if(it->shader_material)
+          it->shader_material->set_shader_param("time",float(now-it->start_time));
+      }
     }
   }
   // FIXME: move this to another thread:
@@ -151,10 +168,10 @@ void VisualEffects::extend_rift(Vector3 left, Vector3 right, Vector3 center,
   }
 }
 
-void VisualEffects::add_spatial_rift(real_t lifetime, Vector3 position, real_t radius) {
+void VisualEffects::add_spatial_rift(real_t halflife, Vector3 position, real_t radius) {
   if(not spatial_rift_shader.is_valid())
     return;
-  if(not (lifetime>0.0f))
+  if(not (halflife>0.0f))
     return;
 
   vertex_holder.clear();
@@ -193,13 +210,14 @@ void VisualEffects::add_spatial_rift(real_t lifetime, Vector3 position, real_t r
   Ref<ShaderMaterial> material = ShaderMaterial::_new();
   material->set_shader(spatial_rift_shader);
   material->set_shader_param("time",0.0f);
+  material->set_shader_param("expansion_time",halflife);
   mesh->surface_set_material(0,material);
 
   mesh_effects_iter it = mesh_effects.insert(last_id++);
   it->mesh = mesh;
   it->shader_material = material;
   it->start_time = now;
-  it->duration = duration;
+  it->duration = halflife;
   it->aabb = mesh->get_aabb();
   it->aabb.position += position;
   it->transform.basis = position;
