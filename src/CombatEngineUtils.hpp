@@ -8,6 +8,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <memory>
 
 #include <Vector3.hpp>
 #include <Dictionary.hpp>
@@ -23,22 +24,25 @@
 namespace godot {
 
   template<class T>
-  class FreeingRID: public RID {
-    ~FreeingRID() {
-      if(get_id())
-        typename T::get_singleton()->free_rid(*this);
+  struct FreeRID {
+    RID rid;
+
+    FreeRID(const RID &rid): rid(rid) {}
+    ~FreeRID() {
+      if(rid.get_id())
+        T::get_singleton()->free_rid(rid);
     }
   };
 
-  typedef shared_ptr<FreeingRID<VisualServer>> VisualRIDPtr;
-  typedef shared_ptr<FreeingRID<PhysicsServer>> PhysicsRIDPtr;
+  typedef std::shared_ptr<FreeRID<VisualServer>> VisualRIDPtr;
+  typedef std::shared_ptr<FreeRID<PhysicsServer>> PhysicsRIDPtr;
 
-  VisualRIDPtr allocate_visual_rid(RID rid) {
-    return shared_ptr<FreeingRID<VisualServer>>(new FreeingRID<VisualServer>(rid));
+  inline VisualRIDPtr allocate_visual_rid(RID rid) {
+    return std::shared_ptr<FreeRID<VisualServer>>(new FreeRID<VisualServer>(rid));
   }
 
-  VisualRIDPtr allocate_physics_rid(RID rid) {
-    return shared_ptr<FreeingRID<VisualServer>>(new FreeingRID<VisualServer>(rid));
+  inline VisualRIDPtr allocate_physics_rid(RID rid) {
+    return std::shared_ptr<FreeRID<VisualServer>>(new FreeRID<VisualServer>(rid));
   }
   
   class FastProfiling {
@@ -164,16 +168,16 @@ namespace godot {
     uint32_t bob_full_avalanche(uint32_t a);
 
     inline float int2float(uint32_t i) {
-      return min(float(i%8388608)/8388608.0f,1.0f);
+      return std::min(float(i%8388608)/8388608.0f,1.0f);
     }
 
     class CheapRand32 { // Note: not thread-safe
       uint32_t state;
     public:
-      CheapRand():
-        state(bob_full_avalanche(static_cast<uint32_t>OS::get_singleton()->get_ticks_msec()/10))
+      CheapRand32():
+        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_msec()/10)))
       {};
-      CheapRand(uint32_t state): state(state) {}
+      CheapRand32(uint32_t state): state(state) {}
       inline uint32_t randi() {
         return state=bob_full_avalanche(state);
       }

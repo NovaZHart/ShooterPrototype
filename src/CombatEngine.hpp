@@ -138,8 +138,10 @@ namespace godot {
     void add_ships_and_planets(const Array &new_ships,const Array &new_planets);
     void update_player_orders(const Array &new_player_orders);
     void negate_drag_force(CE::Ship &ship);
+    void rift_ai(CE::Ship &ship);
     void explode_ship(CE::Ship &ship);
     void ai_step_ship(CE::Ship &ship);
+    bool init_ship(CE::Ship &ship);
     bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
     bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
     void update_near_objects(CE::Ship &ship);

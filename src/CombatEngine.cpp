@@ -479,8 +479,8 @@ void CombatEngine::negate_drag_force(Ship &ship) {
     physics_server->body_add_central_force(ship.rid,-ship.drag_force);
 }
 
-void rift_ai(Ship &ship) {
-  if(ship.tick_at_rift_start>=0 and ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME>=ship.tick)
+void CombatEngine::rift_ai(Ship &ship) {
+  if(ship.tick_at_rift_start>=0 and ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS>=ship.tick)
     // If the ship has already opened the rift, and survived the minimum duration,
     // it can vanish into the rift.
     ship.fate = FATED_TO_RIFT;
@@ -563,10 +563,10 @@ void CombatEngine::ai_step_ship(Ship &ship) {
     return;
   }
 
-  if(ship.tick_at_rift_start>=0)
+  if(ship.tick_at_rift_start>=0) {
     rift_ai(ship);//and ship.tick-ship.tick_at_rift_start>=SPATIAL_RIFT_LIFETIME_TICKS)
     ship.fate = FATED_TO_RIFT;
-  else
+  } else
     // FIXME: replace this with a real ai  
     attacker_ai(ship);
 }
@@ -581,7 +581,7 @@ bool CombatEngine::init_ship(Ship &ship) {
     ship.entry_method=ENTRY_COMPLETE;
     return true;
   }
-  if(tick==1) {
+  if(ship.tick==1) {
     ship.immobile=true;
     ship.inactive=true;
     ship.tick_at_rift_start = ship.tick;
@@ -1318,7 +1318,7 @@ bool CombatEngine::move_to_intercept(Ship &ship,double close, double slow,
                                      bool force_final_state) {
   FAST_PROFILING_FUNCTION;
   if(ship.immobile)
-    return;
+    return false;
   const double big_dot_product = 0.95;
   DVector3 position = ship.position;
   DVector3 heading = get_heading_d(ship);

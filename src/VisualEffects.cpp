@@ -4,15 +4,10 @@ using namespace std;
 using namespace godot;
 using namespace godot::CE;
 
-MeshEffect::~MeshEffect() {
-  if(instance.get_id())
-    VisualServer::get_singleton()->free_rid(instance);
-}
-
 VisualEffects::VisualEffects():
   visible_area(Vector3(-100.0f,-50.0f,-100.0f),Vector3(200.0f,100.0f,200.0f)),
   visibility_expansion_rate(Vector3(10.0f,0.0f,10.0f)),
-  erasure_mutex(), scenario(), delta(1.0/60), now(0.0), last_id(0),
+  scenario(), delta(1.0/60), now(0.0), rand(), last_id(0),
   mesh_effects(), vertex_holder(), spatial_rift_shader()
 {
   vertex_holder.reserve(2000);
@@ -21,7 +16,7 @@ VisualEffects::VisualEffects():
 
 VisualEffects::~VisualEffects() {}
 
-VisualEffects::_init() {}
+void VisualEffects::_init() {}
 
 void VisualEffects::_register_methods() {
   register_method("clear_all_effects", &VisualEffects::clear_all_effects);
@@ -40,7 +35,7 @@ void VisualEffects::clear_all_effects() {
 
 void VisualEffects::free_unused_effects() {
   for(mesh_effects_iter it=mesh_effects.begin();it!=mesh_effects.end();)
-    it = it->dead ? mesh_effects.erase(it) : ++it;
+    it = it->second.dead ? mesh_effects.erase(it) : ++it;
 }
 
 void VisualEffects::set_visual_region(AABB visible_area,Vector3 visibility_expansion_rate) {
@@ -50,27 +45,29 @@ void VisualEffects::set_visual_region(AABB visible_area,Vector3 visibility_expan
 }
 
 void VisualEffects::step_effects(real_t delta, RID scenario) {
+  VisualServer *visual_server = VisualServer::get_singleton();
   this->delta=delta;
   this->scenario=scenario;
   now+=delta;
   for(mesh_effects_iter it=mesh_effects.begin();it!=mesh_effects.end();it++) {
-    if(not it->ready or it->dead)
+    MeshEffect &effect = it->second;
+    if(not effect.ready or effect.dead)
       continue;
     
-    if((now-it->start_time)>it->duration)
-      it->dead=true;
+    if((now-effect.start_time)>effect.duration)
+      effect.dead=true;
     else {
-      AABB expanded(visible_area.position - visibility_expansion_rate*it->duration,
-                    visible_area.size + 2*visibility_expansion_rate*it->duration);
-      if(not expanded.intersects(it->lifetime_aabb))
-        it->dead=true;
+      AABB expanded(visible_area.position - visibility_expansion_rate*effect.duration,
+                    visible_area.size + 2*visibility_expansion_rate*effect.duration);
+      if(not expanded.intersects(effect.lifetime_aabb))
+        effect.dead=true;
       else {
-        if(it->velocity and it->instance->get_id()) {
-          it->transform.origin += delta*it->velocity;
-          visual_server->instance_set_transform(*(it->instance),it->transform);
+        if(effect.velocity.length_squared()>1e-10 and effect.instance->rid.get_id()) {
+          effect.transform.origin += delta*effect.velocity;
+          visual_server->instance_set_transform(effect.instance->rid,effect.transform);
         }
-        if(it->shader_material)
-          it->shader_material->set_shader_param("time",float(now-it->start_time));
+        if(effect.shader_material.is_valid())
+          effect.shader_material->set_shader_param("time",float(now-effect.start_time));
       }
     }
   }
@@ -84,9 +81,9 @@ void VisualEffects::step_effects(real_t delta, RID scenario) {
 
 void VisualEffects::extend_rift(Vector3 left, Vector3 right, Vector3 center,
                                 real_t extent, real_t radius) {
-  Vector3 tanget = right-left;
+  Vector3 tangent = right-left;
   real_t width = tangent.length();
-  tanget = tangent.normalized();
+  tangent = tangent.normalized();
 
   Vector3 normal = ((right+left)/2 - center).normalized();
   real_t length = rand.randf();
@@ -97,74 +94,74 @@ void VisualEffects::extend_rift(Vector3 left, Vector3 right, Vector3 center,
   
   Vector3 next_left = left + normal*length + tangent*(width/4+slide);
   Vector3 next_right = right + normal*length + tangent*(-width/4+slide);
-  const next_dist = sqrtf(3)/2;
+  real_t next_dist = sqrtf(3)/2;
   Vector3 next_back = (next_left+next_right)/2+normal*next_dist;
   Vector3 next_center = (next_left+next_right+next_center)/3;
 
   Vector3 down(-2*radius,-5*radius,2*radius);
   
-  vertex_holder.append(left);
-  vertex_holder.append(center);
-  vertex_holder.append(next_left);
-  vertex_holder.append(next_center);
-  vertex_holder.append(left+down);
-  vertex_holder.append(center+down);
+  vertex_holder.push_back(left);
+  vertex_holder.push_back(center);
+  vertex_holder.push_back(next_left);
+  vertex_holder.push_back(next_center);
+  vertex_holder.push_back(left+down);
+  vertex_holder.push_back(center+down);
   
-  vertex_holder.append(next_left);
-  vertex_holder.append(next_center);
-  vertex_holder.append(next_left+down);
-  vertex_holder.append(next_center+down);
-  vertex_holder.append(left+down);
-  vertex_holder.append(center+down);
+  vertex_holder.push_back(next_left);
+  vertex_holder.push_back(next_center);
+  vertex_holder.push_back(next_left+down);
+  vertex_holder.push_back(next_center+down);
+  vertex_holder.push_back(left+down);
+  vertex_holder.push_back(center+down);
 
-  vertex_holder.append(next_right+down);
-  vertex_holder.append(next_center+down);
-  vertex_holder.append(next_right);
-  vertex_holder.append(next_center);
-  vertex_holder.append(right+down);
-  vertex_holder.append(center+down);
+  vertex_holder.push_back(next_right+down);
+  vertex_holder.push_back(next_center+down);
+  vertex_holder.push_back(next_right);
+  vertex_holder.push_back(next_center);
+  vertex_holder.push_back(right+down);
+  vertex_holder.push_back(center+down);
 
-  vertex_holder.append(next_right);
-  vertex_holder.append(next_center);
-  vertex_holder.append(right);
-  vertex_holder.append(center);
-  vertex_holder.append(right+down);
-  vertex_holder.append(center+down);
+  vertex_holder.push_back(next_right);
+  vertex_holder.push_back(next_center);
+  vertex_holder.push_back(right);
+  vertex_holder.push_back(center);
+  vertex_holder.push_back(right+down);
+  vertex_holder.push_back(center+down);
 
   if(width>0.05 and 0.7>=rand.randf())
     extend_rift(next_left,next_back,next_center,extent/2,radius);
   else {
-    vertex_holder.append(next_left);
-    vertex_holder.append(next_center);
-    vertex_holder.append(next_back);
-    vertex_holder.append(next_center);
-    vertex_holder.append(next_back+down);
-    vertex_holder.append(next_center+down);
+    vertex_holder.push_back(next_left);
+    vertex_holder.push_back(next_center);
+    vertex_holder.push_back(next_back);
+    vertex_holder.push_back(next_center);
+    vertex_holder.push_back(next_back+down);
+    vertex_holder.push_back(next_center+down);
 
-    vertex_holder.append(next_back);
-    vertex_holder.append(next_center);
-    vertex_holder.append(next_back+down);
-    vertex_holder.append(next_center+down);
-    vertex_holder.append(next_left+down);
-    vertex_holder.append(next_center+down);
+    vertex_holder.push_back(next_back);
+    vertex_holder.push_back(next_center);
+    vertex_holder.push_back(next_back+down);
+    vertex_holder.push_back(next_center+down);
+    vertex_holder.push_back(next_left+down);
+    vertex_holder.push_back(next_center+down);
   }
 
   if(width>0.05 and 0.7>=rand.randf())
     extend_rift(next_right,next_back,next_center,extent/2,radius);
   else {
-    vertex_holder.append(next_right+down);
-    vertex_holder.append(next_center+down);
-    vertex_holder.append(next_back);
-    vertex_holder.append(next_center);
-    vertex_holder.append(next_right);
-    vertex_holder.append(next_center);
+    vertex_holder.push_back(next_right+down);
+    vertex_holder.push_back(next_center+down);
+    vertex_holder.push_back(next_back);
+    vertex_holder.push_back(next_center);
+    vertex_holder.push_back(next_right);
+    vertex_holder.push_back(next_center);
 
-    vertex_holder.append(next_right+down);
-    vertex_holder.append(next_center+down);
-    vertex_holder.append(next_back+down);
-    vertex_holder.append(next_center+down);
-    vertex_holder.append(next_back);
-    vertex_holder.append(next_center);
+    vertex_holder.push_back(next_right+down);
+    vertex_holder.push_back(next_center+down);
+    vertex_holder.push_back(next_back+down);
+    vertex_holder.push_back(next_center+down);
+    vertex_holder.push_back(next_back);
+    vertex_holder.push_back(next_center);
   }
 }
 
@@ -213,20 +210,21 @@ void VisualEffects::add_spatial_rift(real_t halflife, Vector3 position, real_t r
   material->set_shader_param("expansion_time",halflife);
   mesh->surface_set_material(0,material);
 
-  mesh_effects_iter it = mesh_effects.insert(last_id++);
-  it->mesh = mesh;
-  it->shader_material = material;
-  it->start_time = now;
-  it->duration = halflife;
-  it->aabb = mesh->get_aabb();
-  it->aabb.position += position;
-  it->transform.basis = position;
+  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(last_id++,0));
+  MeshEffect &effect = it.first->second;
+  effect.mesh = mesh;
+  effect.shader_material = material;
+  effect.start_time = now;
+  effect.duration = halflife;
+  effect.lifetime_aabb = mesh->get_aabb();
+  effect.lifetime_aabb.position += position;
+  effect.transform.basis = position;
 
   VisualServer *visual_server = VisualServer::get_singleton();
   RID rid = visual_server->instance_create2(mesh->get_rid(),scenario);
   if(rid.get_id()) {
-    it->instance = allocate_visual_rid(rid);
-    it->ready=true;
+    effect.instance = allocate_visual_rid(rid);
+    effect.ready=true;
   } else
-    it->dead=true;
+    effect.dead=true;
 }

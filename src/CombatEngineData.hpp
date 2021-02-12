@@ -228,7 +228,7 @@ namespace godot {
 
 
     const float SPATIAL_RIFT_LIFETIME_SECS = 3.0f;
-    const int SPATIAL_RIFT_LIFETIME_TICKS = int(roundf(SPATIAL_RIFT_LIFETIME_SECONDS*60.0f));
+    const int SPATIAL_RIFT_LIFETIME_TICKS = int(roundf(SPATIAL_RIFT_LIFETIME_SECS*60.0f));
 
     static const int PLAYER_GOAL_ATTACKER_AI = 1;
     static const int PLAYER_GOAL_LANDING_AI = 2;

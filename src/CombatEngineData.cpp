@@ -317,7 +317,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   explosion_tick(0),
   
   fate(FATED_TO_FLY),
-  entry_method(get<int>(dict,"entry_method",ENTRY_COMPLETE)),
+  entry_method(static_cast<entry_t>(get<int>(dict,"entry_method",static_cast<int>(ENTRY_COMPLETE)))),
   //  turn_diameter(max_speed()*2.0/max_angular_velocity),
 
   shields(get<real_t>(dict,"shields",max_shields)),
