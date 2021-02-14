@@ -155,20 +155,23 @@ func _process(delta) -> void:
 	visual_tick += 1
 	assert($TopCamera!=null)
 	combat_engine.draw_space($TopCamera,get_tree().root)
-	combat_engine.set_visible_region(visible_region(),
-		visible_region_expansion_rate())
-	combat_engine.step_visual_effects(delta,get_viewport().world)
 	
 	if ship_stats==null:
 		return
 	
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
+
+	if player_ship_stats!=null:
+		emit_signal('player_ship_stats_updated',player_ship_stats)
+		center_view()
+	
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
+	combat_engine.step_visual_effects(delta,get_viewport().world)
+	
 	if player_ship_stats==null:
 		return
-
-	emit_signal('player_ship_stats_updated',player_ship_stats)
-	center_view()
-
+	
 	var target_ship_stats = ship_stats.get(player_ship_stats.get('target_name',''),null)
 	if target_ship_stats != null:
 		emit_signal('player_target_stats_updated',target_ship_stats)
@@ -314,6 +317,8 @@ func _physics_process(delta):
 				clear()
 				game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 				return
+			elif fate==combat_engine.FATED_TO_RIFT:
+				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
 		team_stats_mutex.lock()
 		team_stats[ship_node.team]['count'] -= 1
 		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
@@ -432,7 +437,8 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)
-	
+	combat_engine.set_world(get_world())
+	center_view()
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
 #	if ship_maker_thread.start(self,'make_ships',null)!=OK:

@@ -175,39 +175,6 @@ namespace godot {
     inline real_t distsq(const Vector3 &a,const Vector3 &b) {
       return (a.x-b.x)*(a.x-b.x) + (a.z-b.z)*(a.z-b.z);
     }
-
-    // from https://burtleburtle.net/bob/hash/integer.html
-    inline uint32_t bob_full_avalanche(uint32_t a) {
-      a = (a+0x7ed55d16) + (a<<12);
-      a = (a^0xc761c23c) ^ (a>>19);
-      a = (a+0x165667b1) + (a<<5);
-      a = (a+0xd3a2646c) ^ (a<<9);
-      a = (a+0xfd7046c5) + (a<<3);
-      a = (a^0xb55a4f09) ^ (a>>16);
-      return a;
-    }
-
-    inline float int2float(uint32_t i) {
-      return std::min(float(i%8388608)/8388608.0f,1.0f);
-    }
-
-    class CheapRand32 { // Note: not thread-safe
-      uint32_t state;
-    public:
-      CheapRand32():
-        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_msec()/10)))
-      {};
-      CheapRand32(uint32_t state): state(state) {}
-      inline uint32_t randi() {
-        return state=bob_full_avalanche(state);
-      }
-      inline float randf() {
-        return int2float(state=bob_full_avalanche(state));
-      }
-      inline float rand_angle() {
-        return randf()*2*PI;
-      }
-    };
     
     inline uint32_t state_for_name(const String &name) {
       return name.hash();

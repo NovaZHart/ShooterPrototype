@@ -81,13 +81,13 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var shoot: bool = Input.is_action_pressed('ui_select')
 	var land: bool = Input.is_action_just_pressed('ui_land')
 	var evade: bool = Input.is_action_just_pressed('ui_evade')
-	var jump: bool = Input.is_action_just_pressed('ui_depart')
+	var depart: bool = Input.is_action_just_pressed('ui_depart')
 	var intercept: bool = Input.is_action_just_pressed('ui_intercept')
 	var next_enemy: bool = Input.is_action_just_pressed('ui_next_enemy')
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
 
-	if jump:
-		game_state.call_deferred('change_scene',preload('res://places/Hyperspace.tscn'))
+	#if jump:
+		#game_state.call_deferred('change_scene',preload('res://places/Hyperspace.tscn'))
 	
 	var nearest: int = combat_engine.PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
@@ -118,7 +118,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 	elif intercept:         goal=combat_engine.PLAYER_GOAL_INTERCEPT
 	elif evade:             goal=combat_engine.PLAYER_GOAL_COWARD_AI
 	elif land:              goal=combat_engine.PLAYER_GOAL_LANDING_AI
-		# FIXME: elif attacker ai
+	elif depart:            goal=combat_engine.PLAYER_GOAL_RIFT
 	
 	if not orders and land and not thrust and not goal:
 		target_info = combat_engine.PLAYER_TARGET_PLANET|nearest

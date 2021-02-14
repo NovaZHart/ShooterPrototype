@@ -46,6 +46,7 @@ namespace godot {
     CE::object_id last_id;
     std::unordered_map<CE::object_id,MeshEffect> mesh_effects;
     std::vector<Vector3> vertex_holder;
+    std::vector<Vector2> uv2_holder, uv_holder;
     Ref<Shader> spatial_rift_shader;
 
     typedef std::unordered_map<CE::object_id,MeshEffect>::iterator mesh_effects_iter;
@@ -62,15 +63,19 @@ namespace godot {
     void clear_all_effects();
     void set_shaders(Ref<Shader> spatial_rift_shader);
     void set_visible_region(AABB visible_area, Vector3 expansion_rate);
-    void step_effects(real_t delta, RID scenario);
+    void set_scenario(RID scenario);
+    void step_effects(real_t delta);
 
     // Interface for CombatEngine:
     void add_spatial_rift(real_t lifetime, Vector3 position, real_t radius);
+    void add_zap_pattern(real_t lifetime, Vector3 position, real_t radius);
 
   private:
     void free_unused_effects();
     void extend_rift(Vector3 left, Vector3 right, Vector3 center,
                      real_t extent, real_t radius, int depth);
+    void extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,
+                            real_t extent, real_t radius, int depth);
 
   };
 

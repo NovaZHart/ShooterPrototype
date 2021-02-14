@@ -266,7 +266,7 @@ Ship::Ship(const Ship &o):
   nearby_enemies(o.nearby_enemies),
   nearby_enemies_tick(o.nearby_enemies_tick),
   nearby_enemies_range(o.nearby_enemies_range),
-  random_state(o.random_state),
+  rand(o.rand),
   destination(o.destination),
   aim_multiplier(o.aim_multiplier),
   confusion_multiplier(o.confusion_multiplier),
@@ -277,7 +277,8 @@ Ship::Ship(const Ship &o):
   turn_diameter_squared(o.turn_diameter_squared),
   updated_mass_stats(o.updated_mass_stats),
   immobile(o.immobile),
-  inactive(o.inactive)
+  inactive(o.inactive),
+  visual_scale(o.visual_scale)
 {}
 
 Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
@@ -349,7 +350,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   nearby_objects(), nearby_enemies(),
   nearby_enemies_tick(TICKS_LONG_AGO),
   nearby_enemies_range(0),
-  random_state(bob_full_avalanche(id)),
+  rand(),
   destination(randomize_destination()),
 
   aim_multiplier(1.0),
@@ -362,7 +363,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   turn_diameter_squared(0),
   updated_mass_stats(false),
   immobile(false),
-  inactive(false)
+  inactive(false),
+  visual_scale(1.0)
 {
   if(not (drag<999999 and drag>1e-6))
     Godot::print(String("New ship has an invalid drag ")+String(Variant(drag)));
@@ -466,7 +468,7 @@ void Ship::update_confusion() {
   if(confusion.x!=0 or confusion.y!=0)
     confusion_velocity -= 0.001*confusion.normalized();
 
-  real_t random_angle = 2*PI*int2float(random_state=bob_full_avalanche(random_state));
+  real_t random_angle = rand.rand_angle();
   Vector3 random_unit = Vector3(cos(random_angle),0,-sin(random_angle));
   
   confusion_velocity = 0.99*(confusion_velocity + 0.01*random_unit);
@@ -507,9 +509,13 @@ real_t Ship::take_damage(real_t damage) {
 }
 
 Vector3 Ship::randomize_destination() {
-  float x=int2float(random_state=bob_full_avalanche(random_state));
-  float z=int2float(random_state=bob_full_avalanche(random_state));
+  float x=rand.randf();
+  float z=rand.randf();
   return destination=Vector3(100*(x-0.5),0,100*(z-0.5));
+}
+
+void Ship::set_scale(real_t new_scale) {
+  visual_scale = new_scale;
 }
 
 DVector3 Ship::stopping_point(DVector3 tgt_vel, bool &should_reverse) const {
@@ -559,6 +565,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["max_structure"]=max_structure;
   s["max_fuel"]=max_fuel;
   s["radius"] = radius;
+  s["visual_scale"] = visual_scale;
   Dictionary r;
   {
     r["guns"]=range.guns;

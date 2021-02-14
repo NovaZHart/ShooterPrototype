@@ -6,7 +6,7 @@ uniform float expansion_time;
 
 void vertex() {
 	vec3 vertex2 = vec3(UV2.x,VERTEX.y,UV2.y);
-	vec3 final_vertex = mix(VERTEX,vertex2,abs(expansion_time-time));
+	vec3 final_vertex = mix(VERTEX,vertex2,clamp(abs(expansion_time-time)/expansion_time,0.0,1.0));
 	VERTEX = (MODELVIEW_MATRIX * vec4(final_vertex,1.0)).xyz;
 }
 

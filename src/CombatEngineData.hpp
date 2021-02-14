@@ -38,9 +38,44 @@
 #include <AABB.hpp>
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
+#include <OS.hpp>
 
 namespace godot {
   namespace CE {
+
+    class CheapRand32 { // Note: not thread-safe
+      uint32_t state;
+    public:
+      CheapRand32():
+        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_msec()/10)))
+      {};
+      CheapRand32(uint32_t state): state(state) {}
+      inline uint32_t randi() {
+        return state=bob_full_avalanche(state);
+      }
+      inline float randf() {
+        return int2float(state=bob_full_avalanche(state));
+      }
+      inline float rand_angle() {
+        return randf()*2*PI;
+      }
+
+      // from https://burtleburtle.net/bob/hash/integer.html
+      inline uint32_t bob_full_avalanche(uint32_t a) {
+        a = (a+0x7ed55d16) + (a<<12);
+        a = (a^0xc761c23c) ^ (a>>19);
+        a = (a+0x165667b1) + (a<<5);
+        a = (a+0xd3a2646c) ^ (a<<9);
+        a = (a+0xfd7046c5) + (a<<3);
+        a = (a^0xb55a4f09) ^ (a>>16);
+        return a;
+      }
+      
+      inline float int2float(uint32_t i) {
+        return std::min(float(i%8388608)/8388608.0f,1.0f);
+      }
+    };
+
     typedef int object_id;
       
     struct hash_String {
@@ -174,7 +209,7 @@ namespace godot {
       ship_hit_list_t nearby_enemies;
       int nearby_enemies_tick;
       real_t nearby_enemies_range;
-      uint32_t random_state;
+      CheapRand32 rand;
       Vector3 destination;
       
       real_t aim_multiplier, confusion_multiplier;
@@ -200,10 +235,12 @@ namespace godot {
       std::vector<Weapon> get_weapons(Array a, object_id &last_id, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
       real_t take_damage(real_t damage);
       Vector3 randomize_destination();
+      void set_scale(real_t scale);
       DVector3 stopping_point(DVector3 tgt_vel, bool &should_reverse) const;
       Dictionary update_status(const std::unordered_map<object_id,Ship> &ships,
                                const std::unordered_map<object_id,Planet> &planets) const;
     private:
+      real_t visual_scale;
       inline real_t make_turn_diameter_squared() const {
         real_t turn_diameter = (2*PI/max_angular_velocity) * max_speed / PI;
         return turn_diameter*turn_diameter;

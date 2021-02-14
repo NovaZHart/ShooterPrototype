@@ -229,6 +229,7 @@ func _process(delta: float) -> void:
 	center_view()
 
 func _ready():
+	combat_engine.set_world(get_world())
 	var player_ship = Player.assemble_player_ship()
 	player_ship.name = player_ship_name
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
@@ -247,6 +248,7 @@ func _ready():
 		else:
 			push_warning(system_name+': could not add system')
 	_on_destination_system_changed(Player.destination_system)
+	center_view()
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
 

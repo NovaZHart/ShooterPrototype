@@ -83,7 +83,16 @@ func change_worlds(world: World) -> void:
 	visual_mutex.lock()
 	physics_mutex.lock()
 	native_visual_effects.clear_all_effects()
+	native_visual_effects.set_scenario(world.scenario)
 	native_combat_engine.clear_ai()
+	native_combat_engine.prepare_visual_frame(world.scenario)
+	physics_mutex.unlock()
+	visual_mutex.unlock()
+
+func set_world(world: World) -> void:
+	visual_mutex.lock()
+	physics_mutex.lock()
+	native_visual_effects.set_scenario(world.scenario)
 	native_combat_engine.prepare_visual_frame(world.scenario)
 	physics_mutex.unlock()
 	visual_mutex.unlock()
