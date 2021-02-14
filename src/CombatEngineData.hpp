@@ -178,7 +178,7 @@ namespace godot {
       const String name; // last element of node path
       const RID rid; // of rigid body
       const real_t thrust, reverse_thrust, turn_thrust;
-      const real_t threat;
+      const real_t threat, visual_height;
       const real_t max_shields, max_armor, max_structure, max_fuel;
       const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
       const real_t fuel_efficiency;

@@ -484,22 +484,20 @@ void CombatEngine::rift_ai(Ship &ship) {
   if(ship.tick_at_rift_start>=0 and ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS<=ship.tick) {
     // If the ship has already opened the rift, and survived the minimum duration,
     // it can vanish into the rift.
-    Godot::print("Rift is done.");
     ship.fate = FATED_TO_RIFT;
     return;
   }
 
   if(ship.tick_at_rift_start<0 and request_stop(ship,Vector3(0,0,0),1.0f)) {
     // Once the ship is stopped, paralyze it and open a rift.
-    Godot::print("Ship is stopped. Open rift.");
-    set_angular_velocity(ship,Vector3(0.0,30.0,0.0));
     ship.immobile = true;
     ship.inactive = true;
     ship.tick_at_rift_start = ship.tick;
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
-      rift_position.y = 0.0f;
-      visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f);
+      rift_position.y = ship.visual_height+1.1f;
+      visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
+      visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
     }
   }
 
@@ -602,21 +600,19 @@ bool CombatEngine::init_ship(Ship &ship) {
   }
   if(ship.tick==1) {
     // Ship is arriving via spatial rift. Trigger the animation and start a timer.
-    Godot::print("Entry rift at tick 1");
     ship.immobile=true;
     ship.inactive=true;
     ship.tick_at_rift_start = ship.tick;
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
-      rift_position.y = 0.0f;
-      //    visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f);
-      visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f);
+      rift_position.y = ship.visual_height+1.1f;
+      visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
+      visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
     }
-    set_angular_velocity(ship,Vector3(0.0,30.0,0.0));
+    set_angular_velocity(ship,Vector3(0.0,15.0+ship.rand.randf()*15.0,0.0));
     return false;
   } else if(ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS<=ship.tick) {
     // Rift animation just completed.
-    Godot::print("Entry rift complete at tick "+String(Variant(ship.tick)));
     ship.tick_at_rift_start=TICKS_LONG_AGO;
     ship.immobile=false;
     ship.inactive=false;
@@ -797,7 +793,11 @@ void CombatEngine::attacker_ai(Ship &ship) {
   } else {
     if(not have_target)
       ship.target=-1;
-    landing_ai(ship);
+    // FIXME: replace this with faction-level ai:
+    if(ship.team==0)
+      landing_ai(ship);
+    else
+      rift_ai(ship);
   }
 }
 

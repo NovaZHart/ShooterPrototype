@@ -66,12 +66,6 @@ func set_team(new_team: int):
 	collision_layer = 1<<team
 	enemy_mask = 1<<enemy_team
 
-func init_ship_recursively(node: Node = self):
-	for child in node.get_children():
-		if node==self and child is VisualInstance:
-			child.translation.y+=height
-		init_ship_recursively(child)
-
 func get_combined_aabb(node: Node = self) -> AABB:
 	if override_size.length()>1e-5:
 		var size: Vector3 = Vector3(override_size.x,1,override_size.z)
@@ -215,6 +209,7 @@ func _ready():
 	
 	if random_height:
 		height = (randi()%11)*1.99 - 8.445
+	combined_stats['visual_height'] = height+game_state.SHIP_HEIGHT
 	collision_mask=0
 	mass=utils.ship_mass(combined_stats)
 	linear_damp=combined_stats['drag']

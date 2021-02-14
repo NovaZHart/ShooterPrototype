@@ -152,7 +152,7 @@ func update_starmap_visuals():
 	if system_index.has(fake_system_name):
 		location_index = 0
 	else:
-		system_index.get(Player.system.name,-1)
+		location_index = system_index.get(Player.system.name,-1)
 	
 	if selection and selection.has_method('is_SystemData'):
 		selection_index = system_index.get(selection.name,-1)

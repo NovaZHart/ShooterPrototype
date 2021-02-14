@@ -26,6 +26,8 @@ var ship_designs
 var fleets
 var ui
 
+const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
+
 signal universe_preload
 signal universe_postload
 signal console_append

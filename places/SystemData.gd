@@ -129,7 +129,7 @@ func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
 	# IMPORTANT: Return value must match what spawn_ship, init_system, and
 	#   _physics_process want in System.gd:
-	return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,5,z),
+	return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,game_state.SHIP_HEIGHT,z),
 		team, is_player, entry_method]
 
 func fleet_size(var fleet: Array) -> int:
@@ -193,7 +193,7 @@ func spawn_player(system,_t: float):
 	return spawn_ship(system,Player.player_ship_design,
 		0,angle,add_radius,safe_zone,0,0,center,true,entry_method)
 
-func process_space(system,delta,entry_method = combat_engine.ENTRY_FROM_ORBIT) -> Array:
+func process_space(system,delta,immediate_entry: bool = false) -> Array:
 	var result: Array = Array()
 	var stats: Array = system.ship_stats_by_team().duplicate(true)
 	var total_ships: int = 0
@@ -216,6 +216,9 @@ func process_space(system,delta,entry_method = combat_engine.ENTRY_FROM_ORBIT) -
 			continue
 		if stats[team]['threat'] > stats[enemy]['threat']*1.5 and stats[team]['count']>1:
 			continue
+		var entry_method: int = combat_engine.ENTRY_COMPLETE
+		if not immediate_entry:
+			entry_method = combat_engine.ENTRY_FROM_RIFT if team else combat_engine.ENTRY_FROM_ORBIT
 		result += spawn_fleet(system,fleet_node,designs,team,entry_method)
 		stats[team]['count'] += size
 	return result
@@ -228,5 +231,5 @@ func fill_system(var system,planet_time: float,ship_time: float,detail: float,sh
 			child.fill_system(system,planet_time,ship_time,detail,ships)
 	var result = [spawn_player(system,planet_time)]
 	if ships:
-		result += process_space(system,ship_time,combat_engine.ENTRY_COMPLETE)
+		result += process_space(system,ship_time,true)
 	return result

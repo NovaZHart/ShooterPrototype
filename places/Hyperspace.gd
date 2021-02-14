@@ -160,12 +160,18 @@ func make_player_orders(_delta: float) -> Dictionary:
 	elif depart:            goal=combat_engine.PLAYER_GOAL_RIFT
 	
 	if first_visual_tick:
-		var node = $Systems.get_node_or_null(Player.system.name)
-		if node==null or not node is Area:
-			push_warning('Cannot find system '+Player.system.name)
+		var data_node = game_state.systems.get_node_or_null(Player.destination_system)
+		if data_node:
+			var node = $Systems.get_node_or_null(data_node.name)
+			if node==null or not node is Area:
+				push_warning('Cannot find system with name '+data_node.name)
+			else:
+				target_info = combat_engine.PLAYER_TARGET_OVERRIDE
+				target_rid = node.get_rid()
+				print('Override target with ',target_rid.get_id())
 		else:
-			target_info = combat_engine.PLAYER_TARGET_OVERRIDE
-			target_rid = node.get_rid()
+			push_warning('Cannot find system at path '+Player.destination_system)
+		first_visual_tick=false
 	elif target_rid.get_id() and target_rid!=get_player_rid():
 		target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 	
@@ -175,8 +181,13 @@ func make_player_orders(_delta: float) -> Dictionary:
 	if orders:                result['orders'] = orders
 	if target_info:           result['change_target'] = target_info
 	if goal:                  result['goals'] = [goal]
-	if target_rid.get_id():
-		result['target_rid'] = target_rid
+	if target_info==combat_engine.PLAYER_TARGET_OVERRIDE:
+		if target_rid.get_id():
+			result['target_rid'] = target_rid
+			print('target rid ',target_rid.get_id())
+		else:
+			push_error("Target rid is invalid")
+	
 	return result
 
 func _enter_tree() -> void:
@@ -206,9 +217,13 @@ func visible_region() -> AABB:
 
 func visible_region_expansion_rate() -> Vector3:
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
-	if not player_ship_stats or not player_ship_stats.has('empty_mass'):
+	if not player_ship_stats:
 		return Vector3(0,0,0)
-	var rate: float = utils.ship_max_speed(player_ship_stats)
+	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	if not player_ship:
+		return Vector3(0,0,0)
+	var rate: float = utils.ship_max_speed(player_ship.combined_stats,
+		ship_stats.get('mass',null))
 	return Vector3(rate,0,rate)
 
 func _process(delta: float) -> void:
@@ -216,7 +231,6 @@ func _process(delta: float) -> void:
 	visual_tick += max(1,round(delta*60.0))
 	if dialog_paused:
 		return
-	first_visual_tick = false
 	combat_engine.draw_space($TopCamera,get_tree().root)
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
@@ -233,7 +247,7 @@ func _ready():
 	var player_ship = Player.assemble_player_ship()
 	player_ship.name = player_ship_name
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
-	player_ship.translation.y = 10
+	player_ship.translation.y = game_state.SHIP_HEIGHT
 	player_ship.restore_combat_stats(Player.ship_combat_stats)
 	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT_STATIONARY)
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):

@@ -146,9 +146,13 @@ func visible_region() -> AABB:
 
 func visible_region_expansion_rate() -> Vector3:
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
-	if not player_ship_stats or not player_ship_stats.has('empty_mass'):
+	if not player_ship_stats:
 		return Vector3(0,0,0)
-	var rate: float = utils.ship_max_speed(player_ship_stats)
+	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	if not player_ship:
+		return Vector3(0,0,0)
+	var rate: float = utils.ship_max_speed(player_ship.combined_stats,
+		ship_stats.get('mass',null))
 	return Vector3(rate,0,rate)
 
 func _process(delta) -> void:

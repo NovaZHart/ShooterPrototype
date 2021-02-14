@@ -3,6 +3,7 @@ extends Node
 var GDNativeVisualEffects = preload("res://bin/VisualEffects.gdns")
 var GDNativeCombatEngine = preload("res://bin/CombatEngine.gdns")
 var RiftShader = preload('res://places/Rift.shader')
+var ZapBallShader = preload('res://places/ZapBall.shader')
 var native_combat_engine
 var native_visual_effects
 
@@ -45,7 +46,7 @@ func _init():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
-	native_visual_effects.set_shaders(RiftShader)
+	native_visual_effects.set_shaders(RiftShader,ZapBallShader)
 
 func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
