@@ -24,6 +24,11 @@
 namespace godot {
 
   template<class T>
+  String str(const T &t) {
+    return String(Variant(t));
+  }
+
+  template<class T>
   struct FreeRID {
     RID rid;
 
@@ -85,8 +90,15 @@ namespace godot {
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
 
-    object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1);
-    object_id rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id=-1);
+    inline object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1) {
+      auto it = rid2id.find(rid.get_id());
+      return (it==rid2id.end()) ? default_id : it->second;
+    }
+    
+    inline object_id rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id=-1) {
+      auto it = rid2id.find(rid_id);
+      return (it==rid2id.end()) ? default_id : it->second;
+    }
 
     inline double double_dot(const Vector3 &a,const Vector3 &b) {
       return double(a.x)*double(b.x)+double(a.y)*double(b.y)+double(a.z)*double(b.z);
@@ -165,7 +177,15 @@ namespace godot {
     }
 
     // from https://burtleburtle.net/bob/hash/integer.html
-    uint32_t bob_full_avalanche(uint32_t a);
+    inline uint32_t bob_full_avalanche(uint32_t a) {
+      a = (a+0x7ed55d16) + (a<<12);
+      a = (a^0xc761c23c) ^ (a>>19);
+      a = (a+0x165667b1) + (a<<5);
+      a = (a+0xd3a2646c) ^ (a<<9);
+      a = (a+0xfd7046c5) + (a<<3);
+      a = (a^0xb55a4f09) ^ (a>>16);
+      return a;
+    }
 
     inline float int2float(uint32_t i) {
       return std::min(float(i%8388608)/8388608.0f,1.0f);

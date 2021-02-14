@@ -146,7 +146,9 @@ func visible_region() -> AABB:
 
 func visible_region_expansion_rate() -> Vector3:
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
-	var rate: float = utils.ship_max_speed(player_ship_stats) if player_ship_stats else 0.0
+	if not player_ship_stats or not player_ship_stats.has('empty_mass'):
+		return Vector3(0,0,0)
+	var rate: float = utils.ship_max_speed(player_ship_stats)
 	return Vector3(rate,0,rate)
 
 func _process(delta) -> void:
@@ -355,6 +357,7 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
+		print('add player ship of design ',str(ship_design))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 		call_deferred('add_spawned_ship',ship,false)

@@ -87,7 +87,6 @@ func delete_save_data(savefile: String):
 	var scan = root.get_children()
 	while scan:
 		if scan and scan.get_text(0)==text:
-			print('remove ',text)
 			var dir = Directory.new()
 			dir.remove(savefile)
 			utils.Tree_remove_subtree(root,scan)
@@ -117,11 +116,9 @@ func fill_tree():
 	if allow_saving:
 		insert_new_slot_item()
 	var dir: Directory = Directory.new()
-	if not dir.dir_exists(save_dir):
-		print('make saves directory')
-		if OK!=dir.make_dir(save_dir):
-			push_error('Cannot make saves directory')
-			return
+	if not dir.dir_exists(save_dir) and OK!=dir.make_dir(save_dir):
+		push_error('Cannot make saves directory')
+		return
 	if OK!=dir.open(save_dir) or OK!=dir.list_dir_begin(true,true):
 		push_error('Cannot list user saves directory')
 		return
@@ -140,53 +137,42 @@ func fill_tree():
 	dir.list_dir_end()
 
 func _on_SaveList_cell_selected():
-	print('cell selected')
 	var selected = get_selected()
 	var meta = selected.get_metadata(0)
 	if meta:
-		print('meta, so save selected')
 		emit_signal('save_selected',save_dir+'/'+selected.get_text(0),meta)
 	elif allow_saving and selected.get_metadata(1)=='new save':
-		print('no meta, but other stuff')
 		new_save.set_text(0,'')
 		new_save.set_text_align(0,TreeItem.ALIGN_LEFT)
 		emit_signal('no_save_selected')
 	else:
 		emit_signal('no_save_selected')
-		print('confused by cell selection')
 
 func _on_SaveList_nothing_selected():
-	print('nothing selected')
 	if allow_saving:
 		emit_signal('no_save_selected')
 		remake_new_slot_item()
 
 func _on_SaveList_focus_exited():
-	print('focus exited')
+	pass
 #	if allow_saving:
 #		remake_new_slot_item()
 
 func _on_SaveList_item_edited():
-	print('item edited')
 	var selected = get_selected()
 	var selected_column = get_selected_column()
 	if allow_saving and selected.get_metadata(1)=='new save':
-		print('ready to save')
 		var text = selected.get_text(selected_column)
-		print('text is "'+text+'"')
 		remake_new_slot_item()
 		if text and text is String:
-			print('emit signal')
 			emit_signal('new_save',save_dir+'/'+text)
 
 func _on_SaveList_item_double_clicked():
-	print('cell selected')
 	var selected = get_selected()
 	if not selected:
 		return
 	var meta = selected.get_metadata(0)
 	if meta:
-		print('meta, so save double clicked')
 		emit_signal('save_double_clicked',save_dir+'/'+selected.get_text(0),meta)
 
 

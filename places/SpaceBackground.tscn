@@ -3,4 +3,5 @@
 [ext_resource path="res://places/SpaceBackground.gd" type="Script" id=1]
 
 [node name="SpaceBackground" type="Spatial"]
+pause_mode = 2
 script = ExtResource( 1 )

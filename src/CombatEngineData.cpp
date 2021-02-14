@@ -357,13 +357,29 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   confusion(Vector3()),
   confusion_velocity(Vector3()),
 
-  max_speed(max(thrust,reverse_thrust)/drag*inverse_mass),
-  max_angular_velocity(turn_thrust/turn_drag*inverse_mass*PI/30.0f), // convert from RPM
-  turn_diameter_squared(make_turn_diameter_squared()),
+  max_speed(0),
+  max_angular_velocity(0),
+  turn_diameter_squared(0),
   updated_mass_stats(false),
   immobile(false),
   inactive(false)
-{}
+{
+  if(not (drag<999999 and drag>1e-6))
+    Godot::print(String("New ship has an invalid drag ")+String(Variant(drag)));
+  if(not (inverse_mass<999999))
+    Godot::print(String("New ship has an invalid inverse mass ")+String(Variant(inverse_mass)));
+  if(not (turn_drag<999999 and turn_drag>1e-6))
+    Godot::print(String("New ship has an invalid turn drag ")+String(Variant(turn_drag)));
+  if(not (thrust<999999 and thrust>=0))
+    Godot::print(String("New ship has an invalid thrust ")+String(Variant(thrust)));
+  if(not (reverse_thrust<999999 and reverse_thrust>=0))
+    Godot::print(String("New ship has an invalid reverse_thrust ")+String(Variant(reverse_thrust)));
+  max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
+  if(not (max_speed<999999 and max_speed>=0))
+    Godot::print(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)));
+  max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
+  turn_diameter_squared = make_turn_diameter_squared();
+}
 
 Ship::~Ship()
 {}
@@ -378,21 +394,38 @@ bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
   position=Vector3(transform.origin.x,0,transform.origin.z);
   linear_velocity=state->get_linear_velocity();
   angular_velocity=state->get_angular_velocity();
-  inverse_inertia = state->get_inverse_inertia();
-  inverse_mass = state->get_inverse_mass();
-  drag = state->get_total_linear_damp();
-  if(!(inverse_mass>0.0f) || inverse_mass+1.0f==inverse_mass)
-    // Safeguard to detect internal errors: inverse mass is NaN,
-    // non-finite, zero, or negative.
-    Godot::print_warning("invalid inverse mass",__FUNCTION__,__FILE__,__LINE__);
+  
+  Vector3 new_inverse_inertia = state->get_inverse_inertia();
+  if(not (new_inverse_inertia.length()>1e-9))
+    Godot::print_warning(String("Physics engine sent invalid inverse inertia ")+String(Variant(new_inverse_inertia)),__FUNCTION__,__FILE__,__LINE__);
+  else
+    inverse_inertia=new_inverse_inertia;
+  
+  real_t new_inverse_mass = state->get_inverse_mass();
+  if(not (new_inverse_mass>1e-9)) {
+    Godot::print_warning(String("Physics engine sent invalid inverse mass ")+String(Variant(new_inverse_mass))+". Will replace with prior value "+String(Variant(inverse_mass))+".",__FUNCTION__,__FILE__,__LINE__);
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,1.0/inverse_mass);
+  } else
+    inverse_mass=new_inverse_mass;
+  
+  real_t new_drag = state->get_total_linear_damp();
+  if(not (new_drag>1e-9 and new_drag<999999)) {
+    Godot::print_warning(String("Physics engine sent invalid linear damp ")+String(Variant(new_drag))+". Will replace with prior value "+String(Variant(drag))+".",__FUNCTION__,__FILE__,__LINE__);
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_LINEAR_DAMP,drag);
+  } else
+    drag=new_drag;
+  
   update_stats(physics_server,false);
   return true;
 }
 
 void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
-  real_t new_mass = empty_mass+cargo_mass+fuel*fuel_density/max_fuel+armor*armor_density/max_armor;
+  real_t new_mass = empty_mass+cargo_mass;
+  if(max_fuel>=.001)
+    fuel*clamp(fuel_density/max_fuel,0.0f,1.0f);
+  if(max_armor>=.001)
+    armor*clamp(armor_density/max_armor,0.0f,1.0f);
   real_t old_mass = 1.0/inverse_mass;
-  
   inverse_mass = 1.0f/new_mass;
   drag_force = -linear_velocity*drag/inverse_mass;
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;

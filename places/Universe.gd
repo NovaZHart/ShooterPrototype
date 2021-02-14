@@ -59,6 +59,17 @@ func has_link(arg1,arg2 = null) -> bool:
 		return links.has(link_key)
 	return links.has(arg1)
 
+func get_stellar_systems():
+	var stellar_systems: Dictionary = {}
+	for system_name in systems.get_child_names():
+		var system = systems.get_child_with_name(system_name)
+		if not system or not system.has_method('is_SystemData'):
+			continue
+		if system.show_on_map:
+			stellar_systems[system_name]=system
+			continue
+	return stellar_systems
+
 func get_interstellar_systems():
 	var interstellar_systems: Dictionary = {}
 	for system_name in systems.get_child_names():
@@ -67,7 +78,7 @@ func get_interstellar_systems():
 			continue
 		if not system.show_on_map:
 			if system_name.begins_with('interstellar'):
-				interstellar_systems[system_name].append(system)
+				interstellar_systems[system_name]=system
 			continue
 	return interstellar_systems
 
@@ -583,8 +594,6 @@ func encode_helper(what):
 		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'
 		var children = {}
 		var what_children = what.get_children()
-#		if what.astral_gate_path():
-#			assert(what_children)
 		for child in what_children:
 			assert(child is simple_tree.SimpleNode)
 			children[encode_helper(child.get_name())]=encode_helper(child)

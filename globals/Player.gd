@@ -27,7 +27,6 @@ func set_hyperspace_position(new_position: Vector3):
 	hyperspace_position = Vector3(new_position.x,0,new_position.z)
 
 func set_destination_system(new_system: NodePath):
-	push_warning('set_destination_system '+str(new_system))
 	var node = game_state.systems.get_node_or_null(new_system)
 	if not node or not node.has_method('is_SystemData'):
 		if node:

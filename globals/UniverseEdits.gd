@@ -78,10 +78,6 @@ class ChangeSelection extends undo_tool.Action:
 			game_state.universe.string_for(old_selection)+ \
 			'],to=['+game_state.universe.string_for(new_selection)+'])'
 	func _init(old,new,system_editor_: bool = false, center_view_: bool = false):
-		if new!=null:
-			push_warning('change selection requested '+str(new.get_path()))
-		else:
-			push_warning('change selection requested null')
 		old_selection=old
 		new_selection=new
 		system_editor=system_editor_

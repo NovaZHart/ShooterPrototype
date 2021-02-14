@@ -53,10 +53,7 @@ class AddOrRemoveActionEvent extends undo_tool.Action:
 		event=event_
 		add=add_
 		index=index_
-		assert(event is InputEvent)
 	func run() -> bool:
-		assert(event is InputEvent)
-		print('run ',add)
 		if add:
 			InputMap.action_add_event(action,event)
 			game_state.key_editor.add_ui_for_action_event(action,event,index)
@@ -65,7 +62,6 @@ class AddOrRemoveActionEvent extends undo_tool.Action:
 			InputMap.action_erase_event(action,event)
 		return true
 	func undo() -> bool:
-		print('undo ',add)
 		if add:
 			InputMap.action_erase_event(action,event)
 			game_state.key_editor.remove_ui_for_action_event(action,event,index)
@@ -83,7 +79,6 @@ class ChangeActionEvent extends undo_tool.Action:
 		old_event=old_event_
 		new_event=new_event_
 	func run() -> bool:
-		print('run')
 		InputMap.action_erase_event(action,old_event)
 		InputMap.action_add_event(action,new_event)
 		game_state.key_editor.change_ui_for_action_event(action,old_event,new_event)
@@ -189,7 +184,6 @@ class SortByValue extends Reference:
 		return dict[a]<dict[b]
 
 func add_ui_for_action_event(action: String, event: InputEvent, index: int) -> bool:
-	print('add ui for '+action+' event '+str(event))
 	if not action in content:
 		content[action] = {
 			'label': add_label(action_text[action],null,action),
@@ -251,7 +245,6 @@ func remove_children_for_event(dict: Dictionary):
 				node.queue_free()
 
 func remove_ui_for_action_event(action: String, event: InputEvent, index: int) -> bool:
-	print('remove ui for '+action)
 	var action_content = content.get(action,null)
 	if not action_content:
 		return false
@@ -272,22 +265,16 @@ func remove_ui_for_action_event(action: String, event: InputEvent, index: int) -
 
 func change_ui_for_action_event(action: String, old_event: InputEvent,
 		new_event: InputEvent) -> bool:
-	print('change ui for action event')
 	var action_content = content.get(action,null)
 	if not action_content:
-		print('action ',action,' has no content')
 		return false
 	for index in range(len(action_content['events'])):
-		print('index ',index)
 		if action_content['events'][index]['event'] == old_event:
-			print('match at index '+str(index))
 			action_content['events'][index]['event'] = new_event
 			var button = get_node_or_null(action_content['events'][index]['button'])
 			if button:
 				button.text = describe_event(new_event)
 			return true
-		else:
-			print('no match')
 	return false
 
 func reread_input_map():
@@ -336,43 +323,32 @@ func pick_event(action: String):
 	picker.known_actions = content
 	get_tree().root.add_child(picker)
 	picker_path = picker.get_path()
-	print('picker popup')
 	picker.popup()
-	assert(picker.visible)
 	while picker.visible:
 		yield(get_tree(),'idle_frame')
 	var result = picker.selected_event
-	print('picker returned '+str(result))
 	if picker:
 		get_tree().root.remove_child(picker)
 	picker_path=NodePath()
 	return result
 
 func add_action_event(action,_event,_path):
-	print("pick event")
 	var picked = pick_event(action)
 	while picked is GDScriptFunctionState and picked.is_valid():
 		picked = yield(picked, 'completed')
-	print('returned from pick event')
-	if picked:
-		assert(picked is InputEvent)
+	if picked and picked is InputEvent:
 		game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,picked,true,0))
 
 func remove_action_event(action,event,_path):
-	assert(event is InputEvent)
 	game_state.input_edit_state.push(AddOrRemoveActionEvent.new(action,event,false,
 		index_of_action_event(action,event)))
 
 func change_action_event(action,event,_path):
-	assert(event is InputEvent)
 	var picked = pick_event(action)
 	while picked is GDScriptFunctionState and picked.is_valid():
 		picked = yield(picked, 'completed')
 	if picked:
-		print('event selected')
 		game_state.input_edit_state.push(ChangeActionEvent.new(action,event,picked))
-	else:
-		print('no event picked')
 
 func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)

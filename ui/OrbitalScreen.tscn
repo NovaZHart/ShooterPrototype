@@ -25,9 +25,12 @@ font_data = ExtResource( 1 )
 [sub_resource type="Theme" id=4]
 default_font = SubResource( 3 )
 
-[node name="Landing" type="Control"]
+[node name="OrbitalScreen" type="Control"]
 theme = ExtResource( 11 )
 script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="View" type="ViewportContainer" parent="."]
 anchor_right = 1.0

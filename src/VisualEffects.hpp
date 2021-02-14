@@ -60,17 +60,17 @@ namespace godot {
 
     // Registered methods:
     void clear_all_effects();
-    void free_unused_effects();
     void set_shaders(Ref<Shader> spatial_rift_shader);
-    void set_visual_region(AABB visible_area, Vector3 expansion_rate);
+    void set_visible_region(AABB visible_area, Vector3 expansion_rate);
     void step_effects(real_t delta, RID scenario);
 
     // Interface for CombatEngine:
     void add_spatial_rift(real_t lifetime, Vector3 position, real_t radius);
 
   private:
+    void free_unused_effects();
     void extend_rift(Vector3 left, Vector3 right, Vector3 center,
-                     real_t extent, real_t radius);
+                     real_t extent, real_t radius, int depth);
 
   };
 

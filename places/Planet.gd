@@ -165,12 +165,12 @@ func place_sphere(sphere_scale: float, sphere_translation: Vector3,
 func get_combined_aabb():
 	if combined_aabb==null:
 		combined_aabb=sphere.get_transformed_aabb()
-		assert(combined_aabb!=null)
 	return combined_aabb
 
 func _init():
 	collision_mask = 0
 	collision_layer = 1<<28
+	pause_mode = PAUSE_MODE_PROCESS
 
 func _process(var _delta) -> void:
 	tick += 1

@@ -2,7 +2,7 @@
 
 [sub_resource type="GDNativeLibrary" id=1]
 resource_name = "CombatEngine"
-entry/X11.64 = "res://bin/x11/libcombatengine.so"
+entry/X11.64 = "res://bin/x11/libshooternative.so"
 dependency/X11.64 = [  ]
 
 [resource]

@@ -37,6 +37,7 @@ var latest_target_info: Dictionary = Dictionary()
 var ship_stats: Dictionary = {}
 var first_visual_tick = true
 var interstellar_systems: Array = []
+var stellar_systems: Array = []
 
 var player_fuel: float = 10.0
 var stopped_without_fuel: float = 0.0 # seconds
@@ -60,7 +61,6 @@ func depart_hyperspace():
 	var interstellar = game_state.systems.get_child_with_name(interstellar_name)
 	if not interstellar or not interstellar.has_method('is_SystemData'):
 		return
-	print('change scene to INTERSTELLAR '+str(interstellar.get_path()))
 	Player.player_location = interstellar.get_path()
 	Player.hyperspace_position = ship.translation/hyperspace_ratio
 	return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
@@ -206,7 +206,9 @@ func visible_region() -> AABB:
 
 func visible_region_expansion_rate() -> Vector3:
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
-	var rate: float = utils.ship_max_speed(player_ship_stats) if player_ship_stats else 0.0
+	if not player_ship_stats or not player_ship_stats.has('empty_mass'):
+		return Vector3(0,0,0)
+	var rate: float = utils.ship_max_speed(player_ship_stats)
 	return Vector3(rate,0,rate)
 
 func _process(delta: float) -> void:
@@ -232,12 +234,13 @@ func _ready():
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
 	player_ship.translation.y = 10
 	player_ship.restore_combat_stats(Player.ship_combat_stats)
-	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT)
+	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT_STATIONARY)
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):
 		push_error("Cannot connect to Player destination_system_changed signal.")
 	$Ships.add_child(player_ship)
 	interstellar_systems = game_state.universe.get_interstellar_systems().keys()
-	for system_name in interstellar_systems:
+	stellar_systems = game_state.universe.get_stellar_systems().keys()
+	for system_name in stellar_systems:
 		var system_entrance = SystemEntrance.instance()
 		if system_entrance.init_system(system_name):
 			$Systems.add_child(system_entrance)

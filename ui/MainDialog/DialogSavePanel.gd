@@ -1,10 +1,18 @@
 extends Panel
 
-export var allow_saving: bool = true
+export var allow_saving: bool = true setget set_allow_saving, get_allow_saving
 export var message_when_save_files = '[h2]Select a save file or add a new one.[/h2]'
 export var message_when_no_save_files = '[h2]Enter a filename in the top slot.[/h2]'
 
 signal page_selected
+
+func set_allow_saving(flag: bool):
+	$All/SaveLoadControl.allow_saving = flag
+	allow_saving = $All/SaveLoadControl.allow_saving
+
+func get_allow_saving() -> bool:
+	allow_saving = $All/SaveLoadControl.allow_saving
+	return allow_saving
 
 func _ready():
 	$All/SaveLoadControl.allow_saving = allow_saving

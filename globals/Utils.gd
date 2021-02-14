@@ -31,9 +31,11 @@ func TreeItem_child_count_at_least(item: TreeItem,min_children: int):
 		scan = scan.get_next()
 	return false
 
-func ship_max_speed(ship_stats) -> float:
-	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
-	return max_thrust/max(1e-9,s['drag']*mass)
+func ship_max_speed(ship_stats,mass=null) -> float:
+	if mass==null:
+		mass=ship_mass(ship_stats)
+	var max_thrust = max(max(ship_stats['reverse_thrust'],ship_stats['thrust']),0)
+	return max_thrust/max(1e-9,ship_stats['drag']*mass)
 
 func ship_mass(ship_stats):
 	return ship_stats['empty_mass']+ship_stats.get('cargo_mass',0)+ \

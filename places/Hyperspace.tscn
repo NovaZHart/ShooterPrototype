@@ -33,6 +33,7 @@ default_font = SubResource( 4 )
 script = ExtResource( 7 )
 
 [node name="MainDialogTrigger" parent="." instance=ExtResource( 2 )]
+allow_saving = false
 
 [node name="SpaceBackground" parent="." instance=ExtResource( 1 )]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -40, 0 )

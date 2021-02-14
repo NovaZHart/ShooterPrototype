@@ -134,8 +134,9 @@ namespace godot {
       real_t guns, turrets, guided, unguided, all;
     };
 
+    // These enums MUST match globals/CombatEngine.gd.
     enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
-    enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2 };
+    enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
     
     struct Ship {
       const object_id id;
@@ -226,6 +227,7 @@ namespace godot {
   
     static constexpr real_t hyperspace_display_ratio = 20.0f;
 
+    // These constants MUST match globals/CombatEngine.gd.
 
     const float SPATIAL_RIFT_LIFETIME_SECS = 3.0f;
     const int SPATIAL_RIFT_LIFETIME_TICKS = int(roundf(SPATIAL_RIFT_LIFETIME_SECS*60.0f));

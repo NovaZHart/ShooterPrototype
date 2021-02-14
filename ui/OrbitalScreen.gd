@@ -78,7 +78,7 @@ func camera_and_label(system_name: String,planet_name: String):
 		$LocationLabel.text=system_name
 	else:
 		$LocationLabel.text=system_name+' '+planet_name
-	planet.get_sphere().scale=Vector3(7,7,7)
+	planet.get_sphere().scale=Vector3(6.5,6.5,6.5)
 	$View/Port/Camera.set_identity()
 	$View/Port/Camera.rotate_x(-0.575959)
 	$View/Port/Camera.rotate_y(-0.14399)

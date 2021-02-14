@@ -98,6 +98,7 @@ CombatEngine::CombatEngine():
 CombatEngine::~CombatEngine() {}
 
 void CombatEngine::_register_methods() {
+  register_method("set_visual_effects", &CombatEngine::set_visual_effects);
   register_method("clear_ai", &CombatEngine::clear_ai);
   register_method("clear_visuals", &CombatEngine::clear_visuals);
   register_method("set_system_stats", &CombatEngine::set_system_stats);
@@ -214,7 +215,7 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   
   if(!new_content) {
     // Nothing to display yet.
-    Godot::print_warning("Null new_content pointer.",__FUNCTION__,__FILE__,__LINE__);
+    // Godot::print_warning("Null new_content pointer.",__FUNCTION__,__FILE__,__LINE__);
     clear_all_multimeshes();
     return;
   }
@@ -490,7 +491,7 @@ void CombatEngine::rift_ai(Ship &ship) {
     ship.inactive = true;
     ship.tick_at_rift_start = ship.tick;
     if(visual_effects.is_valid())
-      visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME_SECS*2,ship.position,ship.radius*2.0f);
+      visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME_SECS,ship.position,ship.radius*2.0f);
   }
 }
 
@@ -544,8 +545,8 @@ void CombatEngine::ai_step_ship(Ship &ship) {
 
   ship.heal(hyperspace,system_fuel_recharge,center_fuel_recharge,delta);
 
-  if(ship.entry_method and init_ship(ship))
-    return;
+  if(ship.entry_method!=ENTRY_COMPLETE and not init_ship(ship))
+    return; // Ship has not yet fully arrived.
   
   for(auto &weapon : ship.weapons)
     weapon.firing_countdown = max(static_cast<real_t>(0.0),weapon.firing_countdown-delta);
@@ -574,25 +575,38 @@ void CombatEngine::ai_step_ship(Ship &ship) {
 bool CombatEngine::init_ship(Ship &ship) {
   // return false = ship does nothing else this timestep
   if(ship.entry_method == ENTRY_FROM_ORBIT) {
-    set_velocity(ship,ship.heading*ship.max_speed);
+    // Ships entering from orbit start at maximum speed.
+    if(ship.max_speed>0 and ship.max_speed<999999)
+      set_velocity(ship,ship.heading*ship.max_speed);
     ship.entry_method=ENTRY_COMPLETE;
     return false;
-  } else if(ship.entry_method != ENTRY_FROM_RIFT) {
+  } else if(ship.entry_method != ENTRY_FROM_RIFT and
+            ship.entry_method != ENTRY_FROM_RIFT_STATIONARY) {
+    // Invalid entry method; treat it as ENTRY_COMPLETE.
     ship.entry_method=ENTRY_COMPLETE;
-    return true;
+    return false;
   }
   if(ship.tick==1) {
+    // Ship is arriving via spatial rift. Trigger the animation and start a timer.
+    Godot::print("Entry rift at tick 1");
     ship.immobile=true;
     ship.inactive=true;
     ship.tick_at_rift_start = ship.tick;
     visual_effects->add_spatial_rift(SPATIAL_RIFT_LIFETIME_SECS*2,ship.position,ship.radius*2.0f);
     return false;
-  } else if(ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS>=ship.tick) {
+  } else if(ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS<=ship.tick) {
+    // Rift animation just completed.
+    Godot::print("Entry rift complete at tick "+String(Variant(ship.tick)));
     ship.tick_at_rift_start=TICKS_LONG_AGO;
     ship.entry_method=ENTRY_COMPLETE;
-    return true;
+    ship.immobile=false;
+    ship.inactive=false;
+    if(ship.max_speed>0 and ship.max_speed<999999 and
+       ship.entry_method!=ENTRY_FROM_RIFT_STATIONARY)
+      set_velocity(ship,ship.heading*ship.max_speed);
+    return false;
   }
-  return false;
+  return false; // rift animation not yet complete
 }
 
 bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
@@ -1398,6 +1412,10 @@ void CombatEngine::set_angular_velocity(Ship &ship,const Vector3 &angular_veloci
 void CombatEngine::set_velocity(Ship &ship,const Vector3 &velocity) {
   FAST_PROFILING_FUNCTION;
   // Apply an impulse that gives the ship the new velocity.
+  if(ship.inverse_mass<1e-5) {
+    Godot::print_error(String("Invalid inverse mass ")+String(Variant(ship.inverse_mass)),__FUNCTION__,__FILE__,__LINE__);
+    return;
+  }
   physics_server->body_apply_central_impulse(ship.rid,(velocity-ship.linear_velocity)/ship.inverse_mass);
   // Update our internal copy of the ship's velocity.
   ship.linear_velocity = velocity;

@@ -1,9 +1,12 @@
 extends Node
 
-var GDNativeCombatEngine = load("res://bin/CombatEngine.gdns")
-var GDNativeVisualEffects = load("res://bin/VisualEffects.gdns")
+var GDNativeVisualEffects = preload("res://bin/VisualEffects.gdns")
+var GDNativeCombatEngine = preload("res://bin/CombatEngine.gdns")
+var RiftShader = preload('res://places/Rift.shader')
 var native_combat_engine
 var native_visual_effects
+
+# These constants MUST match src/CombatEngineData.hpp
 
 const FATED_TO_FLY: int = 0
 const FATED_TO_DIE: int = 1
@@ -13,6 +16,7 @@ const FATED_TO_RIFT: int = 3
 const ENTRY_COMPLETE: int = 0
 const ENTRY_FROM_ORBIT: int = 1
 const ENTRY_FROM_RIFT: int = 2
+const ENTRY_FROM_RIFT_STATIONARY: int = 3
 
 const PLAYER_GOAL_ATTACKER_AI: int = 1
 const PLAYER_GOAL_LANDING_AI: int = 2
@@ -40,6 +44,8 @@ var physics_mutex: Mutex = Mutex.new()
 func _init():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
+	native_combat_engine.set_visual_effects(native_visual_effects)
+	native_visual_effects.set_shaders(RiftShader)
 
 func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
