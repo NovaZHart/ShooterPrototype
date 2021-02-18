@@ -13,12 +13,25 @@ export var min_camera_size: float = 20
 export var max_camera_size: float = 400
 export var label_font: Font
 export var highlighted_font: Font
+export var bar1_color = Color('#8343a5')
+export var bar2_color = Color('#00A0E9')
+export var bar3_color = Color('#009944')
+export var bar4_color = Color('#FFF100')
+export var bar5_color = Color('#EB6100')
+export var bar6_color = Color('#F63332')
+export var no_sale = Color('#999999')
+
+const NAVIGATIONAL: int = 0
+const MIN_PRICE: int = 1
+const AVG_PRICE: int = 2
+const MAX_PRICE: int = 3
+export var mode: int = NAVIGATIONAL
 
 const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
 const StarmapSystemShader: Shader = preload('res://ui/StarmapSystem.shader')
 const StarmapLibrary = preload('res://bin/Starmap.gdns')
-const SYSTEM_SCALE: float = 0.01
-const LINK_SCALE: float = 0.005
+const SYSTEM_SCALE: float = 0.007
+const LINK_SCALE: float = 0.004
 const SELECT_EPSILON: float = 0.02
 const fake_system_name: String = '\t'
 
@@ -157,6 +170,105 @@ func update_starmap_visuals():
 	if selection and selection.has_method('is_SystemData'):
 		selection_index = system_index.get(selection.name,-1)
 	
+	if mode==NAVIGATIONAL:
+		navigational_visuals(selection_index,location_index)
+	else:
+		pricing_visuals(selection_index,location_index)
+	
+	if location_index>=0 and selection_index>=0 and location_index!=selection_index:
+		starmap.add_extra_line(pos_pool[location_index],
+			pos_pool[selection_index],path_color,LINK_SCALE*2.0)
+	
+	starmap.update()
+
+func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array):
+	var price = Commodities.OneProduct.new()
+	if node.has_method('list_products'):
+		node.list_products(commodity,price)
+		if price.all:
+			var value = price.all[0][Commodities.Product.VALUE_INDEX]
+			if mode==MAX_PRICE:
+				result[0] = max(result[0],value)
+			elif mode==MIN_PRICE:
+				result[0] = min(result[0],value)
+			else:
+				result[0] += value
+			result[1] += 1
+	for child_name in node.get_child_names():
+		var child = node.get_child_with_name(child_name)
+		if child:
+			price_stats_recurse(commodity,child,result)
+
+func price_stats(node: simple_tree.SimpleNode): # -> float or null
+	var commodity_data: Array = Commodities.get_selected_commodity()
+	var commodity = Commodities.OneProduct.new(commodity_data)
+	var result = [ 0.0, 0 ]
+	price_stats_recurse(commodity,node,result)
+	if not result[1]:
+		return null
+	elif mode==AVG_PRICE:
+		return result[0]/result[1]
+	else:
+		return result
+
+func pricing_visuals(selection_index: int, location_index: int):
+	var price_at_index: Dictionary = {}
+	var min_stat: float = INF
+	var max_stat: float = -INF
+	for system_name in system_index:
+		var data = game_state.systems.get_child_with_name(system_name)
+		var index = system_index[system_name]
+		if data==null or not data.has_method('is_SystemData') or index<0:
+			push_warning('Invalid system "'+system_name+'"')
+			continue
+		var stat = price_stats(data)
+		price_at_index[index] = stat
+		if stat!=null and stat>0:
+			min_stat = min(min_stat,stat)
+			max_stat = max(max_stat,stat)
+	var draw: Dictionary = {}
+	var colors = [ no_sale, bar1_color, bar2_color, bar3_color, bar4_color,
+		bar5_color, bar6_color ]
+	var ncolors = len(colors)-1
+	var at_location = 128
+	var at_selection = 64
+	var color_mask = 15
+	assert(color_mask>=ncolors)
+	assert(not (at_location&color_mask))
+	assert(not (at_selection&color_mask))
+	var step: float = 1.0
+	if min_stat!=INF:
+		step = max(round((max_stat-min_stat)/float(ncolors)),1.0)
+	for index in range(len(pos_pool)):
+		var flags: int = 0
+		if min_stat!=INF:
+			var price = price_at_index.get(index,-1)
+			if price>0:
+# warning-ignore:narrowing_conversion
+				flags = clamp(int(floor((price-min_stat)/step)),1,ncolors)
+		if location_index==index:
+			flags |= at_location
+		if selection_index==index:
+			flags |= at_selection
+		if draw.has(flags):
+			draw[flags].append(index)
+		else:
+			draw[flags] = [index]
+	print(draw)
+	for flags in draw:
+# warning-ignore:shadowed_variable
+		var system_color = colors[flags&color_mask]
+		var label_color = system_color
+		var font = label_font
+		var system_scale = SYSTEM_SCALE
+		if flags&at_location or flags&at_selection:
+			font = highlighted_font
+		if flags&at_location:
+			system_scale *= 1.5
+		starmap.add_system_visuals(PoolIntArray(draw[flags]),
+			system_color, label_color, font, system_scale)
+
+func navigational_visuals(selection_index: int, location_index: int):
 	if location_index==selection_index and location_index>=0:
 		starmap.add_system_visuals(PoolIntArray([selection_index]),
 			highlight_color, system_name_color, highlighted_font,
@@ -177,11 +289,6 @@ func update_starmap_visuals():
 				SYSTEM_SCALE)
 			starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
 				connected_color, LINK_SCALE)
-			if location_index>=0:
-				starmap.add_extra_line(pos_pool[location_index],
-					pos_pool[selection_index],path_color,LINK_SCALE*2.0)
-	
-	starmap.update()
 
 func event_position(event: InputEvent) -> Vector2:
 	# Get the best guess of the mouse position for the event.

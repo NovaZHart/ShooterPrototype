@@ -1,0 +1,71 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
+[ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=2]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
+
+[sub_resource type="DynamicFont" id=1]
+size = 18
+font_data = ExtResource( 3 )
+
+[node name="Panel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="All" type="HSplitContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Left" type="VSplitContainer" parent="All"]
+margin_right = 359.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Prices" type="Tree" parent="All/Left"]
+margin_right = 359.0
+margin_bottom = 194.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Bottom" type="GridContainer" parent="All/Left"]
+margin_top = 206.0
+margin_right = 359.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="Label" type="Label" parent="All/Left/Bottom"]
+margin_right = 359.0
+margin_bottom = 21.0
+custom_fonts/font = SubResource( 1 )
+text = "Buy/Sell at (Player Location)"
+
+[node name="Trade" type="Tree" parent="All/Left/Bottom"]
+margin_top = 25.0
+margin_right = 359.0
+margin_bottom = 394.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 2.0
+
+[node name="StarmapPanel" parent="All" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = 371.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_stretch_ratio = 1.8
+mode = 1

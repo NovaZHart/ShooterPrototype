@@ -42,6 +42,14 @@ var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
 var base_name: String = ''
+var trading: Array = []
+var population: Dictionary = {}
+var industry: float = 0
+
+const default_planet_trading: Array = [ 'suvar','human' ]
+const default_planet_population: Dictionary = {
+	'suvar':1000000, 'human':9000000
+}
 
 func set_object_type(p: int):
 	assert(object_type==PLANET or object_type==STAR)
@@ -106,12 +114,25 @@ func _init(node_name,me: Dictionary ={}):
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
+	if object_type==PLANET:
+		trading = me.get('trading',default_planet_trading)
+		population = me.get('population',default_planet_population)
+	else:
+		trading = me.get('trading',[])
+		population = me.get('population',{})
 	var objects = me.get('objects',{})
 	if objects and objects is Dictionary:
 		for key in objects:
 			var object = objects[key]
 			if object and object is simple_tree.SimpleNode:
 				var _discard = add_child(object,key)
+
+func list_products(commodities: Commodities.Products, result: Commodities.Products):
+	for trade in trading:
+		var proc = Commodities.trading.get(trade,null)
+		if proc:
+			proc.population(commodities,result,population)
+			proc.industry(commodities,result,industry)
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:
