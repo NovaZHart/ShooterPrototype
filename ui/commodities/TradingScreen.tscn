@@ -50,16 +50,30 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="Label" type="Label" parent="All/Left/Bottom"]
+[node name="Tools" type="GridContainer" parent="All/Left/Bottom"]
 margin_right = 359.0
-margin_bottom = 21.0
+margin_bottom = 23.0
+columns = 2
+
+[node name="Label" type="Label" parent="All/Left/Bottom/Tools"]
+margin_top = 1.0
+margin_right = 299.0
+margin_bottom = 22.0
+size_flags_horizontal = 3
 custom_fonts/font = SubResource( 1 )
 text = "Buy/Sell at (Player Location)"
+
+[node name="SellAll" type="Button" parent="All/Left/Bottom/Tools"]
+margin_left = 303.0
+margin_right = 359.0
+margin_bottom = 23.0
+grow_horizontal = 0
+text = "Sell All"
 
 [node name="TradingList" parent="All/Left/Bottom" instance=ExtResource( 4 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 25.0
+margin_top = 27.0
 margin_right = 359.0
 margin_bottom = 394.0
 
@@ -71,22 +85,41 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.8
 
-[node name="StarmapPanel" parent="All/Right" instance=ExtResource( 2 )]
-anchor_right = 0.0
-anchor_bottom = 0.0
+[node name="Context" type="GridContainer" parent="All/Right"]
 margin_right = 653.0
-margin_bottom = 600.0
-mode = 1
+margin_bottom = 17.0
+columns = 3
 
-[node name="Location" type="Label" parent="."]
-anchor_left = 1.0
-anchor_right = 1.0
-margin_top = 5.0
-margin_right = -5.0
+[node name="CargoMassLabel" type="Label" parent="All/Right/Context"]
+margin_right = 70.0
+margin_bottom = 17.0
+text = "Cargo Mass:"
+
+[node name="CargoMass" type="Label" parent="All/Right/Context"]
+margin_left = 74.0
+margin_right = 361.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+
+[node name="Location" type="Label" parent="All/Right/Context"]
+margin_left = 365.0
+margin_right = 652.0
+margin_bottom = 17.0
 grow_horizontal = 0
+size_flags_horizontal = 3
 text = "Player Location"
 align = 2
 valign = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
+
+[node name="StarmapPanel" parent="All/Right" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = 21.0
+margin_right = 653.0
+margin_bottom = 600.0
+mode = 1
+[connection signal="pressed" from="All/Left/Bottom/Tools/SellAll" to="All/Left/Bottom/TradingList" method="_on_SellAll_pressed"]
+[connection signal="cargo_mass_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_cargo_mass_changed"]

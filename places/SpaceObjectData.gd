@@ -46,7 +46,7 @@ var trading: Array = []
 var population: Dictionary = {}
 var industry: float = 0
 
-const default_planet_trading: Array = [ 'suvar','human' ]
+const default_planet_trading: Array = [ 'suvar','human','terran_trade' ]
 const default_planet_population: Dictionary = {
 	'races/suvar':1000000, 'races/human':9000000
 }

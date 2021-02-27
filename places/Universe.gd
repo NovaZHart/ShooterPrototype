@@ -241,6 +241,8 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not cached_stats:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
+		if cargo:
+			body.set_cargo(cargo)
 		return body
 
 func encode_ShipDesign(d: ShipDesign):

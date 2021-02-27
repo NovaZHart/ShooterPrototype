@@ -43,6 +43,17 @@ class Products extends Reference:
 	func ids_for_tags(_include, _exclude=null) -> PoolIntArray:
 		return PoolIntArray()
 	
+	# Total mass of all specified products. Takes a list of ids or null.
+	func get_mass(ids=null) -> float:
+		var mass: float = 0.0
+		if ids==null:
+			ids=all.keys()
+		for id in ids:
+			var product = all[id]
+			var product_mass = product[QUANTITY_INDEX]*product[MASS_INDEX]
+			mass += max(0.0,product_mass)
+		return mass
+	
 	# Return a new Products object that contains only the specified IDs.
 	# Intended to be used with ids_for_tags.
 	func make_subset(_ids: PoolIntArray):
@@ -361,9 +372,9 @@ class ManyProducts extends Products:
 			for tag in exclude: # tag may be an int ID or String tag name
 				if tag is String and by_tag.has(tag):
 					for tag_id in by_tag[tag]:
-						var _discard = as_set.remove(tag_id)
+						var _discard = as_set.erase(tag_id)
 				elif tag is int:
-					var _discard = as_set.remove(tag)
+					var _discard = as_set.erase(tag)
 		# Store the result in a pool:
 		return PoolIntArray(as_set.keys())
 	

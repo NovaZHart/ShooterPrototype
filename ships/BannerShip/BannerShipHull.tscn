@@ -117,6 +117,7 @@ base_turn_drag = 0.45
 base_explosion_damage = 750.0
 base_explosion_radius = 7.5
 base_explosion_impulse = 1075.0
+base_max_cargo = 95
 override_size = Vector3( 6, 0, 3 )
 
 [node name="GunMesh" type="MeshInstance" parent="."]

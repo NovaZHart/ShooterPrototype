@@ -30,6 +30,7 @@ base_turn_drag = 0.45
 base_explosion_damage = 400.0
 base_explosion_radius = 3.5
 base_explosion_impulse = 800.0
+base_max_cargo = 23
 override_size = Vector3( 2.4, 0, 3 )
 
 [node name="MeshInstance" type="MeshInstance" parent="."]

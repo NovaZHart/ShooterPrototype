@@ -23,6 +23,7 @@ export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
 export var base_explosion_impulse: float = 500
 export var base_explosion_delay: int = 10
+export var base_max_cargo: int = 20
 export var fuel_density: float = 10.0
 export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
@@ -37,6 +38,7 @@ var height: float = 5
 var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
+var cargo: Commodities.Products setget set_cargo
 
 var skipped_runtime_stats: bool = true
 
@@ -102,6 +104,21 @@ func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 	elif not skip_runtime_stats and skipped_runtime_stats:
 		update_stats()
 	return combined_stats
+	
+func set_cargo(products: Commodities.Products, quiet: bool = false,
+		skip_runtime_stats=false) -> Dictionary:
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_error('No stats in set_cargo! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	cargo = Commodities.ManyProducts.new()
+	var _success = cargo.decode(products.all)
+	var cargo_mass: float = 0.0
+	for id in cargo.all:
+		cargo_mass += max(0.0,cargo.all[id][Commodities.Products.MASS_INDEX]*
+			cargo.all[id][Commodities.Products.QUANTITY_INDEX]/1000.0)
+	combined_stats['cargo_mass'] = cargo_mass
+	return combined_stats
 
 func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
 	if not combined_stats.has('empty_mass'):
@@ -133,6 +150,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['max_armor']=base_armor
 	stats['max_structure']=base_structure
 	stats['max_fuel']=base_fuel
+	stats['max_cargo']=base_max_cargo
 	stats['heal_shields']=heal_shields
 	stats['heal_armor']=heal_armor
 	stats['heal_structure']=heal_structure
