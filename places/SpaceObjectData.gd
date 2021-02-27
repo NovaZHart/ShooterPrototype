@@ -48,8 +48,9 @@ var industry: float = 0
 
 const default_planet_trading: Array = [ 'suvar','human' ]
 const default_planet_population: Dictionary = {
-	'suvar':1000000, 'human':9000000
+	'races/suvar':1000000, 'races/human':9000000
 }
+const default_planet_industry: float = 100000.0
 
 func set_object_type(p: int):
 	assert(object_type==PLANET or object_type==STAR)
@@ -117,6 +118,7 @@ func _init(node_name,me: Dictionary ={}):
 	if object_type==PLANET:
 		trading = me.get('trading',default_planet_trading)
 		population = me.get('population',default_planet_population)
+		industry = me.get('industry',default_planet_industry)
 	else:
 		trading = me.get('trading',[])
 		population = me.get('population',{})
@@ -127,12 +129,21 @@ func _init(node_name,me: Dictionary ={}):
 			if object and object is simple_tree.SimpleNode:
 				var _discard = add_child(object,key)
 
-func list_products(commodities: Commodities.Products, result: Commodities.Products):
+func list_products(commodities: Commodities.Products, result: Commodities.Products, print_trace=false):
+	if print_trace:
+		push_warning('list products in '+str(get_path()))
 	for trade in trading:
+		if print_trace:
+			print('trade '+str(trade))
 		var proc = Commodities.trading.get(trade,null)
 		if proc:
+			if print_trace:
+				print('got '+str(proc)+' with industry '+str(industry)+' and population '+str(population))
 			proc.population(commodities,result,population)
 			proc.industry(commodities,result,industry)
+		else:
+			push_warning('Trade type "'+str(trade)+'" not in known types '+
+				str(Commodities.trading.keys()))
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:

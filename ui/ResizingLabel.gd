@@ -36,4 +36,4 @@ func adjust_size() -> void:
 	margin_top = floor(starting_top*scale[1])
 	margin_bottom = ceil(starting_bottom*scale[1])
 	
-	theme.default_font.size=max(min_font_size,font_size_goal*min(scale[0],scale[1]))
+	get_font('default_font').size=max(min_font_size,font_size_goal*min(scale[0],scale[1]))

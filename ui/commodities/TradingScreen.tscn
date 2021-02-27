@@ -1,19 +1,22 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=2]
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://ui/commodities/TradingList.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ui/commodities/TradingScreen.gd" type="Script" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 18
 font_data = ExtResource( 3 )
 
-[node name="Panel" type="Panel"]
+[node name="TradingScreen" type="Panel"]
 anchor_right = 1.0
 anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource( 1 )
+script = ExtResource( 5 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
@@ -53,19 +56,37 @@ margin_bottom = 21.0
 custom_fonts/font = SubResource( 1 )
 text = "Buy/Sell at (Player Location)"
 
-[node name="Trade" type="Tree" parent="All/Left/Bottom"]
+[node name="TradingList" parent="All/Left/Bottom" instance=ExtResource( 4 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
 margin_top = 25.0
 margin_right = 359.0
 margin_bottom = 394.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-size_flags_stretch_ratio = 2.0
 
-[node name="StarmapPanel" parent="All" instance=ExtResource( 2 )]
-anchor_right = 0.0
-anchor_bottom = 0.0
+[node name="Right" type="GridContainer" parent="All"]
 margin_left = 371.0
 margin_right = 1024.0
 margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 size_flags_stretch_ratio = 1.8
+
+[node name="StarmapPanel" parent="All/Right" instance=ExtResource( 2 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 653.0
+margin_bottom = 600.0
 mode = 1
+
+[node name="Location" type="Label" parent="."]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_top = 5.0
+margin_right = -5.0
+grow_horizontal = 0
+text = "Player Location"
+align = 2
+valign = 2
+__meta__ = {
+"_edit_use_anchors_": false
+}

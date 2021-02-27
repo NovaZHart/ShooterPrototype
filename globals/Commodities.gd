@@ -16,12 +16,17 @@ class Products extends Reference:
 	var by_name: Dictionary = {} # lookup table of product_name -> list of IDs
 	var by_tag: Dictionary = {} # lookup table of tag -> list of IDs
 	const NAME_INDEX: int = 0 # Index in all[id] of the product name
-	const VALUE_INDEX: int = 1 # Index in all[id] of value
-	const FINE_INDEX: int = 2 # Index in all[id] of fine
-	const QUANTITY_INDEX: int = 3 # Index in all[id] of quantity
+	const QUANTITY_INDEX: int = 1 # Index in all[id] of quantity
+	const VALUE_INDEX: int = 2 # Index in all[id] of value
+	const FINE_INDEX: int = 3 # Index in all[id] of fine
 	const MASS_INDEX: int = 4 # Index in all[id] of mass
 	const FIRST_TAG_INDEX: int = MASS_INDEX+1 # First index in all[id] of tags
 	const index_type: Array = [ 'name', 'value', 'fine', 'quantity', 'mass' ]
+	
+	func clear():
+		all={}
+		by_name={}
+		by_tag={}
 	
 	func dump() -> String:
 		return 'Products[]'
@@ -47,14 +52,58 @@ class Products extends Reference:
 	func decode(_from: Dictionary) -> bool:
 		return false
 	
+	func add_products_from(from,include,exclude,quantity_multiplier=null,
+			value_multiplier=null,fine_multiplier=0):
+		add_products(from,quantity_multiplier,value_multiplier,fine_multiplier,
+			true,from.ids_for_tags(include,exclude))
+	
 	func add_products(_all_products, 
 			_quantity_multiplier = null, _value_multiplier = null, _fine_multiplier = 0, 
 			_skip_checks: bool = true, _keys_to_add = null):
 		return false
 
+	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
+			fine_multiplier):
+		if quantity_multiplier==null and value_multiplier==null and \
+				fine_multiplier==null:
+			return
+		if value_multiplier!=null:
+			if abs(value_multiplier)<1e-5:
+				old[VALUE_INDEX] = 0
+			elif value_multiplier<0:
+				old[VALUE_INDEX] = min(old[VALUE_INDEX],
+					-new[VALUE_INDEX]*value_multiplier)
+			else:
+				old[VALUE_INDEX] = max(old[VALUE_INDEX],
+					new[VALUE_INDEX]*value_multiplier)
+		if fine_multiplier!=null:
+			if abs(fine_multiplier)<1e-5:
+				old[FINE_INDEX] = 0
+			elif fine_multiplier<0:
+				old[FINE_INDEX] = min(old[FINE_INDEX],
+					-new[FINE_INDEX]*fine_multiplier)
+			else:
+				old[FINE_INDEX] = max(old[FINE_INDEX],
+					new[FINE_INDEX]*fine_multiplier)
+		if quantity_multiplier!=null:
+			if abs(quantity_multiplier)<1e-5:
+				old[QUANTITY_INDEX] = 0
+			elif quantity_multiplier<0:
+				old[QUANTITY_INDEX] = min(old[QUANTITY_INDEX],
+					-new[QUANTITY_INDEX]*quantity_multiplier)
+			else:
+				old[QUANTITY_INDEX] = max(old[QUANTITY_INDEX],
+					new[QUANTITY_INDEX]*quantity_multiplier)
+
 class OneProduct extends Products:
 	const zero_pool: PoolIntArray = PoolIntArray([0])
 	var product_name: String
+	
+	func clear():
+		all={}
+		by_name={}
+		by_tag={}
+		product_name=''
 	
 	func _init(product=null):
 		if product!=null:
@@ -86,7 +135,10 @@ class OneProduct extends Products:
 			_skip_checks: bool = true, keys_to_add = null):
 		# Checks are never skipped because we must ensure that only the
 		# selected product is processed
-		
+		if keys_to_add!=null and not keys_to_add:
+			return
+		if not all_products.all:
+			return
 		if not all:
 			# No product yet.
 			var key
@@ -138,6 +190,12 @@ class OneProduct extends Products:
 class ManyProducts extends Products:
 	var last_id: int = -1 # last ID assigned to a product in `all`
 	
+	func clear():
+		all={}
+		by_name={}
+		by_tag={}
+		last_id=-1
+	
 	# Add a product the given information to `all`, `by_name`, and `by_tag`
 	# Returns the new id or -1 on failure
 	func add_product(product_name: String, intrinsic_value: float, 
@@ -158,15 +216,17 @@ class ManyProducts extends Products:
 				by_tag[tag].append(id)
 		return id
 	
-	func add_products(all_products, 
+	func add_products(all_products,  # : Dictionary or Products
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
-			skip_checks: bool = true, keys_to_add = null):
+			skip_checks: bool = true, keys_to_add = null, zero_quantity_if_missing = false):
+		var have_multipliers = (quantity_multiplier!=null or \
+			value_multiplier!=null or fine_multiplier!=null)
 		if keys_to_add==null:
 			if all_products is Products:
 				keys_to_add = all_products.all.keys()
 			elif all_products is Dictionary:
 				keys_to_add = all_products.keys()
-			elif all_products is Array:
+			elif all_products is Array or all_products is PoolIntArray:
 				keys_to_add = range(len(all_products))
 			if all_products is Dictionary:
 				keys_to_add = all_products
@@ -178,7 +238,6 @@ class ManyProducts extends Products:
 				product = all_products.all[key]
 			else:
 				product = all_products[key]
-			
 			if not skip_checks:
 				# Discard invalid products.
 				var bad: bool = false
@@ -201,6 +260,7 @@ class ManyProducts extends Products:
 			
 			# Do we already have this product?
 			var id: int = by_name.get(product[0],-1)
+			var qm = quantity_multiplier
 			if id>=0:
 				# Add information to existing product
 				var have_tags: Array = all[id].slice(FIRST_TAG_INDEX,len(all[id]))
@@ -220,6 +280,8 @@ class ManyProducts extends Products:
 				last_id += 1
 				id = last_id
 				all[id] = product.duplicate(true)
+				if zero_quantity_if_missing:
+					qm=0
 				by_name[product[0]] = id
 				for itag in range(FIRST_TAG_INDEX,len(product)):
 					var tag = product[itag]
@@ -230,34 +292,22 @@ class ManyProducts extends Products:
 						by_tag[tag] = [ id ]
 					else:
 						by_tag[tag].append(id)
-			if value_multiplier!=null:
-				if abs(value_multiplier)<1e-5:
-					all[id][VALUE_INDEX] = 0
-				elif value_multiplier<0:
-					all[id][VALUE_INDEX] = max(all[id][VALUE_INDEX],
-						-all[id][VALUE_INDEX]*value_multiplier)
-				else:
-					all[id][VALUE_INDEX] = max(all[id][VALUE_INDEX],
-						all[id][VALUE_INDEX]*value_multiplier)
-			if fine_multiplier!=null:
-				if abs(fine_multiplier)<1e-5:
-					all[id][FINE_INDEX] = 0
-				elif fine_multiplier<0:
-					all[id][FINE_INDEX] = min(all[id][FINE_INDEX],
-						-all[id][FINE_INDEX]*fine_multiplier)
-				else:
-					all[id][FINE_INDEX] = max(all[id][FINE_INDEX],
-						all[id][FINE_INDEX]*fine_multiplier)
-			if quantity_multiplier!=null:
-				if abs(quantity_multiplier)<1e-5:
-					all[id][QUANTITY_INDEX] = 0
-				elif quantity_multiplier<0:
-					all[id][QUANTITY_INDEX] = min(all[id][QUANTITY_INDEX],
-						-all[id][QUANTITY_INDEX]*quantity_multiplier)
-				else:
-					all[id][QUANTITY_INDEX] = max(all[id][QUANTITY_INDEX],
-						all[id][QUANTITY_INDEX]*quantity_multiplier)
+			if have_multipliers or qm!=null:
+				_apply_multipliers(all[id],product,qm,value_multiplier,fine_multiplier)
+
 		return false
+	
+	func remove_absent_products():
+		for id in all.keys():
+			var product=all.get(id,null)
+			if product and product[QUANTITY_INDEX]<=0:
+				var _discard = by_name.erase(product[NAME_INDEX])
+				for itag in range(FIRST_TAG_INDEX,len(product)):
+					var tag = product[itag]
+					_discard = by_tag[tag].erase(id)
+					if by_tag[tag].empty():
+						_discard = by_tag.erase(tag)
+				_discard = all.erase(id)
 	
 	# Remove the ID'd product from `all`, `by_name`, and `by_tag`
 	func remove_product_id(id: int) -> bool:
@@ -270,7 +320,7 @@ class ManyProducts extends Products:
 		for itag in range(FIRST_TAG_INDEX,len(entry)):
 			var tag = entry[itag]
 			if by_tag.has(tag):
-				_discard = by_tag[tag].erase(product_name)
+				_discard = by_tag[tag].erase(id)
 				if by_tag[tag].empty():
 					_discard = by_tag.erase(tag)
 		return true
@@ -299,7 +349,7 @@ class ManyProducts extends Products:
 			universal_set = []
 			for tag in include: # Tag may be an int ID or String tag name
 				if tag is String and by_tag.has(tag):
-					universal_set.append(by_tag[tag])
+					universal_set += (by_tag[tag])
 				elif tag is int:
 					universal_set.append(tag)
 		# Convert to a set for speed, and remove duplicates:
@@ -320,11 +370,11 @@ class ManyProducts extends Products:
 	# Return a new Products object that contains only the specified IDs.
 	# Intended to be used with ids_for_tags.
 	func make_subset(ids: PoolIntArray):
-		var result = Products.new()
+		var result = ManyProducts.new()
 		for id in ids:
 			if not all.has(id) or result.all.has(id):
 				continue
-			result.all.append(all[id])
+			result.all[id]=all[id]
 			result.by_name[all[id][0]] = id
 			for itag in range(FIRST_TAG_INDEX,len(all[id])):
 				var tag = all[id][itag]
@@ -367,25 +417,25 @@ class SuvarConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('races/suvar',0),0.333333)
 		if not m: return
-		result.add_products(products.ids_for_tags(['religous/terran/buddhism']),m*2,0.8,null)
-		result.add_products(products.ids_for_tags(['religous/terran']),m,0.8,null)
-		result.add_products(products.ids_for_tags(['consumables/terran']),m)
-		result.add_products(products.ids_for_tags(['luxury/terran']),m,0.8)
-		result.add_products(products.ids_for_tags(['intoxicant/terran']),m,null,1.4)
-		result.add_products(products.ids_for_tags(['intoxicant/terran/suvar']),m,1.4,1.7)
-		result.add_products(products.ids_for_tags(['dead/thinking']),m,1.2,1.5)
-		result.add_products(products.ids_for_tags(['dead/sentient','live_sentient']),null,null,10)
+		result.add_products_from(products,['religous/terran/buddhism'],[],m*2,0.8,null)
+		result.add_products_from(products,['religous/terran'],[],m,0.8,null)
+		result.add_products_from(products,['consumables/terran'],[],m)
+		result.add_products_from(products,['luxury/terran'],[],m,0.8)
+		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
+		result.add_products_from(products,['intoxicant/terran/suvar'],[],m,1.4,1.7)
+		result.add_products_from(products,['dead/thinking'],[],m,1.2,1.5)
+		result.add_products_from(products,['dead/sentient','live_sentient'],[],null,null,10)
 
 class HumanConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('races/human',0),0.333333)
 		if not m: return
-		result.add_products(products.ids_for_tags(
-			['religious/terran','consumables/terran','luxury/terran']),m)
-		result.add_products(products.ids_for_tags(['intoxicant/terran']),m,null,1.4)
-		result.add_products(products.ids_for_tags(['intoxicant/terran/human']),m,1.4,1.4)
-		result.add_products(products.ids_for_tags(['dead/sentient']),0,null,8)
-		result.add_products(products.ids_for_tags(['live/sentient']),0,null,8)
+		result.add_products_from(products,
+			['religious/terran','consumables/terran','luxury/terran'],[],m)
+		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
+		result.add_products_from(products,['intoxicant/terran/human'],[],m,1.4,1.4)
+		result.add_products_from(products,['dead/sentient'],[],0,null,8)
+		result.add_products_from(products,['live/sentient'],[],0,null,8)
 
 class ManufacturingProcess extends ProducerConsumer:
 	var consumes_tags: Array
@@ -398,42 +448,43 @@ class ManufacturingProcess extends ProducerConsumer:
 	func industry(products: Products, result: Products, industry: float):
 		var m = pow(industry,0.333333)
 		if not m: return
-		result.add_products(products.ids_for_tags(consumes_tags,exclude_tags),0.5*m,1.2,0)
-		result.add_products(products.ids_for_tags(produces_tags,exclude_tags),3*m,-0.8,0)
+		result.add_products_from(products,consumes_tags,exclude_tags,0.5*m,1.2,0)
+		result.add_products_from(products,produces_tags,exclude_tags,3*m,-0.8,0)
 
 class TerranIllegalTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('races/suvar',0)+population.get('races/human',0),0.333333)
-		result.add_products(products.ids_for_tags([
-			'intoxicant/terran','live/sentient/human','live/sentient/suvar']),m)
+		result.add_products_from(products,[
+			'intoxicant/terran','live/sentient/human','live/sentient/suvar'],['dead/sentient'],m)
 
 class TerranTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('races/suvar',0)+population.get('races/human',0),0.333333)
-		result.add_products(products.ids_for_tags([
+		result.add_products_from(products,[
 			'religious/terran','consumables/terran','luxury/terran',
 			'intoxicant/terran','manufactured/terran','raw_materials/metal',
-			'raw_materials/gems'],['live/sentient','dead/sentient']),m)
+			'raw_materials/gems'],['live/sentient','dead/sentient'],m)
 
 func make_test_products() -> ManyProducts:
 	var result = ManyProducts.new()
 	var data = [
-		[ 'catnip', 100, 100, 10, 1, 'intoxicant/terran', 'intoxicant/terran/suvar' ],
-		[ 'heroin', 300, 900, 10, 1, 'intoxicant/terran', 'intoxicant/terran/human',
+		# name, quantity, value, fine, density, tags
+		[ 'catnip', 10, 100, 100, 1, 'intoxicant/terran', 'intoxicant/terran/suvar' ],
+		[ 'heroin', 10, 300, 900, 1, 'intoxicant/terran', 'intoxicant/terran/human',
 			'intoxicant/terran/suvar' ],
-		[ 'iron', 1, 1, 10000, 5, 'raw_materials/metal' ],
-		[ 'titanium', 8, 8, 3000, 5, 'raw_materials/metal' ],
-		[ 'diamonds', 50000, 50000, 3, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'rubies', 20000, 20000, 3, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'weapon_parts', 800, 800, 10, 50, 'manufactured/defense', 'manufactured/terran' ],
-		[ 'woodworking_tools', 500, 500, 10, 50, 'manufactured/industrial', 'manufactured/terran' ],
-		[ 'tractors', 4000, 4000, 25, 1500, 'manufactured/farming', 'manufactured/terran' ],
-		[ 'deep_core_drill', 18000, 18000, 10, 15000, 'manufactured/mining', 'manufactured/terran' ],
-		[ 'jewelry', 10000, 10000, 7, 1, 'luxury/terran' ],
-		[ 'hamburgers', 5, 100, 100, 1, 'consumables/terran', 'consumables/terran/food', 'dead/thinking' ],
-		[ 'human_slaves', 10000, 1000, 10, 100, 'slaves/terran', 'live/sentient', 'live/sentient/human' ],
-		[ 'humanburgers', 1000, 10000, 10, 1, 'dead/sentient', 'dead/sentient/human' ],
-		[ 'suvar_pelts', 3000, 10000, 10, 3, 'dead/sentient', 'dead/sentient/suvar' ],
+		[ 'iron', 10000, 1, 1, 5, 'raw_materials/metal' ],
+		[ 'titanium', 3000, 8, 8, 5, 'raw_materials/metal' ],
+		[ 'diamonds', 3, 50000, 50000, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'rubies', 3, 20000, 20000, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'weapon_parts', 10, 800, 800, 50, 'manufactured/defense', 'manufactured/terran' ],
+		[ 'woodworking_tools', 10, 500, 500, 50, 'manufactured/industrial', 'manufactured/terran' ],
+		[ 'tractors', 25, 4000, 4000, 1500, 'manufactured/farming', 'manufactured/terran' ],
+		[ 'deep_core_drill', 10, 18000, 18000, 15000, 'manufactured/mining', 'manufactured/terran' ],
+		[ 'jewelry', 7, 10000, 10000, 1, 'luxury/terran' ],
+		[ 'hamburgers', 1000, 5, 100, 1, 'consumables/terran', 'consumables/terran/food', 'dead/thinking' ],
+		[ 'human_slaves', 10, 10000, 1000, 100, 'slaves/terran', 'live/sentient', 'live/sentient/human' ],
+		[ 'humanburgers', 10, 1000, 10000, 1, 'dead/sentient', 'dead/sentient/human' ],
+		[ 'suvar_pelts', 10, 3000, 10000, 3, 'dead/sentient', 'dead/sentient/suvar' ],
 	]
 	result.add_products(data,null,null,null,false,range(len(data)))
 	return result

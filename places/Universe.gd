@@ -164,6 +164,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 	var display_name: String
 	var hull: PackedScene
 	var cached_stats = null
+	var cargo = null
 	
 	func is_ShipDesign(): pass # for type detection; never called
 	
@@ -243,7 +244,8 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return body
 
 func encode_ShipDesign(d: ShipDesign):
-	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d) ]
+	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d),
+		( encode_helper(d.cargo.all) if d.cargo is Commodities.Products else null ) ]
 
 func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
@@ -251,6 +253,11 @@ func decode_ShipDesign(v):
 	var result = ShipDesign.new(str(v[1]), decode_helper(v[2]))
 	if len(v)>3:
 		decode_children(result,v[3])
+	if len(v)>4:
+		var cargo_data = decode_helper(v[4])
+		if cargo_data is Dictionary:
+			v.cargo = Commodities.ManyProducts.new()
+			v.cargo.add_products(cargo_data)
 	return result
 
 

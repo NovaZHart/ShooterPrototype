@@ -1,23 +1,28 @@
 extends Node
 
-func Tree_depth_first(item: TreeItem,object: Object,method: String):
+func Tree_depth_first(item: TreeItem,object: Object,method: String) -> bool:
 	var scan = item.get_children()
 	while scan:
+		if Tree_depth_first(scan,object,method):
+			return true
 		if object.call(method,item,scan):
 			return true
 		scan = scan.get_next()
+	return false
 
 func Tree_remove_subtree(parent: TreeItem,child: TreeItem):
-	Tree_depth_first(child,self,'_remove_tree_item')
+	var _discard = Tree_depth_first(child,self,'_TreeItem_remove_child')
 	_TreeItem_remove_child(parent,child)
 
 func Tree_clear(tree: Tree):
 	var root = tree.get_root()
-	Tree_depth_first(root,self,'_remove_tree_item')
+	if not root:
+		return
+	var _discard = Tree_depth_first(root,self,'_TreeItem_remove_child')
 	tree.clear()
 	root.free()
 
-func _TreeItem_remove_child(parent: TreeItem,child: TreeItem):
+func _TreeItem_remove_child(parent: TreeItem,child: TreeItem) -> void:
 	parent.remove_child(child)
 	child.free()
 
