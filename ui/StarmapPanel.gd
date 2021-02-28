@@ -186,7 +186,8 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 	if node.has_method('list_products'):
 		node.list_products(commodity,price)
 		if price.all:
-			var value = price.all[0][Commodities.Product.VALUE_INDEX]
+			print('node ',node.get_path(),' price ',price.all)
+			var value = price.all[0][Commodities.Products.VALUE_INDEX]
 			if mode==MAX_PRICE:
 				result[0] = max(result[0],value)
 			elif mode==MIN_PRICE:
@@ -198,18 +199,26 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 		var child = node.get_child_with_name(child_name)
 		if child:
 			price_stats_recurse(commodity,child,result)
+	print('result now ',result)
 
 func price_stats(node: simple_tree.SimpleNode): # -> float or null
 	var commodity_data: Array = Commodities.get_selected_commodity()
 	var commodity = Commodities.OneProduct.new(commodity_data)
 	var result = [ 0.0, 0 ]
+	if mode==MIN_PRICE:
+		result[0] = INF
+	elif mode==MAX_PRICE:
+		result[0] = -INF
 	price_stats_recurse(commodity,node,result)
+	if result[0] + 1e6 == result[0]:
+		result[0]=0
+	print('final result ',result)
 	if not result[1]:
 		return null
 	elif mode==AVG_PRICE:
 		return result[0]/result[1]
 	else:
-		return result
+		return result[0]
 
 func pricing_visuals(selection_index: int, location_index: int):
 	var price_at_index: Dictionary = {}
@@ -226,6 +235,7 @@ func pricing_visuals(selection_index: int, location_index: int):
 		if stat!=null and stat>0:
 			min_stat = min(min_stat,stat)
 			max_stat = max(max_stat,stat)
+	print('price_at_index = ',price_at_index)
 	var draw: Dictionary = {}
 	var colors = [ no_sale, bar1_color, bar2_color, bar3_color, bar4_color,
 		bar5_color, bar6_color ]

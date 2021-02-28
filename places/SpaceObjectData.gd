@@ -144,6 +144,7 @@ func list_products(commodities: Commodities.Products, result: Commodities.Produc
 		else:
 			push_warning('Trade type "'+str(trade)+'" not in known types '+
 				str(Commodities.trading.keys()))
+	result.randomize_costs(hash(get_path()),game_state.epoch_time)
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:

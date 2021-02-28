@@ -6,10 +6,16 @@ var selected_commodity_index: int = -1
 
 const no_commodity: Array = [ 'nothing', 0, 0, 0, 0 ]
 
+func select_no_commodity():
+	selected_commodity_index=-1
+
 func get_selected_commodity() -> Array:
 	if commodities:
 		return commodities.all.get(selected_commodity_index,no_commodity)
 	return no_commodity
+
+func select_commodity_with_name(product_name: String):
+	selected_commodity_index=commodities.by_name.get(product_name,-1)
 
 class Products extends Reference:
 	var all: Dictionary = {} # mapping from ID to data for one product
@@ -72,7 +78,23 @@ class Products extends Reference:
 			_quantity_multiplier = null, _value_multiplier = null, _fine_multiplier = 0, 
 			_skip_checks: bool = true, _keys_to_add = null):
 		return false
-
+	
+	func randomize_costs(randseed: int,time: float):
+		var ids=all.keys()
+		ids.sort()
+		for id in ids:
+			seed(randseed+hash(all[id][NAME_INDEX]))
+			var f = 0.0
+			var w = 0.0
+			var p = 1.0
+			for i in range(3):
+				p *= 0.75
+				var w1 = (2.0*randf()-1.0)*p
+				var w2 = (2.0*randf()-1.0)*p
+				f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
+				w += abs(w1)+abs(w2)
+			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.3*f/w))
+	
 	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
 			fine_multiplier):
 		if quantity_multiplier==null and value_multiplier==null and \
@@ -158,44 +180,21 @@ class OneProduct extends Products:
 			else:
 				key = keys_to_add[0]
 			set_product(all_products.all[key])
+			_apply_multipliers(all[key],all_products.all[key],
+				quantity_multiplier, value_multiplier, fine_multiplier)
 		elif not all_products.by_name.has(product_name):
 			push_warning('Product named "'+product_name+'" not in all_products')
 			return false
 		elif keys_to_add!=null:
 			var has: bool = false
 			for key in keys_to_add:
-				if all_products[key][0]==product_name:
+				if all_products.all.has(key) and all_products.all[key][0]==product_name:
+					_apply_multipliers(all[key],all_products.all[key],
+						quantity_multiplier, value_multiplier, fine_multiplier)
 					has=true
 					break
 			if not has:
 				push_warning('Product named "'+product_name+'" not in keys')
-		if value_multiplier!=null:
-			if abs(value_multiplier)<1e-5:
-				all[0][VALUE_INDEX] = 0
-			elif value_multiplier<0:
-				all[0][VALUE_INDEX] = max(all[0][VALUE_INDEX],
-					-all[0][VALUE_INDEX]*value_multiplier)
-			else:
-				all[0][VALUE_INDEX] = max(all[0][VALUE_INDEX],
-					all[0][VALUE_INDEX]*value_multiplier)
-		if fine_multiplier!=null:
-			if abs(fine_multiplier)<1e-5:
-				all[0][FINE_INDEX] = 0
-			elif fine_multiplier<0:
-				all[0][FINE_INDEX] = min(all[0][FINE_INDEX],
-					-all[0][FINE_INDEX]*fine_multiplier)
-			else:
-				all[0][FINE_INDEX] = max(all[0][FINE_INDEX],
-					all[0][FINE_INDEX]*fine_multiplier)
-		if quantity_multiplier!=null:
-			if abs(quantity_multiplier)<1e-5:
-				all[0][QUANTITY_INDEX] = 0
-			elif quantity_multiplier<0:
-				all[0][QUANTITY_INDEX] = min(all[0][QUANTITY_INDEX],
-					-all[0][QUANTITY_INDEX]*quantity_multiplier)
-			else:
-				all[0][QUANTITY_INDEX] = max(all[0][QUANTITY_INDEX],
-					all[0][QUANTITY_INDEX]*quantity_multiplier)
 		return true
 
 class ManyProducts extends Products:

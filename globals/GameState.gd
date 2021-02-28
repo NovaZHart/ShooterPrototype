@@ -5,7 +5,7 @@ const standalone_max_ships: int = 300
 const debug_team_maximums: Array = [35, 35]
 const debug_max_ships: int = 60
 
-var current_day: float = 0
+var epoch_time: float = 0
 var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
 

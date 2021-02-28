@@ -11,6 +11,9 @@ signal product_selected
 signal no_product_selected
 signal cargo_mass_changed
 
+func get_product_names():
+	return here.by_name.keys()
+
 #func test_commodities():
 #	print('TEST')
 #	var matches = Commodities.commodities.ids_for_tags(['intoxicant/terran'])

@@ -75,7 +75,7 @@ func store_state():
 		'player_location': player_location,
 		'player_ship_design': design,
 		'hyperspace_position': hyperspace_position,
-		'current_day': game_state.current_day,
+		'epoch_time': game_state.epoch_time,
 	}
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
@@ -84,7 +84,7 @@ func restore_state(state: Dictionary,restore_from_load_page = true):
 	if state.has('hyperspace_position'):
 		set_hyperspace_position(state['hyperspace_position'])
 	player_ship_design = state['player_ship_design']
-	game_state.current_day = state['current_day']
+	game_state.epoch_time = float(state.get('epoch_time',0.0))
 	player_ship_design.name = 'player_ship_design'
 	var old_design = game_state.ship_designs.get_node_or_null('player_ship_design')
 	if old_design:
