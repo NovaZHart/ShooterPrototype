@@ -106,6 +106,15 @@ class SystemEditorStub extends Panel:
 	func update_space_object_data(_path: NodePath, _basic: bool, _visual: bool,
 			_help: bool, _location: bool):
 		return true
+	func update_key_space_object_data(
+			_path: NodePath,_property: String,_key,_value) -> bool:
+		return true
+	func insert_space_object_data(
+			_path: NodePath,_property: String,_key,_value) -> bool:
+		return true
+	func remove_space_object_data(
+			_path: NodePath,_property: String,_key) -> bool:
+		return true
 	func add_space_object(_parent: NodePath, _child) -> bool:
 		return true
 	func remove_space_object(_parent: NodePath, _child) -> bool:

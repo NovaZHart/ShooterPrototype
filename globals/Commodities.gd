@@ -4,6 +4,9 @@ var commodities: ManyProducts
 var trading: Dictionary
 var selected_commodity_index: int = -1
 
+# Maybwe move this to game data files?
+const population_names: Array = [ 'suvar', 'human' ]
+
 const no_commodity: Array = [ 'nothing', 0, 0, 0, 0 ]
 
 func select_no_commodity():
@@ -94,6 +97,19 @@ class Products extends Reference:
 				f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
 				w += abs(w1)+abs(w2)
 			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.3*f/w))
+	
+	func apply_multiplier_list(multipliers: Dictionary):
+		for tag in multipliers:
+			if by_tag.has(tag):
+				var quantity_value_fine = multipliers[tag]
+				for id in by_tag[tag]:
+					var product = all[id]
+					if quantity_value_fine[0]>=0:
+						product[QUANTITY_INDEX] *= quantity_value_fine[0]
+					if quantity_value_fine[1]>=0:
+						product[VALUE_INDEX] *= quantity_value_fine[1]
+					if quantity_value_fine[2]>=0:
+						product[FINE_INDEX] *= quantity_value_fine[2]
 	
 	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
 			fine_multiplier):
@@ -423,9 +439,10 @@ class ProducerConsumer extends Reference:
 	func population(_all_products: Products, _result: Products, _population: Dictionary):
 		pass # What the population produces and consumes, regardless of infrastructure:
 
+
 class SuvarConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
-		var m = pow(population.get('races/suvar',0),0.333333)
+		var m = pow(population.get('suvar',0),0.333333)
 		if not m: return
 		result.add_products_from(products,['religous/terran/buddhism'],[],m*2,0.8,null)
 		result.add_products_from(products,['religous/terran'],[],m,0.8,null)
@@ -438,7 +455,7 @@ class SuvarConsumers extends ProducerConsumer:
 
 class HumanConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
-		var m = pow(population.get('races/human',0),0.333333)
+		var m = pow(population.get('human',0),0.333333)
 		if not m: return
 		result.add_products_from(products,
 			['religious/terran','consumables/terran','luxury/terran'],[],m)
@@ -463,13 +480,13 @@ class ManufacturingProcess extends ProducerConsumer:
 
 class TerranIllegalTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
-		var m = pow(population.get('races/suvar',0)+population.get('races/human',0),0.333333)
+		var m = pow(population.get('suvar',0)+population.get('human',0),0.333333)
 		result.add_products_from(products,[
 			'intoxicant/terran','live/sentient/human','live/sentient/suvar'],['dead/sentient'],m)
 
 class TerranTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
-		var m = pow(population.get('races/suvar',0)+population.get('races/human',0),0.333333)
+		var m = pow(population.get('suvar',0)+population.get('human',0),0.333333)
 		result.add_products_from(products,[
 			'religious/terran','consumables/terran','luxury/terran',
 			'intoxicant/terran','manufactured/terran','raw_materials/metal',

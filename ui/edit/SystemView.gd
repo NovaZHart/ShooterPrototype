@@ -14,6 +14,8 @@ export var detail_level: float = 150
 const y500: Vector3 = Vector3(0.0,500.0,0.0)
 const ANNOTATION_FOR_MAKING_OBJECTS: String = '-is_making-'
 
+var raise_sun: bool = true # never used; needed by SystemData
+
 var first_process: bool = true
 var play_speed: float = 0.0
 var planet_time: float = 0.0

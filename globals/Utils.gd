@@ -1,12 +1,56 @@
 extends Node
 
-func Tree_depth_first(item: TreeItem,object: Object,method: String) -> bool:
+func TreeItem_find_index(parent: TreeItem,object: Object,method: String):
+	var scan = parent.get_children()
+	var index = 0
+	while scan:
+		if object.call(method,parent,scan):
+			return index
+		index += 1
+		scan = scan.get_next()
+	return -1
+
+func Tree_set_titles_and_width(tree: Tree,titles,font: Font,min_width: int,expand=true):
+	for i in range(len(titles)):
+		var title = titles[i]
+		if title and title is String:
+			Tree_set_title_and_width(tree,i,title,font,min_width,expand)
+
+func Tree_set_title_and_width(tree: Tree,column: int,title: String,font: Font,min_width: int,expand=true):
+	var text = title
+	var width = 0
+	for i in range(30):
+		text = ' '.repeat(i) + title + ' '.repeat(i)
+		width = font.get_string_size(text).x
+		if width>=min_width:
+			break
+	tree.set_column_title(column,text)
+	tree.set_column_expand(column,expand)
+	tree.set_column_min_width(column,width+6)
+
+func Tree_remove_where(item: TreeItem,object: Object,method: String) -> bool:
+	var result = false
 	var scan = item.get_children()
 	while scan:
-		if Tree_depth_first(scan,object,method):
-			return true
 		if object.call(method,item,scan):
-			return true
+			var next = scan.get_next()
+			item.remove_child(scan)
+			scan.free()
+			scan = next
+			result = true
+		else:
+			result = Tree_depth_first(scan,object,method) or result
+			scan = scan.get_next()
+	return result
+
+func Tree_depth_first(item: TreeItem,object: Object,method: String):
+	var scan = item.get_children()
+	while scan:
+		var result = Tree_depth_first(scan,object,method)
+		if not result:
+			result = object.call(method,item,scan)
+		if result:
+			return result
 		scan = scan.get_next()
 	return false
 

@@ -2,7 +2,7 @@ extends game_state.SectorEditorStub
 
 export var connected_location_color = Color(0.6,0.5,0.9)
 export var system_location_color = Color(0.7,0.6,1.0)
-
+export var allow_selection: bool = true
 export var path_color = Color(0.6,0.5,0.9)
 export var connected_color = Color(0.4,0.8,1.0)
 export var highlight_color = Color(1.0,0.9,0.5)
@@ -66,7 +66,8 @@ func cancel_drag() -> bool:
 	return true
 
 func _ready():
-	game_state.switch_editors(self)
+	if allow_selection:
+		game_state.switch_editors(self)
 	
 	starmap.name = 'Starmap'
 	starmap.set_camera_path(NodePath('../Camera'))
@@ -375,7 +376,7 @@ func _input(event):
 					starmap.update()
 		else:
 			var _discard = cancel_drag()
-
+	
 	if event.is_action_pressed('ui_location_slide'):
 		last_screen_position = pos2
 		last_position = $View/Port/Camera.project_position(last_screen_position,-10)
@@ -383,26 +384,29 @@ func _input(event):
 	elif event.is_action_released('ui_location_slide'):
 		var _discard = cancel_drag()
 	elif event.is_action_pressed('ui_location_select'):
-		var target = find_at_position(pos2)
-		if (selection and not target) or target is simple_tree.SimpleNode:
-			universe_edits.state.push(universe_edits.ChangeSelection.new(
-				selection,target))
+		if allow_selection:
+			var target = find_at_position(pos2)
+			if (selection and not target) or target is simple_tree.SimpleNode:
+				universe_edits.state.push(universe_edits.ChangeSelection.new(
+					selection,target))
 		last_screen_position = pos2
 		last_position = $View/Port/Camera.project_position(last_screen_position,-10)
 		camera_start = $View/Port/Camera.translation
 		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_undo'):
+	elif allow_selection and event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
 		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_redo'):
+	elif allow_selection and event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released("wheel_up"):
 		ui_scroll=1.5
-		get_tree().set_input_as_handled()
+		if allow_selection:
+			get_tree().set_input_as_handled()
 	elif event.is_action_released("wheel_down"):
 		ui_scroll=-1.5
-		get_tree().set_input_as_handled()
+		if allow_selection:
+			get_tree().set_input_as_handled()
 
 func in_top_dialog(node,top) -> bool:
 	if node==null:

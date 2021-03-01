@@ -54,27 +54,16 @@ func get_product_names():
 #	print(modified.dump())
 #	print('END TEST')
 
-func set_title_and_width(column: int,title: String,font: Font,min_width: int):
-	var text = title
-	var width = 0
-	for i in range(30):
-		text = ' '.repeat(i) + title + ' '.repeat(i)
-		width = font.get_string_size(text).x
-		if width>=min_width:
-			break
-	set_column_title(column,text)
-	set_column_min_width(column,width+6)
-
 func _ready():
 	set_column_titles_visible(true)
-	var font = get_font('default_font')
+	var font = get_font('normal_font')
 	var number_size = font.get_char_size(ord('0'),ord('0'))
 	var min_width = number_size.x*7.5
-	set_title_and_width(0,'Product',font,min_width)
-	set_title_and_width(1,'Price',font,min_width)
-	set_title_and_width(2,'Cargo',font,min_width)
-	set_title_and_width(3,'Buy/Sell',font,increment_texture.get_width()+decrement_texture.get_width()+10)
-	set_title_and_width(4,'For Sale',font,min_width)
+	utils.Tree_set_title_and_width(self,0,'Product',font,min_width)
+	utils.Tree_set_title_and_width(self,1,'Price',font,min_width)
+	utils.Tree_set_title_and_width(self,2,'Cargo',font,min_width)
+	utils.Tree_set_title_and_width(self,3,'Buy/Sell',font,increment_texture.get_width()+decrement_texture.get_width()+10)
+	utils.Tree_set_title_and_width(self,4,'For Sale',font,min_width)
 	for c in [ 1,2,3,4 ]:
 		set_column_expand(c,false)
 

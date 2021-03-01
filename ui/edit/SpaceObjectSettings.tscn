@@ -1,9 +1,10 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=2]
 [ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=3]
 [ext_resource path="res://ui/edit/SpaceObjectSettings.gd" type="Script" id=4]
+[ext_resource path="res://ui/skins/red-x-24.png" type="Texture" id=5]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 3 )
@@ -17,6 +18,7 @@ script = ExtResource( 4 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+remove_texture = ExtResource( 5 )
 
 [node name="Basic" type="GridContainer" parent="."]
 anchor_right = 1.0
@@ -30,7 +32,7 @@ size_flags_vertical = 3
 
 [node name="Top" type="GridContainer" parent="Basic"]
 margin_right = 1016.0
-margin_bottom = 192.0
+margin_bottom = 220.0
 size_flags_horizontal = 3
 columns = 2
 __meta__ = {
@@ -159,19 +161,31 @@ margin_top = 168.0
 margin_right = 1016.0
 margin_bottom = 192.0
 
-[node name="Gate" type="CheckButton" parent="Basic"]
+[node name="IndustryLabel" type="Label" parent="Basic/Top"]
+margin_top = 201.0
+margin_right = 506.0
+margin_bottom = 215.0
+text = "Industry: "
+
+[node name="IndustryEdit" type="LineEdit" parent="Basic/Top"]
+margin_left = 510.0
 margin_top = 196.0
 margin_right = 1016.0
-margin_bottom = 236.0
+margin_bottom = 220.0
+
+[node name="Gate" type="CheckButton" parent="Basic"]
+margin_top = 224.0
+margin_right = 1016.0
+margin_bottom = 264.0
 hint_tooltip = "Stars can have Astral Gates, which let you travel to other Astral Gates in the same network."
 text = "Has an Astral Gate?"
 clip_text = true
 align = 1
 
 [node name="ServiceLabel" type="Label" parent="Basic"]
-margin_top = 240.0
+margin_top = 268.0
 margin_right = 1016.0
-margin_bottom = 264.0
+margin_bottom = 292.0
 rect_min_size = Vector2( 0, 24 )
 hint_tooltip = "Services available on the planet or star. Not visible if there is an Astral Gate."
 mouse_filter = 1
@@ -179,13 +193,57 @@ text = "Planet Services"
 valign = 2
 
 [node name="Services" type="ItemList" parent="Basic"]
-margin_top = 268.0
+margin_top = 296.0
 margin_right = 1016.0
 margin_bottom = 564.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 select_mode = 1
 allow_reselect = true
+
+[node name="Help" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+
+[node name="Label" type="Label" parent="Help"]
+margin_top = -1.0
+margin_right = 1016.0
+margin_bottom = 23.0
+rect_min_size = Vector2( 0, 24 )
+hint_tooltip = "Description available in help system and when orbiting."
+mouse_filter = 1
+text = "In-Game Description"
+valign = 1
+
+[node name="Data" type="VSplitContainer" parent="Help"]
+margin_top = 28.0
+margin_right = 1016.0
+margin_bottom = 564.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Text" type="TextEdit" parent="Help/Data"]
+margin_right = 1016.0
+margin_bottom = 262.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+syntax_highlighting = true
+draw_tabs = true
+wrap_enabled = true
+
+[node name="Display" parent="Help/Data" instance=ExtResource( 1 )]
+follow_urls = false
+allow_input = false
 
 [node name="Visual" type="GridContainer" parent="."]
 visible = false
@@ -313,7 +371,7 @@ mouse_filter = 1
 text = "Add Color"
 valign = 1
 
-[node name="Help" type="GridContainer" parent="."]
+[node name="Adjust" type="GridContainer" parent="."]
 visible = false
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -321,41 +379,108 @@ margin_left = 4.0
 margin_top = 32.0
 margin_right = -4.0
 margin_bottom = -4.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
 
-[node name="Label" type="Label" parent="Help"]
-margin_top = -1.0
+[node name="Heading" type="GridContainer" parent="Adjust"]
 margin_right = 1016.0
-margin_bottom = 23.0
-rect_min_size = Vector2( 0, 24 )
-hint_tooltip = "Description available in help system and when orbiting."
-mouse_filter = 1
-text = "In-Game Description"
-valign = 1
+margin_bottom = 20.0
+size_flags_horizontal = 3
+columns = 2
 
-[node name="Data" type="VSplitContainer" parent="Help"]
-margin_top = 28.0
+[node name="Label" type="Label" parent="Adjust/Heading"]
+margin_top = 3.0
+margin_right = 972.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+text = "Locality Adjustments"
+
+[node name="New" type="MenuButton" parent="Adjust/Heading"]
+margin_left = 976.0
+margin_right = 1016.0
+margin_bottom = 20.0
+text = "New"
+flat = false
+
+[node name="Tree" type="Tree" parent="Adjust"]
+margin_top = 24.0
 margin_right = 1016.0
 margin_bottom = 564.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-__meta__ = {
-"_edit_use_anchors_": false
-}
+columns = 4
+hide_root = true
 
-[node name="Text" type="TextEdit" parent="Help/Data"]
-margin_right = 1016.0
-margin_bottom = 262.0
+[node name="Trading" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Heading" type="GridContainer" parent="Trading"]
+margin_right = 1024.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="Label" type="Label" parent="Trading/Heading"]
+margin_top = 3.0
+margin_right = 980.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+size_flags_vertical = 6
+text = "Trading: "
+
+[node name="New" type="MenuButton" parent="Trading/Heading"]
+margin_left = 984.0
+margin_right = 1024.0
+margin_bottom = 20.0
+text = "New"
+flat = false
+
+[node name="Tree" type="Tree" parent="Trading"]
+margin_top = 24.0
+margin_right = 1024.0
+margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-syntax_highlighting = true
-draw_tabs = true
-wrap_enabled = true
+hide_root = true
 
-[node name="Display" parent="Help/Data" instance=ExtResource( 1 )]
-follow_urls = false
-allow_input = false
+[node name="Population" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Heading" type="GridContainer" parent="Population"]
+margin_top = 28.0
+margin_right = 1016.0
+margin_bottom = 48.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="Label" type="Label" parent="Population/Heading"]
+margin_top = 3.0
+margin_right = 972.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+text = "Races: "
+
+[node name="New" type="MenuButton" parent="Population/Heading"]
+margin_left = 976.0
+margin_right = 1016.0
+margin_bottom = 20.0
+text = "New"
+flat = false
+
+[node name="Tree" type="Tree" parent="Population"]
+margin_top = 52.0
+margin_right = 1016.0
+margin_bottom = 564.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+hide_root = true
 [connection signal="focus_exited" from="Basic/Top/IDEdit" to="." method="_on_IDEdit_focus_exited"]
 [connection signal="focus_exited" from="Basic/Top/NameEdit" to="." method="_on_NameEdit_focus_exited"]
 [connection signal="text_entered" from="Basic/Top/NameEdit" to="." method="_on_NameEdit_text_entered"]
@@ -369,11 +494,15 @@ allow_input = false
 [connection signal="text_entered" from="Basic/Top/OrbitPhaseEdit" to="." method="_on_OrbitPhaseEdit_text_entered"]
 [connection signal="focus_exited" from="Basic/Top/RotationPeriodEdit" to="." method="_on_RotationPeriodEdit_focus_exited"]
 [connection signal="text_entered" from="Basic/Top/RotationPeriodEdit" to="." method="_on_RotationPeriodEdit_text_entered"]
+[connection signal="focus_exited" from="Basic/Top/IndustryEdit" to="." method="_on_Industry_Edit_focus_exited"]
+[connection signal="text_entered" from="Basic/Top/IndustryEdit" to="." method="_on_Industry_Edit_text_entered"]
 [connection signal="toggled" from="Basic/Gate" to="." method="_on_Gate_toggled"]
 [connection signal="item_activated" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="item_selected" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="multi_selected" from="Basic/Services" to="." method="_on_Services_changed"]
 [connection signal="nothing_selected" from="Basic/Services" to="." method="_on_Services_changed"]
+[connection signal="focus_exited" from="Help/Data/Text" to="." method="_on_Text_focus_exited"]
+[connection signal="text_changed" from="Help/Data/Text" to="." method="_on_Text_text_changed"]
 [connection signal="resized" from="Visual" to="." method="_on_Visual_resized"]
 [connection signal="visibility_changed" from="Visual/View" to="." method="_on_View_visibility_changed"]
 [connection signal="focus_exited" from="Visual/Settings/RadiusEdit" to="." method="_on_RadiusEdit_focus_exited"]
@@ -387,5 +516,10 @@ allow_input = false
 [connection signal="color_changed" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_ColorAdditionPicker_color_changed"]
 [connection signal="picker_created" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_picker_created"]
 [connection signal="popup_closed" from="Visual/Settings/ColorAdditionPicker" to="." method="_on_picker_closed"]
-[connection signal="focus_exited" from="Help/Data/Text" to="." method="_on_Text_focus_exited"]
-[connection signal="text_changed" from="Help/Data/Text" to="." method="_on_Text_text_changed"]
+[connection signal="button_pressed" from="Adjust/Tree" to="." method="_on_Adjust_Tree_button_pressed"]
+[connection signal="focus_exited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_focus_exited"]
+[connection signal="item_edited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_item_edited"]
+[connection signal="button_pressed" from="Trading/Tree" to="." method="_on_Trading_Tree_button_pressed"]
+[connection signal="button_pressed" from="Population/Tree" to="." method="_on_Population_Tree_button_pressed"]
+[connection signal="focus_exited" from="Population/Tree" to="." method="_on_Population_Keys_focus_exited"]
+[connection signal="item_edited" from="Population/Tree" to="." method="_on_Population_Keys_item_edited"]

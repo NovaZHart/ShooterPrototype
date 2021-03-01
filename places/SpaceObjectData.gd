@@ -42,14 +42,13 @@ var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
 var base_name: String = ''
-var trading: Array = []
+var trading: Dictionary = {}
 var population: Dictionary = {}
 var industry: float = 0
+var locality_adjustments: Dictionary = {}
 
-const default_planet_trading: Array = [ 'suvar','human','terran_trade' ]
-const default_planet_population: Dictionary = {
-	'races/suvar':1000000, 'races/human':9000000
-}
+const default_planet_trading: Dictionary = { 'suvar':1, 'human':1 }
+const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
 const default_planet_industry: float = 100000.0
 
 func set_object_type(p: int):
@@ -84,6 +83,8 @@ func encode() -> Dictionary:
 		'display_name': display_name,
 		'description': description,
 		'base': base_name,
+		'trading': trading.duplicate(true),
+		'locality_adjustments': locality_adjustments.duplicate(true),
 	}
 	maybe_add(result,'object_type',object_type,base)
 	maybe_add(result,'size',size,base)
@@ -96,6 +97,11 @@ func encode() -> Dictionary:
 	maybe_add(result,'orbit_start',orbit_start,base)
 	maybe_add(result,'has_astral_gate',has_astral_gate,base)
 	return result
+
+func get_or_dup(me: Dictionary,key,default,deep: bool = true):
+	if key in me:
+		return me[key]
+	return default.duplicate(deep)
 
 func _init(node_name,me: Dictionary ={}):
 	base_name = me.get('base','')
@@ -115,13 +121,13 @@ func _init(node_name,me: Dictionary ={}):
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
+	locality_adjustments = me.get('locality_adjustments',{})
 	if object_type==PLANET:
-		trading = me.get('trading',default_planet_trading)
-		population = me.get('population',default_planet_population)
+		trading = get_or_dup(me,'trading',default_planet_trading)
+		population = get_or_dup(me,'population',default_planet_population)
 		industry = me.get('industry',default_planet_industry)
-	else:
-		trading = me.get('trading',[])
-		population = me.get('population',{})
+		if 'locality_adjustments' in me:
+			locality_adjustments = me['locality_adjustments']
 	var objects = me.get('objects',{})
 	if objects and objects is Dictionary:
 		for key in objects:

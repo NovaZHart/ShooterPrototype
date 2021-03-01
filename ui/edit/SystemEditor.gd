@@ -101,6 +101,21 @@ func _on_SystemView_request_focus():
 		return
 	$Split/Left.grab_focus()
 
+func update_key_space_object_data(path: NodePath,property: String,key,value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('update_key_space_object_data'):
+		return $Split/Right/Bottom/Settings.update_key_space_object_data(path,property,key,value)
+	return true
+
+func insert_space_object_data(path: NodePath,property: String,key,value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('insert_space_object_data'):
+		return $Split/Right/Bottom/Settings.insert_space_object_data(path,property,key,value)
+	return true
+
+func remove_space_object_data(path: NodePath,property: String,key) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('remove_space_object_data'):
+		return $Split/Right/Bottom/Settings.remove_space_object_data(path,property,key)
+	return true
+
 func update_system_data(_path: NodePath,bkg_update: bool,meta_update:bool): 
 	var success: bool = true
 	if bkg_update or meta_update:

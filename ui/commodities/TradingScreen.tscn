@@ -123,6 +123,8 @@ anchor_bottom = 0.0
 margin_top = 27.0
 margin_right = 653.0
 margin_bottom = 600.0
+mouse_filter = 2
+allow_selection = false
 mode = 1
 [connection signal="pressed" from="All/Left/Bottom/Tools/SellAll" to="All/Left/Bottom/TradingList" method="_on_SellAll_pressed"]
 [connection signal="cargo_mass_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_cargo_mass_changed"]
