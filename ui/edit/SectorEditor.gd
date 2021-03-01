@@ -262,12 +262,6 @@ func make_circle_mesh(radius: float,count: int,center: Vector3) -> ArrayMesh:
 		prior=this
 	return tri_to_mesh(vertices,uv)
 
-func event_position(event: InputEvent) -> Vector2:
-	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouseButton:
-		return event.position
-	return get_viewport().get_mouse_position()
-
 func find_at_position(screen_position: Vector2):
 	var epsilon = SELECT_EPSILON*$Camera.size
 	var pos3 = $Camera.project_position(screen_position,-10)
@@ -325,7 +319,7 @@ func make_new_system(event: InputEvent): # -> SimpleNode or null
 		push_error('popup already exists')
 		return null
 	
-	var screen_position: Vector2 = event_position(event)
+	var screen_position: Vector2 = utils.event_position(event)
 	var pos3 = $Camera.project_position(screen_position,-10)
 	pos3.y=0
 	
@@ -356,7 +350,7 @@ func edit_system(system):
 	universe_edits.state.push(universe_edits.EnterSystemFromSector.new(system.get_path()))
 
 func handle_select(event: InputEvent):
-	var pos = event_position(event)
+	var pos = utils.event_position(event)
 	var target = find_at_position(pos)
 	if event.shift and selection is simple_tree.SimpleNode:
 		if target is simple_tree.SimpleNode and target.get_name()!=selection.get_name():
@@ -380,7 +374,7 @@ func handle_select(event: InputEvent):
 func handle_modify(event: InputEvent):
 #	if not selection is simple_tree.SimpleNode:
 #		return
-	var loc: Vector2 = event_position(event)
+	var loc: Vector2 = utils.event_position(event)
 	var at = find_at_position(loc)
 	if at:
 		if selection and at is simple_tree.SimpleNode:
@@ -412,7 +406,7 @@ func _unhandled_input(event):
 		return
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_select'):
-			var pos2: Vector2 = event_position(event)
+			var pos2: Vector2 = utils.event_position(event)
 			var pos3: Vector3 = $Camera.project_position(pos2,-10)
 			var delta: Vector3 = pos3-last_position
 			if selection:

@@ -7,6 +7,7 @@ var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
+var money: int = 98000
 
 var stored_system_path
 var stored_player_path
@@ -76,10 +77,12 @@ func store_state():
 		'player_ship_design': design,
 		'hyperspace_position': hyperspace_position,
 		'epoch_time': game_state.epoch_time,
+		'money': money,
 	}
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']
+	money = state.get('money',98000)
 	set_player_location(state['player_location'])
 	if state.has('hyperspace_position'):
 		set_hyperspace_position(state['hyperspace_position'])

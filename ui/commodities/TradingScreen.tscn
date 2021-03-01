@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=2]
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
 [ext_resource path="res://ui/commodities/TradingList.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/commodities/TradingScreen.gd" type="Script" id=5]
+[ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=6]
 
 [sub_resource type="DynamicFont" id=1]
 size = 18
@@ -36,29 +37,32 @@ margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Prices" type="Tree" parent="All/Left"]
-margin_right = 359.0
-margin_bottom = 194.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
-
 [node name="Bottom" type="GridContainer" parent="All/Left"]
-margin_top = 206.0
 margin_right = 359.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 2.0
 
-[node name="Tools" type="GridContainer" parent="All/Left/Bottom"]
+[node name="Help" parent="All/Left/Bottom" instance=ExtResource( 6 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
 margin_right = 359.0
-margin_bottom = 23.0
+margin_bottom = 284.0
+initial_bbcode = ""
+allow_input = false
+
+[node name="Tools" type="GridContainer" parent="All/Left/Bottom"]
+margin_top = 288.0
+margin_right = 359.0
+margin_bottom = 311.0
 columns = 2
 
 [node name="Label" type="Label" parent="All/Left/Bottom/Tools"]
 margin_top = 1.0
 margin_right = 299.0
 margin_bottom = 22.0
+mouse_filter = 1
 size_flags_horizontal = 3
 custom_fonts/font = SubResource( 1 )
 text = "Buy/Sell at (Player Location)"
@@ -68,16 +72,17 @@ margin_left = 303.0
 margin_right = 359.0
 margin_bottom = 23.0
 grow_horizontal = 0
+hint_tooltip = "Sell everything your cargo hold."
 text = "Sell All"
 
 [node name="TradingList" parent="All/Left/Bottom" instance=ExtResource( 4 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 27.0
+margin_top = 315.0
 margin_right = 359.0
-margin_bottom = 394.0
+margin_bottom = 599.0
 
-[node name="Right" type="GridContainer" parent="All"]
+[node name="Right" type="Panel" parent="All"]
 margin_left = 371.0
 margin_right = 1024.0
 margin_bottom = 600.0
@@ -85,44 +90,24 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.8
 
-[node name="Context" type="GridContainer" parent="All/Right"]
-margin_right = 653.0
-margin_bottom = 23.0
-columns = 4
-
-[node name="CargoMass" type="Label" parent="All/Right/Context"]
-margin_top = 3.0
-margin_right = 204.0
-margin_bottom = 20.0
-size_flags_horizontal = 3
-
-[node name="ProductList" type="OptionButton" parent="All/Right/Context"]
-margin_left = 208.0
-margin_right = 412.0
-margin_bottom = 23.0
-size_flags_horizontal = 3
-text = "(No product selected)"
-
-[node name="BuySell" type="OptionButton" parent="All/Right/Context"]
-margin_left = 416.0
-margin_right = 445.0
-margin_bottom = 23.0
-
-[node name="Location" type="Label" parent="All/Right/Context"]
-margin_left = 449.0
-margin_top = 3.0
-margin_right = 653.0
-margin_bottom = 20.0
-grow_horizontal = 0
-size_flags_horizontal = 3
-text = "Player Location"
-align = 2
-valign = 2
+[node name="Content" type="GridContainer" parent="All/Right"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="StarmapPanel" parent="All/Right" instance=ExtResource( 2 )]
+[node name="Top" type="CenterContainer" parent="All/Right/Content"]
+margin_right = 653.0
+margin_bottom = 23.0
+
+[node name="BuySell" type="OptionButton" parent="All/Right/Content/Top"]
+margin_left = 312.0
+margin_right = 341.0
+margin_bottom = 23.0
+hint_tooltip = "Choice: map locations to buy item, or sale value of item."
+
+[node name="StarmapPanel" parent="All/Right/Content" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 27.0
@@ -130,8 +115,43 @@ margin_right = 653.0
 margin_bottom = 600.0
 mouse_filter = 2
 allow_selection = false
+max_camera_size = 200.0
 mode = 1
+
+[node name="CargoMass" type="Label" parent="All/Right"]
+margin_right = 216.0
+margin_bottom = 17.0
+rect_min_size = Vector2( 0, 18 )
+hint_tooltip = "Total mass in your ship's cargo hold, and maximum carrying capacity. More mass slows down your ship. 
+You cannot leave if your ship is beyond capacity."
+mouse_filter = 1
+size_flags_horizontal = 3
+text = "Cargo: 999/999 kg"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Location" type="Label" parent="All/Right"]
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -220.0
+margin_bottom = 17.0
+grow_horizontal = 0
+rect_min_size = Vector2( 0, 18 )
+hint_tooltip = "Your ship's current location."
+mouse_filter = 1
+size_flags_horizontal = 3
+text = "Player Location"
+align = 2
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 [connection signal="pressed" from="All/Left/Bottom/Tools/SellAll" to="All/Left/Bottom/TradingList" method="_on_SellAll_pressed"]
+[connection signal="all_product_data_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_all_product_data_changed"]
 [connection signal="cargo_mass_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_cargo_mass_changed"]
-[connection signal="item_selected" from="All/Right/Context/ProductList" to="." method="_on_ProductList_item_selected"]
-[connection signal="item_selected" from="All/Right/Context/BuySell" to="." method="_on_BuySell_item_selected"]
+[connection signal="product_data_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_product_data_changed"]
+[connection signal="product_selected" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_product_selected"]
+[connection signal="resized" from="All/Right/Content/Top" to="." method="_on_Content_resized"]
+[connection signal="item_selected" from="All/Right/Content/Top/BuySell" to="." method="_on_BuySell_item_selected"]

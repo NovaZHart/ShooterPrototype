@@ -91,12 +91,6 @@ func at_position(pos,mask: int) -> Dictionary:
 	to.y = $Viewport/Camera.translation.y-500
 	return space.intersect_ray(from,to,[],mask,true,true)
 
-func event_position(event: InputEvent):
-	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouseButton:
-		return event.position
-	return get_viewport().get_mouse_position()
-
 func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: CollisionObject) -> bool:
 	var parent = collider.get_parent()
 	if parent==null:

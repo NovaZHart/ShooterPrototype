@@ -52,6 +52,17 @@ class Products extends Reference:
 	func ids_for_tags(_include, _exclude=null) -> PoolIntArray:
 		return PoolIntArray()
 	
+	# Total value of all specified products. Takes a list of ids or null.
+	func get_value(ids=null):
+		var value: float = 0.0
+		if ids==null:
+			ids=all.keys()
+		for id in ids:
+			var product = all[id]
+			var product_value = product[QUANTITY_INDEX]*product[VALUE_INDEX]
+			value += max(0.0,product_value)
+		return value
+	
 	# Total mass of all specified products. Takes a list of ids or null.
 	func get_mass(ids=null) -> float:
 		var mass: float = 0.0
@@ -99,7 +110,7 @@ class Products extends Reference:
 				var w2 = (2.0*randf()-1.0)*p
 				f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
 				w += abs(w1)+abs(w2)
-			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.2*f/w))
+			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.15*f/w))
 	
 	func apply_multiplier_list(multipliers: Dictionary):
 		for tag in multipliers:
@@ -108,11 +119,11 @@ class Products extends Reference:
 				for id in by_tag[tag]:
 					var product = all[id]
 					if quantity_value_fine[0]>=0:
-						product[QUANTITY_INDEX] *= quantity_value_fine[0]
+						product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*quantity_value_fine[0])
 					if quantity_value_fine[1]>=0:
-						product[VALUE_INDEX] *= quantity_value_fine[1]
+						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
 					if quantity_value_fine[2]>=0:
-						product[FINE_INDEX] *= quantity_value_fine[2]
+						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
 	
 	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
 			fine_multiplier):
@@ -521,7 +532,7 @@ func make_test_products() -> ManyProducts:
 		# name, quantity, value, fine, density, tags
 		[ 'catnip', 10, 100, 100, 1, 'intoxicant/terran', 'intoxicant/terran/suvar' ],
 		[ 'heroin', 10, 300, 900, 1, 'intoxicant/terran', 'intoxicant/terran/human',
-			'intoxicant/terran/suvar' ],
+			'intoxicant/terran/suvar', 'deadly_drug/terran/human' ],
 		[ 'iron', 10000, 1, 1, 5, 'raw_materials/metal' ],
 		[ 'titanium', 3000, 8, 8, 5, 'raw_materials/metal' ],
 		[ 'diamonds', 3, 50000, 50000, 1, 'raw_materials/gems', 'luxury/terran' ],

@@ -46,6 +46,24 @@
               1,
               1.1,
               1
+            ],
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
             ]
           },
           "fleets": [
@@ -226,7 +244,42 @@
           "system_fuel_recharge": 0.5,
           "center_fuel_recharge": 1.5,
           "locality_adjustments": {
-
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "manufactured/mining": [
+              "Array",
+              1,
+              1.3,
+              1
+            ],
+            "raw_materials/gems": [
+              "Array",
+              1,
+              0.75,
+              1
+            ],
+            "raw_materials/metal": [
+              "Array",
+              1,
+              0.75,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
           },
           "fleets": [
             "Array",
@@ -545,6 +598,24 @@
               1.2,
               0.75,
               1
+            ],
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
             ]
           },
           "fleets": [
@@ -854,7 +925,12 @@
           "system_fuel_recharge": 0.5,
           "center_fuel_recharge": 1.5,
           "locality_adjustments": {
-
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
           },
           "fleets": [
             "Array",
@@ -1052,7 +1128,18 @@
                   "terran_industrial": 1
                 },
                 "locality_adjustments": {
-
+                  "deadly_drug/terran/human": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ],
+                  "live/sentient": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ]
                 },
                 "object_type": 0,
                 "size": 9,
@@ -1098,7 +1185,12 @@
                         "terran_illegal": 1
                       },
                       "locality_adjustments": {
-
+                        "dead/sentient": [
+                          "Array",
+                          0,
+                          0,
+                          1
+                        ]
                       },
                       "object_type": 0,
                       "size": 5,
@@ -1148,7 +1240,18 @@
                   "human": 1
                 },
                 "locality_adjustments": {
-
+                  "deadly_drug/terran/human": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ],
+                  "live/sentient": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ]
                 },
                 "object_type": 0,
                 "size": 5,
@@ -1247,6 +1350,24 @@
               "Array",
               0.7,
               1.1,
+              1
+            ],
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
               1
             ]
           },

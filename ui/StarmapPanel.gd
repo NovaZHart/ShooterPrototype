@@ -193,7 +193,8 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 		if price.all:
 			var product = price.all[0]
 			var value = product[Commodities.Products.VALUE_INDEX]
-			if value:
+			var quantity = product[Commodities.Products.QUANTITY_INDEX]
+			if value and quantity:
 				result[1] += 1
 				if mode==MAX_PRICE:
 					result[0] = max(result[0],value)
@@ -306,12 +307,6 @@ func navigational_visuals(selection_index: int, location_index: int):
 			starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
 				connected_color, LINK_SCALE)
 
-func event_position(event: InputEvent) -> Vector2:
-	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouseButton:
-		return event.position
-	return get_viewport().get_mouse_position()
-
 func find_at_position(screen_position: Vector2):
 	var epsilon = SELECT_EPSILON*$View/Port/Camera.size
 	var pos3 = $View/Port/Camera.project_position(
@@ -363,7 +358,7 @@ func _input(event):
 	var top = get_viewport().get_modal_stack_top()
 	if top and not in_top_dialog(self,top):
 		return
-	var pos2: Vector2 = event_position(event)
+	var pos2: Vector2 = utils.event_position(event)
 	if not get_global_rect().has_point(pos2):
 		return
 	if not is_visible_in_tree():

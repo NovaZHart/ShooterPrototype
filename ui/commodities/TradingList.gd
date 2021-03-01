@@ -6,10 +6,13 @@ export var decrement_texture: Texture
 var max_cargo: int = 20000
 var mine: Commodities.ManyProducts = Commodities.ManyProducts.new()
 var here: Commodities.ManyProducts = Commodities.ManyProducts.new()
+var last_sort_method: int = 1
 
 signal product_selected
 signal no_product_selected
 signal cargo_mass_changed
+signal product_data_changed
+signal all_product_data_changed
 
 func get_product_names():
 	return here.by_name.keys()
@@ -110,23 +113,20 @@ func populate_list(system_path,ship_design):
 		var entry_here: Array = here.all[here_id]
 		# FIXME: proper display name
 		var price: float = max(0.0,entry_here[Commodities.Products.VALUE_INDEX])
-		var fine: float = max(0.0,entry_here[Commodities.Products.FINE_INDEX])
 		var mass: float = max(0.0,entry_here[Commodities.Products.MASS_INDEX])
 # warning-ignore:narrowing_conversion
 		var count_mine: int = max(0,entry_mine[Commodities.Products.QUANTITY_INDEX])
 # warning-ignore:narrowing_conversion
 		var count_here: int = max(0,entry_here[Commodities.Products.QUANTITY_INDEX])
 		var display_name: String = product_name.capitalize()
-		var tooltip: String = display_name+'\n Price '+str(price)+'\n Fine '+\
-			str(fine)+'\n Mass '+str(mass)+' kg'
 		item.set_text(0,display_name)
 		item.set_metadata(0,product_name)
 		item.set_editable(0,false)
-		item.set_tooltip(0,tooltip)
+		item.set_tooltip(0,display_name+'\nClick to see prices on map.')
 		item.set_text(1,str(price))
 		item.set_metadata(1,[price,mass,count_here+count_mine,mine_id,here_id])
 		item.set_editable(1,false)
-		item.set_tooltip(1,tooltip)
+		item.set_tooltip(1,'Price of '+display_name+' here: '+str(price)+'\nClick to see prices on map.')
 		item.set_text(2,str(count_mine))
 		item.set_metadata(2,count_mine)
 		item.set_editable(2,true)
@@ -150,14 +150,22 @@ func try_set_quantity(item: TreeItem, change: int) -> bool:
 	var here_id = etc[4]
 	other_ids.erase(mine_id)
 #	var price = etc[0]
-	var item_mass = max(1,etc[1])
+	var item_mass: float = max(1,etc[1])
+	var item_value: float = max(1,etc[0])
 	var remaining_mass = max_cargo-int(round(mine.get_mass(other_ids)))
+	var remaining_value = Player.money + item_value*count_mine
 # warning-ignore:narrowing_conversion
 	change = min(change,remaining_mass/item_mass-count_mine)
+	if item_value:
+# warning-ignore:narrowing_conversion
+		change = min(change,remaining_value/item_value-count_mine)
 	# FIXME: Check cargo capacity
 	# FIXME: Check money
 	mine.all[mine_id][Commodities.Products.QUANTITY_INDEX] += change
 	here.all[here_id][Commodities.Products.QUANTITY_INDEX] -= change
+# warning-ignore:narrowing_conversion
+	Player.money -= int(round(change*item_value))
+	emit_signal('product_data_changed',mine.all[mine_id][Commodities.Products.NAME_INDEX])
 	item.set_text(2,str(count_mine+change))
 	item.set_metadata(2,count_mine+change)
 	item.set_text(4,str(count_here-change))
@@ -188,6 +196,15 @@ func _on_Tree_item_edited():
 	elif column==4:
 		change = item.get_metadata(4)-count
 	var _discard = try_set_quantity(item,change)
+
+func get_product_named(item_name: String) -> Array:
+	var mine_product = mine.all.get(mine.by_name.get(item_name,null),null)
+	var here_product = here.all.get(here.by_name.get(item_name,null),null)
+	return [mine_product, here_product]
+
+func get_product_at_position(relative_position: Vector2): # -> String or null
+		var item = get_item_at_position(relative_position)
+		return item.get_metadata(0) if item else null
 
 func _on_Tree_button_pressed(item, _column, id):
 	var change: int = -1 if id else 1
@@ -225,6 +242,7 @@ func _on_SellAll_pressed():
 		here.all[here_id][Commodities.Products.QUANTITY_INDEX] += \
 			mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
 		mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]=0
+		Player.money += item.get_metadata(2)*etc[0]
 		item.set_text(2,str(0))
 		item.set_metadata(2,0)
 		var all = etc[2]
@@ -232,3 +250,45 @@ func _on_SellAll_pressed():
 		item.set_metadata(4,all)
 		item=item.get_next()
 	emit_signal('cargo_mass_changed',0,max_cargo)
+	emit_signal('all_product_data_changed')
+
+class TreeSort extends Reference:
+	var column: int
+	var index: int = 0
+	var reverse: bool = false
+	func _init(column_: int, index_: int = 0):
+		column=column_
+		index=index_
+	func text_sort(a,b) -> bool:
+		return reverse != (a.get_text(column)<b.get_text(column))
+	func meta_sort(a,b) -> bool:
+		return reverse != (a.get_metadata(column)<b.get_metadata(column))
+	func meta_index_sort(a,b) -> bool:
+		return reverse != (a.get_metadata(column)[index]<b.get_metadata(column)[index])
+
+func tree_sort(sort_method:int,object: Object,method: String):
+	if abs(last_sort_method)==abs(sort_method):
+		sort_method=-last_sort_method
+	last_sort_method=sort_method
+	object.reverse = sort_method<0
+	var items: Array = []
+	var scan = get_root().get_children()
+	while scan:
+		items.append(scan)
+		scan = scan.get_next()
+	items.sort_custom(object,method)
+	var info = []
+	for item in items:
+		if method=='meta_sort':
+			info.append(item.get_metadata(object.column))
+		else:
+			info.append(item.get_text(object.column))
+		item.move_to_bottom()
+
+func _on_TradingList_column_title_pressed(column):
+	if column==0:
+		tree_sort(column+1,TreeSort.new(column),'text_sort')
+	elif column==1:
+		tree_sort(column+1,TreeSort.new(column,0),'meta_index_sort')
+	elif column!=3:
+		tree_sort(column+1,TreeSort.new(column),'meta_sort')
