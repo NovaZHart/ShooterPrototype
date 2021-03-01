@@ -1,5 +1,20 @@
 extends Node
 
+class TreeFinder extends Reference:
+	var key
+	var column
+	func _init(key_,column_=0):
+		key=key_
+		column=column_
+	func find(_parent: TreeItem,child: TreeItem):
+		if child.get_metadata(column)==key:
+			return child
+		return null
+	func eq(_parent: TreeItem,child: TreeItem):
+		return child.get_metadata(column)==key
+	func ge(_parent: TreeItem,child: TreeItem):
+		return child.get_metadata(column)>=key
+
 func TreeItem_find_index(parent: TreeItem,object: Object,method: String):
 	var scan = parent.get_children()
 	var index = 0

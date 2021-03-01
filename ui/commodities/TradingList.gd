@@ -84,7 +84,7 @@ func populate_list(system_path,ship_design):
 	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
 	var system_node = game_state.systems.get_node_or_null(system_path)
 	if system_node:
-		system_node.list_products(Commodities.commodities,here,true)
+		system_node.list_products(Commodities.commodities,here)
 		for id in here.all:
 			var product = here.all[id]
 			var count = product[Commodities.Products.QUANTITY_INDEX]

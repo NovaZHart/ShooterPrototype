@@ -119,37 +119,25 @@ func _on_Adjust_Tree_item_edited():
 		push_warning('Invalid float "'+str(text)+'"')
 		selected.set_text(column,str(selected.get_metadata(column)))
 
-class Finder extends Reference:
-	var key
-	func _init(key_): key=key_
-	func find(_parent: TreeItem,child: TreeItem):
-		if child.get_metadata(0)==key:
-			return child
-		return null
-	func eq(_parent: TreeItem,child: TreeItem):
-		return child.get_metadata(0)==key
-	func ge(_parent: TreeItem,child: TreeItem):
-		return child.get_metadata(0)>=key
-
 func update_key_space_object_data(
 		path: NodePath,property: String,key,value) -> bool:
 	if property=='trading':
 		object.trading[key]=value
-		var item = utils.Tree_depth_first($Trading/Tree.get_root(),Finder.new(key),'find')
+		var item = utils.Tree_depth_first($Trading/Tree.get_root(),utils.TreeFinder.new(key),'find')
 		if item:
 			fill_trading_item(item,key,true)
 			$Trading/Tree.update()
 			return true
 	elif property=='population':
 		object.population[key]=value
-		var item = utils.Tree_depth_first($Population/Tree.get_root(),Finder.new(key),'find')
+		var item = utils.Tree_depth_first($Population/Tree.get_root(),utils.TreeFinder.new(key),'find')
 		if item:
 			fill_races_item(item,key,true)
 			$Population/Tree.update()
 			return true
 	elif property=='locality_adjustments':
 		object.locality_adjustments[key]=value
-		var item = utils.Tree_depth_first($Adjust/Tree.get_root(),Finder.new(key),'find')
+		var item = utils.Tree_depth_first($Adjust/Tree.get_root(),utils.TreeFinder.new(key),'find')
 		if item:
 			fill_adjust_item(item,key,true)
 			$Adjust/Tree.update()
@@ -163,17 +151,17 @@ func insert_space_object_data(
 		_path: NodePath,property: String,key,value) -> bool:
 	if property=='trading':
 		object.trading[key]=value
-		var i = utils.TreeItem_find_index($Trading/Tree.get_root(),Finder.new(key),'ge')
+		var i = utils.TreeItem_find_index($Trading/Tree.get_root(),utils.TreeFinder.new(key),'ge')
 		fill_trading_item($Trading/Tree.create_item($Trading/Tree.get_root(),i),key)
 		$Trading/Tree.update()
 	elif property=='population':
 		object.population[key]=value
-		var i = utils.TreeItem_find_index($Population/Tree.get_root(),Finder.new(key),'ge')
+		var i = utils.TreeItem_find_index($Population/Tree.get_root(),utils.TreeFinder.new(key),'ge')
 		fill_races_item($Population/Tree.create_item($Population/Tree.get_root(),i),key)
 		$Population/Tree.update()
 	elif property=='locality_adjustments':
 		object.locality_adjustments[key]=value
-		var i = utils.TreeItem_find_index($Adjust/Tree.get_root(),Finder.new(key),'ge')
+		var i = utils.TreeItem_find_index($Adjust/Tree.get_root(),utils.TreeFinder.new(key),'ge')
 		fill_adjust_item($Adjust/Tree.create_item($Adjust/Tree.get_root(),i),key)
 		$Adjust/Tree.update()
 	else:
@@ -186,21 +174,21 @@ func remove_space_object_data(
 	if property=='trading':
 		object.trading.erase(key)
 		$Trading/Tree.update()
-		return not not utils.Tree_remove_where($Trading/Tree.get_root(),Finder.new(key),'eq')
+		return not not utils.Tree_remove_where($Trading/Tree.get_root(),utils.TreeFinder.new(key),'eq')
 	elif property=='population':
 		object.population.erase(key)
 		$Population/Tree.update()
-		return not not utils.Tree_remove_where($Population/Tree.get_root(),Finder.new(key),'eq')
+		return not not utils.Tree_remove_where($Population/Tree.get_root(),utils.TreeFinder.new(key),'eq')
 	elif property=='locality_adjustments':
 		object.locality_adjustments.erase(key)
 		$Adjust/Tree.update()
-		return not not utils.Tree_remove_where($Adjust/Tree.get_root(),Finder.new(key),'eq')
+		return not not utils.Tree_remove_where($Adjust/Tree.get_root(),utils.TreeFinder.new(key),'eq')
 	else:
 		push_error('Unrecognized property "'+str(property)+'"')
 		return false
 
 func set_tree_titles():
-	var font = get_font('default_font')
+	var font = get_font('normal_font')
 	var number_width = font.get_char_size(ord('0'),ord('0')).x
 	utils.Tree_set_titles_and_width($Adjust/Tree,[ null,'Quantity','Value','Fine' ],font,number_width*5.5,false)
 	$Adjust/Tree.set_column_title(0,'Tag')

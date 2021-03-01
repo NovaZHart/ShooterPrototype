@@ -71,6 +71,12 @@ func is_a_planet() -> bool: return true
 
 func is_SpaceObjectData(): pass # never called; must only exist
 
+func get_system(): # -> SystemData or null
+	var parent = get_parent()
+	if parent and parent.has_method('get_system'):
+		return parent.get_system()
+	return null
+
 func maybe_add(result,key,value,base):
 	if base and base.has(key) and value==base[key]:
 		return
@@ -83,6 +89,7 @@ func encode() -> Dictionary:
 		'display_name': display_name,
 		'description': description,
 		'base': base_name,
+		'population': population.duplicate(true),
 		'trading': trading.duplicate(true),
 		'locality_adjustments': locality_adjustments.duplicate(true),
 	}
@@ -135,22 +142,23 @@ func _init(node_name,me: Dictionary ={}):
 			if object and object is simple_tree.SimpleNode:
 				var _discard = add_child(object,key)
 
-func list_products(commodities: Commodities.Products, result: Commodities.Products, print_trace=false):
-	if print_trace:
-		push_warning('list products in '+str(get_path()))
+func price_products(result: Commodities.Products):
+	if locality_adjustments:
+		result.apply_multiplier_list(locality_adjustments)
+	var system = get_system()
+	if system:
+		system.price_products(result)
+
+func list_products(commodities: Commodities.Products, result: Commodities.Products):
 	for trade in trading:
-		if print_trace:
-			print('trade '+str(trade))
 		var proc = Commodities.trading.get(trade,null)
 		if proc:
-			if print_trace:
-				print('got '+str(proc)+' with industry '+str(industry)+' and population '+str(population))
 			proc.population(commodities,result,population)
 			proc.industry(commodities,result,industry)
 		else:
 			push_warning('Trade type "'+str(trade)+'" not in known types '+
 				str(Commodities.trading.keys()))
-	result.randomize_costs(hash(get_path()),game_state.epoch_time)
+	price_products(result)
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:

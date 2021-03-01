@@ -154,9 +154,6 @@ func start_moving(space_pos: Vector3,mouse_pos: Vector2):
 	camera_start = $TopCamera.translation
 
 func handle_mouse_action_start(mouse_pos: Vector2, space_pos: Vector3):
-	var view_rect: Rect2 = Rect2(Vector2(),get_viewport().get_size())
-	if not view_rect.has_point(mouse_pos):
-		return
 	if Input.is_action_just_pressed('ui_location_modify'):
 		var _discard = stop_moving()
 		is_making = make_node_to_add()
@@ -241,9 +238,10 @@ func _process(delta):
 		if view_rect.has_point(mouse_pos):
 			emit_signal('request_focus')
 	if has_focus:
-		handle_mouse_action_start(mouse_pos,space_pos)
-		handle_mouse_action_end(mouse_pos,space_pos)
-		handle_mouse_action_active(mouse_pos,space_pos)
+		if view_rect.has_point(mouse_pos):
+			handle_mouse_action_start(mouse_pos,space_pos)
+			handle_mouse_action_end(mouse_pos,space_pos)
+			handle_mouse_action_active(mouse_pos,space_pos)
 		if selection and Input.is_action_just_released('ui_delete'):
 			var node = game_state.systems.get_node_or_null(selection)
 			universe_edits.state.push(universe_edits.RemoveSpaceObject.new(node,true))

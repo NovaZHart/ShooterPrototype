@@ -39,7 +39,7 @@ var starmap
 var starmap_mutex: Mutex = Mutex.new()
 var link_material: ShaderMaterial
 var system_material: ShaderMaterial
-
+var buy: bool = true setget set_buy
 var name_pool: PoolStringArray = PoolStringArray()
 var display_name_pool: PoolStringArray = PoolStringArray()
 var pos_pool: PoolVector3Array = PoolVector3Array()
@@ -58,6 +58,10 @@ signal deselect
 func _init():
 	selection = game_state.systems.get_node_or_null(Player.destination_system)
 	starmap = StarmapLibrary.new()
+
+func set_buy(b: bool):
+	buy=not not b
+	update_starmap_visuals()
 
 func cancel_drag() -> bool:
 	last_position=null
@@ -183,28 +187,32 @@ func update_starmap_visuals():
 	starmap.update()
 
 func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array):
-	var price = Commodities.OneProduct.new()
 	if node.has_method('list_products'):
+		var price = Commodities.OneProduct.new()
 		node.list_products(commodity,price)
 		if price.all:
-			print('node ',node.get_path(),' price ',price.all)
-			var value = price.all[0][Commodities.Products.VALUE_INDEX]
-			if mode==MAX_PRICE:
-				result[0] = max(result[0],value)
-			elif mode==MIN_PRICE:
-				result[0] = min(result[0],value)
-			else:
-				result[0] += value
-			result[1] += 1
+			var product = price.all[0]
+			var value = product[Commodities.Products.VALUE_INDEX]
+			if value:
+				result[1] += 1
+				if mode==MAX_PRICE:
+					result[0] = max(result[0],value)
+				elif mode==MIN_PRICE:
+					result[0] = min(result[0],value)
+				else:
+					result[0] += value
 	for child_name in node.get_child_names():
 		var child = node.get_child_with_name(child_name)
 		if child:
 			price_stats_recurse(commodity,child,result)
-	print('result now ',result)
 
 func price_stats(node: simple_tree.SimpleNode): # -> float or null
 	var commodity_data: Array = Commodities.get_selected_commodity()
 	var commodity = Commodities.OneProduct.new(commodity_data)
+	if not buy:
+		node.price_products(commodity)
+		var value = commodity.all[0][Commodities.Products.VALUE_INDEX]
+		return value if value else null
 	var result = [ 0.0, 0 ]
 	if mode==MIN_PRICE:
 		result[0] = INF
@@ -213,7 +221,6 @@ func price_stats(node: simple_tree.SimpleNode): # -> float or null
 	price_stats_recurse(commodity,node,result)
 	if result[0] + 1e6 == result[0]:
 		result[0]=0
-	print('final result ',result)
 	if not result[1]:
 		return null
 	elif mode==AVG_PRICE:
@@ -236,7 +243,6 @@ func pricing_visuals(selection_index: int, location_index: int):
 		if stat!=null and stat>0:
 			min_stat = min(min_stat,stat)
 			max_stat = max(max_stat,stat)
-	print('price_at_index = ',price_at_index)
 	var draw: Dictionary = {}
 	var colors = [ no_sale, bar1_color, bar2_color, bar3_color, bar4_color,
 		bar5_color, bar6_color ]
@@ -254,7 +260,7 @@ func pricing_visuals(selection_index: int, location_index: int):
 		var flags: int = 0
 		if min_stat!=INF:
 			var price = price_at_index.get(index,-1)
-			if price>0:
+			if price and price>0:
 # warning-ignore:narrowing_conversion
 				flags = clamp(int(floor((price-min_stat)/step)),1,ncolors)
 		if location_index==index:
@@ -265,7 +271,6 @@ func pricing_visuals(selection_index: int, location_index: int):
 			draw[flags].append(index)
 		else:
 			draw[flags] = [index]
-	print(draw)
 	for flags in draw:
 # warning-ignore:shadowed_variable
 		var system_color = colors[flags&color_mask]
@@ -433,3 +438,4 @@ func _process(_delta):
 	var pos2: Vector2 = get_viewport().get_mouse_position()-rect_global_position
 	var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 	set_zoom(zoom,pos3)
+

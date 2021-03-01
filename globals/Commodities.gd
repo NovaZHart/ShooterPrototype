@@ -68,6 +68,9 @@ class Products extends Reference:
 	func make_subset(_ids: PoolIntArray):
 		return Products.new()
 	
+	func copy():
+		return Products.new()
+	
 	# Given the output of encode(), replace all data in this Product.
 	func decode(_from: Dictionary) -> bool:
 		return false
@@ -96,7 +99,7 @@ class Products extends Reference:
 				var w2 = (2.0*randf()-1.0)*p
 				f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
 				w += abs(w1)+abs(w2)
-			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.3*f/w))
+			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.2*f/w))
 	
 	func apply_multiplier_list(multipliers: Dictionary):
 		for tag in multipliers:
@@ -128,6 +131,8 @@ class Products extends Reference:
 		if fine_multiplier!=null:
 			if abs(fine_multiplier)<1e-5:
 				old[FINE_INDEX] = 0
+			elif abs(old[FINE_INDEX])<1e-5:
+				pass # never add a fine to an object that has none
 			elif fine_multiplier<0:
 				old[FINE_INDEX] = min(old[FINE_INDEX],
 					-new[FINE_INDEX]*fine_multiplier)
@@ -153,6 +158,15 @@ class OneProduct extends Products:
 		by_name={}
 		by_tag={}
 		product_name=''
+	
+	func copy():
+		var result = OneProduct.new()
+		if all:
+			result.all = all.duplicate(true)
+			result.by_name = by_name.duplicate(true)
+			result.by_tag = by_tag.duplicate(true)
+		result.product_name = product_name
+		return result
 	
 	func _init(product=null):
 		if product!=null:
@@ -221,6 +235,15 @@ class ManyProducts extends Products:
 		by_name={}
 		by_tag={}
 		last_id=-1
+	
+	func copy():
+		var result = OneProduct.new()
+		if all:
+			result.all = all.duplicate(true)
+			result.by_name = by_name.duplicate(true)
+			result.by_tag = by_tag.duplicate(true)
+		result.last_id = last_id
+		return result
 	
 	# Add a product the given information to `all`, `by_name`, and `by_tag`
 	# Returns the new id or -1 on failure
@@ -444,13 +467,13 @@ class SuvarConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0),0.333333)
 		if not m: return
-		result.add_products_from(products,['religous/terran/buddhism'],[],m*2,0.8,null)
-		result.add_products_from(products,['religous/terran'],[],m,0.8,null)
+		result.add_products_from(products,['religous/terran/buddhism'],[],m*2)
+		result.add_products_from(products,['religous/terran'],[],m)
 		result.add_products_from(products,['consumables/terran'],[],m)
 		result.add_products_from(products,['luxury/terran'],[],m,0.8)
 		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
-		result.add_products_from(products,['intoxicant/terran/suvar'],[],m,1.4,1.7)
-		result.add_products_from(products,['dead/thinking'],[],m,1.2,1.5)
+		result.add_products_from(products,['intoxicant/terran/suvar'],[],m,null,1.7)
+		result.add_products_from(products,['dead/thinking'],[],m,null,1.5)
 		result.add_products_from(products,['dead/sentient','live_sentient'],[],null,null,10)
 
 class HumanConsumers extends ProducerConsumer:
@@ -460,7 +483,7 @@ class HumanConsumers extends ProducerConsumer:
 		result.add_products_from(products,
 			['religious/terran','consumables/terran','luxury/terran'],[],m)
 		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
-		result.add_products_from(products,['intoxicant/terran/human'],[],m,1.4,1.4)
+		result.add_products_from(products,['intoxicant/terran/human'],[],m,null,1.4)
 		result.add_products_from(products,['dead/sentient'],[],0,null,8)
 		result.add_products_from(products,['live/sentient'],[],0,null,8)
 
@@ -475,8 +498,8 @@ class ManufacturingProcess extends ProducerConsumer:
 	func industry(products: Products, result: Products, industry: float):
 		var m = pow(industry,0.333333)
 		if not m: return
-		result.add_products_from(products,consumes_tags,exclude_tags,0.5*m,1.2,0)
-		result.add_products_from(products,produces_tags,exclude_tags,3*m,-0.8,0)
+		result.add_products_from(products,consumes_tags,exclude_tags,0.5*m)
+		result.add_products_from(products,produces_tags,exclude_tags,3*m)
 
 class TerranIllegalTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):

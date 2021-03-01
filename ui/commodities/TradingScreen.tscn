@@ -88,23 +88,28 @@ size_flags_stretch_ratio = 1.8
 [node name="Context" type="GridContainer" parent="All/Right"]
 margin_right = 653.0
 margin_bottom = 23.0
-columns = 3
+columns = 4
 
 [node name="CargoMass" type="Label" parent="All/Right/Context"]
 margin_top = 3.0
-margin_right = 215.0
+margin_right = 204.0
 margin_bottom = 20.0
 size_flags_horizontal = 3
 
 [node name="ProductList" type="OptionButton" parent="All/Right/Context"]
-margin_left = 219.0
-margin_right = 434.0
+margin_left = 208.0
+margin_right = 412.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
 text = "(No product selected)"
 
+[node name="BuySell" type="OptionButton" parent="All/Right/Context"]
+margin_left = 416.0
+margin_right = 445.0
+margin_bottom = 23.0
+
 [node name="Location" type="Label" parent="All/Right/Context"]
-margin_left = 438.0
+margin_left = 449.0
 margin_top = 3.0
 margin_right = 653.0
 margin_bottom = 20.0
@@ -129,3 +134,4 @@ mode = 1
 [connection signal="pressed" from="All/Left/Bottom/Tools/SellAll" to="All/Left/Bottom/TradingList" method="_on_SellAll_pressed"]
 [connection signal="cargo_mass_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_cargo_mass_changed"]
 [connection signal="item_selected" from="All/Right/Context/ProductList" to="." method="_on_ProductList_item_selected"]
+[connection signal="item_selected" from="All/Right/Context/BuySell" to="." method="_on_BuySell_item_selected"]

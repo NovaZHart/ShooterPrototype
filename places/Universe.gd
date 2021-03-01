@@ -555,6 +555,8 @@ func decode_helper(what,key=null):
 			return ResourceLoader.load(str(what[1]))
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
+	elif what==null:
+		return what
 	push_warning('Unrecognized type encountered in decode_helper; returning null.')
 	return null
 
@@ -613,12 +615,12 @@ func encode_helper(what):
 	elif what is simple_tree.SimpleNode:
 		return [ 'SimpleNode', encode_children(what) ]
 	elif what==null:
-		return []
+		return null
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
 	else:
 		printerr('encode_helper: do not know how to handle object ',str(what))
-		return []
+		return null
 
 
 

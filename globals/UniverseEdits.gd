@@ -266,6 +266,86 @@ class SystemFleetDataChange extends undo_tool.Action:
 		system.fleets[fleet_index][key]=new_value
 		return game_state.system_editor.change_fleet_data(fleet_index,key,new_value)
 
+
+
+class SystemDataKeyUpdate extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var key
+	var old_value
+	var new_value
+	func as_string():
+		return 'SystemDataKeyUpdate(path='+str(object_path) \
+			+',property='+str(property)+',key='+str(key)+',new_value=' \
+			+str(new_value)+',old_value='+str(old_value)+')'
+	func _init(object_path_: NodePath, property_: String, key_, new_value_):
+		object_path=object_path_
+		property=property_
+		key=key_
+		new_value=new_value_
+	func apply(old: bool,store: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataKeyUpdate at '+str(object_path))
+			return false
+		var container = object.get(property)
+		if store and not old:
+			old_value = container[key]
+		var value = old_value if old else new_value
+		container[key] = value
+		return game_state.system_editor.update_key_system_data(
+			object.get_path(),property,key,value)
+	func run() -> bool:
+		return apply(false,true)
+	func undo() -> bool:
+		return apply(true,false)
+	func redo() -> bool:
+		return apply(false,false)
+
+
+class SystemDataAddRemove extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var key
+	var value
+	var add: bool
+	func as_string():
+		return 'SystemDataAddRemove(path='+str(object_path) \
+			+',property='+str(property)+',key='+str(key)+',value=' \
+			+str(value)+',add='+str(add)+')'
+	func _init(object_path_: NodePath, property_: String, key_, value_, add_: bool):
+		object_path=object_path_
+		property=property_
+		key=key_
+		add=add_
+		value=value_
+	func apply(is_add: bool,store: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataAddRemove at '+str(object_path))
+			return false
+		var container = object.get(property)
+		if not is_add:
+			if store:
+				value=container[key]
+			container.erase(key)
+		elif container is Dictionary:
+			container[key]=value
+		else:
+			container.insert(key,value)
+		if is_add:
+			return game_state.system_editor.insert_system_data(
+				object.get_path(),property,key,value)
+		else:
+			return game_state.system_editor.remove_system_data(
+				object.get_path(),property,key)
+	func run() -> bool:
+		return apply(add,true)
+	func undo() -> bool:
+		return apply(not add,false)
+	func redo() -> bool:
+		return apply(add,false)
+
 class SystemDataChange extends undo_tool.Action:
 	var old: Dictionary = {}
 	var new: Dictionary

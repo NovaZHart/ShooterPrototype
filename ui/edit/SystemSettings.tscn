@@ -12,6 +12,7 @@ script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
 }
+remove_adjust_texture = ExtResource( 2 )
 remove_fleet_texture = ExtResource( 2 )
 
 [node name="Settings" type="GridContainer" parent="."]
@@ -153,6 +154,44 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 4
 hide_root = true
+
+[node name="Adjust" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Heading" type="GridContainer" parent="Adjust"]
+margin_right = 1016.0
+margin_bottom = 20.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="Label" type="Label" parent="Adjust/Heading"]
+margin_top = 3.0
+margin_right = 972.0
+margin_bottom = 17.0
+size_flags_horizontal = 3
+text = "Locality Adjustments"
+
+[node name="New" type="MenuButton" parent="Adjust/Heading"]
+margin_left = 976.0
+margin_right = 1016.0
+margin_bottom = 20.0
+text = "New"
+flat = false
+
+[node name="Tree" type="Tree" parent="Adjust"]
+margin_top = 24.0
+margin_right = 1016.0
+margin_bottom = 564.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 4
+hide_root = true
 [connection signal="focus_exited" from="Settings/NameEdit" to="." method="_on_NameEdit_focus_exited"]
 [connection signal="text_entered" from="Settings/NameEdit" to="." method="_on_NameEdit_text_entered"]
 [connection signal="focus_exited" from="Settings/PlasmaSeedEdit" to="." method="_on_PlasmaSeedEdit_focus_exited"]
@@ -169,3 +208,6 @@ hide_root = true
 [connection signal="pressed" from="Fleets/Top/AddFleetButton" to="." method="_on_AddFleetButton_pressed"]
 [connection signal="button_pressed" from="Fleets/Spawned" to="." method="_on_Spawned_button_pressed"]
 [connection signal="item_edited" from="Fleets/Spawned" to="." method="_on_Spawned_item_edited"]
+[connection signal="button_pressed" from="Adjust/Tree" to="." method="_on_Adjust_Tree_button_pressed"]
+[connection signal="focus_exited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_focus_exited"]
+[connection signal="item_edited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_item_edited"]

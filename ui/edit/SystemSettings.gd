@@ -1,5 +1,6 @@
 extends TabContainer
 
+export var remove_adjust_texture: Texture
 export var remove_fleet_texture: Texture
 export var FleetSelectionPopup: PackedScene = preload('res://ui/ships/FleetSelectionPopup.tscn')
 
@@ -16,6 +17,17 @@ func _exit_tree():
 	var popup = get_node_or_null(popup_path)
 	if popup:
 		popup.queue_free()
+
+func _ready():
+	var font = get_font('normal_font')
+	var number_width = font.get_char_size(ord('0'),ord('0')).x
+	var new_adjust_popup: PopupMenu = $Adjust/Heading/New.get_popup()
+	var _discard = new_adjust_popup.connect('index_pressed',self,'_on_new_adjustment')
+	utils.Tree_set_titles_and_width($Adjust/Tree,[ null,'Quantity','Value','Fine' ],font,number_width*5.5,false)
+	$Adjust/Tree.set_column_title(0,'Tag')
+	$Adjust/Tree.set_column_titles_visible(true)
+	$Adjust/Tree.set_column_expand(0,true)
+	$Adjust/Tree.set_column_min_width(0,number_width*6.5)
 
 func get_have_picker() -> bool: return have_picker
 
@@ -37,6 +49,7 @@ func set_system(system: simple_tree.SimpleNode):
 	self.system=system
 	sync_system_data(true,true)
 	init_fleet_list()
+	fill_adjust()
 
 func _on_popup_cancel():
 	var popup = get_node_or_null(popup_path)
@@ -309,3 +322,102 @@ func _on_ShowOnMap_button_down():
 func _on_ShowOnMap_button_up():
 	universe_edits.state.push(universe_edits.SystemDataChange.new(
 		system.get_path(),{'show_on_map':false},true,false))
+
+func _on_Adjust_Tree_button_pressed(item, _column, _id):
+	universe_edits.state.push(universe_edits.SystemDataAddRemove.new(
+		system.get_path(),'locality_adjustments',item.get_metadata(0),null,false))
+
+func reset_adjust(_parent,child):
+	for i in range(3):
+		child.set_text(i+1,str(child.get_metadata(i+1)))
+
+func fill_adjust_item(item: TreeItem,tag,update=false):
+	item.set_text(0,tag)
+	item.set_metadata(0,tag)
+	item.set_editable(0,false)
+	if not update:
+		item.add_button(0,remove_adjust_texture,0,false,'Remove tag')
+	var qvf = system.locality_adjustments[tag]
+	for i in range(3):
+		item.set_text(i+1,str(qvf[i]))
+		item.set_metadata(i+1,qvf[i])
+		item.set_editable(i+1,true)
+
+func fill_adjust():
+	utils.Tree_clear($Adjust/Tree)
+	var root: TreeItem = $Adjust/Tree.create_item()
+	var tags = system.locality_adjustments.keys()
+	tags.sort()
+	for tag in tags:
+		var item = $Adjust/Tree.create_item(root)
+		fill_adjust_item(item,tag)
+	tags = Commodities.commodities.by_tag.keys()
+	tags.sort()
+	var popup: PopupMenu = $Adjust/Heading/New.get_popup()
+	popup.clear()
+	var index: int = -1
+	for tag in tags:
+		index += 1
+		popup.add_item(tag,index)
+		popup.set_item_metadata(index,tag)
+
+func _on_Adjust_Tree_focus_exited():
+	var _ignore = utils.Tree_depth_first(
+		$Adjust/Tree.get_root(),self,'reset_adjust')
+
+func _on_Adjust_Tree_item_edited():
+	var selected: TreeItem = $Adjust/Tree.get_selected()
+	var column: int = $Adjust/Tree.get_selected_column()
+	var text: String = selected.get_text(column)
+	if text.is_valid_float():
+		var value: Array = [1,1,1]
+		for i in range(3):
+			value[i] = float(text) if (i+1==column) else selected.get_metadata(i+1)
+		universe_edits.state.push(universe_edits.SystemDataKeyUpdate.new(
+			system.get_path(),'locality_adjustments',selected.get_metadata(0),value))
+	else:
+		push_warning('Invalid float "'+str(text)+'"')
+		selected.set_text(column,str(selected.get_metadata(column)))
+
+func update_key_system_data(
+		path: NodePath,property: String,key,value) -> bool:
+	if property=='locality_adjustments':
+		system.locality_adjustments[key]=value
+		var item = utils.Tree_depth_first($Adjust/Tree.get_root(),utils.TreeFinder.new(key),'find')
+		if item:
+			fill_adjust_item(item,key,true)
+			$Adjust/Tree.update()
+			return true
+	else:
+		push_error('Unrecognized property "'+str(property)+'"')
+		return false
+	return insert_system_data(path,property,key,value)
+
+func insert_system_data(
+		_path: NodePath,property: String,key,value) -> bool:
+	if property=='locality_adjustments':
+		system.locality_adjustments[key]=value
+		var i = utils.TreeItem_find_index($Adjust/Tree.get_root(),utils.TreeFinder.new(key),'ge')
+		fill_adjust_item($Adjust/Tree.create_item($Adjust/Tree.get_root(),i),key)
+		$Adjust/Tree.update()
+	else:
+		push_error('Unrecognized property "'+str(property)+'"')
+		return false
+	return true
+
+func remove_system_data(
+		_path: NodePath,property: String,key) -> bool:
+	if property=='locality_adjustments':
+		system.locality_adjustments.erase(key)
+		$Adjust/Tree.update()
+		return not not utils.Tree_remove_where($Adjust/Tree.get_root(),utils.TreeFinder.new(key),'eq')
+	else:
+		push_error('Unrecognized property "'+str(property)+'"')
+		return false
+
+func _on_new_adjustment(index):
+	var new_adjust_popup: PopupMenu = $Adjust/Heading/New.get_popup()
+	var key = new_adjust_popup.get_item_metadata(index)
+	if key and not system.locality_adjustments.has(key):
+		universe_edits.state.push(universe_edits.SystemDataAddRemove.new(
+			system.get_path(), 'locality_adjustments', key, [ 1.0, 1.0, 1.0 ], true))

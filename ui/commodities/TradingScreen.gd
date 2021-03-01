@@ -13,6 +13,9 @@ func _ready():
 	$All/Right/Context/ProductList.add_item('(No product selected.)',0)
 	for i in range(len(product_names)):
 		$All/Right/Context/ProductList.add_item(product_names[i].capitalize(),i+1)
+	$All/Right/Context/BuySell.add_item('Buy',0)
+	$All/Right/Context/BuySell.add_item('Sell',1)
+	
 
 func _on_TradingList_cargo_mass_changed(cargo_mass,max_cargo_mass):
 	$All/Right/Context/CargoMass.text = 'Cargo mass: '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg'
@@ -23,3 +26,7 @@ func _on_ProductList_item_selected(index):
 	else:
 		Commodities.select_commodity_with_name(product_names[index-1])
 	$All/Right/StarmapPanel.update_starmap_visuals()
+
+
+func _on_BuySell_item_selected(index):
+	$All/Right/StarmapPanel.buy = index==0

@@ -62,9 +62,4 @@ visible = false
 
 [node name="Links" type="MultiMeshInstance" parent="View/Port"]
 visible = false
-
-[node name="OmniLight" type="OmniLight" parent="View/Port"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, 36 )
-
-[node name="DummyNode" type="Node2D" parent="."]
 [connection signal="resized" from="." to="." method="_on_StarmapPanel_resized"]

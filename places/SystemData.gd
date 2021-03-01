@@ -34,6 +34,7 @@ var starfield_seed: int
 var show_on_map: bool
 var system_fuel_recharge: float
 var center_fuel_recharge: float
+var locality_adjustments: Dictionary = {}
 
 var rng
 
@@ -44,6 +45,9 @@ func is_a_system() -> bool: return true
 func is_a_planet() -> bool: return false
 
 func is_SystemData(): pass # never called; must only exist
+
+func get_system(): # -> SystemData or null
+	return self
 
 func full_display_name():
 	return display_name
@@ -62,6 +66,7 @@ func encode() -> Dictionary:
 		'show_on_map':show_on_map,
 		'system_fuel_recharge':system_fuel_recharge,
 		'center_fuel_recharge':center_fuel_recharge,
+		'locality_adjustments':locality_adjustments.duplicate(true),
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
@@ -83,6 +88,7 @@ func decode(content: Dictionary):
 	show_on_map = getdict(content,'show_on_map',true)
 	system_fuel_recharge = getdict(content,'system_fuel_recharge',0.5)
 	center_fuel_recharge = getdict(content,'center_fuel_recharge',1.5)
+	locality_adjustments = getdict(content,'locality_adjustments',{})
 	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):
@@ -107,11 +113,11 @@ func get_display_name() -> String:
 
 func num_planets():
 	return get_child_count()
-#	var n=0
-#	for child in get_children():
-#		if child.is_a_planet():
-#			n += 1+child.get_child_count()
-#	return n
+
+func price_products(result: Commodities.Products):
+	result.randomize_costs(hash(get_path()),game_state.epoch_time/365.25)
+	if locality_adjustments:
+		result.apply_multiplier_list(locality_adjustments)
 
 func astral_gate_path() -> NodePath:
 	for child in get_children():
