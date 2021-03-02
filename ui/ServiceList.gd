@@ -6,6 +6,7 @@ var starting_top: float
 var starting_bottom: float
 var starting_font_size: float
 const min_font_size: float = 9.0
+var service_names: Array = []
 
 signal service_activated
 signal deorbit_selected
@@ -24,8 +25,11 @@ func _ready():
 func update_service_list():
 	clear()
 	var planet_info = Player.get_space_object_or_null()
-	var service_names = [] if planet_info==null else planet_info.services
+	service_names = [] if planet_info==null else planet_info.services
 	var i=0
+	if not service_names.has('market') and \
+			(planet_info.trading or service_names.has('shipeditor')):
+		service_names = service_names + ['market']
 	for service_name in service_names:
 		var service = game_state.services.get(service_name,null)
 		if service == null:

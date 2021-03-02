@@ -163,8 +163,13 @@ func encode_MultiMount(m: MultiMount):
 class ShipDesign extends simple_tree.SimpleNode:
 	var display_name: String
 	var hull: PackedScene
-	var cached_stats = null
-	var cargo = null
+	var cached_stats = null setget ,get_stats
+	var cargo setget set_cargo
+	
+	func set_cargo(new_cargo):
+		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
+		cargo = new_cargo
+		clear_cached_stats()
 	
 	func is_ShipDesign(): pass # for type detection; never called
 	
@@ -233,6 +238,8 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not found:
 			push_warning('No parts found in ship')
 		var stats = body.pack_stats(true)
+		if cargo:
+			body.set_cargo(cargo)
 		for child in body.get_children():
 			if child.has_method('is_not_mounted'):
 				# Unused slots are removed to save space in the scene tree
@@ -241,8 +248,6 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not cached_stats:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
-		if cargo:
-			body.set_cargo(cargo)
 		return body
 
 func encode_ShipDesign(d: ShipDesign):
@@ -258,8 +263,8 @@ func decode_ShipDesign(v):
 	if len(v)>4:
 		var cargo_data = decode_helper(v[4])
 		if cargo_data is Dictionary:
-			v.cargo = Commodities.ManyProducts.new()
-			v.cargo.add_products(cargo_data)
+			result.cargo = Commodities.ManyProducts.new()
+			result.cargo.add_products(cargo_data)
 	return result
 
 

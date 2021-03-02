@@ -182,7 +182,6 @@
                       "services": [
                         "Array",
                         "info",
-                        "missing",
                         "shipeditor"
                       ],
                       "display_name": "Storm",
@@ -455,8 +454,6 @@
                       "services": [
                         "Array",
                         "info",
-                        "test",
-                        "alttest",
                         "shipeditor"
                       ],
                       "display_name": "Pearl",
@@ -797,7 +794,6 @@
                     {
                       "services": [
                         "Array",
-                        "test",
                         "info",
                         "shipeditor"
                       ],

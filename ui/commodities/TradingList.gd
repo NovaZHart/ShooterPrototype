@@ -3,6 +3,18 @@ extends Tree
 export var increment_texture: Texture
 export var decrement_texture: Texture
 
+const NAME_COLUMN: int = 0
+const PRICE_COLUMN: int = 1
+const MINE_COLUMN: int = 2
+const BUTTON_COLUMN: int = 3
+const HERE_COLUMN: int = 4
+
+const PRICE_ELEMENT: int = 0
+const MASS_ELEMENT: int = 1
+const QUANTITY_ELEMENT: int = 2
+const MINE_ID_ELEMENT: int = 3
+const HERE_ID_ELEMENT: int = 04
+
 var max_cargo: int = 20000
 var mine: Commodities.ManyProducts = Commodities.ManyProducts.new()
 var here: Commodities.ManyProducts = Commodities.ManyProducts.new()
@@ -62,12 +74,13 @@ func _ready():
 	var font = get_font('normal_font')
 	var number_size = font.get_char_size(ord('0'),ord('0'))
 	var min_width = number_size.x*7.5
-	utils.Tree_set_title_and_width(self,0,'Product',font,min_width)
-	utils.Tree_set_title_and_width(self,1,'Price',font,min_width)
-	utils.Tree_set_title_and_width(self,2,'Cargo',font,min_width)
-	utils.Tree_set_title_and_width(self,3,'Buy/Sell',font,increment_texture.get_width()+decrement_texture.get_width()+10)
-	utils.Tree_set_title_and_width(self,4,'For Sale',font,min_width)
-	for c in [ 1,2,3,4 ]:
+	utils.Tree_set_title_and_width(self,NAME_COLUMN,'Product',font,min_width)
+	utils.Tree_set_title_and_width(self,PRICE_COLUMN,'Price',font,min_width)
+	utils.Tree_set_title_and_width(self,MINE_COLUMN,'Cargo',font,min_width)
+	utils.Tree_set_title_and_width(self,BUTTON_COLUMN,'Buy/Sell',
+		font,increment_texture.get_width()+decrement_texture.get_width()+10)
+	utils.Tree_set_title_and_width(self,HERE_COLUMN,'For Sale',font,min_width)
+	for c in [ PRICE_COLUMN, MINE_COLUMN, BUTTON_COLUMN, HERE_COLUMN ]:
 		set_column_expand(c,false)
 
 func clear_list():
@@ -96,10 +109,12 @@ func populate_list(system_path,ship_design):
 		here.remove_absent_products()
 	else:
 		push_warning('No node at player location '+str(Player.player_location))
+	print('here before add '+str(here.all))
 	if mine.all:
 		here.add_products(mine.all,null,null,null,true,null,   true   )
 	if here.all:
 		mine.add_products(here.all,null,null,null,true,null,   true   )
+	print('here after add '+str(here.all))
 	
 	# Populate the tree:
 	var root: TreeItem = create_item()
@@ -119,39 +134,43 @@ func populate_list(system_path,ship_design):
 # warning-ignore:narrowing_conversion
 		var count_here: int = max(0,entry_here[Commodities.Products.QUANTITY_INDEX])
 		var display_name: String = product_name.capitalize()
-		item.set_text(0,display_name)
-		item.set_metadata(0,product_name)
-		item.set_editable(0,false)
-		item.set_tooltip(0,display_name+'\nClick to see prices on map.')
-		item.set_text(1,str(price))
-		item.set_metadata(1,[price,mass,count_here+count_mine,mine_id,here_id])
-		item.set_editable(1,false)
-		item.set_tooltip(1,'Price of '+display_name+' here: '+str(price)+'\nClick to see prices on map.')
-		item.set_text(2,str(count_mine))
-		item.set_metadata(2,count_mine)
-		item.set_editable(2,true)
-		item.set_tooltip(2,'Number of items in your cargo hold. Click to edit.')
-		item.add_button(3,increment_texture,0)
-		item.add_button(3,decrement_texture,1)
-		item.set_tooltip(3,'Buy/Sell\n Click: ±1\n Shift-click: ±10\n Control-click: ±10%\n Shift-Control-click: ±all')
-		item.set_text(4,str(count_here))
-		item.set_metadata(4,count_here)
-		item.set_editable(4,true)
-		item.set_tooltip(4,'Number of items in stock here. Click to edit.')
+		item.set_text(NAME_COLUMN,display_name)
+		item.set_metadata(NAME_COLUMN,product_name)
+		item.set_editable(NAME_COLUMN,false)
+		item.set_tooltip(NAME_COLUMN,display_name+'\nClick to see prices on map.')
+		item.set_text(PRICE_COLUMN,str(price))
+		var data: Array = [0,0,0,0,0]
+		data[PRICE_ELEMENT] = price
+		data[MASS_ELEMENT] = mass
+		data[QUANTITY_ELEMENT] = count_here+count_mine
+		data[MINE_ID_ELEMENT] = mine_id
+		data[HERE_ID_ELEMENT] = here_id
+		item.set_metadata(PRICE_COLUMN,data)
+		item.set_editable(PRICE_COLUMN,false)
+		item.set_tooltip(PRICE_COLUMN,'Price of '+display_name+' here: '+str(price)+'\nClick to see prices on map.')
+		item.set_text(MINE_COLUMN,str(count_mine))
+		item.set_metadata(MINE_COLUMN,count_mine)
+		item.set_editable(MINE_COLUMN,true)
+		item.set_tooltip(MINE_COLUMN,'Number of items in your cargo hold. Click to edit.')
+		item.add_button(BUTTON_COLUMN,increment_texture,0)
+		item.add_button(BUTTON_COLUMN,decrement_texture,1)
+		item.set_tooltip(BUTTON_COLUMN,'Buy/Sell\n Click: ±1\n Shift-click: ±10\n Control-click: ±10%\n Shift-Control-click: ±all')
+		item.set_text(HERE_COLUMN,str(count_here))
+		item.set_metadata(HERE_COLUMN,count_here)
+		item.set_editable(HERE_COLUMN,true)
+		item.set_tooltip(HERE_COLUMN,'Number of items in stock here. Click to edit.')
 
 func try_set_quantity(item: TreeItem, change: int) -> bool:
-	var count_mine = item.get_metadata(2)
-	var count_here = item.get_metadata(4)
-# warning-ignore:narrowing_conversion
-	change = clamp(change,-count_mine,count_here)
+	var count_mine = item.get_metadata(MINE_COLUMN)
+	var count_here = item.get_metadata(HERE_COLUMN)
 	var other_ids: Array = mine.all.keys()
-	var etc = item.get_metadata(1)
-	var mine_id = etc[3]
-	var here_id = etc[4]
+	var etc = item.get_metadata(PRICE_COLUMN)
+	var mine_id = etc[MINE_ID_ELEMENT]
+	var here_id = etc[HERE_ID_ELEMENT]
 	other_ids.erase(mine_id)
 #	var price = etc[0]
-	var item_mass: float = max(1,etc[1])
-	var item_value: float = max(1,etc[0])
+	var item_mass: float = max(1,etc[MASS_ELEMENT])
+	var item_value: float = max(1,etc[PRICE_ELEMENT])
 	var remaining_mass = max_cargo-int(round(mine.get_mass(other_ids)))
 	var remaining_value = Player.money + item_value*count_mine
 # warning-ignore:narrowing_conversion
@@ -159,6 +178,8 @@ func try_set_quantity(item: TreeItem, change: int) -> bool:
 	if item_value:
 # warning-ignore:narrowing_conversion
 		change = min(change,remaining_value/item_value-count_mine)
+# warning-ignore:narrowing_conversion
+	change = clamp(change,-count_mine,count_here)
 	# FIXME: Check cargo capacity
 	# FIXME: Check money
 	mine.all[mine_id][Commodities.Products.QUANTITY_INDEX] += change
@@ -166,15 +187,15 @@ func try_set_quantity(item: TreeItem, change: int) -> bool:
 # warning-ignore:narrowing_conversion
 	Player.money -= int(round(change*item_value))
 	emit_signal('product_data_changed',mine.all[mine_id][Commodities.Products.NAME_INDEX])
-	item.set_text(2,str(count_mine+change))
-	item.set_metadata(2,count_mine+change)
-	item.set_text(4,str(count_here-change))
-	item.set_metadata(4,count_here-change)
+	item.set_text(MINE_COLUMN,str(count_mine+change))
+	item.set_metadata(MINE_COLUMN,count_mine+change)
+	item.set_text(HERE_COLUMN,str(count_here-change))
+	item.set_metadata(HERE_COLUMN,count_here-change)
 	emit_signal('cargo_mass_changed',mine.get_mass(),max_cargo)
 	return true
 
 func refresh_item_quantities(_parent: TreeItem, item: TreeItem) -> void:
-	for i in [ 2, 4 ]:
+	for i in [ MINE_COLUMN, HERE_COLUMN ]:
 		var meta=item.get_metadata(i)
 		if meta!=null:
 			item.set_text(i,str(meta))
@@ -191,10 +212,10 @@ func _on_Tree_item_edited():
 		return
 	var count = max(0,int(text))
 	var change = 0
-	if column==2:
-		change = count-item.get_metadata(2)
-	elif column==4:
-		change = item.get_metadata(4)-count
+	if column==MINE_COLUMN:
+		change = count-item.get_metadata(MINE_COLUMN)
+	elif column==HERE_COLUMN:
+		change = item.get_metadata(HERE_COLUMN)-count
 	var _discard = try_set_quantity(item,change)
 
 func get_product_named(item_name: String) -> Array:
@@ -204,23 +225,23 @@ func get_product_named(item_name: String) -> Array:
 
 func get_product_at_position(relative_position: Vector2): # -> String or null
 		var item = get_item_at_position(relative_position)
-		return item.get_metadata(0) if item else null
+		return item.get_metadata(NAME_COLUMN) if item else null
 
 func _on_Tree_button_pressed(item, _column, id):
 	var change: int = -1 if id else 1
 	var shift: bool = Input.is_key_pressed(KEY_SHIFT)
 	var control: bool = Input.is_key_pressed(KEY_CONTROL)
 	if shift and control:
-		change*=item.get_metadata(1)[2]
+		change*=item.get_metadata(PRICE_COLUMN)[QUANTITY_ELEMENT]
 	elif control:
-		change=int(ceil(change*item.get_metadata(1)[2]*0.1))
+		change=int(ceil(change*item.get_metadata(PRICE_COLUMN)[QUANTITY_ELEMENT]*0.1))
 	elif shift:
 		change*=10
 	var _discard = try_set_quantity(item, change)
 
 func _on_Tree_item_selected():
 	var selected = get_selected()
-	var meta = selected.get_metadata(0)
+	var meta = selected.get_metadata(NAME_COLUMN)
 	if meta and meta is String:
 		emit_signal('product_selected',meta)
 
@@ -237,17 +258,17 @@ func _on_SellAll_pressed():
 	var item = root.get_children()
 	while item:
 		var etc = item.get_metadata(1)
-		var mine_id = etc[3]
-		var here_id = etc[4]
+		var mine_id = etc[MINE_ID_ELEMENT]
+		var here_id = etc[HERE_ID_ELEMENT]
 		here.all[here_id][Commodities.Products.QUANTITY_INDEX] += \
 			mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
 		mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]=0
-		Player.money += item.get_metadata(2)*etc[0]
-		item.set_text(2,str(0))
-		item.set_metadata(2,0)
-		var all = etc[2]
-		item.set_text(4,str(all))
-		item.set_metadata(4,all)
+		Player.money += item.get_metadata(HERE_COLUMN)*etc[PRICE_ELEMENT]
+		item.set_text(MINE_COLUMN,str(0))
+		item.set_metadata(MINE_COLUMN,0)
+		var all = etc[QUANTITY_ELEMENT]
+		item.set_text(HERE_COLUMN,str(all))
+		item.set_metadata(HERE_COLUMN,all)
 		item=item.get_next()
 	emit_signal('cargo_mass_changed',0,max_cargo)
 	emit_signal('all_product_data_changed')

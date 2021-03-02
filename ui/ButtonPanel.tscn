@@ -1,0 +1,46 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://ui/ButtonPanel.gd" type="Script" id=1]
+
+[node name="ButtonPanel" type="PopupPanel"]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+margin_right = 8.0
+margin_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Top" type="GridContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 5.0
+margin_top = 5.0
+margin_right = -5.0
+margin_bottom = -5.0
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Label" type="Label" parent="Top"]
+margin_right = 113.0
+margin_bottom = 14.0
+size_flags_horizontal = 3
+text = "INSERT TEXT HERE"
+
+[node name="Buttons" type="GridContainer" parent="Top"]
+margin_top = 18.0
+margin_right = 113.0
+margin_bottom = 38.0
+size_flags_horizontal = 3
+
+[node name="Cancel" type="Button" parent="Top/Buttons"]
+margin_right = 54.0
+margin_bottom = 20.0
+text = "Cancel"
+[connection signal="pressed" from="Top/Buttons/Cancel" to="." method="_on_Button_pressed" binds= [ "", true ]]

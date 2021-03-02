@@ -244,4 +244,5 @@ func _init():
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
 		'Shipyard',load('res://ui/ships/ShipDesignScreen.tscn'))
-	
+	services['market'] = PlanetServices.SceneChangeService.new(
+		'Market',load('res://ui/commodities/TradingScreen.tscn'))

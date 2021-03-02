@@ -433,6 +433,7 @@ func make_design(design_id,display_name) -> Dictionary:
 			var mounted = game_state.universe.Mounted.new(mount.scene)
 			mounted.set_name(mount_name)
 			design.add_child(mounted)
+	design.cargo = ship.cargo
 	return design
 
 func make_ship(design):
@@ -451,7 +452,6 @@ func make_ship(design):
 	ship.random_height = false
 	ship.retain_hidden_mounts = true
 	ship.ship_display_name = design.display_name
-	
 	set_layer_recursively(ship,SHIP_LIGHT_CULL_LAYER)
 	var existing = $Viewport.get_node_or_null('Ship')
 	if existing:
@@ -460,7 +460,8 @@ func make_ship(design):
 	ship.pack_stats(true)
 	$Viewport.add_child(ship)
 	ship.name = 'Ship'
-	
+	if design.cargo:
+		ship.set_cargo(design.cargo.copy())
 	for child in sorted_ship_children(ship):
 		if child.get('mount_type')!=null:
 			_discard = mounts.add_child(MountData.new(child,self))

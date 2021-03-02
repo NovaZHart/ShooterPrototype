@@ -83,6 +83,8 @@ func get_combined_aabb(node: Node = self) -> AABB:
 func make_stats(node: Node, stats: Dictionary,skip_runtime_stats=false) -> Dictionary:
 	if node.has_method("add_stats"):
 		node.add_stats(stats,skip_runtime_stats)
+	if node.has_method('pack_cargo_stats'):
+		node.pack_cargo_stats(stats)
 	var children: Array = node.get_children()
 	for child in children:
 		var _discard = make_stats(child,stats,skip_runtime_stats)
@@ -104,20 +106,19 @@ func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 	elif not skip_runtime_stats and skipped_runtime_stats:
 		update_stats()
 	return combined_stats
-	
+
+func pack_cargo_stats(stats):
+	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
+
 func set_cargo(products: Commodities.Products, quiet: bool = false,
 		skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
-			push_error('No stats in set_cargo! Making stats now.')
+			push_warning('No stats in set_cargo! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
 	cargo = Commodities.ManyProducts.new()
 	var _success = cargo.decode(products.all)
-	var cargo_mass: float = 0.0
-	for id in cargo.all:
-		cargo_mass += max(0.0,cargo.all[id][Commodities.Products.MASS_INDEX]*
-			cargo.all[id][Commodities.Products.QUANTITY_INDEX]/1000.0)
-	combined_stats['cargo_mass'] = cargo_mass
+	pack_cargo_stats(combined_stats)
 	return combined_stats
 
 func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:

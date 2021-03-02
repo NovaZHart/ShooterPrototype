@@ -1,5 +1,6 @@
 extends Panel
 
+const ButtonPanel = preload('res://ui/ButtonPanel.tscn')
 var product_names: Array
 var cargo_mass: float = 0
 var max_cargo_mass: float = 9e9
@@ -21,8 +22,41 @@ func _ready():
 	$All/Right/Content/Top/BuySell.add_item('Selling Map',1)
 	_on_Content_resized()
 
+func exit_to_orbit():
+	var design = Player.player_ship_design
+	design.cargo = $All/Left/Bottom/TradingList.mine.copy()
+	design.cargo.remove_empty_products()
+	print('marketplace thinks: '+str($All/Left/Bottom/TradingList.mine))
+	print('design thinks: '+str(design.cargo))
+	if design.cargo:
+		var max_cargo = design.get_stats()['max_cargo']*1000
+		if max_cargo and design.cargo.get_mass()>max_cargo:
+			print('cargo '+str(design.cargo.get_mass())+'>'+str(max_cargo))
+			var panel = ButtonPanel.instance()
+			panel.set_label_text("Your ship cannot fit all of it's cargo.")
+			var planet_info = Player.get_space_object_or_null()
+			if planet_info and planet_info.services.has('shipeditor'):
+				panel.add_button('Go to Shipyard','res://ui/ships/ShipDesignScreen.tscn')
+			panel.set_cancel_text('Stay in Market')
+			var parent = get_tree().get_root()
+			parent.add_child(panel)
+			panel.popup()
+			while panel.visible:
+				yield(get_tree(),'idle_frame')
+			var result = panel.result
+			parent.remove_child(panel)
+			panel.queue_free()
+			if result:
+				game_state.call_deferred('change_scene',result)
+			else:
+				return # do not change scene
+	game_state.change_scene('res://ui/OrbitalScreen.tscn')
+
 func _input(event):
-	if event is InputEventMouseMotion:
+	if event.is_action_released('ui_depart'):
+		get_tree().set_input_as_handled()
+		exit_to_orbit()
+	elif event is InputEventMouseMotion:
 		var list = $All/Left/Bottom/TradingList
 		var pos = utils.event_position(event) - list.rect_global_position
 		var size = list.rect_size

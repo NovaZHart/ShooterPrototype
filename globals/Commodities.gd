@@ -96,6 +96,16 @@ class Products extends Reference:
 			_skip_checks: bool = true, _keys_to_add = null):
 		return false
 	
+	func remove_empty_products():
+		var ids = all.keys()
+		for id in ids:
+			var product = all[id]
+			if product[QUANTITY_INDEX]<= 0:
+				var _ignore = all.erase(id)
+				_ignore = by_name.erase(product[NAME_INDEX])
+				for itag in range(FIRST_TAG_INDEX,len(product)):
+					_ignore = by_tag[product[itag]].erase(id)
+	
 	func randomize_costs(randseed: int,time: float):
 		var ids=all.keys()
 		ids.sort()
@@ -248,7 +258,7 @@ class ManyProducts extends Products:
 		last_id=-1
 	
 	func copy():
-		var result = OneProduct.new()
+		var result = ManyProducts.new()
 		if all:
 			result.all = all.duplicate(true)
 			result.by_name = by_name.duplicate(true)
@@ -263,8 +273,15 @@ class ManyProducts extends Products:
 			mass_per_quantity: float, tags: Array) -> int:
 		last_id += 1
 		var id: int = last_id
-		all[id] = [product_name,intrinsic_value,intrinsic_fine,typical_quantity,
-			mass_per_quantity]+tags
+		var product = []
+		product.resize(FIRST_TAG_INDEX)
+		product[NAME_INDEX] = product_name
+		product[QUANTITY_INDEX] = typical_quantity
+		product[VALUE_INDEX] = intrinsic_value
+		product[FINE_INDEX] = intrinsic_fine
+		product[MASS_INDEX] = mass_per_quantity
+		product += tags
+		all[id]=product
 		by_name[product_name] = id
 		for tag in tags:
 			if not tag is String or not tag:
