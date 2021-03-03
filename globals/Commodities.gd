@@ -109,18 +109,19 @@ class Products extends Reference:
 	func randomize_costs(randseed: int,time: float):
 		var ids=all.keys()
 		ids.sort()
-		for id in ids:
-			seed(randseed+hash(all[id][NAME_INDEX]))
-			var f = 0.0
-			var w = 0.0
-			var p = 1.0
-			for i in range(3):
-				p *= 0.75
-				var w1 = (2.0*randf()-1.0)*p
-				var w2 = (2.0*randf()-1.0)*p
-				f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
-				w += abs(w1)+abs(w2)
-			all[id][VALUE_INDEX] = ceil(all[id][VALUE_INDEX]*(1.0 + 0.15*f/w))
+		for ivar in [ VALUE_INDEX, QUANTITY_INDEX ]:
+			for id in ids:
+				seed(randseed+ivar*31337+hash(all[id][NAME_INDEX]))
+				var f = 0.0
+				var w = 0.0
+				var p = 1.0
+				for i in range(3):
+					p *= 0.75
+					var w1 = (2.0*randf()-1.0)*p
+					var w2 = (2.0*randf()-1.0)*p
+					f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
+					w += abs(w1)+abs(w2)
+				all[id][ivar] = int(ceil(all[id][ivar]*(1.0 + 0.15*f/w)))
 	
 	func apply_multiplier_list(multipliers: Dictionary):
 		for tag in multipliers:
@@ -203,6 +204,10 @@ class OneProduct extends Products:
 				if by_tag.has(tag):
 					return PoolIntArray()
 		return zero_pool
+	
+	func remove_empty_products():
+		if all and all[0][QUANTITY_INDEX]<=0:
+			clear()
 	
 	func dump() -> String:
 		return 'OneProduct['+str(all[0])+']'
@@ -305,8 +310,6 @@ class ManyProducts extends Products:
 				keys_to_add = all_products.keys()
 			elif all_products is Array or all_products is PoolIntArray:
 				keys_to_add = range(len(all_products))
-			if all_products is Dictionary:
-				keys_to_add = all_products
 			else:
 				keys_to_add = all_products.all
 		for key in keys_to_add:
@@ -463,10 +466,11 @@ class ManyProducts extends Products:
 	
 	# Given the output of encode(), replace all data in this Product.
 	func decode(from: Dictionary):
-		all = from.duplicate(true)
-		by_name.clear()
-		by_tag.clear()
-		last_id = -1
+		clear()
+		# Godot turns the keys into Strings, so we need to convert back here:
+		for godot_json_is_broken in from:
+			var id = int(godot_json_is_broken)
+			all[id] = from[godot_json_is_broken].duplicate()
 		var all_ids: Array = all.keys()
 		for id in all_ids:
 			if id>last_id:
@@ -542,6 +546,75 @@ class TerranTradeCenter extends ProducerConsumer:
 			'religious/terran','consumables/terran','luxury/terran',
 			'intoxicant/terran','manufactured/terran','raw_materials/metal',
 			'raw_materials/gems'],['live/sentient','dead/sentient'],m)
+
+class ProductsNode extends simple_tree.SimpleNode:
+	var products setget ,get_products #: ManyProducts or null
+	var update_time: int
+	func is_ProductsNode(): pass # used for type checking; never called
+	func _init(products_=null,update_time_=-99999999):
+		if products_:
+			products=products_
+		update_time=update_time_
+	func get_products():
+		if not products:
+			products = ManyProducts.new()
+		return products
+	func age(now: int, scale: float) -> float:
+		return scale*(update_time-now)
+	func update(update: ManyProducts, now: int, dropoff: float, scale: float) -> void:
+		var weight = clamp(pow(dropoff,scale*float(now-update_time)),0.0,1.0)
+		var invweight = 1.0-weight
+		var all_names: Array = update.by_name.keys() + products.by_name.keys()
+		var name_set: Dictionary = {}
+		for product_name in all_names:
+			name_set[product_name]=1
+		all_names = name_set.keys()
+		var to_add: Array = []
+		for product_name in all_names:
+			var old_product = products.all.get(products.by_name.get(product_name,-1),null)
+			var new_product = update.all.get(update.by_name.get(product_name,-1),null)
+			if new_product!=null:
+				if old_product!=null:
+					for i in [ Products.VALUE_INDEX, Products.MASS_INDEX, Products.FINE_INDEX ]:
+						old_product[i] = int(ceil(weight*old_product[i] + invweight*new_product[i]))
+					old_product[Products.QUANTITY_INDEX] = int(max(0,round(
+						weight*old_product[Products.QUANTITY_INDEX] +
+						invweight*new_product[Products.QUANTITY_INDEX])))
+				else:
+					to_add.append(new_product)
+		if to_add:
+			products.add_products(to_add,1,1,1,true)
+		products.remove_empty_products()
+		update_time = now
+	func decode_products(p: Dictionary):
+		if not products:
+			products = ManyProducts.new()
+		products.decode(p)
+
+func delete_old_products_impl(parent: simple_tree.SimpleNode, child: simple_tree.SimpleNode, cutoff: int):
+	# Helper function for delete_old_products. Do not call directly
+	# Deletes all nodes from child on down where a node and all of its
+	# descendants have update_time<=cutoff. Anything that is not a
+	# ProductsNode is assumed to be older than the cutoff time.
+	var delete_node: bool = not child.has_method('is_ProductsNode') or child.update_time<=cutoff
+	for grandchild_name in child.get_child_names():
+		var grandchild = child.get_child_with_name(grandchild_name)
+		if grandchild:
+			# Only delete child if all grandchildren were deleted.
+			delete_node = delete_old_products_impl(child,grandchild,cutoff) and delete_node
+	if delete_node and not child.has_children():
+		var _ignore = parent.remove_child(child)
+
+func delete_old_products(root, cutoff: int):
+	# Delete all descendant nodes where the node and all of its descendants
+	# have update_time<=cutoff. Anything that is not a ProductsNode is assumed
+	# to be older than the cutoff time. The root is not deleted.
+	# root is a simple_tree.SimpleNode, but godot's type checking is too stupid
+	# to handle call checks of user-defined types in calls between top-level modules
+	for child_name in root.get_child_names():
+		var child = root.get_child_with_name(child_name)
+		if child:
+			delete_old_products_impl(root,child,cutoff)
 
 func make_test_products() -> ManyProducts:
 	var result = ManyProducts.new()

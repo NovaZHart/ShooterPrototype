@@ -6,6 +6,7 @@ export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
 export var max_camera_size: float = 150
 export var auto_depart_without_fuel: float = 3.0
+export var game_time_ratio: float = 300
 
 # Must match CombatEngineData.hpp:
 const hyperspace_ratio: float = 20.0
@@ -296,6 +297,7 @@ func get_player_target_rid() -> RID:
 	return RID() 
 
 func _physics_process(delta):
+	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
 	combat_engine_mutex.lock()
 	physics_tick += 1
 	

@@ -5,7 +5,20 @@ const standalone_max_ships: int = 300
 const debug_team_maximums: Array = [35, 35]
 const debug_max_ships: int = 60
 
-var epoch_time: float = 0
+const EPOCH_ONE_SECOND: int = 10080 # Number of epoch ticks in one second.
+# Why 10080? It is divisible by 32, 60, 90, 144, 240, and all numbers 2-10
+
+# Game start time relative to unix epoch start, used for date strings
+# Must be a multiple of 400 to ensure correct leap year calculations
+const EPOCH_YEAR_SHIFT: int = 800
+
+const EPOCH_ONE_MINUTE: int = EPOCH_ONE_SECOND*60
+const EPOCH_ONE_HOUR: int = EPOCH_ONE_MINUTE*60
+const EPOCH_ONE_DAY: int = EPOCH_ONE_HOUR*24
+
+const EPOCH_GAME_START: int = 0 # = January 1, 2770
+
+var epoch_time: int = EPOCH_GAME_START
 var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
 
@@ -19,6 +32,9 @@ var sphere_xyz
 var restore_from_load_page: bool = false
 var input_edit_state = undo_tool.UndoStack.new(false)
 
+var current_time_dict: Dictionary setget ,get_current_time_dict
+var current_time_dict_when: int = -1
+
 var tree
 var universe
 var systems
@@ -31,6 +47,23 @@ const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
 signal universe_preload
 signal universe_postload
 signal console_append
+
+func get_epoch_time_at(time_dict: Dictionary):
+	var in_dict = time_dict.duplicate(true)
+	in_dict['year'] -= EPOCH_YEAR_SHIFT
+	var unix_epoch: int = OS.get_unix_time_from_datetime(in_dict)
+	var time_zone_error = OS.get_time_zone_info()
+	unix_epoch += time_zone_error['bias']*3600
+	return unix_epoch*EPOCH_ONE_SECOND
+
+func get_current_time_dict():
+	if not current_time_dict or current_time_dict_when!=epoch_time:
+		var time_zone_error = OS.get_time_zone_info()
+# warning-ignore:integer_division
+		var result = OS.get_datetime_from_unix_time(epoch_time/EPOCH_ONE_SECOND-int(time_zone_error['bias']*3600))
+		result['year'] += EPOCH_YEAR_SHIFT
+		current_time_dict=result
+	return current_time_dict
 
 func change_scene(to):
 	if get_tree().current_scene.has_method('change_scene'):
@@ -208,15 +241,15 @@ func assemble_ship(design_path: NodePath): # -> RigidBody or null
 func _init():
 	universe = Universe.new()
 	tree = simple_tree.SimpleTree.new(universe)
-	assert(tree.root_==universe)
-	assert(tree.root_.children_.has('ship_designs'))
-	assert(tree.root_.children_.has('systems'))
-	assert(tree.root_.children_.has('fleets'))
+	assert(tree.root==universe)
+	assert(tree.root.children_.has('ship_designs'))
+	assert(tree.root.children_.has('systems'))
+	assert(tree.root.children_.has('fleets'))
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
 	universe.load_places_from_json('res://places/universe.json')
-	assert(tree.root_.children_.has('ship_designs'))
-	assert(tree.root_.children_.has('systems'))
+	assert(tree.root.children_.has('ship_designs'))
+	assert(tree.root.children_.has('systems'))
 	ship_designs = universe.ship_designs
 	systems = universe.systems
 	fleets = universe.fleets
@@ -229,8 +262,8 @@ func _init():
 #	assert(systems.get_child_with_name('alef_93'))
 #	assert(systems.get_node_or_null(NodePath('alef_93')))
 #	assert(systems.get_node_or_null(NodePath('alef_93/astra')))
-	assert(tree.root_.children_.has('ship_designs'))
-	assert(tree.root_.children_.has('systems'))
+	assert(tree.root.children_.has('ship_designs'))
+	assert(tree.root.children_.has('systems'))
 	
 	if not OS.has_feature('standalone'):
 		max_ships = debug_max_ships

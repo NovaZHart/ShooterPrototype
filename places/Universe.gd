@@ -82,7 +82,7 @@ func get_interstellar_systems():
 			continue
 	return interstellar_systems
 
-func decode_children(parent: simple_tree.SimpleNode, children):
+func decode_children(parent, children):
 	if not children is Dictionary:
 		push_error("encoded parent's children are not stored in a Dictionary")
 		return
@@ -95,13 +95,35 @@ func decode_children(parent: simple_tree.SimpleNode, children):
 			if not parent.add_child(decoded):
 				push_error('decode_children failed to add child')
 
-func encode_children(parent: simple_tree.SimpleNode) -> Dictionary:
+func encode_children(parent) -> Dictionary:
 	var result = {}
 	for child_name in parent.get_child_names():
 		result[child_name] = encode_helper(parent.get_child_with_name(child_name))
 	return result
 
+func encode_ProductsNode(p: Commodities.ProductsNode):
+	return [ 'ProductsNode', str(p.update_time),
+		encode_helper(p.products.encode() if p.products else {}),
+		encode_children(p) ]
 
+func decode_ProductsNode(v):
+	var result = Commodities.ProductsNode.new()
+	if len(v)<4:
+		push_error('Expected two arguments in encoded ProductsNode, not '+str(len(v)))
+	if len(v)>1:
+		if v[1] is String and v[1].is_valid_integer():
+			result.update_time = int(v[1])
+		else:
+			push_error('Invalid value for encoded ProductsNode.update_time: '+str(v[1]))
+	if len(v)>2:
+		var two = decode_helper(v[2])
+		if two is Dictionary:
+			result.decode_products(two)
+		elif two:
+			push_error('Invalid value for encoded ProductsNode.products: '+str(two).substr(0,100))
+	if len(v)>3:
+		decode_children(result,v[3])
+	return result
 
 class Mounted extends simple_tree.SimpleNode:
 	var scene: PackedScene
@@ -551,18 +573,25 @@ func decode_helper(what,key=null):
 			return SpaceObjectData.new(key,decode_helper(what[1]))
 		elif what[0] == 'SystemData' and len(what)>=2:
 			return SystemData.new(key,decode_helper(what[1]))
-		elif what[0] == 'SimpleNode' and len(what)>1:
-			var result = simple_tree.SimpleNode.new()
-			result.set_name(key)
-			decode_children(result,what[1])
-			return result
+		elif what[0] == 'ProductsNode':
+			return decode_ProductsNode(what)
+		elif what[0] == 'SimpleNode':
+			if len(what)>1:
+				var result = simple_tree.SimpleNode.new()
+				if key:
+					result.set_name(key)
+				decode_children(result,what[1])
+				return result
+			else:
+				push_error('Empty SimpleNode declaration')
 		elif what[0]=='Resource' and len(what)>1:
 			return ResourceLoader.load(str(what[1]))
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
 	elif what==null:
 		return what
-	push_warning('Unrecognized type encountered in decode_helper; returning null.')
+	push_error('Unrecognized type encountered in decode_helper; returning null.')
+	assert(false)
 	return null
 
 
@@ -603,6 +632,8 @@ func encode_helper(what):
 		return encode_Mounted(what)
 	elif what is ShipDesign:
 		return encode_ShipDesign(what)
+	elif what is Commodities.ProductsNode:
+		return encode_ProductsNode(what)
 	elif what is Resource:
 		return [ 'Resource', what.resource_path ]
 	elif what is simple_tree.SimpleNode and what.has_method('encode'):

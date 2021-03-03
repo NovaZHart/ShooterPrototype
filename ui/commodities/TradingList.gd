@@ -88,27 +88,17 @@ func clear_list():
 	mine.clear()
 	here.clear()
 
-func populate_list(system_path,ship_design):
+func populate_list(products,ship_design):
 	clear_list()
 	var ship = ship_design.assemble_ship()
 	max_cargo = int(round(ship.combined_stats['max_cargo']))*1000
 	var now_cargo: int = 0
 	# Populate the data structures:
-	if ship.cargo:
-		mine.add_products(ship.cargo)
-		now_cargo = ship.cargo.get_mass()
+	if ship_design.cargo:
+		mine = ship_design.cargo
+		now_cargo = mine.get_mass()
 	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
-	var system_node = game_state.systems.get_node_or_null(system_path)
-	if system_node:
-		system_node.list_products(Commodities.commodities,here)
-		for id in here.all:
-			var product = here.all[id]
-			var count = product[Commodities.Products.QUANTITY_INDEX]
-			product[Commodities.Products.QUANTITY_INDEX] = \
-				int(round(count*(0.2+randf()*1.6)))
-		here.remove_absent_products()
-	else:
-		push_warning('No node at player location '+str(Player.player_location))
+	here = products
 	print('here before add '+str(here.all))
 	if mine.all:
 		here.add_products(mine.all,null,null,null,true,null,   true   )
@@ -121,7 +111,6 @@ func populate_list(system_path,ship_design):
 	var names: Array = mine.by_name.keys()
 	names.sort()
 	for product_name in names:
-		var item: TreeItem = create_item(root)
 		var mine_id: int = mine.by_name[product_name]
 		var here_id: int = here.by_name[product_name]
 		var entry_mine: Array = mine.all[mine_id]
@@ -133,7 +122,10 @@ func populate_list(system_path,ship_design):
 		var count_mine: int = max(0,entry_mine[Commodities.Products.QUANTITY_INDEX])
 # warning-ignore:narrowing_conversion
 		var count_here: int = max(0,entry_here[Commodities.Products.QUANTITY_INDEX])
+		if not count_mine and not count_here:
+			continue # cannot buy or sell this
 		var display_name: String = product_name.capitalize()
+		var item: TreeItem = create_item(root)
 		item.set_text(NAME_COLUMN,display_name)
 		item.set_metadata(NAME_COLUMN,product_name)
 		item.set_editable(NAME_COLUMN,false)

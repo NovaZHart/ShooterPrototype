@@ -15,7 +15,14 @@ func _ready():
 	else:
 		push_warning('Cannot find player location info')
 	$All/Left/Bottom/Tools/Label.hint_tooltip = 'Cargo hold and sale items at '+info.full_display_name()
-	$All/Left/Bottom/TradingList.populate_list(Player.player_location,Player.player_ship_design)
+	Player.age_off_markets()
+	var products = Player.update_markets_at(Player.player_location)
+	if not products:
+		push_error('Could not get market data for '+str(Player.player_location))
+		products = Commodities.ManyProducts.new()
+	if not Player.player_ship_design.cargo:
+		Player.player_ship_design.cargo = Commodities.ManyProducts.new()
+	$All/Left/Bottom/TradingList.populate_list(products,Player.player_ship_design)
 	product_names = $All/Left/Bottom/TradingList.get_product_names()
 	product_names.sort()
 	$All/Right/Content/Top/BuySell.add_item('Buying Map',0)
@@ -47,9 +54,11 @@ func exit_to_orbit():
 			parent.remove_child(panel)
 			panel.queue_free()
 			if result:
+				$All/Left/Bottom/TradingList.here.remove_empty_products()
 				game_state.call_deferred('change_scene',result)
 			else:
 				return # do not change scene
+	$All/Left/Bottom/TradingList.here.remove_empty_products()
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func _input(event):

@@ -7,6 +7,7 @@ export var max_camera_size: float = 150
 export var max_new_ships_per_tick: int = 1
 export var max_new_ships_per_early_tick: int = 5
 export var number_of_early_ticks: int = 20
+export var game_time_ratio: float = 30
 
 var combat_engine_mutex: Mutex = Mutex.new()
 var visual_tick: int = 0
@@ -242,6 +243,7 @@ func pack_planet_stats_if_not_sent() -> Array:
 #			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
 func _physics_process(delta):
+	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
 	physics_tick += 1
 	
 	var make_me: Array = Player.system.process_space(self,delta)

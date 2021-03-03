@@ -234,14 +234,21 @@ class SimpleNode extends Reference:
 		return '[SimpleNode@'+get_path_str()+']'
 
 class SimpleTree extends Reference:
-	var root_: SimpleNode
-	func _init(root):
-		root_ = root
-		root_.make_root_of(weakref(self))
+	var root: SimpleNode setget set_root, get_root
+	func _init(root_):
+		root = root_
+		root.make_root_of(weakref(self))
 	func get_root():
-		return root_
+		return root
+	func set_root(root_: SimpleNode):
+		assert(root_)
+		if root:
+			var _ignore = root.remove_all_children()
+			root.queue_free()
+		root=root_
+		root.make_root_of(weakref(self))
 	func get_node_or_null(path: NodePath,start=null):
-		var obj = root_ if (start==null or path.is_absolute()) else start
+		var obj = root if (start==null or path.is_absolute()) else start
 		if path.is_empty():
 			return null
 		for i in range(path.get_name_count()):
