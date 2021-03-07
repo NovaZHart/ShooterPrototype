@@ -91,16 +91,39 @@ func starmap_show_product(index):
 		var product_name = product_names[index-1]
 		Commodities.select_commodity_with_name(product_name)
 		product_name = product_name.capitalize()
-		bs.set_item_text(0,'Map: Buy '+product_name)
-		bs.set_item_text(1,'Map: Sell '+product_name)
+		bs.set_item_text(0,'Purchase: '+product_name)
+		bs.set_item_text(1,'Sale Value: '+product_name)
 	$All/Right/Content/StarmapPanel.update_starmap_visuals()
 
 func _on_BuySell_item_selected(index):
 	$All/Right/Content/StarmapPanel.buy = index==0
 
-func make_row(one,two,three):
+func make_row3(one,two,three):
 	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
 		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]'
+
+func make_row4(one,two,three,four):
+	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
+		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]' \
+		+'[cell]  [/cell][cell]'+str(four)+'[/cell]'
+
+func concoct_other_system_info(item_name,mine,here,display_name,price) -> String:
+	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
+	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
+	var MASS_INDEX = Commodities.Products.MASS_INDEX
+	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=7]'
+	s+=make_row4('  ','[b]Here[/b]','[b]At '+display_name+'[/b]','[b]Difference[/b]')
+	s+=make_row4('Price',here[VALUE_INDEX],price,price-here[VALUE_INDEX])
+	s+=make_row4('Mass per',here[MASS_INDEX],' ',' ')
+	s+=make_row4('Available',here[QUANTITY_INDEX],' ',' ')
+	s+=make_row4('In cargo',mine[QUANTITY_INDEX],' ',' ')
+	s+=make_row4('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ',' ')
+	s+='[/table]\n'
+	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+		s+='\nTags:\n'
+		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
+			s+=' {*} '+here[itag]+'\n'
+	return s
 
 func concoct_hover_info(item_name,mine,here,norm) -> String:
 	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
@@ -108,18 +131,18 @@ func concoct_hover_info(item_name,mine,here,norm) -> String:
 	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
 	var MASS_INDEX = Commodities.Products.MASS_INDEX
 	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
-	s+=make_row('  ','[b]Here[/b]','[b]Typical[/b]')
-	s+=make_row('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
-	s+=make_row('Fine',here[FINE_INDEX],norm[FINE_INDEX])
-	s+=make_row('Mass per',here[MASS_INDEX],' ')
-	s+=make_row('Available',here[QUANTITY_INDEX],' ')
-	s+=make_row('In cargo',mine[QUANTITY_INDEX],' ')
-	s+=make_row('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
+	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
+	s+=make_row3('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
+	s+=make_row3('Fine',here[FINE_INDEX],norm[FINE_INDEX])
+	s+=make_row3('Mass per',here[MASS_INDEX],' ')
+	s+=make_row3('Available',here[QUANTITY_INDEX],' ')
+	s+=make_row3('In cargo',mine[QUANTITY_INDEX],' ')
+	s+=make_row3('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
 	s+='[/table]\n'
-	if len(norm)>Commodities.Products.FIRST_TAG_INDEX:
+	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
 		s+='\nTags:\n'
-		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(norm)):
-			s+=' {*} '+norm[itag]+'\n'
+		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
+			s+=' {*} '+here[itag]+'\n'
 	return s
 
 func update_hover_info(item_name=null):
@@ -152,3 +175,24 @@ func _on_TradingList_product_selected(item_name):
 func _on_Content_resized():
 	$All/Right/CargoMass.margin_bottom = $All/Right/Content/Top.rect_size.y
 	$All/Right/Location.margin_bottom = $All/Right/Content/Top.rect_size.y
+
+func _on_StarmapPanel_hover_no_system():
+	update_hover_info()
+
+func _on_StarmapPanel_hover_over_player_location(_system_name,_system_display_name,_system_price):
+	update_hover_info()
+
+func _on_StarmapPanel_hover_over_system(_system_name,system_display_name,system_price):
+	if hover_name and system_price and system_price>0:
+		var mine = $All/Left/Bottom/TradingList.mine
+		var mine_item = mine.all.get(mine.by_name.get(hover_name,-1),null)
+		var here = $All/Left/Bottom/TradingList.here
+		var here_item = here.all.get(here.by_name.get(hover_name,-1),null)
+		if here_item and mine_item:
+			var info: String = concoct_other_system_info(
+				hover_name,mine_item,here_item,system_display_name,system_price)
+			if info:
+				$All/Left/Bottom/Help.insert_bbcode(info,true)
+				$All/Left/Bottom/Help.scroll_to_line(0)
+				return
+	update_hover_info()

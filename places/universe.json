@@ -174,7 +174,7 @@
                 "orbit_radius": 0,
                 "orbit_period": 0,
                 "orbit_start": 0,
-                "has_astral_gate": true,
+                "has_astral_gate": false,
                 "objects": {
                   "storm": [
                     "SpaceObjectData",
@@ -398,7 +398,7 @@
                 "orbit_radius": 0,
                 "orbit_period": 0,
                 "orbit_start": 0,
-                "has_astral_gate": true,
+                "has_astral_gate": false,
                 "objects": {
                   "hellscape": [
                     "SpaceObjectData",

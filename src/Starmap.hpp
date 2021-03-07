@@ -24,8 +24,8 @@
 namespace godot {
 
   const int int_scale = 10; // scaling factor from Vector3 to IntLocation
-  const real_t default_system_scale = 0.01f;
-  const real_t default_link_scale = 0.005f;
+  const real_t default_system_scale = 10.0f;
+  const real_t default_link_scale = 5.0f;
   const real_t pi = 3.141592653589793f;
 
   
@@ -199,15 +199,19 @@ namespace godot {
     // What system is at this location? -1 = none
     int system_at_location(Vector3 where, real_t epsilon) const;
 
+    // Set reference size of visuals in pixels:
+    void set_reference_size(real_t system_diameter, real_t link_width);
+
     // Update multimeshes, redraw labels:
     void _draw();
-
+    
   private:
     static Ref<ArrayMesh> make_circle_mesh(real_t radius,int count,Vector3 center);
     static Ref<ArrayMesh> make_box_mesh(const Vector3 &from, real_t x_step,
                                         real_t z_step, int nx, int nz);
     static Ref<ArrayMesh> tri_to_mesh(const PoolVector3Array &vertices,const PoolVector2Array &uv);
   private:
+    real_t system_diameter_pixels, link_width_pixels, pixel_size;
     real_t max_system_scale, max_link_scale;
     Vector2 rect_global_position;
     NodePath camera_path;

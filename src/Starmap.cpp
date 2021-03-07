@@ -118,6 +118,7 @@ void Starmap::_init() {
   max_system_scale = default_system_scale;
   max_link_scale = default_link_scale;
   show_links = true;
+  pixel_size = 0.01; // Corrected by first call to _draw()
   
   circle_mesh = make_circle_mesh(1.0f,32,Vector3(0.0f,0.0f,0.0f));
   if(not circle_mesh.is_valid())
@@ -163,6 +164,7 @@ void Starmap::_register_methods() { // FIXME: UPDATE THIS
   register_method("add_connecting_link_visuals", &Starmap::add_connecting_link_visuals);
   register_method("clear_visuals", &Starmap::clear_visuals);
   register_method("system_at_location", &Starmap::system_at_location);
+  register_method("set_reference_size", &Starmap::set_reference_size);
   register_method("_draw", &Starmap::_draw);
 }
 
@@ -350,12 +352,13 @@ void Starmap::clear_visuals() {
 
 int Starmap::system_at_location(Vector3 wherein, real_t epsilon) const {
   Vector3 where(wherein.x,0,wherein.z);
-  Vector3 vespilon(epsilon,epsilon,epsilon);
-  IntLocation start(where-vespilon);
-  IntLocation end(where+vespilon);
+  real_t span = epsilon + pixel_size*max(system_diameter_pixels,link_width_pixels);
+  real_t spansq = span*span;
+  Vector3 vspan(span,span,span);
+  IntLocation start(where-vspan);
+  IntLocation end(where+vspan);
   PoolVector3Array::Read read_system_locations = system_locations.read();
   const Vector3 *locs = read_system_locations.ptr();
-  real_t epsilonsq = epsilon*epsilon;
 
   real_t best_distsq=9e9;
   int best_index = -1;
@@ -367,7 +370,7 @@ int Starmap::system_at_location(Vector3 wherein, real_t epsilon) const {
       system_map_crange range = system_map.equal_range(IntLocation(x,y));
       for(system_map_citer it = range.first; it!=range.second; it++) {
         real_t distsq = where.distance_squared_to(locs[it->second]);
-        if(distsq<epsilonsq and (distsq<best_distsq or best_index<0)) {
+        if(distsq<spansq and (distsq<best_distsq or best_index<0)) {
           best_index = it->second;
           best_distsq = distsq;
         }
@@ -400,6 +403,12 @@ int Starmap::system_at_location(Vector3 wherein, real_t epsilon) const {
   return -1;
 }
 
+void Starmap::set_reference_size(real_t system_diameter, real_t link_width) {
+  system_diameter_pixels = system_diameter;
+  link_width_pixels = link_width;
+  update();
+}
+
 void Starmap::_draw() {
   Viewport *viewport = get_viewport();
   if(not viewport) {
@@ -421,14 +430,19 @@ void Starmap::_draw() {
 
   real_t camera_size = zx_orthographic_camera->get_size();
 
-  Rect2 view_rect = Rect2(Vector2(-20,-20),proj.view_size+Vector2(20,20));
-  real_t padding = max(max_system_scale,max_link_scale);
-  Vector3 vadding(padding,padding,padding);
+  Rect2 view_rect = Rect2(Vector2(-20,-20),proj.view_size+Vector2(40,40));
   int system_count = system_map.size();
   int link_count = link_list.size()/2;
   int extra_count = extra_lines.size();
   int line_count = extra_count + int(show_links)*link_count;
 
+  Vector3 pixel_rect = proj.project_position(Vector2(1,1),-10)-proj.project_position(Vector2(0,0),-10);
+  pixel_size = fabsf((pixel_rect.x+pixel_rect.y)/2.0);
+  real_t system_diameter = pixel_size*system_diameter_pixels;
+  real_t link_width = pixel_size*link_width_pixels;
+  real_t padding = max(max_system_scale*system_diameter,max_link_scale*link_width);
+  Vector3 vadding(padding,padding,padding);
+  
   PoolVector3Array::Read system_locations_read = system_locations.read();
   const Vector3 *system_locations_ptr = system_locations_read.ptr();
   
@@ -449,6 +463,8 @@ void Starmap::_draw() {
       Vector2 min_view = proj.unproject_position(pos3-vadding);
       Vector2 max_view = proj.unproject_position(pos3+vadding);
       Rect2 padded_link_rect(min_view,max_view-min_view);
+      padded_link_rect.position.y += padded_link_rect.size.y;
+      padded_link_rect.size.y = -padded_link_rect.size.y;
       if(not view_rect.intersects(padded_link_rect))
         continue; // system is outside view by more than padding
 
@@ -472,7 +488,7 @@ void Starmap::_draw() {
         system_color = default_system_visuals->system_color;
         system_scale = default_system_visuals->system_scale;
       }
-      system_scale *= camera_size;
+      system_scale *= system_diameter;
 
       if(gate_set.find(n)!=gate_set.end()) {
         system_color.a = 0.1;
@@ -568,7 +584,8 @@ void Starmap::_draw() {
         sys2_pos = system_locations_ptr[sys2_index];
         
         pair<int,int> indices = pair<int,int>(sys1_index,sys2_index);
-        
+
+        /* FIXME: DELETE THIS OR TEST IT
         Vector3 min_pos = Vector3(min(sys1_pos.x,sys2_pos.x),min(sys1_pos.y,sys2_pos.y),
                                   min(sys1_pos.z,sys2_pos.z)) - vadding;
         Vector3 max_pos = Vector3(max(sys1_pos.x,sys2_pos.x),max(sys1_pos.y,sys2_pos.y),
@@ -578,9 +595,12 @@ void Starmap::_draw() {
         Vector2 max_view = proj.unproject_position(max_pos);
         
         Rect2 padded_link_rect(min_view,max_view-min_view);
-        // if(not view_rect.intersects(padded_link_rect))
-        //   // Link is definitely off-screen;
-        //   continue;
+        padded_link_rect.position.y += padded_link_rect.size.y;
+        padded_link_rect.size.y = -padded_link_rect.size.y;
+        if(not view_rect.intersects(padded_link_rect)) {
+          // Link is definitely off-screen;
+          continue;
+        */
 
         // How do we color and label this?
         link_scale = max_link_scale;
@@ -597,7 +617,7 @@ void Starmap::_draw() {
         }
       }
 
-      link_scale *= camera_size;
+      link_scale *= link_width;
       Vector3 pos = (sys1_pos+sys2_pos)/2.0f;
       Vector3 diff = sys2_pos-sys1_pos;
       real_t link_len = diff.length();

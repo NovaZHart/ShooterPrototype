@@ -116,7 +116,7 @@ anchor_bottom = 0.0
 margin_top = 27.0
 margin_right = 653.0
 margin_bottom = 600.0
-mouse_filter = 2
+hint_tooltip = "(Test Tooltip)"
 allow_selection = false
 max_camera_size = 200.0
 mode = 1
@@ -158,3 +158,6 @@ __meta__ = {
 [connection signal="product_selected" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_product_selected"]
 [connection signal="resized" from="All/Right/Content/Top" to="." method="_on_Content_resized"]
 [connection signal="item_selected" from="All/Right/Content/Top/BuySell" to="." method="_on_BuySell_item_selected"]
+[connection signal="hover_no_system" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_no_system"]
+[connection signal="hover_over_player_location" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_over_player_location"]
+[connection signal="hover_over_system" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_over_system"]

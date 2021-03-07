@@ -1,9 +1,10 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/StarmapEnvironment.tres" type="Environment" id=1]
 [ext_resource path="res://ui/StarmapPanel.gd" type="Script" id=2]
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://ui/MapColorbar.tscn" type="PackedScene" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 15
@@ -62,4 +63,6 @@ visible = false
 
 [node name="Links" type="MultiMeshInstance" parent="View/Port"]
 visible = false
+
+[node name="MapColorbar" parent="." instance=ExtResource( 5 )]
 [connection signal="resized" from="." to="." method="_on_StarmapPanel_resized"]

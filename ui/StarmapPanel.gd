@@ -30,9 +30,7 @@ export var mode: int = NAVIGATIONAL
 const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
 const StarmapSystemShader: Shader = preload('res://ui/StarmapSystem.shader')
 const StarmapLibrary = preload('res://bin/Starmap.gdns')
-const SYSTEM_SCALE: float = 0.007
-const LINK_SCALE: float = 0.004
-const SELECT_EPSILON: float = 0.02
+const SELECT_EPSILON: float = 0.007
 const fake_system_name: String = '\t'
 
 var starmap
@@ -40,20 +38,26 @@ var starmap_mutex: Mutex = Mutex.new()
 var link_material: ShaderMaterial
 var system_material: ShaderMaterial
 var buy: bool = true setget set_buy
+var system_metadata: Array = []
 var name_pool: PoolStringArray = PoolStringArray()
 var display_name_pool: PoolStringArray = PoolStringArray()
 var pos_pool: PoolVector3Array = PoolVector3Array()
 var gate_pool: PoolIntArray = PoolIntArray()
 var link_pool: PoolIntArray = PoolIntArray()
 var system_index: Dictionary = {}
-
+var system_scale: float
+var link_scale: float
 var ui_scroll: float = 0
 var last_position = null
 var last_screen_position = null
 var camera_start = null
+var hover_index = -1
 
 signal select
 signal deselect
+signal hover_over_player_location
+signal hover_over_system
+signal hover_no_system
 
 func _init():
 	selection = game_state.systems.get_node_or_null(Player.destination_system)
@@ -72,7 +76,7 @@ func cancel_drag() -> bool:
 func _ready():
 	if allow_selection:
 		game_state.switch_editors(self)
-	
+	$MapColorbar.set_title('Prices')
 	starmap.name = 'Starmap'
 	starmap.set_camera_path(NodePath('../Camera'))
 	$View/Port.add_child(starmap)
@@ -90,17 +94,19 @@ func _ready():
 	system_material.set_shader_param('poly',4)
 	starmap.set_circle_material(system_material)
 	
-	starmap.set_max_scale(SYSTEM_SCALE*2.0, LINK_SCALE*2.0, rect_global_position)
+	system_scale = label_font.get_char_size(ord('M')).y-label_font.get_descent()
+	link_scale = system_scale/2.0
+	starmap.set_reference_size(system_scale, link_scale)
+	starmap.set_max_scale(3.0, 3.0, rect_global_position)
 	assert(label_font)
-	starmap.set_default_visuals(system_color,link_color,system_name_color,label_font,
-		SYSTEM_SCALE,LINK_SCALE)
+	starmap.set_default_visuals(system_color,link_color,system_name_color,label_font,1.0,1.0)
 	
 	starmap.set_show_links(false)
 	send_systems_to_starmap()
 	update_starmap_visuals()
 
 func _on_StarmapPanel_resized():
-	starmap.set_max_scale(SYSTEM_SCALE*2.0, LINK_SCALE*2.0, rect_global_position)
+	starmap.set_max_scale(3.0, 3.0, rect_global_position)
 
 func process_if(flag):
 	if flag:
@@ -161,28 +167,33 @@ func send_systems_to_starmap():
 func alpha(c: Color, a: float) -> Color:
 	return Color(c.r,c.g,c.b,a)
 
+func get_location_index():
+	if system_index.has(fake_system_name):
+		return 0
+	else:
+		return system_index.get(Player.system.name,-1)
+
 func update_starmap_visuals():
 	starmap.clear_visuals()
 	starmap.clear_extra_lines()
 	
 	var selection_index = -1
-	var location_index = -1
-	if system_index.has(fake_system_name):
-		location_index = 0
-	else:
-		location_index = system_index.get(Player.system.name,-1)
+	var location_index = get_location_index()
 	
 	if selection and selection.has_method('is_SystemData'):
 		selection_index = system_index.get(selection.name,-1)
 	
 	if mode==NAVIGATIONAL:
 		navigational_visuals(selection_index,location_index)
+		$MapColorbar.visible=false
+		if not system_metadata.empty():
+			system_metadata.resize(0)
 	else:
 		pricing_visuals(selection_index,location_index)
 	
 	if location_index>=0 and selection_index>=0 and location_index!=selection_index:
 		starmap.add_extra_line(pos_pool[location_index],
-			pos_pool[selection_index],path_color,LINK_SCALE*2.0)
+			pos_pool[selection_index],path_color,2.0)
 	
 	starmap.update()
 
@@ -256,14 +267,27 @@ func pricing_visuals(selection_index: int, location_index: int):
 	assert(not (at_selection&color_mask))
 	var step: float = 1.0
 	if min_stat!=INF:
-		step = max(round((max_stat-min_stat)/float(ncolors)),1.0)
+		step = round((max_stat-min_stat)/float(ncolors))
+		var colorbar_labels = []
+		for i in range(ncolors+1):
+			colorbar_labels.append(str(round(min_stat+i*step)))
+		$MapColorbar.visible=false
+		$MapColorbar.set_labels(PoolStringArray(colorbar_labels))
+		$MapColorbar.set_colors(PoolColorArray(colors.slice(1,len(colors))))
+		$MapColorbar.visible=true
+		step=max(1.0,step)
+	else:
+		$MapColorbar.visible=false
+	system_metadata.resize(len(pos_pool))
 	for index in range(len(pos_pool)):
 		var flags: int = 0
+		var price = null
 		if min_stat!=INF:
-			var price = price_at_index.get(index,-1)
+			price = price_at_index.get(index,-1)
 			if price and price>0:
 # warning-ignore:narrowing_conversion
 				flags = clamp(int(floor((price-min_stat)/step)),1,ncolors)
+		system_metadata[index] = price
 		if location_index==index:
 			flags |= at_location
 		if selection_index==index:
@@ -272,12 +296,14 @@ func pricing_visuals(selection_index: int, location_index: int):
 			draw[flags].append(index)
 		else:
 			draw[flags] = [index]
+		
 	for flags in draw:
 # warning-ignore:shadowed_variable
 		var system_color = colors[flags&color_mask]
 		var label_color = system_color
 		var font = label_font
-		var system_scale = SYSTEM_SCALE
+# warning-ignore:shadowed_variable
+		var system_scale = 1.0
 		if flags&at_location or flags&at_selection:
 			font = highlighted_font
 		if flags&at_location:
@@ -288,30 +314,30 @@ func pricing_visuals(selection_index: int, location_index: int):
 func navigational_visuals(selection_index: int, location_index: int):
 	if location_index==selection_index and location_index>=0:
 		starmap.add_system_visuals(PoolIntArray([selection_index]),
-			highlight_color, system_name_color, highlighted_font,
-			SYSTEM_SCALE*1.2)
+			highlight_color, system_name_color, highlighted_font, 1.2)
 		starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
-			connected_color, LINK_SCALE*1.5)
+			connected_color, 1.5)
 	else:
 		if location_index>=0:
 			starmap.add_system_visuals(PoolIntArray([location_index]),
-				system_location_color, system_name_color, highlighted_font,
-				SYSTEM_SCALE*1.2)
+				system_location_color, system_name_color, highlighted_font, 1.2)
 			starmap.add_adjacent_link_visuals(PoolIntArray([location_index]),
-				connected_location_color, LINK_SCALE*1.5)
+				connected_location_color, 1.5)
 		
 		if selection_index>=0:
 			starmap.add_system_visuals(PoolIntArray([selection_index]),
-				highlight_color, system_name_color, highlighted_font,
-				SYSTEM_SCALE)
+				highlight_color, system_name_color, highlighted_font, 1.0)
 			starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
-				connected_color, LINK_SCALE)
+				connected_color, 1.0)
 
-func find_at_position(screen_position: Vector2):
+func index_at_position(screen_position: Vector2):
 	var epsilon = SELECT_EPSILON*$View/Port/Camera.size
 	var pos3 = $View/Port/Camera.project_position(
 		screen_position-$View.rect_global_position,-10)
-	var result = starmap.system_at_location(pos3, epsilon)
+	return starmap.system_at_location(pos3, epsilon)
+
+func find_at_position(screen_position: Vector2):
+	var result = index_at_position(screen_position)
 	if result<0 or result>=name_pool.size():
 		return null
 	var system_name: String = name_pool[result]
@@ -376,6 +402,19 @@ func _input(event):
 					starmap.update()
 		else:
 			var _discard = cancel_drag()
+	if event is InputEventMouseMotion and not system_metadata.empty():
+		var index = index_at_position(pos2)
+		if index!=hover_index:
+			hover_index=index
+			if hover_index>=0 and hover_index<len(name_pool):
+				if hover_index==get_location_index():
+					emit_signal('hover_over_player_location',name_pool[index],
+						display_name_pool[index],system_metadata[index])
+				else:
+					emit_signal('hover_over_system',name_pool[index],
+						display_name_pool[index],system_metadata[index])
+			else:
+				emit_signal('hover_no_system')
 	
 	if event.is_action_pressed('ui_location_slide'):
 		last_screen_position = pos2
