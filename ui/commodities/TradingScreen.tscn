@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=2]
@@ -6,8 +6,6 @@
 [ext_resource path="res://ui/commodities/TradingList.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/commodities/TradingScreen.gd" type="Script" id=5]
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=6]
-[ext_resource path="res://ui/MainDialog/MainDialogTrigger.gd" type="Script" id=7]
-[ext_resource path="res://ui/MainDialog/MainDialog.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=9]
 
 [sub_resource type="DynamicFont" id=1]
@@ -25,9 +23,7 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="MainDialogTrigger" type="Node" parent="." instance=ExtResource( 9 )]
-script = ExtResource( 7 )
-MainDialog = ExtResource( 8 )
+[node name="MainDialogTrigger" parent="." instance=ExtResource( 9 )]
 
 [node name="All" type="HSplitContainer" parent="."]
 anchor_right = 1.0

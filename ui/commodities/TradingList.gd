@@ -4,10 +4,11 @@ export var increment_texture: Texture
 export var decrement_texture: Texture
 
 const NAME_COLUMN: int = 0
-const PRICE_COLUMN: int = 1
-const MINE_COLUMN: int = 2
-const BUTTON_COLUMN: int = 3
-const HERE_COLUMN: int = 4
+const PROFIT_COLUMN: int = 1
+const PRICE_COLUMN: int = 2
+const MINE_COLUMN: int = 3
+const BUTTON_COLUMN: int = 4
+const HERE_COLUMN: int = 5
 
 const PRICE_ELEMENT: int = 0
 const MASS_ELEMENT: int = 1
@@ -16,8 +17,8 @@ const MINE_ID_ELEMENT: int = 3
 const HERE_ID_ELEMENT: int = 04
 
 var max_cargo: int = 20000
-var mine: Commodities.ManyProducts = Commodities.ManyProducts.new()
-var here: Commodities.ManyProducts = Commodities.ManyProducts.new()
+var mine: Commodities.ManyProducts
+var here: Commodities.ManyProducts
 var last_sort_method: int = 1
 
 signal product_selected
@@ -75,18 +76,21 @@ func _ready():
 	var number_size = font.get_char_size(ord('0'),ord('0'))
 	var min_width = number_size.x*7.5
 	utils.Tree_set_title_and_width(self,NAME_COLUMN,'Product',font,min_width)
+	utils.Tree_set_title_and_width(self,PROFIT_COLUMN,'Perturbation',font,min_width)
 	utils.Tree_set_title_and_width(self,PRICE_COLUMN,'Price',font,min_width)
 	utils.Tree_set_title_and_width(self,MINE_COLUMN,'Cargo',font,min_width)
 	utils.Tree_set_title_and_width(self,BUTTON_COLUMN,'Buy/Sell',
 		font,increment_texture.get_width()+decrement_texture.get_width()+10)
 	utils.Tree_set_title_and_width(self,HERE_COLUMN,'For Sale',font,min_width)
-	for c in [ PRICE_COLUMN, MINE_COLUMN, BUTTON_COLUMN, HERE_COLUMN ]:
+	for c in [ PROFIT_COLUMN, PRICE_COLUMN, MINE_COLUMN, BUTTON_COLUMN, HERE_COLUMN ]:
 		set_column_expand(c,false)
 
 func clear_list():
 	utils.Tree_clear(self)
-	mine.clear()
-	here.clear()
+	if mine:
+		mine.clear()
+	if here:
+		here.clear()
 
 func populate_list(products,ship_design):
 	clear_list()
@@ -96,15 +100,13 @@ func populate_list(products,ship_design):
 	# Populate the data structures:
 	if ship_design.cargo:
 		mine = ship_design.cargo
-		now_cargo = mine.get_mass()
+		now_cargo = int(round(mine.get_mass()))
 	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
 	here = products
-	print('here before add '+str(here.all))
 	if mine.all:
 		here.add_products(mine.all,null,null,null,true,null,   true   )
 	if here.all:
 		mine.add_products(here.all,null,null,null,true,null,   true   )
-	print('here after add '+str(here.all))
 	
 	# Populate the tree:
 	var root: TreeItem = create_item()
@@ -113,10 +115,18 @@ func populate_list(products,ship_design):
 	for product_name in names:
 		var mine_id: int = mine.by_name[product_name]
 		var here_id: int = here.by_name[product_name]
+		var norm_id: int = Commodities.commodities.by_name.get(product_name,-1)
 		var entry_mine: Array = mine.all[mine_id]
 		var entry_here: Array = here.all[here_id]
+		var entry_norm = Commodities.commodities.all.get(norm_id,null)
 		# FIXME: proper display name
 		var price: float = max(0.0,entry_here[Commodities.Products.VALUE_INDEX])
+		var norm_price: float
+		if entry_norm:
+			norm_price = max(0.0,entry_norm[Commodities.Products.VALUE_INDEX])
+		else:
+			norm_price = price
+		var diff: float = price-norm_price
 		var mass: float = max(0.0,entry_here[Commodities.Products.MASS_INDEX])
 # warning-ignore:narrowing_conversion
 		var count_mine: int = max(0,entry_mine[Commodities.Products.QUANTITY_INDEX])
@@ -137,6 +147,10 @@ func populate_list(products,ship_design):
 		data[QUANTITY_ELEMENT] = count_here+count_mine
 		data[MINE_ID_ELEMENT] = mine_id
 		data[HERE_ID_ELEMENT] = here_id
+		item.set_text(PROFIT_COLUMN,str(diff))
+		item.set_metadata(PROFIT_COLUMN,diff)
+		item.set_editable(PROFIT_COLUMN,false)
+		item.set_tooltip(PROFIT_COLUMN,display_name+': Difference between price here and average price.\nhere: '+str(price)+'\nAverage: '+str(norm_price)+'.\nClick to see prices on map.')
 		item.set_metadata(PRICE_COLUMN,data)
 		item.set_editable(PRICE_COLUMN,false)
 		item.set_tooltip(PRICE_COLUMN,'Price of '+display_name+' here: '+str(price)+'\nClick to see prices on map.')
@@ -249,13 +263,15 @@ func _on_SellAll_pressed():
 		return
 	var item = root.get_children()
 	while item:
-		var etc = item.get_metadata(1)
+		var etc = item.get_metadata(PRICE_COLUMN)
 		var mine_id = etc[MINE_ID_ELEMENT]
 		var here_id = etc[HERE_ID_ELEMENT]
 		here.all[here_id][Commodities.Products.QUANTITY_INDEX] += \
 			mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
 		mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]=0
-		Player.money += item.get_metadata(HERE_COLUMN)*etc[PRICE_ELEMENT]
+		var sale: float = item.get_metadata(MINE_COLUMN)*etc[PRICE_ELEMENT]
+		assert(sale>=0 and sale<1e9)
+		Player.money += sale
 		item.set_text(MINE_COLUMN,str(0))
 		item.set_metadata(MINE_COLUMN,0)
 		var all = etc[QUANTITY_ELEMENT]
@@ -273,11 +289,20 @@ class TreeSort extends Reference:
 		column=column_
 		index=index_
 	func text_sort(a,b) -> bool:
-		return reverse != (a.get_text(column)<b.get_text(column))
+		if reverse:
+			return a.get_text(column)>b.get_text(column)
+		else:
+			return a.get_text(column)<b.get_text(column)
 	func meta_sort(a,b) -> bool:
-		return reverse != (a.get_metadata(column)<b.get_metadata(column))
+		if reverse:
+			return a.get_metadata(column)>b.get_metadata(column)
+		else:
+			return a.get_metadata(column)<b.get_metadata(column)
 	func meta_index_sort(a,b) -> bool:
-		return reverse != (a.get_metadata(column)[index]<b.get_metadata(column)[index])
+		if reverse:
+			return a.get_metadata(column)[index]>b.get_metadata(column)[index]
+		else:
+			return a.get_metadata(column)[index]<b.get_metadata(column)[index]
 
 func tree_sort(sort_method:int,object: Object,method: String):
 	if abs(last_sort_method)==abs(sort_method):
@@ -299,9 +324,9 @@ func tree_sort(sort_method:int,object: Object,method: String):
 		item.move_to_bottom()
 
 func _on_TradingList_column_title_pressed(column):
-	if column==0:
+	if column==NAME_COLUMN:
 		tree_sort(column+1,TreeSort.new(column),'text_sort')
-	elif column==1:
+	elif column==PRICE_COLUMN:
 		tree_sort(column+1,TreeSort.new(column,0),'meta_index_sort')
-	elif column!=3:
+	elif column!=BUTTON_COLUMN:
 		tree_sort(column+1,TreeSort.new(column),'meta_sort')

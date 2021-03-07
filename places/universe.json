@@ -194,7 +194,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_trade": 1
+                        "terran_trade": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
 
@@ -417,7 +418,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_mining": 1
+                        "terran_mining": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
 
@@ -466,7 +468,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_food": 1
+                        "terran_food": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
 
@@ -510,7 +513,8 @@
                             "trading": {
                               "suvar": 1,
                               "human": 1,
-                              "terran_mining": 1
+                              "terran_mining": 1,
+                              "terran_government": 1
                             },
                             "locality_adjustments": {
 
@@ -757,7 +761,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_mining": 1
+                        "terran_mining": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
 
@@ -807,7 +812,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_food": 1
+                        "terran_food": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
 
@@ -853,7 +859,8 @@
                             "trading": {
                               "suvar": 1,
                               "human": 1,
-                              "terran_trade": 1
+                              "terran_trade": 1,
+                              "terran_government": 1
                             },
                             "locality_adjustments": {
 
@@ -1121,7 +1128,8 @@
                   "suvar": 1,
                   "human": 1,
                   "terran_food": 1,
-                  "terran_industrial": 1
+                  "terran_industrial": 1,
+                  "terran_government": 1
                 },
                 "locality_adjustments": {
                   "deadly_drug/terran/human": [
@@ -1178,7 +1186,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_illegal": 1
+                        "terran_illegal": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
                         "dead/sentient": [
@@ -1233,7 +1242,8 @@
                 },
                 "trading": {
                   "suvar": 1,
-                  "human": 1
+                  "human": 1,
+                  "terran_government": 1
                 },
                 "locality_adjustments": {
                   "deadly_drug/terran/human": [
@@ -1509,7 +1519,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_trade": 1
+                        "terran_trade": 1,
+                        "terran_government": 1
                       },
                       "locality_adjustments": {
 
@@ -1699,7 +1710,8 @@
                 },
                 "trading": {
                   "suvar": 1,
-                  "human": 1
+                  "human": 1,
+                  "terran_government": 1
                 },
                 "locality_adjustments": {
 

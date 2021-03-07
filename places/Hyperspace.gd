@@ -36,7 +36,6 @@ var sent_systems_and_player: bool = false
 var combat_engine_mutex: Mutex = Mutex.new()
 var latest_target_info: Dictionary = Dictionary()
 var ship_stats: Dictionary = {}
-var first_visual_tick = true
 var interstellar_systems: Array = []
 var stellar_systems: Array = []
 
@@ -118,6 +117,18 @@ func clear():
 		planet.queue_free()
 	combat_engine_mutex.unlock()
 
+func get_initial_player_target():
+	var data_node = game_state.systems.get_node_or_null(Player.destination_system)
+	if data_node:
+		var node = $Systems.get_node_or_null(data_node.name)
+		if node==null or not node is Area:
+			push_warning('Cannot find system with name '+data_node.name)
+		else:
+			return node.get_rid()
+	else:
+		push_warning('Cannot find system at path '+Player.destination_system)
+	return null
+
 func make_player_orders(_delta: float) -> Dictionary:
 	if Input.is_action_just_released('ui_down'):
 		if double_down_active:
@@ -160,20 +171,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 	elif land:              goal=combat_engine.PLAYER_GOAL_LANDING_AI
 	elif depart:            goal=combat_engine.PLAYER_GOAL_RIFT
 	
-	if first_visual_tick:
-		var data_node = game_state.systems.get_node_or_null(Player.destination_system)
-		if data_node:
-			var node = $Systems.get_node_or_null(data_node.name)
-			if node==null or not node is Area:
-				push_warning('Cannot find system with name '+data_node.name)
-			else:
-				target_info = combat_engine.PLAYER_TARGET_OVERRIDE
-				target_rid = node.get_rid()
-				print('Override target with ',target_rid.get_id())
-		else:
-			push_warning('Cannot find system at path '+Player.destination_system)
-		first_visual_tick=false
-	elif target_rid.get_id() and target_rid!=get_player_rid():
+	if target_rid.get_id() and target_rid!=get_player_rid():
 		target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 	
 	var result: Dictionary = Dictionary()
@@ -182,12 +180,8 @@ func make_player_orders(_delta: float) -> Dictionary:
 	if orders:                result['orders'] = orders
 	if target_info:           result['change_target'] = target_info
 	if goal:                  result['goals'] = [goal]
-	if target_info==combat_engine.PLAYER_TARGET_OVERRIDE:
-		if target_rid.get_id():
-			result['target_rid'] = target_rid
-			print('target rid ',target_rid.get_id())
-		else:
-			push_error("Target rid is invalid")
+	if target_info==combat_engine.PLAYER_TARGET_OVERRIDE and target_rid.get_id():
+		result['target_rid'] = target_rid
 	
 	return result
 
@@ -270,7 +264,11 @@ func _ready():
 func pack_ship_stats_if_not_sent():
 	if not sent_systems_and_player:
 		var player_ship = $Ships.get_node_or_null(player_ship_name)
-		return [ player_ship.pack_stats() ]
+		var packed: Dictionary = player_ship.pack_stats()
+		var target = get_initial_player_target()
+		if target:
+			packed['initial_target'] = target
+		return [ packed ]
 	return []
 
 func pack_system_stats_if_not_sent() -> Array:
@@ -359,7 +357,7 @@ func _physics_process(delta):
 		if new_player_target_name!=old_player_target_name:
 			var old_target = game_state.systems.get_node_or_null(Player.destination_system)
 			var new_target = game_state.systems.get_child_with_name(new_player_target_name)
-			if new_target and physics_tick>5:
+			if new_target and physics_tick>20:
 				universe_edits.state.push(universe_edits.ChangeSelection.new(
 					old_target,new_target))
 	

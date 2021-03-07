@@ -5,7 +5,7 @@ var trading: Dictionary
 var selected_commodity_index: int = -1
 
 # Maybwe move this to game data files?
-const population_names: Array = [ 'suvar', 'human' ]
+const population_names: Array = [ 'suvar', 'human', 'spiders' ]
 
 const no_commodity: Array = [ 'nothing', 0, 0, 0, 0 ]
 
@@ -108,10 +108,13 @@ class Products extends Reference:
 	
 	func randomize_costs(randseed: int,time: float):
 		var ids=all.keys()
-		ids.sort()
-		for ivar in [ VALUE_INDEX, QUANTITY_INDEX ]:
-			for id in ids:
-				seed(randseed+ivar*31337+hash(all[id][NAME_INDEX]))
+		for id in ids:
+			var product = all.get(id,null)
+			if not product:
+				continue
+			var prod_hash: int = hash(product[NAME_INDEX])
+			for ivar in [ VALUE_INDEX, QUANTITY_INDEX ]:
+				seed(randseed+ivar*31337+prod_hash)
 				var f = 0.0
 				var w = 0.0
 				var p = 1.0
@@ -121,8 +124,19 @@ class Products extends Reference:
 					var w2 = (2.0*randf()-1.0)*p
 					f += w1*sin(2*PI*time*(i+1)) + w2*(cos(2*PI*time*(i+1)))
 					w += abs(w1)+abs(w2)
-				all[id][ivar] = int(ceil(all[id][ivar]*(1.0 + 0.15*f/w)))
+				var w3 = randf()
+				var s = 0.08*pow(0.7,sqrt(w3))+0.15*pow(0.98,sqrt(w3))+0.02
+				product[ivar] = int(ceil(product[ivar]*(1.0 + s*f/w)))
 	
+	func randomly_erase_products():
+		var ids=all.keys()
+		for id in ids:
+			var product = all.get(id,null)
+			if product:
+				var present: float = max(0.1,1.0-pow(0.7,log(product[QUANTITY_INDEX])))
+				if randf()>present:
+					product[QUANTITY_INDEX] = 0
+
 	func apply_multiplier_list(multipliers: Dictionary):
 		for tag in multipliers:
 			if by_tag.has(tag):
@@ -494,30 +508,47 @@ class ProducerConsumer extends Reference:
 	func population(_all_products: Products, _result: Products, _population: Dictionary):
 		pass # What the population produces and consumes, regardless of infrastructure:
 
+class TerranGovernment extends ProducerConsumer:
+	func population(products: Products, result: Products, _population: Dictionary):
+		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,null,10)
+		result.add_products_from(products,['taboo/house_cat'],[],0,null,0)
+		result.add_products_from(products,['deadly_drug/terran'],[],0,null,10)
+
+class ForbidIntoxicants extends ProducerConsumer:
+	func population(products: Products, result: Products, _population: Dictionary):
+		result.add_products_from(products,['intoxicant/terran'],[],0,0)
 
 class SuvarConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0),0.333333)
 		if not m: return
 		result.add_products_from(products,['religous/terran/buddhism'],[],m*2)
-		result.add_products_from(products,['religous/terran'],[],m)
-		result.add_products_from(products,['consumables/terran'],[],m)
+		result.add_products_from(products,
+			['religious/terran','consumables/terran','durable/terran','pets/terran',
+			'manufactured/transport'],[],m)
 		result.add_products_from(products,['luxury/terran'],[],m,0.8)
 		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
 		result.add_products_from(products,['intoxicant/terran/suvar'],[],m,null,1.7)
-		result.add_products_from(products,['dead/thinking'],[],m,null,1.5)
-		result.add_products_from(products,['dead/sentient','live_sentient'],[],null,null,10)
+		result.add_products_from(products,['taboo/house_cat'],[],-0.01*m)
 
 class HumanConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('human',0),0.333333)
 		if not m: return
 		result.add_products_from(products,
-			['religious/terran','consumables/terran','luxury/terran'],[],m)
+			['religious/terran','consumables/terran','luxury/terran','durable/terran',
+			'manufactured/transport'],[],m)
 		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
 		result.add_products_from(products,['intoxicant/terran/human'],[],m,null,1.4)
-		result.add_products_from(products,['dead/sentient'],[],0,null,8)
-		result.add_products_from(products,['live/sentient'],[],0,null,8)
+		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,null,8)
+
+class SpiderConsumers extends ProducerConsumer:
+	func population(products: Products, result: Products, population: Dictionary):
+		var m = pow(population.get('spider',0),0.333333)
+		if not m: return
+		result.add_products_from(products,
+			['religious/terran', 'consumables/food/terran/spider' ],[],m)
+		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,null,8)
 
 class ManufacturingProcess extends ProducerConsumer:
 	var consumes_tags: Array
@@ -533,19 +564,30 @@ class ManufacturingProcess extends ProducerConsumer:
 		result.add_products_from(products,consumes_tags,exclude_tags,0.5*m)
 		result.add_products_from(products,produces_tags,exclude_tags,3*m)
 
+class TerranEaterTradeCenter extends ProducerConsumer:
+	func population(products: Products, result: Products, population: Dictionary):
+		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
+		result.add_products_from(products,['dead/sentient/terran','live/sentient/terran'],['slaves/rare'],m)
+
 class TerranIllegalTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
-		var m = pow(population.get('suvar',0)+population.get('human',0),0.333333)
-		result.add_products_from(products,[
-			'intoxicant/terran','live/sentient/human','live/sentient/suvar'],['dead/sentient'],m)
+		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
+		result.add_products_from(products,
+			['intoxicant/terran','live/sentient/terran','live/thinking/house_cat'],
+			['slaves/rare','dead/sentient'],m)
+
+class TerranSlaveTradeCenter extends ProducerConsumer:
+	func population(products: Products, result: Products, population: Dictionary):
+		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
+		result.add_products_from(products,['live/sentient/terran'],['dead/sentient'],m)
 
 class TerranTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0),0.333333)
 		result.add_products_from(products,[
-			'religious/terran','consumables/terran','luxury/terran',
-			'intoxicant/terran','manufactured/terran','raw_materials/metal',
-			'raw_materials/gems'],['live/sentient','dead/sentient'],m)
+			'religious/terran','consumables/terran','luxury/terran','durable/terran',
+			'intoxicant/terran','manufactured/terran','raw_materials/metal','pets/terran',
+			'raw_materials/gems'],['live/sentient','dead/sentient','danger/highly_radioactive','taboo/house_cat'],m)
 
 class ProductsNode extends simple_tree.SimpleNode:
 	var products setget ,get_products #: ManyProducts or null
@@ -616,47 +658,220 @@ func delete_old_products(root, cutoff: int):
 		if child:
 			delete_old_products_impl(root,child,cutoff)
 
-func make_test_products() -> ManyProducts:
+func expand_tags(product_data: Array) -> Array:
+	var result: Array = []
+	for product in product_data:
+		var result_product: Array = product.duplicate()
+		var tags: Dictionary = {}
+		for iarg in range(Products.FIRST_TAG_INDEX,len(product)):
+			var whole_tag: String = product[iarg]
+			var split_tag: Array = whole_tag.split('/',false)
+			var tag: String = ''
+			for subtag in split_tag:
+				tag += ('/'+subtag) if tag else subtag
+				if not tags.has(tag):
+					tags[tag]=1
+					result_product.append(tag)
+		result.append(result_product)
+	return result			
+				
+
+func data_tables() -> ManyProducts:
 	var result = ManyProducts.new()
-	var data = [
-		# name, quantity, value, fine, density, tags
-		[ 'catnip', 10, 100, 100, 1, 'intoxicant/terran', 'intoxicant/terran/suvar' ],
-		[ 'heroin', 10, 300, 900, 1, 'intoxicant/terran', 'intoxicant/terran/human',
-			'intoxicant/terran/suvar', 'deadly_drug/terran/human' ],
-		[ 'iron', 10000, 1, 1, 5, 'raw_materials/metal' ],
-		[ 'titanium', 3000, 8, 8, 5, 'raw_materials/metal' ],
-		[ 'diamonds', 3, 50000, 50000, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'rubies', 3, 20000, 20000, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'weapon_parts', 10, 800, 800, 50, 'manufactured/defense', 'manufactured/terran' ],
-		[ 'woodworking_tools', 10, 500, 500, 50, 'manufactured/industrial', 'manufactured/terran' ],
-		[ 'tractors', 25, 4000, 4000, 1500, 'manufactured/farming', 'manufactured/terran' ],
-		[ 'deep_core_drill', 10, 18000, 18000, 15000, 'manufactured/mining', 'manufactured/terran' ],
-		[ 'jewelry', 7, 10000, 10000, 1, 'luxury/terran' ],
-		[ 'hamburgers', 1000, 5, 100, 1, 'consumables/terran', 'consumables/terran/food', 'dead/thinking' ],
-		[ 'human_slaves', 10, 10000, 1000, 100, 'slaves/terran', 'live/sentient', 'live/sentient/human' ],
-		[ 'humanburgers', 10, 1000, 10000, 1, 'dead/sentient', 'dead/sentient/human' ],
-		[ 'suvar_pelts', 10, 3000, 10000, 3, 'dead/sentient', 'dead/sentient/suvar' ],
+	# name, quantity, value, fine, mass
+	var data = [ # name, quantity, value, fine, density, tags
+		
+		# Intoxicants
+		[ 'catnip', 1, 100, 100, 1, 'intoxicant/terran/suvar' ],
+		[ 'spider_glitter', 1, 110, 100, 1, 'intoxicant/terran/spider' ],
+		[ 'fine_wine', 1, 140, 100, 1, 'intoxicant/terran/human', 'intoxicant/terran/suvar' ],
+		[ 'beer', 1, 30, 100, 1, 'intoxicant/terran/human', 'intoxicant/terran/suvar' ],
+		[ 'magic_crystals', 1, 400, 100, 1, 'intoxicant/terran/human', 'intoxicant/terran/spider' ],
+		[ 'peppy_pints', 1, 500, 100, 10, 'intoxicant/terran/human', 'intoxicant/terran/suvar' ],
+		[ 'happy_powder', 1, 600, 900, 1, 'intoxicant/terran/human',
+		  'intoxicant/terran/suvar', 'deadly_drug/terran/human' ],
+		[ 'rainbow_tears', 1, 900, 900, 1, 'intoxicant/terran/human',
+		  'intoxicant/terran/suvar', 'deadly_drug/terran/suvar' ],
+		
+		# Material prices for 1kg are based on Feb/Mar 2020 prices:
+		#    max(3,ceil(us$/kg / 4))
+		# Material fines are always 100
+		# Base metals: quantity 200, mass 10kg
+		# Medium-rarity metals: quantity 100, mass 10kg
+		# Rare metals: quantity 30, mass 1
+		[ 'iron', 200, 3, 100, 10, 'raw_materials/metal' ],
+		[ 'copper', 200, 22, 100, 10, 'raw_materials/metal', 'raw_materials/jewelry_materials' ],
+		[ 'nickel', 200, 41, 100, 10, 'raw_materials/metal' ],
+		[ 'aluminum', 200, 5, 100, 10, 'raw_materials/metal' ],
+		[ 'zinc', 200, 22, 100, 10, 'raw_materials/metal' ],
+		[ 'lead', 200, 5, 100, 10, 'raw_materials/metal' ],
+		
+		[ 'cobalt', 100, 132, 100, 10, 'raw_materials/metal' ],
+		[ 'titanium', 100, 64, 100, 10, 'raw_materials/metal' ],
+		[ 'silver', 100, 139, 100, 10, 'raw_materials/metal', 'raw_materials/jewelry_materials' ],
+		
+		[ 'gold', 30, 938, 100, 1, 'raw_materials/metal/rare', 'raw_materials/jewelry_materials' ],
+		[ 'platinum', 30, 624, 100, 1, 'raw_materials/metal/rare', 'raw_materials/jewelry_materials' ],
+		[ 'iridium', 30, 2181, 100, 1, 'raw_materials/metal/rare' ],
+		[ 'rhodium', 30, 16093, 100, 1, 'raw_materials/metal/rare' ],
+		[ 'palladium', 30, 1291, 100, 1, 'raw_materials/metal/rare' ],
+		[ 'ruthenium', 30, 2020, 100, 1, 'raw_materials/metal/rare' ],
+
+		[ 'refined_uranium', 30, 10254, 100, 1, 'raw_materials/metal/highly_radioactive', 'danger/highly_radioactive' ],
+		[ 'plutonium', 30, 19504, 100, 1, 'raw_materials/metal/highly_radioactive', 'danger/highly_radioactive' ],
+		
+		# Gems: 1kg, 300 fine. 
+		# Mass includes protective and security packaging.
+		# Price: max(200,real-world $/carat * 5)
+		
+		[ 'diamonds', 1, 350000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'rubies', 3, 150000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'alexandrite gems', 5, 85000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'emeralds', 5, 70000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'sapphires', 5, 50000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		
+		[ 'tourmaline_gems', 12, 25000, 300, 1, 'raw_materials/gems' ],
+		[ 'spinel_gems', 12, 17500, 300, 1, 'raw_materials/gems' ],
+		[ 'garnet_gems', 12, 12500, 300, 1, 'raw_materials/gems' ],
+		[ 'tanzanite_gems', 12, 5000, 300, 1, 'raw_materials/gems' ],
+		[ 'beryl_gems', 12, 4000, 300, 1, 'raw_materials/gems' ],
+		[ 'zircon_gems', 12, 7500, 300, 1, 'raw_materials/gems' ],
+		[ 'topaz_gems', 12, 7500, 300, 1, 'raw_materials/gems' ],
+		[ 'aquamarine_gems', 12, 4000, 300, 1, 'raw_materials/gems' ],
+		[ 'chrysoberyl_gems', 30, 2500, 300, 1, 'raw_materials/gems' ],
+		[ 'amethysts', 12, 300, 300, 1, 'raw_materials/gems' ],
+		[ 'garnet_gems', 12, 4000, 300, 1, 'raw_materials/gems' ],
+		
+		
+		# Manufacturing: parts or bulk tools
+		[ 'weapon_parts', 40, 800, 800, 250, 'manufactured/defense/terran', 'manufactured/terran' ],
+		[ 'woodworking_tools', 40, 500, 500, 250, 'manufactured/industrial/terran', 'manufactured/terran' ],
+		[ 'metalworking_tools', 40, 500, 500, 250, 'manufactured/industrial/terran', 'manufactured/terran' ],
+		[ 'slaughterhouse_tools', 40, 500, 500, 250, 'manufactured/food/terran', 'manufactured/terran' ],
+		[ 'gemcutter_tools', 40, 500, 500, 150, 'manufactured/luxury/terran', 'manufactured/terran' ],
+		
+		# Large, individual, equipment:
+		[ 'tractor', 10, 4000, 4000, 1500, 'manufactured/farming/terran', 'manufactured/terran' ],
+		[ 'hovercar', 10, 4000, 4000, 2500, 'manufactured/transport/terran', 'manufactured/terran' ],
+		[ 'deep_core_drill', 1, 279000, 10000, 35000, 'manufactured/mining', 'manufactured/terran' ],
+		[ 'mining_system', 3, 51000, 10000, 35000, 'manufactured/mining', 'manufactured/terran' ],
+		[ 'transport_barge', 1, 85000, 10000, 21000, 'manufactured/transport/terran', 'manufactured/terran' ],
+		[ 'grain_processor', 2, 58000, 10000, 19000, 'manufactured/farming/terran', 'manufactured/terran' ],
+		[ 'ore_processor', 2, 38000, 10000, 24000, 'manufactured/mining', 'manufactured/terran' ],
+
+		# Generic luxury goods:		
+		[ 'jewelry', 12, 3500, 1000, 1, 'luxury/terran' ],
+		[ 'expensive_jewelry', 5, 9500, 1000, 1, 'luxury/terran' ],
+		[ 'statue', 12, 4000, 1000, 20, 'luxury/terran', 'taboo/human_depiction' ],
+		[ 'hunting_trophy', 12, 4000, 1000, 20, 'luxury/terran', 'dead/thinking' ],
+		
+		# Consumables:
+		[ 'surgical_supplies', 20, 200, 1000, 10, 'consumables/medical/terran', 'consumables/terran' ],
+		[ 'emergency_medical_kits', 80, 150, 1000, 10, 'consumables/medical/terran', 'consumables/terran' ],
+		[ 'beauty_supplies', 300, 80, 1000, 10, 'consumables/personal/terran', 'consumables/terran', ],
+		[ 'baby_powder', 300, 80, 1000, 10, 'consumables/personal/terran', 'consumables/terran', ],
+		[ 'vitamins', 300, 80, 1000, 10, 'consumables/personal/terran', 'consumables/medical/terran', 'consumables/terran', ],
+
+		# Durable goods:
+		[ 'claw_trimmers', 20, 80, 1000, 10, 'durable/personal/terran/suvar', 'durable/terran/suvar', ],
+		[ 'automatic_cooking_system', 20, 80, 1000, 150, 'durable/personal/terran/suvar', 'durable/terran/suvar', ],
+		
+		# Food, processed or otherwise, sold in units of 50kg
+		# except for special cases. Refrigeration or other
+		# preservation mechanisms are included in price+mass.
+		[ 'grains', 1000, 12, 100, 50, 'consumables/food/terran' ],
+		[ 'vegetables', 1000, 19, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'fruit', 1000, 22, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'fish', 1000, 31, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'flour', 1000, 14, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'sugar', 1000, 11, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'hamburgers', 1000, 39, 100, 50, 'consumables/food/terran', 'dead/thinking', 'taboo/dead_cow' ],
+		[ 'pork', 1000, 29, 100, 50, 'consumables/food/terran', 'dead/thinking', 'taboo/dead_pig' ],
+		[ 'steak', 1000, 51, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking', 'taboo/dead_cow' ],
+		[ 'veal', 1000, 89, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking', 'taboo/dead_cow', 'consumables/luxury/food' ],
+		[ 'goat_meat', 1000, 37, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'cheese', 1000, 28, 100, 50, 'consumables/food/terran/terran', 'live_origin/thinking', 'taboo/milk_product' ],
+		[ 'fine_cheese', 1000, 131, 100, 50, 'consumables/food/terran', 'live_origin/thinking', 'taboo/milk_product', 'consumables/luxury/food' ],
+		[ 'milk', 1000, 28, 100, 50, 'consumables/food/terran', 'live_origin/thinking', 'taboo/milk_product' ],
+		[ 'sogross_beast_meat', 1000, 45, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/thinking' ],
+		[ 'gondron_tentacles', 1000, 33, 100, 50, 'consumables/terran', 'consumables/food/terran', 'dead/feeling' ],
+		[ 'elder_tograk_flowers', 1000, 19, 100, 50, 'consumables/terran', 'consumables/food/terran' ],
+		[ 'yothii_branches', 1000, 9, 100, 50, 'consumables/terran', 'consumables/food/terran' ],
+		[ 'glowing_tangii_mushrooms', 1000, 21, 100, 50, 'consumables/terran', 'consumables/food/terran' ],
+		[ 'synthetic_meat', 1000, 17, 100, 50, 'consumables/terran', 'consumables/food/terran', 'taboo/synthetic_food' ],
+		[ 'synthetic_cheese', 1000, 19, 100, 50, 'consumables/terran', 'consumables/food/terran', 'taboo/synthetic_food' ],
+		[ 'synthetic_fruit', 1000, 13, 100, 50, 'consumables/terran', 'consumables/food/terran', 'taboo/synthetic_food' ],
+		[ 'synthetic_vegetables', 1000, 12, 100, 50, 'consumables/terran', 'consumables/food/terran', 'taboo/synthetic_food' ],
+		[ 'military_rations', 1000, 7, 100, 50, 'consumables/terran', 'consumables/food/terran', 'taboo/synthetic_food' ],
+
+		# Pets and live food (for spiders)
+		[ 'feeding_spider', 50, 51, 100, 90, 'consumables/terran', 'consumables/food/terran/spider', 'live/thinking', 'pets/terran' ],
+		[ 'large_feeding_spider', 1, 1700, 100, 1200, 'consumables/food/terran/spider', 'live/thinking', 'consumables/luxury/food' ],
+		[ 'house_cat', 12, 380, 2400, 20, 'live/thinking/house_cat', 'taboo/house_cat', 'pets/terran' ],
+		[ 'dog', 12, 80, 1200, 40, 'live/thinking/dog', 'pets/terran' ],
+		[ 'wingless_ooreon', 12, 80, 1200, 30, 'live/thinking', 'pets/terran' ],
+		
+		# Slaves, including food and life support:
+		[ 'human_child_slave', 10, 8000, 1000, 150, 'slaves/terran/human', 'live/sentient', 'live/sentient/human' ],
+		[ 'human_worker_slave', 30, 10000, 1000, 250, 'slaves/common', 'slaves/terran/human', 'live/sentient', 'live/sentient/human' ],
+		[ 'human_skilled_slave', 10, 30000, 1000, 250, 'slaves/common', 'slaves/terran/human', 'live/sentient', 'live/sentient/human' ],
+		[ 'human_mated_pair', 10, 25000, 1000, 250, 'slaves/common', 'slaves/terran/human', 'live/sentient', 'live/sentient/human' ],
+		[ 'suvar_child_slave', 5, 8000, 1000, 100, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'suvar_worker_slave', 5, 10000, 1000, 200, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'suvar_skilled_slave', 5, 30000, 1000, 200, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'suvar_child_male', 1, 35000, 1000, 150, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'suvar_breeding_male', 1, 65000, 1000, 150, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'spider_slave', 1, 40000, 1000, 1500, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		
+		# Exceptionally rare slaves, only available at select locations
+		[ 'suvar_prime_slave', 1, 950000, 1000, 200, 'slaves/rare', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'ancient_spider_slave', 1, 260000, 1000, 1500, 'slaves/rare', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'exotic_human_slave', 10, 110000, 1000, 200, 'slaves/rare', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		
+		# Highly-illegal items made from killing a sentient being
+		[ 'human_skin_paper', 10, 1000, 10000, 1, 'dead/sentient/terran/human' ],
+		[ 'human_bone_sculptures', 10, 13500, 10000, 1, 'dead/sentient/terran/human' ],
+		[ 'suvar_bone_sculptures', 10, 28000, 10000, 1, 'dead/sentient/terran/suvar' ],
+		[ 'spider_armor', 10, 28000, 10000, 1, 'dead/sentient/terran/spider' ],
+		[ 'human_meat', 10, 1000, 10000, 1, 'dead/sentient/terran/human', 'consumables/food/terran' ],
+		[ 'suvar_meat', 10, 2000, 10000, 1, 'dead/sentient/terran/suvar', 'consumables/food/terran' ],
+		[ 'suvar_pelt', 10, 26000, 10000, 10, 'dead/sentient/terran/suvar' ],
+		[ 'suvar_paw', 10, 3000, 10000, 3, 'dead/sentient/terran/suvar' ],
+		[ 'spider_leg', 10, 8500, 10000, 3, 'dead/sentient/terran/suvar' ],
 	]
-	result.add_products(data,null,null,null,false,range(len(data)))
+	result.add_products(expand_tags(data),null,null,null,false,range(len(data)))
 	return result
 
 func _init():
-	commodities=make_test_products()
+	commodities=data_tables()
 	trading={
 		'terran_trade': TerranTradeCenter.new(),
 		'terran_illegal': TerranIllegalTradeCenter.new(),
+		'terran_slaver': TerranSlaveTradeCenter.new(),
+		'terran_eaters': TerranEaterTradeCenter.new(),
+		'terran_government': TerranGovernment.new(),
+		'forbid_intoxicants': ForbidIntoxicants.new(),
 		'suvar': SuvarConsumers.new(),
+		'spiders': SpiderConsumers.new(),
 		'human': HumanConsumers.new(),
+		'luxury_manufacturing': ManufacturingProcess.new(
+			['raw_materials/gems','raw_materials/jewelry_materials','manufactured/luxury/terran'],
+			['luxury/terran'],
+			['live/sentient','dead/sentient']),
 		'terran_mining': ManufacturingProcess.new(
-			['manufactured/mining'],
+			['manufactured/mining/terran'],
 			['raw_materials/metal','raw_materials/gems'],
+			['live/sentient','dead/sentient']),
+		'terran_weapons': ManufacturingProcess.new(
+			['raw_materials/metal','raw_materials/gems','manufactured/industrial/terran'],
+			['manufactured/defense/terran'],
 			['live/sentient','dead/sentient']),
 		'terran_industrial': ManufacturingProcess.new(
 			['raw_materials/metal','raw_materials/gems'],
 			['manufactured/terran'],
 			['live/sentient','dead/sentient']),
 		'terran_food': ManufacturingProcess.new(
-			['manufactured/farming'],
-			['consumables/terran/food','intoxicant/terran'],
+			['manufactured/farming/terran'],
+			['consumables/food/terran','intoxicant/terran'],
 			['live/sentient','dead/sentient']),
 	}

@@ -438,14 +438,30 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     rid2id[pp_planet.first->second.rid.get_id()] = id;
   }
 
+  rid2id_t has_initial_target;
+
   // Add new ships
   for(int i=0,size=new_ships.size();i<size;i++) {
     Dictionary ship = static_cast<Dictionary>(new_ships[i]);
     object_id id = last_id++;
+    if(ship.has("initial_target"))
+      has_initial_target[static_cast<RID>(ship["initial_target"]).get_id()] = id;
     Ship new_ship = Ship(ship,id,last_id,mesh2path,path2mesh);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
     physics_server->body_set_collision_layer(pp_ship.first->second.rid,pp_ship.first->second.collision_layer);
+  }
+
+  // Set initial targets, if relevant
+  for(rid2id_const_iter it=has_initial_target.begin();it!=has_initial_target.end();it++) {
+    rid2id_iter target_id_ptr = rid2id.find(it->first);
+    if(target_id_ptr!=rid2id.end()) {
+      ships_iter self_ptr = ships.find(it->second);
+      if(self_ptr!=ships.end() and
+         ( planets.find(target_id_ptr->second)!=planets.end() or
+           ships.find(target_id_ptr->second)!=ships.end()))
+        self_ptr->second.target = target_id_ptr->second;
+    }
   }
 }
 
@@ -636,29 +652,32 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
 
   if(target_selection) {
     object_id target=overrides.target_id;
-    if(target_selection==PLAYER_TARGET_NOTHING)
-      target=-1;
-    else if(target_selection==PLAYER_TARGET_PLANET) {
-      if(target_nearest)
-        target=select_target<false>(target,select_nearest(ship.position),planets);
-      else
-        target=select_target<true>(target,[] (const planets_const_iter &p) { return true; },planets);
-    } else if(target_selection==PLAYER_TARGET_ENEMY or target_selection==PLAYER_TARGET_FRIEND) {
-      int mask=0x7fffffff;
-      if(target_selection==PLAYER_TARGET_ENEMY)
-        mask=ship.enemy_mask;
-      else if(target_selection==PLAYER_TARGET_FRIEND)
-        mask=ship.collision_layer;
-      if(target_nearest)
-        target=select_target<false>(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships);
-      else
-        target=select_target<true>(target,select_two(select_mask(mask),select_flying()),ships);
-    }
-    
-    if(target!=overrides.target_id)
+    if(target_selection==PLAYER_TARGET_OVERRIDE) {
+      ship.target = target;
+      Godot::print("Player target override "+str(overrides.target_id));
+    } else {
+      Godot::print("No player target override");
+      if(target_selection==PLAYER_TARGET_NOTHING)
+        target=-1;
+      else if(target_selection==PLAYER_TARGET_PLANET) {
+        if(target_nearest)
+          target=select_target<false>(target,select_nearest(ship.position),planets);
+        else
+          target=select_target<true>(target,[] (const planets_const_iter &p) { return true; },planets);
+      } else if(target_selection==PLAYER_TARGET_ENEMY or target_selection==PLAYER_TARGET_FRIEND) {
+        int mask=0x7fffffff;
+        if(target_selection==PLAYER_TARGET_ENEMY)
+          mask=ship.enemy_mask;
+        else if(target_selection==PLAYER_TARGET_FRIEND)
+          mask=ship.collision_layer;
+        if(target_nearest)
+          target=select_target<false>(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships);
+        else
+          target=select_target<true>(target,select_two(select_mask(mask),select_flying()),ships);
+      }
+      
       overrides.target_id = ship.target = target;
-    else if(target_selection==PLAYER_TARGET_OVERRIDE)
-      ship.target = overrides.target_id;
+    }
   }
 
   if(overrides.orders&PLAYER_ORDER_STOP_SHIP) {

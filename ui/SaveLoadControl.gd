@@ -14,7 +14,7 @@ signal no_save_selected
 
 var allow_saving: bool = true setget set_allow_saving, get_allow_saving
 var dialog_path: NodePath = NodePath()
-var dialog_cancel_pressed: bool
+var dialog_ok_pressed: bool
 var last_selected_savefile: String = ''
 
 func get_allow_saving() -> bool:
@@ -49,21 +49,21 @@ func _on_SaveList_save_selected(savefile,data):
 	update_buttons(true)
 	emit_signal('save_selected',savefile,data)
 
-func _on_Cancel_pressed():
-	dialog_cancel_pressed = true
+func _on_ok_pressed():
+	dialog_ok_pressed = true
 
 func confirm(what) -> bool:
 	var dialog = get_node_or_null(dialog_path)
 	if dialog:
-		dialog_cancel_pressed = true
+		dialog_ok_pressed = true
 		dialog.visible = false
 		return false
 	dialog = ConfirmationDialog.new()
 	dialog.pause_mode = PAUSE_MODE_PROCESS
 	var label = Label.new()
 	label.text = what
-	dialog_cancel_pressed = false
-	if OK!=dialog.get_cancel().connect("pressed", self, "_on_Cancel_pressed"):
+	dialog_ok_pressed = false
+	if OK!=dialog.get_ok().connect("pressed", self, "_on_ok_pressed"):
 		push_error('Could not connect to cancel button.')
 		return false
 	label.name = 'Label'
@@ -80,7 +80,7 @@ func confirm(what) -> bool:
 	get_tree().get_root().remove_child(dialog)
 	dialog.queue_free()
 	dialog_path = NodePath()
-	return not dialog_cancel_pressed
+	return dialog_ok_pressed
 
 func basename(savefile: String) -> String:
 	var split = savefile.split('/',false)
@@ -93,7 +93,7 @@ func _on_Load_pressed():
 			var confirmed = confirm('Load '+basename(fil)+'?')
 			while confirmed is GDScriptFunctionState and confirmed.is_valid():
 				confirmed = yield(confirmed,'completed')
-			if not confirmed:
+			if not confirmed or confirmed is GDScriptFunctionState:
 				return
 		var read = Player.read_save_file(fil)
 		if read:
