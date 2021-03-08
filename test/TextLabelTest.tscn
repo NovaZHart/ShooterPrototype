@@ -1,0 +1,47 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://test/TextLabelTest.gd" type="Script" id=1]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=2]
+
+[sub_resource type="Environment" id=1]
+
+[sub_resource type="World" id=2]
+environment = SubResource( 1 )
+
+[node name="TextLabelTest" type="GridContainer"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource( 1 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+font_data = ExtResource( 2 )
+color = Color( 1, 1, 1, 1 )
+
+[node name="LineEdit" type="LineEdit" parent="."]
+margin_right = 1024.0
+margin_bottom = 24.0
+size_flags_horizontal = 3
+
+[node name="Viewport" type="ViewportContainer" parent="."]
+margin_top = 28.0
+margin_right = 1024.0
+margin_bottom = 600.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+
+[node name="Viewport" type="Viewport" parent="Viewport"]
+size = Vector2( 1024, 572 )
+own_world = true
+world = SubResource( 2 )
+handle_input_locally = false
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="Viewport/Viewport"]
+transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 10, 0 )
+projection = 1
+size = 10.0
+[connection signal="text_changed" from="LineEdit" to="." method="_on_LineEdit_text_changed"]

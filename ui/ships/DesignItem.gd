@@ -29,7 +29,8 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	var turrets: int = 0
 	var max_range: float = 0
 	var max_thrust = max(max(stats['reverse_thrust'],stats['thrust']),0)
-	var max_speed = round(max_thrust/max(1e-9,stats['drag']*stats['mass'])*10)/10
+	var mass = utils.ship_mass(stats)
+	var max_speed = round(max_thrust/max(1e-9,stats['drag']*mass)*10)/10
 	for weapon in stats['weapons']:
 		turrets += int(weapon['mount_type']=='turret')
 		guns += int(weapon['mount_type']=='gun')
@@ -149,12 +150,6 @@ func set_layers(node: Node, layers: int):
 	for child in node.get_children():
 		set_layers(child,layers)
 
-func event_position(event: InputEvent) -> Vector2:
-	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouseButton:
-		return event.position
-	return get_viewport().get_mouse_position()
-
 func update_hovering():
 	var rect: Rect2 = Rect2(rect_global_position, rect_size)
 	change_hover(rect.has_point(get_viewport().get_mouse_position()))
@@ -165,7 +160,7 @@ func _input(event):
 	if not is_visible_in_tree():
 		return
 	if event.is_action_pressed('ui_location_select'):
-		if not get_global_rect().has_point(event_position(event)):
+		if not get_global_rect().has_point(utils.event_position(event)):
 			return
 		if selected:
 			deselect()
@@ -173,7 +168,7 @@ func _input(event):
 			select()
 		get_tree().set_input_as_handled()
 	elif event is InputEventMouseMotion:
-		change_hover(get_global_rect().has_point(event_position(event)))
+		change_hover(get_global_rect().has_point(utils.event_position(event)))
 
 func _ready():
 	regular_layer = $View/Port/Sun.layers

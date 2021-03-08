@@ -30,20 +30,29 @@
 #include <PoolArrays.hpp>
 
 #include "CombatEngineData.hpp"
+#include "VisualEffects.hpp"
 
 namespace godot {
       
   class CombatEngine: public Reference {
     GODOT_CLASS(CombatEngine, Reference)
 
+    // // // // // // // // // // // // // // // // // // // // // // // // 
+    // Game mechanics constants and settings:
+    // // // // // // // // // // // // // // // // // // // // // // // // 
+
     static const int max_ships_hit_per_projectile_blast = 100;
     static constexpr float search_cylinder_radius = 30.0f;
     static constexpr real_t crosshairs_width = 1;
-
+    real_t system_fuel_recharge, center_fuel_recharge;
+    bool hyperspace;
+  
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Members for the physics thread:
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
+    Ref<VisualEffects> visual_effects;
+    
     Ref<CylinderShape> search_cylinder;
     PhysicsServer *physics_server;
     PhysicsDirectSpaceState *space;
@@ -101,11 +110,12 @@ namespace godot {
     void _init();
     void clear_ai();
     void clear_visuals();
-
+    void set_visual_effects(Ref<VisualEffects> visual_effects);
     Array ai_step(real_t new_delta,Array new_ships,Array new_planets,
                   Array new_player_orders,RID player_ship_rid,
                   PhysicsDirectSpaceState *new_space,
                   Array update_request_rid);
+    void set_system_stats(bool hyperspace, real_t system_fuel_recharge, real_t center_fuel_recharge);
     void prepare_visual_frame(RID new_scenario);
     void update_overhead_view(Vector3 location,Vector3 size,real_t projectile_scale);
     void draw_minimap_contents(RID new_canvas, Vector2 map_center, float map_radius,
@@ -128,8 +138,10 @@ namespace godot {
     void add_ships_and_planets(const Array &new_ships,const Array &new_planets);
     void update_player_orders(const Array &new_player_orders);
     void negate_drag_force(CE::Ship &ship);
+    void rift_ai(CE::Ship &ship);
     void explode_ship(CE::Ship &ship);
     void ai_step_ship(CE::Ship &ship);
+    bool init_ship(CE::Ship &ship);
     bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
     bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
     void update_near_objects(CE::Ship &ship);

@@ -89,7 +89,9 @@ class ChangeSelection extends undo_tool.Action:
 	func set_selection(_from,to) -> bool:
 		if system_editor:
 			return game_state.system_editor.change_selection_to(to,center_view)
-		return game_state.sector_editor.change_selection_to(to,center_view)
+		assert(game_state.hyperspace!=null)
+		return game_state.hyperspace.change_selection_to(to,center_view) and \
+			game_state.sector_editor.change_selection_to(to,center_view)
 	func run() -> bool:
 		return set_selection(old_selection,new_selection)
 	func undo() -> bool:
@@ -264,6 +266,86 @@ class SystemFleetDataChange extends undo_tool.Action:
 		system.fleets[fleet_index][key]=new_value
 		return game_state.system_editor.change_fleet_data(fleet_index,key,new_value)
 
+
+
+class SystemDataKeyUpdate extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var key
+	var old_value
+	var new_value
+	func as_string():
+		return 'SystemDataKeyUpdate(path='+str(object_path) \
+			+',property='+str(property)+',key='+str(key)+',new_value=' \
+			+str(new_value)+',old_value='+str(old_value)+')'
+	func _init(object_path_: NodePath, property_: String, key_, new_value_):
+		object_path=object_path_
+		property=property_
+		key=key_
+		new_value=new_value_
+	func apply(old: bool,store: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataKeyUpdate at '+str(object_path))
+			return false
+		var container = object.get(property)
+		if store and not old:
+			old_value = container[key]
+		var value = old_value if old else new_value
+		container[key] = value
+		return game_state.system_editor.update_key_system_data(
+			object.get_path(),property,key,value)
+	func run() -> bool:
+		return apply(false,true)
+	func undo() -> bool:
+		return apply(true,false)
+	func redo() -> bool:
+		return apply(false,false)
+
+
+class SystemDataAddRemove extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var key
+	var value
+	var add: bool
+	func as_string():
+		return 'SystemDataAddRemove(path='+str(object_path) \
+			+',property='+str(property)+',key='+str(key)+',value=' \
+			+str(value)+',add='+str(add)+')'
+	func _init(object_path_: NodePath, property_: String, key_, value_, add_: bool):
+		object_path=object_path_
+		property=property_
+		key=key_
+		add=add_
+		value=value_
+	func apply(is_add: bool,store: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SystemDataAddRemove at '+str(object_path))
+			return false
+		var container = object.get(property)
+		if not is_add:
+			if store:
+				value=container[key]
+			container.erase(key)
+		elif container is Dictionary:
+			container[key]=value
+		else:
+			container.insert(key,value)
+		if is_add:
+			return game_state.system_editor.insert_system_data(
+				object.get_path(),property,key,value)
+		else:
+			return game_state.system_editor.remove_system_data(
+				object.get_path(),property,key)
+	func run() -> bool:
+		return apply(add,true)
+	func undo() -> bool:
+		return apply(not add,false)
+	func redo() -> bool:
+		return apply(add,false)
+
 class SystemDataChange extends undo_tool.Action:
 	var old: Dictionary = {}
 	var new: Dictionary
@@ -406,6 +488,116 @@ class DescriptionChange extends undo_tool.Action:
 		return game_state.system_editor.update_space_object_data(object.get_path(),
 				false,false,true,false)
 
+
+class SpaceObjectDataReorderKey extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var from_key
+	var to_key
+	var shift
+	func as_string():
+		return 'SpaceObjectDataReorderKey(path='+str(object_path) \
+			+',property='+str(property)+',from_key='+str(from_key)+',to_key=' \
+			+str(to_key)+',shift='+str(shift)+')'
+	func _init(object_path_: NodePath, property_: String, from_key_, to_key_, shift_):
+		object_path=object_path_
+		property=property_
+		from_key=from_key_
+		to_key=to_key_
+		shift=shift_
+	func apply(undo: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SpaceObjectDataReorderKey at '+str(object_path))
+			return false
+		return game_state.system_editor.reorder_key_space_object_data(
+			object.get_path(),property,from_key,to_key,shift,undo)
+	func run() -> bool:
+		return apply(false)
+	func undo() -> bool:
+		return apply(true)
+	func redo() -> bool:
+		return apply(false)
+
+
+class SpaceObjectDataKeyUpdate extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var key
+	var old_value
+	var new_value
+	func as_string():
+		return 'SpaceObjectDataKeyUpdate(path='+str(object_path) \
+			+',property='+str(property)+',key='+str(key)+',new_value=' \
+			+str(new_value)+',old_value='+str(old_value)+')'
+	func _init(object_path_: NodePath, property_: String, key_, new_value_):
+		object_path=object_path_
+		property=property_
+		key=key_
+		new_value=new_value_
+	func apply(old: bool,store: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SpaceObjectDataKeyUpdate at '+str(object_path))
+			return false
+		var container = object.get(property)
+		if store and not old:
+			old_value = container[key]
+		var value = old_value if old else new_value
+		container[key] = value
+		return game_state.system_editor.update_key_space_object_data(
+			object.get_path(),property,key,value)
+	func run() -> bool:
+		return apply(false,true)
+	func undo() -> bool:
+		return apply(true,false)
+	func redo() -> bool:
+		return apply(false,false)
+
+
+class SpaceObjectDataAddRemove extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var key
+	var value
+	var add: bool
+	func as_string():
+		return 'SpaceObjectDataAddRemove(path='+str(object_path) \
+			+',property='+str(property)+',key='+str(key)+',value=' \
+			+str(value)+',add='+str(add)+')'
+	func _init(object_path_: NodePath, property_: String, key_, value_, add_: bool):
+		object_path=object_path_
+		property=property_
+		key=key_
+		add=add_
+		value=value_
+	func apply(is_add: bool,store: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SpaceObjectDataAddRemove at '+str(object_path))
+			return false
+		var container = object.get(property)
+		if not is_add:
+			if store:
+				value=container[key]
+			var _ignore = container.remove(key)
+		elif container is Dictionary:
+			container[key]=value
+		else:
+			container.insert(key,value)
+		if is_add:
+			return game_state.system_editor.insert_space_object_data(
+				object.get_path(),property,key,value)
+		else:
+			return game_state.system_editor.remove_space_object_data(
+				object.get_path(),property,key)
+	func run() -> bool:
+		return apply(add,true)
+	func undo() -> bool:
+		return apply(not add,false)
+	func redo() -> bool:
+		return apply(add,false)
+
 class SpaceObjectDataChange extends undo_tool.Action:
 	var old: Dictionary = {}
 	var new: Dictionary
@@ -428,7 +620,7 @@ class SpaceObjectDataChange extends undo_tool.Action:
 	func run() -> bool:
 		var object = game_state.systems.get_node_or_null(object_path)
 		if not object:
-			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			push_error('No space object to edit in SpaceObjectDataChange at '+str(object_path))
 			return false
 		for key in new:
 			old[key]=object.get(key)
@@ -438,7 +630,7 @@ class SpaceObjectDataChange extends undo_tool.Action:
 	func undo() -> bool:
 		var object = game_state.systems.get_node_or_null(object_path)
 		if not object or not old:
-			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			push_error('No space object to edit in SpaceObjectDataChange at '+str(object_path))
 			return false
 		for key in old:
 			object.set(key,old[key])
@@ -447,7 +639,7 @@ class SpaceObjectDataChange extends undo_tool.Action:
 	func redo() -> bool:
 		var object = game_state.systems.get_node_or_null(object_path)
 		if not object or not old:
-			push_error('No space object to edit in SystemDataChange at '+str(object_path))
+			push_error('No space object to edit in SpaceObjectDataChange at '+str(object_path))
 			return false
 		for key in new:
 			object.set(key,new[key])

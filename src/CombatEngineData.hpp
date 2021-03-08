@@ -38,9 +38,44 @@
 #include <AABB.hpp>
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
+#include <OS.hpp>
 
 namespace godot {
   namespace CE {
+
+    class CheapRand32 { // Note: not thread-safe
+      uint32_t state;
+    public:
+      CheapRand32():
+        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_msec()/10)))
+      {};
+      CheapRand32(uint32_t state): state(state) {}
+      inline uint32_t randi() {
+        return state=bob_full_avalanche(state);
+      }
+      inline float randf() {
+        return int2float(state=bob_full_avalanche(state));
+      }
+      inline float rand_angle() {
+        return randf()*2*PI;
+      }
+
+      // from https://burtleburtle.net/bob/hash/integer.html
+      inline uint32_t bob_full_avalanche(uint32_t a) {
+        a = (a+0x7ed55d16) + (a<<12);
+        a = (a^0xc761c23c) ^ (a>>19);
+        a = (a+0x165667b1) + (a<<5);
+        a = (a+0xd3a2646c) ^ (a<<9);
+        a = (a+0xfd7046c5) + (a<<3);
+        a = (a^0xb55a4f09) ^ (a>>16);
+        return a;
+      }
+      
+      inline float int2float(uint32_t i) {
+        return std::min(float(i%8388608)/8388608.0f,1.0f);
+      }
+    };
+
     typedef int object_id;
       
     struct hash_String {
@@ -134,54 +169,64 @@ namespace godot {
       real_t guns, turrets, guided, unguided, all;
     };
 
-    enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2 };
+    // These enums MUST match globals/CombatEngine.gd.
+    enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
+    enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
     
     struct Ship {
       const object_id id;
       const String name; // last element of node path
       const RID rid; // of rigid body
       const real_t thrust, reverse_thrust, turn_thrust;
-      const real_t threat;
-      const real_t max_shields, max_armor, max_structure;
-      const real_t heal_shields, heal_armor, heal_structure;
+      const real_t threat, visual_height;
+      const real_t max_shields, max_armor, max_structure, max_fuel;
+      const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
+      const real_t fuel_efficiency;
       const AABB aabb;
       const real_t turn_drag, radius;
+      const real_t empty_mass, cargo_mass, fuel_density, armor_density;
       const int team, enemy_team, collision_layer, enemy_mask;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       
       int explosion_tick;
-      
       fate_t fate;
-      
-      real_t shields, armor, structure;
+      entry_t entry_method;
+      real_t shields, armor, structure, fuel;
+
+      // Physics server state; do not change:
       Vector3 rotation, position, linear_velocity, angular_velocity, heading;
       real_t drag, inverse_mass;
       Vector3 inverse_inertia;
       Transform transform;
+      
       std::vector<Weapon> weapons;
       const WeaponRanges range;
-      int tick, tick_at_last_shot;
+      int tick, tick_at_last_shot, tick_at_rift_start;
       object_id target;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
       ship_hit_list_t nearby_enemies;
       int nearby_enemies_tick;
       real_t nearby_enemies_range;
-      uint32_t random_state;
+      CheapRand32 rand;
       Vector3 destination;
-
+      
       real_t aim_multiplier, confusion_multiplier;
       Vector3 confusion, confusion_velocity;
 
-      const real_t max_speed;
-      const real_t max_angular_velocity;
-      const real_t turn_diameter_squared;
+      // Cached calculations:
+      real_t max_speed;
+      real_t max_angular_velocity;
+      real_t turn_diameter_squared;
+      Vector3 drag_force;
+      
+      bool updated_mass_stats, immobile, inactive;
 
-      inline Vector3 drag_force() const {
-        return -linear_velocity*drag/inverse_mass;
-      }
-
+      bool update_from_physics_server(PhysicsServer *server);
+      void update_stats(PhysicsServer *state, bool update_server);
+      void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
+      
       Ship(const Ship &other);
       Ship(Dictionary dict, object_id id, object_id &last_id,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh);
@@ -190,10 +235,12 @@ namespace godot {
       std::vector<Weapon> get_weapons(Array a, object_id &last_id, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
       real_t take_damage(real_t damage);
       Vector3 randomize_destination();
+      void set_scale(real_t scale);
       DVector3 stopping_point(DVector3 tgt_vel, bool &should_reverse) const;
       Dictionary update_status(const std::unordered_map<object_id,Ship> &ships,
                                const std::unordered_map<object_id,Planet> &planets) const;
     private:
+      real_t visual_scale;
       inline real_t make_turn_diameter_squared() const {
         real_t turn_diameter = (2*PI/max_angular_velocity) * max_speed / PI;
         return turn_diameter*turn_diameter;
@@ -215,12 +262,18 @@ namespace godot {
     typedef std::vector<std::pair<Vector3,ships_iter>> projectile_hit_list_t;
 
   
+    static constexpr real_t hyperspace_display_ratio = 20.0f;
 
+    // These constants MUST match globals/CombatEngine.gd.
+
+    const float SPATIAL_RIFT_LIFETIME_SECS = 3.0f;
+    const int SPATIAL_RIFT_LIFETIME_TICKS = int(roundf(SPATIAL_RIFT_LIFETIME_SECS*60.0f));
 
     static const int PLAYER_GOAL_ATTACKER_AI = 1;
     static const int PLAYER_GOAL_LANDING_AI = 2;
     static const int PLAYER_GOAL_COWARD_AI = 3;
     static const int PLAYER_GOAL_INTERCEPT = 4;
+    static const int PLAYER_GOAL_RIFT = 5;
     
     static const int PLAYER_ORDERS_MAX_GOALS = 3;
 

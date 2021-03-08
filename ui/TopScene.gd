@@ -5,6 +5,8 @@ var scene_mutex: Mutex = Mutex.new()
 
 func _ready():
 	var _discard = change_scene(preload('res://ui/MainScreen/MainScreen.tscn'))
+	var rid = get_viewport().get_viewport_rid()
+	VisualServer.viewport_set_render_direct_to_screen(rid,true)
 
 func popup_has_focus():
 	var scene = get_scene()

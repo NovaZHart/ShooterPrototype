@@ -101,6 +101,49 @@ func _on_SystemView_request_focus():
 		return
 	$Split/Left.grab_focus()
 
+func update_key_system_data(path: NodePath,property: String,key,value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('update_key_system_data'):
+		return $Split/Right/Bottom/Settings.update_key_system_data(path,property,key,value)
+	push_error('Tried to update system data when no system settings panel was present.')
+	return false
+
+func insert_system_data(path: NodePath,property: String,key,value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('insert_system_data'):
+		return $Split/Right/Bottom/Settings.insert_system_data(path,property,key,value)
+	push_error('Tried to insert system data when no system settings panel was present.')
+	return false
+
+func remove_system_data(path: NodePath,property: String,key) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('remove_system_data'):
+		return $Split/Right/Bottom/Settings.remove_system_data(path,property,key)
+	push_error('Tried to remove system data when no system settings panel was present.')
+	return false
+
+func reorder_key_space_object_data(
+		path: NodePath,property: String,from_key,to_key,shift,undo) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('reorder_key_space_object_data'):
+		return $Split/Right/Bottom/Settings.reorder_key_space_object_data(path,property,from_key,to_key,shift,undo)
+	push_error('Tried to update space object data when no system settings panel was present.')
+	return false
+
+func update_key_space_object_data(path: NodePath,property: String,key,value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('update_key_space_object_data'):
+		return $Split/Right/Bottom/Settings.update_key_space_object_data(path,property,key,value)
+	push_error('Tried to update space object data when no system settings panel was present.')
+	return false
+
+func insert_space_object_data(path: NodePath,property: String,key,value) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('insert_space_object_data'):
+		return $Split/Right/Bottom/Settings.insert_space_object_data(path,property,key,value)
+	push_error('Tried to insert space object data when no system settings panel was present.')
+	return false
+
+func remove_space_object_data(path: NodePath,property: String,key) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('remove_space_object_data'):
+		return $Split/Right/Bottom/Settings.remove_space_object_data(path,property,key)
+	push_error('Tried to remove space object data when no system settings panel was present.')
+	return false
+
 func update_system_data(_path: NodePath,bkg_update: bool,meta_update:bool): 
 	var success: bool = true
 	if bkg_update or meta_update:
@@ -172,21 +215,24 @@ func _on_select_nothing():
 	var from = game_state.systems.get_node_or_null($Split/Left/View/SystemView.selection)
 	if from==null:
 		return
-	universe_edits.state.push(universe_edits.ChangeSelection.new(from,null,true))
+	if not universe_edits.state.applying_rule:
+		universe_edits.state.push(universe_edits.ChangeSelection.new(from,null,true))
 
 func _on_Tree_select_space_object(path: NodePath):
 	var from = game_state.systems.get_node_or_null($Split/Left/View/SystemView.selection)
 	var to = game_state.systems.get_node_or_null(path)
-	if (not from and not to) or (from and to and from==to):
+	if (not from and not to) or (from and to and from.get_path()==to.get_path()):
 		return # selection has not changed
-	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,true))
+	if not universe_edits.state.applying_rule:
+		universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,true))
 
 func _on_System_View_select_space_object(path: NodePath):
 	var from = game_state.systems.get_node_or_null($Split/Left/View/SystemView.selection)
 	var to = game_state.systems.get_node_or_null(path)
-	if (not from and not to) or (from and to and from==to):
+	if (not from and not to) or (from and to and from.get_path()==to.get_path()):
 		return # selection has not changed
-	universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,false))
+	if not universe_edits.state.applying_rule:
+		universe_edits.state.push(universe_edits.ChangeSelection.new(from,to,true,false))
 
 func _on_Tree_center_on_node(path: NodePath):
 	var node = game_state.systems.get_node_or_null(path)

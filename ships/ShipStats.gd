@@ -9,9 +9,12 @@ export var base_turn_thrust: float = 100
 export var base_shields: float = 800
 export var base_armor: float = 500
 export var base_structure: float = 300
+export var base_fuel: float = 100
 export var heal_shields: float = 20
 export var heal_armor: float = 5
 export var heal_structure: float = 0
+export var heal_fuel: float = 3
+export var fuel_efficiency: float = 0.9
 export var base_drag: float = 1.5
 export var base_turn_drag: float = 1.5
 #export var base_turn_rate: float = 2
@@ -20,9 +23,13 @@ export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
 export var base_explosion_impulse: float = 500
 export var base_explosion_delay: int = 10
+export var base_max_cargo: int = 20
+export var fuel_density: float = 10.0
+export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
+var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []
 var team: int = 0
 var enemy_team: int = 1
@@ -31,6 +38,7 @@ var height: float = 5
 var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
+var cargo: Commodities.Products setget set_cargo
 
 var skipped_runtime_stats: bool = true
 
@@ -47,17 +55,18 @@ func restore_transforms():
 		if child!=null:
 			child.transform=transforms[key]
 
+func set_entry_method(method: int, quiet: bool = false, skip_runtime_stats: bool = false):
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_error('No stats in set_entry_method! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	combined_stats['entry_method'] = method
+
 func set_team(new_team: int):
 	team=new_team
 	enemy_team=1-new_team
 	collision_layer = 1<<team
 	enemy_mask = 1<<enemy_team
-
-func init_ship_recursively(node: Node = self):
-	for child in node.get_children():
-		if node==self and child is VisualInstance:
-			child.translation.y+=height
-		init_ship_recursively(child)
 
 func get_combined_aabb(node: Node = self) -> AABB:
 	if override_size.length()>1e-5:
@@ -74,6 +83,8 @@ func get_combined_aabb(node: Node = self) -> AABB:
 func make_stats(node: Node, stats: Dictionary,skip_runtime_stats=false) -> Dictionary:
 	if node.has_method("add_stats"):
 		node.add_stats(stats,skip_runtime_stats)
+	if node.has_method('pack_cargo_stats'):
+		node.pack_cargo_stats(stats)
 	var children: Array = node.get_children()
 	for child in children:
 		var _discard = make_stats(child,stats,skip_runtime_stats)
@@ -88,13 +99,36 @@ func repack_stats(skip_runtime_stats=false) -> Dictionary:
 	return combined_stats
 	
 func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
-	if not combined_stats.has('mass'):
+	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in pack_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
 	elif not skip_runtime_stats and skipped_runtime_stats:
 		update_stats()
 	return combined_stats
+
+func pack_cargo_stats(stats):
+	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
+
+func set_cargo(products: Commodities.Products, quiet: bool = false,
+		skip_runtime_stats=false) -> Dictionary:
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_warning('No stats in set_cargo! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	cargo = Commodities.ManyProducts.new()
+	var _success = cargo.decode(products.all)
+	pack_cargo_stats(combined_stats)
+	return combined_stats
+
+func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_error('No stats in restore_combat_stats! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	for varname in [ 'fuel', 'shields', 'armor', 'structure' ]:
+		if stats.has(varname):
+			combined_stats[varname] = clamp(stats[varname],0.0,combined_stats['max_'+varname])
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['explosion_damage']=base_explosion_damage
@@ -116,9 +150,13 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['max_shields']=base_shields
 	stats['max_armor']=base_armor
 	stats['max_structure']=base_structure
+	stats['max_fuel']=base_fuel
+	stats['max_cargo']=base_max_cargo
 	stats['heal_shields']=heal_shields
 	stats['heal_armor']=heal_armor
 	stats['heal_structure']=heal_structure
+	stats['heal_fuel']=heal_fuel
+	stats['fuel_efficiency']=fuel_efficiency
 	stats['aabb']=get_combined_aabb()
 	stats['turn_drag']=base_turn_drag
 	stats['enemy_mask']=enemy_mask
@@ -128,7 +166,9 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['rotation']=rotation
 	stats['position']=Vector3(translation.x,0,translation.z)
 	stats['transform']=transform
-	stats['mass']=base_mass
+	stats['empty_mass']=base_mass
+	stats['armor_density']=armor_density
+	stats['fuel_density']=fuel_density
 	stats['drag']=base_drag
 	stats['weapons']=Array()
 	stats['equipment']=Array()
@@ -171,7 +211,7 @@ func get_bbcode() -> String:
 
 func _ready():
 	var must_update: bool = false
-	if not combined_stats.has('mass'):
+	if not combined_stats.has('empty_mass'):
 		var _discard = pack_stats(false)
 	else:
 		must_update = true
@@ -188,8 +228,9 @@ func _ready():
 	
 	if random_height:
 		height = (randi()%11)*1.99 - 8.445
+	combined_stats['visual_height'] = height+game_state.SHIP_HEIGHT
 	collision_mask=0
-	mass=combined_stats['mass']
+	mass=utils.ship_mass(combined_stats)
 	linear_damp=combined_stats['drag']
 	gravity_scale=0
 	axis_lock_linear_y=true

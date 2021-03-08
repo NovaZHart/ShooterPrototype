@@ -1,5 +1,6 @@
 extends Node
 
+export var label_font_data: DynamicFontData
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
@@ -7,6 +8,15 @@ export var max_camera_size: float = 150
 export var max_new_ships_per_tick: int = 1
 export var max_new_ships_per_early_tick: int = 5
 export var number_of_early_ticks: int = 20
+export var game_time_ratio: float = 30
+export var make_labels: bool = false
+export var target_label_height: float = 32
+
+const ImageLabelMaker = preload('res://ui/ImageLabelMaker.gd')
+
+var label_maker
+var label_being_made: String
+var finished_making_labels: bool = true
 
 var combat_engine_mutex: Mutex = Mutex.new()
 var visual_tick: int = 0
@@ -32,6 +42,8 @@ const player_ship_name: String = 'player_ship' # name of player's ship node
 var sent_planets: bool = false
 var latest_target_info: Dictionary = Dictionary()
 
+var raise_sun: bool = false setget set_raise_sun
+
 var Landing = preload('res://ui/OrbitalScreen.tscn')
 var TargetDisplay = preload('res://ui/TargetDisplay.tscn')
 
@@ -41,6 +53,58 @@ signal view_center_changed          #<-- visual thread
 signal player_ship_stats_updated    #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
+
+func set_raise_sun(flag: bool):
+	if raise_sun==flag:
+		return
+	if flag:
+		$PlanetLight.translation.y += 10000
+	else:
+		$PlanetLight.translation.y += 10000
+
+func get_label_scale() -> float:
+	var view_size = max(1,get_viewport().size.y)
+	var camera_size = $TopCamera.size
+	return target_label_height/view_size * camera_size
+
+func make_more_labels():
+	# Delete any labels for removed planets:
+	for label in $Labels.get_children():
+		var planet = $Planets.get_node_or_null(label.name)
+		if not planet:
+			$Labels.remove_child(label)
+			label.queue_free()
+	
+	# If we're in the middle of making a label, finish
+	if label_being_made and label_maker:
+		if not label_maker.step():
+			return # not done making this label
+		var planet = $Planets.get_node_or_null(label_being_made)
+		if planet:
+			var shift = planet.get_radius()/sqrt(2)
+			var xyz: Vector3 = Vector3(shift,0,shift)
+			label_maker.instance.translation = planet.translation + xyz
+			var scale = get_label_scale()
+			label_maker.instance.scale = Vector3(scale,scale,scale)
+		label_maker.instance.name = label_being_made
+		$Labels.add_child(label_maker.instance)
+		label_being_made=''
+	
+	# Start making a label for the next planet that doesn't have one:
+	for planet in $Planets.get_children():
+		if $Labels.get_node_or_null(planet.name)==null:
+			label_being_made = planet.name
+			var display_name = planet.display_name
+			var color = Color($SpaceBackground.plasma_color)
+			color.v = 0.7
+			if label_maker:
+				label_maker.reset(display_name,color)
+			else:
+				label_maker = ImageLabelMaker.new(display_name,label_font_data,color)
+			label_maker.step()
+			return
+	label_maker = null
+	finished_making_labels=true
 
 func get_world():
 	return get_viewport().get_world()
@@ -128,7 +192,24 @@ func sync_Ships_with_stat_requests() -> void:
 	ship_stats_requests=new_requests
 	ship_stats_requests_mutex.unlock()
 
-func _process(_delta) -> void:
+func visible_region() -> AABB:
+	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
+	var lr: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
+		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
+
+func visible_region_expansion_rate() -> Vector3:
+	var player_ship_stats = ship_stats.get(player_ship_name,null)
+	if not player_ship_stats:
+		return Vector3(0,0,0)
+	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	if not player_ship:
+		return Vector3(0,0,0)
+	var rate: float = utils.ship_max_speed(player_ship.combined_stats,
+		ship_stats.get('mass',null))
+	return Vector3(rate,0,rate)
+
+func _process(delta) -> void:
 	visual_tick += 1
 	assert($TopCamera!=null)
 	combat_engine.draw_space($TopCamera,get_tree().root)
@@ -137,12 +218,18 @@ func _process(_delta) -> void:
 		return
 	
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
+
+	if player_ship_stats!=null:
+		emit_signal('player_ship_stats_updated',player_ship_stats)
+		center_view()
+	
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
+	combat_engine.step_visual_effects(delta,get_viewport().world)
+	
 	if player_ship_stats==null:
 		return
-
-	emit_signal('player_ship_stats_updated',player_ship_stats)
-	center_view()
-
+	
 	var target_ship_stats = ship_stats.get(player_ship_stats.get('target_name',''),null)
 	if target_ship_stats != null:
 		emit_signal('player_target_stats_updated',target_ship_stats)
@@ -153,6 +240,9 @@ func _process(_delta) -> void:
 	if target_info.get('old','') != target_info.get('new',''):
 		# The target has changed, so we need a new TargetDisplay.
 		update_target_display(target_info['old'],target_info['new'])
+	
+	if make_labels and not finished_making_labels:
+		make_more_labels()
 
 func update_target_display(old_target_name: String,new_target_name: String) -> void:
 	assert(old_target_name!=new_target_name)
@@ -209,6 +299,7 @@ func pack_planet_stats_if_not_sent() -> Array:
 #			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
 func _physics_process(delta):
+	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
 	physics_tick += 1
 	
 	var make_me: Array = Player.system.process_space(self,delta)
@@ -286,9 +377,10 @@ func _physics_process(delta):
 				else:
 					Player.player_location=node.game_state_path
 				clear()
-				get_tree().current_scene.change_scene(load('res://ui/OrbitalScreen.tscn'))
+				game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 				return
-#				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
+			elif fate==combat_engine.FATED_TO_RIFT:
+				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
 		team_stats_mutex.lock()
 		team_stats[ship_node.team]['count'] -= 1
 		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
@@ -310,6 +402,9 @@ func land_player() -> int:
 	return get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
 func add_spawned_ship(ship: RigidBody,is_player: bool):
+	if is_player:
+		print('restore combat stats ',Player.ship_combat_stats)
+		ship.restore_combat_stats(Player.ship_combat_stats)
 	$Ships.add_child(ship)
 	new_ships_mutex.lock()
 	new_ships.append(ship)
@@ -318,7 +413,7 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 		receive_player_orders({})
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
-		team: int, is_player: bool) -> void:
+		team: int, is_player: bool, entry_method: int) -> void:
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
@@ -327,14 +422,18 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	if is_player:
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
+		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
+		print('add player ship of design ',str(ship_design))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 		call_deferred('add_spawned_ship',ship,false)
+	ship.set_entry_method(entry_method)
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)
 	sent_planets=false
+	finished_making_labels=false
 
 func clear() -> void: # must be called in visual thread
 	combat_engine_mutex.lock() # Ensure _physics_process() does not run during clear()
@@ -352,6 +451,11 @@ func clear() -> void: # must be called in visual thread
 		ship.queue_free()
 	for planet in $Planets.get_children():
 		planet.queue_free()
+	for label in $Labels.get_children():
+		label.queue_free()
+	
+	label_maker = null
+	label_being_made = ''
 	
 	team_stats = [{'count':0,'threat':0},{'count':0,'threat':0}]
 	
@@ -401,6 +505,10 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 
 func _ready() -> void:
 	init_system(randf()*500,50,150)
+	combat_engine.set_world(get_world())
+	center_view()
+	combat_engine.set_visible_region(visible_region(),
+		visible_region_expansion_rate())
 #	if ship_maker_thread.start(self,'make_ships',null)!=OK:
 #		printerr("Cannot start the ship maker thread! Will be unable to make ships!")
 
@@ -412,6 +520,11 @@ func _ready() -> void:
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size
 	$TopCamera.size = clamp(zoom*from,min_camera_size,max_camera_size)
+	if $Labels.get_child_count():
+		var label_scale = get_label_scale()
+		var scale = Vector3(label_scale,label_scale,label_scale)
+		for label in $Labels.get_children():
+			label.scale = scale
 
 func center_view(center=null) -> void:
 	if center==null:

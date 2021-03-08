@@ -21,18 +21,15 @@ func update_buttons(save_selected):
 			child.set_disabled(not save_selected)
 
 func _on_SaveList_new_save(filename):
-	print('save list new save')
 	var encoded = Player.store_state()
 	if not Player.write_save_file(Player.store_state(),filename):
 		push_error('Could not write the save file')
 	else:
-		print('insert new save')
 		$Split/Right/SaveList.insert_save_data(filename,encoded)
 	last_selected = ''
 	update_buttons(false)
 
 func _on_SaveList_save_selected(filename,data):
-	print('save list save selected')
 	tree.get_root().remove_all_children()
 	var node = data.get('player_ship_design',null)
 	if node!=null and node.has_method('is_ShipDesign'):
@@ -42,8 +39,6 @@ func _on_SaveList_save_selected(filename,data):
 		$Split/Left/Split/Info.clear()
 		$Split/Left/Split/Info.insert_bbcode(text,true)
 		$Split/Left/Split/Info.scroll_to_line(0)
-	else:
-		print('no ship')
 	last_selected = filename
 	update_buttons(true)
 
@@ -104,7 +99,6 @@ func _on_Delete_pressed():
 			confirmed = yield(confirmed,'completed')
 		if not confirmed:
 			return
-		print('remove save')
 		$Split/Right/SaveList.remove_save_data(filename)
 
 func _on_Replace_pressed():
@@ -118,7 +112,6 @@ func _on_Replace_pressed():
 		if not Player.write_save_file(Player.store_state(),filename):
 			push_error('Could not write the save file')
 		else:
-			print('replace save')
 			$Split/Right/SaveList.replace_save_data(filename,encoded)
 
 func _on_SaveList_no_save_selected():

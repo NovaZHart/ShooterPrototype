@@ -1,19 +1,20 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=9 format=2]
 
 [ext_resource path="res://ui/StarmapEnvironment.tres" type="Environment" id=1]
 [ext_resource path="res://ui/StarmapPanel.gd" type="Script" id=2]
-[ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=3]
-[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=4]
+[ext_resource path="res://ui/MapColorbar.tscn" type="PackedScene" id=5]
 
 [sub_resource type="DynamicFont" id=1]
 size = 15
 use_filter = true
-font_data = ExtResource( 4 )
+font_data = ExtResource( 3 )
 
 [sub_resource type="DynamicFont" id=2]
 size = 15
 use_filter = true
-font_data = ExtResource( 3 )
+font_data = ExtResource( 4 )
 
 [sub_resource type="World" id=3]
 environment = ExtResource( 1 )
@@ -63,9 +64,5 @@ visible = false
 [node name="Links" type="MultiMeshInstance" parent="View/Port"]
 visible = false
 
-[node name="OmniLight" type="OmniLight" parent="View/Port"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 39, 0, 36 )
-
-[node name="Annotations" type="Node2D" parent="View/Port"]
+[node name="MapColorbar" parent="." instance=ExtResource( 5 )]
 [connection signal="resized" from="." to="." method="_on_StarmapPanel_resized"]
-[connection signal="draw" from="View/Port/Annotations" to="." method="_on_Annotations_draw"]

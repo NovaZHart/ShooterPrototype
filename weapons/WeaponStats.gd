@@ -98,7 +98,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 	return cached_stats
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
-	stats['mass'] += weapon_mass
+	stats['empty_mass'] += weapon_mass
 	stats['max_structure'] += weapon_structure
 	stats['weapons'].append(pack_stats(skip_runtime_stats))
 	stats['threat'] += cached_stats['threat']

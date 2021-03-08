@@ -1,5 +1,9 @@
 extends game_state.SectorEditorStub
 
+export var connected_location_color = Color(0.6,0.5,0.9)
+export var system_location_color = Color(0.7,0.6,1.0)
+export var allow_selection: bool = true
+export var path_color = Color(0.6,0.5,0.9)
 export var connected_color = Color(0.4,0.8,1.0)
 export var highlight_color = Color(1.0,0.9,0.5)
 export var system_color = Color(0.1,0.2,0.6)
@@ -9,32 +13,59 @@ export var min_camera_size: float = 20
 export var max_camera_size: float = 400
 export var label_font: Font
 export var highlighted_font: Font
+export var bar1_color = Color('#8343a5')
+export var bar2_color = Color('#00A0E9')
+export var bar3_color = Color('#009944')
+export var bar4_color = Color('#FFF100')
+export var bar5_color = Color('#EB6100')
+export var bar6_color = Color('#F63332')
+export var no_sale = Color('#999999')
+
+const NAVIGATIONAL: int = 0
+const MIN_PRICE: int = 1
+const AVG_PRICE: int = 2
+const MAX_PRICE: int = 3
+export var mode: int = NAVIGATIONAL
 
 const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
-const SYSTEM_SCALE: float = 0.01
-const LINK_SCALE: float = 0.005
-const SELECT_EPSILON: float = 0.02
+const StarmapSystemShader: Shader = preload('res://ui/StarmapSystem.shader')
+const StarmapLibrary = preload('res://bin/Starmap.gdns')
+const SELECT_EPSILON: float = 0.007
+const fake_system_name: String = '\t'
 
-var highlight_link: Mesh
-var regular_link: Mesh
-var link_multimesh = MultiMesh.new()
-var link_data = PoolRealArray()
-var highlight_system: Mesh
-var regular_system: Mesh
-var system_multimesh = MultiMesh.new()
-var system_data = PoolRealArray()
-
-var time_to_draw: bool = true
+var starmap
+var starmap_mutex: Mutex = Mutex.new()
+var link_material: ShaderMaterial
+var system_material: ShaderMaterial
+var buy: bool = true setget set_buy
+var system_metadata: Array = []
+var name_pool: PoolStringArray = PoolStringArray()
+var display_name_pool: PoolStringArray = PoolStringArray()
+var pos_pool: PoolVector3Array = PoolVector3Array()
+var gate_pool: PoolIntArray = PoolIntArray()
+var link_pool: PoolIntArray = PoolIntArray()
+var system_index: Dictionary = {}
+var system_scale: float
+var link_scale: float
 var ui_scroll: float = 0
 var last_position = null
 var last_screen_position = null
 var camera_start = null
-var draw_commands: Array = []
-var draw_mutex: Mutex = Mutex.new()
-var name_bounds: Array = []
+var hover_index = -1
 
 signal select
 signal deselect
+signal hover_over_player_location
+signal hover_over_system
+signal hover_no_system
+
+func _init():
+	selection = game_state.systems.get_node_or_null(Player.destination_system)
+	starmap = StarmapLibrary.new()
+
+func set_buy(b: bool):
+	buy=not not b
+	update_starmap_visuals()
 
 func cancel_drag() -> bool:
 	last_position=null
@@ -43,308 +74,283 @@ func cancel_drag() -> bool:
 	return true
 
 func _ready():
-	game_state.switch_editors(self)
-	highlight_link = make_box_mesh(Vector3(-0.5,-0.5,-0.5),0.5,0.5,2,2)
-	regular_link = make_box_mesh(Vector3(-0.5,-0.5,-0.5),0.5,0.5,2,2)
-	highlight_system = make_circle_mesh(1.5,32,Vector3())
-	regular_system = make_circle_mesh(1,32,Vector3())
-
-	var link_material = ShaderMaterial.new()
+	if allow_selection:
+		game_state.switch_editors(self)
+	$MapColorbar.set_title('Prices')
+	starmap.name = 'Starmap'
+	starmap.set_camera_path(NodePath('../Camera'))
+	$View/Port.add_child(starmap)
+	
+	var syspos = Player.hyperspace_position
+	$View/Port/Camera.translation = Vector3(syspos.x,$View/Port/Camera.translation.y,syspos.z)
+	
+	link_material = ShaderMaterial.new()
 	link_material.shader = MapItemShader
 	link_material.set_shader_param('poly',2)
-	link_multimesh.mesh = regular_link
-	link_multimesh.mesh.surface_set_material(0,link_material)
-	link_multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	link_multimesh.custom_data_format = MultiMesh.CUSTOM_DATA_FLOAT
-	link_multimesh.visible_instance_count = 0
-	$View/Port/Links.multimesh=link_multimesh
+	starmap.set_line_material(link_material)
 	
-	var system_material = ShaderMaterial.new()
-	system_material.shader = MapItemShader
+	system_material = ShaderMaterial.new()
+	system_material.shader = StarmapSystemShader
 	system_material.set_shader_param('poly',4)
-	system_multimesh.mesh = regular_system
-	system_multimesh.mesh.surface_set_material(0,system_material)
-	system_multimesh.transform_format = MultiMesh.TRANSFORM_3D
-	system_multimesh.custom_data_format = MultiMesh.CUSTOM_DATA_FLOAT
-	system_multimesh.visible_instance_count = 0
-	$View/Port/Systems.multimesh=system_multimesh
+	starmap.set_circle_material(system_material)
+	
+	system_scale = label_font.get_char_size(ord('M')).y-label_font.get_descent()
+	link_scale = system_scale/2.0
+	starmap.set_reference_size(system_scale, link_scale)
+	starmap.set_max_scale(3.0, 3.0, rect_global_position)
+	assert(label_font)
+	starmap.set_default_visuals(system_color,link_color,system_name_color,label_font,1.0,1.0)
+	
+	starmap.set_show_links(false)
+	send_systems_to_starmap()
+	update_starmap_visuals()
+
+func _on_StarmapPanel_resized():
+	starmap.set_max_scale(3.0, 3.0, rect_global_position)
 
 func process_if(flag):
 	if flag:
-		time_to_draw=true
-	return flag
+		update()
+	return true
 
-func vec3to2(view_size: Vector2, from: Vector3) -> Vector2:
-	return Vector2(from.x,view_size.y-1-from.y)
-
-class Projector extends Reference:
-	var from2to3: Transform
-	var from3to2: Transform
-	var view_size: Vector2
-	var rect_global_position: Vector2
-	func _init(camera,viewport,rect_global_position_):
-		rect_global_position = rect_global_position_
-		view_size = viewport.size
-		var camera_scale = camera.size/view_size.y
-		from2to3 = camera.transform
-		from2to3 = from2to3.scaled(Vector3(camera_scale,1,camera_scale))
-		from2to3.origin = camera.translation
-		from3to2 = from2to3.affine_inverse()
-		var view_offset: Vector2 = view_size/2.0
-		from3to2.origin += Vector3(view_offset.x,view_offset.y,0)
-	func project_position(view_point: Vector2,z_depth: float = 0) -> Vector3:
-		var centered = view_point-view_size/2
-		var vec3: Vector3 = Vector3(centered.x,-centered.y,z_depth)
-		return from2to3.xform(vec3)
-	func unproject_position(world_point: Vector3) -> Vector2:
-		var view_pos: Vector3 = from3to2.xform(world_point)
-		return Vector2(view_pos.x,view_size.y-view_pos.y)
-
-func draw_systems_and_links():
-	#var view_size: Vector2 = $View/Port.size
-	var system_scale: float = SYSTEM_SCALE*$View/Port/Camera.size
-	var link_scale: float = LINK_SCALE*$View/Port/Camera.size
-	
-	var proj: Projector = Projector.new($View/Port/Camera,$View/Port,rect_global_position)
-#	var camera_scale = $View/Port/Camera.size/view_size.y
-#	var from2to3 = $View/Port/Camera.transform
-#	from2to3 = from2to3.scaled(Vector3(camera_scale,1,camera_scale))
-#	from2to3.origin = $View/Port/Camera.translation
-#	var from3to2: Transform = from2to3.affine_inverse()
-#	from3to2.origin += Vector3(view_size.x/2,view_size.y/2,0)
-	
-	var new_draw_commands: Array = []
-
-	name_bounds.clear()
-
+func send_systems_to_starmap():
 	game_state.universe.lock()
-	$View/Port/Systems.visible=game_state.systems.has_children()
-	var view_rect: Rect2 = Rect2(Vector2(-20,-20),$View/Port.size+Vector2(20,20))
-	var text_offset: float = abs(proj.unproject_position(Vector3()).x - \
-			proj.unproject_position(Vector3(system_scale,0,system_scale)).x)
-	var selected_system = ''
-	var child_names = game_state.systems.get_child_names()
-	if selection and selection is simple_tree.SimpleNode:
-		selected_system=selection.get_name()
-	var selected_link = ['','']
-	if selection is Dictionary:
-		selected_link=selection['link_key']
-	if game_state.systems.has_children():
-		system_data.resize(16*len(child_names))
-		var i: int=0
-		var ascent: float = label_font.get_ascent()
-		for system_id in child_names:
-			var system = game_state.systems.get_child_with_name(system_id)
-			assert(system is simple_tree.SimpleNode)
-			var color: Color = system_color
-			var font: Font = label_font
-			if system_id==selected_system:
-				color = highlight_color
-				font = highlighted_font
-			elif selected_link[0]==system_id or selected_link[1]==system_id:
-				color = connected_color
-				font = highlighted_font
-			var pos2: Vector2 = proj.unproject_position(system.position)
-			if view_rect.has_point(pos2):
-				var text_size: Vector2 = label_font.get_string_size(system['display_name'])
-				new_draw_commands.append(['draw_string',font,\
-					pos2+Vector2(text_offset,ascent-text_size.y/2), \
-					system['display_name'],system_name_color])
-				
-				# Bounding box of display name in 3d space
-				var ul2: Vector2 = pos2+Vector2(text_offset,ascent-text_size.y)
-				var lr2: Vector2 = pos2+Vector2(text_offset+text_size.x,ascent)
-				var ul3: Vector3 = proj.project_position(ul2,0)
-				var lr3: Vector3 = proj.project_position(lr2,0)
-				var aabb = AABB(Vector3(min(ul3.x,lr3.x),-20,min(ul3.z,lr3.z)),
-					Vector3(abs(ul3.x-lr3.x),40,abs(ul3.z-lr3.z)))
-				name_bounds.append([aabb,system.get_path(),(ul3+lr3)/2])
-			system_data[i +  0] = system_scale
-			system_data[i +  1] = 0.0
-			system_data[i +  2] = 0.0
-			system_data[i +  3] = system.position.x
-			system_data[i +  4] = 0.0
-			system_data[i +  5] = 1.0
-			system_data[i +  6] = 0.0
-			system_data[i +  7] = 0.0
-			system_data[i +  8] = 0.0
-			system_data[i +  9] = 0.0
-			system_data[i + 10] = system_scale
-			system_data[i + 11] = system.position.z
-			system_data[i + 12] = color.r
-			system_data[i + 13] = color.g
-			system_data[i + 14] = color.b
-			system_data[i + 15] = color.a
-			i+=16
-		system_multimesh.instance_count=len(child_names)
-		system_multimesh.visible_instance_count=-1
-		system_multimesh.set_as_bulk_array(system_data)
+	var system_names: Array = []
+	system_index = {}
 	
-	var links: Dictionary = game_state.universe.links
-	$View/Port/Links.visible=not not links
-	if links:
-		link_data.resize(16*len(links))
-		var i: int = 0
-		for link_key in links:
-			var link = game_state.universe.link_sin_cos(link_key)
-			
-			var pos: Vector3 = link['position']
-			var link_sin: float = link['sin']
-			var link_cos: float = link['cos']
-			var link_len: float = link['distance']
-			var color: Color = link_color
-			if link_key==selected_link:
-				color=highlight_color
-			elif link_key[0]==selected_system or link_key[1]==selected_system:
-				color=connected_color
-			link_data[i +  0] = link_cos*link_len
-			link_data[i +  1] = 0.0
-			link_data[i +  2] = link_sin*link_scale
-			link_data[i +  3] = pos.x
-			link_data[i +  4] = 0.0
-			link_data[i +  5] = 1.0
-			link_data[i +  6] = 0.0
-			link_data[i +  7] = 0.0
-			link_data[i +  8] = -link_sin*link_len
-			link_data[i +  9] = 0.0
-			link_data[i + 10] = link_cos*link_scale
-			link_data[i + 11] = pos.z
-			link_data[i + 12] = color.r
-			link_data[i + 13] = color.g
-			link_data[i + 14] = color.b
-			link_data[i + 15] = color.a
-			i+=16
-		link_multimesh.instance_count=len(links)
-		link_multimesh.visible_instance_count=-1
-		link_multimesh.set_as_bulk_array(link_data)
-	game_state.universe.unlock()
-
-	draw_mutex.lock()
-	draw_commands=new_draw_commands
-	draw_mutex.unlock()
-	$View/Port/Annotations.update()
-
-	time_to_draw=false
-
-func tri_to_mesh(vertices: PoolVector3Array, uv: PoolVector2Array) -> ArrayMesh:
-	var mesh = ArrayMesh.new()
-	var arrays = []
-	arrays.resize(ArrayMesh.ARRAY_MAX)
-	arrays[ArrayMesh.ARRAY_VERTEX] = vertices
-	arrays[ArrayMesh.ARRAY_TEX_UV] = uv
-	mesh.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, arrays)
-	return mesh
-
-func make_box_mesh(from: Vector3, x_step: float, z_step: float, nx: int, nz: int) -> ArrayMesh:
-	var vertices: PoolVector3Array = PoolVector3Array()
-	var uv: PoolVector2Array = PoolVector2Array()
-	vertices.resize(nx*nz*6)
-	uv.resize(nx*nz*6)
+	if not Player.system or not Player.system.show_on_map or \
+			Player.system.position.distance_to(Player.hyperspace_position)>0.1:
+		system_names.append(fake_system_name)
+		system_index[fake_system_name]=0
 	
-	var i: int = 0
-	for zi in range(nz):
-		for xi in range(nx):
-			var p00 = from+Vector3(xi*x_step,0,zi*z_step)
-			var p11 = from+Vector3((xi+1)*x_step,0,(zi+1)*z_step)
-			var p01 = Vector3(p00.x,from.y,p11.z)
-			var p10 = Vector3(p11.x,from.y,p00.z)
-			var u00 = Vector2(zi/float(nz),(nx-xi)/float(nx))
-			var u11 = Vector2((zi+1)/float(nz),(nx-xi-1)/float(nx))
-			var u01 = Vector2(u11.x,u00.y)
-			var u10 = Vector2(u00.x,u11.y)
-			vertices[i + 0] = p00
-			uv      [i + 0] = u00
-			vertices[i + 1] = p11
-			uv      [i + 1] = u11
-			vertices[i + 2] = p01
-			uv      [i + 2] = u01
-			vertices[i + 3] = p00
-			uv      [i + 3] = u00
-			vertices[i + 4] = p10
-			uv      [i + 4] = u10
-			vertices[i + 5] = p11
-			uv      [i + 5] = u11
-			i+=6
+	for system_name in game_state.systems.get_child_names():
+		var system = game_state.systems.get_child_with_name(system_name)
+		if system and system.has_method('is_SystemData') and system.show_on_map:
+			system_names.append(system_name)
+			system_index[system_name] = len(system_names)-1
+	var nsystems: int = len(system_names)
+	
+	name_pool.resize(nsystems)
+	display_name_pool.resize(nsystems)
+	pos_pool.resize(nsystems)
+	
+	var links: Array = []
+	var gates: Array = []
+	
+	for i in range(nsystems):
+		var system_name = system_names[i]
+		name_pool[i] = system_name
+		display_name_pool[i] = name_pool[i]
+		if system_name == fake_system_name:
+			pos_pool[i] = Player.hyperspace_position
+			continue
+		var system = game_state.systems.get_child_with_name(system_name)
+		if not system or not system.has_method('is_SystemData'):
+			push_error('System "'+system_name+'" is in child list, but has no SystemData')
+		display_name_pool[i] = system.display_name
+		pos_pool[i] = system.position
+		for link_name in system.links:
+			var link_index = system_index.get(link_name,-1)
+			if link_index<0:
+				push_error('System "'+system_name+'" has a link to an undefined system "'+system_name+'"')
+				continue
+			links.append(i)
+			links.append(link_index)
+		if not system.astral_gate_path().is_empty():
+			gates.append(i)
+	
+	gate_pool = PoolIntArray(gates)
+	link_pool = PoolIntArray(links)
+	
+	starmap.set_systems(display_name_pool, pos_pool, link_pool, gate_pool)
 
-	return tri_to_mesh(vertices,uv)
+func alpha(c: Color, a: float) -> Color:
+	return Color(c.r,c.g,c.b,a)
 
-func make_circle_mesh(radius: float,count: int,center: Vector3) -> ArrayMesh:
-	var vertices: PoolVector3Array = PoolVector3Array()
-	var uv: PoolVector2Array = PoolVector2Array()
-	vertices.resize(count*3)
-	uv.resize(count*3)
-	var angle = PI*2/count
-	var prior = center + radius*Vector3(cos((count-1)*angle),0,sin((count-1)*angle))
-	for i in range(count):
-		var this = center + radius*Vector3(cos(i*angle),0,sin(i*angle))
-		vertices[i*3 + 0] = center
-		uv      [i*3 + 0] = Vector2(0.5,i/float(count))
-		vertices[i*3 + 1] = prior
-		uv      [i*3 + 1] = Vector2(1.0,i/float(count))
-		vertices[i*3 + 2] = this
-		uv      [i*3 + 2] = Vector2(1.0,(i+1)/float(count))
-		prior=this
-	return tri_to_mesh(vertices,uv)
+func get_location_index():
+	if system_index.has(fake_system_name):
+		return 0
+	else:
+		return system_index.get(Player.system.name,-1)
 
-func event_position(event: InputEvent) -> Vector2:
-	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouseButton:
-		return event.position
-	return get_viewport().get_mouse_position()
+func update_starmap_visuals():
+	starmap.clear_visuals()
+	starmap.clear_extra_lines()
+	
+	var selection_index = -1
+	var location_index = get_location_index()
+	
+	if selection and selection.has_method('is_SystemData'):
+		selection_index = system_index.get(selection.name,-1)
+	
+	if mode==NAVIGATIONAL:
+		navigational_visuals(selection_index,location_index)
+		$MapColorbar.visible=false
+		if not system_metadata.empty():
+			system_metadata.resize(0)
+	else:
+		pricing_visuals(selection_index,location_index)
+	
+	if location_index>=0 and selection_index>=0 and location_index!=selection_index:
+		starmap.add_extra_line(pos_pool[location_index],
+			pos_pool[selection_index],path_color,2.0)
+	
+	starmap.update()
 
-func find_at_position(screen_position: Vector2):
+func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array):
+	if node.has_method('list_products'):
+		var price = Commodities.OneProduct.new()
+		node.list_products(commodity,price)
+		if price.all:
+			var product = price.all[0]
+			var value = product[Commodities.Products.VALUE_INDEX]
+			var quantity = product[Commodities.Products.QUANTITY_INDEX]
+			if value and quantity:
+				result[1] += 1
+				if mode==MAX_PRICE:
+					result[0] = max(result[0],value)
+				elif mode==MIN_PRICE:
+					result[0] = min(result[0],value)
+				else:
+					result[0] += value
+	for child_name in node.get_child_names():
+		var child = node.get_child_with_name(child_name)
+		if child:
+			price_stats_recurse(commodity,child,result)
+
+func price_stats(node: simple_tree.SimpleNode): # -> float or null
+	var commodity_data: Array = Commodities.get_selected_commodity()
+	var commodity = Commodities.OneProduct.new(commodity_data)
+	if not buy:
+		node.price_products(commodity)
+		var value = commodity.all[0][Commodities.Products.VALUE_INDEX]
+		return value if value else null
+	var result = [ 0.0, 0 ]
+	if mode==MIN_PRICE:
+		result[0] = INF
+	elif mode==MAX_PRICE:
+		result[0] = -INF
+	price_stats_recurse(commodity,node,result)
+	if result[0] + 1e6 == result[0]:
+		result[0]=0
+	if not result[1]:
+		return null
+	elif mode==AVG_PRICE:
+		return result[0]/result[1]
+	else:
+		return result[0]
+
+func pricing_visuals(selection_index: int, location_index: int):
+	var price_at_index: Dictionary = {}
+	var min_stat: float = INF
+	var max_stat: float = -INF
+	for system_name in system_index:
+		var data = game_state.systems.get_child_with_name(system_name)
+		var index = system_index[system_name]
+		if data==null or not data.has_method('is_SystemData') or index<0:
+			push_warning('Invalid system "'+system_name+'"')
+			continue
+		var stat = price_stats(data)
+		price_at_index[index] = stat
+		if stat!=null and stat>0:
+			min_stat = min(min_stat,stat)
+			max_stat = max(max_stat,stat)
+	var draw: Dictionary = {}
+	var colors = [ no_sale, bar1_color, bar2_color, bar3_color, bar4_color,
+		bar5_color, bar6_color ]
+	var ncolors = len(colors)-1
+	var at_location = 128
+	var at_selection = 64
+	var color_mask = 15
+	assert(color_mask>=ncolors)
+	assert(not (at_location&color_mask))
+	assert(not (at_selection&color_mask))
+	var step: float = 1.0
+	if min_stat!=INF:
+		step = round((max_stat-min_stat)/float(ncolors))
+		var colorbar_labels = []
+		for i in range(ncolors+1):
+			colorbar_labels.append(str(round(min_stat+i*step)))
+		$MapColorbar.visible=false
+		$MapColorbar.set_labels(PoolStringArray(colorbar_labels))
+		$MapColorbar.set_colors(PoolColorArray(colors.slice(1,len(colors))))
+		$MapColorbar.visible=true
+		step=max(1.0,step)
+	else:
+		$MapColorbar.visible=false
+	system_metadata.resize(len(pos_pool))
+	for index in range(len(pos_pool)):
+		var flags: int = 0
+		var price = null
+		if min_stat!=INF:
+			price = price_at_index.get(index,-1)
+			if price and price>0:
+# warning-ignore:narrowing_conversion
+				flags = clamp(int(floor((price-min_stat)/step)),1,ncolors)
+		system_metadata[index] = price
+		if location_index==index:
+			flags |= at_location
+		if selection_index==index:
+			flags |= at_selection
+		if draw.has(flags):
+			draw[flags].append(index)
+		else:
+			draw[flags] = [index]
+		
+	for flags in draw:
+# warning-ignore:shadowed_variable
+		var system_color = colors[flags&color_mask]
+		var label_color = system_color
+		var font = label_font
+# warning-ignore:shadowed_variable
+		var system_scale = 1.0
+		if flags&at_location or flags&at_selection:
+			font = highlighted_font
+		if flags&at_location:
+			system_scale *= 1.5
+		starmap.add_system_visuals(PoolIntArray(draw[flags]),
+			system_color, label_color, font, system_scale)
+
+func navigational_visuals(selection_index: int, location_index: int):
+	if location_index==selection_index and location_index>=0:
+		starmap.add_system_visuals(PoolIntArray([selection_index]),
+			highlight_color, system_name_color, highlighted_font, 1.2)
+		starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
+			connected_color, 1.5)
+	else:
+		if location_index>=0:
+			starmap.add_system_visuals(PoolIntArray([location_index]),
+				system_location_color, system_name_color, highlighted_font, 1.2)
+			starmap.add_adjacent_link_visuals(PoolIntArray([location_index]),
+				connected_location_color, 1.5)
+		
+		if selection_index>=0:
+			starmap.add_system_visuals(PoolIntArray([selection_index]),
+				highlight_color, system_name_color, highlighted_font, 1.0)
+			starmap.add_adjacent_link_visuals(PoolIntArray([selection_index]),
+				connected_color, 1.0)
+
+func index_at_position(screen_position: Vector2):
 	var epsilon = SELECT_EPSILON*$View/Port/Camera.size
 	var pos3 = $View/Port/Camera.project_position(
 		screen_position-$View.rect_global_position,-10)
-	pos3.y=0
-	var closest = null
-	var close_distsq = INF
-	
-	game_state.universe.lock()
-	for system_id in game_state.systems.get_child_names():
-		var system = game_state.universe.get_system(system_id)
-		if not system:
-			continue
-		var distsq = pos3.distance_squared_to(system['position'])
-		if distsq<close_distsq:
-			close_distsq=distsq
-			closest=system
-	
-	if close_distsq<epsilon:
-		# Always favor selecting a system since they're smaller than a link.
-		game_state.universe.unlock()
-		return closest
-	
-	close_distsq=INF
-	closest=null
-	for pair in name_bounds:
-		if pair[0].has_point(pos3):
-			var distsq = pos3.distance_squared_to(pair[2])
-			var system = game_state.systems.get_node_or_null(pair[1])
-			if system and distsq<close_distsq:
-				close_distsq=distsq
-				closest=system
-	
-	return closest
-# Logic to select links:
-#	for link_key in game_state.universe.links:
-#		var link = game_state.universe.link_vectors(link_key)
-#		if not link:
-#			continue
-#		var distsq = game_state.universe.link_distsq(pos3,link)
-#		if distsq<close_distsq:
-#			close_distsq=distsq
-#			closest=link
-#	game_state.universe.unlock()
-#
-#	return closest if close_distsq<epsilon else null
+	return starmap.system_at_location(pos3, epsilon)
+
+func find_at_position(screen_position: Vector2):
+	var result = index_at_position(screen_position)
+	if result<0 or result>=name_pool.size():
+		return null
+	var system_name: String = name_pool[result]
+	return game_state.systems.get_node_or_null(system_name)
 
 func deselect(what) -> bool:
 	if (what is Dictionary and selection is Dictionary and what==selection) or \
 		(what is simple_tree.SimpleNode and selection is simple_tree.SimpleNode \
 		and what==selection):
 		selection=null
+		Player.destination_system = NodePath()
 		emit_signal('deselect')
+		update_starmap_visuals()
 		return true
 	return false
 
@@ -353,10 +359,11 @@ func change_selection_to(new_selection,_center: bool = false) -> bool:
 	selection=new_selection
 	if selection is simple_tree.SimpleNode:
 		emit_signal('select',selection)
+		Player.destination_system = selection.get_path()
 	elif selection==null:
 		emit_signal('deselect')
 	game_state.universe.unlock()
-	time_to_draw=true
+	update_starmap_visuals()
 	return true
 
 func set_zoom(zoom: float,focus: Vector3) -> void:
@@ -367,34 +374,48 @@ func set_zoom(zoom: float,focus: Vector3) -> void:
 		return
 	
 	$View/Port/Camera.size = new
-	time_to_draw=true
 	var f = new/from
 	var start: Vector3 = $View/Port/Camera.translation
 	var center: Vector3 = Vector3(focus.x,start.y,focus.z)
 	$View/Port/Camera.translation = f*start + center*(1-f)
+	starmap.update()
 
 func _input(event):
 	var top = get_viewport().get_modal_stack_top()
 	if top and not in_top_dialog(self,top):
 		return
-	var pos2: Vector2 = event_position(event)
+	var pos2: Vector2 = utils.event_position(event)
 	if not get_global_rect().has_point(pos2):
 		return
 	if not is_visible_in_tree():
 		return
 	if event is InputEventMouseMotion and last_position:
-		if Input.is_action_pressed('ui_location_slide'):
-			var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
-			if not selection:
+		if Input.is_action_pressed('ui_location_slide') or \
+				Input.is_action_pressed('ui_location_select'):
+			if last_screen_position:
+				var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 				var pos3_start: Vector3 = $View/Port/Camera.project_position(last_screen_position,-10)
 				var pos_diff = pos3_start-pos3
 				pos_diff.y=0
 				if pos_diff.length()>1e-3:
 					$View/Port/Camera.translation = camera_start + pos_diff
-					time_to_draw=true
+					starmap.update()
 		else:
 			var _discard = cancel_drag()
-
+	if event is InputEventMouseMotion and not system_metadata.empty():
+		var index = index_at_position(pos2)
+		if index!=hover_index:
+			hover_index=index
+			if hover_index>=0 and hover_index<len(name_pool):
+				if hover_index==get_location_index():
+					emit_signal('hover_over_player_location',name_pool[index],
+						display_name_pool[index],system_metadata[index])
+				else:
+					emit_signal('hover_over_system',name_pool[index],
+						display_name_pool[index],system_metadata[index])
+			else:
+				emit_signal('hover_no_system')
+	
 	if event.is_action_pressed('ui_location_slide'):
 		last_screen_position = pos2
 		last_position = $View/Port/Camera.project_position(last_screen_position,-10)
@@ -402,23 +423,29 @@ func _input(event):
 	elif event.is_action_released('ui_location_slide'):
 		var _discard = cancel_drag()
 	elif event.is_action_pressed('ui_location_select'):
-		var target = find_at_position(pos2)
-		if not target or target is simple_tree.SimpleNode:
-			universe_edits.state.push(universe_edits.ChangeSelection.new(
-				selection,target))
+		if allow_selection:
+			var target = find_at_position(pos2)
+			if (selection and not target) or target is simple_tree.SimpleNode:
+				universe_edits.state.push(universe_edits.ChangeSelection.new(
+					selection,target))
+		last_screen_position = pos2
+		last_position = $View/Port/Camera.project_position(last_screen_position,-10)
+		camera_start = $View/Port/Camera.translation
 		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_undo'):
+	elif allow_selection and event.is_action_released('ui_undo'):
 		universe_edits.state.undo()
 		get_tree().set_input_as_handled()
-	elif event.is_action_released('ui_redo'):
+	elif allow_selection and event.is_action_released('ui_redo'):
 		universe_edits.state.redo()
 		get_tree().set_input_as_handled()
 	elif event.is_action_released("wheel_up"):
 		ui_scroll=1.5
-		get_tree().set_input_as_handled()
+		if allow_selection:
+			get_tree().set_input_as_handled()
 	elif event.is_action_released("wheel_down"):
 		ui_scroll=-1.5
-		get_tree().set_input_as_handled()
+		if allow_selection:
+			get_tree().set_input_as_handled()
 
 func in_top_dialog(node,top) -> bool:
 	if node==null:
@@ -428,9 +455,6 @@ func in_top_dialog(node,top) -> bool:
 	return in_top_dialog(node.get_parent(),top)
 
 func _process(_delta):
-	if time_to_draw:
-		draw_systems_and_links()
-
 	var top = get_viewport().get_modal_stack_top()
 	if top and not in_top_dialog(self,top):
 		return
@@ -445,16 +469,7 @@ func _process(_delta):
 	if abs(ui_scroll)<.05:
 		ui_scroll=0
 	
-	var pos2: Vector2 = get_viewport().get_mouse_position()
+	var pos2: Vector2 = get_viewport().get_mouse_position()-rect_global_position
 	var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 	set_zoom(zoom,pos3)
 
-func _on_Annotations_draw():
-	draw_mutex.lock()
-	var commands = draw_commands.duplicate()
-	draw_mutex.unlock()
-	for command in commands:
-		$View/Port/Annotations.callv(command[0],command.slice(1,len(command)))
-
-func _on_StarmapPanel_resized():
-	time_to_draw=true

@@ -1,6 +1,17 @@
 extends Popup
 
+export var allow_saving = true setget set_allow_saving, get_allow_saving
+
+func set_allow_saving(flag: bool):
+	$Saves.allow_saving = flag
+	allow_saving = $Saves.allow_saving
+
+func get_allow_saving() -> bool:
+	allow_saving = $Saves.allow_saving
+	return allow_saving
+
 func _ready():
+	$Saves.allow_saving = allow_saving
 	if get_tree().current_scene==self:
 		call_deferred('popup')
 	var _discard=get_viewport().connect('size_changed',self,'auto_resize')

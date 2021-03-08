@@ -42,6 +42,14 @@ var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
 var base_name: String = ''
+var trading: Array = []
+var population: Dictionary = {}
+var industry: float = 0
+var locality_adjustments: Dictionary = {}
+
+const default_planet_trading: Array = [ 'suvar', 'human' ]
+const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
+const default_planet_industry: float = 100000.0
 
 func set_object_type(p: int):
 	assert(object_type==PLANET or object_type==STAR)
@@ -63,6 +71,12 @@ func is_a_planet() -> bool: return true
 
 func is_SpaceObjectData(): pass # never called; must only exist
 
+func get_system(): # -> SystemData or null
+	var parent = get_parent()
+	if parent and parent.has_method('get_system'):
+		return parent.get_system()
+	return null
+
 func maybe_add(result,key,value,base):
 	if base and base.has(key) and value==base[key]:
 		return
@@ -75,6 +89,9 @@ func encode() -> Dictionary:
 		'display_name': display_name,
 		'description': description,
 		'base': base_name,
+		'population': population.duplicate(true),
+		'trading': trading.duplicate(true),
+		'locality_adjustments': locality_adjustments.duplicate(true),
 	}
 	maybe_add(result,'object_type',object_type,base)
 	maybe_add(result,'size',size,base)
@@ -87,6 +104,11 @@ func encode() -> Dictionary:
 	maybe_add(result,'orbit_start',orbit_start,base)
 	maybe_add(result,'has_astral_gate',has_astral_gate,base)
 	return result
+
+func get_or_dup(me: Dictionary,key,default,deep: bool = true):
+	if key in me:
+		return me[key]
+	return default.duplicate(deep)
 
 func _init(node_name,me: Dictionary ={}):
 	base_name = me.get('base','')
@@ -106,12 +128,40 @@ func _init(node_name,me: Dictionary ={}):
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
+	locality_adjustments = me.get('locality_adjustments',{})
+	if object_type==PLANET:
+		var trad = get_or_dup(me,'trading',default_planet_trading)
+		if trad is Dictionary:
+			trad = trad.keys()
+		trading = trad
+		population = get_or_dup(me,'population',default_planet_population)
+		industry = me.get('industry',default_planet_industry)
+		if 'locality_adjustments' in me:
+			locality_adjustments = me['locality_adjustments']
 	var objects = me.get('objects',{})
 	if objects and objects is Dictionary:
 		for key in objects:
 			var object = objects[key]
 			if object and object is simple_tree.SimpleNode:
 				var _discard = add_child(object,key)
+
+func price_products(result: Commodities.Products):
+	if locality_adjustments:
+		result.apply_multiplier_list(locality_adjustments)
+	var system = get_system()
+	if system:
+		system.price_products(result)
+
+func list_products(commodities: Commodities.Products, result: Commodities.Products):
+	for trade in trading:
+		var proc = Commodities.trading.get(trade,null)
+		if proc:
+			proc.population(commodities,result,population)
+			proc.industry(commodities,result,industry)
+		else:
+			push_warning('Trade type "'+str(trade)+'" not in known types '+
+				str(Commodities.trading.keys()))
+	price_products(result)
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:
@@ -191,7 +241,7 @@ func make_planet(detail: float=150, time: float=0, planet = null):
 	planet.color_sphere(color_scaling,color_addition)
 	if place_sphere:
 		var x0z = planet_translation(time)
-		planet.place_sphere(size,Vector3(x0z[0],-15,x0z[2]),planet_rotation(time))
+		planet.place_sphere(size,Vector3(x0z[0],-20,x0z[2]),planet_rotation(time))
 	
 	planet.name = make_unique_name()
 	planet.display_name = display_name

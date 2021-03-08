@@ -12,9 +12,7 @@ opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
 opts.Add(PathVariable('target_path', 'The path where the lib is installed.', 'bin/'))
-opts.Add(PathVariable('CombatEngine_target_name', 'The CombatEngine library name.', 'libcombatengine', PathVariable.PathAccept))
-opts.Add(PathVariable('SphereTool_target_name', 'The SphereTool library name.', 'libspheretool', PathVariable.PathAccept))
-opts.Add(PathVariable('GDNativeTestCode_target_name', 'The GDNativeTestCode library name.', 'libgdnativetestcode', PathVariable.PathAccept))
+opts.Add(PathVariable('ShooterNative_target_name', 'The ShooterNative libraries library name.', 'libshooternative', PathVariable.PathAccept))
 
 SConscript(['godot-cpp/SConstruct'])
 
@@ -103,13 +101,17 @@ env.Append(LIBS=[cpp_library])
 # tweak this if you want to use different folders, or more folders, to store your source code in.
 env.Append(CPPPATH=['src/'])
 
-GDNativeTestCode_library = env.SharedLibrary(target=env['target_path'] + env['GDNativeTestCode_target_name'] , source=Glob('src/GDNativeTestCode*.cpp'))
-CombatEngine_library = env.SharedLibrary(target=env['target_path'] + env['CombatEngine_target_name'] , source=Glob('src/CombatEngine*.cpp'))
-SphereTool_library = env.SharedLibrary(target=env['target_path'] + env['SphereTool_target_name'] , source=Glob('src/SphereTool*.cpp'))
+ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['ShooterNative_target_name'] , source=[
+    "src/CombatEngine.cpp",
+    "src/CombatEngineData.cpp",
+    "src/CombatEngineUtils.cpp",
+    "src/SphereTool.cpp",
+    "src/Starmap.cpp",
+    "src/VisualEffects.cpp",
+    "src/ShooterNativeLibrary.cpp"
+])
 
-Default(GDNativeTestCode_library)
-Default(CombatEngine_library)
-Default(SphereTool_library)
+Default(ShooterNative_library)
 
 # Generates help for the -h scons option.
 Help(opts.GenerateHelpText(env))

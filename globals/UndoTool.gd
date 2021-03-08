@@ -21,6 +21,7 @@ class UndoStack extends Reference:
 	var redo_stack: Array = []
 	var verbose: bool = false
 	var activity: bool = false # true if anything was changed; used to detect unsaved changes
+	var applying_rule: int = 0 # >0 if we're inside amend, push, undo, or redo
 # warning-ignore:shadowed_variable
 	func _init(verbose: bool = false):
 		self.verbose = verbose
@@ -45,14 +46,18 @@ class UndoStack extends Reference:
 			print('undo[',i,'] = ',undo_stack[i].as_string())
 			i-=1
 	func amend(arg) -> bool:
+		applying_rule += 1
 		activity = true
 		if undo_stack:
 			var action = undo_stack[len(undo_stack)-1]
 			if action.amend(arg):
 				emit_signal('undo_stack_changed')
+				applying_rule -= 1
 				return true
+		applying_rule -= 1
 		return false
 	func push(action) -> bool:
+		applying_rule += 1
 		activity = true
 		if verbose: print('UndoStack.push: pushing ',action.as_string())
 		if action.run():
@@ -63,13 +68,16 @@ class UndoStack extends Reference:
 			emit_signal('undo_stack_changed')
 			emit_signal('redo_stack_changed')
 			emit_signal('redo_stack_empty')
+			applying_rule -= 1
 			return true
 		else:
 			push_error('UndoStack.push: action.run() failed for '+action.as_string())
 			emit_signal('run_failed')
 		if verbose: dump()
+		applying_rule -= 1
 		return false
 	func undo() -> bool:
+		applying_rule += 1
 		activity = true
 		if undo_stack:
 			var action = undo_stack.pop_back()
@@ -82,6 +90,7 @@ class UndoStack extends Reference:
 				emit_signal('redo_stack_changed')
 				if undo_stack.empty():
 					emit_signal('undo_stack_empty')
+				applying_rule -= 1
 				return true
 			else:
 				push_error('UndoStack.undo: action.undo() failed for '+
@@ -96,8 +105,10 @@ class UndoStack extends Reference:
 		elif verbose:
 			printerr('UndoStack.undo: undo stack is empty')
 		dump()
+		applying_rule -= 1
 		return false
 	func redo() -> bool:
+		applying_rule += 1
 		activity = true
 		if redo_stack:
 			var action = redo_stack.pop_back()
@@ -110,6 +121,7 @@ class UndoStack extends Reference:
 				emit_signal('redo_stack_changed')
 				if redo_stack.empty():
 					emit_signal('redo_stack_empty')
+				applying_rule -= 1
 				return true
 			else:
 				push_error('UndoStack.redo: action.redo() failed for '+
@@ -121,4 +133,5 @@ class UndoStack extends Reference:
 		elif verbose:
 			printerr('UndoStack.redo: redo stack is empty')
 		if verbose: dump()
+		applying_rule -= 1
 		return false

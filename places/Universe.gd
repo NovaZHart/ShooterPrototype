@@ -59,9 +59,30 @@ func has_link(arg1,arg2 = null) -> bool:
 		return links.has(link_key)
 	return links.has(arg1)
 
+func get_stellar_systems():
+	var stellar_systems: Dictionary = {}
+	for system_name in systems.get_child_names():
+		var system = systems.get_child_with_name(system_name)
+		if not system or not system.has_method('is_SystemData'):
+			continue
+		if system.show_on_map:
+			stellar_systems[system_name]=system
+			continue
+	return stellar_systems
 
+func get_interstellar_systems():
+	var interstellar_systems: Dictionary = {}
+	for system_name in systems.get_child_names():
+		var system = systems.get_child_with_name(system_name)
+		if not system or not system.has_method('is_SystemData'):
+			continue
+		if not system.show_on_map:
+			if system_name.begins_with('interstellar'):
+				interstellar_systems[system_name]=system
+			continue
+	return interstellar_systems
 
-func decode_children(parent: simple_tree.SimpleNode, children):
+func decode_children(parent, children):
 	if not children is Dictionary:
 		push_error("encoded parent's children are not stored in a Dictionary")
 		return
@@ -74,13 +95,35 @@ func decode_children(parent: simple_tree.SimpleNode, children):
 			if not parent.add_child(decoded):
 				push_error('decode_children failed to add child')
 
-func encode_children(parent: simple_tree.SimpleNode) -> Dictionary:
+func encode_children(parent) -> Dictionary:
 	var result = {}
 	for child_name in parent.get_child_names():
 		result[child_name] = encode_helper(parent.get_child_with_name(child_name))
 	return result
 
+func encode_ProductsNode(p: Commodities.ProductsNode):
+	return [ 'ProductsNode', str(p.update_time),
+		encode_helper(p.products.encode() if p.products else {}),
+		encode_children(p) ]
 
+func decode_ProductsNode(v):
+	var result = Commodities.ProductsNode.new()
+	if len(v)<4:
+		push_error('Expected two arguments in encoded ProductsNode, not '+str(len(v)))
+	if len(v)>1:
+		if v[1] is String and v[1].is_valid_integer():
+			result.update_time = int(v[1])
+		else:
+			push_error('Invalid value for encoded ProductsNode.update_time: '+str(v[1]))
+	if len(v)>2:
+		var two = decode_helper(v[2])
+		if two is Dictionary:
+			result.decode_products(two)
+		elif two:
+			push_error('Invalid value for encoded ProductsNode.products: '+str(two).substr(0,100))
+	if len(v)>3:
+		decode_children(result,v[3])
+	return result
 
 class Mounted extends simple_tree.SimpleNode:
 	var scene: PackedScene
@@ -142,7 +185,13 @@ func encode_MultiMount(m: MultiMount):
 class ShipDesign extends simple_tree.SimpleNode:
 	var display_name: String
 	var hull: PackedScene
-	var cached_stats = null
+	var cached_stats = null setget ,get_stats
+	var cargo setget set_cargo
+	
+	func set_cargo(new_cargo):
+		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
+		cargo = new_cargo
+		clear_cached_stats()
 	
 	func is_ShipDesign(): pass # for type detection; never called
 	
@@ -211,6 +260,8 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not found:
 			push_warning('No parts found in ship')
 		var stats = body.pack_stats(true)
+		if cargo:
+			body.set_cargo(cargo)
 		for child in body.get_children():
 			if child.has_method('is_not_mounted'):
 				# Unused slots are removed to save space in the scene tree
@@ -222,7 +273,8 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return body
 
 func encode_ShipDesign(d: ShipDesign):
-	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d) ]
+	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d),
+		( encode_helper(d.cargo.all) if d.cargo is Commodities.Products else null ) ]
 
 func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
@@ -230,6 +282,11 @@ func decode_ShipDesign(v):
 	var result = ShipDesign.new(str(v[1]), decode_helper(v[2]))
 	if len(v)>3:
 		decode_children(result,v[3])
+	if len(v)>4:
+		var cargo_data = decode_helper(v[4])
+		if cargo_data is Dictionary:
+			result.cargo = Commodities.ManyProducts.new()
+			result.cargo.add_products(cargo_data)
 	return result
 
 
@@ -516,16 +573,25 @@ func decode_helper(what,key=null):
 			return SpaceObjectData.new(key,decode_helper(what[1]))
 		elif what[0] == 'SystemData' and len(what)>=2:
 			return SystemData.new(key,decode_helper(what[1]))
-		elif what[0] == 'SimpleNode' and len(what)>1:
-			var result = simple_tree.SimpleNode.new()
-			result.set_name(key)
-			decode_children(result,what[1])
-			return result
+		elif what[0] == 'ProductsNode':
+			return decode_ProductsNode(what)
+		elif what[0] == 'SimpleNode':
+			if len(what)>1:
+				var result = simple_tree.SimpleNode.new()
+				if key:
+					result.set_name(key)
+				decode_children(result,what[1])
+				return result
+			else:
+				push_error('Empty SimpleNode declaration')
 		elif what[0]=='Resource' and len(what)>1:
 			return ResourceLoader.load(str(what[1]))
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
-	push_warning('Unrecognized type encountered in decode_helper; returning null.')
+	elif what==null:
+		return what
+	push_error('Unrecognized type encountered in decode_helper; returning null.')
+	assert(false)
 	return null
 
 
@@ -566,6 +632,8 @@ func encode_helper(what):
 		return encode_Mounted(what)
 	elif what is ShipDesign:
 		return encode_ShipDesign(what)
+	elif what is Commodities.ProductsNode:
+		return encode_ProductsNode(what)
 	elif what is Resource:
 		return [ 'Resource', what.resource_path ]
 	elif what is simple_tree.SimpleNode and what.has_method('encode'):
@@ -573,8 +641,6 @@ func encode_helper(what):
 		var type = 'SpaceObjectData' if what.has_method('is_SpaceObjectData') else 'SystemData'
 		var children = {}
 		var what_children = what.get_children()
-#		if what.astral_gate_path():
-#			assert(what_children)
 		for child in what_children:
 			assert(child is simple_tree.SimpleNode)
 			children[encode_helper(child.get_name())]=encode_helper(child)
@@ -585,12 +651,12 @@ func encode_helper(what):
 	elif what is simple_tree.SimpleNode:
 		return [ 'SimpleNode', encode_children(what) ]
 	elif what==null:
-		return []
+		return null
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
 	else:
 		printerr('encode_helper: do not know how to handle object ',str(what))
-		return []
+		return null
 
 
 

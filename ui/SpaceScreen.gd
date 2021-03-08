@@ -12,25 +12,8 @@ var mouse_selection_mutex: Mutex = Mutex.new()
 
 export var max_ticks_for_double_press: int = 30
 
-# These must match src/CombatEngineData.hpp:
-const PLAYER_GOAL_ATTACKER_AI: int = 1
-const PLAYER_GOAL_LANDING_AI: int = 2
-const PLAYER_GOAL_COWARD_AI: int = 3
-const PLAYER_GOAL_INTERCEPT: int = 4
-const PLAYER_ORDERS_MAX_GOALS: int = 3
-const PLAYER_ORDER_FIRE_PRIMARIES: int = 1
-const PLAYER_ORDER_STOP_SHIP: int = 2
-const PLAYER_ORDER_MAINTAIN_SPEED: int = 4
-const PLAYER_ORDER_AUTO_TARGET: int = 8
-const PLAYER_TARGET_CONDITION: int = 3840
-const PLAYER_TARGET_NEXT: int = 256
-const PLAYER_TARGET_NEAREST: int = 512
-const PLAYER_TARGET_SELECTION: int = 240
-const PLAYER_TARGET_ENEMY: int = 16
-const PLAYER_TARGET_FRIEND: int = 32
-const PLAYER_TARGET_PLANET: int = 48
-const PLAYER_TARGET_OVERRIDE: int = 64
-const PLAYER_TARGET_NOTHING: int = 240
+# These must match src/combat_engineData.hpp:
+
 
 var pause_mutex: Mutex = Mutex.new()
 var dialog_paused: bool = false
@@ -98,45 +81,48 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var shoot: bool = Input.is_action_pressed('ui_select')
 	var land: bool = Input.is_action_just_pressed('ui_land')
 	var evade: bool = Input.is_action_just_pressed('ui_evade')
+	var depart: bool = Input.is_action_just_pressed('ui_depart')
 	var intercept: bool = Input.is_action_just_pressed('ui_intercept')
 	var next_enemy: bool = Input.is_action_just_pressed('ui_next_enemy')
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
 
+	#if jump:
+		#game_state.call_deferred('change_scene',preload('res://places/Hyperspace.tscn'))
 	
-	var nearest: int = PLAYER_TARGET_NEAREST
+	var nearest: int = combat_engine.PLAYER_TARGET_NEAREST
 	if Input.is_key_pressed(KEY_SHIFT):
-		nearest = PLAYER_TARGET_NEXT
+		nearest = combat_engine.PLAYER_TARGET_NEXT
 	
 	if Input.is_action_just_pressed('ui_down') and tick-last_back_command<15:
 		double_down_active=true
 	
 	var target_info: int = 0
-	if deselect:                target_info = PLAYER_TARGET_NOTHING
-	elif next_enemy:            target_info = PLAYER_TARGET_ENEMY|nearest
-	elif next_planet:           target_info = PLAYER_TARGET_PLANET|nearest
+	if deselect:                target_info = combat_engine.PLAYER_TARGET_NOTHING
+	elif next_enemy:            target_info = combat_engine.PLAYER_TARGET_ENEMY|nearest
+	elif next_planet:           target_info = combat_engine.PLAYER_TARGET_PLANET|nearest
 	# FIXME: elif next_friend
 	
 	var orders: int = 0
-	if shoot:                   orders = PLAYER_ORDER_FIRE_PRIMARIES
+	if shoot:                   orders = combat_engine.PLAYER_ORDER_FIRE_PRIMARIES
 	elif double_down_active:
-		orders = PLAYER_ORDER_STOP_SHIP
+		orders = combat_engine.PLAYER_ORDER_STOP_SHIP
 		thrust = 0
-	elif not thrust:            orders = PLAYER_ORDER_MAINTAIN_SPEED
+	elif not thrust:            orders = combat_engine.PLAYER_ORDER_MAINTAIN_SPEED
 	
 	if auto_target:
 		auto_target_flag = not auto_target_flag
 		if auto_target_flag:
-			orders |= PLAYER_ORDER_AUTO_TARGET
+			orders |= combat_engine.PLAYER_ORDER_AUTO_TARGET
 	
 	if thrust:              goal=0
-	elif intercept:         goal=PLAYER_GOAL_INTERCEPT
-	elif evade:             goal=PLAYER_GOAL_COWARD_AI
-	elif land:              goal=PLAYER_GOAL_LANDING_AI
-		# FIXME: elif attacker ai
+	elif intercept:         goal=combat_engine.PLAYER_GOAL_INTERCEPT
+	elif evade:             goal=combat_engine.PLAYER_GOAL_COWARD_AI
+	elif land:              goal=combat_engine.PLAYER_GOAL_LANDING_AI
+	elif depart:            goal=combat_engine.PLAYER_GOAL_RIFT
 	
 	if not orders and land and not thrust and not goal:
-		target_info = PLAYER_TARGET_PLANET|nearest
-		goal=PLAYER_GOAL_INTERCEPT
+		target_info = combat_engine.PLAYER_TARGET_PLANET|nearest
+		goal=combat_engine.PLAYER_GOAL_INTERCEPT
 	
 	mouse_selection_mutex.lock()
 	var target_rid = mouse_selection
@@ -145,7 +131,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 	if not target_rid.get_id() or target_rid==$System.get_player_rid():
 		target_rid = $System.get_player_target_rid()
 	else:
-		target_info = PLAYER_TARGET_OVERRIDE
+		target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 	
 	var result: Dictionary = Dictionary()
 	if thrust:                result['manual_thrust'] = float(thrust)
@@ -161,6 +147,10 @@ func _enter_tree() -> void:
 #	if mesh_loader.load_meshes() != OK:
 #		printerr('Could not start the mesh loader.')
 	combat_engine.change_worlds(get_viewport().world)
+	var system = Player.system
+	if system:
+		combat_engine.set_system_stats(false,system.system_fuel_recharge,
+			system.center_fuel_recharge)
 
 #func _exit_tree() -> void:
 #	mesh_loader.wait_for_thread()
@@ -175,12 +165,14 @@ func _process(delta: float) -> void:
 	if get_tree().paused:
 		return
 	if $System.player_has_a_ship():
-		$System.receive_player_orders(make_player_orders(delta))
+		if tick>2:
+			$System.receive_player_orders(make_player_orders(delta))
 	else:
 		if death_start<0:
 			death_start = tick
 		if tick-death_start>300 or Input.is_action_just_released('ui_select'):
 #			if get_tree().current_scene.has_method('change_scene'):
+			Player.go_back_to_departure()
 			game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 #			else:
 #				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')

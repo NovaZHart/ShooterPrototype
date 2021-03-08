@@ -137,18 +137,12 @@ func _input(event):
 	var down = event.is_action_pressed('wheel_down')
 	if up or down:
 		var rect: Rect2 = Rect2($All/Top/List.rect_global_position, $All/Top/List.rect_size)
-		if not rect.has_point(event_position(event)):
+		if not rect.has_point(utils.event_position(event)):
 			return
 		if down and $All/Top/Scroll.value<$All/Top/Scroll.max_value:
 			$All/Top/Scroll.value+=1
 		if up and $All/Top/Scroll.value>$All/Top/Scroll.min_value:
 			$All/Top/Scroll.value-=1
-
-func event_position(event: InputEvent) -> Vector2:
-	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouseButton:
-		return event.position
-	return get_viewport().get_mouse_position()
 
 func _process(_delta):
 	if last_update_tick+update_delay < last_move_tick:

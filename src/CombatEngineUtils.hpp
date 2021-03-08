@@ -8,6 +8,7 @@
 #include <cmath>
 #include <algorithm>
 #include <limits>
+#include <memory>
 
 #include <Vector3.hpp>
 #include <Dictionary.hpp>
@@ -22,6 +23,33 @@
 
 namespace godot {
 
+  template<class T>
+  String str(const T &t) {
+    return String(Variant(t));
+  }
+
+  template<class T>
+  struct FreeRID {
+    RID rid;
+
+    FreeRID(const RID &rid): rid(rid) {}
+    ~FreeRID() {
+      if(rid.get_id())
+        T::get_singleton()->free_rid(rid);
+    }
+  };
+
+  typedef std::shared_ptr<FreeRID<VisualServer>> VisualRIDPtr;
+  typedef std::shared_ptr<FreeRID<PhysicsServer>> PhysicsRIDPtr;
+
+  inline VisualRIDPtr allocate_visual_rid(RID rid) {
+    return std::shared_ptr<FreeRID<VisualServer>>(new FreeRID<VisualServer>(rid));
+  }
+
+  inline VisualRIDPtr allocate_physics_rid(RID rid) {
+    return std::shared_ptr<FreeRID<VisualServer>>(new FreeRID<VisualServer>(rid));
+  }
+  
   class FastProfiling {
     const char *function;
     int line;
@@ -62,8 +90,15 @@ namespace godot {
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
 
-    object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1);
-    object_id rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id=-1);
+    inline object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1) {
+      auto it = rid2id.find(rid.get_id());
+      return (it==rid2id.end()) ? default_id : it->second;
+    }
+    
+    inline object_id rid2id_default(const rid2id_t &rid2id,int32_t rid_id,object_id default_id=-1) {
+      auto it = rid2id.find(rid_id);
+      return (it==rid2id.end()) ? default_id : it->second;
+    }
 
     inline double double_dot(const Vector3 &a,const Vector3 &b) {
       return double(a.x)*double(b.x)+double(a.y)*double(b.y)+double(a.z)*double(b.z);
@@ -139,14 +174,6 @@ namespace godot {
 
     inline real_t distsq(const Vector3 &a,const Vector3 &b) {
       return (a.x-b.x)*(a.x-b.x) + (a.z-b.z)*(a.z-b.z);
-    }
-    
-    // from https://burtleburtle.net/bob/hash/integer.html
-    uint32_t bob_full_avalanche(uint32_t a);
-
-
-    inline real_t int2float(uint32_t i) {
-      return real_t(i%1048576)/1048576.0f;
     }
     
     inline uint32_t state_for_name(const String &name) {

@@ -1,6 +1,7 @@
 extends Node
 
 export var MainDialog: PackedScene
+export var allow_saving: bool = true
 
 var dialog_path: NodePath = NodePath()
 
@@ -38,6 +39,7 @@ func show_main_dialog():
 		return
 	var viewport: Viewport = get_viewport()
 	viewport.add_child(dialog)
+	dialog.allow_saving = allow_saving
 	dialog_path = dialog.get_path()
 	emit_signal('dialog_shown')
 	dialog.popup()

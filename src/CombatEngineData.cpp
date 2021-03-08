@@ -215,15 +215,23 @@ Ship::Ship(const Ship &o):
   reverse_thrust(o.reverse_thrust),
   turn_thrust(o.turn_thrust),
   threat(o.threat),
+  visual_height(o.visual_height),
   max_shields(o.max_shields),
   max_armor(o.max_armor),
   max_structure(o.max_structure),
+  max_fuel(o.max_fuel),
   heal_shields(o.heal_shields),
   heal_armor(o.heal_armor),
   heal_structure(o.heal_structure),
+  heal_fuel(o.heal_fuel),
+  fuel_efficiency(o.fuel_efficiency),
   aabb(o.aabb),
   turn_drag(o.turn_drag),
   radius(o.radius),
+  empty_mass(o.empty_mass),
+  cargo_mass(o.cargo_mass),
+  fuel_density(o.fuel_density),
+  armor_density(o.armor_density),
   collision_layer(o.collision_layer),
   enemy_mask(o.enemy_mask),
   team(o.team),
@@ -235,9 +243,11 @@ Ship::Ship(const Ship &o):
   explosion_delay(o.explosion_delay),
   explosion_tick(o.explosion_tick),
   fate(o.fate),
+  entry_method(o.entry_method),
   shields(o.shields),
   armor(o.armor),
   structure(o.structure),
+  fuel(o.fuel),
   rotation(o.rotation),
   position(o.position),
   linear_velocity(o.linear_velocity),
@@ -250,13 +260,14 @@ Ship::Ship(const Ship &o):
   weapons(o.weapons),
   tick(o.tick),
   tick_at_last_shot(o.tick_at_last_shot),
+  tick_at_rift_start(o.tick_at_rift_start),
   target(o.target),
   threat_vector(o.threat_vector),
   nearby_objects(o.nearby_objects),
   nearby_enemies(o.nearby_enemies),
   nearby_enemies_tick(o.nearby_enemies_tick),
   nearby_enemies_range(o.nearby_enemies_range),
-  random_state(o.random_state),
+  rand(o.rand),
   destination(o.destination),
   aim_multiplier(o.aim_multiplier),
   confusion_multiplier(o.confusion_multiplier),
@@ -264,7 +275,11 @@ Ship::Ship(const Ship &o):
   confusion_velocity(o.confusion_velocity),
   max_speed(o.max_speed),
   max_angular_velocity(o.max_angular_velocity),
-  turn_diameter_squared(o.turn_diameter_squared)
+  turn_diameter_squared(o.turn_diameter_squared),
+  updated_mass_stats(o.updated_mass_stats),
+  immobile(o.immobile),
+  inactive(o.inactive),
+  visual_scale(o.visual_scale)
 {}
 
 Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
@@ -276,15 +291,23 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   reverse_thrust(get<real_t>(dict,"reverse_thrust",0)),
   turn_thrust(get<real_t>(dict,"turn_thrust",0)),
   threat(get<real_t>(dict,"threat")),
+  visual_height(get<real_t>(dict,"visual_height",5.0f)),
   max_shields(get<real_t>(dict,"max_shields",0)),
   max_armor(get<real_t>(dict,"max_armor",0)),
   max_structure(get<real_t>(dict,"max_structure")),
+  max_fuel(get<real_t>(dict,"max_fuel")),
   heal_shields(get<real_t>(dict,"heal_shields",0)),
   heal_armor(get<real_t>(dict,"heal_armor",0)),
   heal_structure(get<real_t>(dict,"heal_structure",0)),
+  heal_fuel(get<real_t>(dict,"heal_fuel",0)),
+  fuel_efficiency(get<real_t>(dict,"fuel_efficiency",1.0)),
   aabb(get<AABB>(dict,"aabb")),
   turn_drag(get<real_t>(dict,"turn_drag")),
   radius((aabb.size.x+aabb.size.z)/2.0),
+  empty_mass(get<real_t>(dict,"empty_mass",0)),
+  cargo_mass(get<real_t>(dict,"cargo_mass",0)),
+  fuel_density(get<real_t>(dict,"fuel_density",0)),
+  armor_density(get<real_t>(dict,"armor_density",0)),
   team(clamp(get<int>(dict,"team"),0,1)),
   enemy_team(1-team),
   collision_layer(1<<team),
@@ -297,11 +320,13 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   explosion_tick(0),
   
   fate(FATED_TO_FLY),
+  entry_method(static_cast<entry_t>(get<int>(dict,"entry_method",static_cast<int>(ENTRY_COMPLETE)))),
   //  turn_diameter(max_speed()*2.0/max_angular_velocity),
 
   shields(get<real_t>(dict,"shields",max_shields)),
   armor(get<real_t>(dict,"armor",max_armor)),
   structure(get<real_t>(dict,"structure",max_structure)),
+  fuel(get<real_t>(dict,"fuel",max_fuel)),
   
   // These eight will be replaced by the PhysicsDirectBodyState every
   // timestep.  The GDScript code must make sure mass and drag are set
@@ -313,7 +338,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   angular_velocity(get<Vector3>(dict,"angular_velocity",Vector3(0,0,0))),
   heading(get_heading(*this)),
   drag(get<real_t>(dict,"drag")),
-  inverse_mass(1.0/get<real_t>(dict,"mass",1.0f)),
+  inverse_mass(1.0/(empty_mass+cargo_mass+fuel*fuel_density/1000.0+armor*armor_density/1000.0)),
   inverse_inertia(get<Vector3>(dict,"inverse_inertia",Vector3(0,1,0))),
   transform(get<Transform>(dict,"transform")),
   
@@ -321,12 +346,13 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   range(make_ranges(weapons)),
   tick(0),
   tick_at_last_shot(TICKS_LONG_AGO),
+  tick_at_rift_start(TICKS_LONG_AGO),
   target(-1),
   threat_vector(),
   nearby_objects(), nearby_enemies(),
   nearby_enemies_tick(TICKS_LONG_AGO),
   nearby_enemies_range(0),
-  random_state(bob_full_avalanche(id)),
+  rand(),
   destination(randomize_destination()),
 
   aim_multiplier(1.0),
@@ -334,13 +360,109 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   confusion(Vector3()),
   confusion_velocity(Vector3()),
 
-  max_speed(max(thrust,reverse_thrust)/drag*inverse_mass),
-  max_angular_velocity(turn_thrust/turn_drag*inverse_mass*PI/30.0f), // convert from RPM
-  turn_diameter_squared(make_turn_diameter_squared())
-{}
+  max_speed(0),
+  max_angular_velocity(0),
+  turn_diameter_squared(0),
+  updated_mass_stats(false),
+  immobile(false),
+  inactive(false),
+  visual_scale(1.0)
+{
+  if(not (drag<999999 and drag>1e-6))
+    Godot::print(String("New ship has an invalid drag ")+String(Variant(drag)));
+  if(not (inverse_mass<999999))
+    Godot::print(String("New ship has an invalid inverse mass ")+String(Variant(inverse_mass)));
+  if(not (turn_drag<999999 and turn_drag>1e-6))
+    Godot::print(String("New ship has an invalid turn drag ")+String(Variant(turn_drag)));
+  if(not (thrust<999999 and thrust>=0))
+    Godot::print(String("New ship has an invalid thrust ")+String(Variant(thrust)));
+  if(not (reverse_thrust<999999 and reverse_thrust>=0))
+    Godot::print(String("New ship has an invalid reverse_thrust ")+String(Variant(reverse_thrust)));
+  max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
+  if(not (max_speed<999999 and max_speed>=0))
+    Godot::print(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)));
+  max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
+  turn_diameter_squared = make_turn_diameter_squared();
+}
 
 Ship::~Ship()
 {}
+
+bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
+  PhysicsDirectBodyState *state = physics_server->body_get_direct_state(rid);
+  if(not state)
+    return false;
+  transform=state->get_transform();
+  rotation=transform.basis.get_euler_xyz();
+  heading=get_heading(*this);
+  position=Vector3(transform.origin.x,0,transform.origin.z);
+  linear_velocity=state->get_linear_velocity();
+  angular_velocity=state->get_angular_velocity();
+  
+  Vector3 new_inverse_inertia = state->get_inverse_inertia();
+  if(not (new_inverse_inertia.length()>1e-9))
+    Godot::print_warning(String("Physics engine sent invalid inverse inertia ")+String(Variant(new_inverse_inertia)),__FUNCTION__,__FILE__,__LINE__);
+  else
+    inverse_inertia=new_inverse_inertia;
+  
+  real_t new_inverse_mass = state->get_inverse_mass();
+  if(not (new_inverse_mass>1e-9)) {
+    Godot::print_warning(String("Physics engine sent invalid inverse mass ")+String(Variant(new_inverse_mass))+". Will replace with prior value "+String(Variant(inverse_mass))+".",__FUNCTION__,__FILE__,__LINE__);
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,1.0/inverse_mass);
+  } else
+    inverse_mass=new_inverse_mass;
+  
+  real_t new_drag = state->get_total_linear_damp();
+  if(not (new_drag>1e-9 and new_drag<999999)) {
+    Godot::print_warning(String("Physics engine sent invalid linear damp ")+String(Variant(new_drag))+". Will replace with prior value "+String(Variant(drag))+".",__FUNCTION__,__FILE__,__LINE__);
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_LINEAR_DAMP,drag);
+  } else
+    drag=new_drag;
+  
+  update_stats(physics_server,false);
+  return true;
+}
+
+void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
+  real_t new_mass = empty_mass+cargo_mass;
+  if(max_fuel>=.001)
+    fuel*clamp(fuel_density/max_fuel,0.0f,1.0f);
+  if(max_armor>=.001)
+    armor*clamp(armor_density/max_armor,0.0f,1.0f);
+  real_t old_mass = 1.0/inverse_mass;
+  inverse_mass = 1.0f/new_mass;
+  drag_force = -linear_velocity*drag/inverse_mass;
+  max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
+  max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f;
+  turn_diameter_squared = make_turn_diameter_squared();
+
+  if(fabsf(new_mass-old_mass)>0.01f)
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,1.0/inverse_mass);
+  updated_mass_stats = false;
+}
+
+void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {
+  shields = min(shields+heal_shields*delta,max_shields);
+  armor = min(armor+heal_armor*delta,max_armor);
+  structure = min(structure+heal_structure*delta,max_structure);
+
+  if(hyperspace and fuel>0.0f) {
+    real_t new_fuel = clamp(fuel-delta/inverse_mass*linear_velocity.length()/
+                            (hyperspace_display_ratio*fuel_efficiency*1000.0f),
+                            0.0f,max_fuel);
+    if(fabsf(fuel-new_fuel)>1e-6)
+      updated_mass_stats = true;
+    fuel = new_fuel;
+  } else if(fuel<max_fuel) {
+    real_t recharge = system_fuel_recharge;
+    real_t effective_distance = 10.0f+position.length()/hyperspace_display_ratio;
+    recharge += center_fuel_recharge*10.0f/effective_distance;
+    real_t new_fuel = clamp(fuel+delta*heal_fuel*recharge/1000.0f,0.0f,max_fuel);
+    if(fabsf(fuel-new_fuel)>1e-6)
+      updated_mass_stats = true;
+    fuel = new_fuel;
+  }
+}
 
 void Ship::update_confusion() {
   bool is_firing = tick_at_last_shot+1 <= tick;
@@ -348,7 +470,7 @@ void Ship::update_confusion() {
   if(confusion.x!=0 or confusion.y!=0)
     confusion_velocity -= 0.001*confusion.normalized();
 
-  real_t random_angle = 2*PI*int2float(random_state=bob_full_avalanche(random_state));
+  real_t random_angle = rand.rand_angle();
   Vector3 random_unit = Vector3(cos(random_angle),0,-sin(random_angle));
   
   confusion_velocity = 0.99*(confusion_velocity + 0.01*random_unit);
@@ -370,7 +492,8 @@ real_t Ship::take_damage(real_t damage) {
       taken=min(armor,damage);
       damage-=taken;
       armor-=taken;
-
+      updated_mass_stats=true;
+      
       if(damage>0) {
         taken=min(structure,damage);
         damage-=taken;
@@ -388,9 +511,13 @@ real_t Ship::take_damage(real_t damage) {
 }
 
 Vector3 Ship::randomize_destination() {
-  float x=int2float(random_state=bob_full_avalanche(random_state));
-  float z=int2float(random_state=bob_full_avalanche(random_state));
+  float x=rand.randf();
+  float z=rand.randf();
   return destination=Vector3(100*(x-0.5),0,100*(z-0.5));
+}
+
+void Ship::set_scale(real_t new_scale) {
+  visual_scale = new_scale;
 }
 
 DVector3 Ship::stopping_point(DVector3 tgt_vel, bool &should_reverse) const {
@@ -428,31 +555,19 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["type"] = "ship";
   s["fate"] = int(fate);
   s["alive"] = fate!=FATED_TO_DIE;
-  // s["rotation"]=rotation;
-  // s["position"]=position;
-  // s["linear_velocity"]=linear_velocity;
-  // s["mass"]=1.0/inverse_mass;
-  // s["inverse_inertia"]=inverse_inertia;
-  // s["transform"]=transform;
+  s["mass"]=1.0/inverse_mass;
   s["name"]=name;
   s["rid"]=rid;
-  // s["drag"]=drag;
-  // s["thrust"]=thrust;
-  // s["reverse_thrust"]=reverse_thrust;
-  // s["turn_rate"]=max_angular_velocity;
-  // s["threat"]=threat;
   s["shields"]=shields;
+  s["fuel"]=fuel;
   s["armor"]=armor;
   s["structure"]=structure;
   s["max_shields"]=max_shields;
   s["max_armor"]=max_armor;
   s["max_structure"]=max_structure;
-  // s["heal_shields"]=heal_shields;
-  // s["heal_armor"]=heal_armor;
-  // s["heal_structure"]=heal_structure;
-  // s["aabb"]=aabb;
+  s["max_fuel"]=max_fuel;
   s["radius"] = radius;
-  // s["collision_layer"]=collision_layer;
+  s["visual_scale"] = visual_scale;
   Dictionary r;
   {
     r["guns"]=range.guns;
@@ -462,11 +577,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
     r["all"]=range.all;
   }
   s["ranges"]=r;
-  // s["tick"]=tick;
-  // s["tick_at_last_shot"]=tick_at_last_shot;
   s["destination"]=destination;
-  // s["threat_vector"]=threat_vector;
-  // s["confusion"]=confusion;
 
   ships_const_iter target_p = ships.find(target);
   if(target_p!=ships.end() and target_p->second.structure>0) {
@@ -486,10 +597,6 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
     }
   }
 
-  // Array weapon_status;
-  // for(auto &weapon : weapons)
-  //   weapon_status.append(weapon.make_status_dict());
-  // s["weapons"]=weapon_status;
   return s;
 }
 

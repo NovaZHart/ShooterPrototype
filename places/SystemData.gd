@@ -31,6 +31,10 @@ var position: Vector3 setget set_position
 var plasma_seed: int
 var plasma_color: Color
 var starfield_seed: int
+var show_on_map: bool
+var system_fuel_recharge: float
+var center_fuel_recharge: float
+var locality_adjustments: Dictionary = {}
 
 var rng
 
@@ -41,6 +45,9 @@ func is_a_system() -> bool: return true
 func is_a_planet() -> bool: return false
 
 func is_SystemData(): pass # never called; must only exist
+
+func get_system(): # -> SystemData or null
+	return self
 
 func full_display_name():
 	return display_name
@@ -56,6 +63,10 @@ func encode() -> Dictionary:
 		'plasma_seed':plasma_seed,
 		'starfield_seed':starfield_seed,
 		'plasma_color':plasma_color,
+		'show_on_map':show_on_map,
+		'system_fuel_recharge':system_fuel_recharge,
+		'center_fuel_recharge':center_fuel_recharge,
+		'locality_adjustments':locality_adjustments.duplicate(true),
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
@@ -74,6 +85,10 @@ func decode(content: Dictionary):
 	plasma_seed = getdict(content,'plasma_seed',320918)
 	starfield_seed = getdict(content,'starfield_seed',987686)
 	plasma_color = getdict(content,'plasma_color',Color(0.07,0.07,.18,1.0))
+	show_on_map = getdict(content,'show_on_map',true)
+	system_fuel_recharge = getdict(content,'system_fuel_recharge',0.5)
+	center_fuel_recharge = getdict(content,'center_fuel_recharge',1.5)
+	locality_adjustments = getdict(content,'locality_adjustments',{})
 	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):
@@ -98,11 +113,11 @@ func get_display_name() -> String:
 
 func num_planets():
 	return get_child_count()
-#	var n=0
-#	for child in get_children():
-#		if child.is_a_planet():
-#			n += 1+child.get_child_count()
-#	return n
+
+func price_products(result: Commodities.Products):
+	result.randomize_costs(hash(get_path()),game_state.epoch_time/365.25)
+	if locality_adjustments:
+		result.apply_multiplier_list(locality_adjustments)
 
 func astral_gate_path() -> NodePath:
 	for child in get_children():
@@ -114,14 +129,14 @@ func astral_gate_path() -> NodePath:
 
 func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 		team: int,angle: float,add_radius: float,safe_zone: float,
-		random_x: float, random_z: float, center: Vector3, is_player: bool):
+		random_x: float, random_z: float, center: Vector3, is_player: bool,
+		entry_method: int):
 	var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 	var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
-	
 	# IMPORTANT: Return value must match what spawn_ship, init_system, and
 	#   _physics_process want in System.gd:
-	return ['spawn_ship',ship_design, Vector3(0,-1,0), Vector3(x,5,z),
-		team, is_player]
+	return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,game_state.SHIP_HEIGHT,z),
+		team, is_player, entry_method]
 
 func fleet_size(var fleet: Array) -> int:
 	var result: int = 0
@@ -130,15 +145,22 @@ func fleet_size(var fleet: Array) -> int:
 		result += size
 	return result
 
-func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array,team: int) -> Array:
+func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array,
+		team: int, default_entry_method: int) -> Array:
 	var planets: Array = system.get_node("Planets").get_children()
 	var center: Vector3 = Vector3()
-	if planets:
+	var add_radius = 100*rng.randf()*rng.randf()
+	var safe_zone = 25
+	var entry_method = default_entry_method
+	if combat_engine.ENTRY_FROM_ORBIT==entry_method and planets:
+		var planet: Spatial = planets[randi()%len(planets)]
+		center = planet.translation
+		add_radius *= planet.get_radius()/100
+		safe_zone = 0
+	elif combat_engine.ENTRY_FROM_RIFT!=entry_method and planets:
 		var planet: Spatial = planets[randi()%len(planets)]
 		center = planet.translation
 	var result: Array = Array()
-	var add_radius = 100*sqrt(rng.randf())
-	var safe_zone = 25
 	var angle = rng.randf()*2*PI
 	for design_name in design_names:
 		var num_ships = int(fleet_node.spawn_count_for(design_name))
@@ -148,20 +170,36 @@ func spawn_fleet(system, fleet_node: simple_tree.SimpleNode, design_names: Array
 				result.push_back(spawn_ship(
 					system,design,team,
 					angle,add_radius,randf()*10-5,randf()*10-5,
-					safe_zone,center,false))
+					safe_zone,center,false,entry_method))
 			else:
 				push_warning('Fleet '+str(fleet_node.get_path())+
 					' wants to spawn missing design '+str(design.get_path()))
 	return result
 
-func spawn_player(system: Spatial,t: float):
-	var add_radius = 50*sqrt(rng.randf())
+func spawn_player(system,_t: float):
+	var planet_data = game_state.systems.get_node_or_null(Player.player_location);
+	var entry_method: int = combat_engine.ENTRY_FROM_RIFT
+	var center: Vector3 = Vector3(0,0,0)
 	var angle = rng.randf()*2*PI
-	var center = Player.get_player_translation(t)
+	var add_radius = rng.randf()
+	add_radius *= add_radius*100
+	var safe_zone = 25
+	if planet_data and planet_data.has_method("is_SpaceObjectData"):
+		var planet_unique_name: String = planet_data.make_unique_name()
+		var planet = system.get_node("Planets").get_node_or_null(planet_unique_name)
+		if planet and planet is Spatial:
+			center = planet.translation
+			entry_method = combat_engine.ENTRY_FROM_ORBIT
+			add_radius *= planet.get_radius()/100
+			safe_zone = 0
+	if entry_method == combat_engine.ENTRY_FROM_RIFT:
+		var planets: Array = system.get_node("Planets").get_children()
+		var planet: Spatial = planets[randi()%len(planets)]
+		center = planet.translation
 	return spawn_ship(system,Player.player_ship_design,
-		0,angle,add_radius,0,0,10,center,true)
+		0,angle,add_radius,safe_zone,0,0,center,true,entry_method)
 
-func process_space(system,delta) -> Array:
+func process_space(system,delta,immediate_entry: bool = false) -> Array:
 	var result: Array = Array()
 	var stats: Array = system.ship_stats_by_team().duplicate(true)
 	var total_ships: int = 0
@@ -184,16 +222,20 @@ func process_space(system,delta) -> Array:
 			continue
 		if stats[team]['threat'] > stats[enemy]['threat']*1.5 and stats[team]['count']>1:
 			continue
-		result += spawn_fleet(system,fleet_node,designs,team)
+		var entry_method: int = combat_engine.ENTRY_COMPLETE
+		if not immediate_entry:
+			entry_method = combat_engine.ENTRY_FROM_RIFT if team else combat_engine.ENTRY_FROM_ORBIT
+		result += spawn_fleet(system,fleet_node,designs,team,entry_method)
 		stats[team]['count'] += size
 	return result
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true) -> Array:
 	system.update_space_background(self)
+	system.raise_sun = not show_on_map
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail,ships)
 	var result = [spawn_player(system,planet_time)]
 	if ships:
-		result += process_space(system,ship_time)
+		result += process_space(system,ship_time,true)
 	return result

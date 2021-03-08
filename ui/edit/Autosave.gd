@@ -100,6 +100,7 @@ func save_load(save: bool) -> bool:
 	dialog = FileDialog.new()
 	dialog.connect('file_selected',self,'_on_FileDialog_file_selected',[dialog])
 	dialog.popup_exclusive = true
+	dialog.filters=[ '*.json ; JSON Files' ]
 	dialog.mode = FileDialog.MODE_SAVE_FILE if save else FileDialog.MODE_OPEN_FILE
 	get_viewport().add_child(dialog)
 	dialog.rect_global_position=get_viewport().size*0.1

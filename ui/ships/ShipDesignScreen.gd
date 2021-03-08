@@ -1,5 +1,6 @@
 extends game_state.ShipEditorStub
 
+const ButtonPanel = preload('res://ui/ButtonPanel.tscn')
 var drag_scene
 var design_display_name: String = 'Uninitialized'
 var design_id: String = 'uninitialized'
@@ -107,6 +108,26 @@ func exit_to_orbit():
 	var node = game_state.ship_designs.get_node_or_null('player_ship_design')
 	if node:
 		game_state.ship_designs.remove_child(node)
+#		design.cargo = node.cargo
+	if design.cargo:
+		var max_cargo = design.get_stats()['max_cargo']*1000
+		if max_cargo and design.cargo.get_mass()>max_cargo:
+			var panel = ButtonPanel.instance()
+			panel.set_label_text("Your ship cannot fit all of it's cargo.")
+			panel.add_button('Buy/Sell in Market','res://ui/commodities/TradingScreen.tscn')
+			panel.set_cancel_text('Stay in Shipyard')
+			var parent = get_tree().get_root()
+			parent.add_child(panel)
+			panel.popup()
+			while panel.visible:
+				yield(get_tree(),'idle_frame')
+			var result = panel.result
+			parent.remove_child(panel)
+			panel.queue_free()
+			if result:
+				game_state.call_deferred('change_scene',result)
+			else:
+				return # do not change scene
 	game_state.ship_designs.add_child(design)
 	Player.player_ship_design=design
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
@@ -334,10 +355,12 @@ func _on_Designs_remove(design_path):
 	universe_edits.state.push(ship_edits.RemoveDesign.new(design_name))
 
 func _on_Designs_open(design_path):
+	var old_design = make_edited_ship_design()
 	var design = game_state.ship_designs.get_node_or_null(design_path)
+	design.cargo = old_design.cargo.copy()
 	if design and design is simple_tree.SimpleNode:
 		universe_edits.state.push(ship_edits.SetEditedShipDesign.new(
-			make_edited_ship_design(),design))
+			old_design,design))
 
 func _on_Designs_select_nothing():
 	show_edited_design_info()
