@@ -1,10 +1,11 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=2]
 [ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=3]
 [ext_resource path="res://ui/edit/SpaceObjectSettings.gd" type="Script" id=4]
 [ext_resource path="res://ui/skins/red-x-24.png" type="Texture" id=5]
+[ext_resource path="res://ui/DraggingTree.tscn" type="PackedScene" id=6]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 3 )
@@ -439,12 +440,7 @@ margin_bottom = 20.0
 text = "New"
 flat = false
 
-[node name="Tree" type="Tree" parent="Trading"]
-margin_top = 24.0
-margin_right = 1024.0
-margin_bottom = 600.0
-size_flags_horizontal = 3
-size_flags_vertical = 3
+[node name="Tree" parent="Trading" instance=ExtResource( 6 )]
 hide_root = true
 
 [node name="Population" type="GridContainer" parent="."]
@@ -524,6 +520,7 @@ hide_root = true
 [connection signal="focus_exited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_focus_exited"]
 [connection signal="item_edited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_item_edited"]
 [connection signal="button_pressed" from="Trading/Tree" to="." method="_on_Trading_Tree_button_pressed"]
+[connection signal="moved" from="Trading/Tree" to="." method="_on_Trading_Tree_moved"]
 [connection signal="button_pressed" from="Population/Tree" to="." method="_on_Population_Tree_button_pressed"]
 [connection signal="focus_exited" from="Population/Tree" to="." method="_on_Population_Keys_focus_exited"]
 [connection signal="item_edited" from="Population/Tree" to="." method="_on_Population_Keys_item_edited"]

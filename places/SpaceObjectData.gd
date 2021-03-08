@@ -42,12 +42,12 @@ var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
 var base_name: String = ''
-var trading: Dictionary = {}
+var trading: Array = []
 var population: Dictionary = {}
 var industry: float = 0
 var locality_adjustments: Dictionary = {}
 
-const default_planet_trading: Dictionary = { 'suvar':1, 'human':1 }
+const default_planet_trading: Array = [ 'suvar', 'human' ]
 const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
 const default_planet_industry: float = 100000.0
 
@@ -130,7 +130,10 @@ func _init(node_name,me: Dictionary ={}):
 	services = me.get('services',[])
 	locality_adjustments = me.get('locality_adjustments',{})
 	if object_type==PLANET:
-		trading = get_or_dup(me,'trading',default_planet_trading)
+		var trad = get_or_dup(me,'trading',default_planet_trading)
+		if trad is Dictionary:
+			trad = trad.keys()
+		trading = trad
 		population = get_or_dup(me,'population',default_planet_population)
 		industry = me.get('industry',default_planet_industry)
 		if 'locality_adjustments' in me:

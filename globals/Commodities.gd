@@ -156,7 +156,7 @@ class Products extends Reference:
 				fine_multiplier==null:
 			return
 		if value_multiplier!=null:
-			if abs(value_multiplier)<1e-5:
+			if abs(value_multiplier)<1e-12:
 				old[VALUE_INDEX] = 0
 			elif value_multiplier<0:
 				old[VALUE_INDEX] = min(old[VALUE_INDEX],
@@ -165,10 +165,8 @@ class Products extends Reference:
 				old[VALUE_INDEX] = max(old[VALUE_INDEX],
 					new[VALUE_INDEX]*value_multiplier)
 		if fine_multiplier!=null:
-			if abs(fine_multiplier)<1e-5:
+			if abs(fine_multiplier)<1e-12:
 				old[FINE_INDEX] = 0
-			elif abs(old[FINE_INDEX])<1e-5:
-				pass # never add a fine to an object that has none
 			elif fine_multiplier<0:
 				old[FINE_INDEX] = min(old[FINE_INDEX],
 					-new[FINE_INDEX]*fine_multiplier)
@@ -176,7 +174,7 @@ class Products extends Reference:
 				old[FINE_INDEX] = max(old[FINE_INDEX],
 					new[FINE_INDEX]*fine_multiplier)
 		if quantity_multiplier!=null:
-			if abs(quantity_multiplier)<1e-5:
+			if abs(quantity_multiplier)<1e-12:
 				old[QUANTITY_INDEX] = 0
 			elif quantity_multiplier<0:
 				old[QUANTITY_INDEX] = min(old[QUANTITY_INDEX],
@@ -210,9 +208,13 @@ class OneProduct extends Products:
 	
 	func ids_for_tags(include, exclude=null) -> PoolIntArray:
 		if include:
+			var found = false
 			for tag in include:
-				if not by_tag.has(tag):
-					return PoolIntArray()
+				if by_tag.has(tag):
+					found = true
+					break
+			if not found:
+				return PoolIntArray()
 		if exclude:
 			for tag in exclude:
 				if by_tag.has(tag):
@@ -238,17 +240,22 @@ class OneProduct extends Products:
 			_skip_checks: bool = true, keys_to_add = null):
 		# Checks are never skipped because we must ensure that only the
 		# selected product is processed
-		if keys_to_add!=null and not keys_to_add:
-			return
 		if not all_products.all:
+			return
+		if keys_to_add==null:
+			if all_products is Products:
+				keys_to_add = all_products.all.keys()
+			elif all_products is Dictionary:
+				keys_to_add = all_products.keys()
+			elif all_products is Array:
+				keys_to_add = range(len(all_products))
+			else:
+				keys_to_add = all_products.all
+		if not keys_to_add:
 			return
 		if not all:
 			# No product yet.
-			var key
-			if keys_to_add==null:
-				key = all_products.last_id
-			else:
-				key = keys_to_add[0]
+			var key = keys_to_add[0]
 			set_product(all_products.all[key])
 			_apply_multipliers(all[key],all_products.all[key],
 				quantity_multiplier, value_multiplier, fine_multiplier)
@@ -258,7 +265,7 @@ class OneProduct extends Products:
 		elif keys_to_add!=null:
 			var has: bool = false
 			for key in keys_to_add:
-				if all_products.all.has(key) and all_products.all[key][0]==product_name:
+				if all_products.all.has(key) and all_products.all[key][NAME_INDEX]==product_name:
 					_apply_multipliers(all[key],all_products.all[key],
 						quantity_multiplier, value_multiplier, fine_multiplier)
 					has=true
@@ -322,7 +329,7 @@ class ManyProducts extends Products:
 				keys_to_add = all_products.all.keys()
 			elif all_products is Dictionary:
 				keys_to_add = all_products.keys()
-			elif all_products is Array or all_products is PoolIntArray:
+			elif all_products is Array:
 				keys_to_add = range(len(all_products))
 			else:
 				keys_to_add = all_products.all
@@ -478,6 +485,13 @@ class ManyProducts extends Products:
 					result.by_tag[tag].append(tag)
 		return result
 	
+	func remove_named_products(names):
+		var remove = names.by_name.keys() if names is Products else names
+		for product_name in remove:
+			var id = by_name.get(product_name,-1)
+			if id>0:
+				var _ignore = all.erase(id)
+	
 	# Given the output of encode(), replace all data in this Product.
 	func decode(from: Dictionary):
 		clear()
@@ -510,13 +524,18 @@ class ProducerConsumer extends Reference:
 
 class TerranGovernment extends ProducerConsumer:
 	func population(products: Products, result: Products, _population: Dictionary):
-		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,null,10)
-		result.add_products_from(products,['taboo/house_cat'],[],0,null,0)
-		result.add_products_from(products,['deadly_drug/terran'],[],0,null,10)
+		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,0,1)
+		result.add_products_from(products,['taboo/house_cat'],[],0,0,1)
+		result.add_products_from(products,['deadly_drug/terran'],[],0,0,1)
 
 class ForbidIntoxicants extends ProducerConsumer:
 	func population(products: Products, result: Products, _population: Dictionary):
-		result.add_products_from(products,['intoxicant/terran'],[],0,0)
+		result.add_products_from(products,['intoxicant/terran'],[],0,0,1)
+
+class AllowCats extends ProducerConsumer:
+	func population(products: Products, result: Products, population: Dictionary):
+		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
+		result.add_products_from(products,['taboo/house_cat'],[],m)
 
 class SuvarConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
@@ -525,11 +544,9 @@ class SuvarConsumers extends ProducerConsumer:
 		result.add_products_from(products,['religous/terran/buddhism'],[],m*2)
 		result.add_products_from(products,
 			['religious/terran','consumables/terran','durable/terran','pets/terran',
-			'manufactured/transport'],[],m)
-		result.add_products_from(products,['luxury/terran'],[],m,0.8)
-		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
-		result.add_products_from(products,['intoxicant/terran/suvar'],[],m,null,1.7)
-		result.add_products_from(products,['taboo/house_cat'],[],-0.01*m)
+			'manufactured/transport'],[],0)
+		result.add_products_from(products,['luxury/terran'],[],0,0.8)
+		result.add_products_from(products,['intoxicant/terran/suvar'],[],0)
 
 class HumanConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
@@ -537,18 +554,15 @@ class HumanConsumers extends ProducerConsumer:
 		if not m: return
 		result.add_products_from(products,
 			['religious/terran','consumables/terran','luxury/terran','durable/terran',
-			'manufactured/transport'],[],m)
-		result.add_products_from(products,['intoxicant/terran'],[],m,null,1.4)
-		result.add_products_from(products,['intoxicant/terran/human'],[],m,null,1.4)
-		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,null,8)
+			'manufactured/transport'],[],0)
+		result.add_products_from(products,['intoxicant/terran/human'],[],0,1.2)
 
 class SpiderConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('spider',0),0.333333)
 		if not m: return
 		result.add_products_from(products,
-			['religious/terran', 'consumables/food/terran/spider' ],[],m)
-		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,null,8)
+			['religious/terran', 'consumables/food/terran/spider' ],[],0)
 
 class ManufacturingProcess extends ProducerConsumer:
 	var consumes_tags: Array
@@ -561,7 +575,7 @@ class ManufacturingProcess extends ProducerConsumer:
 	func industry(products: Products, result: Products, industry: float):
 		var m = pow(industry,0.333333)
 		if not m: return
-		result.add_products_from(products,consumes_tags,exclude_tags,0.5*m)
+		result.add_products_from(products,consumes_tags,exclude_tags,0)
 		result.add_products_from(products,produces_tags,exclude_tags,3*m)
 
 class TerranEaterTradeCenter extends ProducerConsumer:
@@ -573,19 +587,20 @@ class TerranIllegalTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
 		result.add_products_from(products,
-			['intoxicant/terran','live/sentient/terran','live/thinking/house_cat'],
+			['intoxicant/terran','slaves/terran','live/thinking/house_cat'],
 			['slaves/rare','dead/sentient'],m)
 
 class TerranSlaveTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
-		result.add_products_from(products,['live/sentient/terran'],['dead/sentient'],m)
+		result.add_products_from(products,['slaves/terran'],['dead/sentient'],m)
 
 class TerranTradeCenter extends ProducerConsumer:
-	func population(products: Products, result: Products, population: Dictionary):
-		var m = pow(population.get('suvar',0)+population.get('human',0),0.333333)
+	func industry(products: Products, result: Products, industry: float):
+		var m = pow(industry,0.333333)
+		if not m: return
 		result.add_products_from(products,[
-			'religious/terran','consumables/terran','luxury/terran','durable/terran',
+			'religious/terran','consumables/terran','luxury/terran','durable/terran','pets/terran',
 			'intoxicant/terran','manufactured/terran','raw_materials/metal','pets/terran',
 			'raw_materials/gems'],['live/sentient','dead/sentient','danger/highly_radioactive','taboo/house_cat'],m)
 
@@ -845,15 +860,16 @@ func data_tables() -> ManyProducts:
 func _init():
 	commodities=data_tables()
 	trading={
-		'terran_trade': TerranTradeCenter.new(),
-		'terran_illegal': TerranIllegalTradeCenter.new(),
-		'terran_slaver': TerranSlaveTradeCenter.new(),
-		'terran_eaters': TerranEaterTradeCenter.new(),
 		'terran_government': TerranGovernment.new(),
 		'forbid_intoxicants': ForbidIntoxicants.new(),
+		'allow_cats': AllowCats.new(),
 		'suvar': SuvarConsumers.new(),
-		'spiders': SpiderConsumers.new(),
 		'human': HumanConsumers.new(),
+		'spiders': SpiderConsumers.new(),
+		'terran_eaters': TerranEaterTradeCenter.new(),
+		'terran_illegal': TerranIllegalTradeCenter.new(),
+		'terran_slaver': TerranSlaveTradeCenter.new(),
+		'terran_trade': TerranTradeCenter.new(),
 		'luxury_manufacturing': ManufacturingProcess.new(
 			['raw_materials/gems','raw_materials/jewelry_materials','manufactured/luxury/terran'],
 			['luxury/terran'],
@@ -861,6 +877,10 @@ func _init():
 		'terran_mining': ManufacturingProcess.new(
 			['manufactured/mining/terran'],
 			['raw_materials/metal','raw_materials/gems'],
+			['live/sentient','dead/sentient']),
+		'terran_pets': ManufacturingProcess.new(
+			['consumables/food/terran'],
+			['pets/terran','consumables/pet_care/terran','durable/pet_care/terran','manufactured/pet_care/terran'],
 			['live/sentient','dead/sentient']),
 		'terran_weapons': ManufacturingProcess.new(
 			['raw_materials/metal','raw_materials/gems','manufactured/industrial/terran'],

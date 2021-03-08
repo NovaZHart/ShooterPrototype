@@ -30,53 +30,13 @@ signal all_product_data_changed
 func get_product_names():
 	return here.by_name.keys()
 
-#func test_commodities():
-#	print('TEST')
-#	var matches = Commodities.commodities.ids_for_tags(['intoxicant/terran'])
-#	print('matches: '+str(matches))
-#	for id in matches:
-#		print('  id '+str(id)+' = '+str(Commodities.commodities.all[id]))
-#	print('subset:')
-#	var subset = Commodities.commodities.make_subset(matches)
-#	print(subset.dump())
-#	var decoded = Commodities.ManyProducts.new()
-#	decoded.decode(subset.all)
-#	print('decoded copy:')
-#	print(decoded.dump())
-#	subset.remove_product_id(0)
-#	print('subset after removing 0:')
-#	print(subset.dump())
-#
-#	var data:Array = decoded.all[0]
-#	subset.add_product(data[0],data[Commodities.Products.VALUE_INDEX],
-#		data[Commodities.Products.FINE_INDEX],
-#		data[Commodities.Products.QUANTITY_INDEX],
-#		data[Commodities.Products.MASS_INDEX],
-#		data.slice(Commodities.Products.FIRST_TAG_INDEX,len(data)))
-#	print('subset after adding 0 back in from decoded copy:')
-#	print(subset.dump())
-#
-#	var modified = Commodities.ManyProducts.new()
-#	modified.add_products(decoded,30,20,10,false)
-#	print('New set with 30x quantity, 20x value, 10x fine:')
-#	print(modified.dump())
-#	modified.add_products(decoded,30,20,10,false)
-#	modified.add_products(decoded,30,20,10,false)
-#	print('Add that two more times:')
-#	print(modified.dump())
-#	modified.add_products(Commodities.commodities,5,null,null,true,
-#		Commodities.commodities.ids_for_tags(['manufactured/mining','raw_materials/metal']))
-#	print('Add items from some more tags:')
-#	print(modified.dump())
-#	print('END TEST')
-
 func _ready():
 	set_column_titles_visible(true)
 	var font = get_font('normal_font')
 	var number_size = font.get_char_size(ord('0'),ord('0'))
 	var min_width = number_size.x*7.5
 	utils.Tree_set_title_and_width(self,NAME_COLUMN,'Product',font,min_width)
-	utils.Tree_set_title_and_width(self,PROFIT_COLUMN,'Perturbation',font,min_width)
+	utils.Tree_set_title_and_width(self,PROFIT_COLUMN,'Profit',font,min_width)
 	utils.Tree_set_title_and_width(self,PRICE_COLUMN,'Price',font,min_width)
 	utils.Tree_set_title_and_width(self,MINE_COLUMN,'Cargo',font,min_width)
 	utils.Tree_set_title_and_width(self,BUTTON_COLUMN,'Buy/Sell',
@@ -92,7 +52,23 @@ func clear_list():
 	if here:
 		here.clear()
 
-func populate_list(products,ship_design):
+func add_missing_products(planet_info):
+	var search = []
+	var norm = Commodities.commodities
+	for product_name in mine.by_name:
+		if not here.by_name.has(product_name):
+			var product = norm.all.get(norm.by_name.get(product_name,-1),null)
+			if product:
+				search.append(product.duplicate())
+	var missing = Commodities.ManyProducts.new()
+	missing.add_products(search,null,null,null)
+	var found = Commodities.ManyProducts.new()
+	planet_info.list_products(missing,found)
+	here.add_products(found.all,0,null,null)
+	missing.remove_named_products(found)
+	here.add_products(missing,0,0,0)
+
+func populate_list(products,ship_design,planet_info):
 	clear_list()
 	var ship = ship_design.assemble_ship()
 	max_cargo = int(round(ship.combined_stats['max_cargo']))*1000
@@ -103,10 +79,10 @@ func populate_list(products,ship_design):
 		now_cargo = int(round(mine.get_mass()))
 	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
 	here = products
-	if mine.all:
-		here.add_products(mine.all,null,null,null,true,null,   true   )
 	if here.all:
 		mine.add_products(here.all,null,null,null,true,null,   true   )
+	if mine.all and planet_info:
+		add_missing_products(planet_info)
 	
 	# Populate the tree:
 	var root: TreeItem = create_item()
@@ -126,7 +102,7 @@ func populate_list(products,ship_design):
 			norm_price = max(0.0,entry_norm[Commodities.Products.VALUE_INDEX])
 		else:
 			norm_price = price
-		var diff: float = price-norm_price
+		var diff: float = norm_price-price
 		var mass: float = max(0.0,entry_here[Commodities.Products.MASS_INDEX])
 # warning-ignore:narrowing_conversion
 		var count_mine: int = max(0,entry_mine[Commodities.Products.QUANTITY_INDEX])
@@ -150,7 +126,7 @@ func populate_list(products,ship_design):
 		item.set_text(PROFIT_COLUMN,str(diff))
 		item.set_metadata(PROFIT_COLUMN,diff)
 		item.set_editable(PROFIT_COLUMN,false)
-		item.set_tooltip(PROFIT_COLUMN,display_name+': Difference between price here and average price.\nhere: '+str(price)+'\nAverage: '+str(norm_price)+'.\nClick to see prices on map.')
+		item.set_tooltip(PROFIT_COLUMN,display_name+': Difference between average price and price here.\nHere: '+str(price)+'\nAverage: '+str(norm_price)+'.\nClick to see prices on map.')
 		item.set_metadata(PRICE_COLUMN,data)
 		item.set_editable(PRICE_COLUMN,false)
 		item.set_tooltip(PRICE_COLUMN,'Price of '+display_name+' here: '+str(price)+'\nClick to see prices on map.')

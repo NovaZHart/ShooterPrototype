@@ -489,6 +489,37 @@ class DescriptionChange extends undo_tool.Action:
 				false,false,true,false)
 
 
+class SpaceObjectDataReorderKey extends undo_tool.Action:
+	var object_path: NodePath
+	var property: String
+	var from_key
+	var to_key
+	var shift
+	func as_string():
+		return 'SpaceObjectDataReorderKey(path='+str(object_path) \
+			+',property='+str(property)+',from_key='+str(from_key)+',to_key=' \
+			+str(to_key)+',shift='+str(shift)+')'
+	func _init(object_path_: NodePath, property_: String, from_key_, to_key_, shift_):
+		object_path=object_path_
+		property=property_
+		from_key=from_key_
+		to_key=to_key_
+		shift=shift_
+	func apply(undo: bool) -> bool:
+		var object = game_state.systems.get_node_or_null(object_path)
+		if not object:
+			push_error('No space object to edit in SpaceObjectDataReorderKey at '+str(object_path))
+			return false
+		return game_state.system_editor.reorder_key_space_object_data(
+			object.get_path(),property,from_key,to_key,shift,undo)
+	func run() -> bool:
+		return apply(false)
+	func undo() -> bool:
+		return apply(true)
+	func redo() -> bool:
+		return apply(false)
+
+
 class SpaceObjectDataKeyUpdate extends undo_tool.Action:
 	var object_path: NodePath
 	var property: String
@@ -549,7 +580,7 @@ class SpaceObjectDataAddRemove extends undo_tool.Action:
 		if not is_add:
 			if store:
 				value=container[key]
-			container.erase(key)
+			var _ignore = container.remove(key)
 		elif container is Dictionary:
 			container[key]=value
 		else:

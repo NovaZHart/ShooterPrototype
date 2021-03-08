@@ -139,6 +139,9 @@ class SystemEditorStub extends Panel:
 	func update_key_system_data(
 			_path: NodePath,_property: String,_key,_value) -> bool:
 		return true
+	func reorder_key_space_object_data(
+			_path: NodePath,_property: String,_from_key,_to_key,_shift,_undo) -> bool:
+		return true
 	func insert_system_data(
 			_path: NodePath,_property: String,_key,_value) -> bool:
 		return true

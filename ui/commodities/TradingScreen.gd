@@ -22,7 +22,8 @@ func _ready():
 		products = Commodities.ManyProducts.new()
 	if not Player.player_ship_design.cargo:
 		Player.player_ship_design.cargo = Commodities.ManyProducts.new()
-	$All/Left/Bottom/TradingList.populate_list(products,Player.player_ship_design)
+	var planet_info = Player.get_info_or_null()
+	$All/Left/Bottom/TradingList.populate_list(products,Player.player_ship_design,planet_info)
 	product_names = $All/Left/Bottom/TradingList.get_product_names()
 	product_names.sort()
 	$All/Right/Content/Top/BuySell.add_item('Buying Map',0)

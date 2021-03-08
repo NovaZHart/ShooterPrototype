@@ -15,6 +15,17 @@ class TreeFinder extends Reference:
 	func ge(_parent: TreeItem,child: TreeItem):
 		return child.get_metadata(column)>=key
 
+func TreeItem_at_index(parent: TreeItem,index: int): # -> TreeItem or null
+	var scan = parent.get_children()
+	var i = 0
+	while scan:
+		if i==index:
+			return scan
+		if scan:
+			scan = scan.get_next()
+			i += 1
+	return null
+
 func TreeItem_find_index(parent: TreeItem,object: Object,method: String):
 	var scan = parent.get_children()
 	var index = 0
@@ -22,7 +33,8 @@ func TreeItem_find_index(parent: TreeItem,object: Object,method: String):
 		if object.call(method,parent,scan):
 			return index
 		index += 1
-		scan = scan.get_next()
+		if scan:
+			scan = scan.get_next()
 	return -1
 
 func Tree_set_titles_and_width(tree: Tree,titles,font: Font,min_width: int,expand=true):
@@ -55,6 +67,8 @@ func Tree_remove_where(item: TreeItem,object: Object,method: String) -> bool:
 			result = true
 		else:
 			result = Tree_depth_first(scan,object,method) or result
+			if not scan:
+				return result
 			scan = scan.get_next()
 	return result
 
@@ -66,7 +80,8 @@ func Tree_depth_first(item: TreeItem,object: Object,method: String):
 			result = object.call(method,item,scan)
 		if result:
 			return result
-		scan = scan.get_next()
+		if scan:
+			scan = scan.get_next()
 	return false
 
 func Tree_remove_subtree(parent: TreeItem,child: TreeItem):
@@ -79,7 +94,8 @@ func Tree_clear(tree: Tree):
 		return
 	var _discard = Tree_depth_first(root,self,'_TreeItem_remove_child')
 	tree.clear()
-	root.free()
+	if root:
+		root.free()
 
 func _TreeItem_remove_child(parent: TreeItem,child: TreeItem) -> void:
 	parent.remove_child(child)
@@ -92,7 +108,8 @@ func TreeItem_child_count_at_least(item: TreeItem,min_children: int):
 		count += 1
 		if count >= min_children:
 			return true
-		scan = scan.get_next()
+		if scan:
+			scan = scan.get_next()
 	return false
 
 func ship_max_speed(ship_stats,mass=null) -> float:

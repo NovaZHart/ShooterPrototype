@@ -87,8 +87,11 @@ func _on_Population_Tree_button_pressed(item, _column, _id):
 		object.get_path(),'population',item.get_metadata(0),null,false))
 
 func _on_Trading_Tree_button_pressed(item, _column, _id):
-	universe_edits.state.push(universe_edits.SpaceObjectDataAddRemove.new(
-		object.get_path(),'trading',item.get_metadata(0),null,false))
+	var value = item.get_metadata(0)
+	var key = object.trading.find(value)
+	if key>=0:
+		universe_edits.state.push(universe_edits.SpaceObjectDataAddRemove.new(
+			object.get_path(),'trading',key,value,false))
 
 func reset_adjust(_parent,child):
 	for i in range(3):
@@ -122,7 +125,6 @@ func _on_Adjust_Tree_item_edited():
 func update_key_space_object_data(
 		path: NodePath,property: String,key,value) -> bool:
 	if property=='trading':
-		object.trading[key]=value
 		var item = utils.Tree_depth_first($Trading/Tree.get_root(),utils.TreeFinder.new(key),'find')
 		if item:
 			fill_trading_item(item,key,true)
@@ -150,9 +152,8 @@ func update_key_space_object_data(
 func insert_space_object_data(
 		_path: NodePath,property: String,key,value) -> bool:
 	if property=='trading':
-		object.trading[key]=value
-		var i = utils.TreeItem_find_index($Trading/Tree.get_root(),utils.TreeFinder.new(key),'ge')
-		fill_trading_item($Trading/Tree.create_item($Trading/Tree.get_root(),i),key)
+		var item = $Trading/Tree.create_item($Trading/Tree.get_root(),key)
+		fill_trading_item(item,value)
 		$Trading/Tree.update()
 	elif property=='population':
 		object.population[key]=value
@@ -172,9 +173,15 @@ func insert_space_object_data(
 func remove_space_object_data(
 		_path: NodePath,property: String,key) -> bool:
 	if property=='trading':
-		object.trading.erase(key)
 		$Trading/Tree.update()
-		return not not utils.Tree_remove_where($Trading/Tree.get_root(),utils.TreeFinder.new(key),'eq')
+		var root = $Trading/Tree.get_root()
+		var item = utils.TreeItem_at_index(root,key)
+		if not item:
+			push_error('No item exists at index '+str(key)+' in trading tree')
+			return false
+		utils.Tree_remove_subtree(root,item)
+		return true
+		
 	elif property=='population':
 		object.population.erase(key)
 		$Population/Tree.update()
@@ -270,8 +277,7 @@ func fill_trading_item(item: TreeItem,trade,update=false):
 func fill_trading():
 	utils.Tree_clear($Trading/Tree)
 	var root: TreeItem = $Trading/Tree.create_item()
-	var trades = object.trading.keys()
-	trades.sort()
+	var trades = object.trading
 	for trade in trades:
 		var item = $Trading/Tree.create_item(root)
 		fill_trading_item(item,trade)
@@ -279,12 +285,12 @@ func fill_trading():
 	popup.clear()
 	trades = Commodities.trading.keys()
 	trades.sort()
-	print('Trades: '+str(trades))
 	var index: int = -1
 	for trade in trades:
 		index += 1
 		popup.add_item(trade.capitalize(),index)
 		popup.set_item_metadata(index,trade)
+	$Trading/Tree.update()
 
 func _on_new_adjustment(index):
 	var new_adjust_popup: PopupMenu = $Adjust/Heading/New.get_popup()
@@ -295,10 +301,10 @@ func _on_new_adjustment(index):
 
 func _on_new_trading(index):
 	var new_trade_popup: PopupMenu = $Trading/Heading/New.get_popup()
-	var key = new_trade_popup.get_item_metadata(index)
-	if key and not object.trading.has(key):
+	var value = new_trade_popup.get_item_metadata(index)
+	if value and not object.trading.find(value)>=0:
 		universe_edits.state.push(universe_edits.SpaceObjectDataAddRemove.new(
-			object.get_path(), 'trading', key, 1, true))
+			object.get_path(), 'trading', len(object.trading), value, true))
 
 func _on_new_race(index):
 	var new_race_popup: PopupMenu = $Population/Heading/New.get_popup()
@@ -568,3 +574,58 @@ func _on_Industry_Edit_text_entered(new_text):
 
 func _on_Industry_Edit_focus_exited():
 	$Basic/Top/IndustryEdit.text = str(object.industry)
+
+func shift_trading_data(trading,from_index,to_index,shift,undo) -> bool:
+	var new_to = to_index
+	if shift>0:
+		new_to += 1
+	if new_to>from_index:
+		new_to -= 1
+	if undo:
+		var trading_value = trading[new_to]
+		trading.remove(new_to)
+		trading.insert(from_index,trading_value)
+	else:
+		var trading_value = trading[from_index]
+		trading.remove(from_index)
+		trading.insert(new_to,trading_value)
+	return true
+
+func swap_trading_data(trading,from_index,to_index) -> bool:
+	var n = len(trading)
+	if from_index>=0 and from_index<n:
+		if to_index>=0 and to_index<n:
+			var from=trading[from_index]
+			var to = trading[to_index]
+			trading[from_index]=to
+			trading[to_index]=from
+			return true
+		else:
+			push_error('Tried to move to invalid index '+str(to_index))
+	else:
+		push_error('Tried to move from invalid index '+str(from_index))
+	return false
+
+func reorder_key_space_object_data(
+		_path: NodePath,property: String,from_index,to_index,shift,undo) -> bool:
+	if property=='trading':
+		var trading = object.trading
+		if not shift:
+			if swap_trading_data(trading,from_index,to_index):
+				fill_trading()
+				return true
+		elif shift_trading_data(trading,from_index,to_index,shift,undo):
+			fill_trading()
+			return true
+	else:
+		push_error('Cannot reorder items in property "'+str(property)+'"')
+	return false
+
+func _on_Trading_Tree_moved(item, to_item, shift):
+	if not item or not to_item:
+		return
+	var root = $Trading/Tree.get_root()
+	var from_index = utils.TreeItem_find_index(root,utils.TreeFinder.new(item.get_metadata(0)),'eq')
+	var to_index = utils.TreeItem_find_index(root,utils.TreeFinder.new(to_item.get_metadata(0)),'eq')
+	universe_edits.state.push(universe_edits.SpaceObjectDataReorderKey.new(
+		object.get_path(),'trading',from_index,to_index,shift))

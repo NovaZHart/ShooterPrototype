@@ -119,6 +119,13 @@ func remove_system_data(path: NodePath,property: String,key) -> bool:
 	push_error('Tried to remove system data when no system settings panel was present.')
 	return false
 
+func reorder_key_space_object_data(
+		path: NodePath,property: String,from_key,to_key,shift,undo) -> bool:
+	if $Split/Right/Bottom/Settings.has_method('reorder_key_space_object_data'):
+		return $Split/Right/Bottom/Settings.reorder_key_space_object_data(path,property,from_key,to_key,shift,undo)
+	push_error('Tried to update space object data when no system settings panel was present.')
+	return false
+
 func update_key_space_object_data(path: NodePath,property: String,key,value) -> bool:
 	if $Split/Right/Bottom/Settings.has_method('update_key_space_object_data'):
 		return $Split/Right/Bottom/Settings.update_key_space_object_data(path,property,key,value)

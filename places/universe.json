@@ -1186,8 +1186,8 @@
                       "trading": {
                         "suvar": 1,
                         "human": 1,
-                        "terran_illegal": 1,
-                        "terran_government": 1
+                        "terran_government": 1,
+                        "terran_illegal": 1
                       },
                       "locality_adjustments": {
                         "dead/sentient": [
