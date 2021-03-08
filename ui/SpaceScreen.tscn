@@ -39,6 +39,7 @@ allow_saving = false
 
 [node name="System" parent="." instance=ExtResource( 1 )]
 pause_mode = 1
+make_labels = true
 
 [node name="PlayerInfo" type="Node2D" parent="System"]
 script = ExtResource( 7 )

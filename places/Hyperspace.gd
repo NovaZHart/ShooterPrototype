@@ -1,5 +1,6 @@
 extends game_state.HyperspaceStub
 
+export var label_font_data: DynamicFontData
 export var max_ticks_for_double_press: int = 30
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
@@ -7,21 +8,30 @@ export var min_camera_size: float = 25
 export var max_camera_size: float = 150
 export var auto_depart_without_fuel: float = 3.0
 export var game_time_ratio: float = 300
+export var label_generation_distance: float = 1.5
+export var label_deletion_distance: float = 4
+export var target_label_height: float = 32
 
 # Must match CombatEngineData.hpp:
 const hyperspace_ratio: float = 20.0
+const NEVER_HAPPENED: int = -999999
 
 # These must match src/CombatEngineData.hpp:
 
+const ImageLabelMaker = preload('res://ui/ImageLabelMaker.gd')
 const SystemEntrance = preload('res://places/SystemEntrance.tscn')
 const player_ship_name: String = 'player_ship' # name of player's ship node
+
+var label_maker
+var label_being_made: String
+var last_label_tick: int = NEVER_HAPPENED
 
 var ui_scroll: float = 0.0
 var visual_tick: int = 0
 var mouse_selection_mutex: Mutex = Mutex.new()
 var mouse_selection: RID = RID()
 var mouse_deselect: bool = false
-var last_back_command: int = -9999
+var last_back_command: int = NEVER_HAPPENED
 var double_down_active: bool = false
 var goal: int = 0
 var pause_mutex: Mutex = Mutex.new()
@@ -64,6 +74,60 @@ func depart_hyperspace():
 	Player.player_location = interstellar.get_path()
 	Player.hyperspace_position = ship.translation/hyperspace_ratio
 	return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
+
+func get_label_scale() -> float:
+	var view_size = max(1,get_viewport().size.y)
+	var camera_size = $TopCamera.size
+	return target_label_height/view_size * camera_size
+
+func label_hyperspace():
+	# If we're in the middle of making a label, finish
+	if label_being_made and label_maker:
+		if not label_maker.step():
+			return # not done making this label
+		var system = $Systems.get_node_or_null(label_being_made)
+		if system:
+			var shift = system.get_radius()/sqrt(2)
+			var xyz: Vector3 = Vector3(shift,0,shift)
+			label_maker.instance.translation = system.translation + xyz
+			var scale = get_label_scale()
+			label_maker.instance.scale = Vector3(scale,scale,scale)
+		label_maker.instance.name = label_being_made
+		$Labels.add_child(label_maker.instance)
+		label_being_made=''
+	
+	# Add or remove labels
+	var ul_corner: Vector3 = $TopCamera.project_position(Vector2(),0)
+	var lr_corner: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	var mid: Vector3 = (ul_corner+lr_corner)/2.0
+	mid.y=0
+	var span: Vector3 = lr_corner-mid
+	span = Vector3(abs(span.x),0,abs(span.z))
+	var del: Vector3 = label_deletion_distance*span
+	var add: Vector3 = label_generation_distance*span
+	for system in $Systems.get_children():
+		var system_name: String = system.name
+		var system_pos: Vector3 = Vector3(system.translation)
+		system_pos.y=0
+		var rel_pos: Vector3 = system_pos-mid
+		rel_pos = Vector3(abs(rel_pos.x),0,abs(rel_pos.z))
+		var label = $Labels.get_node_or_null(system_name)
+		if label and rel_pos.x>del.x and rel_pos.z>del.z:
+			print('remove label')
+			$Labels.remove_child(label)
+			label.queue_free()
+		elif not label_being_made and not label and rel_pos.x<add.x and rel_pos.z<add.z:
+			label_being_made = system_name
+			var display_name = system.display_name
+			var color = Color($SpaceBackground.plasma_color)
+			color.v = 0.7
+			if label_maker:
+				label_maker.reset(display_name,color)
+			else:
+				label_maker = ImageLabelMaker.new(display_name,label_font_data,color)
+			label_maker.step()
+			return
+	label_maker = null
 
 func _input(event: InputEvent):
 	if not event.is_action_pressed('ui_location_select'):
@@ -118,6 +182,8 @@ func clear():
 	combat_engine_mutex.unlock()
 
 func get_initial_player_target():
+	if not Player.destination_system:
+		return null
 	var data_node = game_state.systems.get_node_or_null(Player.destination_system)
 	if data_node:
 		var node = $Systems.get_node_or_null(data_node.name)
@@ -232,10 +298,12 @@ func _process(delta: float) -> void:
 	combat_engine.step_visual_effects(delta,get_viewport().world)
 	update_pause(delta)
 	handle_zoom(delta)
-	if get_tree().paused:
-		return
-	receive_player_orders(make_player_orders(delta))
-	center_view()
+	if not get_tree().paused:
+		receive_player_orders(make_player_orders(delta))
+		center_view()
+	if label_being_made or visual_tick-last_label_tick>10:
+		last_label_tick=visual_tick
+		label_hyperspace()
 
 func _ready():
 	combat_engine.set_world(get_world())
@@ -260,6 +328,11 @@ func _ready():
 	center_view()
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
+	if OK!=get_viewport().connect('size_changed',self,'_on_viewport_size_changed'):
+		push_warning('Could not connect _on_viewport_size_changed to viewport size_changed')
+
+func _on_viewport_size_changed():
+	last_label_tick = NEVER_HAPPENED
 
 func pack_ship_stats_if_not_sent():
 	if not sent_systems_and_player:

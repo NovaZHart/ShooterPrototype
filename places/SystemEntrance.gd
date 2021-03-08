@@ -3,6 +3,7 @@ extends Area
 var display_name: String
 var has_astral_gate: bool = false
 var game_state_path: NodePath = NodePath()
+var radius = null
 
 func is_SystemEntrance(): pass # used for type detection; never called
 func is_a_system() -> bool: return true
@@ -12,6 +13,11 @@ func is_a_planet() -> bool: return false
 func _init():
 	collision_mask = 0
 	collision_layer = 1<<28
+
+func get_radius():
+	if radius==null:
+		radius = $CollisionShape.shape.radius
+	return radius
 
 func init_system(system_name: String) -> bool:
 	var system_node = game_state.systems.get_child_with_name(system_name)
@@ -32,5 +38,5 @@ func pack_stats() -> Dictionary:
 		'transform': transform,
 		'name': name,
 		'rid': get_rid(),
-		'radius': 3.0,
+		'radius': get_radius(),
 	}

@@ -1581,7 +1581,7 @@
             1
           ],
           "show_on_map": false,
-          "system_fuel_recharge": 1.5,
+          "system_fuel_recharge": 4,
           "center_fuel_recharge": 0,
           "locality_adjustments": {
 
@@ -1671,7 +1671,7 @@
             1
           ],
           "show_on_map": false,
-          "system_fuel_recharge": 1.5,
+          "system_fuel_recharge": 4,
           "center_fuel_recharge": 0,
           "locality_adjustments": {
 

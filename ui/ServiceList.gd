@@ -26,8 +26,10 @@ func update_service_list():
 	clear()
 	var planet_info = Player.get_space_object_or_null()
 	service_names = [] if planet_info==null else planet_info.services
+	if not service_names:
+		service_names = []
 	var i=0
-	if not service_names.has('market') and \
+	if planet_info and not service_names.has('market') and \
 			(planet_info.trading or service_names.has('shipeditor')):
 		service_names = service_names + ['market']
 	for service_name in service_names:

@@ -113,7 +113,7 @@ func check_cargo_mass() -> bool:
 				panel.queue_free()
 				if result:
 					game_state.call_deferred('change_scene',result)
-					return false
+				return false
 	return true
 
 func astral_jump(system_node_name: String,planet_location: NodePath):
@@ -156,6 +156,7 @@ func deorbit():
 		check = yield(check,'completed')
 	if not check:
 		return
+	Player.apply_departure()
 	game_state.print_to_console('Departing '+$LocationLabel.text)
 	game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 

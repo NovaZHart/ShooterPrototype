@@ -1,5 +1,6 @@
 extends Node
 
+export var label_font_data: DynamicFontData
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
@@ -8,6 +9,14 @@ export var max_new_ships_per_tick: int = 1
 export var max_new_ships_per_early_tick: int = 5
 export var number_of_early_ticks: int = 20
 export var game_time_ratio: float = 30
+export var make_labels: bool = false
+export var target_label_height: float = 32
+
+const ImageLabelMaker = preload('res://ui/ImageLabelMaker.gd')
+
+var label_maker
+var label_being_made: String
+var finished_making_labels: bool = true
 
 var combat_engine_mutex: Mutex = Mutex.new()
 var visual_tick: int = 0
@@ -52,6 +61,50 @@ func set_raise_sun(flag: bool):
 		$PlanetLight.translation.y += 10000
 	else:
 		$PlanetLight.translation.y += 10000
+
+func get_label_scale() -> float:
+	var view_size = max(1,get_viewport().size.y)
+	var camera_size = $TopCamera.size
+	return target_label_height/view_size * camera_size
+
+func make_more_labels():
+	# Delete any labels for removed planets:
+	for label in $Labels.get_children():
+		var planet = $Planets.get_node_or_null(label.name)
+		if not planet:
+			$Labels.remove_child(label)
+			label.queue_free()
+	
+	# If we're in the middle of making a label, finish
+	if label_being_made and label_maker:
+		if not label_maker.step():
+			return # not done making this label
+		var planet = $Planets.get_node_or_null(label_being_made)
+		if planet:
+			var shift = planet.get_radius()/sqrt(2)
+			var xyz: Vector3 = Vector3(shift,0,shift)
+			label_maker.instance.translation = planet.translation + xyz
+			var scale = get_label_scale()
+			label_maker.instance.scale = Vector3(scale,scale,scale)
+		label_maker.instance.name = label_being_made
+		$Labels.add_child(label_maker.instance)
+		label_being_made=''
+	
+	# Start making a label for the next planet that doesn't have one:
+	for planet in $Planets.get_children():
+		if $Labels.get_node_or_null(planet.name)==null:
+			label_being_made = planet.name
+			var display_name = planet.display_name
+			var color = Color($SpaceBackground.plasma_color)
+			color.v = 0.7
+			if label_maker:
+				label_maker.reset(display_name,color)
+			else:
+				label_maker = ImageLabelMaker.new(display_name,label_font_data,color)
+			label_maker.step()
+			return
+	label_maker = null
+	finished_making_labels=true
 
 func get_world():
 	return get_viewport().get_world()
@@ -187,6 +240,9 @@ func _process(delta) -> void:
 	if target_info.get('old','') != target_info.get('new',''):
 		# The target has changed, so we need a new TargetDisplay.
 		update_target_display(target_info['old'],target_info['new'])
+	
+	if make_labels and not finished_making_labels:
+		make_more_labels()
 
 func update_target_display(old_target_name: String,new_target_name: String) -> void:
 	assert(old_target_name!=new_target_name)
@@ -377,6 +433,7 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)
 	sent_planets=false
+	finished_making_labels=false
 
 func clear() -> void: # must be called in visual thread
 	combat_engine_mutex.lock() # Ensure _physics_process() does not run during clear()
@@ -394,6 +451,11 @@ func clear() -> void: # must be called in visual thread
 		ship.queue_free()
 	for planet in $Planets.get_children():
 		planet.queue_free()
+	for label in $Labels.get_children():
+		label.queue_free()
+	
+	label_maker = null
+	label_being_made = ''
 	
 	team_stats = [{'count':0,'threat':0},{'count':0,'threat':0}]
 	
@@ -458,6 +520,11 @@ func _ready() -> void:
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size
 	$TopCamera.size = clamp(zoom*from,min_camera_size,max_camera_size)
+	if $Labels.get_child_count():
+		var label_scale = get_label_scale()
+		var scale = Vector3(label_scale,label_scale,label_scale)
+		for label in $Labels.get_children():
+			label.scale = scale
 
 func center_view(center=null) -> void:
 	if center==null:

@@ -3,6 +3,8 @@ extends Node
 var player_ship_design
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
+var departed_location: NodePath = NodePath()
+var departed_hyperspace_position: Vector3
 var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
@@ -81,6 +83,8 @@ func store_state():
 		'epoch_time': str(game_state.epoch_time),
 		'money': money,
 		'player_tree_root': root,
+		'departed_location': departed_location,
+		'departed_hyperspace_position': departed_hyperspace_position,
 	}
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
@@ -91,6 +95,8 @@ func restore_state(state: Dictionary,restore_from_load_page = true):
 		set_hyperspace_position(state['hyperspace_position'])
 	player_ship_design = state['player_ship_design']
 	var timestr: String = str(state.get('epoch_time','0'))
+	departed_location = state.get('departed_location',player_location)
+	departed_hyperspace_position = state.get('departed_hyperspace_position',hyperspace_position)
 	if timestr.is_valid_integer():
 		game_state.epoch_time = int(timestr)
 	player_ship_design.name = 'player_ship_design'
@@ -155,6 +161,13 @@ func set_system(var s):
 			player_location = game_state.systems.get_path_to(system)
 		return system
 
+func apply_departure():
+	departed_location = player_location
+	departed_hyperspace_position = hyperspace_position
+
+func go_back_to_departure():
+	set_player_location(departed_location)
+	set_hyperspace_position(departed_hyperspace_position)
 
 func get_player_location() -> NodePath:
 	return player_location

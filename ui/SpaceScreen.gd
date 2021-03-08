@@ -172,6 +172,7 @@ func _process(delta: float) -> void:
 			death_start = tick
 		if tick-death_start>300 or Input.is_action_just_released('ui_select'):
 #			if get_tree().current_scene.has_method('change_scene'):
+			Player.go_back_to_departure()
 			game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 #			else:
 #				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
