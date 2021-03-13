@@ -5,6 +5,7 @@ export var test_mode: bool = false
 export var min_aabb_scale: float = 4.0
 export var ship_border: float = 0.00
 export var initial_scale: float = 2.0
+export var hover_check_ticks: int = 100
 
 const InventorySlot: GDScript = preload('res://ui/ships/InventorySlot.gd')
 const y500: Vector3 = Vector3(0,500,0)
@@ -18,6 +19,7 @@ signal add_design
 signal change_design
 signal remove_design
 signal edit_design
+signal hover_over_InventorySlot
 
 var ship_zspan = 1.0 + 2.0*ship_border # must be >1.0
 var ship_xspan = ship_zspan
@@ -39,9 +41,17 @@ var items: Spatial
 var camera: Camera
 var scrollbar: VScrollBar
 var scale: float = initial_scale
+var last_hover: NodePath
+var last_location_check_tick: int = -9999999
 
 var regular_layer: int = 0
 var highlight_layer: int = 0
+
+func update_hover(what):
+	var what_path = what.get_path() if what else NodePath()
+	if what_path!=last_hover:
+		last_hover=what_path
+		emit_signal('hover_over_InventorySlot',what)
 
 func clear_items():
 	var _discard = deselect(false)
@@ -338,21 +348,32 @@ func input():
 	var view_pos = $All/Top/View.rect_global_position
 	var view_rect: Rect2 = Rect2(view_pos, $All/Top/View.rect_size)
 	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
+	var result: Dictionary
+	var collider = null
 	if view_rect.has_point(mouse_pos):
+		var click_tick = OS.get_ticks_msec()
+		if click_tick-last_location_check_tick>hover_check_ticks:
+			last_location_check_tick=OS.get_ticks_msec()
+			var space_pos: Vector3 = camera.project_position(mouse_pos-view_pos,-30)
+			var space: PhysicsDirectSpaceState = items.get_world().direct_space_state
+			result = space.intersect_ray(
+				space_pos-y500,space_pos+y500,[],2147483647,true,true)
+			collider = result.get('collider',null)
+			update_hover(collider)
 		if Input.is_action_just_released('wheel_up'):
 			scroll_rate = clamp(scroll_rate-0.2,-2.0,2.0)
 		elif Input.is_action_just_released('wheel_down'):
 			scroll_rate = clamp(scroll_rate+0.2,-2.0,2.0)
 		elif Input.is_action_just_pressed('ui_location_select'):
-			var space_pos: Vector3 = camera.project_position(mouse_pos-view_pos,-30)
-			var space: PhysicsDirectSpaceState = items.get_world().direct_space_state
-			var result: Dictionary = space.intersect_ray(
-				space_pos-y500,space_pos+y500,[],2147483647,true,true)
-			var collider = result.get('collider',null)
+			if not result:
+				var space_pos: Vector3 = camera.project_position(mouse_pos-view_pos,-30)
+				var space: PhysicsDirectSpaceState = items.get_world().direct_space_state
+				result = space.intersect_ray(
+					space_pos-y500,space_pos+y500,[],2147483647,true,true)
+				collider = result.get('collider',null)
 			if not collider:
 				var _discard = deselect(true)
 			else:
-				var click_tick = OS.get_ticks_msec()
 				if selection and selection == collider.get_path():
 					if click_tick - last_click_tick<400 and show_ships:
 						_on_Open_pressed()
@@ -377,7 +398,7 @@ func _process(delta):
 		arrange_items()
 	items_mutex.unlock()
 	
-	if visible:
+	if is_visible_in_tree():
 		input()
 	
 	if abs(scroll_rate) > .001:

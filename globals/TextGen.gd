@@ -129,7 +129,6 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 
 
 func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) -> String:
-	print('in textgen, cargo is '+str(ship_stats.get('cargo_mass',0)))
 	var contents: String = '' #'[b]Contents:[/b]\n'
 	if show_id==null:
 		show_id = game_state.game_editor_mode

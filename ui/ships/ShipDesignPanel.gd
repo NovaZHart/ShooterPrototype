@@ -20,6 +20,7 @@ var last_move_tick: int = 0
 var last_update_tick: int = -2*update_delay
 var design_mutex: Mutex = Mutex.new()
 
+signal hover_over_design
 signal select_nothing
 signal select
 signal deselect
@@ -33,10 +34,12 @@ func set_selected_design(p: NodePath):
 	if p!=selected_design:
 		selected_design = p
 
-func assemble_design(): # => RigidBody or null
-	assert(selected_design)
-	if selected_design:
-		var design = game_state.ship_designs.get_node_or_null(selected_design)
+func assemble_design(design_path=null): # => RigidBody or null
+	var design_to_assemble = selected_design
+	if not selected_design:
+		design_to_assemble=design_path
+	if design_to_assemble:
+		var design = game_state.ship_designs.get_node_or_null(design_to_assemble)
 		assert(design)
 		if design:
 			return design.assemble_ship()
@@ -143,6 +146,8 @@ func _input(event):
 			$All/Top/Scroll.value+=1
 		if up and $All/Top/Scroll.value>$All/Top/Scroll.min_value:
 			$All/Top/Scroll.value-=1
+		for child in $All/Top/List.get_children():
+			child.update_hovering(event)
 
 func _process(_delta):
 	if last_update_tick+update_delay < last_move_tick:
@@ -151,7 +156,7 @@ func _process(_delta):
 func add_list_index(list,to_index,design_path,allow_add):
 	assert(allow_add)
 	var node = DesignItem.instance()
-	for sig in [ 'deselect', 'select', 'select_nothing' ]:
+	for sig in [ 'deselect', 'select', 'select_nothing', 'hover_start', 'hover_end' ]:
 		if OK!=node.connect(sig,self,'_on_DesignItem_'+sig):
 			push_error('Cannot connect DesignItem signal '+sig+' to _on_DesignItem_'+sig)
 	for sig in [ 'deselect', 'select', 'select_nothing' ]:
@@ -234,7 +239,7 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 		if len(design_paths)>first_design_shown+i:
 			designs_to_show[design_paths[first_design_shown+i]]=1
 	
-	pass # FIXME: implement fill_missing=false
+	pass # FIXME: implement fill_missing=false?
 	
 	for i in range(count_designs_to_show):
 		var allow_add = len(designs_shown)<$All/Buttons/Zoom.value
@@ -247,9 +252,6 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 			var unused_index = find_index(NodePath(),i,
 				designs_shown,designs_to_show)
 			move_list_index(designs_shown,unused_index,i,NodePath(),allow_add)
-		pass
-	
-	pass
 	
 	for i in range(count_designs_to_show,count_designs_visible):
 		var node = $All/Top/List.get_node_or_null(designs_shown[i][0])
@@ -291,6 +293,12 @@ func deselect_impl(path: NodePath = NodePath(), send_signal: bool = true):
 		if send_signal:
 			emit_signal('deselect',selected_design)
 
+func _on_DesignItem_hover_start(design_path):
+	emit_signal('hover_over_design',design_path)
+
+func _on_DesignItem_hover_end(_design_path):
+	emit_signal('hover_over_design',null)
+
 func _on_DesignItem_select_nothing():
 	deselect_impl()
 
@@ -311,14 +319,19 @@ func _on_DesignItem_select(path):
 
 func _on_Scroll_value_changed(_value):
 	update_designs(false)
+	call_deferred('refresh')
 	last_move_tick = OS.get_ticks_msec()
 
 func _on_Zoom_value_changed(value):
 	$All/Top/Scroll.page = value
 	update_designs(true)
+	call_deferred('refresh')
+	last_move_tick = OS.get_ticks_msec()
 
 func _on_DesignList_resized():
 	update_designs(true)
+	call_deferred('refresh')
+	last_move_tick = OS.get_ticks_msec()
 
 func _on_Cancel_pressed():
 	emit_signal('cancel',selected_design)

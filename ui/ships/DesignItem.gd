@@ -14,6 +14,8 @@ var highlight_layer: int = 0
 var regular_bbcode: String
 var highlight_bbcode: String
 
+signal hover_start
+signal hover_end
 signal select
 signal deselect
 signal select_nothing
@@ -143,6 +145,10 @@ func change_hover(hover: bool):
 		hovering=hover
 		var _discard = set_ship_layers()
 		update_bbcode()
+		if hover:
+			emit_signal('hover_start',design_path)
+		else:
+			emit_signal('hover_end',design_path)
 
 func set_layers(node: Node, layers: int):
 	if node is VisualInstance:
@@ -150,9 +156,12 @@ func set_layers(node: Node, layers: int):
 	for child in node.get_children():
 		set_layers(child,layers)
 
-func update_hovering():
+func update_hovering(event=null):
 	var rect: Rect2 = Rect2(rect_global_position, rect_size)
-	change_hover(rect.has_point(get_viewport().get_mouse_position()))
+	if event:
+		change_hover(get_global_rect().has_point(utils.event_position(event)))
+	else:
+		change_hover(rect.has_point(get_viewport().get_mouse_position()))
 
 func _input(event):
 	if get_tree().current_scene.popup_has_focus():

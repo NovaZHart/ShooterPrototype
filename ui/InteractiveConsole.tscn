@@ -12,7 +12,6 @@
 [ext_resource path="res://ui/skins/ConsoleItalic.tres" type="DynamicFont" id=11]
 [ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=12]
 
-
 [sub_resource type="World" id=1]
 environment = ExtResource( 12 )
 

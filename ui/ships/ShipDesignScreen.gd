@@ -388,3 +388,23 @@ func _on_Depart_pressed():
 		universe_edits.state.push(ship_edits.ShipEditorToFleetEditor.new())
 	else:
 		exit_to_orbit()
+
+func _on_Designs_hover_over_design(design_path):
+	if design_path:
+		var ship = $All/Left/Shop/Tabs/Designs.assemble_design(design_path)
+		assert(ship)
+		if ship:
+			show_design_info(ship)
+	else:
+		show_edited_design_info()
+
+func _on_Designs_mouse_exited():
+	pass # FIXME show_edited_design_info()
+
+func _on_hover_over_InventorySlot(slot):
+	if slot and slot.page:
+		$All/Left/Shop/Info.clear()
+		$All/Left/Shop/Info.process_command('help '+slot.page)
+		$All/Left/Shop/Info.scroll_to_line(0)
+	else:
+		show_edited_design_info()
