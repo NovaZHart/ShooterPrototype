@@ -13,7 +13,7 @@ export var show_Cancel: bool = true
 
 var disable_Add: bool = false setget set_disable_Add, get_disable_Add
 var disable_Remove: bool = false setget set_disable_Remove, get_disable_Remove
-
+var hover_design: NodePath
 var design_paths: Array = []
 var selected_design: NodePath = NodePath() setget set_selected_design
 var last_move_tick: int = 0
@@ -27,17 +27,21 @@ signal deselect
 signal cancel
 signal change
 signal remove
+signal activate
 signal add
 signal open
+signal child_select_nothing
+signal child_select
+signal child_deselect
 
 func set_selected_design(p: NodePath):
 	if p!=selected_design:
 		selected_design = p
 
 func assemble_design(design_path=null): # => RigidBody or null
-	var design_to_assemble = selected_design
-	if not selected_design:
-		design_to_assemble=design_path
+	var design_to_assemble = design_path
+	if not design_to_assemble:
+		design_to_assemble=selected_design
 	if design_to_assemble:
 		var design = game_state.ship_designs.get_node_or_null(design_to_assemble)
 		assert(design)
@@ -149,18 +153,30 @@ func _input(event):
 		for child in $All/Top/List.get_children():
 			child.update_hovering(event)
 
+func update_hovering(event=null):
+	var pos = utils.event_position(event)
+	var new_hover: NodePath
+	for child in $All/Top/List.get_children():
+		if child.get_global_rect().has_point(pos):
+			new_hover=child.design_path
+		#child.update_hovering(event)
+	if hover_design!=new_hover:
+		hover_design=new_hover
+		emit_signal('hover_over_design',hover_design)
+
 func _process(_delta):
 	if last_update_tick+update_delay < last_move_tick:
 		update_designs(true)
+		update_hovering()
 
 func add_list_index(list,to_index,design_path,allow_add):
 	assert(allow_add)
 	var node = DesignItem.instance()
-	for sig in [ 'deselect', 'select', 'select_nothing', 'hover_start', 'hover_end' ]:
+	for sig in [ 'deselect', 'select', 'select_nothing', 'hover_start', 'hover_end', 'activate' ]:
 		if OK!=node.connect(sig,self,'_on_DesignItem_'+sig):
 			push_error('Cannot connect DesignItem signal '+sig+' to _on_DesignItem_'+sig)
 	for sig in [ 'deselect', 'select', 'select_nothing' ]:
-		if OK!=connect(sig,node,'_on_list_'+sig):
+		if OK!=connect('child_'+sig,node,'_on_list_'+sig):
 			push_error('Cannot connect '+sig+' signal to DesignItem _on_list_'+sig)
 	$All/Top/List.add_child(node)
 	var item = [node.get_path(),design_path]
@@ -285,19 +301,23 @@ func deselect_impl(path: NodePath = NodePath(), send_signal: bool = true):
 	if not path:
 		set_selected_design(NodePath())
 		update_buttons()
+		emit_signal('child_select_nothing')
 		if send_signal:
 			emit_signal('select_nothing')
+		call_deferred('refresh')
 	elif selected_design==path:
 		set_selected_design(NodePath())
 		update_buttons()
+		emit_signal('child_deselect',selected_design)
 		if send_signal:
 			emit_signal('deselect',selected_design)
+		call_deferred('refresh')
 
-func _on_DesignItem_hover_start(design_path):
-	emit_signal('hover_over_design',design_path)
+func _on_DesignItem_hover_start(_design_path):
+	update_hovering() # emit_signal('hover_over_design',design_path)
 
 func _on_DesignItem_hover_end(_design_path):
-	emit_signal('hover_over_design',null)
+	update_hovering() # emit_signal('hover_over_design',null)
 
 func _on_DesignItem_select_nothing():
 	deselect_impl()
@@ -305,12 +325,17 @@ func _on_DesignItem_select_nothing():
 func _on_DesignItem_deselect(path):
 	deselect_impl(path)
 
+func _on_DesignItem_activate(design):
+	if design==selected_design:
+		emit_signal('activate',selected_design)
+
 func select(path: NodePath, send_signal: bool = true):
 	if not path:
 		deselect_impl(path,send_signal)
 	elif selected_design != path:
 		selected_design = path
 		update_buttons()
+		emit_signal('child_select',selected_design)
 		if send_signal:
 			emit_signal('select',selected_design)
 

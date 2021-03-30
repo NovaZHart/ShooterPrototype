@@ -22,6 +22,7 @@ signal deselect_item
 signal drag_selection
 signal design_changed
 signal hover_over_InventorySlot
+signal hover_over_MultiSlotItem
 
 const y500: Vector3 = Vector3(0,500,0)
 var ship_aabb: AABB
@@ -38,6 +39,18 @@ var last_hover: NodePath
 var last_location_check_tick: int = -9999999
 
 func update_hover(what):
+	if not what:
+		emit_signal('hover_over_InventorySlot',null)
+		return
+	if what.my_x>=0 and what.my_y>=0:
+		var parent = what.get_parent()
+		if parent and parent.has_method("is_InventoryArray"):
+			var item = parent.item_at(what.my_x,what.my_y)
+			var item_path = item.get_path() if item else NodePath()
+			if item_path!=last_hover:
+				last_hover=item_path
+				emit_signal('hover_over_MultiSlotItem',item)
+			return
 	var what_path = what.get_path() if what else NodePath()
 	if what_path!=last_hover:
 		last_hover=what_path

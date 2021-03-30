@@ -207,17 +207,51 @@ func remove_design(design: simple_tree.SimpleNode) -> bool:
 	#$All/Left/Shop/Tabs/Designs.arrange_items()
 	return true
 
+func show_selected_item():
+	if $All/Left/Shop/Tabs/Equipment.is_visible_in_tree():
+		var selection=$All/Left/Shop/Tabs/Equipment.selection
+		if selection and show_item_help_page(selection):
+			return
+	if $All/Left/Shop/Tabs/Weapons.is_visible_in_tree():
+		var selection=$All/Left/Shop/Tabs/Weapons.selection
+		if selection and show_item_help_page(selection):
+			return
+	if $All/Left/Shop/Tabs/Designs.is_visible_in_tree():
+		var selection=$All/Left/Shop/Tabs/Designs.selected_design
+		if selection and show_design_info_at(selection):
+			return
+	return show_edited_design_info()
+
+func show_item_help_page(path: NodePath):
+	var node = get_node_or_null(path)
+	if node and node.page:
+		show_help_page(node.page)
+		return true
+	return false
+
+func show_design_info_at(path: NodePath):
+	var ship = $All/Left/Shop/Tabs/Designs.assemble_design(path)
+	if ship:
+		show_design_info(ship)
+		return true
+	return false
+
 func show_edited_design_info():
 	var ship = $All/Show/Grid/Ship/Viewport.get_node_or_null('Ship')
 	if ship:
 		ship.repack_stats()
 		ship.ship_display_name = design_display_name
 		show_design_info(ship)
+		return true
+	return false
 
 func show_help_page(page):
 	$All/Left/Shop/Info.clear()
 	if page:
 		$All/Left/Shop/Info.process_command('help '+page)
+		$All/Left/Shop/Info.scroll_to_line(0)
+		return true
+	return false
 
 func show_design_info(ship: RigidBody):
 	$All/Left/Shop/Info.clear()
@@ -225,6 +259,7 @@ func show_design_info(ship: RigidBody):
 	var rewrite = $All/Left/Shop/Info.rewrite_tags(bbcode)
 	$All/Left/Shop/Info.insert_bbcode(rewrite)
 	$All/Left/Shop/Info.scroll_to_line(0)
+	return true
 
 func _on_Weapons_select_item(item):
 	if item.page:
@@ -357,7 +392,8 @@ func _on_Designs_remove(design_path):
 func _on_Designs_open(design_path):
 	var old_design = make_edited_ship_design()
 	var design = game_state.ship_designs.get_node_or_null(design_path)
-	design.cargo = old_design.cargo.copy()
+	if old_design.cargo:
+		design.cargo = old_design.cargo.copy()
 	if design and design is simple_tree.SimpleNode:
 		universe_edits.state.push(ship_edits.SetEditedShipDesign.new(
 			old_design,design))
@@ -392,19 +428,26 @@ func _on_Depart_pressed():
 func _on_Designs_hover_over_design(design_path):
 	if design_path:
 		var ship = $All/Left/Shop/Tabs/Designs.assemble_design(design_path)
-		assert(ship)
 		if ship:
 			show_design_info(ship)
 	else:
-		show_edited_design_info()
+		show_selected_item()
 
 func _on_Designs_mouse_exited():
-	pass # FIXME show_edited_design_info()
+	pass # show_selected_item()
 
 func _on_hover_over_InventorySlot(slot):
 	if slot and slot.page:
 		$All/Left/Shop/Info.clear()
-		$All/Left/Shop/Info.process_command('help '+slot.page)
+		$All/Left/Shop/Info.process_command('stats '+slot.page)
 		$All/Left/Shop/Info.scroll_to_line(0)
 	else:
-		show_edited_design_info()
+		show_selected_item()
+
+func _on_Ship_hover_over_MultiSlotItem(item):
+	if item and item.help_page:
+		$All/Left/Shop/Info.clear()
+		$All/Left/Shop/Info.process_command('stats '+item.help_page)
+		$All/Left/Shop/Info.scroll_to_line(0)
+	else:
+		show_selected_item()

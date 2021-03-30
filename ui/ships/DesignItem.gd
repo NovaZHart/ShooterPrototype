@@ -3,6 +3,7 @@ extends Control
 export var info_min_fraction: float = 0.2
 export var annotation_color: Color = Color(0.4,0.5,0.9,0.7)
 export var small_code: Font
+export var double_click_time: int = 250
 
 var selected = false
 var hovering = false
@@ -10,10 +11,11 @@ var design_path: NodePath = NodePath()
 var design_size: float = 1.0
 var regular_layer: int = 0
 var highlight_layer: int = 0
-
+var last_click: int = -9999999
 var regular_bbcode: String
 var highlight_bbcode: String
 
+signal activate
 signal hover_start
 signal hover_end
 signal select
@@ -171,10 +173,15 @@ func _input(event):
 	if event.is_action_pressed('ui_location_select'):
 		if not get_global_rect().has_point(utils.event_position(event)):
 			return
+		var now = OS.get_ticks_msec()
 		if selected:
-			deselect()
+			if now-last_click<double_click_time:
+				emit_signal('activate',design_path)
+			else:
+				deselect()
 		else:
 			select()
+		last_click=now
 		get_tree().set_input_as_handled()
 	elif event is InputEventMouseMotion:
 		change_hover(get_global_rect().has_point(utils.event_position(event)))

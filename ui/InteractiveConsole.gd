@@ -159,6 +159,7 @@ func _ready():
 		# Help pages:
 		'ref':builtin_commands.Help,
 		'help':builtin_commands.Help,
+		'stats':builtin_commands.Help,
 		'synopsis':builtin_commands.Help,
 		'search':builtin_commands.Help,
 		'invalid_command':builtin_commands.Help,

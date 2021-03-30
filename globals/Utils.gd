@@ -127,6 +127,6 @@ func ship_mass(ship_stats):
 
 func event_position(event: InputEvent) -> Vector2:
 	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouse:
+	if event and event is InputEventMouse:
 		return event.position
 	return get_viewport().get_mouse_position()
