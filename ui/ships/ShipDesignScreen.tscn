@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/ships/ShipDesignView.tscn" type="PackedScene" id=2]
@@ -9,6 +9,15 @@
 [ext_resource path="res://ui/ships/ShipDesignPanel.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/edit/Autosave.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=9]
+[ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=10]
+[ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=11]
+
+[sub_resource type="DynamicFont" id=2]
+size = 18
+font_data = ExtResource( 10 )
+
+[sub_resource type="Theme" id=3]
+default_font = SubResource( 2 )
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 6 )
@@ -194,6 +203,51 @@ margin_top = 31.0
 margin_right = 726.0
 margin_bottom = 600.0
 size_flags_stretch_ratio = 2.5
+
+[node name="LocationLabel" type="Label" parent="All/Show"]
+margin_left = 494.0
+margin_right = 726.0
+margin_bottom = 32.0
+theme = SubResource( 3 )
+text = "Planet Name"
+align = 2
+script = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Location" type="Label" parent="All/Show"]
+visible = false
+anchor_left = 1.0
+anchor_right = 1.0
+margin_left = -220.0
+margin_bottom = 17.0
+grow_horizontal = 0
+rect_min_size = Vector2( 0, 18 )
+hint_tooltip = "Your ship's current location."
+mouse_filter = 1
+size_flags_horizontal = 3
+text = "Player Location"
+align = 2
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CargoMass" type="Label" parent="All/Show"]
+margin_right = 216.0
+margin_bottom = 17.0
+rect_min_size = Vector2( 0, 18 )
+hint_tooltip = "Total mass in your ship's cargo hold, and maximum carrying capacity. More mass slows down your ship. 
+You cannot leave if your ship is beyond capacity."
+mouse_filter = 1
+size_flags_horizontal = 3
+theme = ExtResource( 4 )
+text = "Cargo: 999/999 kg"
+valign = 1
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Drag" type="ViewportContainer" parent="."]
 margin_left = -20.0

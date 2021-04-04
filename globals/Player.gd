@@ -11,6 +11,7 @@ var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
 var money: int = 98000
 var markets: simple_tree.SimpleNode
+var ship_parts: simple_tree.SimpleNode
 var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
 var tree: simple_tree.SimpleTree = simple_tree.SimpleTree.new(root)
 var stored_system_path
@@ -113,6 +114,7 @@ func restore_state(state: Dictionary,restore_from_load_page = true):
 		tree.root = state['player_tree_root']
 		root = tree.root
 		markets = ensure_markets_node()
+		ship_parts = ensure_ship_parts_node()
 
 func _on_universe_preload():
 	stored_system_path = system.get_path() if system else NodePath()
@@ -219,6 +221,41 @@ func assemble_player_ship(): # -> RigidBody or null
 func age_off_markets(age: int = game_state.EPOCH_ONE_DAY*14):
 	Commodities.delete_old_products(markets,game_state.epoch_time-age)
 
+func update_ship_parts_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
+	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
+	if place:
+		var relpath: NodePath = game_state.systems.get_path_to(place)
+		if relpath:
+			var universe_node = game_state.systems
+			var ship_parts_node = ship_parts
+			for iname in relpath.get_name_count():
+				var child_name = relpath.get_name(iname)
+				universe_node = universe_node.get_child_with_name(child_name)
+				var next = ship_parts_node.get_child_with_name(child_name)
+				if not universe_node.has_method('is_SpaceObjectData'):
+					if not next:
+						next = simple_tree.SimpleNode.new()
+						next.name = child_name
+						if not ship_parts_node.add_child(next):
+							push_error('Cannot add "'+child_name+'" child of '+str(ship_parts_node.get_path()))
+					ship_parts_node = next
+					continue
+				if not next or next.update_time<game_state.epoch_time:
+					var local_ship_parts = Commodities.ManyProducts.new()
+					universe_node.list_ship_parts(Commodities.ship_parts, local_ship_parts)
+					if next:
+						next.update(local_ship_parts,game_state.epoch_time,dropoff,scale)
+					else:
+						next = Commodities.ProductsNode.new(local_ship_parts,game_state.epoch_time)
+						next.name = child_name
+						if not ship_parts_node.add_child(next):
+							push_error('Cannot add "'+child_name+'" child of '+str(ship_parts_node.get_path()))
+				ship_parts_node = next
+		var ship_parts_node = ship_parts.get_node(relpath)
+		if ship_parts_node:
+			return ship_parts_node.products
+	return null
+
 func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
 	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
 	if place:
@@ -264,6 +301,16 @@ func ensure_markets_node():
 	markets = markets_node
 	return markets
 
+func ensure_ship_parts_node():
+	var ship_parts_node = root.get_child_with_name('ship_parts')
+	if not ship_parts_node:
+		ship_parts_node = simple_tree.SimpleNode.new()
+		ship_parts_node.name = 'ship_parts'
+		if not root.add_child(ship_parts_node):
+			push_error('Cannot add the "ship_parts" node to Player\'s tree.')
+	ship_parts = ship_parts_node
+	return ship_parts
+
 func _init():
 	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
 	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
@@ -281,3 +328,4 @@ func _init():
 	_discard = game_state.connect('universe_postload',self,'_on_universe_postload')
 	
 	ensure_markets_node()
+	ensure_ship_parts_node()

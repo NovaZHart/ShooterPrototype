@@ -6,6 +6,7 @@ var design_display_name: String = 'Uninitialized'
 var design_id: String = 'uninitialized'
 var selected_file
 var exit_confirmed = not game_state.game_editor_mode
+var ship_parts: Commodities.ManyProducts
 
 func popup_has_focus() -> bool:
 	return not not get_viewport().get_modal_stack_top()
@@ -134,29 +135,33 @@ func exit_to_orbit():
 
 func reset_parts_and_designs():
 	var _discard = cancel_drag()
-	$All/Left/Shop/Tabs/Designs.set_designs(game_state.ship_designs.get_child_names())
+	assert(ship_parts)
+	var design_names = []
+	for design_name in game_state.ship_designs.get_child_names():
+		var design = game_state.ship_designs.get_child_with_name(design_name)
+		if design.is_available(ship_parts):
+			design_names.append(design_name)
+	$All/Left/Shop/Tabs/Designs.set_designs(design_names)
+	
+	var weapons = []
+	for id in ship_parts.by_tag.get('weapon',[]):
+		var resource_path = ship_parts.all[id][Commodities.Products.NAME_INDEX]
+		if resource_path:
+			weapons.append(load(resource_path))
 	$All/Left/Shop/Tabs/Weapons.clear_items()
-	$All/Left/Shop/Tabs/Weapons.add_part_list([
-		preload('res://weapons/BlueLaserGun.tscn'),
-		preload('res://weapons/GreenLaserGun.tscn'),
-		preload('res://weapons/OrangeSpikeGun.tscn'),
-		preload('res://weapons/PurpleHomingGun.tscn'),
-		preload('res://weapons/OrangeSpikeTurret.tscn'),
-		preload('res://weapons/BlueLaserTurret.tscn'),
-	])
+	$All/Left/Shop/Tabs/Weapons.add_part_list(weapons)
 	$All/Left/Shop/Tabs/Weapons.arrange_items()
+	
+	var equipment = []
+	for tag in [ 'equipment', 'engine' ]:
+		for id in ship_parts.by_tag.get(tag,[]):
+			var resource_path = ship_parts.all[id][Commodities.Products.NAME_INDEX]
+			if resource_path:
+				equipment.append(load(resource_path))
 	$All/Left/Shop/Tabs/Equipment.clear_items()
-	$All/Left/Shop/Tabs/Equipment.add_part_list([
-		preload('res://equipment/engines/Engine2x2.tscn'),
-		preload('res://equipment/engines/Engine2x4.tscn'),
-		preload('res://equipment/engines/Engine4x4.tscn'),
-		preload('res://equipment/repair/Shield2x1.tscn'),
-		preload('res://equipment/repair/Shield2x2.tscn'),
-		preload('res://equipment/repair/Shield3x3.tscn'),
-		preload('res://equipment/EquipmentTest.tscn'),
-		preload('res://equipment/BigEquipmentTest.tscn'),
-	])
+	$All/Left/Shop/Tabs/Equipment.add_part_list(equipment)
 	$All/Left/Shop/Tabs/Equipment.arrange_items()
+	
 	show_edited_design_info()
 #	$All/Left/Shop/Tabs/Designs.set_edited_item_id(design_id)
 
@@ -168,11 +173,17 @@ func _ready():
 	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
 	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
 	$Drag/View.transparent_bg = true
+	if game_state.game_editor_mode:
+		ship_parts = Commodities.ship_parts
+	else:
+		ship_parts = Player.update_ship_parts_at(Player.player_location)
 	reset_parts_and_designs()
 	game_state.switch_editors(self)
 	if game_state.game_editor_mode:
 		remove_child($MainDialogTrigger)
 		$All/Left/Buttons/Depart.text='Fleet'
+		remove_child($All/Show/LocationLabel)
+		$All/Show/CargoMass.visible=false
 	elif not game_state.game_editor_mode:
 		$All/Left/Shop/Tabs/Designs.forbid_edits()
 		$All/Left/Shop/Tabs/Weapons.forbid_edits()
@@ -180,7 +191,19 @@ func _ready():
 		$All/Show/Grid/Top.visible=false
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Save)
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Load)
+		$All/Show/LocationLabel.set_location_label()
+		update_cargo_mass()
 	update_buttons()
+
+func update_cargo_mass():
+	var ship_design = make_edited_ship_design()
+	var stats = ship_design.get_stats()
+	var max_cargo_mass = int(round(stats['max_cargo']))*1000
+	var cargo_mass: int = 0
+	# Populate the data structures:
+	if ship_design.cargo:
+		cargo_mass = int(round(ship_design.cargo.get_mass()))
+	$All/Show/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(Player.money)
 
 func _exit_tree():
 	game_state.switch_editors(null)

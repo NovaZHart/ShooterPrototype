@@ -181,9 +181,9 @@
                     {
                       "services": [
                         "Array",
-                        "info",
-                        "shipeditor"
+                        "info"
                       ],
+                      "shipyard": [ "Array", "small_laser_terran" ],
                       "display_name": "Storm",
                       "description": "Description of Storm planet.",
                       "base": "ocean_planet",
@@ -370,8 +370,7 @@
               {
                 "services": [
                   "Array",
-                  "info",
-                  "shipeditor"
+                  "info"
                 ],
                 "display_name": "Astra",
                 "description": "",
@@ -405,8 +404,10 @@
                     {
                       "services": [
                         "Array",
-                        "info",
-                        "shipeditor"
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array", "small_laser_terran"
                       ],
                       "display_name": "Hellscape",
                       "description": "",
@@ -455,8 +456,10 @@
                     {
                       "services": [
                         "Array",
-                        "info",
-                        "shipeditor"
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array", "small_particle_terran"
                       ],
                       "display_name": "Pearl",
                       "description": "Description of Pearl planet.",
@@ -800,7 +803,9 @@
                       "services": [
                         "Array",
                         "info",
-                        "shipeditor"
+                      ],
+                      "shipyard": [
+                        "Array", "small_particle_terran"
                       ],
                       "display_name": "New Lagos",
                       "description": "",
@@ -847,7 +852,9 @@
                             "services": [
                               "Array",
                               "info",
-                              "shipeditor"
+                            ],
+                            "shipyard": [
+                              "Array", "small_particle_terran"
                             ],
                             "display_name": "New Ife",
                             "description": "",
@@ -1114,8 +1121,10 @@
               {
                 "services": [
                   "Array",
-                  "info",
-                  "shipeditor"
+                  "info"
+                ],
+                "shipyard": [
+                  "Array", "small_laser_terran"
                 ],
                 "display_name": "Kindra",
                 "description": "",
@@ -1173,8 +1182,10 @@
                     {
                       "services": [
                         "Array",
-                        "info",
-                        "shipeditor"
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array", "small_laser_terran"
                       ],
                       "display_name": "Yarra",
                       "description": "",
@@ -1506,8 +1517,10 @@
                     "SpaceObjectData",
                     {
                       "services": [
-                        "Array",
-                        "shipeditor"
+                        "Array"
+                      ],
+                      "shipyard": [
+                        "Array", "small_particle_terran"
                       ],
                       "display_name": "Moranna",
                       "description": "",

@@ -43,7 +43,7 @@ func exit_to_orbit():
 			var panel = ButtonPanel.instance()
 			panel.set_label_text("Your ship cannot fit all of it's cargo.")
 			var planet_info = Player.get_space_object_or_null()
-			if planet_info and planet_info.services.has('shipeditor'):
+			if planet_info and planet_info.has_shipyard():
 				panel.add_button('Go to Shipyard','res://ui/ships/ShipDesignScreen.tscn')
 			panel.set_cancel_text('Stay in Market')
 			var parent = get_tree().get_root()

@@ -2,6 +2,8 @@ extends Node
 
 var commodities: ManyProducts
 var trading: Dictionary
+var ship_parts: ManyProducts
+var shipyard: Dictionary
 var selected_commodity_index: int = -1
 
 # Maybwe move this to game data files?
@@ -604,6 +606,18 @@ class TerranTradeCenter extends ProducerConsumer:
 			'intoxicant/terran','manufactured/terran','raw_materials/metal','pets/terran',
 			'raw_materials/gems'],['live/sentient','dead/sentient','danger/highly_radioactive','taboo/house_cat'],m)
 
+class SmallLaserTerranShipyard extends ProducerConsumer:
+	func industry(all_products: Products, result: Products, _industrial_capacity: float):
+		result.add_products_from(all_products,['terran'],['particle','explosive','large','capital'])
+
+class SmallParticleTerranShipyard extends ProducerConsumer:
+	func industry(all_products: Products, result: Products, _industrial_capacity: float):
+		result.add_products_from(all_products,['terran'],['laser','explosive','large','capital'])
+
+class LargeTerranShipyard extends ProducerConsumer:
+	func industry(all_products: Products, result: Products, _industrial_capacity: float):
+		result.add_products_from(all_products,['terran'],[])
+
 class ProductsNode extends simple_tree.SimpleNode:
 	var products setget ,get_products #: ManyProducts or null
 	var update_time: int
@@ -691,9 +705,35 @@ func expand_tags(product_data: Array) -> Array:
 	return result			
 				
 
-func data_tables() -> ManyProducts:
+func shipyard_data_tables() -> ManyProducts:
 	var result = ManyProducts.new()
-	# name, quantity, value, fine, mass
+	var data = [ # name, quantity, value, fine, density, tags
+		[ 'res://weapons/BlueLaserGun.tscn', 40, 9000, 9000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/BlueLaserTurret.tscn', 25, 16000, 16000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/GreenLaserGun.tscn', 40, 22000, 22000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/OrangeSpikeGun.tscn', 40, 11000, 11000, 0, 'particle', 'weapon', 'terran' ],
+		[ 'res://weapons/OrangeSpikeTurret.tscn', 40, 31000, 31000, 0, 'particle', 'weapon', 'terran' ],
+		[ 'res://weapons/PurpleHomingGun.tscn', 40, 54000, 54000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
+		[ 'res://equipment/engines/Engine2x2.tscn', 40, 11000, 11000, 0, 'engine', 'terran' ],
+		[ 'res://equipment/engines/Engine2x4.tscn', 40, 23000, 23000, 0, 'engine', 'terran' ],
+		[ 'res://equipment/engines/Engine4x4.tscn', 40, 47000, 47000, 0, 'engine', 'terran', 'large' ],
+		[ 'res://equipment/repair/Shield2x1.tscn', 40, 16000, 16000, 0, 'equipment', 'shield', 'terran' ],
+		[ 'res://equipment/repair/Shield2x2.tscn', 40, 35000, 35000, 0, 'equipment', 'shield', 'terran' ],
+		[ 'res://equipment/repair/Shield3x3.tscn', 40, 79000, 79000, 0, 'equipment', 'shield', 'terran', 'large' ],
+		[ 'res://equipment/BigEquipmentTest.tscn', 40, 200, 200, 0, 'test', 'equipment', 'terran', 'large' ],
+		[ 'res://equipment/EquipmentTest.tscn', 40, 100, 100, 0, 'test', 'equipment', 'terran' ],
+		[ 'res://ships/BannerShip/BannerShipHull.tscn', 3, 394000, 394000, 0, 'hull/civilian/advertisment', 'terran', 'large' ],
+		[ 'res://ships/PurpleShips/CurvyWarshipHull.tscn', 3, 133000, 133000, 0, 'hull/combat/warship', 'terran' ],
+		[ 'res://ships/PurpleShips/HeavyWarshipHull.tscn', 1, 793000, 793000, 0, 'hull/combat/capital', 'terran', 'capital' ],
+		[ 'res://ships/PurpleShips/InterceptorHull.tscn', 12, 85000, 85000, 0, 'hull/combat/interceptor', 'terran' ],
+		[ 'res://ships/PurpleShips/WarshipHull.tscn', 3, 141000, 141000, 0, 'hull/combat/warship', 'terran' ],
+	]
+	result.add_products(expand_tags(data),null,null,null,false,range(len(data)))
+	return result
+
+func commodity_data_tables() -> ManyProducts:
+	var result = ManyProducts.new()
+	
 	var data = [ # name, quantity, value, fine, density, tags
 		
 		# Intoxicants
@@ -858,7 +898,13 @@ func data_tables() -> ManyProducts:
 	return result
 
 func _init():
-	commodities=data_tables()
+	ship_parts = shipyard_data_tables()
+	commodities = commodity_data_tables()
+	shipyard={
+		'small_laser_terran': SmallLaserTerranShipyard.new(),
+		'small_particle_terran': SmallParticleTerranShipyard.new(),
+		'large_terran': LargeTerranShipyard.new(),
+	}
 	trading={
 		'terran_government': TerranGovernment.new(),
 		'forbid_intoxicants': ForbidIntoxicants.new(),

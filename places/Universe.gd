@@ -128,6 +128,8 @@ func decode_ProductsNode(v):
 class Mounted extends simple_tree.SimpleNode:
 	var scene: PackedScene
 	func is_Mounted(): pass # for type detection; never called
+	func is_available(ship_parts):
+		return ship_parts.by_name.has(scene.resource_path)
 	func _init(scene_: PackedScene):
 		scene=scene_
 
@@ -167,6 +169,13 @@ func decode_MultiMounted(v):
 
 class MultiMount extends simple_tree.SimpleNode:
 	func is_MultiMount(): pass # for type detection; never called
+	func is_available(ship_parts):
+		for child_name in get_child_names():
+			var child = get_child_with_name(child_name)
+			if child and child.has_method('is_available'):
+				if not child.is_available(ship_parts):
+					return false
+		return true
 
 func decode_MultiMount(v):
 	if not v is Array or not len(v)>0 or not v[0]=='MultiMount':
@@ -194,6 +203,16 @@ class ShipDesign extends simple_tree.SimpleNode:
 		clear_cached_stats()
 	
 	func is_ShipDesign(): pass # for type detection; never called
+	
+	func is_available(ship_parts):
+		if not ship_parts.by_name.has(hull.resource_path):
+			return false
+		for child_name in get_child_names():
+			var child = get_child_with_name(child_name)
+			if child and child.has_method('is_available'):
+				if not child.is_available(ship_parts):
+					return false
+		return true
 	
 	func _init(display_name_: String, hull_: PackedScene):
 		display_name=display_name_

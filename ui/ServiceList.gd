@@ -29,9 +29,11 @@ func update_service_list():
 	if not service_names:
 		service_names = []
 	var i=0
-	if planet_info and not service_names.has('market') and \
-			(planet_info.trading or service_names.has('shipeditor')):
-		service_names = service_names + ['market']
+	if planet_info:
+		if planet_info.has_market():
+			service_names = service_names + ['market']
+		if planet_info.has_shipyard():
+			service_names = service_names + ['shipeditor']
 	for service_name in service_names:
 		var service = game_state.services.get(service_name,null)
 		if service == null:

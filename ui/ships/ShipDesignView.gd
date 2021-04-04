@@ -222,7 +222,7 @@ func dragging_item(item: MeshInstance):
 func remove_selected_item() -> bool:
 	var selected_node = get_node_or_null(selection)
 	if not selected_node or not selected_node.has_method('is_InventorySlot'):
-		push_warning('Tried to remove a selected item when none was selected (selection='+str(selection)+')')
+		# push_warning('Tried to remove a selected item when none was selected (selection='+str(selection)+')')
 		return false
 	elif selected_node.my_x<0 or selected_node.my_y<0:
 		return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
