@@ -6,8 +6,13 @@ export var min_aabb_scale: float = 4.0
 export var ship_border: float = 0.00
 export var initial_scale: float = 2.0
 export var hover_check_ticks: int = 100
+export var enabled_font: Font
+export var enabled_color: Color = Color(0.7,0.9,1.0,1.0)
+export var disabled_font: Font
+export var disabled_color: Color = Color(1.0,0.8,0.8,1.0)
 
 const InventorySlot: GDScript = preload('res://ui/ships/InventorySlot.gd')
+const InventoryArray: GDScript = preload('res://ui/ships/InventoryArray.gd')
 const y500: Vector3 = Vector3(0,500,0)
 const cell_span: float = 0.25
 const cell_pad: float = cell_span/2.0
@@ -25,6 +30,8 @@ var ship_zspan = 1.0 + 2.0*ship_border # must be >1.0
 var ship_xspan = ship_zspan
 var last_click_tick = -9999999
 var scenes = {} # key is resource_path, used to detect duplicate objects
+var item_count = {} # key is resource path, value is item count; missing means infinite
+var item_xspan = {}
 var design_names = {}
 var scroll_rate = 0.0
 var last_used_x_index: int = 0
@@ -45,6 +52,7 @@ var last_hover: NodePath
 var last_location_check_tick: int = -9999999
 
 var regular_layer: int = 0
+var disabled_layer: int = 0
 var highlight_layer: int = 0
 
 func update_hover(what):
@@ -69,8 +77,10 @@ func _ready():
 	scrollbar = $All/Top/Scroll
 	viewport.transparent_bg = true
 	regular_layer = $All/Top/View/Port/Sun.layers
+	disabled_layer = $All/Top/View/Port/Red.layers
 	highlight_layer = $All/Top/View/Port/SelectBack.layers
 	$All/Top/View/Port/Sun.light_cull_mask = regular_layer
+	$All/Top/View/Port/Red.light_cull_mask = disabled_layer
 	$All/Top/View/Port/SelectBack.light_cull_mask = highlight_layer
 	$All/Top/View/Port/SelectFront.light_cull_mask = highlight_layer
 	if not show_ships:
@@ -97,6 +107,17 @@ func update_buttons():
 		if child:
 			child.disabled = not selection
 
+func decide_layers(node,highlight) -> int:
+	var layers = highlight_layer if highlight else regular_layer
+	if node.scene:
+		var resource_path=node.scene.resource_path
+		var count=item_count.get(resource_path,null)
+		if count!=null and count<1:
+			layers |= disabled_layer
+	else:
+		push_warning('Node at path "'+str(node.get_path())+'" has no scene')
+	return layers
+
 func deselect(send_event=false) -> bool:
 	if not selection:
 		return true
@@ -105,7 +126,7 @@ func deselect(send_event=false) -> bool:
 		emit_signal('deselect_item',node)
 	selection=NodePath()
 	if node:
-		set_layers(node,regular_layer)
+		set_layers(node,decide_layers(node,false))
 	update_buttons()
 	return true
 
@@ -113,7 +134,7 @@ func select(var node: Node,send_event=true) -> bool:
 	if selection:
 		var _discard = deselect(send_event)
 	selection=node.get_path()
-	set_layers(node,highlight_layer|regular_layer)
+	set_layers(node,decide_layers(node,true))
 	update_buttons()
 	return true
 
@@ -149,7 +170,7 @@ func add_ship_design(design) -> bool:
 	scale = 1.0 / max(2.0,scale + 2.0/sqrt(max(scale,0.6)))
 	ship.scale = Vector3(scale,scale,scale)
 	design_names[ship.name] = design.get_path()
-	set_layers(ship,regular_layer)
+	set_layers(ship,decide_layers(ship,false))
 	if selection and selection.get_name(selection.get_name_count()-1)==ship.name:
 		var _discard = deselect()
 	return true
@@ -186,13 +207,44 @@ func add_mountable_part(scene: PackedScene) -> bool:
 	items_updated = true
 	items_mutex.unlock()
 	scenes[scene.resource_path] = area.get_path()
-	set_layers(area,regular_layer)
+	set_layers(area,decide_layers(area,false))
 	return true
+
+func _on_available_count_updated(counts):
+	set_item_counts(counts)
+
+func set_item_counts(counts):
+	var new_item_count: Dictionary = {}
+	for resource_path in scenes:
+		var product = counts.all.get(counts.by_name.get(resource_path,-1),null)
+		if product:
+			new_item_count[resource_path] = product[Commodities.Products.QUANTITY_INDEX]
+		else:
+			new_item_count[resource_path] = 0
+	item_count = new_item_count
+	update_item_colors()
+
+func add_ship_parts(parts: Commodities.ManyProducts,include_tags: Array, exclude_tags=null):
+	var ids = parts.ids_for_tags(include_tags,exclude_tags)
+	for id in ids:
+		var product = parts.all.get(id,null)
+		if product:
+			var resource_path = product[Commodities.Products.NAME_INDEX]
+			var scene = load(resource_path)
+			if add_mountable_part(scene):
+				item_count[resource_path] = product[Commodities.Products.QUANTITY_INDEX]
+	update_item_colors()
 
 # warning-ignore:shadowed_variable
 func add_part_list(scenes: Array):
 	for scene in scenes:
 		var _discard = add_mountable_part(scene)
+	update_item_colors()
+
+func update_item_colors():
+	for child in $All/Top/View/Port/Items.get_children():
+		set_layers(child,decide_layers(child,child.get_path()==selection))
+	$All/Top/View/Port/Annotations.update()
 
 func arrange_mountable_items():
 	var view_size: Vector2 = viewport.size
@@ -263,7 +315,7 @@ func arrange_mountable_items():
 			assert(infinity_guard < infinite_loop)
 			var item_zspan: float = int(ceil(item.nx))*cell_span+2*cell_pad
 			item.translation = Vector3(row_x_start-row_xspan/2, 0.0, col_z + item_zspan/2.0)
-			
+			item_xspan[item.get_path()] = row_xspan
 			col_z += item_zspan
 		row_x_start -= row_xspan
 	
@@ -339,6 +391,7 @@ func arrange_items():
 		$All/Top.columns=1
 	
 	scrollbar.page=min(scrollbar.page,scrollbar.max_value-scrollbar.min_value)
+	$All/Top/View/Port/Annotations.update()
 
 func input():
 	if get_tree().current_scene.popup_has_focus():
@@ -387,6 +440,10 @@ func input():
 			if not selection_dragging and mouse_pos.distance_to(selection_click)>3:
 				var selected_node = get_node_or_null(selection)
 				if selected_node:
+					if selected_node.scene:
+						var count = item_count.get(selected_node.scene.resource_path,null)
+						if count!=null and count<1:
+							return
 					selection_dragging=true
 					emit_signal('drag_selection',selected_node.scene)
 
@@ -408,16 +465,18 @@ func _process(delta):
 func _on_View_resized():
 	$All/Top/View/Port.size = $All/Top/View.rect_size
 	resized = true
+	$All/Top/View/Port/Annotations.update()
 
 func _on_Zoom_value_changed(value):
 	items_mutex.lock()
 	scale = value
 	resized = true
 	items_mutex.unlock()
+	$All/Top/View/Port/Annotations.update()
 
 func _on_Scroll_value_changed(value):
 	camera.translation = Vector3(-camera_xspan/2-value, 50.0, 0.0)
-
+	$All/Top/View/Port/Annotations.update()
 
 func _on_ItemPanel_visibility_changed():
 	arrange_items()
@@ -455,3 +514,31 @@ func set_edited_item_id(design_name: String):
 	else:
 		$All/Buttons/Add.disabled=false
 		$All/Buttons/Add.hint_tooltip="Add the design you're currently editing as a new design with id "+'"'+design_name+'"'
+
+func _on_Annotations_draw():
+	var enabled_descent: float = enabled_font.get_descent()
+	var disabled_descent: float = disabled_font.get_descent()
+	var anne: CanvasItem = $All/Top/View/Port/Annotations
+	var loc0: Vector2 = camera.unproject_position(Vector3(0,0,0))
+	var loc1: Vector2 = camera.unproject_position(Vector3(InventoryArray.grid_cell_size,0,0))
+	var cell_size: float = loc1.distance_to(loc0)
+	for child in $All/Top/View/Port/Items.get_children():
+		if not child.scene:
+			push_warning('child '+str(child.get_path())+' has no scene')
+		var resource_path = child.scene.resource_path
+		var count = item_count.get(resource_path,null)
+		if count==null:
+			continue
+		var string: String = str(max(count,0))
+		
+		var annotation_font = enabled_font if count>0 else disabled_font
+		var annotation_color = enabled_color if count>0 else disabled_color
+		var descent = enabled_descent if count>0 else disabled_descent
+		
+		var size: Vector2 = annotation_font.get_string_size(string)
+		var pos2 = camera.unproject_position(child.translation)
+		pos2.y -= descent
+		var xspan = item_xspan.get(child.get_path(),0)
+		pos2.y += cell_size*xspan*2
+		pos2.x -= size.x/2.0
+		anne.draw_string(annotation_font,pos2,string,annotation_color)

@@ -9,7 +9,7 @@ var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
-var money: int = 98000
+var money: int = 38000
 var markets: simple_tree.SimpleNode
 var ship_parts: simple_tree.SimpleNode
 var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
@@ -320,9 +320,9 @@ func _init():
 	assert(player_location)
 	assert(system)
 	
-	var banner_godship = game_state.ship_designs.get_node_or_null('godship')
-	assert(banner_godship)
-	player_ship_design = banner_godship
+	var start_ship = game_state.ship_designs.get_node_or_null('godship')
+	assert(start_ship)
+	player_ship_design = start_ship
 	
 	var _discard = game_state.connect('universe_preload',self,'_on_universe_preload')
 	_discard = game_state.connect('universe_postload',self,'_on_universe_postload')

@@ -76,6 +76,9 @@ func is_SpaceObjectData(): pass # never called; must only exist
 func has_market():
 	return services.has('market') and ( trading or shipyard )
 
+func has_shipyard():
+	return not not shipyard
+
 func get_system(): # -> SystemData or null
 	var parent = get_parent()
 	if parent and parent.has_method('get_system'):
@@ -174,12 +177,8 @@ func list_products(commodities: Commodities.Products, result: Commodities.Produc
 				str(Commodities.trading.keys()))
 	price_products(result)
 
-func price_ship_parts(result: Commodities.Products):
-	if shipyard_locality_adjustments:
-		result.apply_multiplier_list(shipyard_locality_adjustments)
-	var system = get_system()
-	if system:
-		system.price_products(result)
+func price_ship_parts(_result: Commodities.Products):
+	pass # FIXME: Maybe implement locality adjustments for parts?
 
 func list_ship_parts(all: Commodities.Products, here: Commodities.Products):
 	for whut in shipyard:

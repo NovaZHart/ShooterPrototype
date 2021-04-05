@@ -34,6 +34,9 @@ class Products extends Reference:
 	const FIRST_TAG_INDEX: int = MASS_INDEX+1 # First index in all[id] of tags
 	const index_type: Array = [ 'name', 'value', 'fine', 'quantity', 'mass' ]
 	
+	func duplicate(_deep):
+		push_error('Subclass forgot to override duplicate()')
+	
 	func clear():
 		all={}
 		by_name={}
@@ -195,6 +198,14 @@ class OneProduct extends Products:
 		by_tag={}
 		product_name=''
 	
+	func duplicate(deep=true):
+		var p=OneProduct.new()
+		p.all=all.duplicate(deep)
+		p.by_name=by_name.duplicate(deep)
+		p.by_tag=by_tag.duplicate(deep)
+		p.product_name=product_name
+		return p
+	
 	func copy():
 		var result = OneProduct.new()
 		if all:
@@ -279,6 +290,14 @@ class OneProduct extends Products:
 class ManyProducts extends Products:
 	var last_id: int = -1 # last ID assigned to a product in `all`
 	
+	func duplicate(deep = true):
+		var p=ManyProducts.new()
+		p.all=all.duplicate(deep)
+		p.by_name=by_name.duplicate(deep)
+		p.by_tag=by_tag.duplicate(deep)
+		p.last_id=last_id
+		return p
+	
 	func clear():
 		all={}
 		by_name={}
@@ -320,6 +339,44 @@ class ManyProducts extends Products:
 			else:
 				by_tag[tag].append(id)
 		return id
+	
+	func add_quantity_from(all_products,product_name: String,count = null,fallback=null):
+		assert(count==null or count is int)
+		
+		var my_id=by_name.get(product_name,-1)
+		if count!=null and my_id>=0:
+			all[my_id][QUANTITY_INDEX] = max(0,all[my_id][QUANTITY_INDEX]+count)
+			return
+		
+		var from_id=all_products.by_name.get(product_name,-1)
+		var from_product=all_products.all.get(from_id,null)
+		if not from_product and fallback!=null:
+			from_id=fallback.by_name.get(product_name,-1)
+			from_product=fallback.all.get(from_id,null)
+		elif not from_product:
+			push_warning('Could not find product named "'+str(product_name)+'" in all_products and no fallback was provided')
+			assert(false)
+		
+		if not from_product:
+			push_warning('No product to add for name "'+str(product_name)+'"')
+			assert(false)
+		elif my_id>=0: # count is null at this point
+			all[my_id][QUANTITY_INDEX] += from_product[QUANTITY_INDEX]
+		elif from_id>=0:
+			last_id += 1
+			all[last_id] = from_product.duplicate(true)
+			by_name[product_name]=last_id
+			for itag in range(FIRST_TAG_INDEX,len(from_product)):
+				var tag = from_product[itag]
+				if by_tag.has(tag):
+					by_tag[tag].append(last_id)
+				else:
+					by_tag[tag]=[last_id]
+			if count!=null:
+				all[last_id][QUANTITY_INDEX] = max(0,count)
+		else:
+			push_warning('Could not find product "'+str(product_name)+'" in all_products, self, or fallback.')
+			assert(false)
 	
 	func add_products(all_products,  # : Dictionary or Products
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
@@ -399,6 +456,19 @@ class ManyProducts extends Products:
 				_apply_multipliers(all[id],product,qm,value_multiplier,fine_multiplier)
 
 		return false
+	
+	func reduce_quantity_by(this_much):
+		for id in this_much.all:
+			var product = this_much.all.get(id,null)
+			if product:
+				var remove_quantity=max(0,product[QUANTITY_INDEX])
+				if remove_quantity:
+					var my_id = by_name.get(product[NAME_INDEX],-1)
+					if my_id>=0:
+						var my_product = all.get(my_id,null)
+						if my_product:
+							var my_quantity=max(0,my_product[QUANTITY_INDEX])
+							my_product[QUANTITY_INDEX] = max(0,my_quantity-remove_quantity)
 	
 	func remove_absent_products():
 		for id in all.keys():
@@ -493,6 +563,23 @@ class ManyProducts extends Products:
 			var id = by_name.get(product_name,-1)
 			if id>0:
 				var _ignore = all.erase(id)
+	
+	func ids_within(prod: Products) -> PoolIntArray:
+		var ids = []
+		for product_name in prod.by_name:
+			var id = by_name.get(product_name,-1)
+			if id>=0:
+				ids.append(id)
+		return PoolIntArray(ids)
+	
+	func ids_not_within(prod: Products) -> PoolIntArray:
+		var ids = []
+		for product_name in by_name:
+			if prod.by_name.get(product_name,-1)<0:
+				var id = by_name.get(product_name,-1)
+				if id>=0:
+					ids.append(id)
+		return PoolIntArray(ids)
 	
 	# Given the output of encode(), replace all data in this Product.
 	func decode(from: Dictionary):
@@ -899,7 +986,9 @@ func commodity_data_tables() -> ManyProducts:
 
 func _init():
 	ship_parts = shipyard_data_tables()
+	assert(ship_parts)
 	commodities = commodity_data_tables()
+	assert(commodities)
 	shipyard={
 		'small_laser_terran': SmallLaserTerranShipyard.new(),
 		'small_particle_terran': SmallParticleTerranShipyard.new(),

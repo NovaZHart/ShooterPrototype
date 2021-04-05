@@ -234,7 +234,7 @@ func remove_selected_item() -> bool:
 	
 	var item = parent.item_at(selected_node.my_x,selected_node.my_y)
 	if not item:
-		push_warning('Multimount slot has no item (selection='+str(selection)+')')
+		pass # push_warning('Multimount slot has no item (selection='+str(selection)+')')
 		return false
 	return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
 		parent.name, item.item_offset_x, item.item_offset_y))
@@ -478,6 +478,28 @@ func make_design(design_id,display_name) -> Dictionary:
 			design.add_child(mounted)
 	design.cargo = ship.cargo
 	return design
+
+func list_ship_parts(parts,from):
+	var ship = tree.get_node_or_null('/root/Ship')
+	if not ship:
+		push_error("Cannot list ship parts until a ship is loaded.")
+		return parts
+	parts.add_quantity_from(from,ship.hull.resource_path,1,Commodities.ship_parts)
+	for mount_name in mounts.get_child_names():
+		var mount = mounts.get_child_with_name(mount_name)
+		if not mount:
+			# Should never get here.
+			push_error('Internal error: mount has no child with a name from get_child_names')
+		elif mount.multimount:
+			var node = get_node_or_null(mount.box)
+			if node:
+				node.list_ship_parts(parts,from)
+			else:
+				push_error('No box path for multimount "'+str(mount_name)+'"')
+		elif mount.scene:
+			#print('single add quantity from '+str(mount.scene.resource_path))
+			parts.add_quantity_from(from,mount.scene.resource_path,1,Commodities.ship_parts)
+	return parts
 
 func make_ship(design):
 	clear_ship()

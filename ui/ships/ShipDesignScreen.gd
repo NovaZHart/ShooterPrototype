@@ -6,7 +6,11 @@ var design_display_name: String = 'Uninitialized'
 var design_id: String = 'uninitialized'
 var selected_file
 var exit_confirmed = not game_state.game_editor_mode
-var ship_parts: Commodities.ManyProducts
+var shop_parts: Commodities.ManyProducts # everything for sale
+var all_ship_parts: Commodities.ManyProducts # for sale plus parts in ship
+var wealth: int # money plus ship value
+
+signal available_ship_parts_updated
 
 func popup_has_focus() -> bool:
 	return not not get_viewport().get_modal_stack_top()
@@ -15,6 +19,22 @@ func cancel_drag() -> bool:
 	drag_scene=null
 	sync_drag_view(false)
 	return true
+
+func remove_part_from_store(resource_path: String):
+	#print('remove part from store: '+str(resource_path))
+	var id = shop_parts.by_name.get(resource_path,-1)
+	if id<0:
+		push_error('Tried to remove more "'+str(resource_path)+'" than were available.')
+	else:
+		shop_parts.add_quantity_from(all_ship_parts,resource_path,-1)
+		update_cargo_and_money()
+		emit_signal('available_ship_parts_updated',shop_parts)
+
+func put_part_in_store(resource_path: String):
+	#print('put part in store: '+str(resource_path))
+	shop_parts.add_quantity_from(all_ship_parts,resource_path,1)
+	update_cargo_and_money()
+	emit_signal('available_ship_parts_updated',shop_parts)
 
 func set_drag_scene(scene: PackedScene):
 	assert(scene!=null)
@@ -104,62 +124,73 @@ func make_edited_ship_design() -> simple_tree.SimpleNode:
 	return $All/Show/Grid/Ship.make_design(design_id,design_display_name)
 
 func exit_to_orbit():
-	var design = make_edited_ship_design()
+	var updated = update_cargo_and_money()
+	var design = updated['ship_design']
 	design.name = 'player_ship_design'
 	var node = game_state.ship_designs.get_node_or_null('player_ship_design')
 	if node:
 		game_state.ship_designs.remove_child(node)
 #		design.cargo = node.cargo
-	if design.cargo:
-		var max_cargo = design.get_stats()['max_cargo']*1000
-		if max_cargo and design.cargo.get_mass()>max_cargo:
-			var panel = ButtonPanel.instance()
-			panel.set_label_text("Your ship cannot fit all of it's cargo.")
-			panel.add_button('Buy/Sell in Market','res://ui/commodities/TradingScreen.tscn')
-			panel.set_cancel_text('Stay in Shipyard')
-			var parent = get_tree().get_root()
-			parent.add_child(panel)
-			panel.popup()
-			while panel.visible:
-				yield(get_tree(),'idle_frame')
-			var result = panel.result
-			parent.remove_child(panel)
-			panel.queue_free()
-			if result:
-				game_state.call_deferred('change_scene',result)
-			else:
-				return # do not change scene
+	var message = null
+	if not game_state.game_editor_mode:
+		if updated['money'] < 0:
+			message = "You don't have enough money to buy this ship."
+		elif updated['cargo_mass'] > updated['max_cargo_mass']:
+			message = "Your ship can't fit all of its cargo."
+	if message:
+		var panel = ButtonPanel.instance()
+		panel.set_label_text(message)
+		panel.add_button('Buy/Sell in Market','res://ui/commodities/TradingScreen.tscn')
+		panel.set_cancel_text('Stay in Shipyard')
+		var parent = get_tree().get_root()
+		parent.add_child(panel)
+		panel.popup()
+		while panel.visible:
+			yield(get_tree(),'idle_frame')
+		var result = panel.result
+		parent.remove_child(panel)
+		panel.queue_free()
+		if result:
+			Player.money = updated['money']
+			game_state.call_deferred('change_scene',result)
+		else:
+			return # do not change scene
 	game_state.ship_designs.add_child(design)
 	Player.player_ship_design=design
+	Player.money = updated['money']
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func reset_parts_and_designs():
 	var _discard = cancel_drag()
-	assert(ship_parts)
+	if not game_state.game_editor_mode:
+		all_ship_parts = shop_parts.duplicate(true)
+		var assembled_products = price_ship_parts(get_edited_ship_parts())
+		for product_name in assembled_products.by_name:
+			all_ship_parts.add_quantity_from(assembled_products,product_name)
+		wealth = Player.money + assembled_products.get_value()
+	else:
+		all_ship_parts = shop_parts.duplicate(true)
+	assert(all_ship_parts)
 	var design_names = []
 	for design_name in game_state.ship_designs.get_child_names():
 		var design = game_state.ship_designs.get_child_with_name(design_name)
-		if design.is_available(ship_parts):
+		if design.is_available(all_ship_parts):
 			design_names.append(design_name)
 	$All/Left/Shop/Tabs/Designs.set_designs(design_names)
 	
-	var weapons = []
-	for id in ship_parts.by_tag.get('weapon',[]):
-		var resource_path = ship_parts.all[id][Commodities.Products.NAME_INDEX]
-		if resource_path:
-			weapons.append(load(resource_path))
+	if not game_state.game_editor_mode:
+		var player_ship_design = game_state.ship_designs.get_node_or_null('player_ship_design')
+		if player_ship_design:
+			$All/Left/Shop/Tabs/Designs.add_ship_design(player_ship_design)
+	
 	$All/Left/Shop/Tabs/Weapons.clear_items()
-	$All/Left/Shop/Tabs/Weapons.add_part_list(weapons)
+	$All/Left/Shop/Tabs/Weapons.add_ship_parts(all_ship_parts,['weapon'],[])
+	$All/Left/Shop/Tabs/Weapons.set_item_counts(shop_parts)
 	$All/Left/Shop/Tabs/Weapons.arrange_items()
 	
-	var equipment = []
-	for tag in [ 'equipment', 'engine' ]:
-		for id in ship_parts.by_tag.get(tag,[]):
-			var resource_path = ship_parts.all[id][Commodities.Products.NAME_INDEX]
-			if resource_path:
-				equipment.append(load(resource_path))
 	$All/Left/Shop/Tabs/Equipment.clear_items()
-	$All/Left/Shop/Tabs/Equipment.add_part_list(equipment)
+	$All/Left/Shop/Tabs/Equipment.add_ship_parts(all_ship_parts,['equipment','engine'],[])
+	$All/Left/Shop/Tabs/Equipment.set_item_counts(shop_parts)
 	$All/Left/Shop/Tabs/Equipment.arrange_items()
 	
 	show_edited_design_info()
@@ -174,9 +205,9 @@ func _ready():
 	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
 	$Drag/View.transparent_bg = true
 	if game_state.game_editor_mode:
-		ship_parts = Commodities.ship_parts
+		shop_parts = Commodities.ship_parts
 	else:
-		ship_parts = Player.update_ship_parts_at(Player.player_location)
+		shop_parts = Player.update_ship_parts_at(Player.player_location)
 	reset_parts_and_designs()
 	game_state.switch_editors(self)
 	if game_state.game_editor_mode:
@@ -187,15 +218,23 @@ func _ready():
 	elif not game_state.game_editor_mode:
 		$All/Left/Shop/Tabs/Designs.forbid_edits()
 		$All/Left/Shop/Tabs/Weapons.forbid_edits()
+		var _ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Weapons,
+			'_on_available_count_updated')
 		$All/Left/Shop/Tabs/Equipment.forbid_edits()
+		_ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Equipment,
+			'_on_available_count_updated')
 		$All/Show/Grid/Top.visible=false
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Save)
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Load)
 		$All/Show/LocationLabel.set_location_label()
-		update_cargo_mass()
+		update_cargo_and_money()
 	update_buttons()
 
-func update_cargo_mass():
+func update_cargo_and_money():
+	var edited_ship_parts = price_ship_parts(get_edited_ship_parts())
+	var ship_value = edited_ship_parts.get_value()
+	var money = wealth - ship_value
+	print('money = '+str(wealth)+' - '+str(ship_value)+' = '+str(money))
 	var ship_design = make_edited_ship_design()
 	var stats = ship_design.get_stats()
 	var max_cargo_mass = int(round(stats['max_cargo']))*1000
@@ -203,7 +242,8 @@ func update_cargo_mass():
 	# Populate the data structures:
 	if ship_design.cargo:
 		cargo_mass = int(round(ship_design.cargo.get_mass()))
-	$All/Show/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(Player.money)
+	$All/Show/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(money)
+	return { 'ship_design':ship_design, 'cargo_mass':cargo_mass, 'max_cargo_mass':max_cargo_mass, 'money':money }
 
 func _exit_tree():
 	game_state.switch_editors(null)
@@ -213,10 +253,14 @@ func _exit_tree():
 		universe_edits.state.clear()
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
-	return $All/Show/Grid/Ship.add_item(scene,mount_name,x,y)
+	var result = $All/Show/Grid/Ship.add_item(scene,mount_name,x,y)
+	remove_part_from_store(scene.resource_path)
+	return result
 
 func remove_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
-	return $All/Show/Grid/Ship.remove_item(scene,mount_name,x,y)
+	var result = $All/Show/Grid/Ship.remove_item(scene,mount_name,x,y)
+	put_part_in_store(scene.resource_path)
+	return result
 
 func add_design(design: simple_tree.SimpleNode) -> bool:
 	$All/Left/Shop/Tabs/Designs.add_ship_design(design)
@@ -351,12 +395,24 @@ func set_edited_ship_name(new_name: String) -> bool:
 	return true
 
 func set_edited_ship_design(design: simple_tree.SimpleNode) -> bool:
+	# Put everything back in the store:
+	if not game_state.game_editor_mode:
+		shop_parts = all_ship_parts.duplicate(true)
+	
+	# Switch the ship:
 	$All/Show/Grid/Ship.make_ship(design)
 	design_id = design.name
 	design_display_name = design.display_name
 	$All/Show/Grid/Top/IDEdit.text = design_id
 	$All/Show/Grid/Top/NameEdit.text = design_display_name
 	#$All/Left/Shop/Tabs/Designs.set_edited_item_id(design_id)
+	
+	# Remove the used parts from the store:
+	if not game_state.game_editor_mode:
+		shop_parts.reduce_quantity_by(get_edited_ship_parts())
+		update_cargo_and_money()
+		emit_signal('available_ship_parts_updated',shop_parts)
+	
 	return true
 
 func _on_IDEdit_focus_exited():
@@ -411,6 +467,24 @@ func _on_Designs_select(design_path):
 func _on_Designs_remove(design_path):
 	var design_name = design_path.get_name(design_path.get_name_count()-1)
 	universe_edits.state.push(ship_edits.RemoveDesign.new(design_name))
+
+func get_edited_ship_parts():
+	var parts = Commodities.ManyProducts.new()
+	$All/Show/Grid/Ship.list_ship_parts(parts,shop_parts)
+	parts.remove_absent_products()
+	return parts
+
+func price_ship_parts(parts):
+	# FIXME: Maybe implement varying part prices?
+#	var planet_info = Player.get_space_object_or_null()
+#	if planet_info:
+#		var new_part_ids = parts.ids_not_within(shop_parts)
+#		var new_parts = parts.make_subset(new_part_ids)
+#		planet_info.price_ship_parts(new_parts)
+#		var old_part_ids = parts.ids_within(shop_parts)
+#		parts = parts.make_subset(old_part_ids)
+#		parts.add_products(new_parts)
+	return parts
 
 func _on_Designs_open(design_path):
 	var old_design = make_edited_ship_design()

@@ -34,31 +34,33 @@ func exit_to_orbit():
 	var design = Player.player_ship_design
 	design.cargo = $All/Left/Bottom/TradingList.mine.copy()
 	design.cargo.remove_empty_products()
-	print('marketplace thinks: '+str($All/Left/Bottom/TradingList.mine))
-	print('design thinks: '+str(design.cargo))
-	if design.cargo:
+	var message = null
+	if Player.money<0:
+		message = "You don't have enough money to buy your ship!"
+	elif design.cargo:
 		var max_cargo = design.get_stats()['max_cargo']*1000
 		if max_cargo and design.cargo.get_mass()>max_cargo:
-			print('cargo '+str(design.cargo.get_mass())+'>'+str(max_cargo))
-			var panel = ButtonPanel.instance()
-			panel.set_label_text("Your ship cannot fit all of it's cargo.")
-			var planet_info = Player.get_space_object_or_null()
-			if planet_info and planet_info.has_shipyard():
-				panel.add_button('Go to Shipyard','res://ui/ships/ShipDesignScreen.tscn')
-			panel.set_cancel_text('Stay in Market')
-			var parent = get_tree().get_root()
-			parent.add_child(panel)
-			panel.popup()
-			while panel.visible:
-				yield(get_tree(),'idle_frame')
-			var result = panel.result
-			parent.remove_child(panel)
-			panel.queue_free()
-			if result:
-				$All/Left/Bottom/TradingList.here.remove_empty_products()
-				game_state.call_deferred('change_scene',result)
-			else:
-				return # do not change scene
+			message = "Your ship cannot fit all of its cargo!"
+	if message:
+		var panel = ButtonPanel.instance()
+		panel.set_label_text(message)
+		var planet_info = Player.get_space_object_or_null()
+		if planet_info and planet_info.has_shipyard():
+			panel.add_button('Go to Shipyard','res://ui/ships/ShipDesignScreen.tscn')
+		panel.set_cancel_text('Stay in Market')
+		var parent = get_tree().get_root()
+		parent.add_child(panel)
+		panel.popup()
+		while panel.visible:
+			yield(get_tree(),'idle_frame')
+		var result = panel.result
+		parent.remove_child(panel)
+		panel.queue_free()
+		if result:
+			$All/Left/Bottom/TradingList.here.remove_empty_products()
+			game_state.call_deferred('change_scene',result)
+		else:
+			return # do not change scene
 	$All/Left/Bottom/TradingList.here.remove_empty_products()
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 

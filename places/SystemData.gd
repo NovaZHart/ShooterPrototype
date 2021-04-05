@@ -114,6 +114,9 @@ func get_display_name() -> String:
 func num_planets():
 	return get_child_count()
 
+func price_ship_parts(_result):
+	pass # FIXME: Maybe implement locality adjustments for parts?
+
 func price_products(result: Commodities.Products):
 	result.randomize_costs(hash(get_path()),game_state.epoch_time/365.25)
 	if locality_adjustments:
