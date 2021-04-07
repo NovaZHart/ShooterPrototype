@@ -221,12 +221,13 @@ class ShipDesign extends simple_tree.SimpleNode:
 			var child = get_child_with_name(child_name)
 			if child and child.has_method('list_ship_parts'):
 				child.list_ship_parts(parts,from)
+		return parts
 	
-	func is_available(ship_parts):
-		var my_parts = Commodities.ManyProducts.new()
-		list_ship_parts(my_parts,ship_parts)
+	func has_sufficient_parts(my_parts, all_parts) -> bool:
+		# my_parts = return value from list_ship_parts
+		# all_parts = second argument to list_ship_parts
 		for part_name in my_parts.by_name:
-			var product = ship_parts.all.get(ship_parts.by_name.get(part_name,-1),null)
+			var product = all_parts.all.get(all_parts.by_name.get(part_name,-1),null)
 			if not product:
 				return false
 			var my_product = my_parts.all.get(my_parts.by_name.get(part_name,-1),null)
@@ -235,6 +236,11 @@ class ShipDesign extends simple_tree.SimpleNode:
 			if my_product[Commodities.Products.QUANTITY_INDEX]>product[Commodities.Products.QUANTITY_INDEX]:
 				return false
 		return true
+	
+	func is_available(ship_parts) -> bool:
+		var my_parts = Commodities.ManyProducts.new()
+		list_ship_parts(my_parts,ship_parts)
+		return has_sufficient_parts(my_parts,ship_parts)
 #
 #	func is_available(ship_parts):
 #		if not ship_parts.by_name.has(hull.resource_path):

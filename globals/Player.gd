@@ -321,6 +321,7 @@ func _init():
 	assert(system)
 	
 	var start_ship = game_state.ship_designs.get_node_or_null('godship')
+	#var start_ship = game_state.ship_designs.get_node_or_null('interceptor_cyclotrons')
 	assert(start_ship)
 	player_ship_design = start_ship
 	

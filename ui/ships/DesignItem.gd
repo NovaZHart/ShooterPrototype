@@ -6,11 +6,13 @@ export var small_code: Font
 export var double_click_time: int = 250
 
 var selected = false
+var disabled = false setget set_disabled
 var hovering = false
 var design_path: NodePath = NodePath()
 var design_size: float = 1.0
 var regular_layer: int = 0
 var highlight_layer: int = 0
+var disabled_layer: int = 0
 var last_click: int = -9999999
 var regular_bbcode: String
 var highlight_bbcode: String
@@ -78,10 +80,13 @@ func set_design(new_path: NodePath) -> bool:
 	ship.name = 'Ship'
 	design_size = max(1.0,max(stats['aabb'].size.x,stats['aabb'].size.z))
 	$View/Port.add_child(ship)
-	if selected:
-		set_layers(ship,highlight_layer|regular_layer)
-	else:
-		set_layers(ship,regular_layer)
+	var _discard = set_ship_layers()
+#	var layers = regular_layer
+#	if selected:
+#		layers |= highlight_layer
+#	if disabled:
+#		layers |= disabled_layer
+#	set_layers(ship,layers)
 	sync_sizes()
 	$View/Port/Annotation.update()
 	return true
@@ -125,12 +130,20 @@ func select(send_event: bool = true):
 		$View/Port/Annotation.update()
 		update_bbcode()
 
+func set_disabled(new_value: bool):
+	var repaint = new_value!=disabled
+	if repaint:
+		disabled = new_value
+		var _discard = set_ship_layers()
+
 func set_ship_layers() -> bool:
 	var ship = $View/Port.get_node_or_null('Ship')
 	if ship:
 		var layers: int = regular_layer
 		if selected:
 			layers |= highlight_layer
+		if disabled:
+			layers |= disabled_layer
 		set_layers(ship,layers)
 	return not not ship
 
@@ -189,6 +202,7 @@ func _input(event):
 func _ready():
 	regular_layer = $View/Port/Sun.layers
 	highlight_layer = $View/Port/SelectBack.layers
+	disabled_layer = 8 # this should work but doesn't => $View/Port/Red.layers
 	$View/Port.transparent_bg = true
 	info_min_fraction = clamp(info_min_fraction,0.2,0.8)
 	sync_sizes()

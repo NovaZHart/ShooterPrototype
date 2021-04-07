@@ -19,6 +19,8 @@ var selected_design: NodePath = NodePath() setget set_selected_design
 var last_move_tick: int = 0
 var last_update_tick: int = -2*update_delay
 var design_mutex: Mutex = Mutex.new()
+var design_costs: Dictionary = {} # key: NodePath, value: cost (null means disregard cost)
+var max_purchase_value = null # player's wealth for determining what ships they can purchase
 
 signal hover_over_design
 signal select_nothing
@@ -90,6 +92,31 @@ func remove_ship_design(design: simple_tree.SimpleNode) -> bool:
 	design_mutex.unlock()
 	return true
 
+func _on_available_count_updated(counts,money,ship_value):
+	var old_mpv = max_purchase_value
+	max_purchase_value = money+ship_value
+	var new_costs = {}
+	for design_path in design_paths:
+		var design = game_state.ship_designs.get_node_or_null(design_path)
+		if design:
+			var parts = Commodities.ManyProducts.new()
+			design.list_ship_parts(parts,counts)
+			new_costs[design_path] = parts.get_value()
+	
+	var changed: bool = old_mpv!=max_purchase_value
+	if not changed:
+		for design_path in design_paths:
+			var old_cost = design_costs.get(design_path,null)
+			var new_cost = new_costs.get(design_path,null)
+			if old_cost!=new_cost:
+				changed=true
+				break
+	
+	design_costs = new_costs
+	
+	if changed:
+		update_designs(true,false)
+
 func add_ship_design(design: simple_tree.SimpleNode) -> bool:
 	if not design.get_tree():
 		push_error('Tried to add a ship design that had no path.')
@@ -102,11 +129,20 @@ func add_ship_design(design: simple_tree.SimpleNode) -> bool:
 	design_mutex.unlock()
 	return true
 
+func can_purchase(design_path):
+	if max_purchase_value!=null:
+		var design_cost = design_costs.get(design_path,null)
+		if design_cost!=null:
+			return design_cost<=max_purchase_value
+	return true
+
 func update_buttons():
-	for button_name in [ 'Change', 'Open' ]:
-		var button = $All/Buttons.get_node_or_null(button_name)
-		if button:
-			button.disabled = not selected_design
+	var Change = $All/Buttons.get_node_or_null('Change')
+	if Change:
+		Change.disabled = not selected_design
+	var Open = $All/Buttons.get_node_or_null('Open')
+	if Open:
+		Open.disabled = not selected_design or not can_purchase(selected_design)
 	var Remove = $All/Buttons.get_node_or_null('Remove')
 	if Remove:
 		Remove.disabled = disable_Remove or not selected_design
@@ -186,6 +222,7 @@ func add_list_index(list,to_index,design_path,allow_add):
 		list.insert(to_index,item)
 		$All/Top/List.move_child(node,to_index)
 	node.set_design(design_path)
+	node.disabled = decide_disabled(design_path)
 	if selected_design and selected_design==design_path:
 		node.select(false)
 
@@ -202,10 +239,20 @@ func move_list_index(list,from_index,to_index,design_path,allow_add):
 		list[to_index][0]=node.get_path()
 	if design_path != list[to_index][1]:
 		node.set_design(design_path)
+		node.disabled = decide_disabled(design_path)
 		list[to_index][1]=design_path
 		var should_select = selected_design and selected_design==design_path
 		if node.selected != should_select:
 			return node.select(false) if should_select else node.deselect(false)
+	node.disabled = decide_disabled(design_path)
+
+func decide_disabled(design_path: NodePath) -> bool:
+	var result=false
+	if max_purchase_value!=null:
+		var cost = design_costs.get(design_path,null)
+		if cost!=null:
+			result=cost>max_purchase_value
+	return result
 
 func find_index(design_path,to_index,designs_shown,designs_to_show) -> int:
 	#var design_path = design_paths[first_design_shown+i]
@@ -326,7 +373,7 @@ func _on_DesignItem_deselect(path):
 	deselect_impl(path)
 
 func _on_DesignItem_activate(design):
-	if design==selected_design:
+	if design==selected_design and can_purchase(design):
 		emit_signal('activate',selected_design)
 
 func select(path: NodePath, send_signal: bool = true):

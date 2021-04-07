@@ -216,24 +216,6 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="Location" type="Label" parent="All/Show"]
-visible = false
-anchor_left = 1.0
-anchor_right = 1.0
-margin_left = -220.0
-margin_bottom = 17.0
-grow_horizontal = 0
-rect_min_size = Vector2( 0, 18 )
-hint_tooltip = "Your ship's current location."
-mouse_filter = 1
-size_flags_horizontal = 3
-text = "Player Location"
-align = 2
-valign = 1
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
 [node name="CargoMass" type="Label" parent="All/Show"]
 margin_right = 216.0
 margin_bottom = 17.0

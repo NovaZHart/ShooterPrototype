@@ -31,12 +31,14 @@ var ship_xspan = ship_zspan
 var last_click_tick = -9999999
 var scenes = {} # key is resource_path, used to detect duplicate objects
 var item_count = {} # key is resource path, value is item count; missing means infinite
+var item_cost = {} # key is resource path, value is cost per item
 var item_xspan = {}
 var design_names = {}
 var scroll_rate = 0.0
 var last_used_x_index: int = 0
 var camera_xspan
 
+var max_purchase_value = null
 var items_mutex: Mutex = Mutex.new()
 var items_updated: bool = false
 var resized: bool = true
@@ -114,6 +116,10 @@ func decide_layers(node,highlight) -> int:
 		var count=item_count.get(resource_path,null)
 		if count!=null and count<1:
 			layers |= disabled_layer
+		elif max_purchase_value!=null:
+			var cost=item_cost.get(resource_path,null)
+			if cost!=null and cost>max_purchase_value:
+				layers |= disabled_layer
 	else:
 		push_warning('Node at path "'+str(node.get_path())+'" has no scene')
 	return layers
@@ -210,18 +216,23 @@ func add_mountable_part(scene: PackedScene) -> bool:
 	set_layers(area,decide_layers(area,false))
 	return true
 
-func _on_available_count_updated(counts):
+func _on_available_count_updated(counts,money,_ship_value):
+	max_purchase_value = money
 	set_item_counts(counts)
 
 func set_item_counts(counts):
 	var new_item_count: Dictionary = {}
+	var new_item_costs: Dictionary = {}
 	for resource_path in scenes:
 		var product = counts.all.get(counts.by_name.get(resource_path,-1),null)
 		if product:
 			new_item_count[resource_path] = product[Commodities.Products.QUANTITY_INDEX]
+			new_item_costs[resource_path] = product[Commodities.Products.VALUE_INDEX]
 		else:
 			new_item_count[resource_path] = 0
+			new_item_costs[resource_path] = 0
 	item_count = new_item_count
+	item_cost = new_item_costs
 	update_item_colors()
 
 func add_ship_parts(parts: Commodities.ManyProducts,include_tags: Array, exclude_tags=null):
@@ -444,6 +455,10 @@ func input():
 						var count = item_count.get(selected_node.scene.resource_path,null)
 						if count!=null and count<1:
 							return
+						if max_purchase_value!=null:
+							var cost = item_cost.get(selected_node.scene.resource_path,null)
+							if cost!=null and cost>max_purchase_value:
+								return
 					selection_dragging=true
 					emit_signal('drag_selection',selected_node.scene)
 

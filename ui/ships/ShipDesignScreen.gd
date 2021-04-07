@@ -8,7 +8,9 @@ var selected_file
 var exit_confirmed = not game_state.game_editor_mode
 var shop_parts: Commodities.ManyProducts # everything for sale
 var all_ship_parts: Commodities.ManyProducts # for sale plus parts in ship
-var wealth: int # money plus ship value
+var wealth: int # Player.money plus ship value, set upon entry
+var money: int # wealth minus ship value, updated in update_cargo_and_money
+var ship_value: int # value of edited ship, updated in update_cargo_and_money
 
 signal available_ship_parts_updated
 
@@ -28,13 +30,13 @@ func remove_part_from_store(resource_path: String):
 	else:
 		shop_parts.add_quantity_from(all_ship_parts,resource_path,-1)
 		update_cargo_and_money()
-		emit_signal('available_ship_parts_updated',shop_parts)
+		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
 
 func put_part_in_store(resource_path: String):
 	#print('put part in store: '+str(resource_path))
 	shop_parts.add_quantity_from(all_ship_parts,resource_path,1)
 	update_cargo_and_money()
-	emit_signal('available_ship_parts_updated',shop_parts)
+	emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
 
 func set_drag_scene(scene: PackedScene):
 	assert(scene!=null)
@@ -213,12 +215,16 @@ func _ready():
 	if game_state.game_editor_mode:
 		remove_child($MainDialogTrigger)
 		$All/Left/Buttons/Depart.text='Fleet'
-		remove_child($All/Show/LocationLabel)
+		$All/Show.remove_child($All/Show/LocationLabel)
+		$All/Show.remove_child($All/Show/CargoMass)
 		$All/Show/CargoMass.visible=false
 	elif not game_state.game_editor_mode:
+		remove_child($Autosave)
 		$All/Left/Shop/Tabs/Designs.forbid_edits()
+		var _ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Designs,
+			'_on_available_count_updated')
 		$All/Left/Shop/Tabs/Weapons.forbid_edits()
-		var _ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Weapons,
+		_ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Weapons,
 			'_on_available_count_updated')
 		$All/Left/Shop/Tabs/Equipment.forbid_edits()
 		_ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Equipment,
@@ -228,12 +234,13 @@ func _ready():
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Load)
 		$All/Show/LocationLabel.set_location_label()
 		update_cargo_and_money()
+		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
 	update_buttons()
 
 func update_cargo_and_money():
 	var edited_ship_parts = price_ship_parts(get_edited_ship_parts())
-	var ship_value = edited_ship_parts.get_value()
-	var money = wealth - ship_value
+	ship_value = edited_ship_parts.get_value()
+	money = wealth - ship_value
 	print('money = '+str(wealth)+' - '+str(ship_value)+' = '+str(money))
 	var ship_design = make_edited_ship_design()
 	var stats = ship_design.get_stats()
@@ -411,7 +418,7 @@ func set_edited_ship_design(design: simple_tree.SimpleNode) -> bool:
 	if not game_state.game_editor_mode:
 		shop_parts.reduce_quantity_by(get_edited_ship_parts())
 		update_cargo_and_money()
-		emit_signal('available_ship_parts_updated',shop_parts)
+		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
 	
 	return true
 
