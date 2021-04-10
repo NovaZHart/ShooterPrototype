@@ -206,8 +206,8 @@ func max_and_repair(key,maxval,repairval) -> String:
 		return make_cell(key,str(maxval)+' (+'+str(repairval)+'/s)')
 	return make_cell(key,maxval)
 
-func get_bbcode() -> String:
-	return text_gen.make_ship_bbcode(pack_stats(true),true,'')
+func get_bbcode(annotation: String = '') -> String:
+	return text_gen.make_ship_bbcode(pack_stats(true),true,annotation)
 
 func _ready():
 	var must_update: bool = false

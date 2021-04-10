@@ -268,6 +268,7 @@ size = 2.16
 [connection signal="pressed" from="All/Left/Buttons/Load" to="." method="_on_Load_pressed"]
 [connection signal="pressed" from="All/Left/Buttons/Undo" to="." method="_on_Undo_pressed"]
 [connection signal="pressed" from="All/Left/Buttons/Redo" to="." method="_on_Redo_pressed"]
+[connection signal="mouse_entered" from="All/Left/Shop/Info" to="." method="_on_Info_mouse_entered"]
 [connection signal="deselect_item" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
 [connection signal="drag_selection" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
 [connection signal="hover_over_InventorySlot" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_hover_over_InventorySlot"]

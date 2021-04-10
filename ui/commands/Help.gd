@@ -152,12 +152,19 @@ func show_page(console,id: String,stats_mode: bool=false):
 	if not title:
 		title = id.capitalize()
 	if stats_mode:
-		console.append('\n[h2]'+console.clean_input(title)+'[/h2]')
+		console.append_raw_bbcode('[b]Part Name: [/b][i]'+console.clean_input(title)+'[/i]')
 	else:
 		console.append_raw_bbcode('[code]Searching datastore for '+id+'...[/code]')
 		console.append_raw_bbcode('[code]Loading '+id+'...[/code]')
 		console.append('\n[h1]'+console.clean_input(title)+'[/h1]')
 		
+	var price_label = help_pages[id].get('price','')
+	if price_label:
+		var price_text = text_gen.price_text_for_page(id)
+		if price_text:
+			console.append('[b]'+price_label+' [/b][cost]'+price_text+'[/cost]')
+	
+	if not stats_mode:
 		if image_resource:
 			console.append_raw_bbcode('\n[img]'+image_resource+'[/img]\n')
 		

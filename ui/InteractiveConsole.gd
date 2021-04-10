@@ -23,6 +23,8 @@ var tag_filters = {
 	'{tab}':'\t',
 	'{<}':'[',
 	'{>}':']',
+	'[cost]':'[color=#eeff88]',
+	'[/cost]':'[/color]',
 	'[prompt_font]':'[color=#6688ff][code]',
 	'[/prompt_font]':'[/code][/color]',
 	'[command_font]':'[color=#eebb66][code]',

@@ -1,5 +1,33 @@
 @PAGE engines/test
 @title Engine Placeholder Test
+@price Price:
 @synopsis A cylinder for testing whether the engine functionality is working.
 
 @bbcode_from_scene res://equipment/BigEngineTest.tscn
+
+@PAGE engine/plasma-small
+@title Small Plasma Engine
+@price Price:
+@synopsis Fuel-less engine for small ships.
+@content
+This device accelerates plasma near to the speed of light, allowing it to push a ship without storing large amounts of chemical fuel.
+
+@bbcode_from_scene res://equipment/engines/Engine2x2.tscn
+
+@PAGE engine/plasma-medium
+@title Medium Plasma Engine
+@price Price:
+@synopsis Standard plasma engine for most ships.
+@content
+This device accelerates plasma near to the speed of light, allowing it to push a ship without storing large amounts of chemical fuel.
+
+@bbcode_from_scene res://equipment/engines/Engine2x4.tscn
+
+@PAGE engine/plasma-large
+@title Large Plasma Engine
+@price Price:
+@synopsis Massive engine for bulk freighters and battleships.
+@content
+This device accelerates plasma near to the speed of light, allowing it to push a ship without storing large amounts of chemical fuel.
+
+@bbcode_from_scene res://equipment/engines/Engine4x4.tscn

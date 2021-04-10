@@ -47,9 +47,10 @@ func update_hover(what):
 		if parent and parent.has_method("is_InventoryArray"):
 			var item = parent.item_at(what.my_x,what.my_y)
 			var item_path = item.get_path() if item else NodePath()
+			var scene = parent.scene_at(what.my_x,what.my_y)
 			if item_path!=last_hover:
 				last_hover=item_path
-				emit_signal('hover_over_MultiSlotItem',item)
+				emit_signal('hover_over_MultiSlotItem',item,scene)
 			return
 	var what_path = what.get_path() if what else NodePath()
 	if what_path!=last_hover:
@@ -134,7 +135,7 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3,
 	var scene = parent.scene_at(xy[0],xy[1])
 	if scene:
 		if is_location_select:
-			emit_signal('select_item',collider)
+			emit_signal('select_item',collider,scene)
 			selection_click = mouse_pos
 			selection = collider.get_path()
 			selected_scene = scene

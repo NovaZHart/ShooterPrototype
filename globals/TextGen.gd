@@ -1,5 +1,29 @@
 extends Node
 
+var price_callbacks: Array = []
+
+func add_price_callback(o: Object):
+	price_callbacks.append(o)
+
+func remove_price_callback(o: Object):
+	price_callbacks.erase(o)
+
+func price_text_for_ship_design(design) -> String:
+	# design is a Universe.ShipDesign
+	for cb in price_callbacks:
+		if cb.has_method('price_text_for_ship_design'):
+			var price_text=cb.price_text_for_ship_design(design)
+			if price_text:
+				return price_text
+	return ''
+
+func price_text_for_page(help_page_id) -> String:
+	for cb in price_callbacks:
+		if cb.has_method('price_text_for_page'):
+			var price_text=cb.price_text_for_page(help_page_id)
+			if price_text:
+				return price_text
+	return ''
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'

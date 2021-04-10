@@ -12,7 +12,16 @@ var wealth: int # Player.money plus ship value, set upon entry
 var money: int # wealth minus ship value, updated in update_cargo_and_money
 var ship_value: int # value of edited ship, updated in update_cargo_and_money
 
+var last_shown_mode: String = ''
+var last_shown_path: NodePath = NodePath()
+var last_shown_data: String = ''
+var last_price_text: String = ''
+
 signal available_ship_parts_updated
+
+func price_text_for_page(id: String):
+	print('price text for '+str(id)+' is "'+str(last_price_text)+'"')
+	return last_price_text
 
 func popup_has_focus() -> bool:
 	return not not get_viewport().get_modal_stack_top()
@@ -194,8 +203,6 @@ func reset_parts_and_designs():
 	$All/Left/Shop/Tabs/Equipment.add_ship_parts(all_ship_parts,['equipment','engine'],[])
 	$All/Left/Shop/Tabs/Equipment.set_item_counts(shop_parts)
 	$All/Left/Shop/Tabs/Equipment.arrange_items()
-	
-	show_edited_design_info()
 #	$All/Left/Shop/Tabs/Designs.set_edited_item_id(design_id)
 
 func update_buttons():
@@ -210,6 +217,7 @@ func _ready():
 		shop_parts = Commodities.ship_parts
 	else:
 		shop_parts = Player.update_ship_parts_at(Player.player_location)
+		text_gen.add_price_callback(self)
 	reset_parts_and_designs()
 	game_state.switch_editors(self)
 	if game_state.game_editor_mode:
@@ -235,7 +243,18 @@ func _ready():
 		$All/Show/LocationLabel.set_location_label()
 		update_cargo_and_money()
 		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
+	show_edited_design_info()
 	update_buttons()
+
+func price_ship_design(design_path: NodePath) -> int:
+	var design = game_state.ship_designs.get_node_or_null(design_path)
+	if not design:
+		return 0
+	var parts = Commodities.ManyProducts.new()
+	$All/Show/Grid/Ship.list_ship_parts(parts,shop_parts)
+	parts.remove_absent_products()
+	parts = price_ship_parts(parts)
+	return parts.get_value()
 
 func update_cargo_and_money():
 	var edited_ship_parts = price_ship_parts(get_edited_ship_parts())
@@ -258,6 +277,8 @@ func _exit_tree():
 	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
 	if not game_state.game_editor_mode:
 		universe_edits.state.clear()
+	else:
+		text_gen.remove_price_callback(self)
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 	var result = $All/Show/Grid/Ship.add_item(scene,mount_name,x,y)
@@ -296,30 +317,57 @@ func show_selected_item():
 			return
 	return show_edited_design_info()
 
+func show_ship_part_help_page(resource_path: String, page: String):
+	if last_shown_mode=='show_ship_part_help_page' and last_shown_data==page:
+		return true
+	last_shown_mode = 'show_ship_part_help_page'
+	last_shown_path = resource_path
+	last_shown_data = page
+	var price = price_ship_part(resource_path)
+	last_price_text = str(price) if price else ''
+	_impl_show_help_page(page)
+	return true
+
 func show_item_help_page(path: NodePath):
+	print('show item help page '+str(path))
 	var node = get_node_or_null(path)
 	if node and node.page:
-		show_help_page(node.page)
+		show_ship_part_help_page(node.scene.resource_path,node.page)
 		return true
+	print('failed')
 	return false
 
 func show_design_info_at(path: NodePath):
-	var ship = $All/Left/Shop/Tabs/Designs.assemble_design(path)
-	if ship:
-		show_design_info(ship)
+	if last_shown_mode=='show_design_info_at' and last_shown_path==path:
 		return true
+	last_shown_mode='show_design_info_at'
+	last_shown_path=path
+	last_shown_data=''
+	last_price_text=''
+	var design = game_state.ship_designs.get_node_or_null(path)
+	if design:
+		var ship = $All/Left/Shop/Tabs/Designs.assemble_design(path)
+		if ship:
+			_impl_show_design_info(ship,price_ship_design(path))
+			return true
 	return false
 
 func show_edited_design_info():
+	if last_shown_mode=='show_edited_design_info':
+		return true
+	last_shown_mode='show_edited_design_info'
+	last_shown_path=NodePath()
+	last_shown_data=''
+	last_price_text=''
 	var ship = $All/Show/Grid/Ship/Viewport.get_node_or_null('Ship')
 	if ship:
 		ship.repack_stats()
 		ship.ship_display_name = design_display_name
-		show_design_info(ship)
+		_impl_show_design_info(ship,ship_value)
 		return true
 	return false
 
-func show_help_page(page):
+func _impl_show_help_page(page):
 	$All/Left/Shop/Info.clear()
 	if page:
 		$All/Left/Shop/Info.process_command('help '+page)
@@ -327,9 +375,10 @@ func show_help_page(page):
 		return true
 	return false
 
-func show_design_info(ship: RigidBody):
+func _impl_show_design_info(ship: RigidBody,cost: int):
 	$All/Left/Shop/Info.clear()
-	var bbcode = ship.get_bbcode()
+	var price_label = '\n[b]Total Cost: [/b][cost]'+str(cost)+'[/cost]' if cost else ''
+	var bbcode = ship.get_bbcode(price_label)
 	var rewrite = $All/Left/Shop/Info.rewrite_tags(bbcode)
 	$All/Left/Shop/Info.insert_bbcode(rewrite)
 	$All/Left/Shop/Info.scroll_to_line(0)
@@ -337,7 +386,7 @@ func show_design_info(ship: RigidBody):
 
 func _on_Weapons_select_item(item):
 	if item.page:
-		show_help_page(item.page)
+		show_ship_part_help_page(item.scene.resource_path,item.page)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
@@ -362,14 +411,14 @@ func _on_Equipment_deselect_item(_item_or_null):
 
 func _on_Equipment_select_item(item):
 	if item.page:
-		show_help_page(item.page)
+		show_ship_part_help_page(item.scene.resource_path,item.page)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
-func _on_Ship_select_item(item):
+func _on_Ship_select_item(item,scene):
 	if item.page:
-		show_help_page(item.page)
+		show_ship_part_help_page(scene.resource_path,item.page)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
@@ -463,10 +512,7 @@ func _on_Designs_change(design_path):
 
 func _on_Designs_select(design_path):
 	if design_path:
-		var ship = $All/Left/Shop/Tabs/Designs.assemble_design()
-		assert(ship)
-		if ship:
-			show_design_info(ship)
+		show_design_info_at(design_path)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Show/Grid/Ship.deselect()
@@ -480,6 +526,16 @@ func get_edited_ship_parts():
 	$All/Show/Grid/Ship.list_ship_parts(parts,shop_parts)
 	parts.remove_absent_products()
 	return parts
+
+func price_ship_part(resource_path):
+	# FIXME: Need to modify this if varying part prices is implemented.
+	var id = all_ship_parts.by_name.get(resource_path,-1)
+	if id>=0:
+		return all_ship_parts.all[id][Commodities.Products.VALUE_INDEX]
+	id = Commodities.ship_parts.by_name.get(resource_path,-1)
+	if id>=0:
+		return Commodities.ship_parts.all[id][Commodities.Products.VALUE_INDEX]
+	return 0
 
 func price_ship_parts(parts):
 	# FIXME: Maybe implement varying part prices?
@@ -531,9 +587,7 @@ func _on_Depart_pressed():
 
 func _on_Designs_hover_over_design(design_path):
 	if design_path:
-		var ship = $All/Left/Shop/Tabs/Designs.assemble_design(design_path)
-		if ship:
-			show_design_info(ship)
+		show_design_info_at(design_path)
 	else:
 		show_selected_item()
 
@@ -542,16 +596,34 @@ func _on_Designs_mouse_exited():
 
 func _on_hover_over_InventorySlot(slot):
 	if slot and slot.page:
+		if last_shown_mode=='slot_hover' and last_shown_data==slot.page:
+			return
+		last_shown_mode='slot_hover'
+		last_shown_path=NodePath()
+		last_shown_data=slot.page
+		var price = price_ship_part(slot.scene.resource_path)
+		last_price_text = str(price) if price else ''
 		$All/Left/Shop/Info.clear()
 		$All/Left/Shop/Info.process_command('stats '+slot.page)
 		$All/Left/Shop/Info.scroll_to_line(0)
 	else:
 		show_selected_item()
 
-func _on_Ship_hover_over_MultiSlotItem(item):
+func _on_Ship_hover_over_MultiSlotItem(item,scene):
 	if item and item.help_page:
+		if last_shown_mode=='multislot_hover' and last_shown_data==item.help_page:
+			return
+		last_shown_mode='multislot_hover'
+		last_shown_path=NodePath()
+		last_shown_data=item.help_page
+		var price = price_ship_part(scene.resource_path)
+		last_price_text = str(price) if price else ''
 		$All/Left/Shop/Info.clear()
 		$All/Left/Shop/Info.process_command('stats '+item.help_page)
 		$All/Left/Shop/Info.scroll_to_line(0)
 	else:
 		show_selected_item()
+
+
+func _on_Info_mouse_entered():
+	show_selected_item()

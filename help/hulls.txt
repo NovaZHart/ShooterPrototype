@@ -1,5 +1,6 @@
 @PAGE hulls/peregrine
 @title Peregrine-Class Interceptor
+@price Price:
 @synopsis Fast, lightly-armed, interceptor
 @content
 This ship is built mostly for speed, to hunt down enemies using swarm tactics. It relies on shields for its survival, fleeing from fights to recharge, leaving threats far behind.
@@ -8,6 +9,7 @@ This ship is built mostly for speed, to hunt down enemies using swarm tactics. I
 
 @PAGE hulls/raven
 @title Raven-Class Warship
+@price Price:
 @synopsis Medium-strength warship
 @content
 A warship with a good mix of shields and armor, with a decent armament that focuses on forward firepower. With two weapon slot sizes, this ship is highly configurable.
@@ -16,6 +18,7 @@ A warship with a good mix of shields and armor, with a decent armament that focu
 
 @PAGE hulls/caracara
 @title Caracara-Class Warship
+@price Price:
 @synopsis Anti-fighter support ship.
 @content
 The Caracara is a support ship, designed to fight in small groups, or escorting larger ships, to destroy large fleets of smaller ships.
@@ -24,6 +27,7 @@ The Caracara is a support ship, designed to fight in small groups, or escorting 
 
 @PAGE hulls/condor
 @title Condor-Class Capital Ship
+@price Price:
 @synopsis Heavy weapons platform
 @content
 This massive ship is durable by every measure, and focuses on all-round firepower, with five turrets. The forward gun ports are large enough to support the largest human weapons.
@@ -32,6 +36,7 @@ This massive ship is durable by every measure, and focuses on all-round firepowe
 
 @PAGE hulls/banner_ship
 @title Banner Ship
+@price Price:
 @synopsis Advertisement ship
 @content
 The Banner Ships are iconic features of large commercial planets. They display rotating banners of advertisements for services available nearby. These ships double as a first line of defense against small attacks, holding off enemies long enough for warships to launch.
