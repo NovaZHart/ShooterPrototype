@@ -1,10 +1,14 @@
 extends Node
 
+const MARKET_TYPE_COMMODITIES: int = 0
+const MARKET_TYPE_SHIP_PARTS: int = 1
+
 var commodities: ManyProducts
 var trading: Dictionary
 var ship_parts: ManyProducts
 var shipyard: Dictionary
 var selected_commodity_index: int = -1
+var selected_commodity_type: int = MARKET_TYPE_COMMODITIES
 
 # Maybwe move this to game data files?
 const population_names: Array = [ 'suvar', 'human', 'spiders' ]
@@ -12,15 +16,23 @@ const population_names: Array = [ 'suvar', 'human', 'spiders' ]
 const no_commodity: Array = [ 'nothing', 0, 0, 0, 0 ]
 
 func select_no_commodity():
-	selected_commodity_index=-1
+	selected_commodity_index = -1
+	selected_commodity_type = MARKET_TYPE_COMMODITIES
 
 func get_selected_commodity() -> Array:
-	if commodities:
+	if selected_commodity_type==MARKET_TYPE_COMMODITIES and commodities:
 		return commodities.all.get(selected_commodity_index,no_commodity)
+	if selected_commodity_type==MARKET_TYPE_SHIP_PARTS and ship_parts:
+		return ship_parts.all.get(selected_commodity_index,no_commodity)
 	return no_commodity
 
-func select_commodity_with_name(product_name: String):
-	selected_commodity_index=commodities.by_name.get(product_name,-1)
+func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COMMODITIES):
+	if market_type==MARKET_TYPE_COMMODITIES:
+		selected_commodity_index = commodities.by_name.get(product_name,-1)
+		selected_commodity_type = MARKET_TYPE_COMMODITIES
+	if market_type==MARKET_TYPE_SHIP_PARTS:
+		selected_commodity_index = ship_parts.by_name.get(product_name,-1)
+		selected_commodity_type = MARKET_TYPE_SHIP_PARTS
 
 class Products extends Reference:
 	var all: Dictionary = {} # mapping from ID to data for one product
@@ -815,6 +827,18 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://ships/PurpleShips/InterceptorHull.tscn', 12, 85000, 85000, 0, 'hull/combat/interceptor', 'terran' ],
 		[ 'res://ships/PurpleShips/WarshipHull.tscn', 3, 141000, 141000, 0, 'hull/combat/warship', 'terran' ],
 	]
+	# FIXME: Pregenerate this somehow:
+	for datum in data:
+		var resource_path = datum[Products.NAME_INDEX]
+		var scene = load(resource_path)
+		if scene:
+			var state = scene.get_state()
+			for i in range(state.get_node_property_count(0)):
+				var property_name = state.get_node_property_name(0,i)
+				if 'add_mass' == property_name:
+					var add_mass = state.get_node_property_value(0,i)
+					if add_mass>0:
+						datum[Products.MASS_INDEX] = int(round(add_mass*1000)) # convert to kg
 	result.add_products(expand_tags(data),null,null,null,false,range(len(data)))
 	return result
 

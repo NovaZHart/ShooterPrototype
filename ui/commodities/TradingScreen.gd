@@ -1,38 +1,51 @@
 extends Panel
 
 const ButtonPanel = preload('res://ui/ButtonPanel.tscn')
-var product_names: Array
 var cargo_mass: float = 0
 var max_cargo_mass: float = 9e9
 var hover_name = null # : String or null
-var selected_name = null # : String or null
+var trading_list: Tree
 
 func _ready():
+	$All/Left/Bottom/Tabs.set_tab_title(0,'Commodities')
+	$All/Left/Bottom/Tabs.set_tab_title(1,'Ship Parts')
+	trading_list = $All/Left/Bottom/Tabs/Market
 	var info = Player.get_info_or_null()
 	if info:
-		$All/Left/Bottom/Tools/Label.text = info.display_name+' Market'
 		$All/Right/Location.text = info.full_display_name()
 	else:
 		push_warning('Cannot find player location info')
-	$All/Left/Bottom/Tools/Label.hint_tooltip = 'Cargo hold and sale items at '+info.full_display_name()
-	Player.age_off_markets()
-	var products = Player.update_markets_at(Player.player_location)
-	if not products:
-		push_error('Could not get market data for '+str(Player.player_location))
-		products = Commodities.ManyProducts.new()
+	
 	if not Player.player_ship_design.cargo:
 		Player.player_ship_design.cargo = Commodities.ManyProducts.new()
+	
 	var planet_info = Player.get_info_or_null()
-	$All/Left/Bottom/TradingList.populate_list(products,Player.player_ship_design,planet_info)
-	product_names = $All/Left/Bottom/TradingList.get_product_names()
-	product_names.sort()
+	
+	Player.age_off_markets()
+	var commodities = Player.update_markets_at(Player.player_location)
+	if not commodities:
+		push_error('Could not get commodity data for '+str(Player.player_location))
+		commodities = Commodities.ManyProducts.new()
+	$All/Left/Bottom/Tabs/Market.populate_list(commodities,Player.player_ship_design,planet_info)
+	
+	Player.age_off_ship_parts()
+	var ship_parts = Player.update_ship_parts_at(Player.player_location)
+	if not ship_parts:
+		push_error('Could not get ship part data for '+str(Player.player_location))
+		ship_parts = Commodities.ManyProducts.new()
+	$All/Left/Bottom/Tabs/ShipParts.populate_list(ship_parts,Player.player_ship_design,planet_info)
+	
+	_on_Tabs_tab_changed($All/Left/Bottom/Tabs.current_tab)
+	$All/Left/Bottom/Tabs/Market.product_names.sort()
+	$All/Left/Bottom/Tabs/ShipParts.product_names.sort()
 	$All/Right/Content/Top/BuySell.add_item('Buying Map',0)
 	$All/Right/Content/Top/BuySell.add_item('Selling Map',1)
 	_on_Content_resized()
 
 func exit_to_orbit():
 	var design = Player.player_ship_design
-	design.cargo = $All/Left/Bottom/TradingList.mine.copy()
+	design.cargo = $All/Left/Bottom/Tabs/Market.mine.copy()
+	design.cargo.add_products($All/Left/Bottom/Tabs/ShipParts.mine,null,null,null)
 	design.cargo.remove_empty_products()
 	var message = null
 	if Player.money<0:
@@ -57,11 +70,11 @@ func exit_to_orbit():
 		parent.remove_child(panel)
 		panel.queue_free()
 		if result:
-			$All/Left/Bottom/TradingList.here.remove_empty_products()
+			$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
 			game_state.call_deferred('change_scene',result)
 		else:
 			return # do not change scene
-	$All/Left/Bottom/TradingList.here.remove_empty_products()
+	$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func _input(event):
@@ -69,15 +82,16 @@ func _input(event):
 		get_tree().set_input_as_handled()
 		exit_to_orbit()
 	elif event is InputEventMouseMotion:
-		var list = $All/Left/Bottom/TradingList
-		var pos = utils.event_position(event) - list.rect_global_position
-		var size = list.rect_size
+		var pos = utils.event_position(event) - trading_list.rect_global_position
+		var size = trading_list.rect_size
 		if pos.x>=0 and pos.y>=0 and pos.x<size.x and pos.y<size.y:
-			var item_name = list.get_product_at_position(pos)
+			var item_name = trading_list.get_product_at_position(pos)
 			if item_name is String and item_name!=hover_name:
-				update_hover_info(item_name)
-		elif selected_name and selected_name!=hover_name:
-			update_hover_info(selected_name)
+				update_hover_info(item_name,false)
+			elif not item_name and hover_name:
+				update_hover_info(null,false)
+		else:
+			update_hover_info(null,false)
 
 func _on_TradingList_cargo_mass_changed(cargo_mass_,max_cargo_mass_):
 	cargo_mass=cargo_mass_
@@ -91,11 +105,11 @@ func starmap_show_product(index):
 		bs.set_item_text(0,'Buying Map')
 		bs.set_item_text(1,'Selling Map')
 	else:
-		var product_name = product_names[index-1]
-		Commodities.select_commodity_with_name(product_name)
-		product_name = product_name.capitalize()
-		bs.set_item_text(0,'Purchase: '+product_name)
-		bs.set_item_text(1,'Sale Value: '+product_name)
+		var product_name = trading_list.product_names[index-1]
+		var display_name = trading_list.display_name_for[product_name]
+		Commodities.select_commodity_with_name(product_name,trading_list.market_type)
+		bs.set_item_text(0,'Purchase: '+display_name)
+		bs.set_item_text(1,'Sale Value: '+display_name)
 	$All/Right/Content/StarmapPanel.update_starmap_visuals()
 
 func _on_BuySell_item_selected(index):
@@ -148,54 +162,81 @@ func concoct_hover_info(item_name,mine,here,norm) -> String:
 			s+=' {*} '+here[itag]+'\n'
 	return s
 
-func update_hover_info(item_name=null):
+func update_hover_info(item_name,force_update):
 	if not item_name:
-		item_name=hover_name
+		item_name=trading_list.get_selected_product()
+	if not force_update and item_name==hover_name:
+		return
 	hover_name=item_name
-	if item_name:
+	if not item_name:
+		return
+	push_warning('update_hover_info')
+	if item_name.begins_with('res://'):
+		var help_page = text_gen.help_page_for_scene_path(item_name)
+		if help_page:
+			$All/Left/Help.clear()
+			$All/Left/Help.process_command('help '+help_page)
+		else:
+			push_warning('no help page for scene '+str(item_name))
+	else:
 		var norm = Commodities.commodities.all.get(
 			Commodities.commodities.by_name.get(item_name,null),null)
 		if not norm:
 			return
-		var pair = $All/Left/Bottom/TradingList.get_product_named(item_name)
+		var pair = trading_list.get_product_named(item_name)
 		if pair and pair[0] and pair[1]:
-			$All/Left/Bottom/Help.insert_bbcode(
+			$All/Left/Help.insert_bbcode(
 				concoct_hover_info(item_name,pair[0],pair[1],norm),true)
-			$All/Left/Bottom/Help.scroll_to_line(0)
+			$All/Left/Help.scroll_to_line(0)
 
 func _on_TradingList_all_product_data_changed():
-	update_hover_info()
+	update_hover_info(null,true)
 
 func _on_TradingList_product_data_changed(item_name: String):
-	update_hover_info(item_name)
+	update_hover_info(item_name,true)
 
 func _on_TradingList_product_selected(item_name):
-	var index = product_names.find(item_name)+1
+	var index = trading_list.product_names.find(item_name)+1
 	starmap_show_product(index)
-	selected_name=item_name
-	update_hover_info(selected_name)
+	update_hover_info(null,true)
 
 func _on_Content_resized():
 	$All/Right/CargoMass.margin_bottom = $All/Right/Content/Top.rect_size.y
 	$All/Right/Location.margin_bottom = $All/Right/Content/Top.rect_size.y
 
 func _on_StarmapPanel_hover_no_system():
-	update_hover_info()
+	update_hover_info(null,false)
 
 func _on_StarmapPanel_hover_over_player_location(_system_name,_system_display_name,_system_price):
-	update_hover_info()
+	update_hover_info(null,false)
 
 func _on_StarmapPanel_hover_over_system(_system_name,system_display_name,system_price):
 	if hover_name and system_price and system_price>0:
-		var mine = $All/Left/Bottom/TradingList.mine
+		var mine = trading_list.mine
 		var mine_item = mine.all.get(mine.by_name.get(hover_name,-1),null)
-		var here = $All/Left/Bottom/TradingList.here
+		var here = trading_list.here
 		var here_item = here.all.get(here.by_name.get(hover_name,-1),null)
 		if here_item and mine_item:
 			var info: String = concoct_other_system_info(
 				hover_name,mine_item,here_item,system_display_name,system_price)
 			if info:
-				$All/Left/Bottom/Help.insert_bbcode(info,true)
-				$All/Left/Bottom/Help.scroll_to_line(0)
+				$All/Left/Help.insert_bbcode(info,true)
+				$All/Left/Help.scroll_to_line(0)
 				return
-	update_hover_info()
+	update_hover_info(null,false)
+
+func _on_Tabs_tab_changed(tab):
+	trading_list = $All/Left/Bottom/Tabs.get_child(tab)
+	var selected_name = trading_list.get_selected_product()
+	if selected_name and selected_name!=hover_name:
+		update_hover_info(selected_name,true)
+		var index = trading_list.product_names.find(selected_name)+1
+		starmap_show_product(index)
+
+
+func _on_Help_mouse_entered():
+	update_hover_info(null,false)
+
+
+func _on_StarmapPanel_mouse_entered():
+	update_hover_info(null,false)

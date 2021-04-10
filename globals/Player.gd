@@ -221,6 +221,9 @@ func assemble_player_ship(): # -> RigidBody or null
 func age_off_markets(age: int = game_state.EPOCH_ONE_DAY*14):
 	Commodities.delete_old_products(markets,game_state.epoch_time-age)
 
+func age_off_ship_parts(age: int = game_state.EPOCH_ONE_DAY*14):
+	Commodities.delete_old_products(ship_parts,game_state.epoch_time-age)
+
 func update_ship_parts_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
 	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
 	if place:

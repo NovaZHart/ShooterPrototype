@@ -197,10 +197,10 @@ func update_starmap_visuals():
 	
 	starmap.update()
 
-func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array):
-	if node.has_method('list_products'):
+func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array, method: String):
+	if node.has_method(method):
 		var price = Commodities.OneProduct.new()
-		node.list_products(commodity,price)
+		node.call(method,commodity,price)
 		if price.all:
 			var product = price.all[0]
 			var value = product[Commodities.Products.VALUE_INDEX]
@@ -216,13 +216,16 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 	for child_name in node.get_child_names():
 		var child = node.get_child_with_name(child_name)
 		if child:
-			price_stats_recurse(commodity,child,result)
+			price_stats_recurse(commodity,child,result,method)
 
 func price_stats(node: simple_tree.SimpleNode): # -> float or null
 	var commodity_data: Array = Commodities.get_selected_commodity()
 	var commodity = Commodities.OneProduct.new(commodity_data)
 	if not buy:
-		node.price_products(commodity)
+		if Commodities.selected_commodity_type==Commodities.MARKET_TYPE_SHIP_PARTS:
+			node.price_ship_parts(commodity)
+		else:
+			node.price_products(commodity)
 		var value = commodity.all[0][Commodities.Products.VALUE_INDEX]
 		return value if value else null
 	var result = [ 0.0, 0 ]
@@ -230,7 +233,10 @@ func price_stats(node: simple_tree.SimpleNode): # -> float or null
 		result[0] = INF
 	elif mode==MAX_PRICE:
 		result[0] = -INF
-	price_stats_recurse(commodity,node,result)
+	if Commodities.selected_commodity_type==Commodities.MARKET_TYPE_SHIP_PARTS:
+		price_stats_recurse(commodity,node,result,'list_ship_parts')
+	else:
+		price_stats_recurse(commodity,node,result,'list_products')
 	if result[0] + 1e6 == result[0]:
 		result[0]=0
 	if not result[1]:

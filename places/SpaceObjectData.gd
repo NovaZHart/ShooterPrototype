@@ -74,7 +74,7 @@ func is_a_planet() -> bool: return true
 func is_SpaceObjectData(): pass # never called; must only exist
 
 func has_market():
-	return services.has('market') and ( trading or shipyard )
+	return trading or shipyard or services.has('market')
 
 func has_shipyard():
 	return not not shipyard

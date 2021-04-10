@@ -133,6 +133,13 @@ func load_page_scene(scene_name: String, id: String, stats_mode: bool = false) -
 	
 	return [bbcode,res]
 
+func page_title(id: String):
+	var page = help_pages.get(id,null)
+	if page:
+		var title: String = page.get('title','')
+		return title if title else id.capitalize()
+	return ''
+
 func show_page(console,id: String,stats_mode: bool=false):
 	if not id in help_pages:
 		console.append_raw_bbcode('[code]Searching datastore for '+id+'...[/code]')

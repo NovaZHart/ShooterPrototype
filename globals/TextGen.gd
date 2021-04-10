@@ -151,6 +151,23 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 		return bbcode+'[/table]\n'
 
 
+func help_page_for_scene_path(resource_path) -> String:
+	var scene = load(resource_path)
+	if scene:
+		var state = scene.get_state()
+		for i in range(state.get_node_property_count(0)):
+			var property_name = state.get_node_property_name(0,i)
+			if 'help_page' == property_name:
+				var help_page = state.get_node_property_value(0,i)
+				if help_page:
+					return help_page
+	return ''
+
+
+func title_for_scene_path(resource_path) -> String:
+	var help_page = help_page_for_scene_path(resource_path)
+	return builtin_commands.Help.page_title(help_page) if help_page else ''
+
 
 func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) -> String:
 	var contents: String = '' #'[b]Contents:[/b]\n'

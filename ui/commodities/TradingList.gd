@@ -2,6 +2,7 @@ extends Tree
 
 export var increment_texture: Texture
 export var decrement_texture: Texture
+export var market_type: int = 0
 
 const NAME_COLUMN: int = 0
 const PROFIT_COLUMN: int = 1
@@ -20,6 +21,9 @@ var max_cargo: int = 20000
 var mine: Commodities.ManyProducts
 var here: Commodities.ManyProducts
 var last_sort_method: int = 1
+var all_products: Commodities.ManyProducts
+var product_names=null setget ,get_product_names
+var display_name_for: Dictionary = {}
 
 signal product_selected
 signal no_product_selected
@@ -28,9 +32,16 @@ signal product_data_changed
 signal all_product_data_changed
 
 func get_product_names():
-	return here.by_name.keys()
+	if product_names==null:
+		product_names = here.by_name.keys()
+		product_names.sort()
+	return product_names
 
 func _ready():
+	if market_type == Commodities.MARKET_TYPE_COMMODITIES:
+		all_products = Commodities.commodities
+	else:
+		all_products = Commodities.ship_parts
 	set_column_titles_visible(true)
 	var font = get_font('normal_font')
 	var number_size = font.get_char_size(ord('0'),ord('0'))
@@ -54,7 +65,7 @@ func clear_list():
 
 func add_missing_products(planet_info):
 	var search = []
-	var norm = Commodities.commodities
+	var norm = all_products
 	for product_name in mine.by_name:
 		if not here.by_name.has(product_name):
 			var product = norm.all.get(norm.by_name.get(product_name,-1),null)
@@ -63,7 +74,10 @@ func add_missing_products(planet_info):
 	var missing = Commodities.ManyProducts.new()
 	missing.add_products(search,null,null,null)
 	var found = Commodities.ManyProducts.new()
-	planet_info.list_products(missing,found)
+	if market_type == Commodities.MARKET_TYPE_COMMODITIES:
+		planet_info.list_products(missing,found)
+	elif market_type == Commodities.MARKET_TYPE_SHIP_PARTS:
+		planet_info.list_ship_parts(missing,found)
 	here.add_products(found.all,0,null,null)
 	missing.remove_named_products(found)
 	here.add_products(missing,0,0,0)
@@ -89,12 +103,14 @@ func populate_list(products,ship_design,planet_info):
 	var names: Array = mine.by_name.keys()
 	names.sort()
 	for product_name in names:
+		var norm_id: int = all_products.by_name.get(product_name,-1)
+		if norm_id<0:
+			continue
 		var mine_id: int = mine.by_name[product_name]
 		var here_id: int = here.by_name[product_name]
-		var norm_id: int = Commodities.commodities.by_name.get(product_name,-1)
 		var entry_mine: Array = mine.all[mine_id]
 		var entry_here: Array = here.all[here_id]
-		var entry_norm = Commodities.commodities.all.get(norm_id,null)
+		var entry_norm = all_products.all.get(norm_id,null)
 		# FIXME: proper display name
 		var price: float = max(0.0,entry_here[Commodities.Products.VALUE_INDEX])
 		var norm_price: float
@@ -111,6 +127,11 @@ func populate_list(products,ship_design,planet_info):
 		if not count_mine and not count_here:
 			continue # cannot buy or sell this
 		var display_name: String = product_name.capitalize()
+		if product_name.begins_with('res://'):
+			var title_name = text_gen.title_for_scene_path(product_name)
+			if title_name:
+				display_name = title_name
+		display_name_for[product_name] = display_name
 		var item: TreeItem = create_item(root)
 		item.set_text(NAME_COLUMN,display_name)
 		item.set_metadata(NAME_COLUMN,product_name)
@@ -205,9 +226,13 @@ func get_product_named(item_name: String) -> Array:
 	var here_product = here.all.get(here.by_name.get(item_name,null),null)
 	return [mine_product, here_product]
 
+func get_selected_product(): # -> String or null
+	var item = get_selected()
+	return item.get_metadata(NAME_COLUMN) if item else null
+
 func get_product_at_position(relative_position: Vector2): # -> String or null
-		var item = get_item_at_position(relative_position)
-		return item.get_metadata(NAME_COLUMN) if item else null
+	var item = get_item_at_position(relative_position)
+	return item.get_metadata(NAME_COLUMN) if item else null
 
 func _on_Tree_button_pressed(item, _column, id):
 	var change: int = -1 if id else 1
@@ -239,6 +264,10 @@ func _on_SellAll_pressed():
 		return
 	var item = root.get_children()
 	while item:
+		var product_name = item.get_metadata(NAME_COLUMN)
+		var norm_id: int = all_products.by_name.get(product_name,-1)
+		if norm_id<0:
+			continue
 		var etc = item.get_metadata(PRICE_COLUMN)
 		var mine_id = etc[MINE_ID_ELEMENT]
 		var here_id = etc[HERE_ID_ELEMENT]

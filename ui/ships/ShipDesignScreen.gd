@@ -265,7 +265,6 @@ func update_cargo_and_money():
 	var stats = ship_design.get_stats()
 	var max_cargo_mass = int(round(stats['max_cargo']))*1000
 	var cargo_mass: int = 0
-	# Populate the data structures:
 	if ship_design.cargo:
 		cargo_mass = int(round(ship_design.cargo.get_mass()))
 	$All/Show/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(money)

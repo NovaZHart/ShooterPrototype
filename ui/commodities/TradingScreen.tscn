@@ -1,16 +1,11 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=2]
-[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
 [ext_resource path="res://ui/commodities/TradingList.tscn" type="PackedScene" id=4]
 [ext_resource path="res://ui/commodities/TradingScreen.gd" type="Script" id=5]
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=6]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=9]
-
-[sub_resource type="DynamicFont" id=1]
-size = 18
-font_data = ExtResource( 3 )
 
 [node name="TradingScreen" type="Panel"]
 anchor_right = 1.0
@@ -40,50 +35,52 @@ margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Bottom" type="GridContainer" parent="All/Left"]
+[node name="Help" parent="All/Left" instance=ExtResource( 6 )]
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 359.0
+margin_bottom = 224.0
+initial_bbcode = ""
+allow_input = false
+
+[node name="Bottom" type="Panel" parent="All/Left"]
+margin_top = 236.0
 margin_right = 359.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 2.0
+size_flags_stretch_ratio = 1.6
 
-[node name="Help" parent="All/Left/Bottom" instance=ExtResource( 6 )]
-anchor_right = 0.0
-anchor_bottom = 0.0
-margin_right = 359.0
-margin_bottom = 284.0
-initial_bbcode = ""
-allow_input = false
-
-[node name="Tools" type="GridContainer" parent="All/Left/Bottom"]
-margin_top = 288.0
-margin_right = 359.0
-margin_bottom = 311.0
-columns = 2
-
-[node name="Label" type="Label" parent="All/Left/Bottom/Tools"]
-margin_top = 1.0
-margin_right = 299.0
-margin_bottom = 22.0
-mouse_filter = 1
+[node name="Tabs" type="TabContainer" parent="All/Left/Bottom"]
+anchor_right = 1.0
+anchor_bottom = 1.0
 size_flags_horizontal = 3
-custom_fonts/font = SubResource( 1 )
-text = "Buy/Sell at (Player Location)"
+size_flags_vertical = 3
+tab_align = 0
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
-[node name="SellAll" type="Button" parent="All/Left/Bottom/Tools"]
-margin_left = 303.0
-margin_right = 359.0
-margin_bottom = 23.0
+[node name="Market" parent="All/Left/Bottom/Tabs" instance=ExtResource( 4 )]
+margin_left = 4.0
+margin_top = 35.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="ShipParts" parent="All/Left/Bottom/Tabs" instance=ExtResource( 4 )]
+visible = false
+margin_left = 4.0
+margin_top = 35.0
+margin_right = -4.0
+margin_bottom = -4.0
+market_type = 1
+
+[node name="SellAll" type="Button" parent="All/Left/Bottom"]
+anchor_left = 1.0
+anchor_right = 1.0
 grow_horizontal = 0
 hint_tooltip = "Sell everything your cargo hold."
 text = "Sell All"
-
-[node name="TradingList" parent="All/Left/Bottom" instance=ExtResource( 4 )]
-anchor_right = 0.0
-anchor_bottom = 0.0
-margin_top = 315.0
-margin_right = 359.0
-margin_bottom = 599.0
 
 [node name="Right" type="Panel" parent="All"]
 margin_left = 371.0
@@ -151,13 +148,20 @@ valign = 1
 __meta__ = {
 "_edit_use_anchors_": false
 }
-[connection signal="pressed" from="All/Left/Bottom/Tools/SellAll" to="All/Left/Bottom/TradingList" method="_on_SellAll_pressed"]
-[connection signal="all_product_data_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_all_product_data_changed"]
-[connection signal="cargo_mass_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_cargo_mass_changed"]
-[connection signal="product_data_changed" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_product_data_changed"]
-[connection signal="product_selected" from="All/Left/Bottom/TradingList" to="." method="_on_TradingList_product_selected"]
+[connection signal="mouse_entered" from="All/Left/Help" to="." method="_on_Help_mouse_entered"]
+[connection signal="tab_changed" from="All/Left/Bottom/Tabs" to="." method="_on_Tabs_tab_changed"]
+[connection signal="all_product_data_changed" from="All/Left/Bottom/Tabs/Market" to="." method="_on_TradingList_all_product_data_changed"]
+[connection signal="cargo_mass_changed" from="All/Left/Bottom/Tabs/Market" to="." method="_on_TradingList_cargo_mass_changed"]
+[connection signal="product_data_changed" from="All/Left/Bottom/Tabs/Market" to="." method="_on_TradingList_product_data_changed"]
+[connection signal="product_selected" from="All/Left/Bottom/Tabs/Market" to="." method="_on_TradingList_product_selected"]
+[connection signal="all_product_data_changed" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_all_product_data_changed"]
+[connection signal="cargo_mass_changed" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_cargo_mass_changed"]
+[connection signal="product_data_changed" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_product_data_changed"]
+[connection signal="product_selected" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_product_selected"]
+[connection signal="pressed" from="All/Left/Bottom/SellAll" to="All/Left/Bottom/Tabs/Market" method="_on_SellAll_pressed"]
 [connection signal="resized" from="All/Right/Content/Top" to="." method="_on_Content_resized"]
 [connection signal="item_selected" from="All/Right/Content/Top/BuySell" to="." method="_on_BuySell_item_selected"]
 [connection signal="hover_no_system" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_no_system"]
 [connection signal="hover_over_player_location" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_over_player_location"]
 [connection signal="hover_over_system" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_over_system"]
+[connection signal="mouse_entered" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_mouse_entered"]
