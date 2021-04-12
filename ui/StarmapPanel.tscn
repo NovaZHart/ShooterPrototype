@@ -1,10 +1,13 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://ui/StarmapEnvironment.tres" type="Environment" id=1]
 [ext_resource path="res://ui/StarmapPanel.gd" type="Script" id=2]
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=4]
 [ext_resource path="res://ui/MapColorbar.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=6]
+[ext_resource path="res://ui/AutoRepositioningWindow.gd" type="Script" id=7]
+[ext_resource path="res://ui/edit/SystemTree.tscn" type="PackedScene" id=8]
 
 [sub_resource type="DynamicFont" id=1]
 size = 15
@@ -65,4 +68,27 @@ visible = false
 visible = false
 
 [node name="MapColorbar" parent="." instance=ExtResource( 5 )]
+
+[node name="Window" type="WindowDialog" parent="."]
+anchor_left = 0.7
+anchor_right = 1.0
+anchor_bottom = 0.3
+margin_top = 30.0
+margin_right = -10.0
+theme = ExtResource( 6 )
+popup_exclusive = true
+window_title = "System"
+resizable = true
+script = ExtResource( 7 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="Tree" parent="Window" instance=ExtResource( 8 )]
+size_flags_horizontal = 3
+size_flags_vertical = 3
 [connection signal="resized" from="." to="." method="_on_StarmapPanel_resized"]
+[connection signal="visibility_changed" from="." to="." method="_on_StarmapPanel_visibility_changed"]
+[connection signal="center_on_node" from="Window/Tree" to="." method="_on_Tree_center_on_node"]
+[connection signal="deselect_node" from="Window/Tree" to="." method="_on_Tree_deselect_node"]
+[connection signal="select_node" from="Window/Tree" to="." method="_on_Tree_select_node"]

@@ -2,7 +2,7 @@ extends RigidBody
 
 export var ship_display_name: String = 'Unnamed'
 export var help_page: String = 'hulls'
-export var base_mass: float = 50
+export var base_mass: float = 0
 export var base_thrust: float = 3000
 export var base_reverse_thrust: float = 800
 export var base_turn_thrust: float = 100

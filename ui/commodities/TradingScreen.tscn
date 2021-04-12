@@ -40,6 +40,7 @@ anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 359.0
 margin_bottom = 224.0
+mouse_filter = 1
 initial_bbcode = ""
 allow_input = false
 
@@ -114,6 +115,7 @@ margin_top = 27.0
 margin_right = 653.0
 margin_bottom = 600.0
 hint_tooltip = "(Test Tooltip)"
+mouse_filter = 1
 allow_selection = false
 max_camera_size = 200.0
 mode = 1

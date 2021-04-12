@@ -1,4 +1,4 @@
-[gd_scene load_steps=15 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/ships/ShipDesignView.tscn" type="PackedScene" id=2]
@@ -9,14 +9,17 @@
 [ext_resource path="res://ui/ships/ShipDesignPanel.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/edit/Autosave.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=9]
-[ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=10]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=10]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=11]
 
 [sub_resource type="DynamicFont" id=1]
-size = 18
+size = 14
 font_data = ExtResource( 10 )
 
-[sub_resource type="Theme" id=2]
+[sub_resource type="Theme" id=4]
+default_font = SubResource( 1 )
+
+[sub_resource type="Theme" id=5]
 default_font = SubResource( 1 )
 
 [sub_resource type="World" id=3]
@@ -208,7 +211,7 @@ size_flags_stretch_ratio = 2.5
 margin_left = 494.0
 margin_right = 726.0
 margin_bottom = 32.0
-theme = SubResource( 2 )
+theme = SubResource( 4 )
 text = "Planet Name"
 align = 2
 script = ExtResource( 11 )
@@ -224,7 +227,7 @@ hint_tooltip = "Total mass in your ship's cargo hold, and maximum carrying capac
 You cannot leave if your ship is beyond capacity."
 mouse_filter = 1
 size_flags_horizontal = 3
-theme = ExtResource( 4 )
+theme = SubResource( 5 )
 text = "Cargo: 999/999 kg"
 valign = 1
 script = ExtResource( 11 )

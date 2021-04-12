@@ -226,11 +226,12 @@ func age_off_ship_parts(age: int = game_state.EPOCH_ONE_DAY*14):
 
 func update_ship_parts_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
 	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
-	if place:
+	if place and place.has_method('is_SpaceObjectData') and place.has_market():
 		var relpath: NodePath = game_state.systems.get_path_to(place)
+		var ship_parts_node = null
 		if relpath:
 			var universe_node = game_state.systems
-			var ship_parts_node = ship_parts
+			ship_parts_node = ship_parts
 			for iname in relpath.get_name_count():
 				var child_name = relpath.get_name(iname)
 				universe_node = universe_node.get_child_with_name(child_name)
@@ -254,14 +255,13 @@ func update_ship_parts_at(path_in_universe: NodePath, dropoff: float = 0.7, scal
 						if not ship_parts_node.add_child(next):
 							push_error('Cannot add "'+child_name+'" child of '+str(ship_parts_node.get_path()))
 				ship_parts_node = next
-		var ship_parts_node = ship_parts.get_node(relpath)
-		if ship_parts_node:
-			return ship_parts_node.products
+			if ship_parts_node and ship_parts_node.has_method('is_ProductsNode'):
+				return ship_parts_node.products
 	return null
 
 func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
 	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
-	if place:
+	if place and place.has_method('is_SpaceObjectData') and place.has_market():
 		var relpath: NodePath = game_state.systems.get_path_to(place)
 		if relpath:
 			var universe_node = game_state.systems
@@ -290,7 +290,7 @@ func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: 
 							push_error('Cannot add "'+child_name+'" child of '+str(market_node.get_path()))
 				market_node = next
 		var market_node = markets.get_node(relpath)
-		if market_node:
+		if market_node and market_node.has_method('is_ProductsNode'):
 			return market_node.products
 	return null
 

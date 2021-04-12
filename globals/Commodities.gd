@@ -574,7 +574,17 @@ class ManyProducts extends Products:
 		for product_name in remove:
 			var id = by_name.get(product_name,-1)
 			if id>0:
-				var _ignore = all.erase(id)
+				var _ignore
+				var product = all.get(id,null)
+				if product:
+					_ignore = by_name.erase(product[NAME_INDEX])
+					for itag in range(FIRST_TAG_INDEX,len(product)):
+						var tag = product[itag]
+						if by_tag.has(tag):
+							_ignore = by_tag[tag].erase(id)
+							if not by_tag[tag]:
+								_ignore = by_tag.erase(tag)
+				_ignore = all.erase(id)
 	
 	func ids_within(prod: Products) -> PoolIntArray:
 		var ids = []
@@ -766,7 +776,7 @@ func delete_old_products_impl(parent: simple_tree.SimpleNode, child: simple_tree
 	# Deletes all nodes from child on down where a node and all of its
 	# descendants have update_time<=cutoff. Anything that is not a
 	# ProductsNode is assumed to be older than the cutoff time.
-	var delete_node: bool = not child.has_method('is_ProductsNode') or child.update_time<=cutoff
+	var delete_node: bool = not ( child.has_method('is_ProductsNode') and child.update_time>cutoff)
 	for grandchild_name in child.get_child_names():
 		var grandchild = child.get_child_with_name(grandchild_name)
 		if grandchild:
@@ -777,7 +787,7 @@ func delete_old_products_impl(parent: simple_tree.SimpleNode, child: simple_tree
 
 func delete_old_products(root, cutoff: int):
 	# Delete all descendant nodes where the node and all of its descendants
-	# have update_time<=cutoff. Anything that is not a ProductsNode is assumed
+	# have update_time>cutoff. Anything that is not a ProductsNode is assumed
 	# to be older than the cutoff time. The root is not deleted.
 	# root is a simple_tree.SimpleNode, but godot's type checking is too stupid
 	# to handle call checks of user-defined types in calls between top-level modules
@@ -835,10 +845,10 @@ func shipyard_data_tables() -> ManyProducts:
 			var state = scene.get_state()
 			for i in range(state.get_node_property_count(0)):
 				var property_name = state.get_node_property_name(0,i)
-				if 'add_mass' == property_name:
-					var add_mass = state.get_node_property_value(0,i)
-					if add_mass>0:
-						datum[Products.MASS_INDEX] = int(round(add_mass*1000)) # convert to kg
+				if ['base_mass','add_mass','weapon_mass'].has(property_name):
+					var mass = state.get_node_property_value(0,i)
+					if mass>0:
+						datum[Products.MASS_INDEX] = int(round(mass*1000)) # convert to kg
 	result.add_products(expand_tags(data),null,null,null,false,range(len(data)))
 	return result
 

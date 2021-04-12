@@ -19,8 +19,7 @@ var last_price_text: String = ''
 
 signal available_ship_parts_updated
 
-func price_text_for_page(id: String):
-	print('price text for '+str(id)+' is "'+str(last_price_text)+'"')
+func price_text_for_page(_id: String):
 	return last_price_text
 
 func popup_has_focus() -> bool:
@@ -32,7 +31,6 @@ func cancel_drag() -> bool:
 	return true
 
 func remove_part_from_store(resource_path: String):
-	#print('remove part from store: '+str(resource_path))
 	var id = shop_parts.by_name.get(resource_path,-1)
 	if id<0:
 		push_error('Tried to remove more "'+str(resource_path)+'" than were available.')
@@ -42,7 +40,6 @@ func remove_part_from_store(resource_path: String):
 		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
 
 func put_part_in_store(resource_path: String):
-	#print('put part in store: '+str(resource_path))
 	shop_parts.add_quantity_from(all_ship_parts,resource_path,1)
 	update_cargo_and_money()
 	emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
@@ -260,7 +257,6 @@ func update_cargo_and_money():
 	var edited_ship_parts = price_ship_parts(get_edited_ship_parts())
 	ship_value = edited_ship_parts.get_value()
 	money = wealth - ship_value
-	print('money = '+str(wealth)+' - '+str(ship_value)+' = '+str(money))
 	var ship_design = make_edited_ship_design()
 	var stats = ship_design.get_stats()
 	var max_cargo_mass = int(round(stats['max_cargo']))*1000
@@ -276,7 +272,6 @@ func _exit_tree():
 	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
 	if not game_state.game_editor_mode:
 		universe_edits.state.clear()
-	else:
 		text_gen.remove_price_callback(self)
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
@@ -328,12 +323,10 @@ func show_ship_part_help_page(resource_path: String, page: String):
 	return true
 
 func show_item_help_page(path: NodePath):
-	print('show item help page '+str(path))
 	var node = get_node_or_null(path)
 	if node and node.page:
 		show_ship_part_help_page(node.scene.resource_path,node.page)
 		return true
-	print('failed')
 	return false
 
 func show_design_info_at(path: NodePath):
@@ -369,6 +362,7 @@ func show_edited_design_info():
 func _impl_show_help_page(page):
 	$All/Left/Shop/Info.clear()
 	if page:
+		$All/Left/Shop/Info.clear()
 		$All/Left/Shop/Info.process_command('help '+page)
 		$All/Left/Shop/Info.scroll_to_line(0)
 		return true
@@ -379,6 +373,7 @@ func _impl_show_design_info(ship: RigidBody,cost: int):
 	var price_label = '\n[b]Total Cost: [/b][cost]'+str(cost)+'[/cost]' if cost else ''
 	var bbcode = ship.get_bbcode(price_label)
 	var rewrite = $All/Left/Shop/Info.rewrite_tags(bbcode)
+	$All/Left/Shop/Info.clear()
 	$All/Left/Shop/Info.insert_bbcode(rewrite)
 	$All/Left/Shop/Info.scroll_to_line(0)
 	return true

@@ -1,5 +1,6 @@
 extends game_state.SectorEditorStub
 
+export var show_space_objects: bool = false
 export var connected_location_color = Color(0.6,0.5,0.9)
 export var system_location_color = Color(0.7,0.6,1.0)
 export var allow_selection: bool = true
@@ -58,6 +59,9 @@ signal deselect
 signal hover_over_player_location
 signal hover_over_system
 signal hover_no_system
+signal activate_space_object
+signal deselect_space_object
+signal select_space_object
 
 func _init():
 	selection = game_state.systems.get_node_or_null(Player.destination_system)
@@ -73,7 +77,17 @@ func cancel_drag() -> bool:
 	camera_start=null
 	return true
 
+func maybe_show_window():
+	var show = show_space_objects and is_visible_in_tree()
+	
+	$Window.visible=show
+	$Window.set_process_input(show)
+	$Window/Tree.set_process_input(show)
+
 func _ready():
+	$Window.get_close_button().visible=false
+	maybe_show_window()
+	
 	if allow_selection:
 		game_state.switch_editors(self)
 	$MapColorbar.set_title('Prices')
@@ -107,6 +121,8 @@ func _ready():
 
 func _on_StarmapPanel_resized():
 	starmap.set_max_scale(3.0, 3.0, rect_global_position)
+#	if $Window.visible:
+		
 
 func process_if(flag):
 	if flag:
@@ -355,6 +371,8 @@ func deselect(what) -> bool:
 		and what==selection):
 		selection=null
 		Player.destination_system = NodePath()
+		if $Window.visible:
+			$Window/Tree.clear()
 		emit_signal('deselect')
 		update_starmap_visuals()
 		return true
@@ -364,9 +382,16 @@ func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
 	if selection is simple_tree.SimpleNode:
+		if $Window.visible:
+			if selection is simple_tree.SimpleNode and selection.has_method('is_SystemData'):
+				$Window/Tree.set_system(selection)
+			else:
+				$Window/Tree.clear()
 		emit_signal('select',selection)
 		Player.destination_system = selection.get_path()
 	elif selection==null:
+		if $Window.visible:
+			$Window/Tree.clear()
 		emit_signal('deselect')
 	game_state.universe.unlock()
 	update_starmap_visuals()
@@ -395,6 +420,10 @@ func _input(event):
 		return
 	if not is_visible_in_tree():
 		return
+	if $Window.visible:
+		var rect: Rect2 = $Window.get_global_rect().grow_individual(10,30,10,10)
+		if rect.has_point(pos2):
+			return # event is inside window
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_slide') or \
 				Input.is_action_pressed('ui_location_select'):
@@ -479,3 +508,19 @@ func _process(_delta):
 	var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 	set_zoom(zoom,pos3)
 
+
+
+func _on_Tree_center_on_node(path):
+	emit_signal('activate_space_object',path)
+
+
+func _on_Tree_deselect_node():
+	emit_signal('deselect_space_object')
+
+
+func _on_Tree_select_node(path):
+	emit_signal('select_space_object',path)
+
+
+func _on_StarmapPanel_visibility_changed():
+	maybe_show_window()

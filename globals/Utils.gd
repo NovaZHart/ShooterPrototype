@@ -1,5 +1,41 @@
 extends Node
 
+class YieldActionQueue extends Reference:
+	var mutex: Mutex = Mutex.new()
+	var queue: Array = []
+	var last_id: int = -1
+	
+	func check_top(id: int):
+		mutex.lock()
+		var result = len(queue) and queue[0]==id
+		mutex.unlock()
+		return result
+	
+	func run(object,method,args):
+		# Queue this request:
+		mutex.lock()
+		last_id += 1
+		var id = last_id
+		queue.append(id)
+		mutex.unlock()
+		
+		# Wait for our turn to run:
+		while not check_top(id):
+			yield()
+		
+		# Call the method and yield until we have a result:
+		var result = object.callv(method,args)
+		while result is GDScriptFunctionState and result.is_valid():
+			yield(result,'completed')
+		
+		# Remove this request from the queue:
+		mutex.lock()
+		queue.erase(id)
+		mutex.unlock()
+		
+		# Report the result back to the caller.
+		return result
+
 class TreeFinder extends Reference:
 	var key
 	var column

@@ -5,6 +5,7 @@ var cargo_mass: float = 0
 var max_cargo_mass: float = 9e9
 var hover_name = null # : String or null
 var trading_list: Tree
+var is_updating: int = 0
 
 func _ready():
 	$All/Left/Bottom/Tabs.set_tab_title(0,'Commodities')
@@ -86,12 +87,9 @@ func _input(event):
 		var size = trading_list.rect_size
 		if pos.x>=0 and pos.y>=0 and pos.x<size.x and pos.y<size.y:
 			var item_name = trading_list.get_product_at_position(pos)
-			if item_name is String and item_name!=hover_name:
-				update_hover_info(item_name,false)
-			elif not item_name and hover_name:
-				update_hover_info(null,false)
-		else:
-			update_hover_info(null,false)
+			if item_name is String:
+				return update_hover_info(item_name,false)
+		update_hover_info(null,false)
 
 func _on_TradingList_cargo_mass_changed(cargo_mass_,max_cargo_mass_):
 	cargo_mass=cargo_mass_
@@ -114,80 +112,87 @@ func starmap_show_product(index):
 
 func _on_BuySell_item_selected(index):
 	$All/Right/Content/StarmapPanel.buy = index==0
+#
+#func make_row3(one,two,three):
+#	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
+#		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]'
+#
+#func make_row4(one,two,three,four):
+#	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
+#		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]' \
+#		+'[cell]  [/cell][cell]'+str(four)+'[/cell]'
+#
+#func concoct_other_system_info(item_name,mine,here,display_name,price) -> String:
+#	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
+#	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
+#	var MASS_INDEX = Commodities.Products.MASS_INDEX
+#	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=7]'
+#	s+=make_row4('  ','[b]Here[/b]','[b]At '+display_name+'[/b]','[b]Difference[/b]')
+#	s+=make_row4('Price',here[VALUE_INDEX],price,price-here[VALUE_INDEX])
+#	s+=make_row4('Mass per',here[MASS_INDEX],' ',' ')
+#	s+=make_row4('Available',here[QUANTITY_INDEX],' ',' ')
+#	s+=make_row4('In cargo',mine[QUANTITY_INDEX],' ',' ')
+#	s+=make_row4('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ',' ')
+#	s+='[/table]\n'
+#	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+#		s+='\nTags:\n'
+#		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
+#			s+=' {*} '+here[itag]+'\n'
+#	return s
+#
+#func concoct_hover_info(item_name,mine,here,norm) -> String:
+#	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
+#	var FINE_INDEX = Commodities.Products.FINE_INDEX
+#	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
+#	var MASS_INDEX = Commodities.Products.MASS_INDEX
+#	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
+#	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
+#	s+=make_row3('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
+#	s+=make_row3('Fine',here[FINE_INDEX],norm[FINE_INDEX])
+#	s+=make_row3('Mass per',here[MASS_INDEX],' ')
+#	s+=make_row3('Available',here[QUANTITY_INDEX],' ')
+#	s+=make_row3('In cargo',mine[QUANTITY_INDEX],' ')
+#	s+=make_row3('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
+#	s+='[/table]\n'
+#	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+#		s+='\nTags:\n'
+#		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
+#			s+=' {*} '+here[itag]+'\n'
+#	return s
 
-func make_row3(one,two,three):
-	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
-		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]'
 
-func make_row4(one,two,three,four):
-	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
-		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]' \
-		+'[cell]  [/cell][cell]'+str(four)+'[/cell]'
-
-func concoct_other_system_info(item_name,mine,here,display_name,price) -> String:
-	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
-	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
-	var MASS_INDEX = Commodities.Products.MASS_INDEX
-	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=7]'
-	s+=make_row4('  ','[b]Here[/b]','[b]At '+display_name+'[/b]','[b]Difference[/b]')
-	s+=make_row4('Price',here[VALUE_INDEX],price,price-here[VALUE_INDEX])
-	s+=make_row4('Mass per',here[MASS_INDEX],' ',' ')
-	s+=make_row4('Available',here[QUANTITY_INDEX],' ',' ')
-	s+=make_row4('In cargo',mine[QUANTITY_INDEX],' ',' ')
-	s+=make_row4('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ',' ')
-	s+='[/table]\n'
-	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
-		s+='\nTags:\n'
-		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
-			s+=' {*} '+here[itag]+'\n'
-	return s
-
-func concoct_hover_info(item_name,mine,here,norm) -> String:
-	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
-	var FINE_INDEX = Commodities.Products.FINE_INDEX
-	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
-	var MASS_INDEX = Commodities.Products.MASS_INDEX
-	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
-	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
-	s+=make_row3('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
-	s+=make_row3('Fine',here[FINE_INDEX],norm[FINE_INDEX])
-	s+=make_row3('Mass per',here[MASS_INDEX],' ')
-	s+=make_row3('Available',here[QUANTITY_INDEX],' ')
-	s+=make_row3('In cargo',mine[QUANTITY_INDEX],' ')
-	s+=make_row3('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
-	s+='[/table]\n'
-	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
-		s+='\nTags:\n'
-		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
-			s+=' {*} '+here[itag]+'\n'
-	return s
 
 func update_hover_info(item_name,force_update):
+	if is_updating>0:
+		return
+	is_updating += 1
 	if not item_name:
 		item_name=trading_list.get_selected_product()
 	if not force_update and item_name==hover_name:
+		is_updating -= 1
 		return
 	hover_name=item_name
 	if not item_name:
-		return
-	push_warning('update_hover_info')
-	if item_name.begins_with('res://'):
+		$All/Left/Help.clear()
+	elif item_name.begins_with('res://'):
 		var help_page = text_gen.help_page_for_scene_path(item_name)
 		if help_page:
 			$All/Left/Help.clear()
-			$All/Left/Help.process_command('help '+help_page)
+			var result = $All/Left/Help.process_command('help '+help_page)
+			while result is GDScriptFunctionState:
+				result=yield(result,'completed')
 		else:
 			push_warning('no help page for scene '+str(item_name))
 	else:
-		var norm = Commodities.commodities.all.get(
-			Commodities.commodities.by_name.get(item_name,null),null)
-		if not norm:
-			return
-		var pair = trading_list.get_product_named(item_name)
-		if pair and pair[0] and pair[1]:
-			$All/Left/Help.insert_bbcode(
-				concoct_hover_info(item_name,pair[0],pair[1],norm),true)
-			$All/Left/Help.scroll_to_line(0)
+		var norm = trading_list.all_products.all.get(
+			trading_list.all_products.by_name.get(item_name,null),null)
+		if norm:
+			var pair = trading_list.get_product_named(item_name)
+			if pair and pair[0] and pair[1]:
+				$All/Left/Help.insert_bbcode(
+					text_gen.make_product_hover_info(item_name,pair[0],pair[1],norm),true)
+				$All/Left/Help.scroll_to_line(0)
+	is_updating-=1
 
 func _on_TradingList_all_product_data_changed():
 	update_hover_info(null,true)
@@ -217,7 +222,7 @@ func _on_StarmapPanel_hover_over_system(_system_name,system_display_name,system_
 		var here = trading_list.here
 		var here_item = here.all.get(here.by_name.get(hover_name,-1),null)
 		if here_item and mine_item:
-			var info: String = concoct_other_system_info(
+			var info: String = text_gen.make_system_product_hover_info(
 				hover_name,mine_item,here_item,system_display_name,system_price)
 			if info:
 				$All/Left/Help.insert_bbcode(info,true)
