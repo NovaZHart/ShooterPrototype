@@ -30,7 +30,7 @@ __meta__ = {
 }
 
 [node name="Left" type="VSplitContainer" parent="All"]
-margin_right = 359.0
+margin_right = 439.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -38,7 +38,7 @@ size_flags_vertical = 3
 [node name="Help" parent="All/Left" instance=ExtResource( 6 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 359.0
+margin_right = 439.0
 margin_bottom = 224.0
 mouse_filter = 1
 initial_bbcode = ""
@@ -46,7 +46,7 @@ allow_input = false
 
 [node name="Bottom" type="Panel" parent="All/Left"]
 margin_top = 236.0
-margin_right = 359.0
+margin_right = 439.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -67,6 +67,7 @@ margin_left = 4.0
 margin_top = 35.0
 margin_right = -4.0
 margin_bottom = -4.0
+show_profit = true
 
 [node name="ShipParts" parent="All/Left/Bottom/Tabs" instance=ExtResource( 4 )]
 visible = false
@@ -76,20 +77,31 @@ margin_right = -4.0
 margin_bottom = -4.0
 market_type = 1
 
+[node name="Unknown" parent="All/Left/Bottom/Tabs" instance=ExtResource( 4 )]
+visible = false
+margin_left = 4.0
+margin_top = 35.0
+margin_right = -4.0
+margin_bottom = -4.0
+market_type = 2
+
 [node name="SellAll" type="Button" parent="All/Left/Bottom"]
 anchor_left = 1.0
 anchor_right = 1.0
 grow_horizontal = 0
 hint_tooltip = "Sell everything your cargo hold."
 text = "Sell All"
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="Right" type="Panel" parent="All"]
-margin_left = 371.0
+margin_left = 451.0
 margin_right = 1024.0
 margin_bottom = 600.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
-size_flags_stretch_ratio = 1.8
+size_flags_stretch_ratio = 1.3
 
 [node name="Content" type="GridContainer" parent="All/Right"]
 anchor_right = 1.0
@@ -99,12 +111,12 @@ __meta__ = {
 }
 
 [node name="Top" type="CenterContainer" parent="All/Right/Content"]
-margin_right = 653.0
+margin_right = 573.0
 margin_bottom = 23.0
 
 [node name="BuySell" type="OptionButton" parent="All/Right/Content/Top"]
-margin_left = 312.0
-margin_right = 341.0
+margin_left = 272.0
+margin_right = 301.0
 margin_bottom = 23.0
 hint_tooltip = "Choice: map locations to buy item, or sale value of item."
 
@@ -112,7 +124,7 @@ hint_tooltip = "Choice: map locations to buy item, or sale value of item."
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 27.0
-margin_right = 653.0
+margin_right = 573.0
 margin_bottom = 600.0
 hint_tooltip = "(Test Tooltip)"
 mouse_filter = 1
@@ -160,7 +172,11 @@ __meta__ = {
 [connection signal="cargo_mass_changed" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_cargo_mass_changed"]
 [connection signal="product_data_changed" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_product_data_changed"]
 [connection signal="product_selected" from="All/Left/Bottom/Tabs/ShipParts" to="." method="_on_TradingList_product_selected"]
-[connection signal="pressed" from="All/Left/Bottom/SellAll" to="All/Left/Bottom/Tabs/Market" method="_on_SellAll_pressed"]
+[connection signal="all_product_data_changed" from="All/Left/Bottom/Tabs/Unknown" to="." method="_on_TradingList_all_product_data_changed"]
+[connection signal="cargo_mass_changed" from="All/Left/Bottom/Tabs/Unknown" to="." method="_on_TradingList_cargo_mass_changed"]
+[connection signal="product_data_changed" from="All/Left/Bottom/Tabs/Unknown" to="." method="_on_TradingList_product_data_changed"]
+[connection signal="product_selected" from="All/Left/Bottom/Tabs/Unknown" to="." method="_on_TradingList_product_selected"]
+[connection signal="pressed" from="All/Left/Bottom/SellAll" to="." method="_on_SellAll_pressed"]
 [connection signal="resized" from="All/Right/Content/Top" to="." method="_on_Content_resized"]
 [connection signal="item_selected" from="All/Right/Content/Top/BuySell" to="." method="_on_BuySell_item_selected"]
 [connection signal="hover_no_system" from="All/Right/Content/StarmapPanel" to="." method="_on_StarmapPanel_hover_no_system"]

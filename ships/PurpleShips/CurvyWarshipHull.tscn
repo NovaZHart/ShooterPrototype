@@ -12,7 +12,7 @@ extents = Vector3( 0.5, 10, 1.4 )
 
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 1 )
-help_page = "hulls/caracara"
+help_page = "hulls/eagle"
 base_mass = 88.0
 base_thrust = 1100.0
 base_reverse_thrust = 900.0

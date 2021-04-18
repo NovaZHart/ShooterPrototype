@@ -28,7 +28,10 @@ func _ready():
 	Player.age_off_markets()
 	Player.age_off_ship_parts()
 	set_market(null)
+	$All/Info/Bottom/Markets/Tabs.set_tab_title(0,'Market')
+	$All/Info/Bottom/Markets/Tabs.set_tab_title(1,'Ship Parts')
 	_on_Tabs_tab_changed($All/Info/Bottom/Markets/Tabs.current_tab)
+	update_SalePrice_disabled()
 
 func set_market(path):
 	if path is String:
@@ -49,25 +52,27 @@ func set_market(path):
 			(system_name+' '+planet_name if system_name!=planet_name else planet_name)
 	
 	var sale_price = $All/Info/Bottom/Markets/Middle/SalePrice.pressed
+	var sale_info
 	
-	var commodities = null
 	if path:
-		commodities = Player.update_markets_at(path)
-		if sale_price:
-			pass # FIXME
-	if not commodities:
-		commodities = Commodities.commodities.duplicate(true)
-	$All/Info/Bottom/Markets/Tabs/Market.populate_list(
-		commodities.duplicate(),ship_design,planet_info,sale_price)
+		sale_info = Player.products_for_sale_at(planet_info.get_path(),sale_price,false)
+	else:
+		sale_info = {}
 	
-	var ship_parts = null
-	if path:
-		ship_parts = Player.update_ship_parts_at(path)
+	var ship_parts = sale_info.get('ship_parts',null)
 	if not ship_parts:
 		ship_parts = Commodities.ship_parts.duplicate(true)
 	print('Ship part count '+str(len(ship_parts.all))+' at '+str(path))
 	$All/Info/Bottom/Markets/Tabs/ShipParts.populate_list(
-		ship_parts.duplicate(),ship_design,planet_info,false)
+		Commodities.ship_parts,ship_parts,ship_design)
+	
+	var commodities = null
+	if path:
+		commodities = sale_info.get('commodities',null)
+	if not commodities:
+		commodities = Commodities.commodities.duplicate(true)
+	$All/Info/Bottom/Markets/Tabs/Market.populate_list(
+		Commodities.commodities,commodities,ship_design)
 
 func info_show_product(product_name):
 	if last_shown_mode=='info_show_product' and last_shown_product==product_name:
@@ -118,9 +123,12 @@ func _on_TradingList_product_selected(product_name):
 	var index = trading_list.product_names.find(product_name)+1
 	starmap_show_product(index)
 
-func _on_Tabs_tab_changed(tab):
+func update_SalePrice_disabled():
 	$All/Info/Bottom/Markets/Middle/SalePrice.disabled = \
 		not $All/Info/Bottom/Markets/Tabs/Market.is_visible_in_tree()
+
+func _on_Tabs_tab_changed(tab):
+	update_SalePrice_disabled()
 	var control = $All/Info/Bottom/Markets/Tabs.get_child(tab)
 	if not control.has_method('is_TradingList'):
 		trading_list = null

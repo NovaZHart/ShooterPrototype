@@ -1,6 +1,7 @@
 extends Node
 
 var price_callbacks: Array = []
+var cached_page_titles: Dictionary = {}
 
 func add_price_callback(o: Object):
 	price_callbacks.append(o)
@@ -212,8 +213,12 @@ func help_page_for_scene_path(resource_path) -> String:
 
 
 func title_for_scene_path(resource_path) -> String:
-	var help_page = help_page_for_scene_path(resource_path)
-	return builtin_commands.Help.page_title(help_page) if help_page else ''
+	var title = cached_page_titles.get(resource_path,null)
+	if title == null:
+		var help_page = help_page_for_scene_path(resource_path)
+		title = builtin_commands.Help.page_title(help_page) if help_page else ''
+		cached_page_titles[resource_path] = title
+	return title
 
 
 func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) -> String:

@@ -156,16 +156,22 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Seti-α",
                 "description": "",
                 "base": "yellow_sun",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "size": 12,
@@ -183,7 +189,10 @@
                         "Array",
                         "info"
                       ],
-                      "shipyard": [ "Array", "small_laser_terran" ],
+                      "shipyard": [
+                        "Array",
+                        "small_laser_terran"
+                      ],
                       "display_name": "Storm",
                       "description": "Description of Storm planet.",
                       "base": "ocean_planet",
@@ -191,13 +200,17 @@
                         "suvar": 9100000,
                         "human": 95000000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_trade": 1,
-                        "terran_government": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_trade",
+                        "terran_government"
+                      ],
                       "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
 
                       },
                       "size": 5,
@@ -372,16 +385,22 @@
                   "Array",
                   "info"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Astra",
                 "description": "",
                 "base": "blue_sun",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "size": 14,
@@ -407,7 +426,9 @@
                         "info"
                       ],
                       "shipyard": [
-                        "Array", "small_laser_terran"
+                        "Array",
+                        "small_laser_terran",
+                        "large_terran"
                       ],
                       "display_name": "Hellscape",
                       "description": "",
@@ -416,13 +437,17 @@
                         "suvar": 6100,
                         "human": 58000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_mining": 1,
-                        "terran_government": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_mining",
+                        "terran_government"
+                      ],
                       "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
 
                       },
                       "size": 5.5,
@@ -459,7 +484,8 @@
                         "info"
                       ],
                       "shipyard": [
-                        "Array", "small_particle_terran"
+                        "Array",
+                        "small_particle_terran"
                       ],
                       "display_name": "Pearl",
                       "description": "Description of Pearl planet.",
@@ -468,13 +494,17 @@
                         "suvar": 21000,
                         "human": 191000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_food": 1,
-                        "terran_government": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_food",
+                        "terran_government"
+                      ],
                       "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
 
                       },
                       "size": 11,
@@ -506,6 +536,9 @@
                               "Array",
                               "info"
                             ],
+                            "shipyard": [
+                              "Array"
+                            ],
                             "display_name": "Ironclad",
                             "description": "Description of Pearl planet.",
                             "base": "ice_planet",
@@ -513,13 +546,17 @@
                               "suvar": 11000,
                               "human": 85000
                             },
-                            "trading": {
-                              "suvar": 1,
-                              "human": 1,
-                              "terran_mining": 1,
-                              "terran_government": 1
-                            },
+                            "trading": [
+                              "Array",
+                              "suvar",
+                              "human",
+                              "terran_mining",
+                              "terran_government"
+                            ],
                             "locality_adjustments": {
+
+                            },
+                            "shipyard_locality_adjustments": {
 
                             },
                             "size": 3,
@@ -712,16 +749,22 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Sun",
                 "description": "",
                 "base": "",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "object_type": 1,
@@ -754,6 +797,9 @@
                         "Array",
                         "info"
                       ],
+                      "shipyard": [
+                        "Array"
+                      ],
                       "display_name": "New Kano",
                       "description": "",
                       "base": "",
@@ -761,13 +807,17 @@
                         "suvar": 11000,
                         "human": 135000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_mining": 1,
-                        "terran_government": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_mining",
+                        "terran_government"
+                      ],
                       "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
 
                       },
                       "object_type": 0,
@@ -802,10 +852,11 @@
                     {
                       "services": [
                         "Array",
-                        "info",
+                        "info"
                       ],
                       "shipyard": [
-                        "Array", "small_particle_terran"
+                        "Array",
+                        "small_particle_terran"
                       ],
                       "display_name": "New Lagos",
                       "description": "",
@@ -814,13 +865,17 @@
                         "suvar": 51000,
                         "human": 485000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_food": 1,
-                        "terran_government": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_food",
+                        "terran_government"
+                      ],
                       "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
 
                       },
                       "object_type": 0,
@@ -851,10 +906,11 @@
                           {
                             "services": [
                               "Array",
-                              "info",
+                              "info"
                             ],
                             "shipyard": [
-                              "Array", "small_particle_terran"
+                              "Array",
+                              "small_particle_terran"
                             ],
                             "display_name": "New Ife",
                             "description": "",
@@ -863,13 +919,17 @@
                               "suvar": 10300,
                               "human": 111500
                             },
-                            "trading": {
-                              "suvar": 1,
-                              "human": 1,
-                              "terran_trade": 1,
-                              "terran_government": 1
-                            },
+                            "trading": [
+                              "Array",
+                              "suvar",
+                              "human",
+                              "terran_trade",
+                              "terran_government"
+                            ],
                             "locality_adjustments": {
+
+                            },
+                            "shipyard_locality_adjustments": {
 
                             },
                             "object_type": 0,
@@ -1032,16 +1092,22 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Seti-ɣ",
                 "description": "",
                 "base": "",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "object_type": 1,
@@ -1077,16 +1143,22 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Seti-ɣ-2",
                 "description": "",
                 "base": "",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "object_type": 1,
@@ -1124,7 +1196,8 @@
                   "info"
                 ],
                 "shipyard": [
-                  "Array", "small_laser_terran"
+                  "Array",
+                  "small_laser_terran"
                 ],
                 "display_name": "Kindra",
                 "description": "",
@@ -1133,13 +1206,14 @@
                   "suvar": 57500,
                   "human": 585000
                 },
-                "trading": {
-                  "suvar": 1,
-                  "human": 1,
-                  "terran_food": 1,
-                  "terran_industrial": 1,
-                  "terran_government": 1
-                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_food",
+                  "terran_industrial",
+                  "terran_government"
+                ],
                 "locality_adjustments": {
                   "deadly_drug/terran/human": [
                     "Array",
@@ -1153,6 +1227,9 @@
                     1,
                     1
                   ]
+                },
+                "shipyard_locality_adjustments": {
+
                 },
                 "object_type": 0,
                 "size": 9,
@@ -1185,7 +1262,8 @@
                         "info"
                       ],
                       "shipyard": [
-                        "Array", "small_laser_terran"
+                        "Array",
+                        "small_laser_terran"
                       ],
                       "display_name": "Yarra",
                       "description": "",
@@ -1194,12 +1272,13 @@
                         "suvar": 14000,
                         "human": 21000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_government": 1,
-                        "terran_illegal": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_government",
+                        "terran_illegal"
+                      ],
                       "locality_adjustments": {
                         "dead/sentient": [
                           "Array",
@@ -1207,6 +1286,9 @@
                           0,
                           1
                         ]
+                      },
+                      "shipyard_locality_adjustments": {
+
                       },
                       "object_type": 0,
                       "size": 5,
@@ -1244,6 +1326,9 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Gondra",
                 "description": "",
                 "base": "",
@@ -1251,11 +1336,12 @@
                   "suvar": 1600,
                   "human": 18000
                 },
-                "trading": {
-                  "suvar": 1,
-                  "human": 1,
-                  "terran_government": 1
-                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_government"
+                ],
                 "locality_adjustments": {
                   "deadly_drug/terran/human": [
                     "Array",
@@ -1269,6 +1355,9 @@
                     1,
                     1
                   ]
+                },
+                "shipyard_locality_adjustments": {
+
                 },
                 "object_type": 0,
                 "size": 5,
@@ -1478,16 +1567,22 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "א-85",
                 "description": "",
                 "base": "",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "object_type": 1,
@@ -1520,7 +1615,8 @@
                         "Array"
                       ],
                       "shipyard": [
-                        "Array", "small_particle_terran"
+                        "Array",
+                        "small_particle_terran"
                       ],
                       "display_name": "Moranna",
                       "description": "",
@@ -1529,13 +1625,17 @@
                         "suvar": 21000000,
                         "human": 210000000
                       },
-                      "trading": {
-                        "suvar": 1,
-                        "human": 1,
-                        "terran_trade": 1,
-                        "terran_government": 1
-                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_trade",
+                        "terran_government"
+                      ],
                       "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
 
                       },
                       "object_type": 0,
@@ -1619,16 +1719,22 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Rogue Planet",
                 "description": "",
                 "base": "",
                 "population": {
 
                 },
-                "trading": {
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
 
                 },
-                "locality_adjustments": {
+                "shipyard_locality_adjustments": {
 
                 },
                 "object_type": 1,
@@ -1714,6 +1820,9 @@
                 "services": [
                   "Array"
                 ],
+                "shipyard": [
+                  "Array"
+                ],
                 "display_name": "Rogue Planet",
                 "description": "",
                 "base": "",
@@ -1721,12 +1830,16 @@
                   "suvar": 1000000,
                   "human": 9000000
                 },
-                "trading": {
-                  "suvar": 1,
-                  "human": 1,
-                  "terran_government": 1
-                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_government"
+                ],
                 "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
 
                 },
                 "object_type": 0,
@@ -1764,7 +1877,7 @@
   "ship_designs": [
     "SimpleNode",
     {
-      "warship_lasers": [
+      "raven_lasers": [
         "ShipDesign",
         "Laser Warship",
         [
@@ -1824,7 +1937,7 @@
         },
         null
       ],
-      "warship_cyclotrons": [
+      "raven_cyclotrons": [
         "ShipDesign",
         "Cyclotron Warship",
         [
@@ -2096,7 +2209,7 @@
         },
         null
       ],
-      "curvy_cyclotrons": [
+      "eagle_cyclotrons": [
         "ShipDesign",
         "Turret Warship",
         [
@@ -2158,7 +2271,7 @@
         },
         null
       ],
-      "interceptor_cyclotrons": [
+      "peregrine_cyclotrons": [
         "ShipDesign",
         "Cyclotron Interceptor",
         [
@@ -2204,7 +2317,7 @@
         },
         null
       ],
-      "interceptor_lasers": [
+      "peregrine_lasers": [
         "ShipDesign",
         "Laser Interceptor",
         [
@@ -2250,7 +2363,7 @@
         },
         null
       ],
-      "heavy_cyclotrons": [
+      "condor_cyclotrons": [
         "ShipDesign",
         "Cyclotron Battleship",
         [
@@ -2345,7 +2458,7 @@
         },
         null
       ],
-      "heavy_lasers": [
+      "condor_lasers": [
         "ShipDesign",
         "Laser Battleship",
         [
@@ -2449,58 +2562,58 @@
         "Fleet",
         "Raven Duo (Cyclotrons)",
         {
-          "warship_cyclotrons": 2
+          "raven_cyclotrons": 2
         }
       ],
       "eagle_duo_cyclotrons": [
         "Fleet",
         "Eagle Duo (Cyclotrons)",
         {
-          "curvy_cyclotrons": 2
+          "eagle_cyclotrons": 2
         }
       ],
       "eagle_peregrine_lasers": [
         "Fleet",
         "Eagle and Peregrine (Lasers)",
         {
-          "warship_lasers": 1,
-          "interceptor_lasers": 1
+          "raven_lasers": 1,
+          "peregrine_lasers": 1
         }
       ],
       "raven_peregrine_cyclotrons": [
         "Fleet",
         "Raven and Peregrine (Cyclotrons)",
         {
-          "curvy_cyclotrons": 1,
-          "interceptor_cyclotrons": 1
+          "eagle_cyclotrons": 1,
+          "peregrine_cyclotrons": 1
         }
       ],
       "peregrine_trio_lasers": [
         "Fleet",
         "Peregrine Trio (Lasers)",
         {
-          "interceptor_lasers": 3
+          "peregrine_lasers": 3
         }
       ],
       "peregrine_trio_cyclotrons": [
         "Fleet",
         "Peregrine Trio (Cyclotrons)",
         {
-          "interceptor_cyclotrons": 3
+          "peregrine_cyclotrons": 3
         }
       ],
       "condor_lasers": [
         "Fleet",
         "Condor (Lasers)",
         {
-          "heavy_lasers": 1
+          "condor_lasers": 1
         }
       ],
       "condor_cyclotrons": [
         "Fleet",
         "Condor (Cyclotrons)",
         {
-          "heavy_cyclotrons": 1
+          "condor_cyclotrons": 1
         }
       ],
       "banner_ship": [

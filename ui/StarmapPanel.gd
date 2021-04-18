@@ -53,6 +53,7 @@ var last_position = null
 var last_screen_position = null
 var camera_start = null
 var hover_index = -1
+var first_show: bool = true
 
 signal select
 signal deselect
@@ -83,6 +84,26 @@ func maybe_show_window():
 	$Window.visible=show
 	$Window.set_process_input(show)
 	$Window/Tree.set_process_input(show)
+	if first_show:
+		set_window_location()
+		first_show = false
+
+func set_window_location():
+	var font: Font = get_font('default_font')
+	var M_size: Vector2 = font.get_char_size(ord('M'))
+	var window_size: Vector2 = Vector2(M_size.x*25,M_size.y*10)
+	var me: Rect2 = get_global_rect()
+	#var window_top_pad = M_size.y + M_size.x
+	#var window_right_pad = M_size.x/2
+	var window_position: Vector2 = Vector2(
+		me.end.x-window_size.x, # -window_right_pad,
+		me.position.y) # +window_top_pad)
+	print('my position: '+str(me))
+	print('window size: '+str(window_size))
+	print('window position: '+str(window_position))
+	print('old position: '+str($Window.get_global_rect()))
+	$Window.set_initial_rect(window_position,window_size)
+	print('new position: '+str($Window.get_global_rect()))
 
 func _ready():
 	$Window.get_close_button().visible=false

@@ -7,9 +7,64 @@ var hover_name = null # : String or null
 var trading_list: Tree
 var is_updating: int = 0
 
+func _init():
+	Player.dump_fruit_count('TradingScreen init')
+
+func _enter_tree():
+	Player.dump_fruit_count('TradingScreen enter tree')
+
 func _ready():
-	$All/Left/Bottom/Tabs.set_tab_title(0,'Commodities')
+	var planet_info = Player.get_space_object_or_null()
+	if planet_info==null:
+		# Cannot land here
+		push_error('ERROR: NULL PLANET INFO')
+		game_state.change_scene('res://ui/SpaceScreen.tscn')
+		return
+	
+	$All/Left/Bottom/Tabs.set_tab_title(0,'Market')
 	$All/Left/Bottom/Tabs.set_tab_title(1,'Ship Parts')
+	$All/Left/Bottom/Tabs.set_tab_title(2,'Dump Cargo')
+	
+#	trading_list = $All/Left/Bottom/Tabs/Market
+#
+	$All/Right/Location.text = planet_info.full_display_name()
+	
+	Player.dump_fruit_count('TradingScreen._ready before products_for_sale')
+	var sale_info = Player.products_for_sale_at(planet_info.get_path())
+	Player.dump_fruit_count('TradingScreen._ready after products_for_sale')
+	
+	var commodities_here = sale_info.get('commodities',null)
+	var ship_parts_here = sale_info.get('ship_parts',null)
+	var unknown_here = sale_info.get('unknown',null)
+	
+	if not commodities_here and not unknown_here and not ship_parts_here:
+		commodities_here = Commodities.ManyProducts.new()
+	
+	for child_list in [ 
+		[ 'Market',commodities_here,Commodities.commodities ],
+		[ 'ShipParts',ship_parts_here,Commodities.ship_parts ],
+		[ 'Unknown',unknown_here,null ] ]:
+			var child = $All/Left/Bottom/Tabs.get_node(child_list[0])
+			if child_list[1]:
+				var all_products = child_list[2]
+				if all_products==null:
+					all_products = Commodities.commodities.duplicate(true)
+					all_products.add_products(Commodities.ship_parts,null,null,null)
+					all_products.apply_multipliers(0,null,null)
+				child.populate_list(all_products,child_list[1],Player.player_ship_design)
+			else:
+				$All/Left/Bottom/Tabs.remove_child(child)
+				child.queue_free()
+	
+	trading_list = $All/Left/Bottom/Tabs.get_current_tab_control()
+	$All/Right/Content/Top/BuySell.add_item('Buying Map',0)
+	$All/Right/Content/Top/BuySell.add_item('Selling Map',1)
+	_on_Content_resized()
+
+func _not_ready():
+	$All/Left/Bottom/Tabs.set_tab_title(0,'Market')
+	$All/Left/Bottom/Tabs.set_tab_title(1,'Ship Parts')
+	$All/Left/Bottom/Tabs.set_tab_title(2,'Dump Cargo')
 	trading_list = $All/Left/Bottom/Tabs/Market
 	var info = Player.get_info_or_null()
 	if info:
@@ -17,24 +72,60 @@ func _ready():
 	else:
 		push_warning('Cannot find player location info')
 	
+	var planet_info = Player.get_space_object_or_null()
+	if planet_info==null:
+		# Cannot land here
+		push_error('ERROR: NULL PLANET INFO')
+		game_state.change_scene('res://ui/SpaceScreen.tscn')
+		return
+	
 	if not Player.player_ship_design.cargo:
 		Player.player_ship_design.cargo = Commodities.ManyProducts.new()
 	
-	var planet_info = Player.get_info_or_null()
+	var cargo = Player.player_ship_design.cargo
 	
 	Player.age_off_markets()
-	var commodities = Player.update_markets_at(Player.player_location)
-	if not commodities:
+	var commodities_for_sale = Player.update_markets_at(Player.player_location)
+	var commodities_here
+	var has_commodities_for_sale = not not commodities_for_sale
+	if has_commodities_for_sale:
 		push_error('Could not get commodity data for '+str(Player.player_location))
-		commodities = Commodities.ManyProducts.new()
-	$All/Left/Bottom/Tabs/Market.populate_list(commodities,Player.player_ship_design,planet_info)
+		commodities_here = Commodities.ManyProducts.new()
+	else:
+		commodities_here = Commodities.products_for_market(Commodities.commodities,
+			commodities_for_sale,cargo,planet_info,'price_products')
+	$All/Left/Bottom/Tabs/Market.populate_list(commodities_here,Player.player_ship_design)
+	$All/Left/Bottom/Tabs/Market.show_fruit('After Market populate_list')
 	
 	Player.age_off_ship_parts()
-	var ship_parts = Player.update_ship_parts_at(Player.player_location)
-	if not ship_parts:
+	var ship_parts_for_sale = Player.update_ship_parts_at(Player.player_location)
+	var ship_parts_here
+	if not ship_parts_for_sale:
 		push_error('Could not get ship part data for '+str(Player.player_location))
-		ship_parts = Commodities.ManyProducts.new()
-	$All/Left/Bottom/Tabs/ShipParts.populate_list(ship_parts,Player.player_ship_design,planet_info)
+		ship_parts_here = Commodities.ManyProducts.new()
+		var remove = $All/Left/Bottom/Tabs/ShipParts
+		$All/Left/Bottom/Tabs.remove_child(remove)
+		remove.queue_free()
+	else:
+		ship_parts_here = Commodities.products_for_market(Commodities.ship_parts,
+			ship_parts_for_sale,cargo,planet_info,'price_ship_parts')
+		$All/Left/Bottom/Tabs/ShipParts.populate_list(
+			ship_parts_here,Player.player_ship_design)
+		$All/Left/Bottom/Tabs/Market.show_fruit('After ShipParts populate_list')
+	
+	var unknown_player_cargo = Player.player_ship_design.cargo.duplicate(true)
+	unknown_player_cargo.remove_named_products(commodities_here)
+	unknown_player_cargo.remove_named_products(ship_parts_here)
+	unknown_player_cargo.remove_empty_products()
+	if unknown_player_cargo.has_quantity():
+		print('unknown cargo: '+str(unknown_player_cargo.by_name.keys()))
+		$All/Left/Bottom/Tabs/Unknown.populate_list(
+			Player.player_ship_design.cargo.duplicate(true),Player.player_ship_design,planet_info)
+		$All/Left/Bottom/Tabs/Market.show_fruit('After Unknown populate_list')
+	else:
+		var unknown = $All/Left/Bottom/Tabs/Unknown
+		$All/Left/Bottom/Tabs.remove_child(unknown)
+		unknown.queue_free()
 	
 	_on_Tabs_tab_changed($All/Left/Bottom/Tabs.current_tab)
 	$All/Left/Bottom/Tabs/Market.product_names.sort()
@@ -42,12 +133,15 @@ func _ready():
 	$All/Right/Content/Top/BuySell.add_item('Buying Map',0)
 	$All/Right/Content/Top/BuySell.add_item('Selling Map',1)
 	_on_Content_resized()
+	$All/Left/Bottom/Tabs/Market.show_fruit('Bottom of ready')
 
 func exit_to_orbit():
+	$All/Left/Bottom/Tabs/Market.show_fruit('exit_to_orbit')
 	var design = Player.player_ship_design
-	design.cargo = $All/Left/Bottom/Tabs/Market.mine.copy()
-	design.cargo.add_products($All/Left/Bottom/Tabs/ShipParts.mine,null,null,null)
+#	design.cargo = $All/Left/Bottom/Tabs/Market.mine.copy()
+#	design.cargo.add_products($All/Left/Bottom/Tabs/ShipParts.mine,null,null,null)
 	design.cargo.remove_empty_products()
+	$All/Left/Bottom/Tabs/Market.show_fruit('after removing empty products')
 	var message = null
 	if Player.money<0:
 		message = "You don't have enough money to buy your ship!"
@@ -72,10 +166,14 @@ func exit_to_orbit():
 		panel.queue_free()
 		if result:
 			$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
+			$All/Left/Bottom/Tabs/ShipParts.here.remove_empty_products()
+			$All/Left/Bottom/Tabs/Market.show_fruit('just before scene change')
 			game_state.call_deferred('change_scene',result)
 		else:
 			return # do not change scene
 	$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
+	$All/Left/Bottom/Tabs/ShipParts.here.remove_empty_products()
+	$All/Left/Bottom/Tabs/Market.show_fruit('just before OrbitScreen scene change')
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func _input(event):
@@ -94,7 +192,7 @@ func _input(event):
 func _on_TradingList_cargo_mass_changed(cargo_mass_,max_cargo_mass_):
 	cargo_mass=cargo_mass_
 	max_cargo_mass=max_cargo_mass_
-	$All/Right/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(Player.money)
+	$All/Right/CargoMass.text = str(cargo_mass)+'/'+str(max_cargo_mass)+' kg, money: '+str(Player.money)
 
 func starmap_show_product(index):
 	var bs = $All/Right/Content/Top/BuySell
@@ -112,55 +210,6 @@ func starmap_show_product(index):
 
 func _on_BuySell_item_selected(index):
 	$All/Right/Content/StarmapPanel.buy = index==0
-#
-#func make_row3(one,two,three):
-#	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
-#		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]'
-#
-#func make_row4(one,two,three,four):
-#	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
-#		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]' \
-#		+'[cell]  [/cell][cell]'+str(four)+'[/cell]'
-#
-#func concoct_other_system_info(item_name,mine,here,display_name,price) -> String:
-#	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
-#	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
-#	var MASS_INDEX = Commodities.Products.MASS_INDEX
-#	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=7]'
-#	s+=make_row4('  ','[b]Here[/b]','[b]At '+display_name+'[/b]','[b]Difference[/b]')
-#	s+=make_row4('Price',here[VALUE_INDEX],price,price-here[VALUE_INDEX])
-#	s+=make_row4('Mass per',here[MASS_INDEX],' ',' ')
-#	s+=make_row4('Available',here[QUANTITY_INDEX],' ',' ')
-#	s+=make_row4('In cargo',mine[QUANTITY_INDEX],' ',' ')
-#	s+=make_row4('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ',' ')
-#	s+='[/table]\n'
-#	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
-#		s+='\nTags:\n'
-#		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
-#			s+=' {*} '+here[itag]+'\n'
-#	return s
-#
-#func concoct_hover_info(item_name,mine,here,norm) -> String:
-#	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
-#	var FINE_INDEX = Commodities.Products.FINE_INDEX
-#	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
-#	var MASS_INDEX = Commodities.Products.MASS_INDEX
-#	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
-#	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
-#	s+=make_row3('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
-#	s+=make_row3('Fine',here[FINE_INDEX],norm[FINE_INDEX])
-#	s+=make_row3('Mass per',here[MASS_INDEX],' ')
-#	s+=make_row3('Available',here[QUANTITY_INDEX],' ')
-#	s+=make_row3('In cargo',mine[QUANTITY_INDEX],' ')
-#	s+=make_row3('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
-#	s+='[/table]\n'
-#	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
-#		s+='\nTags:\n'
-#		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
-#			s+=' {*} '+here[itag]+'\n'
-#	return s
-
-
 
 func update_hover_info(item_name,force_update):
 	if is_updating>0:
@@ -245,3 +294,13 @@ func _on_Help_mouse_entered():
 
 func _on_StarmapPanel_mouse_entered():
 	update_hover_info(null,false)
+
+
+func _on_SellAll_pressed():
+	print('SellAll in TradingScreen')
+	var control = $All/Left/Bottom/Tabs.get_current_tab_control()
+	if control and control is Object and control.has_method('_on_SellAll_pressed'):
+		print('... pass down to tab')
+		control._on_SellAll_pressed()
+	else:
+		print('... ignore SellAll')

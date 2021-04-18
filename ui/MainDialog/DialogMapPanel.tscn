@@ -85,13 +85,12 @@ margin_bottom = 349.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="Search" type="PanelContainer" parent="All/Info/Bottom/Markets/Tabs"]
-anchor_right = 1.0
-anchor_bottom = 1.0
+[node name="Market" parent="All/Info/Bottom/Markets/Tabs" instance=ExtResource( 3 )]
 margin_left = 4.0
 margin_top = 32.0
 margin_right = -4.0
 margin_bottom = -4.0
+buy_and_sell = false
 
 [node name="ShipParts" parent="All/Info/Bottom/Markets/Tabs" instance=ExtResource( 3 )]
 visible = false
@@ -101,14 +100,6 @@ margin_right = -4.0
 margin_bottom = -4.0
 buy_and_sell = false
 market_type = 1
-
-[node name="Market" parent="All/Info/Bottom/Markets/Tabs" instance=ExtResource( 3 )]
-visible = false
-margin_left = 4.0
-margin_top = 32.0
-margin_right = -4.0
-margin_bottom = -4.0
-buy_and_sell = false
 
 [node name="StarmapPanel" parent="All" instance=ExtResource( 5 )]
 anchor_right = 0.0
@@ -121,7 +112,7 @@ show_space_objects = true
 [connection signal="page_selected" from="All/Info/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="toggled" from="All/Info/Bottom/Markets/Middle/SalePrice" to="." method="_on_SalePrice_toggled"]
 [connection signal="tab_changed" from="All/Info/Bottom/Markets/Tabs" to="." method="_on_Tabs_tab_changed"]
-[connection signal="product_selected" from="All/Info/Bottom/Markets/Tabs/ShipParts" to="." method="_on_TradingList_product_selected"]
 [connection signal="product_selected" from="All/Info/Bottom/Markets/Tabs/Market" to="." method="_on_TradingList_product_selected"]
+[connection signal="product_selected" from="All/Info/Bottom/Markets/Tabs/ShipParts" to="." method="_on_TradingList_product_selected"]
 [connection signal="deselect" from="All/StarmapPanel" to="." method="_on_StarmapPanel_deselect"]
 [connection signal="select_space_object" from="All/StarmapPanel" to="." method="_on_StarmapPanel_select_space_object"]

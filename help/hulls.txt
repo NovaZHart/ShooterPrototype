@@ -16,7 +16,17 @@ A warship with a good mix of shields and armor, with a decent armament that focu
 
 @bbcode_from_scene res://ships/PurpleShips/WarshipHull.tscn
 
-@PAGE hulls/caracara
+@PAGE hulls/eagle
+@title Eagle-Class Warship
+@price Price:
+@synopsis Anti-fighter support ship.
+@content
+The Eagle is a support ship designed to defend convoys against interceptors.
+
+@bbcode_from_scene res://ships/PurpleShips/CurvyWarshipHull.tscn
+
+@PAGE hulls/eagle
+
 @title Caracara-Class Warship
 @price Price:
 @synopsis Anti-fighter support ship.

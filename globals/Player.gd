@@ -88,6 +88,87 @@ func store_state():
 		'departed_hyperspace_position': departed_hyperspace_position,
 	}
 
+func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
+		include_all_ship_parts=false) -> Dictionary:
+	var result = {}
+	
+	# If this space object does not exist, nothing can be sold:
+	var planet_info = game_state.systems.get_node_or_null(planet_path)
+	if not planet_info:
+		push_warning('No space object at path '+str(planet_path))
+		
+		# If there is anything in the cargo, then list it as "unknown"
+		if player_ship_design.cargo:
+			var unknown_cargo = player_ship_design.cargo.duplicate(true)
+			unknown_cargo.remove_absent_products()
+			if unknown_cargo.all:
+				result['unknown'] = unknown_cargo
+		
+		return result
+	
+	# Get the player's cargo:
+	var cargo
+	if player_ship_design.cargo:
+		cargo = player_ship_design.cargo
+	else:
+		cargo = Commodities.ManyProducts.new()
+	
+	# Find all commodities for sale at the planet, or cargo commodities that
+	# can be sold at the planet.
+	var commodities_for_sale = update_markets_at(planet_path)
+	var commodities_here
+	var has_commodities_for_sale = not not commodities_for_sale
+	if has_commodities_for_sale:
+		commodities_here = Commodities.products_for_market(Commodities.commodities,
+			commodities_for_sale,cargo,planet_info,'price_products',
+			include_all_commodities)
+		result['commodities'] = commodities_here
+	else:
+		push_warning('no commodities for sale')
+		commodities_here = Commodities.ManyProducts.new()
+	
+	# Find all ship parts for sale at the planet, or ship parts in the cargo
+	# that can be sold at the planet.
+	var ship_parts_for_sale = Player.update_ship_parts_at(Player.player_location)
+	var ship_parts_here
+	if ship_parts_for_sale:
+		ship_parts_here = Commodities.products_for_market(Commodities.ship_parts,
+			ship_parts_for_sale,cargo,planet_info,'price_ship_parts',
+			include_all_ship_parts)
+		result['ship_parts'] = ship_parts_here
+	else:
+		ship_parts_here = Commodities.ManyProducts.new()
+	
+	# If there is nothing in cargo, we're done:
+	if not cargo.all:
+		return result
+	
+	# Find all cargo that cannot be sold as commodities or ship parts:
+	var unknown_player_cargo = Player.player_ship_design.cargo.duplicate(true)
+	unknown_player_cargo.remove_named_products(commodities_here)
+	unknown_player_cargo.remove_named_products(ship_parts_here)
+	unknown_player_cargo.remove_absent_products()
+	if unknown_player_cargo.all:
+		result['unknown'] = unknown_player_cargo
+	
+	return result
+
+# warning-ignore:unused_argument
+func dump_fruit_count(why):
+#	var cargo = player_ship_design.cargo
+#	if not cargo:
+#		print('FRUIT '+str(why)+': null cargo')
+#		return
+#	#print('FRUIT '+str(why)+': 
+#	var fruit_mine = cargo.all.get(cargo.by_name.get('fruit',-1),null)
+#	if not fruit_mine:
+#		print('FRUIT '+str(why)+': no fruit product entry in cargo')
+#		return
+#	var I = Commodities.Products.QUANTITY_INDEX
+#	var count_mine = fruit_mine[I] if fruit_mine else '(none)'
+#	print('FRUIT '+str(why)+': player cargo count is '+str(count_mine))
+	pass
+
 func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']
 	money = state.get('money',98000)
@@ -323,8 +404,8 @@ func _init():
 	assert(player_location)
 	assert(system)
 	
-	var start_ship = game_state.ship_designs.get_node_or_null('godship')
-	#var start_ship = game_state.ship_designs.get_node_or_null('interceptor_cyclotrons')
+	#var start_ship = game_state.ship_designs.get_node_or_null('godship')
+	var start_ship = game_state.ship_designs.get_node_or_null('raven_lasers')
 	assert(start_ship)
 	player_ship_design = start_ship
 	

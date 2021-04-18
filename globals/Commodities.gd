@@ -2,6 +2,7 @@ extends Node
 
 const MARKET_TYPE_COMMODITIES: int = 0
 const MARKET_TYPE_SHIP_PARTS: int = 1
+const MARKET_TYPE_UNKNOWN: int = 2
 
 var commodities: ManyProducts
 var trading: Dictionary
@@ -60,6 +61,13 @@ class Products extends Reference:
 	# Duplicate the `all` array, for storing the products in compressed form:
 	func encode() -> Dictionary:
 		return all.duplicate(true)
+	
+	func has_quantity() -> bool:
+		for id in all:
+			var product = all.get(id,null)
+			if product and product[QUANTITY_INDEX]>0:
+				return true
+		return false
 	
 	# Return all IDs in the `include` set that are not in the `exclude` set
 	# The `include` and `exclude` can have string tag names or int IDs.
@@ -166,6 +174,13 @@ class Products extends Reference:
 						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
 					if quantity_value_fine[2]>=0:
 						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
+	
+	func apply_multipliers(quantity_multiplier,value_multiplier,fine_multiplier):
+		for id in all:
+			var product = all.get(id,null)
+			if product:
+				_apply_multipliers(product,product,quantity_multiplier,
+					value_multiplier,fine_multiplier)
 	
 	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
 			fine_multiplier):
@@ -556,6 +571,7 @@ class ManyProducts extends Products:
 	# Intended to be used with ids_for_tags.
 	func make_subset(ids: PoolIntArray):
 		var result = ManyProducts.new()
+		result.last_id = last_id
 		for id in ids:
 			if not all.has(id) or result.all.has(id):
 				continue
@@ -566,11 +582,16 @@ class ManyProducts extends Products:
 				if not result.by_tag.has(tag):
 					result.by_tag[tag] = [ id ]
 				else:
-					result.by_tag[tag].append(tag)
+					result.by_tag[tag].append(id)
 		return result
 	
-	func remove_named_products(names):
-		var remove = names.by_name.keys() if names is Products else names
+	func remove_named_products(names,negate: bool = false):
+		var remove = names if names is Array else names.by_name.keys()
+		if negate:
+			var negated = by_name.keys()
+			for name in remove:
+				var _discard = negated.erase(name)
+			remove = negated
 		for product_name in remove:
 			var id = by_name.get(product_name,-1)
 			if id>0:
@@ -626,6 +647,60 @@ class ManyProducts extends Products:
 						by_tag[tag].append(id)
 		return true
 
+func products_for_market(all_known_products,market_products,ship_products,
+		product_pricer: Object,pricer_method: String,
+		include_zero_value: bool = false) -> ManyProducts:
+	
+	# Find all products for sale that exist in the known set:
+	var priced_ids: PoolIntArray = PoolIntArray()
+	var forbidden_ids: PoolIntArray = PoolIntArray()
+	for product_name in market_products.by_name:
+		var market_id = market_products.by_name[product_name]
+		var market_product = market_products.all[market_id]
+		if not include_zero_value and market_product[Products.VALUE_INDEX]<=0:
+			forbidden_ids.append(market_id)
+		elif all_known_products.by_name.get(product_name,-1)>=0:
+			priced_ids.append(market_id)
+	var priced_products: ManyProducts = market_products.make_subset(priced_ids)
+	
+	# Find all ship cargo that exists in the known set but is not for sale here:
+	var unpriced_ids: PoolIntArray = PoolIntArray()
+	for product_name in ship_products.by_name:
+		var known_product_id = all_known_products.by_name.get(product_name,-1)
+		if known_product_id>=0:
+			var ship_product = ship_products.all.get(ship_products.by_name.get(product_name,-1),null)
+			if ship_product and ship_product[Products.QUANTITY_INDEX]>0:
+				unpriced_ids.append(known_product_id)
+	
+	# If there aren't any new products in the ship, we're done:
+	if not unpriced_ids.size():
+		print('NO UNPRICED IDS')
+		return priced_products
+	
+	# Get prices for all sellable products in the ship that are not for sale in market:
+	var unpriced_products: ManyProducts = all_known_products.make_subset(unpriced_ids)
+	product_pricer.call(pricer_method,unpriced_products)
+	
+	# Find all products whose sale value is greater than zero.
+	# Sale values of zero or less indicate the product cannot be sold here.
+	var allowed_ids: PoolIntArray = PoolIntArray()
+	for product_name in unpriced_products.by_name:
+		var product = unpriced_products.all.get(unpriced_products.by_name.get(product_name,-1),null)
+		if product and product[Products.VALUE_INDEX]>0:
+			allowed_ids.append(unpriced_products.by_name[product_name])
+	
+	# Add the sellable products from the ship that were not in the marketplace:
+	var allowed_products: ManyProducts = unpriced_products.make_subset(allowed_ids)
+	priced_products.add_products(allowed_products,0,null,null,true,null,false)
+	
+	if include_zero_value:
+		# We're told to include all products that are forbidden here.
+		unpriced_products.remove_named_products(allowed_products)
+		priced_products.add_products(unpriced_products,0,0,null,true)
+	
+	# Return the list of all products that can be sold at this planet, which have
+	# non-zero quantity in total between market and ship:
+	return priced_products
 
 class ProducerConsumer extends Reference:
 	func industry(_all_products: Products, _result: Products, _industrial_capacity: float):

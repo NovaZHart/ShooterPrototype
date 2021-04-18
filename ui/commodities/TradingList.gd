@@ -55,11 +55,17 @@ func set_column_indices():
 	columns = len(column_ids)
 
 func _ready():
+	Player.dump_fruit_count('TradingList '+str(name)+'._ready top')
 	set_column_indices()
 	if market_type == Commodities.MARKET_TYPE_COMMODITIES:
 		all_products = Commodities.commodities
-	else:
+	elif market_type == Commodities.MARKET_TYPE_SHIP_PARTS:
 		all_products = Commodities.ship_parts
+	elif market_type == Commodities.MARKET_TYPE_UNKNOWN:
+		all_products = Commodities.ManyProducts.new()
+	else:
+		push_error('Unknown market type '+str(market_type))
+		all_products = Commodities.ManyProducts.new()
 	set_column_titles_visible(true)
 	var font = get_font('normal_font')
 	var number_size = font.get_char_size(ord('0'),ord('0'))
@@ -78,107 +84,65 @@ func _ready():
 	for c in [ PROFIT_COLUMN, PRICE_COLUMN, MASS_COLUMN, MINE_COLUMN, BUTTON_COLUMN, HERE_COLUMN ]:
 		if c>=0:
 			set_column_expand(c,false)
+	Player.dump_fruit_count('TradingList '+str(name)+'._ready bottom')
 
 func clear_list():
 	utils.Tree_clear(self)
-	if mine:
-		mine.clear()
+#	if mine:
+#		mine.clear()
 	if here:
 		here.clear()
 		product_names=[]
+	show_fruit('after clear_list')
 
-func show_fruit(why):
-	if not market_type == Commodities.MARKET_TYPE_COMMODITIES:
+func show_fruit(why,only_commodities=false):
+	if only_commodities and not market_type == Commodities.MARKET_TYPE_COMMODITIES:
 		return
-	var fruit_here = here.all.get(here.by_name.get('fruit',-1),null)
-	var fruit_mine = mine.all.get(mine.by_name.get('fruit',-1),null)
-	var I = Commodities.Products.QUANTITY_INDEX
-	var count_here = fruit_here[I] if fruit_here else '(none)'
-	var count_mine = fruit_mine[I] if fruit_mine else '(none)'
-	print(why+': Fruit count here='+str(count_here)+' mine='+str(count_mine))
+	Player.dump_fruit_count('TradingList '+str(name)+' '+str(why))
 
-func add_missing_products(planet_info,add_all_products: bool = false):
-	var missing
-	if not add_all_products:
-		var search = []
-		missing = Commodities.ManyProducts.new()
-		for product_name in mine.by_name:
-			if not here.by_name.has(product_name):
-				var product = all_products.all.get(
-					all_products.by_name.get(product_name,-1),null)
-				if product:
-					search.append(product.duplicate())
-		missing.add_products(search,null,null,null)
-	else:
-		missing = all_products.duplicate(true)
+func populate_list(all_known_products,products_here,ship_design):
+	show_fruit('populate_list top')
 	
-	print('add_missing_products: universal set size '+str(len(missing.all)))
-	
-	var found = Commodities.ManyProducts.new()
-	if planet_info:
-		if market_type == Commodities.MARKET_TYPE_COMMODITIES:
-			planet_info.list_products(missing,found)
-		elif market_type == Commodities.MARKET_TYPE_SHIP_PARTS:
-			planet_info.list_ship_parts(missing,found)
-	
-	print('add_missing_products: found set size '+str(len(found.all)))
-	show_fruit('at top')
-	# Add products whose prices we know:
-	if found.all:
-# warning-ignore:incompatible_ternary
-		var qmult = null if add_all_products else 0
-		here.add_products(found.all,qmult,null,null)
-		show_fruit('after adding found to here')
-	missing.remove_named_products(found)
-	missing.remove_named_products(here)
-	
-	if add_all_products:
-		var mine_missing = missing.duplicate(true)
-		mine_missing.remove_named_products(mine)
-		print('add_missing_products: mine missing set size '+str(len(mine_missing.all)))
-		print('add to mine: '+str(mine_missing.by_name.keys()))
-		found.remove_named_products(mine)
-		mine.add_products(found,0,null,null)
-		show_fruit('after adding found to mine')
-		mine.add_products(mine_missing,0,0,0)
-		show_fruit('after adding missing to mine')
-	
-	print('add_missing_products: here missing set size '+str(len(missing.all)))
-	print('add to here: '+str(missing.by_name.keys()))
-	here.add_products(missing,0,0,0)
-	show_fruit('after adding missing to here')
-	product_names = here.by_name.keys()
-	product_names.sort()
-
-func populate_list(products,ship_design,planet_info,show_all_products: bool = false):
+	# Make sure we have no items in the tree:
 	clear_list()
 	
-	# If we're given ship data, insert it:
-	var now_cargo: int = 0
-	if ship_design:
-		var ship = ship_design.assemble_ship()
-		max_cargo = int(round(ship.combined_stats['max_cargo']))*1000
-		mine = ship_design.cargo if ship_design.cargo else Commodities.ManyProducts.new()
-		now_cargo = int(round(mine.get_mass()))
-		emit_signal('cargo_mass_changed',now_cargo,max_cargo)
-	else:
-		max_cargo = 0
-		mine = Commodities.ManyProducts.new()
+	# Set up the cargo mass stats and cargo hold info:
+	if not ship_design.cargo:
+		ship_design.cargo = Commodities.ManyProducts.new()
+	var ship = ship_design.assemble_ship()
+	max_cargo = int(round(ship.combined_stats['max_cargo']))*1000
+	mine = ship_design.cargo
+	var now_cargo = int(round(mine.get_mass()))
+	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
+	show_fruit('populate_list after cargo_mass_changed')
 	
-	here = products
-	if here.all:
-		mine.add_products(here.all,null,null,null,true,null,   true   )
-	if show_all_products or (mine.all and planet_info):
-		add_missing_products(planet_info,show_all_products)
+	# Record the list of items for sale:
+	here = products_here
+	all_products = all_known_products.duplicate(true)
+	all_products.remove_named_products(here,true)
+	
+	# Ensure there are records in the cargo hold for all products for sale.
+	# Products not in the cargo hold will have quantity zero.
+	mine.add_products(here,null,null,null,true,null,true)
 	
 	# Populate the tree:
 	var root: TreeItem = create_item()
-	var names: Array = mine.by_name.keys()
+	var names: Array = here.by_name.keys()
 	names.sort()
 	for product_name in names:
+		populate_product_named(product_name,root)
+	show_fruit('populate_list after tree-making loop')
+	
+	# Sort the products ascending by name:
+	product_names = here.by_name.keys()
+	product_names.sort()
+	apply_last_sort_method()
+	show_fruit('populate_list bottom')
+
+func populate_product_named(product_name,root):
 		var norm_id: int = all_products.by_name.get(product_name,-1)
 		if norm_id<0:
-			continue # product is not of the correct type for this list
+			return # product is not of the correct type for this list
 		var mine_id: int = mine.by_name[product_name]
 		var here_id: int = here.by_name[product_name]
 		var entry_mine: Array = mine.all[mine_id]
@@ -196,8 +160,8 @@ func populate_list(products,ship_design,planet_info,show_all_products: bool = fa
 		var count_mine: int = max(0,entry_mine[Commodities.Products.QUANTITY_INDEX])
 # warning-ignore:narrowing_conversion
 		var count_here: int = max(0,entry_here[Commodities.Products.QUANTITY_INDEX])
-		if not show_all_products and not count_mine and not count_here:
-			continue # cannot buy or sell this
+#		if not show_all_products and not count_mine and not count_here:
+#			return # cannot buy or sell this
 		# FIXME: proper display name for products
 		var display_name: String = product_name.capitalize()
 		if product_name.begins_with('res://'):
@@ -248,9 +212,6 @@ func populate_list(products,ship_design,planet_info,show_all_products: bool = fa
 			item.set_tooltip(HERE_COLUMN,'Number of items in stock here. Click to edit.')
 		else:
 			item.set_tooltip(HERE_COLUMN,'Number of items in stock here.')
-	product_names = here.by_name.keys()
-	product_names.sort()
-	apply_last_sort_method()
 
 func try_set_quantity(item: TreeItem, change: int) -> bool:
 	var count_mine = item.get_metadata(MINE_COLUMN)
@@ -352,6 +313,7 @@ func _on_SellAll_pressed():
 	if not root:
 		return
 	var item = root.get_children()
+	var mass_lost = 0
 	while item:
 		var product_name = item.get_metadata(NAME_COLUMN)
 		var norm_id: int = all_products.by_name.get(product_name,-1)
@@ -360,9 +322,12 @@ func _on_SellAll_pressed():
 		var etc = item.get_metadata(PRICE_COLUMN)
 		var mine_id = etc[MINE_ID_ELEMENT]
 		var here_id = etc[HERE_ID_ELEMENT]
+		var my_quantity = mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
+		var unit_mass = mine.all[mine_id][Commodities.Products.MASS_INDEX]
 		here.all[here_id][Commodities.Products.QUANTITY_INDEX] += \
 			mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
 		mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]=0
+		mass_lost += my_quantity * unit_mass
 		var sale: float = item.get_metadata(MINE_COLUMN)*etc[PRICE_ELEMENT]
 		assert(sale>=0 and sale<1e9)
 		Player.money += sale
@@ -372,7 +337,9 @@ func _on_SellAll_pressed():
 		item.set_text(HERE_COLUMN,str(all))
 		item.set_metadata(HERE_COLUMN,all)
 		item=item.get_next()
-	emit_signal('cargo_mass_changed',0,max_cargo)
+	print('SellAll sold '+str(mass_lost)+' mass of items')
+	if mass_lost>0:
+		emit_signal('cargo_mass_changed',mine.get_mass(),max_cargo)
 	emit_signal('all_product_data_changed')
 
 class TreeSort extends Reference:
