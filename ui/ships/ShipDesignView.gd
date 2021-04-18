@@ -1,5 +1,7 @@
 extends ViewportContainer
 
+export var hover_check_ticks: int = 100
+
 const InventoryArray: Script = preload('res://ui/ships/InventoryArray.gd')
 const InventoryContent: Script = preload('res://ui/ships/InventoryContent.gd')
 const InventorySlot: Script = preload('res://ui/ships/InventorySlot.gd')
@@ -19,6 +21,8 @@ signal select_item
 signal deselect_item
 signal drag_selection
 signal design_changed
+signal hover_over_InventorySlot
+signal hover_over_MultiSlotItem
 
 const y500: Vector3 = Vector3(0,500,0)
 var ship_aabb: AABB
@@ -31,6 +35,27 @@ var selected_scene
 var selection: NodePath = NodePath()
 var old_collider_path: NodePath = NodePath()
 var old_drag_location: Vector3 = Vector3(-9999,-9999,-9999)
+var last_hover: NodePath
+var last_location_check_tick: int = -9999999
+
+func update_hover(what):
+	if not what:
+		emit_signal('hover_over_InventorySlot',null)
+		return
+	if what.my_x>=0 and what.my_y>=0:
+		var parent = what.get_parent()
+		if parent and parent.has_method("is_InventoryArray"):
+			var item = parent.item_at(what.my_x,what.my_y)
+			var item_path = item.get_path() if item else NodePath()
+			var scene = parent.scene_at(what.my_x,what.my_y)
+			if item_path!=last_hover:
+				last_hover=item_path
+				emit_signal('hover_over_MultiSlotItem',item,scene)
+			return
+	var what_path = what.get_path() if what else NodePath()
+	if what_path!=last_hover:
+		last_hover=what_path
+		emit_signal('hover_over_InventorySlot',what)
 
 class MountData extends simple_tree.SimpleNode:
 	var nx: int
@@ -91,7 +116,8 @@ func at_position(pos,mask: int) -> Dictionary:
 	to.y = $Viewport/Camera.translation.y-500
 	return space.intersect_ray(from,to,[],mask,true,true)
 
-func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: CollisionObject) -> bool:
+func select_multimount(mouse_pos: Vector2, space_pos: Vector3, 
+		collider: CollisionObject, is_location_select, is_hover_check) -> bool:
 	var parent = collider.get_parent()
 	if parent==null:
 		printerr('Orphaned node found in select_multimount.')
@@ -108,10 +134,13 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3, collider: Collisi
 	var xy = parent.slot_xy_for(space_pos,1,1)
 	var scene = parent.scene_at(xy[0],xy[1])
 	if scene:
-		emit_signal('select_item',collider)
-		selection_click = mouse_pos
-		selection = collider.get_path()
-		selected_scene = scene
+		if is_location_select:
+			emit_signal('select_item',collider,scene)
+			selection_click = mouse_pos
+			selection = collider.get_path()
+			selected_scene = scene
+		if is_hover_check:
+			update_hover(collider)
 		return true
 	return false
 #
@@ -134,7 +163,12 @@ func _input(event):
 	var view_rect: Rect2 = Rect2(view_pos, rect_size)
 	var mouse_pos: Vector2 = get_viewport().get_mouse_position()
 	if view_rect.has_point(mouse_pos):
-		if event.is_action_pressed('ui_location_select'):
+		var is_location_select = event.is_action_pressed('ui_location_select')
+		var click_tick = OS.get_ticks_msec()
+		var is_hover_check = click_tick-last_location_check_tick>hover_check_ticks
+		if is_location_select or is_hover_check:
+			if is_hover_check:
+				last_location_check_tick=OS.get_ticks_msec()
 			var space_pos: Vector3 = $Viewport/Camera.project_position(mouse_pos-view_pos,-30)
 			var space: PhysicsDirectSpaceState = ship_world().direct_space_state
 			var result: Dictionary = space.intersect_ray(
@@ -142,14 +176,24 @@ func _input(event):
 			var collider = result.get('collider',null)
 			if collider and collider.has_method('is_InventorySlot'):
 				if collider.my_x<0:
-					emit_signal('select_item',collider)
-					selection_click = mouse_pos
-					selection = collider.get_path()
-					selected_scene = collider.scene
-				elif not select_multimount(mouse_pos, space_pos, collider):
-					emit_signal('deselect_item')
+					if is_location_select:
+						emit_signal('select_item',collider)
+						selection_click = mouse_pos
+						selection = collider.get_path()
+						selected_scene = collider.scene
+					if is_hover_check:
+						update_hover(collider)
+				elif not select_multimount(mouse_pos, space_pos, collider,
+						is_location_select, is_hover_check):
+					if is_location_select:
+						emit_signal('deselect_item')
+					if is_hover_check:
+						update_hover(null)
 			else:
-				emit_signal('deselect_item')
+				if is_location_select:
+					emit_signal('deselect_item')
+				if is_hover_check:
+					update_hover(null)
 			selection_dragging=false
 		elif selection:
 			if Input.is_action_pressed('ui_location_select'):
@@ -179,7 +223,7 @@ func dragging_item(item: MeshInstance):
 func remove_selected_item() -> bool:
 	var selected_node = get_node_or_null(selection)
 	if not selected_node or not selected_node.has_method('is_InventorySlot'):
-		push_warning('Tried to remove a selected item when none was selected (selection='+str(selection)+')')
+		# push_warning('Tried to remove a selected item when none was selected (selection='+str(selection)+')')
 		return false
 	elif selected_node.my_x<0 or selected_node.my_y<0:
 		return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
@@ -191,7 +235,7 @@ func remove_selected_item() -> bool:
 	
 	var item = parent.item_at(selected_node.my_x,selected_node.my_y)
 	if not item:
-		push_warning('Multimount slot has no item (selection='+str(selection)+')')
+		pass # push_warning('Multimount slot has no item (selection='+str(selection)+')')
 		return false
 	return universe_edits.state.push(ship_edits.RemoveItem.new(selected_scene,
 		parent.name, item.item_offset_x, item.item_offset_y))
@@ -435,6 +479,28 @@ func make_design(design_id,display_name) -> Dictionary:
 			design.add_child(mounted)
 	design.cargo = ship.cargo
 	return design
+
+func list_ship_parts(parts,from):
+	var ship = tree.get_node_or_null('/root/Ship')
+	if not ship:
+		push_error("Cannot list ship parts until a ship is loaded.")
+		return parts
+	parts.add_quantity_from(from,ship.hull.resource_path,1,Commodities.ship_parts)
+	for mount_name in mounts.get_child_names():
+		var mount = mounts.get_child_with_name(mount_name)
+		if not mount:
+			# Should never get here.
+			push_error('Internal error: mount has no child with a name from get_child_names')
+		elif mount.multimount:
+			var node = get_node_or_null(mount.box)
+			if node:
+				node.list_ship_parts(parts,from)
+			else:
+				push_error('No box path for multimount "'+str(mount_name)+'"')
+		elif mount.scene:
+			#print('single add quantity from '+str(mount.scene.resource_path))
+			parts.add_quantity_from(from,mount.scene.resource_path,1,Commodities.ship_parts)
+	return parts
 
 func make_ship(design):
 	clear_ship()

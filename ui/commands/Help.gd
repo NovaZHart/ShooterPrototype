@@ -78,7 +78,7 @@ func combined_aabb(node: Node):
 		result = node.transform.xform(result)
 	return result
 
-func load_page_scene(scene_name: String, id: String) -> Array:
+func load_page_scene(scene_name: String, id: String, stats_mode: bool = false) -> Array:
 	var scene = null
 	if not scene_name:
 		return [null,null]
@@ -98,7 +98,7 @@ func load_page_scene(scene_name: String, id: String) -> Array:
 	if scene.has_method('get_bbcode'):
 		bbcode = scene.get_bbcode()
 
-	if get_tree()==null:
+	if stats_mode or get_tree()==null:
 		return [bbcode,res]
 	
 	scene.name = 'scene'
@@ -133,7 +133,14 @@ func load_page_scene(scene_name: String, id: String) -> Array:
 	
 	return [bbcode,res]
 
-func show_page(console,id: String):
+func page_title(id: String):
+	var page = help_pages.get(id,null)
+	if page:
+		var title: String = page.get('title','')
+		return title if title else id.capitalize()
+	return ''
+
+func show_page(console,id: String,stats_mode: bool=false):
 	if not id in help_pages:
 		console.append_raw_bbcode('[code]Searching datastore for '+id+'...[/code]')
 		console.append_raw_bbcode('[b][code]error: There is no page '+id+'!![/code][/b]')
@@ -142,43 +149,56 @@ func show_page(console,id: String):
 	var scene_name = help_pages[id].get('scene','')
 	var image_resource = null
 	if scene_name:
-		var result = load_page_scene(scene_name,id)
+		var result = load_page_scene(scene_name,id,stats_mode)
 		while result is GDScriptFunctionState:
 			result=yield(result,'completed')
 		scene_bbcode = result[0]
 		image_resource = result[1]
 	
-	console.append_raw_bbcode('[code]Searching datastore for '+id+'...[/code]')
-	console.append_raw_bbcode('[code]Loading '+id+'...[/code]')
-	
 	var title: String = help_pages[id].get('title','')
 	if not title:
 		title = id.capitalize()
-	console.append('\n[h1]'+console.clean_input(title)+'[/h1]')
-
-	if image_resource:
-		console.append_raw_bbcode('\n[img]'+image_resource+'[/img]\n')
+	if stats_mode:
+		console.append_raw_bbcode('[b]Part Name: [/b][i]'+console.clean_input(title)+'[/i]')
+	else:
+		console.append_raw_bbcode('[code]Searching datastore for '+id+'...[/code]')
+		console.append_raw_bbcode('[code]Loading '+id+'...[/code]')
+		console.append('\n[h1]'+console.clean_input(title)+'[/h1]')
+		
+	var price_label = help_pages[id].get('price','')
+	if price_label:
+		var price_text = text_gen.price_text_for_page(id)
+		if price_text:
+			console.append('[b]'+price_label+' [/b][cost]'+price_text+'[/cost]')
 	
-	var synopsis: String = help_pages[id].get('synopsis','')
-	if synopsis:
-		console.append('\n[i]Synopsis: '+synopsis+'[/i]\n\n')
-	# FIXME: REPLACE {ref=...} IN CONTENT
-	var content: String = help_pages[id].get('content','')
-	if content:
-		console.append(content)
-	var toc: Array = help_pages[id].get('toc',[])
-	for t in toc:
-		console.append_raw_bbcode(' \u2022 '+page_tooltip(console,t)+'\n')
+	if not stats_mode:
+		if image_resource:
+			console.append_raw_bbcode('\n[img]'+image_resource+'[/img]\n')
+		
+		var synopsis: String = help_pages[id].get('synopsis','')
+		if synopsis:
+			console.append('\n[i]Synopsis: '+synopsis+'[/i]\n\n')
+		# FIXME: REPLACE {ref=...} IN CONTENT
+		
+		var content: String = help_pages[id].get('content','')
+		if content:
+			console.append(content)
+		var toc: Array = help_pages[id].get('toc',[])
+		for t in toc:
+			console.append_raw_bbcode(' \u2022 '+page_tooltip(console,t)+'\n')
+	
 	if scene_bbcode:
 		console.append(scene_bbcode)
-	var see_also: Array = help_pages[id].get('see_also',[])
-	if see_also:
-		var see: String = ''
-		for also in see_also:
-			see += (', ' if see else '\nSee also: ')
-			see += page_note(console,also)
-		if see:
-			console.append_raw_bbcode('[i]'+see+'[/i]')
+	
+	if not stats_mode:
+		var see_also: Array = help_pages[id].get('see_also',[])
+		if see_also:
+			var see: String = ''
+			for also in see_also:
+				see += (', ' if see else '\nSee also: ')
+				see += page_note(console,also)
+			if see:
+				console.append_raw_bbcode('[i]'+see+'[/i]')
 	return ''
 
 func call_ref(console,argv:PoolStringArray):
@@ -227,6 +247,18 @@ func call_search(console,argv: PoolStringArray):
 	else:
 		console.append_raw_bbcode('No pages found.')
 
+func call_stats(console,argv: PoolStringArray):
+	var id = console.join_argv(argv) if len(argv)>1 else 'help'
+	if not console.has_command_id('stats '+id):
+		var here = console.get_line_count()
+		var result = show_page(console,id,true)
+		while result is GDScriptFunctionState:
+			result=yield(result,'completed')
+		console.add_command_id('stats '+id,here+1)
+#	else:
+#		append('[code]Scrolling to line '+str(help_index[id])+'.[/code]')
+	console.scroll_to_command_id('help '+id)
+
 func call_help(console,argv: PoolStringArray):
 	var id = console.join_argv(argv) if len(argv)>1 else 'help'
 	if not console.has_command_id('help '+id):
@@ -257,5 +289,7 @@ func run(console,argv):
 		return call_ref(console,argv)
 	elif argv[0] == 'help':
 		return call_help(console,argv)
+	elif argv[0] == 'stats':
+		return call_stats(console,argv)
 	elif argv[0] == 'invalid_command':
 		return call_invalid_command(console,argv)

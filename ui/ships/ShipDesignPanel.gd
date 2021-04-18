@@ -13,30 +13,39 @@ export var show_Cancel: bool = true
 
 var disable_Add: bool = false setget set_disable_Add, get_disable_Add
 var disable_Remove: bool = false setget set_disable_Remove, get_disable_Remove
-
+var hover_design: NodePath
 var design_paths: Array = []
 var selected_design: NodePath = NodePath() setget set_selected_design
 var last_move_tick: int = 0
 var last_update_tick: int = -2*update_delay
 var design_mutex: Mutex = Mutex.new()
+var design_costs: Dictionary = {} # key: NodePath, value: cost (null means disregard cost)
+var max_purchase_value = null # player's wealth for determining what ships they can purchase
 
+signal hover_over_design
 signal select_nothing
 signal select
 signal deselect
 signal cancel
 signal change
 signal remove
+signal activate
 signal add
 signal open
+signal child_select_nothing
+signal child_select
+signal child_deselect
 
 func set_selected_design(p: NodePath):
 	if p!=selected_design:
 		selected_design = p
 
-func assemble_design(): # => RigidBody or null
-	assert(selected_design)
-	if selected_design:
-		var design = game_state.ship_designs.get_node_or_null(selected_design)
+func assemble_design(design_path=null): # => RigidBody or null
+	var design_to_assemble = design_path
+	if not design_to_assemble:
+		design_to_assemble=selected_design
+	if design_to_assemble:
+		var design = game_state.ship_designs.get_node_or_null(design_to_assemble)
 		assert(design)
 		if design:
 			return design.assemble_ship()
@@ -83,6 +92,31 @@ func remove_ship_design(design: simple_tree.SimpleNode) -> bool:
 	design_mutex.unlock()
 	return true
 
+func _on_available_count_updated(counts,money,ship_value):
+	var old_mpv = max_purchase_value
+	max_purchase_value = money+ship_value
+	var new_costs = {}
+	for design_path in design_paths:
+		var design = game_state.ship_designs.get_node_or_null(design_path)
+		if design:
+			var parts = Commodities.ManyProducts.new()
+			design.list_ship_parts(parts,counts)
+			new_costs[design_path] = parts.get_value()
+	
+	var changed: bool = old_mpv!=max_purchase_value
+	if not changed:
+		for design_path in design_paths:
+			var old_cost = design_costs.get(design_path,null)
+			var new_cost = new_costs.get(design_path,null)
+			if old_cost!=new_cost:
+				changed=true
+				break
+	
+	design_costs = new_costs
+	
+	if changed:
+		update_designs(true,false)
+
 func add_ship_design(design: simple_tree.SimpleNode) -> bool:
 	if not design.get_tree():
 		push_error('Tried to add a ship design that had no path.')
@@ -95,11 +129,20 @@ func add_ship_design(design: simple_tree.SimpleNode) -> bool:
 	design_mutex.unlock()
 	return true
 
+func can_purchase(design_path):
+	if max_purchase_value!=null:
+		var design_cost = design_costs.get(design_path,null)
+		if design_cost!=null:
+			return design_cost<=max_purchase_value
+	return true
+
 func update_buttons():
-	for button_name in [ 'Change', 'Open' ]:
-		var button = $All/Buttons.get_node_or_null(button_name)
-		if button:
-			button.disabled = not selected_design
+	var Change = $All/Buttons.get_node_or_null('Change')
+	if Change:
+		Change.disabled = not selected_design
+	var Open = $All/Buttons.get_node_or_null('Open')
+	if Open:
+		Open.disabled = not selected_design or not can_purchase(selected_design)
 	var Remove = $All/Buttons.get_node_or_null('Remove')
 	if Remove:
 		Remove.disabled = disable_Remove or not selected_design
@@ -143,19 +186,33 @@ func _input(event):
 			$All/Top/Scroll.value+=1
 		if up and $All/Top/Scroll.value>$All/Top/Scroll.min_value:
 			$All/Top/Scroll.value-=1
+		for child in $All/Top/List.get_children():
+			child.update_hovering(event)
+
+func update_hovering(event=null):
+	var pos = utils.event_position(event)
+	var new_hover: NodePath
+	for child in $All/Top/List.get_children():
+		if child.get_global_rect().has_point(pos):
+			new_hover=child.design_path
+		#child.update_hovering(event)
+	if hover_design!=new_hover:
+		hover_design=new_hover
+		emit_signal('hover_over_design',hover_design)
 
 func _process(_delta):
 	if last_update_tick+update_delay < last_move_tick:
 		update_designs(true)
+		update_hovering()
 
 func add_list_index(list,to_index,design_path,allow_add):
 	assert(allow_add)
 	var node = DesignItem.instance()
-	for sig in [ 'deselect', 'select', 'select_nothing' ]:
+	for sig in [ 'deselect', 'select', 'select_nothing', 'hover_start', 'hover_end', 'activate' ]:
 		if OK!=node.connect(sig,self,'_on_DesignItem_'+sig):
 			push_error('Cannot connect DesignItem signal '+sig+' to _on_DesignItem_'+sig)
 	for sig in [ 'deselect', 'select', 'select_nothing' ]:
-		if OK!=connect(sig,node,'_on_list_'+sig):
+		if OK!=connect('child_'+sig,node,'_on_list_'+sig):
 			push_error('Cannot connect '+sig+' signal to DesignItem _on_list_'+sig)
 	$All/Top/List.add_child(node)
 	var item = [node.get_path(),design_path]
@@ -165,6 +222,7 @@ func add_list_index(list,to_index,design_path,allow_add):
 		list.insert(to_index,item)
 		$All/Top/List.move_child(node,to_index)
 	node.set_design(design_path)
+	node.disabled = decide_disabled(design_path)
 	if selected_design and selected_design==design_path:
 		node.select(false)
 
@@ -181,10 +239,20 @@ func move_list_index(list,from_index,to_index,design_path,allow_add):
 		list[to_index][0]=node.get_path()
 	if design_path != list[to_index][1]:
 		node.set_design(design_path)
+		node.disabled = decide_disabled(design_path)
 		list[to_index][1]=design_path
 		var should_select = selected_design and selected_design==design_path
 		if node.selected != should_select:
 			return node.select(false) if should_select else node.deselect(false)
+	node.disabled = decide_disabled(design_path)
+
+func decide_disabled(design_path: NodePath) -> bool:
+	var result=false
+	if max_purchase_value!=null:
+		var cost = design_costs.get(design_path,null)
+		if cost!=null:
+			result=cost>max_purchase_value
+	return result
 
 func find_index(design_path,to_index,designs_shown,designs_to_show) -> int:
 	#var design_path = design_paths[first_design_shown+i]
@@ -234,7 +302,7 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 		if len(design_paths)>first_design_shown+i:
 			designs_to_show[design_paths[first_design_shown+i]]=1
 	
-	pass # FIXME: implement fill_missing=false
+	pass # FIXME: implement fill_missing=false?
 	
 	for i in range(count_designs_to_show):
 		var allow_add = len(designs_shown)<$All/Buttons/Zoom.value
@@ -247,9 +315,6 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 			var unused_index = find_index(NodePath(),i,
 				designs_shown,designs_to_show)
 			move_list_index(designs_shown,unused_index,i,NodePath(),allow_add)
-		pass
-	
-	pass
 	
 	for i in range(count_designs_to_show,count_designs_visible):
 		var node = $All/Top/List.get_node_or_null(designs_shown[i][0])
@@ -283,13 +348,23 @@ func deselect_impl(path: NodePath = NodePath(), send_signal: bool = true):
 	if not path:
 		set_selected_design(NodePath())
 		update_buttons()
+		emit_signal('child_select_nothing')
 		if send_signal:
 			emit_signal('select_nothing')
+		call_deferred('refresh')
 	elif selected_design==path:
 		set_selected_design(NodePath())
 		update_buttons()
+		emit_signal('child_deselect',selected_design)
 		if send_signal:
 			emit_signal('deselect',selected_design)
+		call_deferred('refresh')
+
+func _on_DesignItem_hover_start(_design_path):
+	update_hovering() # emit_signal('hover_over_design',design_path)
+
+func _on_DesignItem_hover_end(_design_path):
+	update_hovering() # emit_signal('hover_over_design',null)
 
 func _on_DesignItem_select_nothing():
 	deselect_impl()
@@ -297,12 +372,17 @@ func _on_DesignItem_select_nothing():
 func _on_DesignItem_deselect(path):
 	deselect_impl(path)
 
+func _on_DesignItem_activate(design):
+	if design==selected_design and can_purchase(design):
+		emit_signal('activate',selected_design)
+
 func select(path: NodePath, send_signal: bool = true):
 	if not path:
 		deselect_impl(path,send_signal)
 	elif selected_design != path:
 		selected_design = path
 		update_buttons()
+		emit_signal('child_select',selected_design)
 		if send_signal:
 			emit_signal('select',selected_design)
 
@@ -311,14 +391,19 @@ func _on_DesignItem_select(path):
 
 func _on_Scroll_value_changed(_value):
 	update_designs(false)
+	call_deferred('refresh')
 	last_move_tick = OS.get_ticks_msec()
 
 func _on_Zoom_value_changed(value):
 	$All/Top/Scroll.page = value
 	update_designs(true)
+	call_deferred('refresh')
+	last_move_tick = OS.get_ticks_msec()
 
 func _on_DesignList_resized():
 	update_designs(true)
+	call_deferred('refresh')
+	last_move_tick = OS.get_ticks_msec()
 
 func _on_Cancel_pressed():
 	emit_signal('cancel',selected_design)

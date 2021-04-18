@@ -1,7 +1,22 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=1]
 [ext_resource path="res://ui/ships/ItemPanel.gd" type="Script" id=2]
+[ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=3]
+
+[sub_resource type="DynamicFont" id=2]
+outline_size = 1
+outline_color = Color( 0.0352941, 0.0666667, 0.0705882, 1 )
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 3 )
+
+[sub_resource type="DynamicFont" id=3]
+outline_size = 1
+outline_color = Color( 0.0588235, 0.0431373, 0.0196078, 1 )
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 3 )
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 1 )
@@ -16,6 +31,9 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 ship_border = 0.05
+enabled_font = SubResource( 2 )
+disabled_font = SubResource( 3 )
+disabled_color = Color( 0.776471, 0.34902, 0.34902, 1 )
 
 [node name="All" type="GridContainer" parent="."]
 anchor_right = 1.0
@@ -69,11 +87,24 @@ light_cull_mask = 4293918721
 
 [node name="Camera" type="Camera" parent="All/Top/View/Port"]
 transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65431e-14, 0, 50, 0 )
-cull_mask = 17
+cull_mask = 31
 projection = 1
 size = 5.0
 
 [node name="Items" type="Spatial" parent="All/Top/View/Port"]
+
+[node name="Red" type="OmniLight" parent="All/Top/View/Port"]
+transform = Transform( 1, 0, 0, 0, -1.62921e-07, 1, 0, -1, -1.62921e-07, 0, 50, 0 )
+layers = 2147483656
+light_color = Color( 0.996078, 0.278431, 0.137255, 1 )
+light_energy = 3.0
+light_cull_mask = 4293918728
+shadow_color = Color( 1, 0, 0, 1 )
+omni_range = 1000.0
+omni_attenuation = 0.017337
+omni_shadow_mode = 0
+
+[node name="Annotations" type="Node2D" parent="All/Top/View/Port"]
 
 [node name="Scroll" type="VScrollBar" parent="All/Top"]
 margin_left = 1012.0
@@ -131,6 +162,7 @@ page = 1.0
 value = 6.0
 [connection signal="visibility_changed" from="." to="." method="_on_ItemPanel_visibility_changed"]
 [connection signal="resized" from="All/Top/View" to="." method="_on_View_resized"]
+[connection signal="draw" from="All/Top/View/Port/Annotations" to="." method="_on_Annotations_draw"]
 [connection signal="value_changed" from="All/Top/Scroll" to="." method="_on_Scroll_value_changed"]
 [connection signal="pressed" from="All/Buttons/Add" to="." method="_on_Add_pressed"]
 [connection signal="pressed" from="All/Buttons/Change" to="." method="_on_Change_pressed"]

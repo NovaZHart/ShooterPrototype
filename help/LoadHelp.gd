@@ -7,7 +7,7 @@ var not_space: RegEx = RegEx.new()
 func _init():
 	if comment.compile('^\\s*#')!=OK:
 		printerr('Help: cannot compile comment regex')
-	if statement.compile('^(?i)\\s*@(?<dir>PAGE|.EOF|CONTENT|TITLE|SYNOPSIS|SEE_ALSO|TOC|BBCODE_FROM_SCENE)\\s*(?<rest>.*)$')!=OK:
+	if statement.compile('^(?i)\\s*@(?<dir>PAGE|.EOF|CONTENT|TITLE|SYNOPSIS|PRICE|SEE_ALSO|TOC|BBCODE_FROM_SCENE)\\s*(?<rest>.*)$')!=OK:
 		printerr('Help: cannot compile statement regex')
 	if not_space.compile('(?<not_space>\\S+)')!=OK:
 		printerr('Help: cannot compile not_space regex')
@@ -47,6 +47,8 @@ func scan_file(path: String,result: Dictionary):
 			if block_name=='title':
 				page[block_name]=block
 			elif block_name=='synopsis':
+				page[block_name]=block
+			elif block_name=='price':
 				page[block_name]=block
 			elif block_name=='content':
 				page['content'] = page.get('content','')+block

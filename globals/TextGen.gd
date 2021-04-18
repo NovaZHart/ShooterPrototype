@@ -1,5 +1,30 @@
 extends Node
 
+var price_callbacks: Array = []
+var cached_page_titles: Dictionary = {}
+
+func add_price_callback(o: Object):
+	price_callbacks.append(o)
+
+func remove_price_callback(o: Object):
+	price_callbacks.erase(o)
+
+func price_text_for_ship_design(design) -> String:
+	# design is a Universe.ShipDesign
+	for cb in price_callbacks:
+		if cb.has_method('price_text_for_ship_design'):
+			var price_text=cb.price_text_for_ship_design(design)
+			if price_text:
+				return price_text
+	return ''
+
+func price_text_for_page(help_page_id) -> String:
+	for cb in price_callbacks:
+		if cb and cb.has_method('price_text_for_page'):
+			var price_text=cb.price_text_for_page(help_page_id)
+			if price_text:
+				return price_text
+	return ''
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'
@@ -28,6 +53,53 @@ func add_max_and_repair(key,maxval,repairval) -> String:
 	if repairval>0:
 		return make_cell(key,plus_minus(maxval)+' ('+plus_minus(repairval)+'/s)')
 	return make_cell(key,plus_minus(maxval))
+
+func make_row3(one,two,three):
+	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
+		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]'
+
+func make_row4(one,two,three,four):
+	return '[cell]'+str(one)+'[/cell][cell]  [/cell][cell]'+str(two) \
+		+'[/cell][cell]  [/cell][cell]'+str(three)+'[/cell]' \
+		+'[cell]  [/cell][cell]'+str(four)+'[/cell]'
+
+func make_system_product_hover_info(item_name,mine,here,display_name,price) -> String:
+	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
+	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
+	var MASS_INDEX = Commodities.Products.MASS_INDEX
+	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=7]'
+	s+=make_row4('  ','[b]Here[/b]','[b]At '+display_name+'[/b]','[b]Difference[/b]')
+	s+=make_row4('Price',here[VALUE_INDEX],price,price-here[VALUE_INDEX])
+	s+=make_row4('Mass per',here[MASS_INDEX],' ',' ')
+	s+=make_row4('Available',here[QUANTITY_INDEX],' ',' ')
+	s+=make_row4('In cargo',mine[QUANTITY_INDEX],' ',' ')
+	s+=make_row4('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ',' ')
+	s+='[/table]\n'
+	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+		s+='\nTags:\n'
+		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
+			s+=' {*} '+here[itag]+'\n'
+	return s
+
+func make_product_hover_info(item_name,mine,here,norm) -> String:
+	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
+	var FINE_INDEX = Commodities.Products.FINE_INDEX
+	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
+	var MASS_INDEX = Commodities.Products.MASS_INDEX
+	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
+	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
+	s+=make_row3('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
+	s+=make_row3('Fine',here[FINE_INDEX],norm[FINE_INDEX])
+	s+=make_row3('Mass per',here[MASS_INDEX],' ')
+	s+=make_row3('Available',here[QUANTITY_INDEX],' ')
+	s+=make_row3('In cargo',mine[QUANTITY_INDEX],' ')
+	s+=make_row3('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
+	s+='[/table]\n'
+	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+		s+='\nTags:\n'
+		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
+			s+=' {*} '+here[itag]+'\n'
+	return s
 
 func make_fleet_bbcode(fleet_id, fleet_display_name, design_count: Dictionary) -> String:
 	var bbcode: String = '[h2]Fleet '+fleet_display_name+'[/h2]\n'
@@ -127,9 +199,29 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 		return bbcode+'[/table]\n'
 
 
+func help_page_for_scene_path(resource_path) -> String:
+	var scene = load(resource_path)
+	if scene:
+		var state = scene.get_state()
+		for i in range(state.get_node_property_count(0)):
+			var property_name = state.get_node_property_name(0,i)
+			if 'help_page' == property_name:
+				var help_page = state.get_node_property_value(0,i)
+				if help_page:
+					return help_page
+	return ''
+
+
+func title_for_scene_path(resource_path) -> String:
+	var title = cached_page_titles.get(resource_path,null)
+	if title == null:
+		var help_page = help_page_for_scene_path(resource_path)
+		title = builtin_commands.Help.page_title(help_page) if help_page else ''
+		cached_page_titles[resource_path] = title
+	return title
+
 
 func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) -> String:
-	print('in textgen, cargo is '+str(ship_stats.get('cargo_mass',0)))
 	var contents: String = '' #'[b]Contents:[/b]\n'
 	if show_id==null:
 		show_id = game_state.game_editor_mode

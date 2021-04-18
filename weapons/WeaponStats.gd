@@ -2,7 +2,7 @@ extends MeshInstance
 
 export var damage: float = 30
 export var impulse: float = 0
-export var weapon_mass: float = 15
+export var weapon_mass: float = 0
 export var weapon_structure: float = 30
 export var initial_velocity: float = 30
 export var projectile_mass: float = 0.3

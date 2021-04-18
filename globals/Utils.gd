@@ -1,5 +1,41 @@
 extends Node
 
+class YieldActionQueue extends Reference:
+	var mutex: Mutex = Mutex.new()
+	var queue: Array = []
+	var last_id: int = -1
+	
+	func check_top(id: int):
+		mutex.lock()
+		var result = len(queue) and queue[0]==id
+		mutex.unlock()
+		return result
+	
+	func run(object,method,args):
+		# Queue this request:
+		mutex.lock()
+		last_id += 1
+		var id = last_id
+		queue.append(id)
+		mutex.unlock()
+		
+		# Wait for our turn to run:
+		while not check_top(id):
+			yield()
+		
+		# Call the method and yield until we have a result:
+		var result = object.callv(method,args)
+		while result is GDScriptFunctionState and result.is_valid():
+			yield(result,'completed')
+		
+		# Remove this request from the queue:
+		mutex.lock()
+		queue.erase(id)
+		mutex.unlock()
+		
+		# Report the result back to the caller.
+		return result
+
 class TreeFinder extends Reference:
 	var key
 	var column
@@ -127,6 +163,6 @@ func ship_mass(ship_stats):
 
 func event_position(event: InputEvent) -> Vector2:
 	# Get the best guess of the mouse position for the event.
-	if event is InputEventMouse:
+	if event and event is InputEventMouse:
 		return event.position
 	return get_viewport().get_mouse_position()

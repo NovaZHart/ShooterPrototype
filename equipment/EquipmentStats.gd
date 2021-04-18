@@ -36,6 +36,7 @@ export var mount_type: String = 'equipment'
 export var help_page: String = 'equipment'
 
 var cached_stats
+var cached_bbcode
 
 func is_mount_point(): # Never called; must only exist
 	pass
@@ -81,6 +82,14 @@ func pack_stats() -> Dictionary:
 			'add_explosion_delay':add_explosion_delay,
 		}
 	return cached_stats
+
+func get_bbcode_for_ship_table() -> String:
+	return '[b]'+name.capitalize() + ':[/b] {ref '+help_page+'}\n' + get_bbcode()
+
+func get_bbcode() -> String:
+	if cached_bbcode == null:
+		cached_bbcode = text_gen.make_equipment_bbcode(pack_stats())
+	return cached_bbcode
 
 func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
 	stats['equipment'].append(pack_stats())

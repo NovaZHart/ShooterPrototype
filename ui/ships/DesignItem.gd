@@ -3,17 +3,23 @@ extends Control
 export var info_min_fraction: float = 0.2
 export var annotation_color: Color = Color(0.4,0.5,0.9,0.7)
 export var small_code: Font
+export var double_click_time: int = 250
 
 var selected = false
+var disabled = false setget set_disabled
 var hovering = false
 var design_path: NodePath = NodePath()
 var design_size: float = 1.0
 var regular_layer: int = 0
 var highlight_layer: int = 0
-
+var disabled_layer: int = 0
+var last_click: int = -9999999
 var regular_bbcode: String
 var highlight_bbcode: String
 
+signal activate
+signal hover_start
+signal hover_end
 signal select
 signal deselect
 signal select_nothing
@@ -74,10 +80,13 @@ func set_design(new_path: NodePath) -> bool:
 	ship.name = 'Ship'
 	design_size = max(1.0,max(stats['aabb'].size.x,stats['aabb'].size.z))
 	$View/Port.add_child(ship)
-	if selected:
-		set_layers(ship,highlight_layer|regular_layer)
-	else:
-		set_layers(ship,regular_layer)
+	var _discard = set_ship_layers()
+#	var layers = regular_layer
+#	if selected:
+#		layers |= highlight_layer
+#	if disabled:
+#		layers |= disabled_layer
+#	set_layers(ship,layers)
 	sync_sizes()
 	$View/Port/Annotation.update()
 	return true
@@ -121,12 +130,20 @@ func select(send_event: bool = true):
 		$View/Port/Annotation.update()
 		update_bbcode()
 
+func set_disabled(new_value: bool):
+	var repaint = new_value!=disabled
+	if repaint:
+		disabled = new_value
+		var _discard = set_ship_layers()
+
 func set_ship_layers() -> bool:
 	var ship = $View/Port.get_node_or_null('Ship')
 	if ship:
 		var layers: int = regular_layer
 		if selected:
 			layers |= highlight_layer
+		if disabled:
+			layers |= disabled_layer
 		set_layers(ship,layers)
 	return not not ship
 
@@ -143,6 +160,10 @@ func change_hover(hover: bool):
 		hovering=hover
 		var _discard = set_ship_layers()
 		update_bbcode()
+		if hover:
+			emit_signal('hover_start',design_path)
+		else:
+			emit_signal('hover_end',design_path)
 
 func set_layers(node: Node, layers: int):
 	if node is VisualInstance:
@@ -150,9 +171,12 @@ func set_layers(node: Node, layers: int):
 	for child in node.get_children():
 		set_layers(child,layers)
 
-func update_hovering():
+func update_hovering(event=null):
 	var rect: Rect2 = Rect2(rect_global_position, rect_size)
-	change_hover(rect.has_point(get_viewport().get_mouse_position()))
+	if event:
+		change_hover(get_global_rect().has_point(utils.event_position(event)))
+	else:
+		change_hover(rect.has_point(get_viewport().get_mouse_position()))
 
 func _input(event):
 	if get_tree().current_scene.popup_has_focus():
@@ -162,10 +186,15 @@ func _input(event):
 	if event.is_action_pressed('ui_location_select'):
 		if not get_global_rect().has_point(utils.event_position(event)):
 			return
+		var now = OS.get_ticks_msec()
 		if selected:
-			deselect()
+			if now-last_click<double_click_time:
+				emit_signal('activate',design_path)
+			else:
+				deselect()
 		else:
 			select()
+		last_click=now
 		get_tree().set_input_as_handled()
 	elif event is InputEventMouseMotion:
 		change_hover(get_global_rect().has_point(utils.event_position(event)))
@@ -173,6 +202,7 @@ func _input(event):
 func _ready():
 	regular_layer = $View/Port/Sun.layers
 	highlight_layer = $View/Port/SelectBack.layers
+	disabled_layer = 8 # this should work but doesn't => $View/Port/Red.layers
 	$View/Port.transparent_bg = true
 	info_min_fraction = clamp(info_min_fraction,0.2,0.8)
 	sync_sizes()

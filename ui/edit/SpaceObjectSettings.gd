@@ -48,6 +48,8 @@ func _ready():
 	var _discard = new_race_popup.connect('index_pressed',self,'_on_new_race')
 	var new_trade_popup: PopupMenu = $Trading/Heading/New.get_popup()
 	_discard = new_trade_popup.connect('index_pressed',self,'_on_new_trading')
+	var new_shipyard_popup: PopupMenu = $Shipyard/Heading/New.get_popup()
+	_discard = new_shipyard_popup.connect('index_pressed',self,'_on_new_shipyard')
 	var new_adjust_popup: PopupMenu = $Adjust/Heading/New.get_popup()
 	_discard = new_adjust_popup.connect('index_pressed',self,'_on_new_adjustment')
 	set_tree_titles()
@@ -130,6 +132,12 @@ func update_key_space_object_data(
 			fill_trading_item(item,key,true)
 			$Trading/Tree.update()
 			return true
+	elif property=='shipyard':
+		var item = utils.Tree_depth_first($Shipyard/Tree.get_root(),utils.TreeFinder.new(key),'find')
+		if item:
+			fill_trading_item(item,key,true)
+			$Shipyard/Tree.update()
+			return true
 	elif property=='population':
 		object.population[key]=value
 		var item = utils.Tree_depth_first($Population/Tree.get_root(),utils.TreeFinder.new(key),'find')
@@ -155,6 +163,10 @@ func insert_space_object_data(
 		var item = $Trading/Tree.create_item($Trading/Tree.get_root(),key)
 		fill_trading_item(item,value)
 		$Trading/Tree.update()
+	elif property=='shipyard':
+		var item = $Shipyard/Tree.create_item($Shipyard/Tree.get_root(),key)
+		fill_trading_item(item,value)
+		$Shipyard/Tree.update()
 	elif property=='population':
 		object.population[key]=value
 		var i = utils.TreeItem_find_index($Population/Tree.get_root(),utils.TreeFinder.new(key),'ge')
@@ -181,7 +193,15 @@ func remove_space_object_data(
 			return false
 		utils.Tree_remove_subtree(root,item)
 		return true
-		
+	elif property=='shipyard':
+		$Shipyard/Tree.update()
+		var root = $Shipyard/Tree.get_root()
+		var item = utils.TreeItem_at_index(root,key)
+		if not item:
+			push_error('No item exists at index '+str(key)+' in shipyard tree')
+			return false
+		utils.Tree_remove_subtree(root,item)
+		return true
 	elif property=='population':
 		object.population.erase(key)
 		$Population/Tree.update()
@@ -268,11 +288,45 @@ func fill_races():
 		popup.add_item(race.capitalize(),index)
 		popup.set_item_metadata(index,race)
 
+func fill_shipyard_item(item: TreeItem,ship_part,update=false):
+	var display_name = null
+	if ship_part.begins_with('res://'):
+		display_name = text_gen.title_for_scene_path(ship_part)
+	if not display_name:
+		display_name = ship_part.capitalize()
+	item.set_text(0,str(display_name))
+	item.set_metadata(0,ship_part)
+	if not update:
+		item.add_button(0,remove_texture,0,false,'Remove shipyard item')
+
 func fill_trading_item(item: TreeItem,trade,update=false):
 	item.set_text(0,trade.capitalize())
 	item.set_metadata(0,trade)
 	if not update:
 		item.add_button(0,remove_texture,0,false,'Remove trading item')
+
+func fill_shipyard():
+	utils.Tree_clear($Shipyard/Tree)
+	var root: TreeItem = $Shipyard/Tree.create_item()
+	var ship_parts = object.shipyard
+	for ship_part in ship_parts:
+		var item = $Shipyard/Tree.create_item(root)
+		fill_shipyard_item(item,ship_part)
+	var popup: PopupMenu = $Shipyard/Heading/New.get_popup()
+	popup.clear()
+	ship_parts = Commodities.shipyard.keys()
+	ship_parts.sort()
+	var index: int = -1
+	for ship_part in ship_parts:
+		index += 1
+		var display_name = null
+		if ship_part.begins_with('res://'):
+			display_name = text_gen.title_for_scene_path(ship_part)
+		if not display_name:
+			display_name = ship_part.capitalize()
+		popup.add_item(str(display_name),index)
+		popup.set_item_metadata(index,ship_part)
+	$Shipyard/Tree.update()
 
 func fill_trading():
 	utils.Tree_clear($Trading/Tree)
@@ -298,6 +352,13 @@ func _on_new_adjustment(index):
 	if key and not object.locality_adjustments.has(key):
 		universe_edits.state.push(universe_edits.SpaceObjectDataAddRemove.new(
 			object.get_path(), 'locality_adjustments', key, [ 1.0, 1.0, 1.0 ], true))
+
+func _on_new_shipyard(index):
+	var new_shipyard_popup: PopupMenu = $Shipyard/Heading/New.get_popup()
+	var value = new_shipyard_popup.get_item_metadata(index)
+	if value and not object.shipyard.find(value)>=0:
+		universe_edits.state.push(universe_edits.SpaceObjectDataAddRemove.new(
+			object.get_path(), 'shipyard', len(object.shipyard), value, true))
 
 func _on_new_trading(index):
 	var new_trade_popup: PopupMenu = $Trading/Heading/New.get_popup()
@@ -352,6 +413,7 @@ func set_object(object: simple_tree.SimpleNode):
 	fill_adjust()
 	fill_races()
 	fill_trading()
+	fill_shipyard()
 # warning-ignore:return_value_discarded
 	sync_with_object()
 
@@ -617,6 +679,15 @@ func reorder_key_space_object_data(
 		elif shift_trading_data(trading,from_index,to_index,shift,undo):
 			fill_trading()
 			return true
+	elif property=='shipyard':
+		var shipyard = object.shipyard
+		if not shift:
+			if swap_trading_data(shipyard,from_index,to_index):
+				fill_shipyard()
+				return true
+		elif shift_trading_data(shipyard,from_index,to_index,shift,undo):
+			fill_shipyard()
+			return true
 	else:
 		push_error('Cannot reorder items in property "'+str(property)+'"')
 	return false
@@ -629,3 +700,19 @@ func _on_Trading_Tree_moved(item, to_item, shift):
 	var to_index = utils.TreeItem_find_index(root,utils.TreeFinder.new(to_item.get_metadata(0)),'eq')
 	universe_edits.state.push(universe_edits.SpaceObjectDataReorderKey.new(
 		object.get_path(),'trading',from_index,to_index,shift))
+
+func _on_Shipyard_Tree_moved(item, to_item, shift):
+	if not item or not to_item:
+		return
+	var root = $Shipyard/Tree.get_root()
+	var from_index = utils.TreeItem_find_index(root,utils.TreeFinder.new(item.get_metadata(0)),'eq')
+	var to_index = utils.TreeItem_find_index(root,utils.TreeFinder.new(to_item.get_metadata(0)),'eq')
+	universe_edits.state.push(universe_edits.SpaceObjectDataReorderKey.new(
+		object.get_path(),'shipyard',from_index,to_index,shift))
+
+func _on_Shipyard_Tree_button_pressed(item, _column, _id):
+	var value = item.get_metadata(0)
+	var key = object.trading.find(value)
+	if key>=0:
+		universe_edits.state.push(universe_edits.SpaceObjectDataAddRemove.new(
+			object.get_path(),'shipyard',key,value,false))

@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=16 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/ships/ShipDesignView.tscn" type="PackedScene" id=2]
@@ -9,8 +9,20 @@
 [ext_resource path="res://ui/ships/ShipDesignPanel.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/edit/Autosave.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=9]
+[ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=10]
+[ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=11]
 
-[sub_resource type="World" id=1]
+[sub_resource type="DynamicFont" id=1]
+size = 14
+font_data = ExtResource( 10 )
+
+[sub_resource type="Theme" id=4]
+default_font = SubResource( 1 )
+
+[sub_resource type="Theme" id=5]
+default_font = SubResource( 1 )
+
+[sub_resource type="World" id=3]
 environment = ExtResource( 6 )
 
 [node name="ShipDesignScreen" type="Panel"]
@@ -195,6 +207,34 @@ margin_right = 726.0
 margin_bottom = 600.0
 size_flags_stretch_ratio = 2.5
 
+[node name="LocationLabel" type="Label" parent="All/Show"]
+margin_left = 494.0
+margin_right = 726.0
+margin_bottom = 32.0
+theme = SubResource( 4 )
+text = "Planet Name"
+align = 2
+script = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="CargoMass" type="Label" parent="All/Show"]
+margin_right = 216.0
+margin_bottom = 17.0
+rect_min_size = Vector2( 0, 18 )
+hint_tooltip = "Total mass in your ship's cargo hold, and maximum carrying capacity. More mass slows down your ship. 
+You cannot leave if your ship is beyond capacity."
+mouse_filter = 1
+size_flags_horizontal = 3
+theme = SubResource( 5 )
+text = "Cargo: 999/999 kg"
+valign = 1
+script = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
 [node name="Drag" type="ViewportContainer" parent="."]
 margin_left = -20.0
 margin_top = -20.0
@@ -210,7 +250,7 @@ __meta__ = {
 [node name="View" type="Viewport" parent="Drag"]
 size = Vector2( 40, 40 )
 own_world = true
-world = SubResource( 1 )
+world = SubResource( 3 )
 handle_input_locally = false
 render_target_update_mode = 3
 
@@ -231,15 +271,21 @@ size = 2.16
 [connection signal="pressed" from="All/Left/Buttons/Load" to="." method="_on_Load_pressed"]
 [connection signal="pressed" from="All/Left/Buttons/Undo" to="." method="_on_Undo_pressed"]
 [connection signal="pressed" from="All/Left/Buttons/Redo" to="." method="_on_Redo_pressed"]
+[connection signal="mouse_entered" from="All/Left/Shop/Info" to="." method="_on_Info_mouse_entered"]
 [connection signal="deselect_item" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_deselect_item"]
 [connection signal="drag_selection" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_drag_selection"]
+[connection signal="hover_over_InventorySlot" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_hover_over_InventorySlot"]
 [connection signal="select_item" from="All/Left/Shop/Tabs/Equipment" to="." method="_on_Equipment_select_item"]
 [connection signal="deselect_item" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_Weapons_deselect_item"]
 [connection signal="drag_selection" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_Weapons_drag_selection"]
+[connection signal="hover_over_InventorySlot" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_hover_over_InventorySlot"]
 [connection signal="select_item" from="All/Left/Shop/Tabs/Weapons" to="." method="_on_Weapons_select_item"]
+[connection signal="activate" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_open"]
 [connection signal="add" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_add"]
 [connection signal="change" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_change"]
 [connection signal="deselect" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_deselect"]
+[connection signal="hover_over_design" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_hover_over_design"]
+[connection signal="mouse_exited" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_mouse_exited"]
 [connection signal="open" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_open"]
 [connection signal="remove" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_remove"]
 [connection signal="select" from="All/Left/Shop/Tabs/Designs" to="." method="_on_Designs_select"]
@@ -251,5 +297,7 @@ size = 2.16
 [connection signal="deselect_item" from="All/Show/Grid/Ship" to="." method="_on_Ship_deselect_item"]
 [connection signal="design_changed" from="All/Show/Grid/Ship" to="." method="_on_Ship_design_changed"]
 [connection signal="drag_selection" from="All/Show/Grid/Ship" to="." method="_on_Ship_drag_selection"]
+[connection signal="hover_over_InventorySlot" from="All/Show/Grid/Ship" to="." method="_on_hover_over_InventorySlot"]
+[connection signal="hover_over_MultiSlotItem" from="All/Show/Grid/Ship" to="." method="_on_Ship_hover_over_MultiSlotItem"]
 [connection signal="pixel_height_changed" from="All/Show/Grid/Ship" to="." method="_on_Ship_pixel_height_changed"]
 [connection signal="select_item" from="All/Show/Grid/Ship" to="." method="_on_Ship_select_item"]

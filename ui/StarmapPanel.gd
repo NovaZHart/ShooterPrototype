@@ -1,5 +1,6 @@
 extends game_state.SectorEditorStub
 
+export var show_space_objects: bool = false
 export var connected_location_color = Color(0.6,0.5,0.9)
 export var system_location_color = Color(0.7,0.6,1.0)
 export var allow_selection: bool = true
@@ -52,12 +53,16 @@ var last_position = null
 var last_screen_position = null
 var camera_start = null
 var hover_index = -1
+var first_show: bool = true
 
 signal select
 signal deselect
 signal hover_over_player_location
 signal hover_over_system
 signal hover_no_system
+signal activate_space_object
+signal deselect_space_object
+signal select_space_object
 
 func _init():
 	selection = game_state.systems.get_node_or_null(Player.destination_system)
@@ -73,7 +78,37 @@ func cancel_drag() -> bool:
 	camera_start=null
 	return true
 
+func maybe_show_window():
+	var show = show_space_objects and is_visible_in_tree()
+	
+	$Window.visible=show
+	$Window.set_process_input(show)
+	$Window/Tree.set_process_input(show)
+	if first_show:
+		set_window_location()
+		first_show = false
+
+func set_window_location():
+	var font: Font = get_font('default_font')
+	var M_size: Vector2 = font.get_char_size(ord('M'))
+	var window_size: Vector2 = Vector2(M_size.x*25,M_size.y*10)
+	var me: Rect2 = get_global_rect()
+	#var window_top_pad = M_size.y + M_size.x
+	#var window_right_pad = M_size.x/2
+	var window_position: Vector2 = Vector2(
+		me.end.x-window_size.x, # -window_right_pad,
+		me.position.y) # +window_top_pad)
+	print('my position: '+str(me))
+	print('window size: '+str(window_size))
+	print('window position: '+str(window_position))
+	print('old position: '+str($Window.get_global_rect()))
+	$Window.set_initial_rect(window_position,window_size)
+	print('new position: '+str($Window.get_global_rect()))
+
 func _ready():
+	$Window.get_close_button().visible=false
+	maybe_show_window()
+	
 	if allow_selection:
 		game_state.switch_editors(self)
 	$MapColorbar.set_title('Prices')
@@ -107,6 +142,8 @@ func _ready():
 
 func _on_StarmapPanel_resized():
 	starmap.set_max_scale(3.0, 3.0, rect_global_position)
+#	if $Window.visible:
+		
 
 func process_if(flag):
 	if flag:
@@ -197,10 +234,10 @@ func update_starmap_visuals():
 	
 	starmap.update()
 
-func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array):
-	if node.has_method('list_products'):
+func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.SimpleNode, result: Array, method: String):
+	if node.has_method(method):
 		var price = Commodities.OneProduct.new()
-		node.list_products(commodity,price)
+		node.call(method,commodity,price)
 		if price.all:
 			var product = price.all[0]
 			var value = product[Commodities.Products.VALUE_INDEX]
@@ -216,13 +253,16 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 	for child_name in node.get_child_names():
 		var child = node.get_child_with_name(child_name)
 		if child:
-			price_stats_recurse(commodity,child,result)
+			price_stats_recurse(commodity,child,result,method)
 
 func price_stats(node: simple_tree.SimpleNode): # -> float or null
 	var commodity_data: Array = Commodities.get_selected_commodity()
 	var commodity = Commodities.OneProduct.new(commodity_data)
 	if not buy:
-		node.price_products(commodity)
+		if Commodities.selected_commodity_type==Commodities.MARKET_TYPE_SHIP_PARTS:
+			node.price_ship_parts(commodity)
+		else:
+			node.price_products(commodity)
 		var value = commodity.all[0][Commodities.Products.VALUE_INDEX]
 		return value if value else null
 	var result = [ 0.0, 0 ]
@@ -230,7 +270,10 @@ func price_stats(node: simple_tree.SimpleNode): # -> float or null
 		result[0] = INF
 	elif mode==MAX_PRICE:
 		result[0] = -INF
-	price_stats_recurse(commodity,node,result)
+	if Commodities.selected_commodity_type==Commodities.MARKET_TYPE_SHIP_PARTS:
+		price_stats_recurse(commodity,node,result,'list_ship_parts')
+	else:
+		price_stats_recurse(commodity,node,result,'list_products')
 	if result[0] + 1e6 == result[0]:
 		result[0]=0
 	if not result[1]:
@@ -349,6 +392,8 @@ func deselect(what) -> bool:
 		and what==selection):
 		selection=null
 		Player.destination_system = NodePath()
+		if $Window.visible:
+			$Window/Tree.clear()
 		emit_signal('deselect')
 		update_starmap_visuals()
 		return true
@@ -358,9 +403,16 @@ func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	selection=new_selection
 	if selection is simple_tree.SimpleNode:
+		if $Window.visible:
+			if selection is simple_tree.SimpleNode and selection.has_method('is_SystemData'):
+				$Window/Tree.set_system(selection)
+			else:
+				$Window/Tree.clear()
 		emit_signal('select',selection)
 		Player.destination_system = selection.get_path()
 	elif selection==null:
+		if $Window.visible:
+			$Window/Tree.clear()
 		emit_signal('deselect')
 	game_state.universe.unlock()
 	update_starmap_visuals()
@@ -389,6 +441,10 @@ func _input(event):
 		return
 	if not is_visible_in_tree():
 		return
+	if $Window.visible:
+		var rect: Rect2 = $Window.get_global_rect().grow_individual(10,30,10,10)
+		if rect.has_point(pos2):
+			return # event is inside window
 	if event is InputEventMouseMotion and last_position:
 		if Input.is_action_pressed('ui_location_slide') or \
 				Input.is_action_pressed('ui_location_select'):
@@ -473,3 +529,19 @@ func _process(_delta):
 	var pos3: Vector3 = $View/Port/Camera.project_position(pos2,-10)
 	set_zoom(zoom,pos3)
 
+
+
+func _on_Tree_center_on_node(path):
+	emit_signal('activate_space_object',path)
+
+
+func _on_Tree_deselect_node():
+	emit_signal('deselect_space_object')
+
+
+func _on_Tree_select_node(path):
+	emit_signal('select_space_object',path)
+
+
+func _on_StarmapPanel_visibility_changed():
+	maybe_show_window()

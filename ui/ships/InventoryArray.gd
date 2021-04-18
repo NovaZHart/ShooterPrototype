@@ -39,6 +39,23 @@ func create(nx_: int,ny_: int,mount_type_: String):
 			used.append(NodePath())
 			scenes.append(null)
 
+func list_ship_parts(products,from):
+	var paths_processed = {}
+	for j in range(ny):
+		for i in range(nx):
+			var node_path = used[j*nx+i]
+			if not node_path or paths_processed.has(node_path):
+				continue
+			paths_processed[node_path]=1
+			var node = get_node_or_null(node_path)
+			if node==null:
+				push_error('cannot find mount at path '+str(node_path))
+				continue
+			#print('multi add quantity from '+str(scenes[j*nx+i].resource_path))
+			products.add_quantity_from(
+				from,scenes[j*nx+i].resource_path,1,Commodities.ship_parts)
+	return products
+
 func content_for_design(mount_name: String): # -> MultiMount
 	var multimount = game_state.universe.MultiMount.new()
 	multimount.set_name(mount_name)

@@ -23,6 +23,8 @@ var tag_filters = {
 	'{tab}':'\t',
 	'{<}':'[',
 	'{>}':']',
+	'[cost]':'[color=#eeff88]',
+	'[/cost]':'[/color]',
 	'[prompt_font]':'[color=#6688ff][code]',
 	'[/prompt_font]':'[/code][/color]',
 	'[command_font]':'[color=#eebb66][code]',
@@ -159,6 +161,7 @@ func _ready():
 		# Help pages:
 		'ref':builtin_commands.Help,
 		'help':builtin_commands.Help,
+		'stats':builtin_commands.Help,
 		'synopsis':builtin_commands.Help,
 		'search':builtin_commands.Help,
 		'invalid_command':builtin_commands.Help,

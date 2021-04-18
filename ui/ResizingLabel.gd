@@ -37,3 +37,13 @@ func adjust_size() -> void:
 	margin_bottom = ceil(starting_bottom*scale[1])
 	
 	get_font('default_font').size=max(min_font_size,font_size_goal*min(scale[0],scale[1]))
+
+func set_location_label():
+	var system_info = Player.system
+	var planet_info = Player.get_space_object_or_null()
+	var system_name = system_info.display_name
+	var planet_name = planet_info.display_name
+	if system_name == planet_name:
+		text = system_name
+	else:
+		text = system_name + ' ' + planet_name

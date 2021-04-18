@@ -43,9 +43,11 @@ var services: Array = []
 var description: String = ''
 var base_name: String = ''
 var trading: Array = []
+var shipyard: Array = []
 var population: Dictionary = {}
 var industry: float = 0
 var locality_adjustments: Dictionary = {}
+var shipyard_locality_adjustments: Dictionary = {}
 
 const default_planet_trading: Array = [ 'suvar', 'human' ]
 const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
@@ -71,6 +73,12 @@ func is_a_planet() -> bool: return true
 
 func is_SpaceObjectData(): pass # never called; must only exist
 
+func has_market():
+	return trading or shipyard or services.has('market')
+
+func has_shipyard():
+	return not not shipyard
+
 func get_system(): # -> SystemData or null
 	var parent = get_parent()
 	if parent and parent.has_method('get_system'):
@@ -86,12 +94,14 @@ func encode() -> Dictionary:
 	var base = base_types.get(base_name)
 	var result = {
 		'services': services.duplicate(true),
+		'shipyard': shipyard.duplicate(true),
 		'display_name': display_name,
 		'description': description,
 		'base': base_name,
 		'population': population.duplicate(true),
 		'trading': trading.duplicate(true),
 		'locality_adjustments': locality_adjustments.duplicate(true),
+		'shipyard_locality_adjustments': shipyard_locality_adjustments.duplicate(true),
 	}
 	maybe_add(result,'object_type',object_type,base)
 	maybe_add(result,'size',size,base)
@@ -129,15 +139,19 @@ func _init(node_name,me: Dictionary ={}):
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
 	locality_adjustments = me.get('locality_adjustments',{})
+	shipyard_locality_adjustments = me.get('shipyard_locality_adjustments',{})
 	if object_type==PLANET:
 		var trad = get_or_dup(me,'trading',default_planet_trading)
 		if trad is Dictionary:
 			trad = trad.keys()
 		trading = trad
+		shipyard = get_or_dup(me,'shipyard',[])
 		population = get_or_dup(me,'population',default_planet_population)
 		industry = me.get('industry',default_planet_industry)
 		if 'locality_adjustments' in me:
 			locality_adjustments = me['locality_adjustments']
+		if 'shipyard_locality_adjustments' in me:
+			shipyard_locality_adjustments = me['shipyard_locality_adjustments']
 	var objects = me.get('objects',{})
 	if objects and objects is Dictionary:
 		for key in objects:
@@ -162,6 +176,20 @@ func list_products(commodities: Commodities.Products, result: Commodities.Produc
 			push_warning('Trade type "'+str(trade)+'" not in known types '+
 				str(Commodities.trading.keys()))
 	price_products(result)
+
+func price_ship_parts(_result: Commodities.Products):
+	pass # FIXME: Maybe implement locality adjustments for parts?
+
+func list_ship_parts(all: Commodities.Products, here: Commodities.Products):
+	for whut in shipyard:
+		var proc = Commodities.shipyard.get(whut,null)
+		if whut:
+			proc.population(all,here,population)
+			proc.industry(all,here,industry)
+		else:
+			push_warning('Ship part type "'+str(whut)+'" not in known types '+
+				str(Commodities.shipyard.keys()))
+	price_ship_parts(here)
 
 func astral_gate_path() -> NodePath:
 	if has_astral_gate:

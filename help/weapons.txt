@@ -1,6 +1,7 @@
 
 @PAGE weapons/linear_accelerator_turret
 @title Linear Accelerator Turret
+@price Price:
 @synopsis A large weaponized particle accelerator.
 @content
 This linear particle accelerator uses powerful superconducting magnets to accelerate particles near the speed of light over a very short distance. Though it is much larger than the [ref=weapons/cyclotron_cannon]Cyclotron Cannon[/ref], it fires twice as fast.
@@ -9,6 +10,7 @@ This linear particle accelerator uses powerful superconducting magnets to accele
 
 @PAGE weapons/df_laser
 @title Deuterium-Fluoride Laser
+@price Price:
 @synopsis Low-tech, low-cost, far infrared spectrum, laser
 @content
 Although this technology is primitive by modern standards, it still sees widespread use because it is cheap to build and maintain.
@@ -17,6 +19,7 @@ Although this technology is primitive by modern standards, it still sees widespr
 
 @PAGE weapons/df_laser_turret
 @title Deuterium-Fluoride Laser Turret
+@price Price:
 @synopsis Cheap, low-maintenance, laser turret.
 @content
 This turret is one of the most common anti-fighter weapons due to its low power requirements and low cost of ownership.
@@ -25,6 +28,7 @@ This turret is one of the most common anti-fighter weapons due to its low power 
 
 @PAGE weapons/gamma_ray_laser
 @title Gamma Ray Laser
+@price Price:
 @synopsis A re-purposed industrial laser that does immense damage
 @content
 Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
@@ -33,6 +37,7 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 
 @PAGE weapons/shockwave_torpedo
 @title Shockwave Torpedo
+@price Price:
 @synopsis Homing torpedo with super-heated chemicals
 @content
 This gun fires small self-propelled torpedoes with simple guidance systems that home in on a target. Each torpedo a stores two super-heated, highly volatile, chemicals that are so hot no known physical barrier can hold them. Instead, the torpedoes contain them using energy shields. When they reach their target, the containers break, the chemicals mix, and explode with a significant blast radius.
@@ -43,6 +48,7 @@ This is one of the largest and most dangerous weapons produced in human space.
 
 @PAGE weapons/cyclotron_cannon
 @title Cyclotron Cannon
+@price Price:
 @synopsis A weaponized particle accelerator.
 @content
 This isochronous cyclotron, built from superconducting magnets, has been installed in a gun. It fires bursts of particles near the speed of light, cooling the gun between each burst.

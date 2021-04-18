@@ -1,8 +1,15 @@
 extends Node
 
+const MARKET_TYPE_COMMODITIES: int = 0
+const MARKET_TYPE_SHIP_PARTS: int = 1
+const MARKET_TYPE_UNKNOWN: int = 2
+
 var commodities: ManyProducts
 var trading: Dictionary
+var ship_parts: ManyProducts
+var shipyard: Dictionary
 var selected_commodity_index: int = -1
+var selected_commodity_type: int = MARKET_TYPE_COMMODITIES
 
 # Maybwe move this to game data files?
 const population_names: Array = [ 'suvar', 'human', 'spiders' ]
@@ -10,15 +17,23 @@ const population_names: Array = [ 'suvar', 'human', 'spiders' ]
 const no_commodity: Array = [ 'nothing', 0, 0, 0, 0 ]
 
 func select_no_commodity():
-	selected_commodity_index=-1
+	selected_commodity_index = -1
+	selected_commodity_type = MARKET_TYPE_COMMODITIES
 
 func get_selected_commodity() -> Array:
-	if commodities:
+	if selected_commodity_type==MARKET_TYPE_COMMODITIES and commodities:
 		return commodities.all.get(selected_commodity_index,no_commodity)
+	if selected_commodity_type==MARKET_TYPE_SHIP_PARTS and ship_parts:
+		return ship_parts.all.get(selected_commodity_index,no_commodity)
 	return no_commodity
 
-func select_commodity_with_name(product_name: String):
-	selected_commodity_index=commodities.by_name.get(product_name,-1)
+func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COMMODITIES):
+	if market_type==MARKET_TYPE_COMMODITIES:
+		selected_commodity_index = commodities.by_name.get(product_name,-1)
+		selected_commodity_type = MARKET_TYPE_COMMODITIES
+	if market_type==MARKET_TYPE_SHIP_PARTS:
+		selected_commodity_index = ship_parts.by_name.get(product_name,-1)
+		selected_commodity_type = MARKET_TYPE_SHIP_PARTS
 
 class Products extends Reference:
 	var all: Dictionary = {} # mapping from ID to data for one product
@@ -32,6 +47,9 @@ class Products extends Reference:
 	const FIRST_TAG_INDEX: int = MASS_INDEX+1 # First index in all[id] of tags
 	const index_type: Array = [ 'name', 'value', 'fine', 'quantity', 'mass' ]
 	
+	func duplicate(_deep):
+		push_error('Subclass forgot to override duplicate()')
+	
 	func clear():
 		all={}
 		by_name={}
@@ -43,6 +61,13 @@ class Products extends Reference:
 	# Duplicate the `all` array, for storing the products in compressed form:
 	func encode() -> Dictionary:
 		return all.duplicate(true)
+	
+	func has_quantity() -> bool:
+		for id in all:
+			var product = all.get(id,null)
+			if product and product[QUANTITY_INDEX]>0:
+				return true
+		return false
 	
 	# Return all IDs in the `include` set that are not in the `exclude` set
 	# The `include` and `exclude` can have string tag names or int IDs.
@@ -150,6 +175,13 @@ class Products extends Reference:
 					if quantity_value_fine[2]>=0:
 						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
 	
+	func apply_multipliers(quantity_multiplier,value_multiplier,fine_multiplier):
+		for id in all:
+			var product = all.get(id,null)
+			if product:
+				_apply_multipliers(product,product,quantity_multiplier,
+					value_multiplier,fine_multiplier)
+	
 	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
 			fine_multiplier):
 		if quantity_multiplier==null and value_multiplier==null and \
@@ -192,6 +224,14 @@ class OneProduct extends Products:
 		by_name={}
 		by_tag={}
 		product_name=''
+	
+	func duplicate(deep=true):
+		var p=OneProduct.new()
+		p.all=all.duplicate(deep)
+		p.by_name=by_name.duplicate(deep)
+		p.by_tag=by_tag.duplicate(deep)
+		p.product_name=product_name
+		return p
 	
 	func copy():
 		var result = OneProduct.new()
@@ -277,6 +317,14 @@ class OneProduct extends Products:
 class ManyProducts extends Products:
 	var last_id: int = -1 # last ID assigned to a product in `all`
 	
+	func duplicate(deep = true):
+		var p=ManyProducts.new()
+		p.all=all.duplicate(deep)
+		p.by_name=by_name.duplicate(deep)
+		p.by_tag=by_tag.duplicate(deep)
+		p.last_id=last_id
+		return p
+	
 	func clear():
 		all={}
 		by_name={}
@@ -318,6 +366,44 @@ class ManyProducts extends Products:
 			else:
 				by_tag[tag].append(id)
 		return id
+	
+	func add_quantity_from(all_products,product_name: String,count = null,fallback=null):
+		assert(count==null or count is int)
+		
+		var my_id=by_name.get(product_name,-1)
+		if count!=null and my_id>=0:
+			all[my_id][QUANTITY_INDEX] = max(0,all[my_id][QUANTITY_INDEX]+count)
+			return
+		
+		var from_id=all_products.by_name.get(product_name,-1)
+		var from_product=all_products.all.get(from_id,null)
+		if not from_product and fallback!=null:
+			from_id=fallback.by_name.get(product_name,-1)
+			from_product=fallback.all.get(from_id,null)
+		elif not from_product:
+			push_warning('Could not find product named "'+str(product_name)+'" in all_products and no fallback was provided')
+			assert(false)
+		
+		if not from_product:
+			push_warning('No product to add for name "'+str(product_name)+'"')
+			assert(false)
+		elif my_id>=0: # count is null at this point
+			all[my_id][QUANTITY_INDEX] += from_product[QUANTITY_INDEX]
+		elif from_id>=0:
+			last_id += 1
+			all[last_id] = from_product.duplicate(true)
+			by_name[product_name]=last_id
+			for itag in range(FIRST_TAG_INDEX,len(from_product)):
+				var tag = from_product[itag]
+				if by_tag.has(tag):
+					by_tag[tag].append(last_id)
+				else:
+					by_tag[tag]=[last_id]
+			if count!=null:
+				all[last_id][QUANTITY_INDEX] = max(0,count)
+		else:
+			push_warning('Could not find product "'+str(product_name)+'" in all_products, self, or fallback.')
+			assert(false)
 	
 	func add_products(all_products,  # : Dictionary or Products
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
@@ -398,6 +484,19 @@ class ManyProducts extends Products:
 
 		return false
 	
+	func reduce_quantity_by(this_much):
+		for id in this_much.all:
+			var product = this_much.all.get(id,null)
+			if product:
+				var remove_quantity=max(0,product[QUANTITY_INDEX])
+				if remove_quantity:
+					var my_id = by_name.get(product[NAME_INDEX],-1)
+					if my_id>=0:
+						var my_product = all.get(my_id,null)
+						if my_product:
+							var my_quantity=max(0,my_product[QUANTITY_INDEX])
+							my_product[QUANTITY_INDEX] = max(0,my_quantity-remove_quantity)
+	
 	func remove_absent_products():
 		for id in all.keys():
 			var product=all.get(id,null)
@@ -472,6 +571,7 @@ class ManyProducts extends Products:
 	# Intended to be used with ids_for_tags.
 	func make_subset(ids: PoolIntArray):
 		var result = ManyProducts.new()
+		result.last_id = last_id
 		for id in ids:
 			if not all.has(id) or result.all.has(id):
 				continue
@@ -482,15 +582,47 @@ class ManyProducts extends Products:
 				if not result.by_tag.has(tag):
 					result.by_tag[tag] = [ id ]
 				else:
-					result.by_tag[tag].append(tag)
+					result.by_tag[tag].append(id)
 		return result
 	
-	func remove_named_products(names):
-		var remove = names.by_name.keys() if names is Products else names
+	func remove_named_products(names,negate: bool = false):
+		var remove = names if names is Array else names.by_name.keys()
+		if negate:
+			var negated = by_name.keys()
+			for name in remove:
+				var _discard = negated.erase(name)
+			remove = negated
 		for product_name in remove:
 			var id = by_name.get(product_name,-1)
 			if id>0:
-				var _ignore = all.erase(id)
+				var _ignore
+				var product = all.get(id,null)
+				if product:
+					_ignore = by_name.erase(product[NAME_INDEX])
+					for itag in range(FIRST_TAG_INDEX,len(product)):
+						var tag = product[itag]
+						if by_tag.has(tag):
+							_ignore = by_tag[tag].erase(id)
+							if not by_tag[tag]:
+								_ignore = by_tag.erase(tag)
+				_ignore = all.erase(id)
+	
+	func ids_within(prod: Products) -> PoolIntArray:
+		var ids = []
+		for product_name in prod.by_name:
+			var id = by_name.get(product_name,-1)
+			if id>=0:
+				ids.append(id)
+		return PoolIntArray(ids)
+	
+	func ids_not_within(prod: Products) -> PoolIntArray:
+		var ids = []
+		for product_name in by_name:
+			if prod.by_name.get(product_name,-1)<0:
+				var id = by_name.get(product_name,-1)
+				if id>=0:
+					ids.append(id)
+		return PoolIntArray(ids)
 	
 	# Given the output of encode(), replace all data in this Product.
 	func decode(from: Dictionary):
@@ -515,6 +647,60 @@ class ManyProducts extends Products:
 						by_tag[tag].append(id)
 		return true
 
+func products_for_market(all_known_products,market_products,ship_products,
+		product_pricer: Object,pricer_method: String,
+		include_zero_value: bool = false) -> ManyProducts:
+	
+	# Find all products for sale that exist in the known set:
+	var priced_ids: PoolIntArray = PoolIntArray()
+	var forbidden_ids: PoolIntArray = PoolIntArray()
+	for product_name in market_products.by_name:
+		var market_id = market_products.by_name[product_name]
+		var market_product = market_products.all[market_id]
+		if not include_zero_value and market_product[Products.VALUE_INDEX]<=0:
+			forbidden_ids.append(market_id)
+		elif all_known_products.by_name.get(product_name,-1)>=0:
+			priced_ids.append(market_id)
+	var priced_products: ManyProducts = market_products.make_subset(priced_ids)
+	
+	# Find all ship cargo that exists in the known set but is not for sale here:
+	var unpriced_ids: PoolIntArray = PoolIntArray()
+	for product_name in ship_products.by_name:
+		var known_product_id = all_known_products.by_name.get(product_name,-1)
+		if known_product_id>=0:
+			var ship_product = ship_products.all.get(ship_products.by_name.get(product_name,-1),null)
+			if ship_product and ship_product[Products.QUANTITY_INDEX]>0:
+				unpriced_ids.append(known_product_id)
+	
+	# If there aren't any new products in the ship, we're done:
+	if not unpriced_ids.size():
+		print('NO UNPRICED IDS')
+		return priced_products
+	
+	# Get prices for all sellable products in the ship that are not for sale in market:
+	var unpriced_products: ManyProducts = all_known_products.make_subset(unpriced_ids)
+	product_pricer.call(pricer_method,unpriced_products)
+	
+	# Find all products whose sale value is greater than zero.
+	# Sale values of zero or less indicate the product cannot be sold here.
+	var allowed_ids: PoolIntArray = PoolIntArray()
+	for product_name in unpriced_products.by_name:
+		var product = unpriced_products.all.get(unpriced_products.by_name.get(product_name,-1),null)
+		if product and product[Products.VALUE_INDEX]>0:
+			allowed_ids.append(unpriced_products.by_name[product_name])
+	
+	# Add the sellable products from the ship that were not in the marketplace:
+	var allowed_products: ManyProducts = unpriced_products.make_subset(allowed_ids)
+	priced_products.add_products(allowed_products,0,null,null,true,null,false)
+	
+	if include_zero_value:
+		# We're told to include all products that are forbidden here.
+		unpriced_products.remove_named_products(allowed_products)
+		priced_products.add_products(unpriced_products,0,0,null,true)
+	
+	# Return the list of all products that can be sold at this planet, which have
+	# non-zero quantity in total between market and ship:
+	return priced_products
 
 class ProducerConsumer extends Reference:
 	func industry(_all_products: Products, _result: Products, _industrial_capacity: float):
@@ -604,6 +790,18 @@ class TerranTradeCenter extends ProducerConsumer:
 			'intoxicant/terran','manufactured/terran','raw_materials/metal','pets/terran',
 			'raw_materials/gems'],['live/sentient','dead/sentient','danger/highly_radioactive','taboo/house_cat'],m)
 
+class SmallLaserTerranShipyard extends ProducerConsumer:
+	func industry(all_products: Products, result: Products, _industrial_capacity: float):
+		result.add_products_from(all_products,['terran'],['particle','explosive','large','capital'])
+
+class SmallParticleTerranShipyard extends ProducerConsumer:
+	func industry(all_products: Products, result: Products, _industrial_capacity: float):
+		result.add_products_from(all_products,['terran'],['laser','explosive','large','capital'])
+
+class LargeTerranShipyard extends ProducerConsumer:
+	func industry(all_products: Products, result: Products, _industrial_capacity: float):
+		result.add_products_from(all_products,['terran'],[])
+
 class ProductsNode extends simple_tree.SimpleNode:
 	var products setget ,get_products #: ManyProducts or null
 	var update_time: int
@@ -653,7 +851,7 @@ func delete_old_products_impl(parent: simple_tree.SimpleNode, child: simple_tree
 	# Deletes all nodes from child on down where a node and all of its
 	# descendants have update_time<=cutoff. Anything that is not a
 	# ProductsNode is assumed to be older than the cutoff time.
-	var delete_node: bool = not child.has_method('is_ProductsNode') or child.update_time<=cutoff
+	var delete_node: bool = not ( child.has_method('is_ProductsNode') and child.update_time>cutoff)
 	for grandchild_name in child.get_child_names():
 		var grandchild = child.get_child_with_name(grandchild_name)
 		if grandchild:
@@ -664,7 +862,7 @@ func delete_old_products_impl(parent: simple_tree.SimpleNode, child: simple_tree
 
 func delete_old_products(root, cutoff: int):
 	# Delete all descendant nodes where the node and all of its descendants
-	# have update_time<=cutoff. Anything that is not a ProductsNode is assumed
+	# have update_time>cutoff. Anything that is not a ProductsNode is assumed
 	# to be older than the cutoff time. The root is not deleted.
 	# root is a simple_tree.SimpleNode, but godot's type checking is too stupid
 	# to handle call checks of user-defined types in calls between top-level modules
@@ -691,9 +889,47 @@ func expand_tags(product_data: Array) -> Array:
 	return result			
 				
 
-func data_tables() -> ManyProducts:
+func shipyard_data_tables() -> ManyProducts:
 	var result = ManyProducts.new()
-	# name, quantity, value, fine, mass
+	var data = [ # name, quantity, value, fine, density, tags
+		[ 'res://weapons/BlueLaserGun.tscn', 40, 9000, 9000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/BlueLaserTurret.tscn', 25, 16000, 16000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/GreenLaserGun.tscn', 40, 22000, 22000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/OrangeSpikeGun.tscn', 40, 11000, 11000, 0, 'particle', 'weapon', 'terran' ],
+		[ 'res://weapons/OrangeSpikeTurret.tscn', 40, 31000, 31000, 0, 'particle', 'weapon', 'terran' ],
+		[ 'res://weapons/PurpleHomingGun.tscn', 40, 54000, 54000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
+		[ 'res://equipment/engines/Engine2x2.tscn', 40, 11000, 11000, 0, 'engine', 'terran' ],
+		[ 'res://equipment/engines/Engine2x4.tscn', 40, 23000, 23000, 0, 'engine', 'terran' ],
+		[ 'res://equipment/engines/Engine4x4.tscn', 40, 47000, 47000, 0, 'engine', 'terran', 'large' ],
+		[ 'res://equipment/repair/Shield2x1.tscn', 40, 16000, 16000, 0, 'equipment', 'shield', 'terran' ],
+		[ 'res://equipment/repair/Shield2x2.tscn', 40, 35000, 35000, 0, 'equipment', 'shield', 'terran' ],
+		[ 'res://equipment/repair/Shield3x3.tscn', 40, 79000, 79000, 0, 'equipment', 'shield', 'terran', 'large' ],
+		[ 'res://equipment/BigEquipmentTest.tscn', 40, 200, 200, 0, 'test', 'equipment', 'terran', 'large' ],
+		[ 'res://equipment/EquipmentTest.tscn', 40, 100, 100, 0, 'test', 'equipment', 'terran' ],
+		[ 'res://ships/BannerShip/BannerShipHull.tscn', 3, 394000, 394000, 0, 'hull/civilian/advertisment', 'terran', 'large' ],
+		[ 'res://ships/PurpleShips/CurvyWarshipHull.tscn', 3, 133000, 133000, 0, 'hull/combat/warship', 'terran' ],
+		[ 'res://ships/PurpleShips/HeavyWarshipHull.tscn', 1, 793000, 793000, 0, 'hull/combat/capital', 'terran', 'capital' ],
+		[ 'res://ships/PurpleShips/InterceptorHull.tscn', 12, 85000, 85000, 0, 'hull/combat/interceptor', 'terran' ],
+		[ 'res://ships/PurpleShips/WarshipHull.tscn', 3, 141000, 141000, 0, 'hull/combat/warship', 'terran' ],
+	]
+	# FIXME: Pregenerate this somehow:
+	for datum in data:
+		var resource_path = datum[Products.NAME_INDEX]
+		var scene = load(resource_path)
+		if scene:
+			var state = scene.get_state()
+			for i in range(state.get_node_property_count(0)):
+				var property_name = state.get_node_property_name(0,i)
+				if ['base_mass','add_mass','weapon_mass'].has(property_name):
+					var mass = state.get_node_property_value(0,i)
+					if mass>0:
+						datum[Products.MASS_INDEX] = int(round(mass*1000)) # convert to kg
+	result.add_products(expand_tags(data),null,null,null,false,range(len(data)))
+	return result
+
+func commodity_data_tables() -> ManyProducts:
+	var result = ManyProducts.new()
+	
 	var data = [ # name, quantity, value, fine, density, tags
 		
 		# Intoxicants
@@ -858,7 +1094,15 @@ func data_tables() -> ManyProducts:
 	return result
 
 func _init():
-	commodities=data_tables()
+	ship_parts = shipyard_data_tables()
+	assert(ship_parts)
+	commodities = commodity_data_tables()
+	assert(commodities)
+	shipyard={
+		'small_laser_terran': SmallLaserTerranShipyard.new(),
+		'small_particle_terran': SmallParticleTerranShipyard.new(),
+		'large_terran': LargeTerranShipyard.new(),
+	}
 	trading={
 		'terran_government': TerranGovernment.new(),
 		'forbid_intoxicants': ForbidIntoxicants.new(),

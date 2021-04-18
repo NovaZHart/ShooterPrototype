@@ -9,8 +9,9 @@ var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
-var money: int = 98000
+var money: int = 38000
 var markets: simple_tree.SimpleNode
+var ship_parts: simple_tree.SimpleNode
 var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
 var tree: simple_tree.SimpleTree = simple_tree.SimpleTree.new(root)
 var stored_system_path
@@ -87,6 +88,87 @@ func store_state():
 		'departed_hyperspace_position': departed_hyperspace_position,
 	}
 
+func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
+		include_all_ship_parts=false) -> Dictionary:
+	var result = {}
+	
+	# If this space object does not exist, nothing can be sold:
+	var planet_info = game_state.systems.get_node_or_null(planet_path)
+	if not planet_info:
+		push_warning('No space object at path '+str(planet_path))
+		
+		# If there is anything in the cargo, then list it as "unknown"
+		if player_ship_design.cargo:
+			var unknown_cargo = player_ship_design.cargo.duplicate(true)
+			unknown_cargo.remove_absent_products()
+			if unknown_cargo.all:
+				result['unknown'] = unknown_cargo
+		
+		return result
+	
+	# Get the player's cargo:
+	var cargo
+	if player_ship_design.cargo:
+		cargo = player_ship_design.cargo
+	else:
+		cargo = Commodities.ManyProducts.new()
+	
+	# Find all commodities for sale at the planet, or cargo commodities that
+	# can be sold at the planet.
+	var commodities_for_sale = update_markets_at(planet_path)
+	var commodities_here
+	var has_commodities_for_sale = not not commodities_for_sale
+	if has_commodities_for_sale:
+		commodities_here = Commodities.products_for_market(Commodities.commodities,
+			commodities_for_sale,cargo,planet_info,'price_products',
+			include_all_commodities)
+		result['commodities'] = commodities_here
+	else:
+		push_warning('no commodities for sale')
+		commodities_here = Commodities.ManyProducts.new()
+	
+	# Find all ship parts for sale at the planet, or ship parts in the cargo
+	# that can be sold at the planet.
+	var ship_parts_for_sale = Player.update_ship_parts_at(Player.player_location)
+	var ship_parts_here
+	if ship_parts_for_sale:
+		ship_parts_here = Commodities.products_for_market(Commodities.ship_parts,
+			ship_parts_for_sale,cargo,planet_info,'price_ship_parts',
+			include_all_ship_parts)
+		result['ship_parts'] = ship_parts_here
+	else:
+		ship_parts_here = Commodities.ManyProducts.new()
+	
+	# If there is nothing in cargo, we're done:
+	if not cargo.all:
+		return result
+	
+	# Find all cargo that cannot be sold as commodities or ship parts:
+	var unknown_player_cargo = Player.player_ship_design.cargo.duplicate(true)
+	unknown_player_cargo.remove_named_products(commodities_here)
+	unknown_player_cargo.remove_named_products(ship_parts_here)
+	unknown_player_cargo.remove_absent_products()
+	if unknown_player_cargo.all:
+		result['unknown'] = unknown_player_cargo
+	
+	return result
+
+# warning-ignore:unused_argument
+func dump_fruit_count(why):
+#	var cargo = player_ship_design.cargo
+#	if not cargo:
+#		print('FRUIT '+str(why)+': null cargo')
+#		return
+#	#print('FRUIT '+str(why)+': 
+#	var fruit_mine = cargo.all.get(cargo.by_name.get('fruit',-1),null)
+#	if not fruit_mine:
+#		print('FRUIT '+str(why)+': no fruit product entry in cargo')
+#		return
+#	var I = Commodities.Products.QUANTITY_INDEX
+#	var count_mine = fruit_mine[I] if fruit_mine else '(none)'
+#	print('FRUIT '+str(why)+': player cargo count is '+str(count_mine))
+	pass
+
 func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']
 	money = state.get('money',98000)
@@ -113,6 +195,7 @@ func restore_state(state: Dictionary,restore_from_load_page = true):
 		tree.root = state['player_tree_root']
 		root = tree.root
 		markets = ensure_markets_node()
+		ship_parts = ensure_ship_parts_node()
 
 func _on_universe_preload():
 	stored_system_path = system.get_path() if system else NodePath()
@@ -219,9 +302,47 @@ func assemble_player_ship(): # -> RigidBody or null
 func age_off_markets(age: int = game_state.EPOCH_ONE_DAY*14):
 	Commodities.delete_old_products(markets,game_state.epoch_time-age)
 
+func age_off_ship_parts(age: int = game_state.EPOCH_ONE_DAY*14):
+	Commodities.delete_old_products(ship_parts,game_state.epoch_time-age)
+
+func update_ship_parts_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
+	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
+	if place and place.has_method('is_SpaceObjectData') and place.has_market():
+		var relpath: NodePath = game_state.systems.get_path_to(place)
+		var ship_parts_node = null
+		if relpath:
+			var universe_node = game_state.systems
+			ship_parts_node = ship_parts
+			for iname in relpath.get_name_count():
+				var child_name = relpath.get_name(iname)
+				universe_node = universe_node.get_child_with_name(child_name)
+				var next = ship_parts_node.get_child_with_name(child_name)
+				if not universe_node.has_method('is_SpaceObjectData'):
+					if not next:
+						next = simple_tree.SimpleNode.new()
+						next.name = child_name
+						if not ship_parts_node.add_child(next):
+							push_error('Cannot add "'+child_name+'" child of '+str(ship_parts_node.get_path()))
+					ship_parts_node = next
+					continue
+				if not next or next.update_time<game_state.epoch_time:
+					var local_ship_parts = Commodities.ManyProducts.new()
+					universe_node.list_ship_parts(Commodities.ship_parts, local_ship_parts)
+					if next:
+						next.update(local_ship_parts,game_state.epoch_time,dropoff,scale)
+					else:
+						next = Commodities.ProductsNode.new(local_ship_parts,game_state.epoch_time)
+						next.name = child_name
+						if not ship_parts_node.add_child(next):
+							push_error('Cannot add "'+child_name+'" child of '+str(ship_parts_node.get_path()))
+				ship_parts_node = next
+			if ship_parts_node and ship_parts_node.has_method('is_ProductsNode'):
+				return ship_parts_node.products
+	return null
+
 func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: float = 1.0/game_state.EPOCH_ONE_DAY):
 	var place: simple_tree.SimpleNode = game_state.systems.get_node_or_null(path_in_universe)
-	if place:
+	if place and place.has_method('is_SpaceObjectData') and place.has_market():
 		var relpath: NodePath = game_state.systems.get_path_to(place)
 		if relpath:
 			var universe_node = game_state.systems
@@ -250,7 +371,7 @@ func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: 
 							push_error('Cannot add "'+child_name+'" child of '+str(market_node.get_path()))
 				market_node = next
 		var market_node = markets.get_node(relpath)
-		if market_node:
+		if market_node and market_node.has_method('is_ProductsNode'):
 			return market_node.products
 	return null
 
@@ -264,6 +385,16 @@ func ensure_markets_node():
 	markets = markets_node
 	return markets
 
+func ensure_ship_parts_node():
+	var ship_parts_node = root.get_child_with_name('ship_parts')
+	if not ship_parts_node:
+		ship_parts_node = simple_tree.SimpleNode.new()
+		ship_parts_node.name = 'ship_parts'
+		if not root.add_child(ship_parts_node):
+			push_error('Cannot add the "ship_parts" node to Player\'s tree.')
+	ship_parts = ship_parts_node
+	return ship_parts
+
 func _init():
 	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
 	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
@@ -273,11 +404,13 @@ func _init():
 	assert(player_location)
 	assert(system)
 	
-	var banner_godship = game_state.ship_designs.get_node_or_null('godship')
-	assert(banner_godship)
-	player_ship_design = banner_godship
+	#var start_ship = game_state.ship_designs.get_node_or_null('godship')
+	var start_ship = game_state.ship_designs.get_node_or_null('raven_lasers')
+	assert(start_ship)
+	player_ship_design = start_ship
 	
 	var _discard = game_state.connect('universe_preload',self,'_on_universe_preload')
 	_discard = game_state.connect('universe_postload',self,'_on_universe_postload')
 	
 	ensure_markets_node()
+	ensure_ship_parts_node()

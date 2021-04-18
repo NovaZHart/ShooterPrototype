@@ -1,7 +1,45 @@
 @PAGE equipment/test
 @title Equipment Placeholder Test
+@price Price:
 @synopsis A prism for testing the equipment functionality.
 @content
-This equipment just tests whether the equipment functionality is working.
+Makes you nearly invincible, to test the equipment functionality.
 
 @bbcode_from_scene res://equipment/EquipmentTest.tscn
+
+@PAGE equipment/bigtest
+@title Big Equipment Placeholder Test
+@price Price:
+@synopsis A prism for testing the equipment functionality.
+@content
+Makes you nearly invincible, to test the equipment functionality.
+
+@bbcode_from_scene res://equipment/BigEquipmentTest.tscn
+
+@PAGE equipment/energy-shield-small
+@title Small Shield Recharger
+@price Price:
+@synopsis Shield recharger built for interceptors.
+@content
+Built for small interceptors, this device will recharge the ship's shields slowly while using minimal power.
+
+@bbcode_from_scene res://equipment/repair/Shield2x1.tscn
+
+@PAGE equipment/energy-shield-medium
+@title Medium Shield Recharger
+@price Price:
+@synopsis Standard shield recharger for most ships.
+@content
+This warship-class shield recharger is strong enough to fully repair a warship's shields between engagements.
+
+@bbcode_from_scene res://equipment/repair/Shield2x2.tscn
+
+@PAGE equipment/energy-shield-large
+@title Large Shield Recharger
+@price Price:
+@synopsis Battleship-class shield recharger.
+@content
+This recharger heals a shield so quickly that it can absorb the full damage output of weaker ships.
+
+@bbcode_from_scene res://equipment/repair/Shield3x3.tscn
+

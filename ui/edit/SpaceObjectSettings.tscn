@@ -443,6 +443,36 @@ flat = false
 [node name="Tree" parent="Trading" instance=ExtResource( 6 )]
 hide_root = true
 
+[node name="Shipyard" type="GridContainer" parent="."]
+visible = false
+anchor_right = 1.0
+anchor_bottom = 1.0
+margin_left = 4.0
+margin_top = 32.0
+margin_right = -4.0
+margin_bottom = -4.0
+
+[node name="Heading" type="GridContainer" parent="Shipyard"]
+margin_right = 40.0
+margin_bottom = 40.0
+size_flags_horizontal = 3
+columns = 2
+
+[node name="Label" type="Label" parent="Shipyard/Heading"]
+margin_right = 40.0
+margin_bottom = 14.0
+size_flags_horizontal = 3
+size_flags_vertical = 6
+text = "Shipyard:"
+
+[node name="New" type="MenuButton" parent="Shipyard/Heading"]
+margin_right = 12.0
+margin_bottom = 20.0
+text = "New"
+flat = false
+
+[node name="Tree" parent="Shipyard" instance=ExtResource( 6 )]
+
 [node name="Population" type="GridContainer" parent="."]
 visible = false
 anchor_right = 1.0
@@ -521,6 +551,8 @@ hide_root = true
 [connection signal="item_edited" from="Adjust/Tree" to="." method="_on_Adjust_Tree_item_edited"]
 [connection signal="button_pressed" from="Trading/Tree" to="." method="_on_Trading_Tree_button_pressed"]
 [connection signal="moved" from="Trading/Tree" to="." method="_on_Trading_Tree_moved"]
+[connection signal="button_pressed" from="Shipyard/Tree" to="." method="_on_Shipyard_Tree_button_pressed"]
+[connection signal="moved" from="Shipyard/Tree" to="." method="_on_Shipyard_Tree_moved"]
 [connection signal="button_pressed" from="Population/Tree" to="." method="_on_Population_Tree_button_pressed"]
 [connection signal="focus_exited" from="Population/Tree" to="." method="_on_Population_Keys_focus_exited"]
 [connection signal="item_edited" from="Population/Tree" to="." method="_on_Population_Keys_item_edited"]
