@@ -657,9 +657,14 @@ func products_for_market(all_known_products,market_products,ship_products,
 	for product_name in market_products.by_name:
 		var market_id = market_products.by_name[product_name]
 		var market_product = market_products.all[market_id]
-		if not include_zero_value and market_product[Products.VALUE_INDEX]<=0:
+		var known_id = all_known_products.by_name.get(product_name,-1)
+		if known_id<0:
+			continue
+		elif not include_zero_value and market_product[Products.VALUE_INDEX]<=0:
 			forbidden_ids.append(market_id)
-		elif all_known_products.by_name.get(product_name,-1)>=0:
+		elif not include_zero_value and market_product[Products.QUANTITY_INDEX]<=0:
+			continue
+		else:
 			priced_ids.append(market_id)
 	var priced_products: ManyProducts = market_products.make_subset(priced_ids)
 	
