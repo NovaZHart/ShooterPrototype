@@ -159,7 +159,6 @@ func dump_fruit_count(why):
 #	if not cargo:
 #		print('FRUIT '+str(why)+': null cargo')
 #		return
-#	#print('FRUIT '+str(why)+': 
 #	var fruit_mine = cargo.all.get(cargo.by_name.get('fruit',-1),null)
 #	if not fruit_mine:
 #		print('FRUIT '+str(why)+': no fruit product entry in cargo')
