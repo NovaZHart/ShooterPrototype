@@ -7,6 +7,7 @@ var player_ship_design_name = 'player_ship_design'
 var systems: simple_tree.SimpleNode
 var ship_designs: simple_tree.SimpleNode
 var fleets: simple_tree.SimpleNode
+var factions: Factions.FactionList
 var ui: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
@@ -20,24 +21,27 @@ signal system_display_name_changed
 signal system_position_changed
 signal link_position_changed
 
-func mandatory_add_child(child: simple_tree.SimpleNode, child_name: String):
+func mandatory_add_child(child, child_name: String):
+	assert(child.has_method('is_SimpleNode')) # type checking breaks here
 	child.name=child_name
 	if not add_child(child):
 		push_error('Could not add '+child_name+' child to universe.')
 
 func _init():
 	systems = simple_tree.SimpleNode.new()
-	#systems.set_name('systems')
 	mandatory_add_child(systems,'systems')
+	
 	ship_designs = simple_tree.SimpleNode.new()
-	#ship_designs.set_name('ship_designs')
 	mandatory_add_child(ship_designs,'ship_designs')
+	
 	fleets = simple_tree.SimpleNode.new()
-	#fleets.set_name('fleets')
 	mandatory_add_child(fleets,'fleets')
+	
 	ui = simple_tree.SimpleNode.new()
-	#ui.set_name('ui')
 	mandatory_add_child(ui,'ui')
+	
+	factions = Factions.FactionList.new()
+	mandatory_add_child(factions,'factions')
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -82,7 +86,7 @@ func get_interstellar_systems():
 			continue
 	return interstellar_systems
 
-func decode_children(parent, children):
+static func decode_children(parent, children):
 	if not children is Dictionary:
 		push_error("encoded parent's children are not stored in a Dictionary")
 		return
@@ -95,18 +99,18 @@ func decode_children(parent, children):
 			if not parent.add_child(decoded):
 				push_error('decode_children failed to add child')
 
-func encode_children(parent) -> Dictionary:
+static func encode_children(parent) -> Dictionary:
 	var result = {}
 	for child_name in parent.get_child_names():
 		result[child_name] = encode_helper(parent.get_child_with_name(child_name))
 	return result
 
-func encode_ProductsNode(p: Commodities.ProductsNode):
+static func encode_ProductsNode(p: Commodities.ProductsNode):
 	return [ 'ProductsNode', str(p.update_time),
 		encode_helper(p.products.encode() if p.products else {}),
 		encode_children(p) ]
 
-func decode_ProductsNode(v):
+static func decode_ProductsNode(v):
 	var result = Commodities.ProductsNode.new()
 	if len(v)<4:
 		push_error('Expected two arguments in encoded ProductsNode, not '+str(len(v)))
@@ -139,10 +143,10 @@ class Mounted extends simple_tree.SimpleNode:
 	func _init(scene_: PackedScene):
 		scene=scene_
 
-func encode_Mounted(m: Mounted):
+static func encode_Mounted(m: Mounted):
 	return [ 'Mounted', encode_helper(m.scene) ]
 
-func decode_Mounted(v):
+static func decode_Mounted(v):
 	if not v is Array or not len(v)>1 or v[0]!='Mounted':
 		push_error('Invalid input to decode_Mounted')
 		return null
@@ -160,10 +164,10 @@ class MultiMounted extends Mounted:
 	func set_name_with_prefix(prefix: String):
 		set_name(prefix+'_at_x'+str(x)+'_y'+str(y))
 
-func encode_MultiMounted(m: MultiMounted):
+static func encode_MultiMounted(m: MultiMounted):
 	return [ 'MultiMounted', encode_helper(m.scene), m.x, m.y ]
 
-func decode_MultiMounted(v):
+static func decode_MultiMounted(v):
 	if not v is Array or not len(v)>3 or not v[0]=='MultiMounted':
 		push_error('Invalid input to decode_MultiMounted: '+str(v))
 		return null
@@ -188,7 +192,7 @@ class MultiMount extends simple_tree.SimpleNode:
 #					return false
 #		return true
 
-func decode_MultiMount(v):
+static func decode_MultiMount(v):
 	if not v is Array or not len(v)>0 or not v[0]=='MultiMount':
 		push_error('Invalid input to decode_MultiMount')
 		return null
@@ -197,7 +201,7 @@ func decode_MultiMount(v):
 		decode_children(result,v[1])
 	return result
 
-func encode_MultiMount(m: MultiMount):
+static func encode_MultiMount(m: MultiMount):
 	return [ 'MultiMount', encode_children(m) ]
 
 
@@ -349,11 +353,11 @@ class ShipDesign extends simple_tree.SimpleNode:
 			cache_remove_instance_info()
 		return body
 
-func encode_ShipDesign(d: ShipDesign):
+static func encode_ShipDesign(d: ShipDesign):
 	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d),
 		( encode_helper(d.cargo.all) if d.cargo is Commodities.Products else null ) ]
 
-func decode_ShipDesign(v):
+static func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
 		return null
 	var result = ShipDesign.new(str(v[1]), decode_helper(v[2]))
@@ -376,10 +380,10 @@ class UIState extends simple_tree.SimpleNode:
 	func _init(state):
 		ui_state = state
 
-func encode_UIState(u: UIState):
+static func encode_UIState(u: UIState):
 	return [ 'UIState', u.ui_state ]
 
-func decode_UIState(v):
+static func decode_UIState(v):
 	if not v is Array or len(v)<2 or not v[0] is String or v[0]!='UIState':
 		return null
 	return UIState.new(decode_helper(v[1]))
@@ -450,10 +454,10 @@ class Fleet extends simple_tree.SimpleNode:
 	func as_dict() -> Dictionary:
 		return spawn_info.duplicate(true)
 
-func encode_Fleet(f: Fleet):
+static func encode_Fleet(f: Fleet):
 	return [ 'Fleet', str(f.display_name), encode_helper(f.spawn_info) ]
 
-func decode_Fleet(v):
+static func decode_Fleet(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='Fleet':
 		return null
 	var display_name = decode_helper(v[1])
@@ -468,7 +472,7 @@ func decode_Fleet(v):
 
 
 
-func decode_InputEvent(data):
+static func decode_InputEvent(data):
 	if not data is Array or not len(data)==2:
 		push_warning('Unable to decode an input event from '+str(data))
 		return null
@@ -494,7 +498,7 @@ func decode_InputEvent(data):
 	assert(event==null or event is InputEvent)
 	return event
 
-func encode_InputEvent(event: InputEvent):
+static func encode_InputEvent(event: InputEvent):
 	if event is InputEventKey:
 		return [ 'InputEventKey', { 
 			'pressed': event.pressed,
@@ -542,7 +546,6 @@ func load_places_from_json(filename: String) -> bool:
 	if Player and Player.system:
 		system_name = Player.system.get_name()
 	var success = decode_places(encoded,filename)
-	postload()
 	emit_signal('reset_system')
 	if system_name:
 		var system = game_state.systems.get_node_or_null(system_name)
@@ -622,7 +625,7 @@ func decode_places(json_string,context: String) -> bool:
 			printerr('warning: system with id ',system_id,' has invalid objects for destination systems in its links')
 	return true
 
-func decode_helper(what,key=null):
+static func decode_helper(what,key=null):
 	if what is Dictionary:
 		var result = {}
 		for encoded_key in what:
@@ -649,6 +652,10 @@ func decode_helper(what,key=null):
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0].begins_with('InputEvent'):
 			return decode_InputEvent(what)
+		elif what[0] == 'Faction' and len(what)>1:
+			return Factions.decode_Faction(what)
+		elif what[0] == 'FactionList' and len(what)>1:
+			return Factions.decode_FactionList(what)
 		elif what[0] == 'NodePath' and len(what)>1:
 			return NodePath(what[1])
 		elif what[0] == 'Fleet':
@@ -693,7 +700,7 @@ func decode_helper(what,key=null):
 func encode_places() -> String:
 	return JSON.print(encode_helper(children_),'  ')
 
-func encode_helper(what):
+static func encode_helper(what):
 	if what is Dictionary:
 		var result = {}
 		for key in what:
@@ -754,7 +761,7 @@ func encode_helper(what):
 
 
 
-func make_key(id1: String, id2: String) -> Array:
+static func make_key(id1: String, id2: String) -> Array:
 	return [id1,id2] if id1<id2 else [id2,id1]
 
 func get_link_by_key(key): # -> Dictionary or null
@@ -835,7 +842,7 @@ func link_sin_cos(arg): # -> Dictionary or null
 	}
 
 # warning-ignore:shadowed_variable
-func string_for(selection) -> String:
+static func string_for(selection) -> String:
 	if selection is Dictionary:
 		return selection['link_key'][0]+'->'+selection['link_key'][1]
 	return str(selection)

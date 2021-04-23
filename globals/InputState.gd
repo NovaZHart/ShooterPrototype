@@ -71,7 +71,7 @@ func load_actions(path=input_path):
 #		return null
 #	return decoded
 
-func _init():
+func _enter_tree():
 	default_actions = encode_actions()
 	
 	var dir: Directory = Directory.new()

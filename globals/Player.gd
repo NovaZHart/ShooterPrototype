@@ -394,7 +394,7 @@ func ensure_ship_parts_node():
 	ship_parts = ship_parts_node
 	return ship_parts
 
-func _init():
+func _enter_tree():
 	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
 	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
 	assert(pearl)

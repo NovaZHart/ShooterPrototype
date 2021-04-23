@@ -1,4 +1,5 @@
 {
+  "factions": [ "FactionList", {} ],
   "systems": [
     "SimpleNode",
     {

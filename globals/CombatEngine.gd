@@ -42,7 +42,7 @@ const PLAYER_TARGET_NOTHING: int = 240
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()
 
-func _init():
+func _enter_tree():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)

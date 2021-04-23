@@ -41,6 +41,7 @@ var systems
 var ship_designs
 var fleets
 var ui
+var factions
 
 const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
 
@@ -232,6 +233,7 @@ func load_universe_from_json(file_path: String):
 	if not universe.load_places_from_json(file_path):
 		push_error('Failed to load places from json at path "'+file_path+'"')
 		return false
+	universe.get_tree().call_ready()
 	emit_signal('universe_postload')
 
 func assemble_ship(design_path: NodePath): # -> RigidBody or null
@@ -241,44 +243,59 @@ func assemble_ship(design_path: NodePath): # -> RigidBody or null
 		return null
 	return design.assemble_ship()
 
-func _init():
+func load_universe():
+	# Destroy the universe:
 	universe = Universe.new()
-	tree = simple_tree.SimpleTree.new(universe)
+	if tree:
+		tree.set_root(universe)
+	else:
+		tree = simple_tree.SimpleTree.new(universe)
+	
+	# Basic checks:
+	assert(universe)
 	assert(tree.root==universe)
 	assert(tree.root.children_.has('ship_designs'))
 	assert(tree.root.children_.has('systems'))
 	assert(tree.root.children_.has('fleets'))
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
+	
+	# Actually load the universe here:
 	universe.load_places_from_json('res://places/universe.json')
 	assert(tree.root.children_.has('ship_designs'))
 	assert(tree.root.children_.has('systems'))
+	
+	# Make aliases for parts of the universe:
 	ship_designs = universe.ship_designs
 	systems = universe.systems
 	fleets = universe.fleets
 	ui = universe.ui
+	factions = universe.factions
+	
+	# More basic checks:
 	assert(ship_designs)
 	assert(ship_designs is simple_tree.SimpleNode)
 	assert(not ship_designs.has_method('is_SpaceObjectData'))
 	assert(not ship_designs.has_method('is_SystemData'))
 
-#	assert(systems.get_child_with_name('alef_93'))
-#	assert(systems.get_node_or_null(NodePath('alef_93')))
-#	assert(systems.get_node_or_null(NodePath('alef_93/astra')))
-	assert(tree.root.children_.has('ship_designs'))
-	assert(tree.root.children_.has('systems'))
-	
-	if not OS.has_feature('standalone'):
-		max_ships = debug_max_ships
-		team_maximums = debug_team_maximums
-		print('Reducing ship count for debug build: ',max_ships,' ',team_maximums)
-	services['test'] = PlanetServices.ChildInstanceService.new(
-		'Service Text',preload('res://ui/TestService.tscn'))
-	services['alttest'] = PlanetServices.ChildInstanceService.new(
-		'Service Button',preload('res://ui/AltTestService.tscn'))
+func make_services():
 	services['info'] = PlanetServices.PlanetDescription.new(
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
 		'Shipyard',load('res://ui/ships/ShipDesignScreen.tscn'))
 	services['market'] = PlanetServices.SceneChangeService.new(
 		'Market',load('res://ui/commodities/TradingScreen.tscn'))
+	
+	# For debugging services code:
+	services['test'] = PlanetServices.ChildInstanceService.new(
+		'Service Text',preload('res://ui/TestService.tscn'))
+	services['alttest'] = PlanetServices.ChildInstanceService.new(
+		'Service Button',preload('res://ui/AltTestService.tscn'))
+
+func _enter_tree():
+	load_universe()
+	make_services()
+	if not OS.has_feature('standalone'):
+		max_ships = debug_max_ships
+		team_maximums = debug_team_maximums
+		print('Reducing ship count for debug build: ',max_ships,' ',team_maximums)

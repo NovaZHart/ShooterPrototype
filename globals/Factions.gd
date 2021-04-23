@@ -4,6 +4,7 @@ class FactionList extends simple_tree.SimpleNode:
 	var last_index = -1
 	var faction_indices: Dictionary = {}
 	var faction_mutex: Mutex = Mutex.new()
+	func is_FactionList(): pass # never called; just used for type checking
 	func get_faction_or_null(name: String): # -> Faction or null
 		var node = get_node_or_null(name)
 		return node.faction_index if node else -1
@@ -21,6 +22,94 @@ class FactionList extends simple_tree.SimpleNode:
 		faction_indices[data.name] = last_index
 		faction_mutex.unlock()
 		return data.faction_index
+	func encode():
+		return [ 'FactionList', game_state.Universe.encode_children(self) ]
+
+func decode_FactionList(v):
+	var result = FactionList.new()
+	game_state.Universe.decode_children(result,v[1])
+	# Note: child _ready() will call add_faction on the child.
+	return result
+
+class Faction extends simple_tree.SimpleNode:
+	var affinities: Dictionary = {}
+	var string_affinities: Dictionary = {}
+	var default_affinity: float = 0.0
+	var default_resources: float = 1000.0
+	var min_fleet_cost: float = 0.0
+	var faction_index: int = -1
+	var fleets: Array = []
+	func is_Faction(): pass # never called; just used for type checking
+	func _init(fleets_: Array = [], default_resources_: float = 1000.0,
+			string_affinities_: Dictionary = {}, default_affinity_: float=0.0):
+		default_resources=default_resources_
+		string_affinities=string_affinities_.duplicate(true)
+		default_affinity=float(default_affinity_)
+		fleets = fleets_.duplicate(true)
+		var delete_me: Array = []
+		var min_cost = INF
+		for ifleet in range(len(fleets)):
+			var fleet = fleets[ifleet]
+			var name = fleet['fleet']
+			var data = game_state.fleets.get_node_or_null(name)
+			if not data:
+				delete_me.append(ifleet)
+			else:
+				var cost = data.get_cost()
+				fleet['cost'] = cost
+				min_cost = min(min_cost,cost)
+				fleet['threat'] = data.get_threat()
+			min_fleet_cost = min_cost
+	func _impl_find_faction_list(node):
+		# Walk up the tree looking for a FactionList anscestor.
+		if not node:
+			return null
+		elif node.has_method('is_FactionList'):
+			return node
+		else:
+			return _impl_find_faction_list(node.get_parent())
+	func _ready():
+		var faction_list = _impl_find_faction_list(get_parent())
+		if faction_list:
+			faction_list.add_faction(self)
+			for faction_name in string_affinities:
+				var faction = faction_list.get_faction_or_null(faction_name)
+				affinities[faction.faction_index] = string_affinities[faction_name]
+	func get_or_add_faction_state(combat_state: CombatState):
+		var state = combat_state.get_faction_state(faction_index)
+		if not state:
+			var system_info = combat_state.system_info
+			var resources = system_info.faction_starting_money.get(name,default_resources)
+			var gain_rate = system_info.faction_income_per_second.get(name,resources)
+			state = combat_state.add_faction_state(faction_index,FactionState.new(
+				resources,gain_rate,min_fleet_cost))
+		return state
+	func process_space(combat_state: CombatState,delta: float):
+		var state = get_or_add_faction_state(combat_state)
+		state.resources_available += delta*state.resource_gain_rate
+		if state.resources_available < state.min_resources_to_act:
+			return
+		var weights: Dictionary = {}
+		var goals = combat_state.system_info.faction_goals.get(name,[])
+		for igoal in range(len(goals)):
+			var goal = goals[igoal]
+			if goal[0]>0 and has_method(goal[1]):
+				weights[igoal] = call(goal[1],goal[2])
+	func affinity(other_faction_index: int) -> float:
+		return float(affinities.get(other_faction_index,default_affinity))
+	func encode():
+		return [ 'Faction',
+			game_state.Universe.encode_helper(fleets), default_resources,
+			game_state.Universe.encode_helper(string_affinities),
+			default_affinity, game_state.Universe.encode_children(self) ]
+
+func decode_Faction(v):
+	var result = Faction.new(
+		game_state.Universe.decode_helper(v[1]), float(v[2]),
+		game_state.Universe.decode_helper(v[3]), float(v[4]))
+	game_state.Universe.decode_children(result)
+	return result
+
 
 class TacticalInfo extends Reference:
 	var space_object: NodePath = NodePath()
@@ -97,62 +186,3 @@ class CombatState extends Reference:
 		planet_tactical_data[absolute_path]=data
 	func add_faction(name: String,faction_index: int):
 		active_factions[faction_index]=name
-
-class Faction extends simple_tree.SimpleNode:
-	var affinities: Dictionary = {}
-	var string_affinities: Dictionary = {}
-	var default_affinity: float = 0.0
-	var default_resources: float = 1000.0
-	var min_fleet_cost: float = 0.0
-	var faction_index: int = -1
-	var fleets: Array = []
-	func _init(faction_list: FactionList,fleets_: Array = [],
-			default_resources_: float = 1000.0, string_affinities_: Dictionary = {},
-			default_affinity_: float=0.0):
-		default_resources=default_resources_
-		string_affinities=string_affinities_.duplicate(true)
-		default_affinity=float(default_affinity_)
-		faction_index = faction_list.add_faction(self)
-		fleets = fleets_.duplicate(true)
-		var delete_me: Array = []
-		var min_cost = INF
-		for ifleet in range(len(fleets)):
-			var fleet = fleets[ifleet]
-			var name = fleet['fleet']
-			var data = game_state.fleets.get_node_or_null(name)
-			if not data:
-				delete_me.append(ifleet)
-			else:
-				var cost = data.get_cost()
-				fleet['cost'] = cost
-				min_cost = min(min_cost,cost)
-				fleet['threat'] = data.get_threat()
-			min_fleet_cost = min_cost
-	func postload():
-		var faction_list = get_parent()
-		for faction_name in string_affinities:
-			var faction = faction_list.get_faction_or_null(faction_name)
-			affinities[faction.faction_index] = string_affinities[faction_name]
-		postload_children()
-	func get_or_add_faction_state(combat_state: CombatState):
-		var state = combat_state.get_faction_state(faction_index)
-		if not state:
-			var system_info = combat_state.system_info
-			var resources = system_info.faction_starting_money.get(name,default_resources)
-			var gain_rate = system_info.faction_income_per_second.get(name,resources)
-			state = combat_state.add_faction_state(faction_index,FactionState.new(
-				resources,gain_rate,min_fleet_cost))
-		return state
-	func process_space(combat_state: CombatState,delta: float):
-		var state = get_or_add_faction_state(combat_state)
-		state.resources_available += delta*state.resource_gain_rate
-		if state.resources_available < state.min_resources_to_act:
-			return
-		var weights: Dictionary = {}
-		var goals = combat_state.system_info.faction_goals.get(name,[])
-		for igoal in range(len(goals)):
-			var goal = goals[igoal]
-			if goal[0]>0 and has_method(goal[1]):
-				weights[igoal] = call(goal[1],goal[2])
-	func affinity(other_faction_index: int) -> float:
-		return float(affinities.get(other_faction_index,default_affinity))
