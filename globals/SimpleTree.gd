@@ -28,6 +28,15 @@ class SimpleNode extends Reference:
 	func has_child(id) -> bool:
 		return children_.has(id)
 
+	func postload():
+		postload_children()
+	
+	func postload_children():
+		for child_name in children_:
+			var child = children_.get(child_name,null)
+			if child:
+				child.postload()
+
 	func set_name(n: String):
 		var p = parent_.get_ref()
 		if p:

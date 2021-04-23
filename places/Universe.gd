@@ -207,11 +207,17 @@ class ShipDesign extends simple_tree.SimpleNode:
 	var hull: PackedScene
 	var cached_stats = null setget ,get_stats
 	var cargo setget set_cargo
+	var cached_cost = -1.0
 	
 	func set_cargo(new_cargo):
 		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
 		cargo = new_cargo
 		clear_cached_stats()
+	
+	func get_cost():
+		if cached_cost<0:
+			var _discard = assemble_ship()
+		return cached_cost
 	
 	func is_ShipDesign(): pass # for type detection; never called
 	
@@ -266,11 +272,21 @@ class ShipDesign extends simple_tree.SimpleNode:
 	
 	func clear_cached_stats():
 		cached_stats=null
+		cached_cost=-1.0
 	
 	func cache_remove_instance_info():
 		cached_stats.erase('rid')
 		for i in range(len(cached_stats['weapons'])):
 			cached_stats['weapons'][i]['node_path']=NodePath()
+	
+	func cost_of(scene: PackedScene) -> float:
+		var resource_path = scene.resource_path
+		var id = Commodities.ship_parts.by_name.get(resource_path,-1)
+		if id<0:
+			push_warning('No product for scene "'+str(resource_path)+'"')
+			return 0.0
+		var product = Commodities.ship_parts.all.get(id,null)
+		return float(product[Commodities.Products.VALUE_INDEX] if product else 0.0)
 	
 	func assemble_part(body: Node, child: Node) -> bool:
 		var part = get_child_with_name(child.name)
@@ -284,6 +300,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 				var content = part.get_child_with_name(part_name)
 				assert(content is MultiMounted)
 				var new_child: Node = content.scene.instance()
+				cached_cost += cost_of(content.scene)
 				if new_child!=null:
 					new_child.item_offset_x = content.x
 					new_child.item_offset_y = content.y
@@ -293,6 +310,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 					found = true
 			return found
 		elif part is Mounted:
+			cached_cost += cost_of(part.scene)
 			var new_child = part.scene.instance()
 			new_child.transform = child.transform
 			new_child.name = child.name
@@ -303,6 +321,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return false
 
 	func assemble_ship() -> Node:
+		cached_cost = cost_of(hull)
 		var body = hull.instance()
 		body.ship_display_name = display_name
 		if body == null:
@@ -317,6 +336,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not found:
 			push_warning('No parts found in ship')
 		var stats = body.pack_stats(true)
+		var _discard = body.set_cost(cached_cost)
 		if cargo:
 			body.set_cargo(cargo)
 		for child in body.get_children():
@@ -367,12 +387,28 @@ func decode_UIState(v):
 class Fleet extends simple_tree.SimpleNode:
 	var spawn_info: Dictionary = {}
 	var display_name: String = 'Unnamed'
-	
+	var cached_stats = null
 	func is_Fleet(): pass # for type detection; never called
 	
 	func _init(display_name_, spawn_info_ = {}):
 		display_name = display_name_
 		set_spawn_info(spawn_info_)
+	func get_stats():
+		if cached_stats==null:
+			var result = { 'threat':0.0, 'cost':0.0 }
+			for design_name in spawn_info:
+				var design = game_state.ship_designs.get_node_or_null(design_name)
+				var count = int(spawn_info[design_name])
+				if design and count>0:
+					var design_stats = design.get_stats()
+					result['cost'] += design.get_cost()*count
+					result['threat'] += design_stats.get('threat',0.0)*count
+			cached_stats = result
+		return cached_stats
+	func get_threat():
+		return get_stats().get('threat',0.0)
+	func get_cost():
+		return get_stats().get('cost',0.0)
 	func set_spawn_info(dict: Dictionary):
 		spawn_info.clear()
 		for key in dict:
@@ -506,6 +542,7 @@ func load_places_from_json(filename: String) -> bool:
 	if Player and Player.system:
 		system_name = Player.system.get_name()
 	var success = decode_places(encoded,filename)
+	postload()
 	emit_signal('reset_system')
 	if system_name:
 		var system = game_state.systems.get_node_or_null(system_name)

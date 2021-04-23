@@ -110,6 +110,14 @@ func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 func pack_cargo_stats(stats):
 	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
 
+func set_cost(cost: float, quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_warning('No stats in set_cost! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+	combined_stats['cost']=cost
+	return combined_stats
+
 func set_cargo(products: Commodities.Products, quiet: bool = false,
 		skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):
