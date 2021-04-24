@@ -22,6 +22,24 @@ class FactionList extends simple_tree.SimpleNode:
 		faction_indices[data.name] = last_index
 		faction_mutex.unlock()
 		return data.faction_index
+	func data_for_native():
+		var faction_count = last_index+1
+		var faction_ints = PoolIntArray()
+		var other_faction_ints = PoolIntArray()
+		var affinity_reals = PoolRealArray()
+		for child_name in get_child_names():
+			var child = get_child_with_name(child_name)
+			if child and child.has_method('is_Faction'):
+				var faction_index: int = child.faction_index
+				faction_ints.append(faction_index)
+				other_faction_ints.append(-1)
+				affinity_reals.append(child.default_affinity)
+				for other_faction_index in child.affinities:
+					faction_ints.append(faction_index)
+					other_faction_ints.append(other_faction_index)
+					affinity_reals.append(child.affinities[other_faction_index])
+		return {'faction_count':faction_count,'affinity_from':faction_ints,
+			'affinity_to':other_faction_ints,'affinity_value':affinity_reals}
 	func encode():
 		return [ 'FactionList', game_state.Universe.encode_children(self) ]
 
@@ -62,7 +80,8 @@ class Faction extends simple_tree.SimpleNode:
 			min_fleet_cost = min_cost
 	func _impl_find_faction_list(node):
 		# Walk up the tree looking for a FactionList anscestor.
-		if not node:
+		# The node must be a simple_tree.SimpleNode
+		if node is Object:
 			return null
 		elif node.has_method('is_FactionList'):
 			return node
@@ -84,18 +103,69 @@ class Faction extends simple_tree.SimpleNode:
 			state = combat_state.add_faction_state(faction_index,FactionState.new(
 				resources,gain_rate,min_fleet_cost))
 		return state
-	func process_space(combat_state: CombatState,delta: float):
-		var state = get_or_add_faction_state(combat_state)
-		state.resources_available += delta*state.resource_gain_rate
-		if state.resources_available < state.min_resources_to_act:
-			return
-		var weights: Dictionary = {}
+	func data_for_native(combat_state: CombatState):
+		var goal_target_faction = PoolIntArray()
+		var goal_target_location = PoolStringArray()
+		var goal_radius = PoolRealArray()
+		var goal_weight = PoolRealArray()
 		var goals = combat_state.system_info.faction_goals.get(name,[])
-		for igoal in range(len(goals)):
-			var goal = goals[igoal]
-			if goal[0]>0 and has_method(goal[1]):
-				weights[igoal] = call(goal[1],goal[2])
-	func affinity(other_faction_index: int) -> float:
+		for goal in goals:
+			var goal_name = goal.get('name','')
+			if goal_name:
+				goal_target_faction.append(int(goal.get('target_faction',-1)))
+				goal_target_location.append(goal.get('target_location',''))
+				goal_radius.append(float(goal.get('radius',100.0)))
+				goal_weight.append(max(0.0,float(goal.get('weight',1.0))))
+	func _impl_process_goal_weights(combat_state: CombatState,state: FactionState):
+		var weights: Array = []
+		var goals = combat_state.system_info.faction_goals.get(name,[])
+		var igoal = -1
+		for goal in goals:
+			igoal += 1
+			if igoal>=state.goal_status.size():
+				push_error('Not enough goal statuses for goal list')
+				break
+			var goal_status = state.goal_status[igoal]
+			var goal_name = goal.get('goal_action','')
+			if goal_name:
+				var args = {
+					'target_faction':int(goal.get('target_faction',-1)),
+					'target_location':goal.get('target_location',''),
+					'radius':float(goal.get('radius',100.0)),
+					'weight':max(0.0,float(goal.get('weight',1.0))),
+					'goal_status':goal_status,
+					'suggested_spawn_point':state.suggested_spawn_point[igoal],
+				}
+				weights.append([igoal,goal_name,clamp(call('weight_'+goal_name,args),0.0,1e12),args])
+		return weights
+	func _impl_choose_goal_from_weights(weights):
+		var total_weight = 0
+		for goal_data in weights:
+			total_weight += goal_data[2]
+		var decision_weight = randf()*total_weight
+		var remainder = decision_weight
+		var decision_index = 0
+		while decision_weight<len(weights)-1:
+			var goal_weight = weights[decision_index][2]
+			if decision_weight<=remainder:
+				break
+			remainder -= goal_weight
+		return decision_index
+	func process_space(combat_state: CombatState,delta: float):
+		var faction_state = get_or_add_faction_state(combat_state)
+		faction_state.resources_available += delta*faction_state.resource_gain_rate
+		if faction_state.resources_available < faction_state.min_resources_to_act:
+			return
+		if not fleets:
+			return
+		var weights = _impl_process_goal_weights(combat_state,faction_state)
+		if not weights:
+			return
+		var decision_index = _impl_choose_goal_from_weights(weights)
+		if decision_index<len(weights) and decision_index>=0:
+			var action = weights[decision_index]
+			call('spawn_'+action[1],action[3])
+	func get_affinity(other_faction_index: int) -> float:
 		return float(affinities.get(other_faction_index,default_affinity))
 	func encode():
 		return [ 'Faction',
@@ -136,7 +206,7 @@ class TacticalInfo extends Reference:
 			if faction_index == faction.faction_index:
 				result[0] += threat_levels[i]*weight
 				continue
-			var affinity = faction.affinity(faction_index)
+			var affinity = faction.get_affinity(faction_index)
 			if affinity>1e-9:
 				result[1] += threat_levels[i]*weight
 			elif affinity<-1e-9:
@@ -150,6 +220,8 @@ class FactionState extends Reference:
 	var resources_available: float
 	var resource_gain_rate: float
 	var min_resources_to_act: float
+	var goal_status: PoolRealArray = PoolRealArray()
+	var suggested_spawn_point: PoolVector3Array = PoolVector3Array()
 	func _init(resources_available_: float,resource_gain_rate_: float,
 			min_resources_to_act_: float):
 		resources_available = resources_available_
