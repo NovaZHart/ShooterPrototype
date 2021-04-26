@@ -219,5 +219,5 @@ func pack_stats() -> Dictionary:
 		'rid': get_rid(),
 		'radius': sphere.scale[0],
 		'population': (game_data.total_population() if game_data else 0.0),
-                'industry': (game_data.total_industry() if game_data else 0.0),
+		'industry': (game_data.total_industry() if game_data else 0.0),
 	}

@@ -99,6 +99,15 @@ namespace godot {
     typedef std::unordered_map<int32_t,object_id>::iterator rid2id_iter;
     typedef std::unordered_map<int32_t,object_id>::iterator rid2id_const_iter;
 
+    struct FactionGoal;
+    struct Faction;
+    struct ShipGoalData;
+    struct PlanetGoalData;
+    struct Planet;
+    struct Projectile;
+    struct Weapon;
+    struct Ship;
+
     const int SHIP_LIGHT_LAYER_MASK = 4;
 
     enum goal_action_t {
@@ -138,8 +147,7 @@ namespace godot {
       object_id planet;
     };
     
-    class Faction {
-    public:
+    struct Faction {
       const faction_index_t faction_index;
       const float threat_per_second;
       static inline int affinity_key(const faction_index_t from_faction,const faction_index_t to_faction) {
@@ -150,10 +158,12 @@ namespace godot {
       ~Faction();
 
       void update_masks(const unordered_map<int,float> &affinities);
+      void make_state_for_gdscript(Dictionary &factions);
 
       inline const vector<FactionGoal> &get_goals() const { return goals; }
       inline faction_mask_t get_enemy_mask() const { return enemy_mask; }
       inline faction_mask_t get_friend_mask() const { return friend_mask; }
+      inline recoup_resources(float resources) { recouped_resources+=max(resources,0.0f); }
     private:
       vector<FactionGoal> goals;
       faction_mask_t enemy_mask, friend_mask;
@@ -173,10 +183,6 @@ namespace godot {
       ProjectileMesh(RID, object_id);
       ~ProjectileMesh();
     };
-
-    struct Projectile;
-    struct Weapon;
-    struct Ship;
     
     struct Projectile {
       const object_id id;
@@ -273,6 +279,9 @@ namespace godot {
       entry_t entry_method;
       real_t shields, armor, structure, fuel;
 
+      goal_action_t goal_action;
+      object_id goal_target;
+
       // Physics server state; do not change:
       Vector3 rotation, position, linear_velocity, angular_velocity, heading;
       real_t drag, inverse_mass;
@@ -302,6 +311,10 @@ namespace godot {
       
       bool updated_mass_stats, immobile, inactive;
 
+      inline float recouped_resources() const {
+        return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
+          * clamp(float(tick)/(18000.0f),0.0f,1.0f);
+      }
       bool update_from_physics_server(PhysicsServer *server);
       void update_stats(PhysicsServer *state, bool update_server);
       void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);

@@ -68,6 +68,7 @@ namespace godot {
     CE::object_id last_id;
     real_t delta;
     CE::object_id player_ship_id;
+    int p_tick;
 
     std::unordered_map<faction_index_t,CE::Faction> factions;
     std::unordered_map<int,float> affinities;
@@ -77,9 +78,13 @@ namespace godot {
     bool need_to_update_affinity_masks;
     faction_index_t player_faction_index;
     faction_mask_t player_faction_mask;
+    object_id last_planet_updated;
+    int last_faction_updated;
+    Dictionary faction_info;
     
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
+    std::vector<CE::PlanetGoalData> planet_goal_data;
     
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Members for the visual thread:
@@ -147,8 +152,15 @@ namespace godot {
     }
     void change_relations(faction_index_t from_faction,faction_index_t to_faction,
                           float how_much,bool immediate_update);
+    void make_faction_state_for_gdscript(Dictionary &result);
     void update_affinity_masks();
-    
+    PlanetGoalData update_planet_faction_goal(const Faction &faction, const Planet &planet,
+                                              const FactionGoal &goal) const;
+    void update_one_faction_goal(const Faction &faction, FactionGoal &goal) const;
+    void update_all_faction_goals();
+    void faction_ai_step();
+
+
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Ship methods 
     // // // // // // // // // // // // // // // // // // // // // // // // 

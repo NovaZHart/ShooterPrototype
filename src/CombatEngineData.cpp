@@ -14,18 +14,16 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
-static goal_action_t FactionGoal::action_enum_for_string(String string_goal) {
+goal_action_t FactionGoal::action_enum_for_string(String string_goal) {
   if(string_goal=="raid")
     return goal_raid;
-  else if(string_goal=="land")
-    return goal_land;
-  else if(string_goal=="depart")
-    return goal_depart;
+  else if(string_goal=="planet")
+    return goal_planet;
   else
     return goal_patrol;
 }
 
-static object_t FactionGoal::id_for_rid(const RID &rid,const rid2id_t &rid2id) {
+object_t FactionGoal::id_for_rid(const RID &rid,const rid2id_t &rid2id) {
   rid2id_const_iter rit = rid2id.find(rid);
   return rit==rid2id.end() ? -1 : rid->second;
 }
@@ -49,6 +47,25 @@ FactionGoal::FactionGoal(Dictionary dict,const unordered_map<object_id,Planet> &
 }
 
 FactionGoal::~FactionGoal() {}
+
+void Faction::make_state_for_gdscript(Dictionary &factions) {
+  Array goal_status, spawn_desire, suggested_spawn_point;
+  for(auto &goal : goals) {
+    goal_status.append(static_cast<real_t>(goal.goal_success));
+    spawn_desire.append(static_cast<real_t>(goal.spawn_desire));
+    suggested_spawn_point.append(goal.suggested_spawn_point);
+  }
+  Dictionary result;
+  result["goal_status"] = goal_status;
+  result["spawn_desire"] = spawn_desire;
+  result["suggested_spawn_point"] = suggested_spawn_point;
+
+  // Reset the recouped resources accumulator when reporting back.
+  result["recouped_resources"] = recouped_resources;
+  recouped_resources = 0;
+
+  factions[static_cast<int>(faction_index)] = result;
+}
 
 void Faction::update_masks(const unordered_map<int,float> &affinities) {
   faction_mask_t new_enemy = 0;
@@ -259,6 +276,7 @@ Dictionary Planet::update_status(const unordered_map<object_id,Ship> &ships,
 }
 
 void Planet::update_goal_data(const Planet &other) {
+  FAST_PROFILING_FUNCTION;
   goal_data = other.goal_data;
   for(auto &goal_datum : goal_data)
     goal_datum.distsq = goal_datum.position.distance_squared_to(position)
@@ -268,6 +286,7 @@ void Planet::update_goal_data(const Planet &other) {
 }
 
 void Planet::update_goal_data(const std::unordered_map<object_id,Ship> &ships) {
+  FAST_PROFILING_FUNCTION;
   goal_data.reserve(ships.size());
   goal_data.clear();
   for(ships_citer p_ship=begin;p_ship!=end;p_ship++) {

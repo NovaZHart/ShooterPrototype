@@ -47,7 +47,8 @@ CombatEngine::CombatEngine():
   last_id(0),
   delta(1.0/60),
   player_ship_id(-1),
-
+  p_tick(0),
+  
   factions(),
   affinities(),
   enemy_masks(),
@@ -56,7 +57,10 @@ CombatEngine::CombatEngine():
   need_to_update_affinity_masks(false),
   player_faction_index(0),
   player_faction_mask(static_cast<faction_mask_t>(1)<<player_faction_index),
-  
+  last_planet_updated(-1),
+  last_faction_updated(MAX_ACTIVE_FACTIONS),
+  faction_info(),
+
   update_request_id(),
   
   loader(ResourceLoader::get_singleton()),
@@ -146,6 +150,14 @@ void CombatEngine::clear_ai() {
   weapon_rotations.clear();
   factions.clear();
   affinities.clear();
+  for(int i=0;i<MAX_ACTIVE_FACTIONS;i++)
+    enemy_masks[i] = friend_masks[i] = self_masks[i] = 0;
+  need_to_update_affinity_masks=false;
+  player_faction_index=0;
+  player_faction_mask=1;
+  last_planet_updated=-1;
+  last_faction_updated=MAX_ACTIVE_FACTIONS;
+  faction_info.clear();
 
   // Wipe out all visual content.
   VisibleContent *content=new_content;
@@ -189,6 +201,8 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
                             Array update_request_rid) {
   FAST_PROFILING_FUNCTION;
 
+  p_tick++;
+  
   delta = new_delta;
   space = new_space;
 
@@ -219,9 +233,14 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   // Pass the visible objects over to the visual thread for display.
   add_content();
 
+  // Update the faction-level AI:
+  faction_ai_step();
+  
   Array result;
   update_ship_list(update_request_rid,result);
   result.push_back(weapon_rotations);
+  make_faction_state_for_gdscript(faction_info);
+  result.push_back(faction_info);
   return result;
 }
 
@@ -379,6 +398,7 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
 
 void CombatEngine::change_relations(faction_index_t from_faction,faction_index_t to_faction,
                                     float how_much,bool immediate_update) {
+  // WARNING: THIS FUNCTION IS UNTESTED!
   FAST_PROFILING_FUNCTION;
   if(how_much==0.0f)
     return;
@@ -400,7 +420,12 @@ void CombatEngine::change_relations(faction_index_t from_faction,faction_index_t
     update_affinity_masks();
 }
 
-void update_affinity_masks() {
+void CombatEngine::make_faction_state_for_gdscript(Dictionary &result) {
+  for(faction_iter p_faction=factions.begin();p_faction!=factions.end();p_faction++)
+    p_faction->second.make_state_for_gdscript(result);
+}
+
+void CombatEngine::update_affinity_masks() {
   FAST_PROFILING_FUNCTION;
   for(auto &it : factions)
     it.second.update_masks(affinities);
@@ -416,25 +441,9 @@ void update_affinity_masks() {
   need_to_update_affinity_masks = false;
 }
 
-void CombatEngine::make_planet_goal_data(const Planet &planet, vector<ShipGoalData> &goal_data) const {
+PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, const Planet &planet, const FactionGoal &goal) const {
   FAST_PROFILING_FUNCTION;
-  goal_data.resize(ships.size());
-  faction_mask_t one = 1;
-  int i=0;
-  for(ships_citer p_ship=ships.begin();p_ship!=ships.end();p_ship++,i++) {
-    const Ship &ship = p_ship->second;
-    goal_data[i] = {
-      ship.threat,
-      ship.position.distance_squared_to(planet.position),
-      one<<ship.faction
-    };
-  }
-}
-
-void CombatEngine::update_planet_faction_goal(const Faction &faction, const Planet &planet, const FactionGoal &goal,
-                                              PlanetGoalData &result) const {
-  FAST_PROFILING_FUNCTION;
-  result.spawn_desire = (sqrt(max(100.0f,planet.population))+sqrt(max(100.0f,planet.industry)));
+  PlanetGoalData result = { 0.0f,sqrt(max(100.0f,planet.population))+sqrt(max(0.0f,planet.industry)),-1 };
   
   if(goal.action == goal_planet) {
     result.goal_success = 1.0f;
@@ -465,10 +474,23 @@ void CombatEngine::update_planet_faction_goal(const Faction &faction, const Plan
     result.spawn_desire *= threat_weight;
   else
     result.spawn_desire *= -threat_weight;
+
+  return result;
 }
 
 void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &goal) const {
   FAST_PROFILING_FUNCTION;
+  
+  planet_goal_data.reserve(planets.size());
+  planet_goal_data.clear();
+  
+  for(planet_citer p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
+    object_id id = p_planet->first;
+    if(goal.target_object_id>=0 and goal.target_object_id!=id)
+      continue;
+    planet_goal_data.push_back(update_planet_faction_goal(faction,p_planet->second,goal));
+  }
+  
   PlanetGoalData best = {0.0f,0.0f,-1};
   float absmax_desire = {0.0f,0.0f,-1};
   float min_desire = {0.0f,0.0f,-1};
@@ -514,19 +536,53 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
   }
 }
 
-void CombatEngine::update_all_faction_goals() const {
+void CombatEngine::update_all_faction_goals() {
   FAST_PROFILING_FUNCTION;
   planet_citer p_first=planets.end();
   for(planet_citer p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
     if(p_first==planets.end()) {
       p_first = p_planet;
-      p_first->update_goal_data(ships);
+      p_first->second.update_goal_data(ships);
     } else
-      p_planet->update_goal_data(p_first->second);
+      p_planet->second.update_goal_data(p_first->second);
   }
   for(auto &faction : factions)
     for(auto &goal : faction.goals)
       update_one_faction_goal(faction,goal);
+  last_planet_updated = -1;
+  last_faction_updated = MAX_ACTIVE_FACTIONS;
+}
+
+void CombatEngine::faction_ai_step() {
+  if(p_tick==1)
+    update_all_faction_goals();
+  if(p_tick % 2) {
+    // Update a planet on odd ticks.
+    planet_iter p_planet = planets.find(last_planet_updated);
+    if(p_planet!=planets.end())
+      p_planet++;
+    if(p_planet==planets.end())
+      p_planet=planets.begin();
+    if(p_planet!=planets.end()) {
+      p_planet->second.update_goal_data(ships);
+      last_planet_updated = p_planet.first;
+    } else
+      last_planet_updated = -1;
+  } else {
+    // Update a faction on even ticks
+    factions_iter p_faction = factions.find(last_faction_updated);
+    if(p_faction!=factions.end())
+      p_faction++;
+    if(p_faction==factions.end())
+      p_faction=factions.begin();
+    if(p_faction!=factions.end()) {
+      Faction &faction = p_faction->second;
+      for(auto &goal : faction.goals)
+        update_one_faction_goal(faction,goal);
+      last_faction_updated = p_faction->first;
+    } else
+      last_faction_updated = MAX_ACTIVE_FACTIONS;
+  }
 }
 
 /**********************************************************************/
@@ -563,6 +619,11 @@ void CombatEngine::step_all_ships() {
       negate_drag_force(ship);
       if(ship.updated_mass_stats)
         ship.update_stats(physics_server,true);
+      if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
+        faction_iter p_faction = factions.find(ship.faction);
+        if(p_faction!=factions.end())
+          factions.recoup_resources(ship.recouped_resources());
+      }
     }
   }
 }
@@ -1031,11 +1092,12 @@ void CombatEngine::landing_ai(Ship &ship) {
     // Nowhere to land!
     patrol_ai(ship);
   else if(move_to_intercept(ship, target->second.radius, 3.0, target->second.position,
-                            Vector3(0,0,0), true))
+                            Vector3(0,0,0), true)) {
     // Reached planet.
     // FIXME: implement factions, etc.:
     // if(target->second.can_land(ship))
     ship.fate = FATED_TO_LAND;
+  }
 }
 
 void CombatEngine::coward_ai(Ship &ship) {
@@ -1186,7 +1248,7 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       // if(opportunistic) {
       //   //FIXME: INSERT CODE HERE
       // } else {
-        // Aim turret forward
+      // Aim turret forward
       // Vector3 to_center = ship.heading.rotated();
       real_t to_center = weapon.harmony_angle-weapon.rotation.y;
       if(to_center>PI)
@@ -1895,10 +1957,10 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
     dp_norm=dp.normalized();
   }
   //    want_angular_velocity = (angle_to_intercept(projectile,target.position,target.linear_velocity).y-projectile.rotation.y)/delta;
-//  }
+  //  }
 
-    real_t cross = cross2(heading,dp_norm);
-    want_angular_velocity = asin_clamp(cross);
+  real_t cross = cross2(heading,dp_norm);
+  want_angular_velocity = asin_clamp(cross);
   real_t actual_angular_velocity = clamp(want_angular_velocity,-max_angular_velocity,max_angular_velocity);
 
   projectile.angular_velocity = Vector3(0,actual_angular_velocity,0);
