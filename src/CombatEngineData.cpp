@@ -14,6 +14,72 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
+static goal_action_t FactionGoal::action_enum_for_string(String string_goal) {
+  if(string_goal=="raid")
+    return goal_raid;
+  else if(string_goal=="land")
+    return goal_land;
+  else if(string_goal=="depart")
+    return goal_depart;
+  else
+    return goal_patrol;
+}
+
+static object_t FactionGoal::id_for_rid(const RID &rid,const rid2id_t &rid2id) {
+  rid2id_const_iter rit = rid2id.find(rid);
+  return rit==rid2id.end() ? -1 : rid->second;
+}
+
+FactionGoal::FactionGoal(Dictionary dict,const unordered_map<object_id,Planet> &planets,
+                         const rid2id_t &rid2id):
+  faction_goal_t(enum_for_string(get<String>(dict,"action"))),
+  target_faction(get<faction_t>(dict,"target_faction")),
+  target_rid(get<faction_t>(dict,"target_rid")),
+  target_object_id(id_for_rid(target_rid,rid2id)),
+  weight(get<float>(dict,"weight")),
+  radius(get<float>(dict,"radius")),
+  goal_status(0.0f),
+  suggested_spawn_point(0.0f,0.0f,0.0f)
+{
+  if(target_object_id>=0) {
+    planets_const_iter pit = planets.find(target_object_id);
+    if(pit!=planets.end())
+      suggested_spawn_point = pit->second.position;
+  }
+}
+
+FactionGoal::~FactionGoal() {}
+
+void Faction::update_masks(const unordered_map<int,float> &affinities) {
+  faction_mask_t new_enemy = 0;
+  faction_mask_t new_friend = 0;
+  const faction_mask_t one(1);
+  for(faction_index_t i=0;i<max_factions;i++)
+    if(i!=faction_index) {
+      int key = affinity_key(faction_index,i);
+      unordered_map<int,float>::const_iterator &it = affinities.find(key);
+      float affinity = (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
+      if(affinity>AFFINITY_EPSILON)
+        new_friend |= one<<i;
+      else if(affinity<-AFFINITY_EPSILON)
+        new_enemy |= one<<i;
+    }
+  enemy_mask = new_enemy;
+  friend_mask = new_friend;
+}
+
+Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
+                 const rid2id_t &rid2id):
+  faction_index(get<faction_index_t>(dict,"faction")),
+  self_mask(1<<faction_index),
+  goals(), enemy_mask(0), friend_mask(0)
+{
+  Array goal_array = get<Array>(dict,"goals");
+  goals.reserve(goal_array.size());
+  for(int i=0,s=goal_array.size();i<s;i++)
+    goals.emplace_back(goal_array[i],planets,rid2id);
+}
+
 ProjectileMesh::ProjectileMesh(RID mesh_rid,object_id id):
   id(id),
   mesh_id(mesh_id),

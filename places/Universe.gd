@@ -451,6 +451,11 @@ class Fleet extends simple_tree.SimpleNode:
 		return spawn_info.keys()
 	func spawn_count_for(design_name: String) -> int:
 		return spawn_info.get(design_name,0)
+	func spawn_count() -> int:
+		var result = 0
+		for count in spawn_info.values():
+			result += count
+		return result
 	func as_dict() -> Dictionary:
 		return spawn_info.duplicate(true)
 

@@ -69,6 +69,13 @@ namespace godot {
     real_t delta;
     CE::object_id player_ship_id;
 
+    std::unordered_map<faction_index_t,CE::Faction> factions;
+    std::unordered_map<int,float> affinities;
+    faction_mask_t enemy_masks[MAX_ACTIVE_FACTIONS];
+    faction_mask_t friend_masks[MAX_ACTIVE_FACTIONS];
+    faction_mask_t self_masks[MAX_ACTIVE_FACTIONS];
+    bool need_to_update_affinity_masks;
+
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
     
@@ -111,6 +118,7 @@ namespace godot {
     void clear_ai();
     void clear_visuals();
     void set_visual_effects(Ref<VisualEffects> visual_effects);
+    void init_factions(Dictionary data);
     Array ai_step(real_t new_delta,Array new_ships,Array new_planets,
                   Array new_player_orders,RID player_ship_rid,
                   PhysicsDirectSpaceState *new_space,
@@ -125,6 +133,19 @@ namespace godot {
 
 
     // FIXME: missing sorted_enemy_list()
+
+    // // // // // // // // // // // // // // // // // // // // // // // //
+    // Faction methods
+    // // // // // // // // // // // // // // // // // // // // // // // //
+    inline bool is_hostile_towards(faction_index_t from_faction,faction_index_t to_faction) const {
+      return enemy_masks(from_faction)&static_cast<faction_index_t>(1)<<to_faction;
+    }
+    inline bool is_friendly_towards(faction_index_t from_faction,faction_index_t to_faction) const {
+      return friend_masks(from_faction)&static_cast<faction_index_t>(1)<<to_faction;
+    }
+    void change_relations(faction_index_t from_faction,faction_index_t to_faction,
+                          float how_much,bool immediate_update);
+    void update_affinity_masks();
     
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Ship methods 

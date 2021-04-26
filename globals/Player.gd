@@ -16,6 +16,7 @@ var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
 var tree: simple_tree.SimpleTree = simple_tree.SimpleTree.new(root)
 var stored_system_path
 var stored_player_path
+var player_faction = 'initial_player_faction'
 signal destination_system_changed
 
 func is_entering_from_rift() -> bool:

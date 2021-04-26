@@ -36,6 +36,19 @@ var system_fuel_recharge: float
 var center_fuel_recharge: float
 var locality_adjustments: Dictionary = {}
 
+var faction_goals: Array
+var active_factions: Dictionary
+
+const default_active_factions: Dictionary = {
+	'locals': { 'starting_money':1e6, 'income_per_second':1667, 'fleet_type_weights':{
+		'heavy_military':0.5, 'light_military':2.0 }
+	},
+	'raiders': { 'starting_money':1e6, 'income_per_second':1667, 'fleet_type_weights':{
+		'large_raid':1.0, 'small_raid':1.0 }
+	},
+}
+
+
 var rng
 
 func set_position(v: Vector3):
@@ -67,6 +80,8 @@ func encode() -> Dictionary:
 		'system_fuel_recharge':system_fuel_recharge,
 		'center_fuel_recharge':center_fuel_recharge,
 		'locality_adjustments':locality_adjustments.duplicate(true),
+		'faction_goals':faction_goals.duplicate(true),
+		'active_factions':active_factions.duplicate(true),
 	}
 	if fleets!=default_fleets:
 		result['fleets']=fleets.duplicate(true)
@@ -89,6 +104,8 @@ func decode(content: Dictionary):
 	system_fuel_recharge = getdict(content,'system_fuel_recharge',0.5)
 	center_fuel_recharge = getdict(content,'center_fuel_recharge',1.5)
 	locality_adjustments = getdict(content,'locality_adjustments',{})
+	faction_goals = getdict(content,'faction_goals',default_faction_goals)
+	active_factions = getdict(content,'active_factions',default_active_factions)
 	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):

@@ -106,6 +106,7 @@ void CombatEngine::_register_methods() {
   register_method("update_overhead_view", &CombatEngine::update_overhead_view);
   register_method("draw_minimap_contents", &CombatEngine::draw_minimap_contents);
   register_method("ai_step", &CombatEngine::ai_step);
+  register_method("init_factions", &CombatEngine::init_factions);
 }
 
 void CombatEngine::_init() {}
@@ -134,6 +135,8 @@ void CombatEngine::clear_ai() {
   player_orders.clear();
   dead_ships.clear();
   weapon_rotations.clear();
+  factions.clear();
+  affinities.clear();
 
   // Wipe out all visual content.
   VisibleContent *content=new_content;
@@ -150,6 +153,23 @@ void CombatEngine::set_visual_effects(Ref<VisualEffects> visual_effects) {
   this->visual_effects = visual_effects;
 }
 
+void CombatEngine::init_factions(Dictionary data) {
+  Dictionary affinity_data = get<Dictionary>(data,"affinities");
+  Array affinity_keys = affinity_data.keys();
+  for(int i=0,s=affinity_keys.size();i<s;i++) {
+    Variant key = affinity_keys[i];
+    affinities[static_cast<int>(key)] = affinity_data[key];
+  }
+
+  Array active_factions = get<Array>(data,"active_factions");
+  for(int i=0,s=active_factions.size();i<s;i++) {
+    Dictionary faction_data = active_factions[i];
+    faction_index_t faction_index = faction_data.get<faction_index_t>(data,"faction");
+    factions.emplace(faction_index,Faction(faction_data,planets,rid2id,affinities));
+  }
+
+  update_affinity_masks();
+}
 
 Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
                             Array new_player_orders,RID player_ship_rid,
@@ -175,6 +195,10 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
 
   // Run ship AI one time step.
   step_all_ships();
+
+  // If anyone shot a friend, the affinities may change.
+  if(need_to_update_affinity_masks)
+    update_affinity_masks();
   
   // Physics space may be deleted outside of the combat engine due to
   // a scene change, so do not retain the pointer.
@@ -335,6 +359,140 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
 }
 
 
+/**********************************************************************/
+
+/* Factions */
+
+/**********************************************************************/
+
+void CombatEngine::change_relations(faction_index_t from_faction,faction_index_t to_faction,
+                                    float how_much,bool immediate_update) {
+  if(how_much==0.0f)
+    return;
+
+  int key = Faction::affinity_key(from_faction,to_faction);
+  unordered_map<int,float>::iterator it = affinities.find(key);
+
+  if(it==affinities.end()) {
+    need_to_update_affinity_masks=true;
+    affinities.emplace(key,how_much);
+  } else {
+    float old_affinity = it->second;
+    float new_affinity = old_affinity+how_much;
+    affinities[key] = new_affinity;
+    if(not need_to_update_affinity_masks)
+      need_to_update_affinity_masks = (old_affinity<0.0f) != (new_affinity<0.0f);
+  }
+  if(need_to_update_affinity_masks and immediate_update)
+    update_affinity_masks();
+}
+
+void update_affinity_masks() {
+  for(auto &it : factions)
+    it.second.update_masks(affinities);
+  faction_mask_t one = static_cast<faction_mask_t>(1);
+  for(int i=0;i<MAX_ACTIVE_FACTIONS;i++) {
+    self_mask[i] = one<<i;
+    factions_iter it = factions.find(i);
+    if(it==factions.end()) {
+      enemy_masks[i] = it->get_enemy_mask();
+      friend_masks[i] = it->get_friend_mask();
+    }
+  }
+  need_to_update_affinity_masks = false;
+}
+
+void make_planet_goal_data(Planet &planet, vector<ShipGoalData> &goal_data) {
+  goal_data.resize(ships.size());
+  faction_mask_t one = 1;
+  int i=0;
+  for(ships_iter p_ship=ships.begin();p_ship!=ships.end();p_ship++,i++) {
+    Ship &ship = p_ship->second;
+    goal_data[i] = {
+      Ship.threat,
+      Ship.position.distance_squared_to(planet.position),
+      one<<Ship.faction
+    };
+  }
+}
+
+void update_faction_goal(Faction &faction, Planet &planet, FactionGoal &goal, vector<ShipGoalData> &goal_data) {
+  goal_data.sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
+      return a.distsq<b.distsq;
+    });
+  
+  float my_threat=0.0f, enemy_threat=0.0f;
+  for(auto &goal_datum : goal_data) {
+    
+  }
+}
+
+void update_faction_goals() {
+  vector<ShipGoalData> goal_data;
+  faction_mask_t one = 1;
+  goal_data.resize(ships.size());
+  int i=0;
+  for(ships_iter p_ship=ships.begin();p_ship!=ships.end();p_ship++,i++) {
+    Ship &ship = p_ship->second;
+    goal_data[i] = { Ship.position, Ship.threat, one<<Ship.faction };
+  }
+
+/*
+  // For each planet, sort the ships by distance.
+
+  // For each faction:
+  //   For a goal with a target location:
+  //      Estimate the spawn desire and threat level.
+  //      Set the spawn point to the target location;
+  //   For a goal with no target location:
+  //      For each planet:
+  //         Estimate the spawn desire and threat level.
+  //      Choose the planet with the highest spawn desire.
+  //      Set the goal success and spawn desire to that planet.
+
+*/
+
+  for(auto &it : factions) {
+    Faction &faction = factions.second;
+    faction_mask_t self_mask = one << faction.faction_index;
+    for(auto &goal : faction.get_goals()) {
+      planets_iter p_planet = planets.find(goal.target_object_id);
+      float radsq;
+
+      // Who do we target? If no target is specified, we target all enemies.
+      faction_mask_t target_mask = enemy_masks[faction.faction_index];
+      if(target_faction<MAX_ACTIVE_FACTIONS)
+        target_mask = one<<target_faction;
+
+      // Where do we target? With no target, don't target a location,
+      // and suggest a spawn point at the system center.
+      bool have_position = p_planet!=planets.end();
+      Vector3 goal_position(0.0f,0.0f,0.0f);
+      if(have_position) {
+        goal_position = p_planet->second.position;
+        radsq = goal.radius*goal.radius;
+      }
+      goal.suggested_spawn_point = goal_position;
+
+      // For each ship, calculate the distance squared to the position
+      // under consideration and whether the ship is on our side or a
+      // target.
+      goal.threat_assessment = 0.0f;
+      goal.spawn_desire = 0.0f;
+      for(auto &goal_datum : goal_data) {
+        if(have_position and goal_datum.position.distance_squared_to(goal_position) > radsq)
+          continue;
+        float threat = 0;
+        if(goal_datum.faction_mask==self_mask)
+          threat = goal_datum.threat;
+        else if(goal_datum.faction_mask&target_mask)
+          threat = -goal_datum.threat;
+        if(goal.action==goal_patrol) {
+          
+      }
+    }
+  }
+}
 
 /**********************************************************************/
 
@@ -449,6 +607,8 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     Ship new_ship = Ship(ship,id,last_id,mesh2path,path2mesh);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
+    int hostility = (is_hostile_towards(PLAYER_FACTION,pp_ship.first->faction) or
+                     is_hostile_towards(pp_ship.first->faction,PLAYER_FACTION));
     physics_server->body_set_collision_layer(pp_ship.first->second.rid,pp_ship.first->second.collision_layer);
   }
 
@@ -667,9 +827,9 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
       } else if(target_selection==PLAYER_TARGET_ENEMY or target_selection==PLAYER_TARGET_FRIEND) {
         int mask=0x7fffffff;
         if(target_selection==PLAYER_TARGET_ENEMY)
-          mask=ship.enemy_mask;
+          mask=enemy_masks[ship.faction];
         else if(target_selection==PLAYER_TARGET_FRIEND)
-          mask=ship.collision_layer;
+          mask=friend_masks[ship.faction];
         if(target_nearest)
           target=select_target<false>(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships);
         else

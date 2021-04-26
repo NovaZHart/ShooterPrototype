@@ -12,6 +12,15 @@
 #define PROJECTILE_HEIGHT 27
 #define PI 3.141592653589793
 
+#define THREAT_EPSILON = 1.0f
+#define AFFINITY_EPSILON = 1e-9f
+#define FACTION_BIT_SHIFT 24
+#define FACTION_TO_MASK 16777215
+#define ALL_FACTIONS FACTION_TO_MASK
+#define MAX_ACTIVE_FACTIONS 64
+#define PLAYER_FACTION 0
+#define DEFAULT_AFFINITY 0.0f
+
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
@@ -91,6 +100,59 @@ namespace godot {
     typedef std::unordered_map<int32_t,object_id>::iterator rid2id_const_iter;
 
     const int SHIP_LIGHT_LAYER_MASK = 4;
+
+    enum goal_action_t {
+      goal_patrol = 0,  // equal or surpass enemy threat; kill enemies
+      goal_raid = 1,    // control airspace or retreat; kill high-value, low-threat, ships
+      goal_planet = 2   // travel from planet to jump, or from jump to planet
+    };
+    typedef int faction_index_t;
+    typedef uint64_t faction_mask_t;
+
+    struct FactionGoal {
+      const goal_action_t action;
+      const faction_index_t target_faction;
+      const RID target_rid; // Of planet, or RID() for system
+      const object_id target_object_id;
+      const float weight;
+      const float radius;
+      float goal_success, spawn_desire;
+      Vector3 suggested_spawn_point;
+      static goal_action_t action_enum_for_string(String string_goal);
+      static object_t id_for_rid(const RID &rid,const rid2id_t &rid2id);
+      FactionGoal(Dictionary dict,const std::unordered_map<object_id,Planet> &planets,
+                  const rid2id_t &rid2id):
+      ~FactionGoal();
+    };
+
+    struct ShipGoalData {
+      float threat; // threat level of ship, regardless of faction
+      float distsq; // square of distance to target location
+      faction_index_t faction_mask; // 1<<faction_index
+    };
+
+    class Faction {
+    public:
+      const faction_index_t faction_index;
+      static inline int affinity_key(const faction_index_t from_faction,const faction_index_t to_faction) {
+        return to_faction | (from_faction<<FACTION_BIT_SHIFT);
+      }
+
+      Faction(Dictionary dict);
+      ~Faction();
+
+      void update_masks(const unordered_map<int,float> &affinities);
+
+      inline const vector<FactionGoal> &get_goals() const { return goals; }
+      inline faction_mask_t get_enemy_mask() const { return enemy_mask; }
+      inline faction_mask_t get_friend_mask() const { return friend_mask; }
+    private:
+      vector<FactionGoal> goals;
+      faction_mask_t enemy_mask, friend_mask;
+    };
+    typedef std::unordered_map<faction_index_t,CE::Faction> factions_t;
+    typedef std::unordered_map<faction_index_t,CE::Faction>::iterator factions_iter;
+    typedef std::unordered_map<faction_index_t,CE::Faction>::const_iterator factions_citer;
   
     struct ProjectileMesh {
       object_id id;
@@ -115,7 +177,8 @@ namespace godot {
       const bool guided, guidance_uses_velocity;
       const real_t damage, impulse, blast_radius, detonation_range, turn_rate;
       const real_t mass, drag, thrust, lifetime, initial_velocity, max_speed;
-      const int collision_mask;
+      //const int collision_mask;
+      const faction_index_t faction;
       Vector3 position, linear_velocity, rotation, angular_velocity;
       real_t age, scale;
       bool alive, direct_fire;
@@ -131,7 +194,6 @@ namespace godot {
       const real_t projectile_turn_rate;
       const real_t firing_delay, turn_rate, blast_radius, detonation_range, threat;
       const bool direct_fire, guided, guidance_uses_velocity;
-      //      const RID instance_id;
       const object_id mesh_id;
       const real_t terminal_velocity, projectile_range;
       const NodePath node_path;
@@ -185,7 +247,8 @@ namespace godot {
       const AABB aabb;
       const real_t turn_drag, radius;
       const real_t empty_mass, cargo_mass, fuel_density, armor_density;
-      const int team, enemy_team, collision_layer, enemy_mask;
+      //const int team, enemy_team, collision_layer, enemy_mask;
+      const faction_index_t faction;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       
