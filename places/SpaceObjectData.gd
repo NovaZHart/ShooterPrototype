@@ -80,6 +80,15 @@ func has_market():
 func has_shipyard():
 	return not not shipyard
 
+func total_population() -> float:
+	var result: float = 0.0
+	for p in population.values():
+		result += p
+	return result
+
+func total_industry() -> float:
+	return industry
+
 func get_system(): # -> SystemData or null
 	var parent = get_parent()
 	if parent and parent.has_method('get_system'):

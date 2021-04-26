@@ -113,7 +113,7 @@ namespace godot {
       const goal_action_t action;
       const faction_index_t target_faction;
       const RID target_rid; // Of planet, or RID() for system
-      const object_id target_object_id;
+      const object_id target_object_id; // Of planet, or -1 for system
       const float weight;
       const float radius;
       float goal_success, spawn_desire;
@@ -126,14 +126,22 @@ namespace godot {
     };
 
     struct ShipGoalData {
-      float threat; // threat level of ship, regardless of faction
+      float threat; // Ship.threat
       float distsq; // square of distance to target location
-      faction_index_t faction_mask; // 1<<faction_index
+      faction_index_t faction_mask; // Ship.faction_mask
+      Vector3 position; // Ship.position
     };
 
+    struct PlanetGoalData {
+      float goal_status;
+      float spawn_desire;
+      object_id planet;
+    };
+    
     class Faction {
     public:
       const faction_index_t faction_index;
+      const float threat_per_second;
       static inline int affinity_key(const faction_index_t from_faction,const faction_index_t to_faction) {
         return to_faction | (from_faction<<FACTION_BIT_SHIFT);
       }
@@ -215,11 +223,18 @@ namespace godot {
       const String name;
       const RID rid;
       const real_t radius;
+      const float population, industry;
       
       Planet(Dictionary dict,object_id id);
       ~Planet();
       Dictionary update_status(const std::unordered_map<object_id,Ship> &ships,
                                const std::unordered_map<object_id,Planet> &planets) const;
+      void update_goal_data(const Planet &other);
+      void update_goal_data(const std::unordered_map<object_id,Ship> &ships);
+      inline const vector<ShipGoalData> &get_goal_data() { return goal_data; }
+
+    private:
+      vector<ShipGoalData> goal_data;
     };
     typedef std::unordered_map<object_id,Planet>::iterator planets_iter;
     typedef std::unordered_map<object_id,Planet>::const_iterator planets_const_iter;
@@ -249,6 +264,7 @@ namespace godot {
       const real_t empty_mass, cargo_mass, fuel_density, armor_density;
       //const int team, enemy_team, collision_layer, enemy_mask;
       const faction_index_t faction;
+      const faction_mask_t faction_mask;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       
@@ -389,7 +405,7 @@ namespace godot {
     struct VisibleObject {
       const real_t x, z, radius, rotation_y, vx, vz, max_speed;
       int flags;
-      VisibleObject(const Ship &);
+      VisibleObject(const Ship &,bool hostile);
       VisibleObject(const Planet &);
     };
 

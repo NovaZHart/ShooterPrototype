@@ -71,6 +71,7 @@ void Faction::update_masks(const unordered_map<int,float> &affinities) {
 Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
                  const rid2id_t &rid2id):
   faction_index(get<faction_index_t>(dict,"faction")),
+  threat_per_second(get<float>(dict,"threat_per_second")),
   self_mask(1<<faction_index),
   goals(), enemy_mask(0), friend_mask(0)
 {
@@ -109,7 +110,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   initial_velocity(weapon.initial_velocity),
   max_speed(weapon.terminal_velocity),
   position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
-  collision_mask(ship.enemy_mask),
+  faction(ship.faction),
   linear_velocity(),
   rotation(),
   angular_velocity(),
@@ -146,7 +147,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   initial_velocity(weapon.initial_velocity),
   max_speed(weapon.terminal_velocity),
   position(position),
-  collision_mask(-1),
+  faction(ship.faction),
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
@@ -234,7 +235,10 @@ Planet::Planet(Dictionary dict,object_id id):
   transform(get<Transform>(dict,"transform")),
   name(get<String>(dict,"name")),
   rid(get<RID>(dict,"rid")),
-  radius(get<real_t>(dict,"radius"))
+  radius(get<real_t>(dict,"radius")),
+  population(get<real_t>(dict,"population")),
+  industry(get<real_t>(dict,"industry")),
+  goal_data()
 {}
 
 Planet::~Planet()
@@ -252,6 +256,31 @@ Dictionary Planet::update_status(const unordered_map<object_id,Ship> &ships,
   s["radius"] = radius;
   s["alive"] = true;
   return s;
+}
+
+void Planet::update_goal_data(const Planet &other) {
+  goal_data = other.goal_data;
+  for(auto &goal_datum : goal_data)
+    goal_datum.distsq = goal_datum.position.distance_squared_to(position)
+  goal_data.sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
+      return a.distsq<b.distsq;
+    });
+}
+
+void Planet::update_goal_data(const std::unordered_map<object_id,Ship> &ships) {
+  goal_data.reserve(ships.size());
+  goal_data.clear();
+  for(ships_citer p_ship=begin;p_ship!=end;p_ship++) {
+    goal_data.push_back({
+      p_ship->second.threat,
+      p_ship->second.position.distance_squared_to(position),
+      p_ship->second.faction_mask,
+      p_ship->second.position
+    });
+  }
+  goal_data.sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
+      return a.distsq<b.distsq;
+    });
 }
 
 WeaponRanges make_ranges(const vector<Weapon> &weapons) {
@@ -298,10 +327,8 @@ Ship::Ship(const Ship &o):
   cargo_mass(o.cargo_mass),
   fuel_density(o.fuel_density),
   armor_density(o.armor_density),
-  collision_layer(o.collision_layer),
-  enemy_mask(o.enemy_mask),
-  team(o.team),
-  enemy_team(o.enemy_team),
+  faction(o.faction),
+  faction_mask(o.faction_mask),
   range(o.range),
   explosion_damage(o.explosion_damage),
   explosion_radius(o.explosion_radius),
@@ -374,10 +401,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   cargo_mass(get<real_t>(dict,"cargo_mass",0)),
   fuel_density(get<real_t>(dict,"fuel_density",0)),
   armor_density(get<real_t>(dict,"armor_density",0)),
-  team(clamp(get<int>(dict,"team"),0,1)),
-  enemy_team(1-team),
-  collision_layer(1<<team),
-  enemy_mask(1<<enemy_team),
+  faction(get<real_t>(dict,"faction_index",0)),
+  faction_mask(static_cast<faction_mask_t>(1)<<faction),
   
   explosion_damage(get<real_t>(dict,"explosion_damage",0)),
   explosion_radius(get<real_t>(dict,"explosion_radius",0)),
@@ -644,6 +669,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   }
   s["ranges"]=r;
   s["destination"]=destination;
+  s["faction_index"]=faction;
 
   ships_const_iter target_p = ships.find(target);
   if(target_p!=ships.end() and target_p->second.structure>0) {
@@ -708,7 +734,7 @@ PlayerOverrides::PlayerOverrides(Dictionary from,const rid2id_t &rid2id):
 
 PlayerOverrides::~PlayerOverrides() {}
 
-VisibleObject::VisibleObject(const Ship &ship):
+VisibleObject::VisibleObject(const Ship &ship,bool hostile):
   x(ship.position.x),
   z(ship.position.z),
   radius((ship.aabb.size.x+ship.aabb.size.z)/2.0),
@@ -716,7 +742,7 @@ VisibleObject::VisibleObject(const Ship &ship):
   vx(ship.linear_velocity.x),
   vz(ship.linear_velocity.z),
   max_speed(ship.max_speed),
-  flags(VISIBLE_OBJECT_SHIP | (ship.enemy_mask&PLAYER_COLLISION_LAYER_BITS ? VISIBLE_OBJECT_HOSTILE : 0))
+  flags(VISIBLE_OBJECT_SHIP | ( hostile ? VISIBLE_OBJECT_HOSTILE : 0 ))
 {}
 
 VisibleObject::VisibleObject(const Planet &planet):

@@ -38,11 +38,18 @@ class Faction extends simple_tree.SimpleNode:
 		var fleet_type_weights = faction_info.get('fleet_type_weights',{})
 		var state = FactionState.new(resources,gain_rate,min_fleet_cost,
 			affinities.duplicate(true),fleet_type_weights.duplicate(true))
-		_impl_calculate_min_fleet_costs(state)
+		_impl_calculate_fleet_stats(state,gain_rate)
 		_impl_store_goals(combat_state,state)
 		return state
-	func _impl_calculate_min_fleet_cost(faction_state: FactionState):
-		var min_cost = INF
+
+	# QUEST API: func update_faction_state(combat_state)
+
+	func _impl_calculate_fleet_stats(faction_state: FactionState,gain_rate: float):
+		var min_cost: float = INF
+		var threat_per_cost: float = 0.0
+		var threat_per_second: float = 0.0
+		var weight_sum: float = 0.0
+		var count: int = 0
 		for fleet in fleets:
 			var fleet = fleets[ifleet]
 			var fleet_type = fleets.get('type','')
@@ -52,15 +59,26 @@ class Faction extends simple_tree.SimpleNode:
 			var name = fleet['fleet']
 			var data = game_state.fleets.get_node_or_null(name)
 			if data:
+				var frequency = fleet['frequency']
+				if frequency<1e-5:
+					continue
 				var local_fleet = fleet.duplicate(true)
+				count += 1
 				var cost = data.get_cost()
 				min_cost = min(min_cost,cost)
+				var threat = data.get_threat()
+				var weight = frequency/3600.0 # spawns per second
+				threat_per_cost += threat/max(1.0,cost)*weight
+				threat_per_second += threat*weight
+				weight_sum += weight
 				local_fleet['cost'] = cost
-				local_fleet['threat'] = data.get_threat()
-				local_fleet['frequency'] *= type_weight
+				local_fleet['threat'] = threat
+				local_fleet['frequency'] = frequency
 				local_fleet['ships'] = data.spawn_count()
 				faction_state.fleets.append(local_fleet)
+		threat_per_cost /= max(1.0,weight_sum)
 		faction_state.min_fleet_cost = min_cost
+		faction_state.threat_per_second = min(threat_per_second,threat_per_cost*gain_rate)
 	func _impl_store_goals(combat_state: CombatState,faction_state: FactionState):
 		var my_name = get_name()
 		for goal in combat_state.system_info.faction_goals:
@@ -171,6 +189,7 @@ class FactionState extends Reference:
 	var min_resources_to_act: float
 	var goals: Array = []
 	var fleets = []
+	var threat_per_second: float
 	var fleet_type_weights: Dictionary = {}
 	var min_fleet_cost: float = 0.0
 	func _init(resources_available_: float,resource_gain_rate_: float,
@@ -181,7 +200,7 @@ class FactionState extends Reference:
 		fleet_type_weights = fleet_type_weights_
 
 	func data_for_native(combat_state: CombatState,faction_index: int):
-		var result = { 'faction': faction_index, 'goals': [] }
+		var result = { 'faction': faction_index, 'goals': [], 'threat_per_second':threat_per_second }
 		for goal in goals:
 			var target_faction: String = goal['target_faction']
 			var target_int = -1

@@ -75,7 +75,9 @@ namespace godot {
     faction_mask_t friend_masks[MAX_ACTIVE_FACTIONS];
     faction_mask_t self_masks[MAX_ACTIVE_FACTIONS];
     bool need_to_update_affinity_masks;
-
+    faction_index_t player_faction_index;
+    faction_mask_t player_faction_mask;
+    
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
     

@@ -210,6 +210,7 @@ func _process(var _delta) -> void:
 	#$View.remove_child($View/Content)
 
 func pack_stats() -> Dictionary:
+	var game_data = game_state.systems.get_node_or_null(game_state_path)
 	return {
 		'rotation': Vector3(0,0,0),
 		'position': Vector3(translation.x,0,translation.z),
@@ -217,4 +218,6 @@ func pack_stats() -> Dictionary:
 		'name': name,
 		'rid': get_rid(),
 		'radius': sphere.scale[0],
+		'population': (game_data.total_population() if game_data else 0.0),
+                'industry': (game_data.total_industry() if game_data else 0.0),
 	}
