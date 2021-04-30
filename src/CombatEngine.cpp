@@ -703,8 +703,9 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     Ship new_ship = Ship(ship,id,last_id,mesh2path,path2mesh);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
-    int hostility = (is_hostile_towards(PLAYER_FACTION,pp_ship.first->faction) or
-                     is_hostile_towards(pp_ship.first->faction,PLAYER_FACTION));
+    bool hostile = (is_hostile_towards(player_faction_index,pp_ship.first->faction) or
+                    is_hostile_towards(pp_ship.first->faction,player_faction_index));
+    new_ship.collision_layer = hostile ? ENEMY_COLLISION_LAYER_MASK : PLAYER_COLLISION_LAYER_MASK;
     physics_server->body_set_collision_layer(pp_ship.first->second.rid,pp_ship.first->second.collision_layer);
   }
 
@@ -2002,9 +2003,7 @@ void CombatEngine::add_content() {
   
   for(auto &it : ships) {
     Ship &ship = it.second;
-    bool hostile_to_player = enemy_mask[ship.faction]&player_faction_mask;
-    bool player_hostile_to = enemy_mask[player_faction_index]&ship_faction_mask;
-    bool hostile = hostile_to_player or player_hostile_to;
+    bool hostile = (ship.collision_layer == ENEMY_COLLISION_LAYER_BITS);
     VisibleObject &visual = next->ships_and_planets.emplace_back(ship,hostile);
     if(ship.id == player_ship_id)
       visual.flags |= VISIBLE_OBJECT_PLAYER;

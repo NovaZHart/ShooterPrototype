@@ -299,6 +299,7 @@ namespace godot {
       real_t nearby_enemies_range;
       CheapRand32 rand;
       Vector3 destination;
+      int collision_layer;
       
       real_t aim_multiplier, confusion_multiplier;
       Vector3 confusion, confusion_velocity;
