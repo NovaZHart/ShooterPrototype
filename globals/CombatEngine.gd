@@ -39,6 +39,7 @@ const PLAYER_TARGET_PLANET: int = 48
 const PLAYER_TARGET_OVERRIDE: int = 64
 const PLAYER_TARGET_NOTHING: int = 240
 
+var combat_state = null
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()
 
@@ -47,6 +48,13 @@ func _enter_tree():
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
 	native_visual_effects.set_shaders(RiftShader,ZapBallShader)
+
+func init_combat_state(system_info,system,immediate_entry: bool) -> void:
+	# Call in _ready to create the CombatState for a System or Hyperspace
+	# system_info = SystemData for current system or null for Hyperspace
+	# system = System or Hyperspace
+	# immediate_entry = if true, ships have no entry animation
+	combat_state = CombatState.new(system_info,system,immediate_entry)
 
 func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
@@ -58,6 +66,7 @@ func clear_ai() -> void:
 	physics_mutex.lock()
 	native_combat_engine.clear_ai()
 	native_visual_effects.clear_all_effects()
+	combat_state = null
 	physics_mutex.unlock()
 	visual_mutex.unlock()
 

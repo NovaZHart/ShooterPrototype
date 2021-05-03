@@ -70,21 +70,21 @@ namespace godot {
     CE::object_id player_ship_id;
     int p_tick;
 
-    std::unordered_map<faction_index_t,CE::Faction> factions;
+    std::unordered_map<CE::faction_index_t,CE::Faction> factions;
     std::unordered_map<int,float> affinities;
-    faction_mask_t enemy_masks[MAX_ACTIVE_FACTIONS];
-    faction_mask_t friend_masks[MAX_ACTIVE_FACTIONS];
-    faction_mask_t self_masks[MAX_ACTIVE_FACTIONS];
+    CE::faction_mask_t enemy_masks[FACTION_ARRAY_SIZE];
+    CE::faction_mask_t friend_masks[FACTION_ARRAY_SIZE];
+    CE::faction_mask_t self_masks[FACTION_ARRAY_SIZE];
     bool need_to_update_affinity_masks;
-    faction_index_t player_faction_index;
-    faction_mask_t player_faction_mask;
-    object_id last_planet_updated;
+    CE::faction_index_t player_faction_index;
+    CE::faction_mask_t player_faction_mask;
+    CE::object_id last_planet_updated;
     int last_faction_updated;
     Dictionary faction_info;
     
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
-    std::vector<CE::PlanetGoalData> planet_goal_data;
+    mutable std::vector<CE::PlanetGoalData> planet_goal_data;
     
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Members for the visual thread:
@@ -144,19 +144,18 @@ namespace godot {
     // // // // // // // // // // // // // // // // // // // // // // // //
     // Faction methods
     // // // // // // // // // // // // // // // // // // // // // // // //
-    inline bool is_hostile_towards(faction_index_t from_faction,faction_index_t to_faction) const {
-      return enemy_masks(from_faction)&static_cast<faction_index_t>(1)<<to_faction;
+    inline bool is_hostile_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
+      return enemy_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
     }
-    inline bool is_friendly_towards(faction_index_t from_faction,faction_index_t to_faction) const {
-      return friend_masks(from_faction)&static_cast<faction_index_t>(1)<<to_faction;
+    inline bool is_friendly_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
+      return friend_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
     }
-    void change_relations(faction_index_t from_faction,faction_index_t to_faction,
-                          float how_much,bool immediate_update);
+    void change_relations(CE::faction_index_t from_faction,CE::faction_index_t to_faction,
+                          real_t how_much,bool immediate_update);
     void make_faction_state_for_gdscript(Dictionary &result);
     void update_affinity_masks();
-    PlanetGoalData update_planet_faction_goal(const Faction &faction, const Planet &planet,
-                                              const FactionGoal &goal) const;
-    void update_one_faction_goal(const Faction &faction, FactionGoal &goal) const;
+    CE::PlanetGoalData update_planet_faction_goal(const CE::Faction &faction, const CE::Planet &planet, const CE::FactionGoal &goal) const;
+    void update_one_faction_goal(const CE::Faction &faction, CE::FactionGoal &goal) const;
     void update_all_faction_goals();
     void faction_ai_step();
 

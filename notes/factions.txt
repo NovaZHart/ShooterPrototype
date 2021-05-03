@@ -35,14 +35,7 @@ All of that can be overridden by storyline events.
 
 TO DO:
 
-Update projectile collision tests
-FactionState acts on faction info from native
-Put the CombatState in CombatEngine.gd
-Send factions from System
-Send a fake faction from Hyperspace
-System steps space using the CombatState
 Recheck everything
-Compile C++ code
 Compile gdscript code
 Make it run
 Add a third faction with cargo ships

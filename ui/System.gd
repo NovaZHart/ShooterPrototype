@@ -299,10 +299,12 @@ func pack_planet_stats_if_not_sent() -> Array:
 #			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
 func _physics_process(delta):
+	combat_engine.combat_state.immediate_entry = false
 	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
 	physics_tick += 1
 	
-	var make_me: Array = Player.system.process_space(self,delta)
+	Player.system.process_space(self,delta)
+	var make_me: Array = combat_engine.combat_state.process_space(delta)
 	
 	team_stats_mutex.lock()
 	for ship in make_me:
@@ -474,8 +476,9 @@ func clear() -> void: # must be called in visual thread
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
 	#Player.system.fill_system(self,planet_time,ship_time,detail)
-	
-	var make_me: Array = Player.system.fill_system(self,planet_time,ship_time,detail)
+	combat_system.init_combat_state(Player.system,self,true)
+	Player.system.fill_system(self,planet_time,ship_time,detail)
+	var make_me: Array = CombatEngine.combat_state.fill_system(planet_time,ship_time,detail)
 	team_stats_mutex.lock()
 	for ship in make_me:
 		var team: int = ship[4] # "team" argument to spawn_ship

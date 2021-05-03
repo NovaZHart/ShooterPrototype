@@ -12,12 +12,14 @@
 #define PROJECTILE_HEIGHT 27
 #define PI 3.141592653589793
 
-#define THREAT_EPSILON = 1.0f
-#define AFFINITY_EPSILON = 1e-9f
+#define THREAT_EPSILON 1.0f
+#define AFFINITY_EPSILON 1e-9f
 #define FACTION_BIT_SHIFT 24
 #define FACTION_TO_MASK 16777215
 #define ALL_FACTIONS FACTION_TO_MASK
-#define MAX_ACTIVE_FACTIONS 64
+#define FACTION_ARRAY_SIZE 64
+#define MAX_ALLOWED_FACTION 29
+#define MIN_ALLOWED_FACTION 0
 #define PLAYER_FACTION 0
 #define DEFAULT_AFFINITY 0.0f
 
@@ -128,9 +130,9 @@ namespace godot {
       float goal_success, spawn_desire;
       Vector3 suggested_spawn_point;
       static goal_action_t action_enum_for_string(String string_goal);
-      static object_t id_for_rid(const RID &rid,const rid2id_t &rid2id);
+      static object_id id_for_rid(const RID &rid,const rid2id_t &rid2id);
       FactionGoal(Dictionary dict,const std::unordered_map<object_id,Planet> &planets,
-                  const rid2id_t &rid2id):
+                  const rid2id_t &rid2id);
       ~FactionGoal();
     };
 
@@ -154,18 +156,21 @@ namespace godot {
         return to_faction | (from_faction<<FACTION_BIT_SHIFT);
       }
 
-      Faction(Dictionary dict);
+      Faction(Dictionary dict,const std::unordered_map<object_id,Planet> &planets,
+               const rid2id_t &rid2id);
       ~Faction();
 
-      void update_masks(const unordered_map<int,float> &affinities);
+      void update_masks(const std::unordered_map<int,float> &affinities);
       void make_state_for_gdscript(Dictionary &factions);
 
-      inline const vector<FactionGoal> &get_goals() const { return goals; }
+      inline const std::vector<FactionGoal> &get_goals() const { return goals; }
+      inline std::vector<FactionGoal> &get_goals() { return goals; }
       inline faction_mask_t get_enemy_mask() const { return enemy_mask; }
       inline faction_mask_t get_friend_mask() const { return friend_mask; }
-      inline recoup_resources(float resources) { recouped_resources+=max(resources,0.0f); }
+      inline void recoup_resources(float resources) { recouped_resources+=std::max(resources,0.0f); }
     private:
-      vector<FactionGoal> goals;
+      float recouped_resources;
+      std::vector<FactionGoal> goals;
       faction_mask_t enemy_mask, friend_mask;
     };
     typedef std::unordered_map<faction_index_t,CE::Faction> factions_t;
@@ -237,10 +242,10 @@ namespace godot {
                                const std::unordered_map<object_id,Planet> &planets) const;
       void update_goal_data(const Planet &other);
       void update_goal_data(const std::unordered_map<object_id,Ship> &ships);
-      inline const vector<ShipGoalData> &get_goal_data() { return goal_data; }
+      inline const std::vector<ShipGoalData> &get_goal_data() const { return goal_data; }
 
     private:
-      vector<ShipGoalData> goal_data;
+      std::vector<ShipGoalData> goal_data;
     };
     typedef std::unordered_map<object_id,Planet>::iterator planets_iter;
     typedef std::unordered_map<object_id,Planet>::const_iterator planets_const_iter;
@@ -260,6 +265,7 @@ namespace godot {
       const object_id id;
       const String name; // last element of node path
       const RID rid; // of rigid body
+      const real_t cost;
       const real_t thrust, reverse_thrust, turn_thrust;
       const real_t threat, visual_height;
       const real_t max_shields, max_armor, max_structure, max_fuel;
@@ -314,7 +320,7 @@ namespace godot {
 
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
-          * clamp(float(tick)/(18000.0f),0.0f,1.0f);
+          * std::clamp(float(tick)/(18000.0f),0.0f,1.0f);
       }
       bool update_from_physics_server(PhysicsServer *server);
       void update_stats(PhysicsServer *state, bool update_server);

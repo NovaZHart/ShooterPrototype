@@ -23,20 +23,21 @@ goal_action_t FactionGoal::action_enum_for_string(String string_goal) {
     return goal_patrol;
 }
 
-object_t FactionGoal::id_for_rid(const RID &rid,const rid2id_t &rid2id) {
-  rid2id_const_iter rit = rid2id.find(rid);
-  return rit==rid2id.end() ? -1 : rid->second;
+object_id FactionGoal::id_for_rid(const RID &rid,const rid2id_t &rid2id) {
+  rid2id_t::const_iterator rit = rid2id.find(rid.get_id());
+  return rit==rid2id.end() ? -1 : rit->second;
 }
 
 FactionGoal::FactionGoal(Dictionary dict,const unordered_map<object_id,Planet> &planets,
                          const rid2id_t &rid2id):
-  faction_goal_t(enum_for_string(get<String>(dict,"action"))),
-  target_faction(get<faction_t>(dict,"target_faction")),
-  target_rid(get<faction_t>(dict,"target_rid")),
+  action(action_enum_for_string(get<String>(dict,"action"))),
+  target_faction(get<faction_index_t>(dict,"target_faction")),
+  target_rid(get<RID>(dict,"target_rid")),
   target_object_id(id_for_rid(target_rid,rid2id)),
   weight(get<float>(dict,"weight")),
   radius(get<float>(dict,"radius")),
-  goal_status(0.0f),
+  goal_success(0.0f),
+  spawn_desire(0.0f),
   suggested_spawn_point(0.0f,0.0f,0.0f)
 {
   if(target_object_id>=0) {
@@ -71,10 +72,10 @@ void Faction::update_masks(const unordered_map<int,float> &affinities) {
   faction_mask_t new_enemy = 0;
   faction_mask_t new_friend = 0;
   const faction_mask_t one(1);
-  for(faction_index_t i=0;i<max_factions;i++)
+  for(faction_index_t i=0;i<FACTION_ARRAY_SIZE;i++)
     if(i!=faction_index) {
       int key = affinity_key(faction_index,i);
-      unordered_map<int,float>::const_iterator &it = affinities.find(key);
+      unordered_map<int,float>::const_iterator it = affinities.find(key);
       float affinity = (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
       if(affinity>AFFINITY_EPSILON)
         new_friend |= one<<i;
@@ -89,7 +90,7 @@ Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
                  const rid2id_t &rid2id):
   faction_index(get<faction_index_t>(dict,"faction")),
   threat_per_second(get<float>(dict,"threat_per_second")),
-  self_mask(1<<faction_index),
+  recouped_resources(0),
   goals(), enemy_mask(0), friend_mask(0)
 {
   Array goal_array = get<Array>(dict,"goals");
@@ -279,8 +280,8 @@ void Planet::update_goal_data(const Planet &other) {
   FAST_PROFILING_FUNCTION;
   goal_data = other.goal_data;
   for(auto &goal_datum : goal_data)
-    goal_datum.distsq = goal_datum.position.distance_squared_to(position)
-  goal_data.sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
+    goal_datum.distsq = goal_datum.position.distance_squared_to(position);
+  sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
       return a.distsq<b.distsq;
     });
 }
@@ -289,15 +290,16 @@ void Planet::update_goal_data(const std::unordered_map<object_id,Ship> &ships) {
   FAST_PROFILING_FUNCTION;
   goal_data.reserve(ships.size());
   goal_data.clear();
-  for(ships_citer p_ship=begin;p_ship!=end;p_ship++) {
-    goal_data.push_back({
+  for(ships_const_iter p_ship=ships.begin();p_ship!=ships.end();p_ship++) {
+    ShipGoalData d = {
       p_ship->second.threat,
       p_ship->second.position.distance_squared_to(position),
-      p_ship->second.faction_mask,
+      p_ship->second.faction,
       p_ship->second.position
-    });
+    };
+    goal_data.emplace_back(d);
   }
-  goal_data.sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
+  sort(goal_data.begin(),goal_data.end(),[] (const ShipGoalData &a,const ShipGoalData &b) {
       return a.distsq<b.distsq;
     });
 }
@@ -325,6 +327,7 @@ Ship::Ship(const Ship &o):
   id(o.id),
   name(o.name),
   rid(o.rid),
+  cost(o.cost),
   thrust(o.thrust),
   reverse_thrust(o.reverse_thrust),
   turn_thrust(o.turn_thrust),
@@ -399,6 +402,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   id(id),
   name(get<String>(dict,"name")),
   rid(get<RID>(dict,"rid")),
+  cost(get<real_t>(dict,"cost")),
   thrust(get<real_t>(dict,"thrust")),
   reverse_thrust(get<real_t>(dict,"reverse_thrust",0)),
   turn_thrust(get<real_t>(dict,"turn_thrust",0)),

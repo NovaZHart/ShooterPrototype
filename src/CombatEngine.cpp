@@ -58,7 +58,7 @@ CombatEngine::CombatEngine():
   player_faction_index(0),
   player_faction_mask(static_cast<faction_mask_t>(1)<<player_faction_index),
   last_planet_updated(-1),
-  last_faction_updated(MAX_ACTIVE_FACTIONS),
+  last_faction_updated(FACTION_ARRAY_SIZE),
   faction_info(),
 
   update_request_id(),
@@ -150,13 +150,13 @@ void CombatEngine::clear_ai() {
   weapon_rotations.clear();
   factions.clear();
   affinities.clear();
-  for(int i=0;i<MAX_ACTIVE_FACTIONS;i++)
+  for(int i=0;i<FACTION_ARRAY_SIZE;i++)
     enemy_masks[i] = friend_masks[i] = self_masks[i] = 0;
   need_to_update_affinity_masks=false;
   player_faction_index=0;
   player_faction_mask=1;
   last_planet_updated=-1;
-  last_faction_updated=MAX_ACTIVE_FACTIONS;
+  last_faction_updated=FACTION_ARRAY_SIZE;
   faction_info.clear();
 
   // Wipe out all visual content.
@@ -175,21 +175,21 @@ void CombatEngine::set_visual_effects(Ref<VisualEffects> visual_effects) {
 }
 
 void CombatEngine::init_factions(Dictionary data) {
-  Dictionary affinity_data = get<Dictionary>(data,"affinities");
+  Dictionary affinity_data = data["affinities"];
   Array affinity_keys = affinity_data.keys();
   for(int i=0,s=affinity_keys.size();i<s;i++) {
     Variant key = affinity_keys[i];
     affinities[static_cast<int>(key)] = affinity_data[key];
   }
 
-  Array active_factions = get<Array>(data,"active_factions");
+  Array active_factions = data["active_factions"];
   for(int i=0,s=active_factions.size();i<s;i++) {
     Dictionary faction_data = active_factions[i];
-    faction_index_t faction_index = faction_data.get<faction_index_t>(data,"faction");
-    factions.emplace(faction_index,Faction(faction_data,planets,rid2id,affinities));
+    faction_index_t faction_index = static_cast<faction_index_t>(data["faction"]);
+    factions.emplace(faction_index,Faction(faction_data,planets,rid2id));
   }
 
-  player_faction_index = get<int>(data,"player_faction");
+  player_faction_index = data["player_faction"];
   player_faction_mask = static_cast<faction_mask_t>(1)<<player_faction_index;
 
   update_affinity_masks();
@@ -421,7 +421,7 @@ void CombatEngine::change_relations(faction_index_t from_faction,faction_index_t
 }
 
 void CombatEngine::make_faction_state_for_gdscript(Dictionary &result) {
-  for(faction_iter p_faction=factions.begin();p_faction!=factions.end();p_faction++)
+  for(factions_iter p_faction=factions.begin();p_faction!=factions.end();p_faction++)
     p_faction->second.make_state_for_gdscript(result);
 }
 
@@ -430,12 +430,21 @@ void CombatEngine::update_affinity_masks() {
   for(auto &it : factions)
     it.second.update_masks(affinities);
   faction_mask_t one = static_cast<faction_mask_t>(1);
-  for(int i=0;i<MAX_ACTIVE_FACTIONS;i++) {
-    self_mask[i] = one<<i;
-    factions_iter it = factions.find(i);
-    if(it==factions.end()) {
-      enemy_masks[i] = it->get_enemy_mask();
-      friend_masks[i] = it->get_friend_mask();
+  for(int i=MIN_ALLOWED_FACTION;i<=MAX_ALLOWED_FACTION;i++) {
+    self_masks[i] = one<<i;
+    enemy_masks[i]=0;
+    friend_masks[i]=0;
+    for(int j=MIN_ALLOWED_FACTION;j<=MAX_ALLOWED_FACTION;j++) {
+      if(i==j)
+        continue; // Ignore self-hatred and self-desire
+      int key = Faction::affinity_key(i,j);
+      unordered_map<int,float>::iterator it = affinities.find(key);
+      if(it==affinities.end())
+        continue;
+      else if(it->second>AFFINITY_EPSILON)
+        friend_masks[i] |= one<<j;
+      else if(it->second<-AFFINITY_EPSILON)
+        enemy_masks[i] |= one<<j;
     }
   }
   need_to_update_affinity_masks = false;
@@ -446,14 +455,14 @@ PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, 
   PlanetGoalData result = { 0.0f,sqrt(max(100.0f,planet.population))+sqrt(max(0.0f,planet.industry)),-1 };
   
   if(goal.action == goal_planet) {
-    result.goal_success = 1.0f;
-    return;
+    result.goal_status = 1.0f;
+    return result;
   }
   
+  faction_mask_t one = static_cast<faction_mask_t>(1);
   faction_mask_t self_mask = one << faction.faction_index;
   faction_mask_t target_mask = enemy_masks[faction.faction_index];
-  if(target_faction<MAX_ACTIVE_FACTIONS)
-    target_mask = one<<target_faction;
+  target_mask = one<<goal.target_faction;
   
   float my_threat=0.0f, enemy_threat=0.0f;
   float radsq = goal.radius*goal.radius;
@@ -461,15 +470,15 @@ PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, 
     if(goal_datum.distsq>radsq)
       break;
     if(goal_datum.faction_mask==self_mask)
-      threat = goal_datum.threat;
+      my_threat = goal_datum.threat;
     else if(goal_datum.faction_mask&target_mask)
-      threat = -goal_datum.threat;
+      enemy_threat = -goal_datum.threat;
   }
-  float threat_weight = sqrt(max(100.0f,fabsf(my_threat-enemy_threat))) / max(10.0f,Faction.threat_per_second*60);
+  float threat_weight = sqrt(max(100.0f,fabsf(my_threat-enemy_threat))) / max(10.0f,faction.threat_per_second*60);
   if(my_threat<enemy_threat)
     threat_weight = -threat_weight;
 
-  result.goal_success = threat_weight;
+  result.goal_status = threat_weight;
   if(goal_raid)
     result.spawn_desire *= threat_weight;
   else
@@ -484,7 +493,7 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
   planet_goal_data.reserve(planets.size());
   planet_goal_data.clear();
   
-  for(planet_citer p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
+  for(planets_const_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
     object_id id = p_planet->first;
     if(goal.target_object_id>=0 and goal.target_object_id!=id)
       continue;
@@ -492,22 +501,20 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
   }
   
   PlanetGoalData best = {0.0f,0.0f,-1};
-  float absmax_desire = {0.0f,0.0f,-1};
-  float min_desire = {0.0f,0.0f,-1};
+  float absmax_desire, min_desire;
   int matches = 0;
 
-  for(planet_citer p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
+  for(planets_const_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
     object_id id = p_planet->first;
     if(goal.target_object_id>=0 and goal.target_object_id!=id)
       continue;
-    Planet &planet = p_planet->second;
+    const Planet &planet = p_planet->second;
 
     matches++;
     goal.suggested_spawn_point = planet.position;
 
     // The goal has a specific planet
-    PlanetGoalData result = {0.0f,0.0f,id};
-    update_planet_faction_goal(faction,planet,goal,result);
+    PlanetGoalData result = update_planet_faction_goal(faction,planet,goal);
     
     if(matches==1) {
       best = result;
@@ -528,29 +535,29 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
     goal.spawn_desire = best.spawn_desire - min_desire;
     if(absmax_desire>0)
       goal.spawn_desire /= absmax_desire;
-    goal.goal_success = best.goal_success;
+    goal.goal_success = best.goal_status;
   } else {
     goal.suggested_spawn_point = Vector3(0,0,0);
     goal.goal_success = 0;
-    goal.spawn_desire = -numeric_limits<float>.infinity();
+    goal.spawn_desire = -numeric_limits<float>::infinity();
   }
 }
 
 void CombatEngine::update_all_faction_goals() {
   FAST_PROFILING_FUNCTION;
-  planet_citer p_first=planets.end();
-  for(planet_citer p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
+  planets_iter p_first=planets.end();
+  for(planets_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
     if(p_first==planets.end()) {
       p_first = p_planet;
       p_first->second.update_goal_data(ships);
     } else
       p_planet->second.update_goal_data(p_first->second);
   }
-  for(auto &faction : factions)
-    for(auto &goal : faction.goals)
-      update_one_faction_goal(faction,goal);
+  for(auto &p_faction : factions)
+    for(auto &goal : p_faction.second.get_goals())
+      update_one_faction_goal(p_faction.second,goal);
   last_planet_updated = -1;
-  last_faction_updated = MAX_ACTIVE_FACTIONS;
+  last_faction_updated = FACTION_ARRAY_SIZE;
 }
 
 void CombatEngine::faction_ai_step() {
@@ -558,14 +565,14 @@ void CombatEngine::faction_ai_step() {
     update_all_faction_goals();
   if(p_tick % 2) {
     // Update a planet on odd ticks.
-    planet_iter p_planet = planets.find(last_planet_updated);
+    planets_iter p_planet = planets.find(last_planet_updated);
     if(p_planet!=planets.end())
       p_planet++;
     if(p_planet==planets.end())
       p_planet=planets.begin();
     if(p_planet!=planets.end()) {
       p_planet->second.update_goal_data(ships);
-      last_planet_updated = p_planet.first;
+      last_planet_updated = p_planet->first;
     } else
       last_planet_updated = -1;
   } else {
@@ -577,11 +584,11 @@ void CombatEngine::faction_ai_step() {
       p_faction=factions.begin();
     if(p_faction!=factions.end()) {
       Faction &faction = p_faction->second;
-      for(auto &goal : faction.goals)
+      for(auto &goal : faction.get_goals())
         update_one_faction_goal(faction,goal);
       last_faction_updated = p_faction->first;
     } else
-      last_faction_updated = MAX_ACTIVE_FACTIONS;
+      last_faction_updated = FACTION_ARRAY_SIZE;
   }
 }
 
@@ -620,9 +627,9 @@ void CombatEngine::step_all_ships() {
       if(ship.updated_mass_stats)
         ship.update_stats(physics_server,true);
       if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
-        faction_iter p_faction = factions.find(ship.faction);
+        factions_iter p_faction = factions.find(ship.faction);
         if(p_faction!=factions.end())
-          factions.recoup_resources(ship.recouped_resources());
+          p_faction->second.recoup_resources(ship.recouped_resources());
       }
     }
   }
@@ -703,9 +710,8 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     Ship new_ship = Ship(ship,id,last_id,mesh2path,path2mesh);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
-    bool hostile = (is_hostile_towards(player_faction_index,pp_ship.first->faction) or
-                    is_hostile_towards(pp_ship.first->faction,player_faction_index));
-    new_ship.collision_layer = hostile ? ENEMY_COLLISION_LAYER_MASK : PLAYER_COLLISION_LAYER_MASK;
+    bool hostile = is_hostile_towards(pp_ship.first->second.faction,player_faction_index);
+    pp_ship.first->second.collision_layer = pp_ship.first->second.faction_mask;
     physics_server->body_set_collision_layer(pp_ship.first->second.rid,pp_ship.first->second.collision_layer);
   }
 
@@ -1011,7 +1017,7 @@ void CombatEngine::update_near_objects(Ship &ship) {
   //FIXME: UPDATE THIS TO FIND ENEMY PROJECTILES
   ship.nearby_objects.clear();
   Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
-  query->set_collision_mask(ship.enemy_mask);
+  query->set_collision_mask(enemy_masks[ship.faction]);
   query->set_shape(search_cylinder);
   query->set_transform(ship.transform);
   Array near_objects = space->intersect_shape(query);
@@ -1047,7 +1053,7 @@ ships_iter CombatEngine::update_targetting(Ship &ship) {
   
   if(pick_new_target or target_ptr==ships.end()) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    object_id found=select_target<false>(-1,select_three(select_mask(ship.enemy_mask),select_flying(),select_nearest(ship.position,200.0f)),ships);
+    object_id found=select_target<false>(-1,select_three(select_mask(enemy_masks[ship.faction]),select_flying(),select_nearest(ship.position,200.0f)),ships);
     target_ptr = ships.find(found);
   }
   return target_ptr;
@@ -1070,7 +1076,7 @@ void CombatEngine::attacker_ai(Ship &ship) {
     if(not have_target)
       ship.target=-1;
     // FIXME: replace this with faction-level ai:
-    if(ship.team==0)
+    if(ship.faction==player_faction_index)
       landing_ai(ship);
     else
       rift_ai(ship);
@@ -1422,7 +1428,7 @@ const ship_hit_list_t &CombatEngine::get_ships_within_range(Ship &ship, real_t d
     ship.nearby_enemies_range = desired_range;
     ship.nearby_enemies.clear();
     for(auto &other : ships) {
-      if(!(other.second.collision_layer&ship.enemy_mask))
+      if(!(other.second.faction_mask&enemy_masks[ship.faction]))
         continue; // not an enemy
       if(other.second.id==ship.id)
         continue; // do not target self
@@ -1472,7 +1478,7 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
   Vector3 point2 = point1 + projectile_heading*weapon_range;
   point1.y=5;
   point2.y=5;
-  Dictionary result = space_intersect_ray(space,point1,point2,ship.enemy_mask);
+  Dictionary result = space_intersect_ray(space,point1,point2,enemy_masks[ship.faction]);
   //  Dictionary result = space->intersect_ray(point1, point2, Array(), ship.enemy_mask, true, false);
 
   Vector3 hit_position=Vector3(0,0,0);
@@ -1809,7 +1815,7 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
     real_t trans_x(projectile.position.x), trans_z(projectile.position.z);
     real_t scale = radius / search_cylinder_radius;
     Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
-    query->set_collision_mask(projectile.collision_mask);
+    query->set_collision_mask(enemy_masks[projectile.faction]);
     query->set_shape(search_cylinder);
     Transform trans;
     trans.scale(Vector3(scale,1,scale));
@@ -1828,7 +1834,7 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
   } else {
     Vector3 point1(projectile.position.x,500,projectile.position.z);
     Vector3 point2(projectile.position.x,-500,projectile.position.z);
-    Dictionary hit = space->intersect_ray(point1, point2, Array(), projectile.collision_mask);
+    Dictionary hit = space->intersect_ray(point1, point2, Array(), enemy_masks[projectile.faction]);
     if(!hit.empty()) {
       ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
       if(p_ship!=ships.end())
@@ -1852,7 +1858,7 @@ bool CombatEngine::collide_point_projectile(Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
   Vector3 point1(projectile.position.x,500,projectile.position.z);
   Vector3 point2(projectile.position.x,-500,projectile.position.z);
-  ships_iter p_ship = space_intersect_ray_p_ship(point1,point2,projectile.collision_mask);
+  ships_iter p_ship = space_intersect_ray_p_ship(point1,point2,enemy_masks[projectile.faction]);
   if(p_ship==ships.end())
     return false;
   
@@ -2003,13 +2009,13 @@ void CombatEngine::add_content() {
   
   for(auto &it : ships) {
     Ship &ship = it.second;
-    bool hostile = (ship.collision_layer == ENEMY_COLLISION_LAYER_BITS);
+    bool hostile = player_faction_mask&enemy_masks[ship.faction];
     VisibleObject &visual = next->ships_and_planets.emplace_back(ship,hostile);
     if(ship.id == player_ship_id)
       visual.flags |= VISIBLE_OBJECT_PLAYER;
     else if(ship.id == player_target_id)
       visual.flags |= VISIBLE_OBJECT_PLAYER_TARGET;
-    if(ship.collision_layer&ship.enemy_mask)
+    if(ship.faction_mask&enemy_masks[ship.faction])
       visual.flags |= VISIBLE_OBJECT_HOSTILE;
   }
   for(auto &it : planets) {
