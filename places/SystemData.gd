@@ -26,8 +26,8 @@ const default_active_factions: Dictionary = {
 }
 
 const default_faction_goals: Array = [
-	{ 'faction_name':'locals','target_faction':'raiders' },
-	{ 'faction_name':'raiders','target_faction':'locals' },
+	{ 'faction_name':'locals','target_faction':'raiders','action':'patrol' },
+	{ 'faction_name':'raiders','target_faction':'locals','action':'raid' },
 ]
 
 var rng

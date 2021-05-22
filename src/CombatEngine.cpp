@@ -185,8 +185,9 @@ void CombatEngine::init_factions(Dictionary data) {
   Array active_factions = data["active_factions"];
   for(int i=0,s=active_factions.size();i<s;i++) {
     Dictionary faction_data = active_factions[i];
-    faction_index_t faction_index = static_cast<faction_index_t>(data["faction"]);
+    faction_index_t faction_index = static_cast<faction_index_t>(faction_data["faction"]);
     factions.emplace(faction_index,Faction(faction_data,planets,rid2id));
+    Godot::print("Emplace faction index "+str(faction_index));
   }
 
   player_faction_index = data["player_faction"];

@@ -22,6 +22,7 @@ class Faction extends simple_tree.SimpleNode:
 	var affinities: Dictionary = {}
 	var default_resources: float = 1000.0
 	var display_name: String = ''
+	var faction_name: String = ''
 	var fleets: Array = []
 
 	func is_Faction(): pass # never called; just used for type checking
@@ -41,9 +42,10 @@ class Faction extends simple_tree.SimpleNode:
 		var system_info = combat_state.system_info
 		var faction_info
 		if system_info:
-			faction_info = system_info.active_factions.get(name,{})
+			faction_info = system_info.active_factions.get(get_name(),{})
 		else:
 			faction_info = {}
+		print('faction_info is '+str(faction_info))
 		var resources = faction_info.get('starting_money',default_resources)
 		# Default gain rate is full resources every 5 minutes
 		var gain_rate = faction_info.get('income_per_second',resources/300.0)
@@ -67,12 +69,14 @@ class Faction extends simple_tree.SimpleNode:
 			var fleet_type = fleet.get('type','')
 			var type_weight = faction_state.fleet_type_weights.get(fleet_type,0.0)
 			if type_weight<=0.0:
+				print('discard fleet with no positive type weight '+str(fleet)+' '+str(faction_state.fleet_type_weights))
 				continue # this fleet does not appear in the system
 			var name = fleet['fleet']
 			var data = game_state.fleets.get_node_or_null(name)
 			if data:
 				var frequency = clamp(fleet['frequency'],0.0,3600.0) # spawns per hour
 				if frequency<1e-5:
+					print('discard fleet with low frequency '+str(fleet))
 					continue
 				var local_fleet = fleet.duplicate(true)
 				count += 1
@@ -103,8 +107,8 @@ class Faction extends simple_tree.SimpleNode:
 			return
 		var my_name = get_name()
 		for goal in combat_state.system_info.faction_goals:
-			var faction_name = goal.get('faction_name','')
-			if faction_name!=my_name:
+			var goal_faction_name = goal.get('faction_name','')
+			if goal_faction_name!=my_name:
 				continue
 			var target_faction = goal.get('target_faction','')
 			if not game_state.factions.get_child_with_name(target_faction):
@@ -233,7 +237,8 @@ class FactionState extends Reference:
 		fleet_type_weights = fleet_type_weights_
 
 	# Prepare data for the native Faction class
-	func data_for_native(combat_state: CombatState,_faction_index: int):
+	func data_for_native(combat_state: CombatState) -> Dictionary:
+		print('send faction index '+str(faction_index))
 		var result = { 'faction': faction_index, 'goals': [], 'threat_per_second':threat_per_second }
 		for goal in goals:
 			var target_faction: String = goal['target_faction']
@@ -243,13 +248,14 @@ class FactionState extends Reference:
 			var rgoal = goal.duplicate(true)
 			rgoal['target_faction'] = target_int
 			result['goals'].append(rgoal)
+		return result
 
 	# Update spawn info and goal status from the native Faction class.
-	func update_from_native(_combat_state: CombatState,_faction_index: int,data: Dictionary):
+	func update_from_native(_combat_state: CombatState,data: Dictionary):
 		resources_available += data.get("recouped_resources",0.0)
 		var goal_status: PoolRealArray = data['goal_status']
 		var spawn_desire: PoolRealArray = data['spawn_desire']
-		var suggested_spawn_points: PoolVector3Array = data['suggested_spawn_points']
+		var suggested_spawn_points: PoolVector3Array = data['suggested_spawn_point']
 		var igoal = -1
 		for goal in goals:
 			igoal += 1
@@ -267,16 +273,32 @@ class FactionState extends Reference:
 				var _discard = available_fleets.pop_front()
 
 	func spawn_one_fleet(combat_state) -> Array:
+		if resources_available<=min_fleet_cost:
+			print('too poor to spawn anything')
 		var failed_fleets = 0
 		while failed_fleets<5 and resources_available>min_fleet_cost:
 			var fleet = next_fleet(null)
-			var fleet_node = game_state.fleets.get_child_with_name(fleet['type'])
-			if not fleet_node or fleet['cost'] > resources_available or \
-					not game_state.combat_state.can_spawn_fleet(faction_index,fleet):
+			var fleet_name = fleet['fleet']
+			var fleet_node = game_state.fleets.get_child_with_name(fleet_name)
+			if not fleet['cost']:
+				print('Fleet '+str(fleet_name)+' has no cost')
+			if not fleet_node:
+				print('No fleet with name "'+str(fleet_name))
 				failed_fleets += 1
 				continue
+			if fleet['cost'] > resources_available:
+				print('Fleet '+str(fleet_name)+' too expensive: '+str(fleet['cost'])+' > '+str(resources_available))
+				failed_fleets += 1
+				continue
+#			if not combat_state.can_spawn_fleet(faction_index,fleet):
+#				print('Combat state says we cannot spawn fleet '+str(fleet_name))
+#				failed_fleets += 1
+#				continue
 			var goal = choose_random_goal()
-			return combat_state.spawn_fleet(fleet['type'],faction_index,goal['suggested_spawn_point'])
+			print('spawn fleet '+str(fleet_name))
+			resources_available -= fleet['cost']
+			return combat_state.spawn_fleet(fleet_node,faction_index,goal['suggested_spawn_point'])
+		print('all spawn attempts failed')
 		return []
 
 	# Given an amount of time that has passed (<= 1 second), decide what fleet may be spawned.
@@ -418,21 +440,28 @@ class CombatState extends Reference:
 			for name in faction_name2int:
 				_impl_add_faction_affinities(name)
 
-	func data_for_native():
-		var result = { "affinities": faction_int_affinity, "active_factions": [],
-			"player_faction":player_faction_index }
+	func data_for_native() -> Dictionary:
+		var result = {
+			"affinities": faction_int_affinity,
+			"active_factions": [],
+			"player_faction":player_faction_index,
+		}
+		result['active_factions'].resize(faction_states.size())
 		for faction_name in faction_states:
 			var faction_int = faction_name2int[faction_name]
-			var faction = game_state.factions.get_child_with_name(faction_name)
-			if faction:
-				result['active_factions'][faction_int] = faction.data_for_native(self)
+			var faction_state = faction_states[faction_name]
+			if faction_state:
+				var data: Dictionary = faction_state.data_for_native(self)
+				assert(data)
+				result['active_factions'][faction_int] = data
 			else:
 				push_warning('Cannot find faction named "'+faction_name+'" in universe')
+		return result
 
 	func update_from_native(native_data: Dictionary):
 		for faction_index in native_data:
-			var faction = faction_states[faction_int2name[faction_index]]
-			faction.update_from_native(native_data[faction_index])
+			var faction_state = faction_states[faction_int2name[faction_index]]
+			faction_state.update_from_native(self,native_data[faction_index])
 
 	func _impl_add_faction_affinities(faction_name):
 		var faction = game_state.factions.get_child_with_name(faction_name)
@@ -489,6 +518,8 @@ class CombatState extends Reference:
 			last_len = len(result)
 			# Fixme: sort factions somehow? Perhaps weakest first?
 			for faction in faction_states.values():
+				if faction.faction_index == player_faction_index:
+					continue # player does not spawn ships
 				result += faction.spawn_one_fleet(self)
 		return result
 
@@ -531,8 +562,9 @@ class CombatState extends Reference:
 			faction_index, is_player, entry_method]
 
 	# Spawn all ships from a Fleet node. Intended to be called from FleetInfo
-	func spawn_fleet(fleet_node: simple_tree.SimpleNode, 
+	func spawn_fleet(fleet_node, 
 			faction_index: int, where=null) -> Array:
+		assert(fleet_node)
 		if faction_index<0:
 			return []
 		var center: Vector3 = where

@@ -139,6 +139,7 @@
             {
               "frequency": 900,
               "fleet": "raven_peregrine_cyclotrons",
+              "type": "small_raid"
             },
             {
               "frequency": 1200,

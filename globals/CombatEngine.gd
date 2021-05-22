@@ -55,6 +55,12 @@ func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	# system = System or Hyperspace
 	# immediate_entry = if true, ships have no entry animation
 	combat_state = Factions.CombatState.new(system_info,system,immediate_entry)
+	visual_mutex.lock()
+	physics_mutex.lock()
+	var data_for_native: Dictionary = combat_state.data_for_native()
+	native_combat_engine.init_factions(data_for_native)
+	physics_mutex.unlock()
+	visual_mutex.unlock()
 
 func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
