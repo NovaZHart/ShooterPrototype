@@ -14,6 +14,8 @@ class FactionList extends simple_tree.SimpleNode:
 func decode_FactionList(v):
 	var result = FactionList.new()
 	game_state.Universe.decode_children(result,v[1])
+	print(str(result.get_child_names()))
+	assert(result.get_child_with_name('initial_player_faction'))
 	return result
 
 class Faction extends simple_tree.SimpleNode:
@@ -96,7 +98,7 @@ class Faction extends simple_tree.SimpleNode:
 			for i in range(len(faction_state.fleet_weights)):
 				faction_state.fleet_weights[i] = spawn_chance/weight_sum
 
-	func _impl_store_goals(combat_state: CombatState,_faction_state: FactionState):
+	func _impl_store_goals(combat_state: CombatState,faction_state: FactionState):
 		if not combat_state.system_info:
 			return
 		var my_name = get_name()
@@ -124,7 +126,7 @@ class Faction extends simple_tree.SimpleNode:
 				else:
 					target_rid = spawned_planet.get_rid()
 					spawn_point = spawned_planet.position()
-			combat_state.goals.append({
+			faction_state.goals.append({
 				'action':goal.get('action','patrol'),
 				'target_faction':target_faction,
 				'target_rid':target_rid,
@@ -199,10 +201,11 @@ class Faction extends simple_tree.SimpleNode:
 #			call('spawn_'+action[1],action[3])
 
 func decode_Faction(v):
+	print('Faction with display name "'+str(v[1])+'"')
 	var result = Faction.new(String(v[1]),
 		game_state.Universe.decode_helper(v[2]), float(v[3]),
 		game_state.Universe.decode_helper(v[4]))
-	game_state.Universe.decode_children(result)
+	game_state.Universe.decode_children(result,v[5])
 	return result
 
 
@@ -263,7 +266,7 @@ class FactionState extends Reference:
 			if len(available_fleets)>max_available_fleets:
 				var _discard = available_fleets.pop_front()
 
-	func spawn_one_fleet(combat_state):
+	func spawn_one_fleet(combat_state) -> Array:
 		var failed_fleets = 0
 		while failed_fleets<5 and resources_available>min_fleet_cost:
 			var fleet = next_fleet(null)
@@ -274,6 +277,7 @@ class FactionState extends Reference:
 				continue
 			var goal = choose_random_goal()
 			return combat_state.spawn_fleet(fleet['type'],faction_index,goal['suggested_spawn_point'])
+		return []
 
 	# Given an amount of time that has passed (<= 1 second), decide what fleet may be spawned.
 	# If delta is null, then a fleet is always returned (if there is one)
@@ -361,7 +365,6 @@ class CombatState extends Reference:
 	var system_info = null # SystemData for current system, or null in Hyperspace
 	var system = null # The System or Hyperspace
 	var immediate_entry: bool = false # Should ships appear without entry animations?
-	var player_faction_name: String
 
 #	var planet_tactical_data: Dictionary = {}
 #	var system_tactical_data: TacticalData
@@ -379,12 +382,11 @@ class CombatState extends Reference:
 #		system_tactical_data = TacticalData.new(system_info.get_path(),system_info.name)
 #		if system_info:
 #			_impl_add_planets(system_info)
-		_impl_add_faction(player_faction_name)
-		player_faction_index = faction_name2int[player_faction_name]
+		_impl_add_faction(Player.player_faction)
+		player_faction_index = faction_name2int[Player.player_faction]
 		assert(player_faction_index==0)
-		for goal in system.faction_goals:
+		for goal in system_info.faction_goals:
 			_impl_add_faction(goal.get('faction_name',''))
-		player_faction_name = Player.player_faction
 		for faction_name in faction_states:
 			_impl_add_faction_affinities(faction_name)
 	func get_faction_affinity(from_faction: int, to_faction: int):
@@ -435,6 +437,7 @@ class CombatState extends Reference:
 	func _impl_add_faction_affinities(faction_name):
 		var faction = game_state.factions.get_child_with_name(faction_name)
 		if not faction:
+			push_error('no faction with name "'+faction_name+'"')
 			return
 		var from_index: int = faction_name2int.get(faction_name,-1)
 		if from_index<0:
@@ -448,13 +451,15 @@ class CombatState extends Reference:
 			if to_index>=0:
 				faction_int_affinity[(from_index << FACTION_BIT_SHIFT)|to_index] = \
 					faction.affinities[affinity_to_name]
-	func _impl_add_faction(faction_name):
+	func _impl_add_faction(faction_name: String):
 		if not faction_name or faction_states.has(faction_name):
 			return
 		var ifaction = faction_states.size()
 		if ifaction >= MAX_ACTIVE_FACTIONS:
 			push_error('Can only have '+str(MAX_ACTIVE_FACTIONS)+' active at once.')
 			return
+		if faction_name == 'initial_player_faction':
+			print('get player faction')
 		var faction = game_state.factions.get_child_with_name(faction_name)
 		if faction:
 			faction_states[faction_name] = faction.make_faction_state(self)
@@ -462,6 +467,8 @@ class CombatState extends Reference:
 				faction_int2name[ifaction] = faction_name
 				faction_name2int[faction_name] = ifaction
 				faction_states[faction_name].faction_index = ifaction
+		else:
+			push_error('Tried to add a faction with name "'+faction_name+'" but the faction has no game data')
 #	func _impl_add_planets(node):
 #		return
 #		# FIXME: delete the rest
@@ -482,7 +489,7 @@ class CombatState extends Reference:
 			last_len = len(result)
 			# Fixme: sort factions somehow? Perhaps weakest first?
 			for faction in faction_states.values():
-				result += faction.spawn_one_fleet()
+				result += faction.spawn_one_fleet(self)
 		return result
 
 	func spawn_player_ship():
@@ -518,6 +525,8 @@ class CombatState extends Reference:
 		var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
 		# IMPORTANT: Return value must match what spawn_ship, init_system, and
 		#   _physics_process want in System.gd:
+		if is_player:
+			print('spawning player ship')
 		return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,game_state.SHIP_HEIGHT,z),
 			faction_index, is_player, entry_method]
 
@@ -563,7 +572,7 @@ class CombatState extends Reference:
 		return result
 
 	func fill_system(_planet_time: float, _ship_time: float, _detail: int):
-		return spawn_player_ship()
+		return [spawn_player_ship()]
 
 
 #class TacticalData extends Reference:

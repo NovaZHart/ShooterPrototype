@@ -1,6 +1,9 @@
 {
   "factions": [ "FactionList", {
-      "Locals": [ "Faction", "Locals", [
+      "initial_player_faction": [ "Faction", "initial_player_faction", [
+          "Array"
+      ], 0.0, {}, {} ],
+      "locals": [ "Faction", "Locals", [
             "Array",
             {
               "frequency": 900,
@@ -73,10 +76,10 @@
               "type": "light_military"
             }
           ], 3e5, {
-              "Raiders": -100,
+              "raiders": -100,
               "initial_player_faction": 100
-          }, 0.0 ],
-      "Raiders": [ "Faction", "Raiders", [
+          }, {} ],
+      "raiders": [ "Faction", "Raiders", [
             "Array",
             {
               "frequency": 900,
@@ -148,9 +151,9 @@
               "type": "small_raid"
             }
           ], 3e5, {
-              "Locals": -100,
+              "locals": -100,
               "initial_player_faction": -100
-          }, 0.0 ]
+          }, {} ]
   }],
   "systems": [
     "SimpleNode",

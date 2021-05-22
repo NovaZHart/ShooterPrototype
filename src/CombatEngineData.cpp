@@ -99,6 +99,8 @@ Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
     goals.emplace_back(goal_array[i],planets,rid2id);
 }
 
+Faction::~Faction() {}
+
 ProjectileMesh::ProjectileMesh(RID mesh_rid,object_id id):
   id(id),
   mesh_id(mesh_id),

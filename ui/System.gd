@@ -33,7 +33,7 @@ var ship_stats_requests_mutex: Mutex = Mutex.new()
 var ships_to_spawn: Array = Array()
 var ship_maker_mutex: Mutex = Mutex.new()
 
-var team_stats: Array = [{'count':0,'threat':0},{'count':0,'threat':0}]
+var team_stats: Dictionary = {}
 var team_stats_mutex: Mutex = Mutex.new()
 
 var ship_stats: Dictionary = {}
@@ -265,17 +265,30 @@ func pack_ship_stats() -> Array:
 	new_ships.clear()
 	new_ships_mutex.unlock()
 
-	var threats: Array = [0, 0]
 	var new_ships_packed: Array = []
+	var threats: Dictionary = {}
+	team_stats_mutex.lock()
 	for ship in my_new_ships:
 		if ship!=null and ship is RigidBody:
 			new_ships_packed.append(ship.pack_stats())
-			threats[ship.team] += max(0,ship.combined_stats.get('threat',0))
+			if ship.faction_index<0:
+				push_error("Tried to spawn a ship with no faction index.")
+			elif threats.has(ship.faction_index):
+				threats[ship.faction_index] += ship.combined_stats.get('threat',0.0)
+			else:
+				threats[ship.faction_index] = ship.combined_stats.get('threat',0.0)
 
-	team_stats_mutex.lock()
 	# Count was incremented in _physics_process
-	for team in range(len(threats)):
-		team_stats[team]['threat'] += threats[team]
+	for faction_index in threats:
+		var team_stat = team_stats.get(faction_index,null)
+		if not team_stat:
+			push_warning('No team_stats['+str(faction_index)+'] during pack_ship_stats')
+			team_stats[faction_index] = {
+				'threat':threats[faction_index],
+				'count':1,
+			}
+		else:
+			team_stat['threat'] += threats[faction_index]
 	team_stats_mutex.unlock()
 
 	return new_ships_packed
@@ -308,8 +321,14 @@ func _physics_process(delta):
 	
 	team_stats_mutex.lock()
 	for ship in make_me:
-		var team: int = ship[4] # "team" argument to spawn_ship
-		team_stats[team]['count']+=1
+		var faction_index: int = ship[4] # "team" argument to spawn_ship
+		if faction_index<0 :
+			push_error('Refusing to spawn a ship with no faction index: '+str(ship))
+			continue
+		elif not team_stats.has(faction_index):
+			team_stats[faction_index] = { 'threat':0.0, 'count':1 }
+		else:
+			team_stats[faction_index]['count'] += 1
 	team_stats_mutex.unlock()
 	
 	ship_maker_mutex.lock()
@@ -388,8 +407,9 @@ func _physics_process(delta):
 			elif fate==combat_engine.FATED_TO_RIFT:
 				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
 		team_stats_mutex.lock()
-		team_stats[ship_node.team]['count'] -= 1
-		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
+		if team_stats.has(ship_node.faction_index):
+			team_stats[ship_node.faction_index]['count'] -= 1
+			team_stats[ship_node.faction_index]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
 		team_stats_mutex.unlock()
 		ship_node.call_deferred("queue_free")
 	if not player_died:
@@ -419,17 +439,19 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 		receive_player_orders({})
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
-		team: int, is_player: bool, entry_method: int) -> void:
+		faction_index: int, is_player: bool, entry_method: int) -> void:
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
 	ship.translation=translation
-	ship.set_team(team)
+	ship.set_faction_index(faction_index)
 	if is_player:
+		print('spawn_ship receiving player ship')
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
+		assert(ship.faction_index==0)
 		print('add player ship of design ',str(ship_design))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
@@ -463,8 +485,7 @@ func clear() -> void: # must be called in visual thread
 	label_maker = null
 	label_being_made = ''
 	
-	team_stats = [{'count':0,'threat':0},{'count':0,'threat':0}]
-	
+	team_stats = Dictionary()
 	new_ships=Array()
 	player_orders=Array()
 	ship_stats_requests=Dictionary()
@@ -485,8 +506,14 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	var make_me: Array = combat_engine.combat_state.fill_system(planet_time,ship_time,detail)
 	team_stats_mutex.lock()
 	for ship in make_me:
-		var team: int = ship[4] # "team" argument to spawn_ship
-		team_stats[team]['count']+=1
+		var faction_index: int = ship[4] # "faction" argument to spawn_ship
+		if faction_index<0:
+			push_error('Refusing to make a ship with no faction index: '+str(ship))
+			continue
+		elif not team_stats.has(faction_index):
+			team_stats[faction_index] = { 'threat':0.0, 'count':1 }
+		else:
+			team_stats[faction_index]['count'] += 1
 	team_stats_mutex.unlock()
 	
 	ship_maker_mutex.lock()

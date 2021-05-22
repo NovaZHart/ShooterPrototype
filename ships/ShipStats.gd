@@ -31,9 +31,10 @@ export var override_size: Vector3 = Vector3(0,0,0)
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
 var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []
-var team: int = 0
-var enemy_team: int = 1
-var enemy_mask: int = 2
+#var team: int = 0
+#var enemy_team: int = 1
+#var enemy_mask: int = 2
+var faction_index: int = -1
 var height: float = 5
 var random_height: bool = true
 var transforms: Dictionary = {}
@@ -62,11 +63,14 @@ func set_entry_method(method: int, quiet: bool = false, skip_runtime_stats: bool
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
 	combined_stats['entry_method'] = method
 
-func set_team(new_team: int):
-	team=new_team
-	enemy_team=1-new_team
-	collision_layer = 1<<team
-	enemy_mask = 1<<enemy_team
+func set_faction_index(new_faction_index: int):
+	faction_index = new_faction_index
+
+#func set_team(new_team: int):
+#	team=new_team
+#	enemy_team=1-new_team
+#	collision_layer = 1<<team
+#	enemy_mask = 1<<enemy_team
 
 func get_combined_aabb(node: Node = self) -> AABB:
 	if override_size.length()>1e-5:
@@ -167,10 +171,11 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['fuel_efficiency']=fuel_efficiency
 	stats['aabb']=get_combined_aabb()
 	stats['turn_drag']=base_turn_drag
-	stats['enemy_mask']=enemy_mask
+#	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
-	stats['team']=team
-	stats['enemy_team']=enemy_team
+#	stats['team']=team
+#	stats['enemy_team']=enemy_team
+	stats['faction_index']=faction_index
 	stats['rotation']=rotation
 	stats['position']=Vector3(translation.x,0,translation.z)
 	stats['transform']=transform
@@ -187,12 +192,12 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	skipped_runtime_stats = skip_runtime_stats
 
 func update_stats():
-	combined_stats['team']=team
-	combined_stats['enemy_team']=enemy_team
+	combined_stats['faction_index']=faction_index
+#	combined_stats['enemy_team']=enemy_team
 	combined_stats['name']=name
-	combined_stats['enemy_mask']=enemy_mask
+#	combined_stats['enemy_mask']=enemy_mask
 	combined_stats['rid'] = get_rid()
-	combined_stats['team']=team
+#	combined_stats['team']=team
 	combined_stats['rotation']=rotation
 	combined_stats['position']=Vector3(translation.x,0,translation.z)
 	combined_stats['transform']=transform

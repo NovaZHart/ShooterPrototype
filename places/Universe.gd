@@ -590,6 +590,14 @@ func decode_places(json_string,context: String) -> bool:
 		push_error(context+': no ship_designs to load')
 		return false
 	
+	var content_factions = content['factions']
+	if content_factions:
+		for child_name in content_factions.get_child_names():
+			var child = content_factions.get_child_with_name(child_name)
+			if child:
+				content_factions.remove_child(child)
+				var _discard = factions.add_child(child)
+	
 	var content_fleets = content['fleets']
 	if content_fleets:
 		var _discard = fleets.remove_all_children()

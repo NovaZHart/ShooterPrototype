@@ -225,6 +225,9 @@ func astral_gate_path() -> NodePath:
 #		stats[team]['count'] += size
 #	return result
 
+func process_space(_system,_delta,_immediate_entry: bool = false) -> Array:
+	return []
+
 func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true):
 	system.update_space_background(self)
 	system.raise_sun = not show_on_map
