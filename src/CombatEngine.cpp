@@ -512,7 +512,6 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
     const Planet &planet = p_planet->second;
 
     matches++;
-    goal.suggested_spawn_point = planet.position;
 
     // The goal has a specific planet
     PlanetGoalData result = update_planet_faction_goal(faction,planet,goal);
@@ -521,15 +520,19 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
       best = result;
       absmax_desire = fabsf(result.spawn_desire);
       min_desire = result.spawn_desire;
+      goal.suggested_spawn_point = planet.position;
     } else {
-      if(result.spawn_desire>best.spawn_desire)
+      if(result.spawn_desire>best.spawn_desire) {
         best = result;
+        goal.suggested_spawn_point = planet.position;
+      }
       absmax_desire = max(absmax_desire,fabsf(result.spawn_desire));
       min_desire = min(min_desire,result.spawn_desire);
     }
     
-    if(goal.target_object_id>=0)
+    if(goal.target_object_id>=0) {
       break;
+    }
   }
 
   if(matches>0) {
@@ -562,35 +565,35 @@ void CombatEngine::update_all_faction_goals() {
 }
 
 void CombatEngine::faction_ai_step() {
-  if(p_tick==1)
+  //  if(p_tick==1)
     update_all_faction_goals();
-  if(p_tick % 2) {
-    // Update a planet on odd ticks.
-    planets_iter p_planet = planets.find(last_planet_updated);
-    if(p_planet!=planets.end())
-      p_planet++;
-    if(p_planet==planets.end())
-      p_planet=planets.begin();
-    if(p_planet!=planets.end()) {
-      p_planet->second.update_goal_data(ships);
-      last_planet_updated = p_planet->first;
-    } else
-      last_planet_updated = -1;
-  } else {
-    // Update a faction on even ticks
-    factions_iter p_faction = factions.find(last_faction_updated);
-    if(p_faction!=factions.end())
-      p_faction++;
-    if(p_faction==factions.end())
-      p_faction=factions.begin();
-    if(p_faction!=factions.end()) {
-      Faction &faction = p_faction->second;
-      for(auto &goal : faction.get_goals())
-        update_one_faction_goal(faction,goal);
-      last_faction_updated = p_faction->first;
-    } else
-      last_faction_updated = FACTION_ARRAY_SIZE;
-  }
+  // if(p_tick % 2) {
+  //   // Update a planet on odd ticks.
+  //   planets_iter p_planet = planets.find(last_planet_updated);
+  //   if(p_planet!=planets.end())
+  //     p_planet++;
+  //   if(p_planet==planets.end())
+  //     p_planet=planets.begin();
+  //   if(p_planet!=planets.end()) {
+  //     p_planet->second.update_goal_data(ships);
+  //     last_planet_updated = p_planet->first;
+  //   } else
+  //     last_planet_updated = -1;
+  // } else {
+  //   // Update a faction on even ticks
+  //   factions_iter p_faction = factions.find(last_faction_updated);
+  //   if(p_faction!=factions.end())
+  //     p_faction++;
+  //   if(p_faction==factions.end())
+  //     p_faction=factions.begin();
+  //   if(p_faction!=factions.end()) {
+  //     Faction &faction = p_faction->second;
+  //     for(auto &goal : faction.get_goals())
+  //       update_one_faction_goal(faction,goal);
+  //     last_faction_updated = p_faction->first;
+  //   } else
+  //     last_faction_updated = FACTION_ARRAY_SIZE;
+  // }
 }
 
 /**********************************************************************/

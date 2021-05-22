@@ -311,11 +311,8 @@ func pack_planet_stats_if_not_sent() -> Array:
 #		else:
 #			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
-func _physics_process(delta):
-	combat_engine.combat_state.immediate_entry = false
-	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
-	physics_tick += 1
-	
+func process_space(delta):
+	combat_engine.combat_state.immediate_entry = physics_tick<10
 	Player.system.process_space(self,delta)
 	var make_me: Array = combat_engine.combat_state.process_space(delta)
 	
@@ -342,6 +339,11 @@ func _physics_process(delta):
 			break
 		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
+
+func _physics_process(delta):
+	combat_engine.combat_state.immediate_entry = false
+	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
+	physics_tick += 1
 	
 	combat_engine_mutex.lock() # ensure clear() does not run during _physics_process()
 	
@@ -420,6 +422,7 @@ func _physics_process(delta):
 	ship_stats = result
 	
 	combat_engine_mutex.unlock()
+	process_space(delta)
 
 func get_main_camera() -> Node:
 	return $TopCamera

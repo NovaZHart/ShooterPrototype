@@ -2,7 +2,10 @@
   "factions": [ "FactionList", {
       "initial_player_faction": [ "Faction", "initial_player_faction", [
           "Array"
-      ], 0.0, {}, {} ],
+      ], 0.0, {
+              "raiders": -100,
+              "locals": 100
+      }, {} ],
       "locals": [ "Faction", "Locals", [
             "Array",
             {

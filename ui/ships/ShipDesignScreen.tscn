@@ -16,13 +16,13 @@
 size = 14
 font_data = ExtResource( 10 )
 
-[sub_resource type="Theme" id=4]
+[sub_resource type="Theme" id=3]
 default_font = SubResource( 1 )
 
-[sub_resource type="Theme" id=5]
+[sub_resource type="Theme" id=2]
 default_font = SubResource( 1 )
 
-[sub_resource type="World" id=3]
+[sub_resource type="World" id=4]
 environment = ExtResource( 6 )
 
 [node name="ShipDesignScreen" type="Panel"]
@@ -207,29 +207,40 @@ margin_right = 726.0
 margin_bottom = 600.0
 size_flags_stretch_ratio = 2.5
 
-[node name="LocationLabel" type="Label" parent="All/Show"]
-margin_left = 494.0
-margin_right = 726.0
-margin_bottom = 32.0
-theme = SubResource( 4 )
-text = "Planet Name"
-align = 2
-script = ExtResource( 11 )
+[node name="Text" type="GridContainer" parent="All/Show"]
+anchor_right = 1.0
+columns = 2
 __meta__ = {
 "_edit_use_anchors_": false
 }
 
-[node name="CargoMass" type="Label" parent="All/Show"]
-margin_right = 216.0
-margin_bottom = 17.0
+[node name="CargoMass" type="Label" parent="All/Show/Text"]
+margin_right = 361.0
+margin_bottom = 18.0
 rect_min_size = Vector2( 0, 18 )
 hint_tooltip = "Total mass in your ship's cargo hold, and maximum carrying capacity. More mass slows down your ship. 
 You cannot leave if your ship is beyond capacity."
 mouse_filter = 1
 size_flags_horizontal = 3
-theme = SubResource( 5 )
+size_flags_vertical = 1
+theme = SubResource( 3 )
 text = "Cargo: 999/999 kg"
 valign = 1
+script = ExtResource( 11 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="LocationLabel" type="Label" parent="All/Show/Text"]
+margin_left = 365.0
+margin_right = 726.0
+margin_bottom = 18.0
+grow_horizontal = 0
+size_flags_horizontal = 3
+size_flags_vertical = 1
+theme = SubResource( 2 )
+text = "Planet Name"
+align = 2
 script = ExtResource( 11 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -250,7 +261,7 @@ __meta__ = {
 [node name="View" type="Viewport" parent="Drag"]
 size = Vector2( 40, 40 )
 own_world = true
-world = SubResource( 3 )
+world = SubResource( 4 )
 handle_input_locally = false
 render_target_update_mode = 3
 
