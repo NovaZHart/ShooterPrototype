@@ -326,7 +326,7 @@ func _ready():
 			push_warning(system_name+': could not add system')
 	_on_destination_system_changed(Player.destination_system)
 	center_view()
-	combat_system.init_combat_state(null,self,false)
+	combat_engine.combat_system.init_combat_state(null,self,false)
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
 	if OK!=get_viewport().connect('size_changed',self,'_on_viewport_size_changed'):

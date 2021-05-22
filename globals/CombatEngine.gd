@@ -54,7 +54,7 @@ func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	# system_info = SystemData for current system or null for Hyperspace
 	# system = System or Hyperspace
 	# immediate_entry = if true, ships have no entry animation
-	combat_state = CombatState.new(system_info,system,immediate_entry)
+	combat_state = Factions.CombatState.new(system_info,system,immediate_entry)
 
 func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
@@ -121,7 +121,7 @@ func ai_step(delta: float,new_ships: Array,new_planets: Array,
 	var faction_info = array[len(array)-1]
 	var results: Dictionary = Dictionary()
 	for iresult in range(len(array)-2):
-		results[array[i]['name']] = array[i]
+		results[array[iresult]['name']] = array[iresult]
 	results['weapon_rotations'] = weapon_rotations.duplicate(true)
 	results['faction_info'] = faction_info.duplicate(true)
 	physics_mutex.unlock()

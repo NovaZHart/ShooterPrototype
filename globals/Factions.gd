@@ -28,6 +28,8 @@ class Faction extends simple_tree.SimpleNode:
 			string_affinities_: Dictionary = {}):
 		default_resources=default_resources_
 		affinities=string_affinities_.duplicate(true)
+		display_name=display_name_
+		fleets=fleets_
 
 	func _ready():
 		if not display_name:
@@ -42,10 +44,10 @@ class Faction extends simple_tree.SimpleNode:
 			faction_info = {}
 		var resources = faction_info.get('starting_money',default_resources)
 		# Default gain rate is full resources every 5 minutes
-		var gain_rate = faction_info.get('income_per_second',resources/300.)
+		var gain_rate = faction_info.get('income_per_second',resources/300.0)
 		var fleet_type_weights = faction_info.get('fleet_type_weights',{})
-		var state = FactionState.new(resources,gain_rate,min_fleet_cost,
-			affinities.duplicate(true),fleet_type_weights.duplicate(true))
+		var state = FactionState.new(resources,gain_rate,0.0,
+			fleet_type_weights.duplicate(true))
 		_impl_calculate_fleet_stats(state,gain_rate)
 		_impl_store_goals(combat_state,state)
 		return state
@@ -55,12 +57,12 @@ class Faction extends simple_tree.SimpleNode:
 		var threat_per_cost: float = 0.0
 		var threat_per_second: float = 0.0
 		var weight_sum: float = 0.0
+# warning-ignore:unused_variable
 		var count: int = 0
-		var weights: Array = []
 		var spawn_chance: float = 0
-		for fleet in fleets:
+		for ifleet in range(len(fleets)):
 			var fleet = fleets[ifleet]
-			var fleet_type = fleets.get('type','')
+			var fleet_type = fleet.get('type','')
 			var type_weight = faction_state.fleet_type_weights.get(fleet_type,0.0)
 			if type_weight<=0.0:
 				continue # this fleet does not appear in the system
@@ -94,7 +96,7 @@ class Faction extends simple_tree.SimpleNode:
 			for i in range(len(faction_state.fleet_weights)):
 				faction_state.fleet_weights[i] = spawn_chance/weight_sum
 
-	func _impl_store_goals(combat_state: CombatState,faction_state: FactionState):
+	func _impl_store_goals(combat_state: CombatState,_faction_state: FactionState):
 		if not combat_state.system_info:
 			return
 		var my_name = get_name()
@@ -110,17 +112,19 @@ class Faction extends simple_tree.SimpleNode:
 			var spawn_point: Vector3 = Vector3(0,0,0)
 			var target_rid: RID = RID()
 			if target_path:
-				var target_node = combat_state.system_info.get_node_or_null(target_node)
+				var target_node = combat_state.system_info.get_node_or_null(target_path)
 				if not target_node:
 					push_warning('Ignoring goal with invalid target path "'+str(target_path)+'": '+str(goal))
 					continue
 				var unique_name = target_node.make_unique_name()
-				var spawned_planet = combat_state.system.get_node_or_null(NodePath("Planets/"+target_location)
+				var spawned_planet = combat_state.system.get_node_or_null(
+					NodePath("Planets/"+unique_name))
 				if not spawned_planet:
 					push_warning('Location "'+str(unique_name)+'" was not spawned in the system!')
 				else:
 					target_rid = spawned_planet.get_rid()
-			state.goals.append({
+					spawn_point = spawned_planet.position()
+			combat_state.goals.append({
 				'action':goal.get('action','patrol'),
 				'target_faction':target_faction,
 				'target_rid':target_rid,
@@ -134,9 +138,9 @@ class Faction extends simple_tree.SimpleNode:
 		return float(affinities.get(other_faction_index,0.0))
 
 	func encode():
-		return [ 'Faction',
+		return [ 'Faction', display_name,
 			game_state.Universe.encode_helper(fleets), default_resources,
-			game_state.Universe.encode_helper(string_affinities),
+#			game_state.Universe.encode_helper(string_affinities),
 			game_state.Universe.encode_children(self) ]
 
 #
@@ -179,25 +183,25 @@ class Faction extends simple_tree.SimpleNode:
 				break
 			remainder -= goal_weight
 		return decision_index
-	func process_space(combat_state: CombatState,delta: float):
-		var faction_state = get_or_add_faction_state(combat_state)
-		faction_state.resources_available += delta*faction_state.resource_gain_rate
-		if faction_state.resources_available < faction_state.min_resources_to_act:
-			return
-		if not fleets:
-			return
-		var weights = _impl_process_goal_weights(combat_state,faction_state)
-		if not weights:
-			return
-		var decision_index = _impl_choose_goal_from_weights(weights)
-		if decision_index<len(weights) and decision_index>=0:
-			var action = weights[decision_index]
-			call('spawn_'+action[1],action[3])
+#	func process_space(combat_state: CombatState,delta: float):
+#		var faction_state = get_or_add_faction_state(combat_state)
+#		faction_state.resources_available += delta*faction_state.resource_gain_rate
+#		if faction_state.resources_available < faction_state.min_resources_to_act:
+#			return
+#		if not fleets:
+#			return
+#		var weights = _impl_process_goal_weights(combat_state,faction_state)
+#		if not weights:
+#			return
+#		var decision_index = _impl_choose_goal_from_weights(weights)
+#		if decision_index<len(weights) and decision_index>=0:
+#			var action = weights[decision_index]
+#			call('spawn_'+action[1],action[3])
 
 func decode_Faction(v):
-	var result = Faction.new(
-		game_state.Universe.decode_helper(v[1]), float(v[2]),
-		game_state.Universe.decode_helper(v[3]))
+	var result = Faction.new(String(v[1]),
+		game_state.Universe.decode_helper(v[2]), float(v[3]),
+		game_state.Universe.decode_helper(v[4]))
 	game_state.Universe.decode_children(result)
 	return result
 
@@ -208,6 +212,7 @@ class FactionState extends Reference:
 	var resources_available: float
 	var resource_gain_rate: float
 	var min_resources_to_act: float
+	const max_available_fleets: int = 5
 	var goals: Array = []
 	var fleets = []
 	var threat_per_second: float
@@ -225,7 +230,7 @@ class FactionState extends Reference:
 		fleet_type_weights = fleet_type_weights_
 
 	# Prepare data for the native Faction class
-	func data_for_native(combat_state: CombatState,faction_index: int):
+	func data_for_native(combat_state: CombatState,_faction_index: int):
 		var result = { 'faction': faction_index, 'goals': [], 'threat_per_second':threat_per_second }
 		for goal in goals:
 			var target_faction: String = goal['target_faction']
@@ -237,7 +242,7 @@ class FactionState extends Reference:
 			result['goals'].append(rgoal)
 
 	# Update spawn info and goal status from the native Faction class.
-	func update_from_native(combat_state: CombatState,faction_index: int,data: Dictionary)
+	func update_from_native(_combat_state: CombatState,_faction_index: int,data: Dictionary):
 		resources_available += data.get("recouped_resources",0.0)
 		var goal_status: PoolRealArray = data['goal_status']
 		var spawn_desire: PoolRealArray = data['spawn_desire']
@@ -247,7 +252,7 @@ class FactionState extends Reference:
 			igoal += 1
 			goal['goal_status'] = goal_status[igoal]
 			goal['spawn_desire'] = spawn_desire[igoal]
-			goal['suggested_spawn_point'] = suggested_spawn_point[igoal]
+			goal['suggested_spawn_point'] = suggested_spawn_points[igoal]
 
 	# Given an amount of time that has passed (<=1 second), update money and available fleets.
 	func process_space(delta):
@@ -258,22 +263,17 @@ class FactionState extends Reference:
 			if len(available_fleets)>max_available_fleets:
 				var _discard = available_fleets.pop_front()
 
-	func spawn_one_fleet():
-		var goal = choose_random_goal()
-		for fleets in available_fleets:
-			if not fleet_node or fleet['cost'] > resources_available or \
-					not combat_state.can_spawn_fleet(faction_index,fleet)
-				return combat_state.spawn_fleet(fleet['type'],fleet_index)
-			
+	func spawn_one_fleet(combat_state):
 		var failed_fleets = 0
 		while failed_fleets<5 and resources_available>min_fleet_cost:
 			var fleet = next_fleet(null)
 			var fleet_node = game_state.fleets.get_child_with_name(fleet['type'])
+			if not fleet_node or fleet['cost'] > resources_available or \
+					not game_state.combat_state.can_spawn_fleet(faction_index,fleet):
 				failed_fleets += 1
 				continue
 			var goal = choose_random_goal()
-			var planet = random_planet_for(goal["action"],planets)
-	
+			return combat_state.spawn_fleet(fleet['type'],faction_index,goal['suggested_spawn_point'])
 
 	# Given an amount of time that has passed (<= 1 second), decide what fleet may be spawned.
 	# If delta is null, then a fleet is always returned (if there is one)
@@ -321,38 +321,38 @@ class FactionState extends Reference:
 		var index = min(len(planets)-1,weights.bsearch(randf()*accum))
 		return planets[index]
 
-	# FIXME: DELETE spawn_initial_fleet
-	func spawn_initial_fleet(combat_state: CombatState,faction_index: int) -> Array:
-		if not fleets or not goals:
-			return
-		var planets: Array = []
-		var weights: Array = []
-		var system_planets_node = combat_state.system.get_node_or_null("Planets")
-		if system_planets_node:
-			for planet in system_planets_node.get_children():
-				var planet_info = game_state.systems.get_node_or_null(planet.game_state_path)
-				if planet_info:
-					var weight: float = sqrt(max(100.0,planet_info.total_population()))
-					weight += sqrt(max(0.0,planet_info.total_industry()))
-					planets.append({
-						"position":planets.get_position(),
-						"weight":weight,
-						"info":planet_info,
-						"node":system_planets_node
-					})
-					weights.append(weight)
-		var failed_fleets = 0
-		while failed_fleets<5 and resources_available>min_fleet_cost:
-			var fleet = next_fleet(null)
-			var fleet_node = game_state.fleets.get_child_with_name(fleet['type'])
-			if not fleet_node or fleet['cost'] > resources_available or \
-					not combat_state.can_spawn_fleet(faction_index,fleet)
-				failed_fleets += 1
-				continue
-			var goal = choose_random_goal()
-			var planet = random_planet_for(goal["action"],planets)
-			return combat_state.spawn_fleet(fleet['type'],faction_index)
-		return null
+#	# FIXME: DELETE spawn_initial_fleet
+#	func spawn_initial_fleet(combat_state: CombatState,faction_index: int) -> Array:
+#		if not fleets or not goals:
+#			return
+#		var planets: Array = []
+#		var weights: Array = []
+#		var system_planets_node = combat_state.system.get_node_or_null("Planets")
+#		if system_planets_node:
+#			for planet in system_planets_node.get_children():
+#				var planet_info = game_state.systems.get_node_or_null(planet.game_state_path)
+#				if planet_info:
+#					var weight: float = sqrt(max(100.0,planet_info.total_population()))
+#					weight += sqrt(max(0.0,planet_info.total_industry()))
+#					planets.append({
+#						"position":planets.get_position(),
+#						"weight":weight,
+#						"info":planet_info,
+#						"node":system_planets_node
+#					})
+#					weights.append(weight)
+#		var failed_fleets = 0
+#		while failed_fleets<5 and resources_available>min_fleet_cost:
+#			var fleet = next_fleet(null)
+#			var fleet_node = game_state.fleets.get_child_with_name(fleet['type'])
+#			if not fleet_node or fleet['cost'] > resources_available or \
+#					not combat_state.can_spawn_fleet(faction_index,fleet):
+#				failed_fleets += 1
+#				continue
+#			var goal = choose_random_goal()
+#			var planet = random_planet_for(goal["action"],planets)
+#			return combat_state.spawn_fleet(fleet['type'],faction_index)
+#		return []
 	
 
 class CombatState extends Reference:
@@ -369,14 +369,16 @@ class CombatState extends Reference:
 	var faction_int2name: Dictionary = {}
 	var faction_name2int: Dictionary = {}
 	var faction_int_affinity: Dictionary = {}
+	
+	var player_faction_index: int
 
 	func _init(system_info_, system_, immediate_entry_: bool):
 		system_info = system_info_
 		system = system_
 		immediate_entry = immediate_entry_
 #		system_tactical_data = TacticalData.new(system_info.get_path(),system_info.name)
-		if system_info:
-			_impl_add_planets(system_info)
+#		if system_info:
+#			_impl_add_planets(system_info)
 		_impl_add_faction(player_faction_name)
 		player_faction_index = faction_name2int[player_faction_name]
 		assert(player_faction_index==0)
@@ -388,7 +390,8 @@ class CombatState extends Reference:
 	func get_faction_affinity(from_faction: int, to_faction: int):
 		var key = (from_faction<<Factions.FACTION_BIT_SHIFT) | to_faction
 		return faction_int_affinity.get(key,0)
-	func get_faction_affinities(from_faction: int):
+	func get_faction_affinities(from_faction: int) -> Dictionary:
+		var result: Dictionary = {}
 		for to_faction in faction_int2name:
 			if to_faction==from_faction:
 				continue
@@ -396,6 +399,7 @@ class CombatState extends Reference:
 			var affinity = faction_int_affinity.get(key,0)
 			if affinity!=0:
 				result[to_faction] = affinity
+		return result
 	func get_faction_state(faction_name):
 		return faction_states.get(faction_name,null)
 #	func get_planet_tactical_data(system_relative_path:NodePath):
@@ -406,7 +410,7 @@ class CombatState extends Reference:
 		var added: bool = false
 		for name in faction_names:
 			if not faction_name2int.has(name):
-				_impl_add_faction(faction_name)
+				_impl_add_faction(name)
 				added = true
 		if added:
 			for name in faction_name2int:
@@ -417,39 +421,34 @@ class CombatState extends Reference:
 			"player_faction":player_faction_index }
 		for faction_name in faction_states:
 			var faction_int = faction_name2int[faction_name]
-			var faction = game_state.get(faction_name,null)
+			var faction = game_state.factions.get_child_with_name(faction_name)
 			if faction:
-				active_factions[faction_int] = faction.data_for_native(self)
+				result['active_factions'][faction_int] = faction.data_for_native(self)
+			else:
+				push_warning('Cannot find faction named "'+faction_name+'" in universe')
 
-	func update_from_native(native_data):
-		return
-		# FIXME: delete the rest
-		var system_data = native_data.get('system_data',null)
-		if system_data:
-			system_data.update_from_native(system_data)
-		for native_planet_data in native_data.get('planet_data',null)
-			var unique_name = native_planet_data.get('name','')
-			var planet_data = planet_tactical_data.get(unique_name,null)
-			if planet_data:
-				planet_data.update_from_native(native_planet_data)
+	func update_from_native(native_data: Dictionary):
+		for faction_index in native_data:
+			var faction = faction_states[faction_int2name[faction_index]]
+			faction.update_from_native(native_data[faction_index])
 
 	func _impl_add_faction_affinities(faction_name):
 		var faction = game_state.factions.get_child_with_name(faction_name)
 		if not faction:
 			return
-		var from_index: int = faction_name2int.find(faction_name,-1)
+		var from_index: int = faction_name2int.get(faction_name,-1)
 		if from_index<0:
-			_impl_add_faction(name)
-			from_index = faction_name2int.find(faction_name,-1)
+			_impl_add_faction(faction_name)
+			from_index = faction_name2int.get(faction_name,-1)
 			if from_index<0:
 				push_error('Cannot add faction "'+str(faction_name)+'"')
 				return
 		for affinity_to_name in faction.affinities:
 			var to_index: int = faction_name2int.get(affinity_to_name,-1)
 			if to_index>=0:
-				faction_int_affinity[(from_faction << FACTION_BIT_SHIFT)|to_faction] = \
+				faction_int_affinity[(from_index << FACTION_BIT_SHIFT)|to_index] = \
 					faction.affinities[affinity_to_name]
-	func _impl_add_faction(name):
+	func _impl_add_faction(faction_name):
 		if not faction_name or faction_states.has(faction_name):
 			return
 		var ifaction = faction_states.size()
@@ -463,16 +462,16 @@ class CombatState extends Reference:
 				faction_int2name[ifaction] = faction_name
 				faction_name2int[faction_name] = ifaction
 				faction_states[faction_name].faction_index = ifaction
-	func _impl_add_planets(node):
-		return
-		# FIXME: delete the rest
-		if node.has_method('is_SpaceObjectData'):
-			var unique_name = node.make_unique_name()
-			planet_tactical_data[unique_name] = TacticalData.new(node.get_path(),node.make_unique_name())
-		for child_name in node.get_child_names():
-			var child = node.get_child_with_name(child_name)
-			if child:
-				_impl_add_planets(child)
+#	func _impl_add_planets(node):
+#		return
+#		# FIXME: delete the rest
+#		if node.has_method('is_SpaceObjectData'):
+#			var unique_name = node.make_unique_name()
+#			planet_tactical_data[unique_name] = TacticalData.new(node.get_path(),node.make_unique_name())
+#		for child_name in node.get_child_names():
+#			var child = node.get_child_with_name(child_name)
+#			if child:
+#				_impl_add_planets(child)
 
 	func process_space(delta: float) -> Array:
 		for faction in faction_states.values():
@@ -484,13 +483,14 @@ class CombatState extends Reference:
 			# Fixme: sort factions somehow? Perhaps weakest first?
 			for faction in faction_states.values():
 				result += faction.spawn_one_fleet()
+		return result
 
 	func spawn_player_ship():
 		var planet_data = game_state.systems.get_node_or_null(Player.player_location);
 		var entry_method: int = combat_engine.ENTRY_FROM_RIFT
 		var center: Vector3 = Vector3(0,0,0)
-		var angle = rng.randf()*2*PI
-		var add_radius = rng.randf()
+		var angle = randf()*2*PI
+		var add_radius = randf()
 		add_radius *= add_radius*100
 		var safe_zone = 25
 		if planet_data and planet_data.has_method("is_SpaceObjectData"):
@@ -523,28 +523,31 @@ class CombatState extends Reference:
 
 	# Spawn all ships from a Fleet node. Intended to be called from FleetInfo
 	func spawn_fleet(fleet_node: simple_tree.SimpleNode, 
-			faction_index: int) -> Array:
+			faction_index: int, where=null) -> Array:
 		if faction_index<0:
 			return []
+		var center: Vector3 = where
 		var planets: Array = system.get_node("Planets").get_children()
-		var center: Vector3 = Vector3()
-		var add_radius = 100*rng.randf()*rng.randf()
+		var add_radius = 100*randf()*randf()
 		var safe_zone = 25
 		var entry_method = combat_engine.ENTRY_FROM_RIFT
 		if immediate_entry:
-			entry_method = ENTRY_COMPLETE
+			entry_method = combat_engine.ENTRY_COMPLETE
 		if not system_info:
-			entry_method = ENTRY_FROM_RIFT_STATIONARY
+			entry_method = combat_engine.ENTRY_FROM_RIFT_STATIONARY
 		elif combat_engine.ENTRY_FROM_ORBIT==entry_method and planets:
-			var planet: Spatial = planets[randi()%len(planets)]
-			center = planet.translation
-			add_radius *= planet.get_radius()/100
+			if not center:
+				var planet: Spatial = planets[randi()%len(planets)]
+				center = planet.translation
+				add_radius *= planet.get_radius()/100
 			safe_zone = 0
-		elif combat_engine.ENTRY_FROM_RIFT!=entry_method and planets:
+		elif combat_engine.ENTRY_FROM_RIFT!=entry_method and planets and not center:
 			var planet: Spatial = planets[randi()%len(planets)]
 			center = planet.translation
+		if not center:
+			center = Vector3(0,0,0)
 		var result: Array = Array()
-		var angle = rng.randf()*2*PI
+		var angle = randf()*2*PI
 		for design_name in fleet_node.get_designs():
 			var num_ships = int(fleet_node.spawn_count_for(design_name))
 			for _n in range(num_ships):
@@ -559,7 +562,7 @@ class CombatState extends Reference:
 						' wants to spawn missing design '+str(design.get_path()))
 		return result
 
-	func fill_system(planet_time: float, ship_time: float, detail: int):
+	func fill_system(_planet_time: float, _ship_time: float, _detail: int):
 		return spawn_player_ship()
 
 

@@ -362,6 +362,10 @@ func _physics_process(delta):
 				if weapon!=null:
 					weapon.rotation.y = ship[weapon_path]
 			continue
+		elif ship_name=='faction_info':
+			# This is actually information about faction states, not a ship.
+			combat_engine.combat_state.update_from_native(ship)
+			continue
 		var fate: int = ship.get('fate',combat_engine.FATED_TO_FLY)
 		if fate<=0:
 			continue # ship is still flying
@@ -476,9 +480,9 @@ func clear() -> void: # must be called in visual thread
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
 	#Player.system.fill_system(self,planet_time,ship_time,detail)
-	combat_system.init_combat_state(Player.system,self,true)
+	combat_engine.init_combat_state(Player.system,self,true)
 	Player.system.fill_system(self,planet_time,ship_time,detail)
-	var make_me: Array = CombatEngine.combat_state.fill_system(planet_time,ship_time,detail)
+	var make_me: Array = combat_engine.combat_state.fill_system(planet_time,ship_time,detail)
 	team_stats_mutex.lock()
 	for ship in make_me:
 		var team: int = ship[4] # "team" argument to spawn_ship

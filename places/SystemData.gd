@@ -25,6 +25,10 @@ const default_active_factions: Dictionary = {
 	},
 }
 
+const default_faction_goals: Array = [
+	{ 'faction_name':'locals','target_faction':'raiders' },
+	{ 'faction_name':'raiders','target_faction':'locals' },
+]
 
 var rng
 
@@ -221,7 +225,7 @@ func astral_gate_path() -> NodePath:
 #		stats[team]['count'] += size
 #	return result
 
-func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true) -> null:
+func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true):
 	system.update_space_background(self)
 	system.raise_sun = not show_on_map
 	for child in get_children():
@@ -230,4 +234,4 @@ func fill_system(var system,planet_time: float,ship_time: float,detail: float,sh
 #	var result = [spawn_player(system,planet_time)]
 #	if ships:
 #		result += process_space(system,ship_time,true)
-	return result
+	return []
