@@ -87,7 +87,7 @@ class Faction extends simple_tree.SimpleNode:
 				local_fleet['cost'] = cost
 				local_fleet['threat'] = threat
 				local_fleet['frequency'] = frequency
-				local_fleet['ships'] = data.spawn_count()
+				local_fleet['spawn_count'] = data.spawn_count()
 				faction_state.fleets.append(local_fleet)
 		faction_state.fleet_weights.append(weight_sum)
 		threat_per_cost /= max(1.0,weight_sum)
@@ -141,63 +141,7 @@ class Faction extends simple_tree.SimpleNode:
 	func encode():
 		return [ 'Faction', display_name,
 			game_state.Universe.encode_helper(fleets), default_resources,
-#			game_state.Universe.encode_helper(string_affinities),
 			game_state.Universe.encode_children(self) ]
-
-#
-# NOT INCORPORATED:
-#
-#	func _impl_process_goal_weights(combat_state: CombatState,state: FactionState):
-#		if not combat_state.system_info:
-#			return
-#		var weights: Array = []
-#		var goals = combat_state.system_info.faction_goals.get(name,[])
-#		var igoal = -1
-#		for goal in goals:
-#			igoal += 1
-#			if igoal>=state.goal_status.size():
-#				push_error('Not enough goal statuses for goal list')
-#				break
-#			var goal_status = state.goal_status[igoal]
-#			var goal_name = goal.get('goal_action','')
-#			if goal_name:
-#				var args = {
-#					'target_faction':int(goal.get('target_faction',ALL_FACTIONS)),
-#					'target_location':goal.get('target_location',''),
-#					'radius':float(goal.get('radius',100.0)),
-#					'weight':max(0.0,float(goal.get('weight',1.0))),
-#					'goal_status':goal_status,
-#					'suggested_spawn_point':state.suggested_spawn_point[igoal],
-#				}
-#				weights.append([igoal,goal_name,clamp(call('weight_'+goal_name,args),0.0,1e12),args])
-#		return weights
-#	func _impl_choose_goal_from_weights(weights):
-#		var total_weight = 0
-#		for goal_data in weights:
-#			total_weight += goal_data[2]
-#		var decision_weight = randf()*total_weight
-#		var remainder = decision_weight
-#		var decision_index = 0
-#		while decision_weight<len(weights)-1:
-#			var goal_weight = weights[decision_index][2]
-#			if decision_weight<=remainder:
-#				break
-#			remainder -= goal_weight
-#		return decision_index
-#	func process_space(combat_state: CombatState,delta: float):
-#		var faction_state = get_or_add_faction_state(combat_state)
-#		faction_state.resources_available += delta*faction_state.resource_gain_rate
-#		if faction_state.resources_available < faction_state.min_resources_to_act:
-#			return
-#		if not fleets:
-#			return
-#		var weights = _impl_process_goal_weights(combat_state,faction_state)
-#		if not weights:
-#			return
-#		var decision_index = _impl_choose_goal_from_weights(weights)
-#		if decision_index<len(weights) and decision_index>=0:
-#			var action = weights[decision_index]
-#			call('spawn_'+action[1],action[3])
 
 func decode_Faction(v):
 	var result = Faction.new(String(v[1]),
@@ -282,10 +226,9 @@ class FactionState extends Reference:
 			if fleet['cost'] > resources_available:
 				failed_fleets += 1
 				continue
-#			if not combat_state.can_spawn_fleet(faction_index,fleet):
-#				print('Combat state says we cannot spawn fleet '+str(fleet_name))
-#				failed_fleets += 1
-#				continue
+			if not combat_state.can_spawn_fleet(faction_index,fleet):
+				failed_fleets += 1
+				continue
 			var goal = choose_random_goal()
 			resources_available -= fleet['cost']
 			return combat_state.spawn_fleet(fleet_node,faction_index,goal['suggested_spawn_point'])
@@ -319,58 +262,6 @@ class FactionState extends Reference:
 		var goal_index = min(len(goals)-1,spawn_weights.bsearch(randf()*accum))
 		return goals[goal_index]
 
-#	# FIXME: random_planet_for is probably not used
-#	func random_planet_for(goal_action: String,planets: Array,planet_weights: Array) -> Dictionary:
-#		if not planets:
-#			return { "position":Vector3(0,0,0), "weight":0.0, "info":null, "node":null }
-#		var weights = planet_weights.duplicate(true)
-#		if goal_action=="patrol":
-#			weights = []
-#			for i in len(weights):
-#				weights[i] = log(max(10,weights[i]))
-#		var accum: float = 0
-#		for i in len(weights):
-#			var w = weights[i]
-#			weights[i] = accum
-#			accum += w
-#		weights.append(accum)
-#		var index = min(len(planets)-1,weights.bsearch(randf()*accum))
-#		return planets[index]
-
-#	# FIXME: DELETE spawn_initial_fleet
-#	func spawn_initial_fleet(combat_state: CombatState,faction_index: int) -> Array:
-#		if not fleets or not goals:
-#			return
-#		var planets: Array = []
-#		var weights: Array = []
-#		var system_planets_node = combat_state.system.get_node_or_null("Planets")
-#		if system_planets_node:
-#			for planet in system_planets_node.get_children():
-#				var planet_info = game_state.systems.get_node_or_null(planet.game_state_path)
-#				if planet_info:
-#					var weight: float = sqrt(max(100.0,planet_info.total_population()))
-#					weight += sqrt(max(0.0,planet_info.total_industry()))
-#					planets.append({
-#						"position":planets.get_position(),
-#						"weight":weight,
-#						"info":planet_info,
-#						"node":system_planets_node
-#					})
-#					weights.append(weight)
-#		var failed_fleets = 0
-#		while failed_fleets<5 and resources_available>min_fleet_cost:
-#			var fleet = next_fleet(null)
-#			var fleet_node = game_state.fleets.get_child_with_name(fleet['type'])
-#			if not fleet_node or fleet['cost'] > resources_available or \
-#					not combat_state.can_spawn_fleet(faction_index,fleet):
-#				failed_fleets += 1
-#				continue
-#			var goal = choose_random_goal()
-#			var planet = random_planet_for(goal["action"],planets)
-#			return combat_state.spawn_fleet(fleet['type'],faction_index)
-#		return []
-	
-
 class CombatState extends Reference:
 	# Information about factions and ship locations in the system which the
 	# player is currently flying. Created anew on each system entry.
@@ -378,8 +269,6 @@ class CombatState extends Reference:
 	var system = null # The System or Hyperspace
 	var immediate_entry: bool = false # Should ships appear without entry animations?
 
-#	var planet_tactical_data: Dictionary = {}
-#	var system_tactical_data: TacticalData
 	var faction_states: Dictionary = {}
 	var faction_int2name: Dictionary = {}
 	var faction_name2int: Dictionary = {}
@@ -577,62 +466,15 @@ class CombatState extends Reference:
 						' wants to spawn missing design '+str(design.get_path()))
 		return result
 
+	func can_spawn_fleet(faction_index: int,fleet: Dictionary):
+		if not system_info:
+			return false # do not spawn ships in hyperspace
+		if fleet['spawn_count']+system.ship_count > game_state.max_ships:
+			return false
+		var stat = system.team_stats.get(faction_index,null)
+		if stat and stat['count']+fleet['spawn_count'] > game_state.max_ships_per_faction:
+			return false
+		return true
+
 	func fill_system(_planet_time: float, _ship_time: float, _detail: int):
 		return [spawn_player_ship()]
-
-
-#class TacticalData extends Reference:
-#	var path: NodePath = NodePath()
-#	var combat_data_ref: WeakRef
-#	var unique_name: String = ''
-#	var distances: PoolRealArray
-#	var threats: PoolRealArray
-#	var costs: PoolRealArray
-#	var factions: PoolIntArray
-#	func _init(path_,unique_name_,combat_data,
-#			distances_:PoolRealArray = PoolRealArray(),
-#			threats_:PoolRealArray = PoolRealArray(),
-#			costs_:PoolRealArray = PoolRealArray(),
-#			factions_:PoolIntArray = PoolIntArray)
-#		path=path_
-#		unique_name=unique_name_
-#		distances=distances_
-#		threats=threats_
-#		costs=costs_
-#		factions=factions_
-#		set_combat_data(combat_data)
-#	func update_from_native(data):
-#		distances = data['ship_distances']
-#		threats = data['ship_threats']
-#		costs = data['ship_costs']
-#		factions = data['ship_factions']
-#	func set_combat_data(combat_data):
-#		combat_data_ref = WeakRef(combat_data)
-#	func get_combat_data():
-#		return combat_data_ref.get_ref()
-#	func _impl_strength(from_faction: int, stat: PoolRealArray, max_distance: float,
-#			weighted: int) -> Dictionary:
-#		var result: Dictionary = {'self':0.0, 'ally':0.0, 'enemy':0.0, 'neutral':0.0]
-#		var affinities = null
-#		var denom = max(1.0,max_distance)
-#		var weight: float = 1.0
-#		for i in range(len(distances)):
-#			if distances[i]>max_distance:
-#				break
-#			if weighted==1 or weighted==2:
-#				weight = 1.0 - distances[i]/denom
-#				if weighted==2:
-#					weight *= weight
-#			var to_faction = factions[i]
-#			if from_faction == to_faction:
-#				result['self'] += stat[i]*weight
-#			if affinities==null:
-#				affinities = get_combat_data().get_faction_affinities(from_faction)
-#			var affinity = affinities.get(factions[i],0)
-#			if affinity>AFFINITY_EPSILON:
-#				result['ally'] += stat[i]*weight
-#			elif affinity<-AFFINITY_EPSILON:
-#				result['enemy'] += stat[i]*weight
-#			else:
-#				result['neutral'] += stat[i]*weight
-#		return result

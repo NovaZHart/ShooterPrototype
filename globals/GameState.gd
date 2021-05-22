@@ -1,8 +1,8 @@
 extends Node
 
-const standalone_team_maximums: Array = [ 200,200 ]
+const standalone_max_ships_per_faction: int = 180
 const standalone_max_ships: int = 300
-const debug_team_maximums: Array = [35, 35]
+const debug_max_ships_per_faction: int = 35
 const debug_max_ships: int = 60
 
 const EPOCH_ONE_SECOND: int = 10080 # Number of epoch ticks in one second.
@@ -19,8 +19,8 @@ const EPOCH_ONE_DAY: int = EPOCH_ONE_HOUR*24
 const EPOCH_GAME_START: int = 0 # = January 1, 2770
 
 var epoch_time: int = EPOCH_GAME_START
-var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
+var max_ships_per_faction: int = standalone_max_ships_per_faction
 
 var Universe = preload('res://places/Universe.gd')
 var PlanetServices = load('res://ui/PlanetServices.gd')
@@ -297,5 +297,5 @@ func _enter_tree():
 	make_services()
 	if not OS.has_feature('standalone'):
 		max_ships = debug_max_ships
-		team_maximums = debug_team_maximums
-		print('Reducing ship count for debug build: ',max_ships,' ',team_maximums)
+		max_ships_per_faction = debug_max_ships_per_faction
+		print('Reducing ship count for debug build: ',max_ships,' ',max_ships_per_faction)

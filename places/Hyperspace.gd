@@ -52,6 +52,9 @@ var stellar_systems: Array = []
 var player_fuel: float = 10.0
 var stopped_without_fuel: float = 0.0 # seconds
 
+var ship_count: int = 0
+var team_stats: Dictionary = { 0:{'count':1,'threat':1} }
+
 signal view_center_changed
 
 func depart_hyperspace():

@@ -32,7 +32,7 @@ var ship_stats_requests_mutex: Mutex = Mutex.new()
 #var ship_maker_thread: Thread = Thread.new()
 var ships_to_spawn: Array = Array()
 var ship_maker_mutex: Mutex = Mutex.new()
-
+var ship_count: int = 0
 var team_stats: Dictionary = {}
 var team_stats_mutex: Mutex = Mutex.new()
 
@@ -282,6 +282,7 @@ func pack_ship_stats() -> Array:
 	for faction_index in threats:
 		var team_stat = team_stats.get(faction_index,null)
 		if not team_stat:
+			# Should never get here.
 			push_warning('No team_stats['+str(faction_index)+'] during pack_ship_stats')
 			team_stats[faction_index] = {
 				'threat':threats[faction_index],
@@ -326,6 +327,11 @@ func process_space(delta):
 			team_stats[faction_index] = { 'threat':0.0, 'count':1 }
 		else:
 			team_stats[faction_index]['count'] += 1
+	var new_ship_count: int = 0
+	for faction_index in team_stats:
+		var stat = team_stats[faction_index]
+		new_ship_count += stat['count']
+	ship_count = new_ship_count
 	team_stats_mutex.unlock()
 	
 	ship_maker_mutex.lock()
