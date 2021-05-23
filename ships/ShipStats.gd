@@ -27,6 +27,7 @@ export var base_max_cargo: int = 20
 export var fuel_density: float = 10.0
 export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
+export var ai_type: int = 0 setget set_ai_type
 
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
 var stats_overridden: Dictionary = {}
@@ -111,6 +112,11 @@ func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 		update_stats()
 	return combined_stats
 
+func set_ai_type(type: int):
+	ai_type = type
+	if combined_stats.has('empty_mass'):
+		combined_stats['ai_type'] = ai_type
+
 func pack_cargo_stats(stats):
 	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
 
@@ -185,6 +191,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['drag']=base_drag
 	stats['weapons']=Array()
 	stats['equipment']=Array()
+	stats['ai_type']=ai_type
 	
 	# Used for text generation, not CombatEngine:
 	stats['display_name']=ship_display_name
@@ -201,6 +208,7 @@ func update_stats():
 	combined_stats['rotation']=rotation
 	combined_stats['position']=Vector3(translation.x,0,translation.z)
 	combined_stats['transform']=transform
+	combined_stats['ai_type']=ai_type
 	for wep in combined_stats['weapons']:
 		var child = get_node_or_null(wep['name'])
 		if child==null:

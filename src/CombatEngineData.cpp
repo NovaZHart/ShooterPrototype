@@ -325,6 +325,7 @@ WeaponRanges make_ranges(const vector<Weapon> &weapons) {
   return r;
 }
 
+// This copy constructor should not be necessary, but the game crashes without it.
 Ship::Ship(const Ship &o):
   id(o.id),
   name(o.name),
@@ -365,6 +366,8 @@ Ship::Ship(const Ship &o):
   armor(o.armor),
   structure(o.structure),
   fuel(o.fuel),
+  ai_type(o.ai_type),
+  ai_flags(o.ai_flags),
   rotation(o.rotation),
   position(o.position),
   linear_velocity(o.linear_velocity),
@@ -443,6 +446,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   armor(get<real_t>(dict,"armor",max_armor)),
   structure(get<real_t>(dict,"structure",max_structure)),
   fuel(get<real_t>(dict,"fuel",max_fuel)),
+  ai_type(static_cast<ship_ai_t>(get<int>(dict,"ai_type",ATTACKER_AI))),
+  ai_flags(0),
   
   // These eight will be replaced by the PhysicsDirectBodyState every
   // timestep.  The GDScript code must make sure mass and drag are set

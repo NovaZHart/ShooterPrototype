@@ -39,6 +39,12 @@ const PLAYER_TARGET_PLANET: int = 48
 const PLAYER_TARGET_OVERRIDE: int = 64
 const PLAYER_TARGET_NOTHING: int = 240
 
+const ATTACKER_AI: int = 0
+const PATROL_SHIP_AI: int = 1
+const RAIDER_AI: int = 2
+const ARRIVING_MERCHANT_AI: int = 3
+const DEPARTING_MERCHANT_AI: int = 4
+
 var combat_state = null
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()

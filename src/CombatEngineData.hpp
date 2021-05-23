@@ -265,6 +265,8 @@ namespace godot {
     // These enums MUST match globals/CombatEngine.gd.
     enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
     enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
+    enum ship_ai_t { ATTACKER_AI=0, PATROL_SHIP_AI=1, RAIDER_AI=2, ARRIVING_MERCHANT_AI=3, DEPARTING_MERCHANT_AI=4 };
+    enum ai_flags { DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=3 };
     
     struct Ship {
       const object_id id;
@@ -284,12 +286,14 @@ namespace godot {
       const faction_mask_t faction_mask;
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
-      
+
       int explosion_tick;
       fate_t fate;
       entry_t entry_method;
       real_t shields, armor, structure, fuel;
 
+      ship_ai_t ai_type;
+      int ai_flags;
       goal_action_t goal_action;
       object_id goal_target;
 

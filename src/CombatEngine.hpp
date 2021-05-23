@@ -183,6 +183,8 @@ namespace godot {
     void update_near_objects(CE::Ship &ship);
     CE::ships_iter update_targetting(CE::Ship &ship);
     void attacker_ai(CE::Ship &ship);
+    void patrol_ship_ai(CE::Ship &ship);
+    void raider_ai(CE::Ship &ship);
     void landing_ai(CE::Ship &ship);
     void coward_ai(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);

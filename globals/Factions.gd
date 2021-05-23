@@ -79,6 +79,7 @@ class Faction extends simple_tree.SimpleNode:
 				min_cost = min(min_cost,cost)
 				var threat = data.get_threat()
 				var weight = frequency/3600.0 # spawns per second
+				assert(weight>0)
 				threat_per_cost += threat/max(1.0,cost)*weight
 				threat_per_second += threat*weight
 				faction_state.fleet_weights.append(weight_sum)
@@ -95,7 +96,7 @@ class Faction extends simple_tree.SimpleNode:
 		faction_state.threat_per_second = min(threat_per_second,threat_per_cost*gain_rate)
 		if weight_sum>0:
 			for i in range(len(faction_state.fleet_weights)):
-				faction_state.fleet_weights[i] = spawn_chance/weight_sum
+				faction_state.fleet_weights[i] /= weight_sum
 
 	func _impl_store_goals(combat_state: CombatState,faction_state: FactionState):
 		if not combat_state.system_info:
@@ -231,7 +232,14 @@ class FactionState extends Reference:
 				continue
 			var goal = choose_random_goal()
 			resources_available -= fleet['cost']
-			return combat_state.spawn_fleet(fleet_node,faction_index,goal['suggested_spawn_point'])
+			var entry_method = combat_engine.ENTRY_FROM_RIFT
+			var ai_type = combat_engine.PATROL_SHIP_AI
+			if goal['action'] == 'patrol' and randf()>0.2:
+				entry_method = combat_engine.ENTRY_FROM_ORBIT
+			elif goal['action'] == 'raid':
+				ai_type = combat_engine.RAIDER_AI
+			return combat_state.spawn_fleet(fleet_node,faction_index,
+				goal['suggested_spawn_point'],entry_method,ai_type)
 		return []
 
 	# Given an amount of time that has passed (<= 1 second), decide what fleet may be spawned.
@@ -405,20 +413,21 @@ class CombatState extends Reference:
 			var planet: Spatial = planets[randi()%len(planets)]
 			center = planet.translation
 		return spawn_ship(system,Player.player_ship_design,
-			0,angle,add_radius,safe_zone,0,0,center,true,entry_method)
+			0,angle,add_radius,safe_zone,0,0,center,true,entry_method,
+			combat_engine.ATTACKER_AI)
 
 	# Spawn an individual ship. Intended to be called from
 	# spawn_fleet or spawn_player_ship
 	func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 			faction_index: int,angle: float,add_radius: float,safe_zone: float,
 			random_x: float, random_z: float, center: Vector3, is_player: bool,
-			entry_method: int):
+			entry_method: int, initial_ai: int):
 		var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 		var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
 		# IMPORTANT: Return value must match what spawn_ship, init_system, and
 		#   _physics_process want in System.gd:
 		return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,game_state.SHIP_HEIGHT,z),
-			faction_index, is_player, entry_method]
+			faction_index, is_player, entry_method, initial_ai]
 
 	func get_system_planets(): # -> Node or null
 		var Planets = system.get_node_or_null('Planets')
@@ -426,7 +435,8 @@ class CombatState extends Reference:
 		return system.get_node_or_null('Systems')
 
 	# Spawn all ships from a Fleet node. Intended to be called from FleetInfo
-	func spawn_fleet(fleet_node, faction_index: int, where=null) -> Array:
+	func spawn_fleet(fleet_node, faction_index: int, where=null,
+			entry_method = null, initial_ai=combat_engine.ATTACKER_AI) -> Array:
 		assert(fleet_node)
 		if faction_index<0:
 			return []
@@ -434,12 +444,14 @@ class CombatState extends Reference:
 		var planets: Array = get_system_planets().get_children()
 		var add_radius = 100*randf()*randf()
 		var safe_zone = 25
-		var entry_method = combat_engine.ENTRY_FROM_RIFT
 		if immediate_entry:
 			entry_method = combat_engine.ENTRY_COMPLETE
-		if not system_info:
-			entry_method = combat_engine.ENTRY_FROM_RIFT_STATIONARY
-		elif combat_engine.ENTRY_FROM_ORBIT==entry_method and planets:
+		elif entry_method == null:
+			if system_info:
+				entry_method = combat_engine.ENTRY_FROM_RIFT
+			else:
+				entry_method = combat_engine.ENTRY_FROM_RIFT_STATIONARY
+		if system_info and combat_engine.ENTRY_FROM_ORBIT==entry_method and planets:
 			if not center:
 				var planet: Spatial = planets[randi()%len(planets)]
 				center = planet.translation
@@ -460,7 +472,7 @@ class CombatState extends Reference:
 					result.push_back(spawn_ship(
 						system,design,faction_index,
 						angle,add_radius,randf()*10-5,randf()*10-5,
-						safe_zone,center,false,entry_method))
+						safe_zone,center,false,entry_method,initial_ai))
 				else:
 					push_warning('Fleet '+str(fleet_node.get_path())+
 						' wants to spawn missing design '+str(design.get_path()))

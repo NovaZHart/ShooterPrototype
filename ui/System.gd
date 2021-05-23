@@ -448,11 +448,13 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 		receive_player_orders({})
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
-		faction_index: int, is_player: bool, entry_method: int) -> void:
+		faction_index: int, is_player: bool, entry_method: int,
+		initial_ai: int) -> void:
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
 	ship.translation=translation
+	ship.ai_type=initial_ai
 	ship.set_faction_index(faction_index)
 	if is_player:
 		print('spawn_ship receiving player ship')

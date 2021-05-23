@@ -10,6 +10,11 @@
             "Array",
             {
               "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "type": "light_military"
+            },
+            {
+              "frequency": 900,
               "fleet": "raven_duo_cyclotrons",
               "type": "heavy_military"
             },
@@ -17,11 +22,6 @@
               "frequency": 900,
               "fleet": "eagle_duo_cyclotrons",
               "type": "heavy_military"
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "type": "light_military"
             },
             {
               "frequency": 900,
@@ -69,13 +69,13 @@
               "type": "light_military"
             },
             {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
               "type": "light_military"
             },
             {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
               "type": "light_military"
             }
           ], 3e5, {
@@ -85,6 +85,11 @@
       "raiders": [ "Faction", "Raiders", [
             "Array",
             {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "type": "large_raid"
+            },
+            {
               "frequency": 900,
               "fleet": "raven_duo_cyclotrons",
               "type": "large_raid"
@@ -113,11 +118,6 @@
               "frequency": 600,
               "fleet": "peregrine_trio_cyclotrons",
               "type": "small_raid"
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "type": "large_raid"
             },
             {
               "frequency": 450,
@@ -145,13 +145,13 @@
               "type": "small_raid"
             },
             {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
               "type": "small_raid"
             },
             {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
               "type": "small_raid"
             }
           ], 3e5, {

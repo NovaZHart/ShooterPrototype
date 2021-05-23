@@ -456,7 +456,8 @@ void CombatEngine::update_affinity_masks() {
 
 PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, const Planet &planet, const FactionGoal &goal) const {
   FAST_PROFILING_FUNCTION;
-  PlanetGoalData result = { 0.0f,sqrt(max(100.0f,planet.population))+sqrt(max(0.0f,planet.industry)),-1 };
+  float spawn_desire = min(100.0f,sqrt(max(100.0f,planet.population))+sqrt(max(0.0f,planet.industry)));
+  PlanetGoalData result = { 0.0f,spawn_desire,-1 };
   
   if(goal.action == goal_planet) {
     result.goal_status = 1.0f;
@@ -524,6 +525,8 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
     weight -= min_desire;
     if(max_desire>min_desire)
       weight /= max_desire-min_desire;
+    if(weight>1e-5)
+      weight = 0.2 + 0.7*weight;
     accum += weight;
     weight = accum;
   }
@@ -779,7 +782,7 @@ void CombatEngine::rift_ai(Ship &ship) {
     return;
   }
 
-  if(ship.tick_at_rift_start<0 and request_stop(ship,Vector3(0,0,0),1.0f)) {
+  if(ship.tick_at_rift_start<0 and request_stop(ship,Vector3(0,0,0),3.0f)) {
     // Once the ship is stopped, paralyze it and open a rift.
     ship.immobile = true;
     ship.inactive = true;
@@ -870,8 +873,13 @@ void CombatEngine::ai_step_ship(Ship &ship) {
       
       return;
     }
-    // FIXME: replace this with a real ai  
-    attacker_ai(ship);
+    switch(ship.ai_type) {
+    case PATROL_SHIP_AI: patrol_ship_ai(ship); return;
+    case RAIDER_AI: raider_ai(ship); return;
+    case ARRIVING_MERCHANT_AI: landing_ai(ship); return;
+    case DEPARTING_MERCHANT_AI: rift_ai(ship); return;
+    default: attacker_ai(ship);
+    }
   }
 }
 
@@ -1047,7 +1055,7 @@ void CombatEngine::update_near_objects(Ship &ship) {
 
 ships_iter CombatEngine::update_targetting(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  ships_iter target_ptr = ships.find(ship.target);
+  ships_iter target_ptr = ship.target>=0 ? ships.find(ship.target) : ships.end();
   bool pick_new_target = target_ptr==ships.end();
   if(!pick_new_target) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
@@ -1092,6 +1100,110 @@ void CombatEngine::attacker_ai(Ship &ship) {
       landing_ai(ship);
     else
       rift_ai(ship);
+  }
+}
+
+void CombatEngine::raider_ai(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+  if(ship.inactive)
+    return;
+
+  if(ship.goal_target<0 and planets.size()>0) {
+    ship.goal_target = select_target<false>(-1,select_nearest(ship.position),planets);
+    planets_iter p_planet = planets.find(ship.goal_target);
+    if(p_planet!=planets.end())
+      ship.destination = p_planet->second.position;
+  }
+
+  if(ship.ai_flags&DECIDED_TO_RIFT) {
+    rift_ai(ship);
+    return;
+  }
+  
+  ships_iter target_ptr = update_targetting(ship);
+  bool low_health = ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3;
+
+  if(low_health) {
+    rift_ai(ship);
+    ship.ai_flags=DECIDED_TO_RIFT;
+    return;
+  }
+  
+  bool have_target = target_ptr!=ships.end();
+  bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<100;
+
+  if(close_to_target) {
+    ship.ai_flags=0;
+    ship.target=target_ptr->first;
+    move_to_attack(ship,target_ptr->second);
+    aim_turrets(ship,target_ptr);
+    auto_fire(ship,target_ptr);
+  } else {
+    if(not have_target)
+      ship.target=-1;
+    if(ship.ai_flags==0 and ship.rand.randf()<2e-5)
+      ship.ai_flags=DECIDED_TO_RIFT;
+    if(ship.ai_flags&DECIDED_TO_RIFT)
+      rift_ai(ship);
+    else
+      patrol_ai(ship);
+  }
+}
+
+void CombatEngine::patrol_ship_ai(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+  if(ship.inactive)
+    return;
+
+  if(ship.goal_target<0 and planets.size()>0) {
+    ship.goal_target = select_target<false>(-1,select_nearest(ship.position),planets);
+    planets_iter p_planet = planets.find(ship.goal_target);
+    if(p_planet!=planets.end())
+      ship.destination = p_planet->second.position;
+  }
+
+  if(ship.ai_flags&DECIDED_TO_LAND) {
+    landing_ai(ship);
+    return;
+  } else if(ship.ai_flags&DECIDED_TO_RIFT) {
+    rift_ai(ship);
+    return;
+  }
+
+  bool low_health = ship.armor<ship.max_armor/5 and ship.shields<ship.max_shields/3 and ship.structure<ship.max_structure/2;
+
+  if(low_health) {
+    rift_ai(ship);
+    ship.ai_flags=DECIDED_TO_RIFT;
+    return;
+  }
+
+  ships_iter target_ptr = update_targetting(ship);
+  bool have_target = target_ptr!=ships.end();
+  bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<100;
+  
+  if(close_to_target) {
+    ship.ai_flags=0;
+    ship.target=target_ptr->first;
+    move_to_attack(ship,target_ptr->second);
+    aim_turrets(ship,target_ptr);
+    auto_fire(ship,target_ptr);
+  } else {
+    if(not have_target)
+      ship.target=-1;
+    if(ship.ai_flags==0) {
+      float randf = ship.rand.randf();
+      if(randf<2e-5)
+        ship.ai_flags=DECIDED_TO_LAND;
+      else if(randf<4e-5)
+        ship.ai_flags=DECIDED_TO_RIFT;
+    }
+    if(ship.ai_flags&DECIDED_TO_LAND)
+      landing_ai(ship);
+    else if(ship.ai_flags&DECIDED_TO_RIFT)
+      rift_ai(ship);
+    else
+      patrol_ai(ship);
   }
 }
 
@@ -1342,12 +1454,12 @@ bool CombatEngine::request_stop(Ship &ship,Vector3 desired_heading,real_t max_sp
       reverse_time += turn_from_forwards/ship.max_angular_velocity;
     }
     if(reverse_time<forward_time) {
-      if(request_heading(ship,velocity_norm)<1e-3)
+      if(fabsf(request_heading(ship,velocity_norm))>0.9)
         request_thrust(ship,0,speed/(delta*ship.inverse_mass*ship.reverse_thrust));
       return false;
     }
   }
-  if(request_heading(ship,-velocity_norm)<1e-3)
+  if(fabsf(request_heading(ship,-velocity_norm))>0.9)
     request_thrust(ship,speed/(delta*ship.inverse_mass*ship.thrust),0);
   return false;
 }
@@ -1691,15 +1803,15 @@ real_t CombatEngine::request_heading(Ship &ship, Vector3 new_heading) {
   FAST_PROFILING_FUNCTION;
   Vector3 norm_heading = new_heading.normalized();
   real_t cross = -cross2(norm_heading,ship.heading);
-  real_t new_av=0;
+  real_t new_av=0, dot_product = dot2(norm_heading,ship.heading);
   
-  if(dot2(norm_heading,ship.heading)>0) {
+  if(dot_product>0) {
     double angle = asin_clamp(cross);
     new_av = copysign(1.0,angle)*min(fabsf(angle)/delta,ship.max_angular_velocity);
   } else
     new_av = cross<0 ? -ship.max_angular_velocity : ship.max_angular_velocity;
   set_angular_velocity(ship,Vector3(0,new_av,0));
-  return new_av;
+  return dot_product;
 }
 
 void CombatEngine::request_rotation(Ship &ship, real_t rotation_factor) {
