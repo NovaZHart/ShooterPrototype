@@ -62,6 +62,9 @@ CombatEngine::CombatEngine():
   faction_info(),
 
   update_request_id(),
+  planet_goal_data(),
+  goal_weight_data(),
+  rand(),
   
   loader(ResourceLoader::get_singleton()),
   visual_server(VisualServer::get_singleton()),
@@ -479,6 +482,7 @@ PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, 
   if(my_threat<enemy_threat)
     threat_weight = -threat_weight;
 
+  result.planet = planet.id;
   result.goal_status = threat_weight;
   if(goal_raid)
     result.spawn_desire *= threat_weight;
@@ -490,61 +494,65 @@ PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, 
 
 void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &goal) const {
   FAST_PROFILING_FUNCTION;
-  
   planet_goal_data.reserve(planets.size());
+  goal_weight_data.reserve(planets.size());
   planet_goal_data.clear();
-  
+  goal_weight_data.clear();
+
+  float accum = 0;
+  float min_desire;
+  float max_desire;
   for(planets_const_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
     object_id id = p_planet->first;
-    if(goal.target_object_id>=0 and goal.target_object_id!=id)
+    if(goal.target_object_id>=0 and goal.target_object_id!=id) {
+      //Godot::print("Skipping planet because it is not the target.");
       continue;
+    }
     planet_goal_data.push_back(update_planet_faction_goal(faction,p_planet->second,goal));
+    float spawn_desire = planet_goal_data.back().spawn_desire;
+    if(planet_goal_data.size()<2)
+      max_desire = min_desire = spawn_desire;
+    else {
+      min_desire = min(spawn_desire,min_desire);
+      max_desire = max(spawn_desire,max_desire);
+    }
+    goal_weight_data.push_back(spawn_desire);
+  }
+
+  for(int i=0;i<goal_weight_data.size();i++) {
+    float &weight = goal_weight_data[i];
+    weight -= min_desire;
+    if(max_desire>min_desire)
+      weight /= max_desire-min_desire;
+    accum += weight;
+    weight = accum;
   }
   
-  PlanetGoalData best = {0.0f,0.0f,-1};
-  float absmax_desire, min_desire;
-  int matches = 0;
-
-  for(planets_const_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
-    object_id id = p_planet->first;
-    if(goal.target_object_id>=0 and goal.target_object_id!=id)
-      continue;
-    const Planet &planet = p_planet->second;
-
-    matches++;
-
-    // The goal has a specific planet
-    PlanetGoalData result = update_planet_faction_goal(faction,planet,goal);
-    
-    if(matches==1) {
-      best = result;
-      absmax_desire = fabsf(result.spawn_desire);
-      min_desire = result.spawn_desire;
-      goal.suggested_spawn_point = planet.position;
-    } else {
-      if(result.spawn_desire>best.spawn_desire) {
-        best = result;
-        goal.suggested_spawn_point = planet.position;
-      }
-      absmax_desire = max(absmax_desire,fabsf(result.spawn_desire));
-      min_desire = min(min_desire,result.spawn_desire);
-    }
-    
-    if(goal.target_object_id>=0) {
-      break;
-    }
+  if(not goal_weight_data.size()) {
+    //Godot::print("No goal weights. Bailing out.");
+    goal.clear();
+    return;
   }
 
-  if(matches>0) {
-    goal.spawn_desire = best.spawn_desire - min_desire;
-    if(absmax_desire>0)
-      goal.spawn_desire /= absmax_desire;
-    goal.goal_success = best.goal_status;
-  } else {
-    goal.suggested_spawn_point = Vector3(0,0,0);
-    goal.goal_success = 0;
-    goal.spawn_desire = -numeric_limits<float>::infinity();
+  float val = accum * rand.randf();
+
+  int i=0;
+  while(i+1<goal_weight_data.size() and val>goal_weight_data[i])
+    i++;
+
+  planets_const_iter p_planet = planets.find(planet_goal_data[i].planet);
+  if(p_planet==planets.end()) {
+    Godot::print("Planet goal data is invalid");
+    goal.clear();
+    return;
   }
+  
+  const Planet &planet = p_planet->second;
+  goal.suggested_spawn_point = planet.position;
+  goal.spawn_desire = (planet_goal_data[i].spawn_desire-min_desire);
+  if(max_desire>min_desire)
+    goal.spawn_desire /= max_desire-min_desire;
+  goal.goal_success = planet_goal_data[i].goal_status;
 }
 
 void CombatEngine::update_all_faction_goals() {

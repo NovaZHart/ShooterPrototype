@@ -85,6 +85,8 @@ namespace godot {
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
     mutable std::vector<CE::PlanetGoalData> planet_goal_data;
+    mutable std::vector<float> goal_weight_data;
+    mutable CE::CheapRand32 rand;
     
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Members for the visual thread:
