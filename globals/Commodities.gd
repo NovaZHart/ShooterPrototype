@@ -138,6 +138,8 @@ class Products extends Reference:
 			if not product:
 				continue
 			var prod_hash: int = hash(product[NAME_INDEX])
+			var scale = max(1.0,product[VALUE_INDEX])/max(1.0,product[MASS_INDEX])
+			scale = clamp(scale,3.0,30.0)
 			for ivar in [ VALUE_INDEX, QUANTITY_INDEX ]:
 				seed(randseed+ivar*31337+prod_hash)
 				var f = 0.0
@@ -151,7 +153,10 @@ class Products extends Reference:
 					w += abs(w1)+abs(w2)
 				var w3 = randf()
 				var s = 0.08*pow(0.7,sqrt(w3))+0.15*pow(0.98,sqrt(w3))+0.02
-				product[ivar] = int(ceil(product[ivar]*(1.0 + s*f/w)))
+				var final = 1.0+s*f/w
+				if ivar==VALUE_INDEX:
+					final = final/(final+scale)+scale/(scale+1)
+				product[ivar] = int(ceil(product[ivar]*final))
 	
 	func randomly_erase_products():
 		var ids=all.keys()
@@ -163,17 +168,43 @@ class Products extends Reference:
 					product[QUANTITY_INDEX] = 0
 
 	func apply_multiplier_list(multipliers: Dictionary):
+		var scan_products: Dictionary = {}
 		for tag in multipliers:
 			if by_tag.has(tag):
-				var quantity_value_fine = multipliers[tag]
 				for id in by_tag[tag]:
-					var product = all[id]
-					if quantity_value_fine[0]>=0:
-						product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*quantity_value_fine[0])
-					if quantity_value_fine[1]>=0:
-						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
-					if quantity_value_fine[2]>=0:
-						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
+					scan_products[id]=1
+		for id in scan_products:
+			var product = all.get(id,null)
+			if product:
+				var f_quantity=1.0
+				var f_value=1.0
+				var f_fine=1.0
+				for itag in range(FIRST_TAG_INDEX,len(product)):
+					var tag = product[itag]
+					var mul = multipliers.get(tag,null)
+					if mul:
+						if mul[0]>=0: f_quantity*=mul[0]
+						if mul[1]>=0: f_value*=mul[1]
+						if mul[2]>=0: f_fine*=mul[2]
+				var scale = max(1.0,product[VALUE_INDEX])/max(1.0,product[MASS_INDEX])
+				scale = clamp(scale,3.0,30.0)
+				f_quantity = f_quantity/(f_quantity+1.0)+1.0/2.0
+				f_value = f_value/(f_value+scale)+scale/(scale+1)
+				f_fine = f_fine/(f_fine+scale)+scale/(scale+1)
+				product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*f_quantity)
+				product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*f_value)
+				product[FINE_INDEX] = ceil(product[FINE_INDEX]*f_fine)
+#		for tag in multipliers:
+#			if by_tag.has(tag):
+#				var quantity_value_fine = multipliers[tag]
+#				for id in by_tag[tag]:
+#					var product = all[id]
+#					if quantity_value_fine[0]>=0:
+#						product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*quantity_value_fine[0])
+#					if quantity_value_fine[1]>=0:
+#						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
+#					if quantity_value_fine[2]>=0:
+#						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
 	
 	func apply_multipliers(quantity_multiplier,value_multiplier,fine_multiplier):
 		for id in all:
@@ -909,6 +940,9 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://equipment/repair/Shield2x1.tscn', 40, 16000, 16000, 0, 'equipment', 'shield', 'terran' ],
 		[ 'res://equipment/repair/Shield2x2.tscn', 40, 35000, 35000, 0, 'equipment', 'shield', 'terran' ],
 		[ 'res://equipment/repair/Shield3x3.tscn', 40, 79000, 79000, 0, 'equipment', 'shield', 'terran', 'large' ],
+		[ 'res://equipment/cargo/CargoBay1x2.tscn', 40, 6000, 6000, 0, 'equipment', 'cargo_bay', 'terran' ],
+		[ 'res://equipment/cargo/CargoBay2x3.tscn', 40, 19000, 19000, 0, 'equipment', 'cargo_bay', 'terran' ],
+		[ 'res://equipment/cargo/CargoBay3x4.tscn', 40, 40000, 40000, 0, 'equipment', 'cargo_bay', 'terran', 'large' ],
 		[ 'res://equipment/BigEquipmentTest.tscn', 40, 200, 200, 0, 'test', 'equipment', 'terran', 'large' ],
 		[ 'res://equipment/EquipmentTest.tscn', 40, 100, 100, 0, 'test', 'equipment', 'terran' ],
 		[ 'res://ships/BannerShip/BannerShipHull.tscn', 3, 394000, 394000, 0, 'hull/civilian/advertisment', 'terran', 'large' ],
