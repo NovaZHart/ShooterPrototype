@@ -257,7 +257,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*mass*10))/10)
+	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*mass)))
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'

@@ -9,6 +9,7 @@ material/0 = null
 material/1 = null
 script = ExtResource( 1 )
 add_mass = 5.0
+add_structure = 45.0
 add_heal_shields = 35.0
 add_explosion_damage = 30.0
 add_explosion_impulse = 60.0
