@@ -220,8 +220,7 @@ func _ready():
 	if game_state.game_editor_mode:
 		remove_child($MainDialogTrigger)
 		$All/Left/Buttons/Depart.text='Fleet'
-		$All/Show.remove_child($All/Show/Text/LocationLabel)
-		$All/Show.remove_child($All/Show/Text/CargoMass)
+		$All/Show/Text.remove_child($All/Show/Text/LocationLabel)
 		$All/Show/Text/CargoMass.visible=false
 	elif not game_state.game_editor_mode:
 		remove_child($Autosave)

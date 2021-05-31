@@ -1,0 +1,71 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ships/GreyBlue/SmallShip.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=2]
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
+
+[sub_resource type="ConvexPolygonShape" id=1]
+points = PoolVector3Array( 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, 10, 0, 0.35, -10, -0.9, -0.35, 10, 0.9, -0.35, -10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, -10, 0, 0.35, 10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0.9, -0.35, -10, -0.9, -0.35, 10, -0.9, -0.35, 10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0.9, -0.35, -10 )
+
+[sub_resource type="ConvexPolygonShape" id=2]
+points = PoolVector3Array( 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, 10, 0, 0.35, -10, -0.9, -0.35, 10, 0.9, -0.35, -10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, -10, 0, 0.35, 10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0.9, -0.35, -10, -0.9, -0.35, 10, -0.9, -0.35, 10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0.9, -0.35, -10 )
+
+[node name="RigidBody" type="RigidBody"]
+script = ExtResource( 2 )
+base_mass = 47.0
+base_thrust = 650.0
+base_reverse_thrust = 650.0
+base_turn_thrust = 200.0
+base_shields = 850.0
+base_armor = 600.0
+base_structure = 350.0
+base_fuel = 8.0
+heal_shields = 5.0
+heal_structure = 6.0
+heal_fuel = 20.0
+base_drag = 1.0
+base_turn_drag = 0.3
+base_explosion_damage = 250.0
+base_explosion_radius = 2.5
+base_explosion_impulse = 375.0
+base_max_cargo = 9
+override_size = Vector3( 1.9, 1.6, 0 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 0.805908, -0.592041, 9.64558e-08, 0, -1.62921e-07, -1, 0.592041, 0.805908, -1.31299e-07, -0.195372, -0.0868796, -0.246713 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape2" type="CollisionShape" parent="."]
+transform = Transform( -0.803306, -0.595566, 2.6033e-08, 0, -4.37114e-08, -1, 0.595566, -0.803306, 3.51136e-08, -0.180765, -0.0868796, 0.257787 )
+shape = SubResource( 2 )
+
+[node name="StarboardGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517, -0.15, 0.56 )
+script = ExtResource( 3 )
+mount_size_y = 4
+mount_type = "gun"
+
+[node name="PortGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517, -0.15, -0.56 )
+script = ExtResource( 3 )
+mount_size_y = 4
+mount_type = "gun"
+
+[node name="Equipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.118446, 0, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+
+[node name="Engine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.272167, 0, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "engine"

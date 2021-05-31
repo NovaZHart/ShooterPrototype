@@ -177,7 +177,7 @@ func _input(event):
 			if collider and collider.has_method('is_InventorySlot'):
 				if collider.my_x<0:
 					if is_location_select:
-						emit_signal('select_item',collider)
+						emit_signal('select_item',collider,collider.scene)
 						selection_click = mouse_pos
 						selection = collider.get_path()
 						selected_scene = collider.scene

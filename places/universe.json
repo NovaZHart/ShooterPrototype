@@ -2037,9 +2037,134 @@
   "ship_designs": [
     "SimpleNode",
     {
+
+      "three_wing_empty": [
+        "ShipDesign",
+        "Three Wing Hull",
+        [
+          "Resource",
+          "res://ships/GreyBlue/ThreeWingWarship.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "popoto_empty": [
+        "ShipDesign",
+        "Empty Popoto Hull",
+        [
+          "Resource",
+          "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
+        ],
+        {},
+        null
+      ],
+        
+      "raven_hull": [
+        "ShipDesign",
+        "Empty Raven Hull",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "banner_hull": [
+        "ShipDesign",
+        "Empty Bannership Hull",
+        [
+          "Resource",
+          "res://ships/BannerShip/BannerShipHull.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "condor_hull": [
+        "ShipDesign",
+        "Empty Condor Hull",
+        [
+          "Resource",
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "eagle_hull": [
+        "ShipDesign",
+        "Empty Eagle Hull",
+        [
+          "Resource",
+          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "peregrine_hull": [
+        "ShipDesign",
+        "Empty Peregrine Hull",
+        [
+          "Resource",
+          "res://ships/PurpleShips/InterceptorHull.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "popoto_lasers": [
+        "ShipDesign",
+        "Laser Popoto",
+        [
+          "Resource",
+          "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        null
+      ],
+        
       "raven_lasers": [
         "ShipDesign",
-        "Laser Warship",
+        "Laser Raven",
         [
           "Resource",
           "res://ships/PurpleShips/WarshipHull.tscn"
@@ -2099,7 +2224,7 @@
       ],
       "raven_cyclotrons": [
         "ShipDesign",
-        "Cyclotron Warship",
+        "Cyclotron Raven",
         [
           "Resource",
           "res://ships/PurpleShips/WarshipHull.tscn"
@@ -2157,9 +2282,10 @@
         },
         null
       ],
+
       "banner_default": [
         "ShipDesign",
-        "Banner Ship",
+        "Bannership",
         [
           "Resource",
           "res://ships/BannerShip/BannerShipHull.tscn"
@@ -2233,6 +2359,7 @@
         },
         null
       ],
+
       "godship": [
         "ShipDesign",
         "God's Ship",
@@ -2371,7 +2498,7 @@
       ],
       "eagle_cyclotrons": [
         "ShipDesign",
-        "Turret Warship",
+        "Cyclotron Eagle",
         [
           "Resource",
           "res://ships/PurpleShips/CurvyWarshipHull.tscn"
@@ -2433,7 +2560,7 @@
       ],
       "peregrine_cyclotrons": [
         "ShipDesign",
-        "Cyclotron Interceptor",
+        "Cyclotron Peregrine",
         [
           "Resource",
           "res://ships/PurpleShips/InterceptorHull.tscn"
@@ -2479,7 +2606,7 @@
       ],
       "peregrine_lasers": [
         "ShipDesign",
-        "Laser Interceptor",
+        "Laser Peregrine",
         [
           "Resource",
           "res://ships/PurpleShips/InterceptorHull.tscn"
@@ -2525,7 +2652,7 @@
       ],
       "condor_cyclotrons": [
         "ShipDesign",
-        "Cyclotron Battleship",
+        "Cyclotron Condor",
         [
           "Resource",
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"
@@ -2620,7 +2747,7 @@
       ],
       "condor_lasers": [
         "ShipDesign",
-        "Laser Battleship",
+        "Laser Condor",
         [
           "Resource",
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"

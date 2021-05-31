@@ -337,8 +337,6 @@ class ShipDesign extends simple_tree.SimpleNode:
 			if child is CollisionShape and child.scale.y<10:
 				child.scale.y=10
 			found = assemble_part(body,child) or found
-		if not found:
-			push_warning('No parts found in ship')
 		var stats = body.pack_stats(true)
 		var _discard = body.set_cost(cached_cost)
 		if cargo:

@@ -22,7 +22,6 @@ base_armor = 1200.0
 base_structure = 500.0
 base_fuel = 15.0
 heal_shields = 9.0
-heal_armor = 0.0
 heal_structure = 12.0
 heal_fuel = 30.0
 base_drag = 1.7

@@ -9,7 +9,7 @@ var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
-var money: int = 38000
+var money: int = 3800000
 var markets: simple_tree.SimpleNode
 var ship_parts: simple_tree.SimpleNode
 var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
@@ -396,8 +396,8 @@ func ensure_ship_parts_node():
 	return ship_parts
 
 func _enter_tree():
-	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
-	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
+	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/hellscape')))
+	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/hellscape'))
 	assert(pearl)
 	
 	set_player_location(pearl.get_path())
