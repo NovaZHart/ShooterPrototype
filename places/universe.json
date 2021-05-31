@@ -2071,6 +2071,28 @@
         null
       ],
 
+      "four_wing_empty": [
+        "ShipDesign",
+        "Four Wing Hull",
+        [
+          "Resource",
+          "res://ships/GreyBlue/FourWingWarship.tscn"
+        ],
+        {},
+        null
+      ],
+
+      "command_ship_empty": [
+        "ShipDesign",
+        "Command Ship Hull",
+        [
+          "Resource",
+          "res://ships/GreyBlue/CommandShip.tscn"
+        ],
+        {},
+        null
+      ],
+
       "banner_hull": [
         "ShipDesign",
         "Empty Bannership Hull",

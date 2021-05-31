@@ -12,6 +12,7 @@ points = PoolVector3Array( 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, 10, 0, 0.35, -10,
 
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 2 )
+help_page = "hulls/popoto"
 base_mass = 47.0
 base_thrust = 650.0
 base_reverse_thrust = 650.0
@@ -29,6 +30,7 @@ base_explosion_damage = 250.0
 base_explosion_radius = 2.5
 base_explosion_impulse = 375.0
 base_max_cargo = 9
+armor_density = 6.0
 override_size = Vector3( 1.9, 1.6, 0 )
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
