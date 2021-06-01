@@ -1,4 +1,31 @@
 
+@PAGE weapons/nuclear_pumped_laser
+@title Nuclear-Pumped Laser
+@price Price:
+@synopsis Military-grade X-ray laser
+@content
+This weaponized laser uses fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. Because it contains its own power source, the power draw of this weapon is minimal, but it generates emmense amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaser.tscn
+
+@PAGE weapons/nuclear_pumped_laser_turret
+@title Nuclear-Pumped Laser Turret
+@price Price:
+@synopsis Military-grade X-ray laser turret
+@content
+This weaponized laser uses fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. Because it contains its own power source, the power draw of this weapon is minimal, but it generates emmense amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret.tscn
+
+@PAGE weapons/he_accel
+@title High-Energy Particle Accelerator
+@price Price:
+@synopsis Military-grade, high-energy, particle accelerator.
+@content
+This cyclotron uses advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. It fires slower than civilian-grade [ref=weapons/linear_accelerator_turret]Linear Accelerator Turret[/ref], but does far more damage per shot.
+
+@bbcode_from_scene res://weapons/BlueLoopTurret.tscn
+
 @PAGE weapons/linear_accelerator_turret
 @title Linear Accelerator Turret
 @price Price:
@@ -35,6 +62,15 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 
 @bbcode_from_scene res://weapons/GreenLaserGun.tscn
 
+@PAGE weapons/gamma_ray_laser_turret
+@title Gamma Ray Laser Turret
+@price Price:
+@synopsis A turret-mounted industrial laser that does immense damage
+@content
+Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
+
+@bbcode_from_scene res://weapons/GreenLaserGun.tscn
+
 @PAGE weapons/shockwave_torpedo
 @title Shockwave Torpedo
 @price Price:
@@ -42,7 +78,7 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 @content
 This gun fires small self-propelled torpedoes with simple guidance systems that home in on a target. Each torpedo a stores two super-heated, highly volatile, chemicals that are so hot no known physical barrier can hold them. Instead, the torpedoes contain them using energy shields. When they reach their target, the containers break, the chemicals mix, and explode with a significant blast radius.
 
-This is one of the largest and most dangerous weapons produced in human space.
+This is the strongest civilian-grade weapon available in human space.
 
 @bbcode_from_scene res://weapons/PurpleHomingGun.tscn
 

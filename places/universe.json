@@ -25,6 +25,11 @@
             },
             {
               "frequency": 900,
+              "fleet": "eagle_duo_lasers",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 900,
               "fleet": "raven_peregrine_cyclotrons",
               "type": "light_military"
             },
@@ -34,39 +39,34 @@
               "type": "light_military"
             },
             {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "type": "light_military"
-            },
-            {
-              "frequency": 450,
+              "frequency": 400,
               "fleet": "condor_lasers",
               "type": "heavy_military"
             },
             {
-              "frequency": 450,
+              "frequency": 400,
               "fleet": "condor_cyclotrons",
               "type": "heavy_military"
             },
             {
-              "frequency": 900,
+              "frequency": 250,
+              "fleet": "condor_duo",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 800,
               "fleet": "raven_duo_cyclotrons",
               "type": "heavy_military"
             },
             {
-              "frequency": 900,
+              "frequency": 800,
               "fleet": "eagle_duo_cyclotrons",
               "type": "heavy_military"
             },
             {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "type": "light_military"
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "type": "light_military"
+              "frequency": 800,
+              "fleet": "eagle_duo_lasers",
+              "type": "heavy_military"
             },
             {
               "frequency": 600,
@@ -74,7 +74,22 @@
               "type": "light_military"
             },
             {
-              "frequency": 1200,
+              "frequency": 800,
+              "fleet": "eagle_peregrine_lasers",
+              "type": "light_military"
+            },
+            {
+              "frequency": 800,
+              "fleet": "raven_peregrine_cyclotrons",
+              "type": "light_military"
+            },
+            {
+              "frequency": 1000,
+              "fleet": "peregrine_trio_cyclotrons",
+              "type": "light_military"
+            },
+            {
+              "frequency": 1400,
               "fleet": "peregrine_trio_lasers",
               "type": "light_military"
             }
@@ -2580,6 +2595,68 @@
         },
         null
       ],
+      "eagle_lasers": [
+        "ShipDesign",
+        "Laser Eagle",
+        [
+          "Resource",
+          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserGun.tscn"
+            ]
+          ],
+          "Turret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "PortEquipment": [
+            "MultiMount",
+            {
+              "PortEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "PortEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        null
+      ],
       "peregrine_cyclotrons": [
         "ShipDesign",
         "Cyclotron Peregrine",
@@ -2828,14 +2905,14 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
+              "res://weapons/GreenLaserTurret.tscn"
             ]
           ],
           "MidStarboardTurret": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
+              "res://weapons/GreenLaserTurret.tscn"
             ]
           ],
           "Engine": [
@@ -2881,11 +2958,18 @@
           "eagle_cyclotrons": 2
         }
       ],
+      "eagle_duo_lasers": [
+        "Fleet",
+        "Eagle Duo (Lasers)",
+        {
+          "eagle_lasers": 2
+        }
+      ],
       "eagle_peregrine_lasers": [
         "Fleet",
         "Eagle and Peregrine (Lasers)",
         {
-          "raven_lasers": 1,
+          "eagle_lasers": 1,
           "peregrine_lasers": 1
         }
       ],
@@ -2916,6 +3000,14 @@
         "Condor (Lasers)",
         {
           "condor_lasers": 1
+        }
+      ],
+      "condor_duo": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_lasers": 1,
+          "condor_cyclotrons": 1
         }
       ],
       "condor_cyclotrons": [
