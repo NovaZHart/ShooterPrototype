@@ -2,7 +2,7 @@ extends Node
 
 const standalone_max_ships_per_faction: int = 180
 const standalone_max_ships: int = 300
-const debug_max_ships_per_faction: int = 35
+const debug_max_ships_per_faction: int = 40
 const debug_max_ships: int = 60
 
 const EPOCH_ONE_SECOND: int = 10080 # Number of epoch ticks in one second.

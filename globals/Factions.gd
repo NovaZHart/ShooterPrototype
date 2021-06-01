@@ -136,8 +136,8 @@ class Faction extends simple_tree.SimpleNode:
 				'suggested_spawn_point':spawn_point,
 			})
 
-	func get_affinity(other_faction_index: int) -> float:
-		return float(affinities.get(other_faction_index,0.0))
+	func get_affinity(other_faction):
+		return affinities.get(other_faction,0.0)
 
 	func encode():
 		return [ 'Faction', display_name,
@@ -214,6 +214,12 @@ class FactionState extends Reference:
 		if resources_available<min_fleet_cost:
 			return []
 		var failed_fleets = 0
+		var stat = combat_state.system.team_stats.get(faction_index,{})
+		var ship_count = stat.get('count',0)
+		if ship_count>5:
+			var threats = combat_state.faction_threats(faction_index)
+			if threats['my_threat'] > 1.5*threats['enemy_threat']:
+				return []
 		while failed_fleets<5 and resources_available>min_fleet_cost:
 			var fleet = next_fleet(null)
 			if not fleet['cost']:
@@ -383,13 +389,10 @@ class CombatState extends Reference:
 			if faction.faction_index != player_faction_index:
 				faction.process_space(delta)
 		var result = []
-		var last_len = -1
-		while len(result)>last_len:
-			last_len = len(result)
-			# Fixme: sort factions somehow? Perhaps weakest first?
-			for faction in faction_states.values():
-				if faction.faction_index != player_faction_index:
-					result += faction.spawn_one_fleet(self)
+		# Fixme: sort factions somehow? Perhaps weakest first?
+		for faction in faction_states.values():
+			if faction.faction_index != player_faction_index:
+				result += faction.spawn_one_fleet(self)
 		return result
 
 	func spawn_player_ship():
@@ -476,6 +479,31 @@ class CombatState extends Reference:
 				else:
 					push_warning('Fleet '+str(fleet_node.get_path())+
 						' wants to spawn missing design '+str(design.get_path()))
+		return result
+
+	func faction_threats(faction_index: int):
+		var stat = system.team_stats.get(faction_index,{})
+		var result = { 'my_count': stat.get('count',0),
+			'my_threat': stat.get('threat',0.0),
+			'enemy_count': 0, 'enemy_threat':0,
+			'neutral_count': 0, 'neutral_threat':0,
+			'ally_count': 0, 'ally_threat':0 }
+		for other_faction_index in faction_int2name:
+			if other_faction_index!=faction_index:
+				var affinity = faction_int_affinity.get(other_faction_index | 
+					(faction_index << FACTION_BIT_SHIFT),0.0)
+				if affinity<-1e-5:
+					var ostat = system.team_stats.get(other_faction_index,{})
+					result['enemy_threat'] += ostat.get('threat',0.0)
+					result['enemy_count'] += ostat.get('count',0)
+				elif affinity>1e-5:
+					var ostat = system.team_stats.get(other_faction_index,{})
+					result['ally_threat'] += ostat.get('threat',0.0)
+					result['ally_count'] += ostat.get('count',0)
+				else:
+					var ostat = system.team_stats.get(other_faction_index,{})
+					result['neutral_threat'] += ostat.get('threat',0.0)
+					result['neutral_count'] += ostat.get('count',0)
 		return result
 
 	func can_spawn_fleet(faction_index: int,fleet: Dictionary):
