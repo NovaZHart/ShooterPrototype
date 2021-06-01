@@ -329,7 +329,7 @@ namespace godot {
 
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
-          * std::clamp(float(tick)/(18000.0f),0.0f,1.0f);
+          * (1.0f - std::clamp(float(tick)/(18000.0f),0.0f,1.0f) );
       }
       bool update_from_physics_server(PhysicsServer *server);
       void update_stats(PhysicsServer *state, bool update_server);

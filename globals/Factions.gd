@@ -190,7 +190,8 @@ class FactionState extends Reference:
 
 	# Update spawn info and goal status from the native Faction class.
 	func update_from_native(_combat_state: CombatState,data: Dictionary):
-		resources_available += data.get("recouped_resources",0.0)
+		var recouped = data.get("recouped_resources",0.0)
+		resources_available += recouped
 		var goal_status: PoolRealArray = data['goal_status']
 		var spawn_desire: PoolRealArray = data['spawn_desire']
 		var suggested_spawn_points: PoolVector3Array = data['suggested_spawn_point']
