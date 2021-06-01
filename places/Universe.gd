@@ -212,15 +212,20 @@ class ShipDesign extends simple_tree.SimpleNode:
 	var cached_stats = null setget ,get_stats
 	var cargo setget set_cargo
 	var cached_cost = -1.0
+	var not_visible: Dictionary = {} # names of children that should not be in scene tree
 	
 	func set_cargo(new_cargo):
 		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
 		cargo = new_cargo
 		clear_cached_stats()
 	
-	func get_cost():
+	func get_cost(from=null):
 		if cached_cost<0:
-			var _discard = assemble_ship()
+			var parts = Commodities.ManyProducts.new()
+			if from==null:
+				from = Commodities.ship_parts
+			list_ship_parts(parts,from)
+			cached_cost = parts.get_value()
 		return cached_cost
 	
 	func is_ShipDesign(): pass # for type detection; never called
@@ -277,6 +282,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 	func clear_cached_stats():
 		cached_stats=null
 		cached_cost=-1.0
+		not_visible = {}
 	
 	func cache_remove_instance_info():
 		cached_stats.erase('rid')
@@ -292,29 +298,30 @@ class ShipDesign extends simple_tree.SimpleNode:
 		var product = Commodities.ship_parts.all.get(id,null)
 		return float(product[Commodities.Products.VALUE_INDEX] if product else 0.0)
 	
-	func assemble_part(body: Node, child: Node) -> bool:
+	func assemble_part(body: Node, child: Node, skip_hidden: bool) -> bool:
 		var part = get_child_with_name(child.name)
 		if not part:
 			return false
 		elif part is MultiMount:
-#			if not part.get_child_names():
-#				push_warning('multimount has no contents')
 			var found = false
 			for part_name in part.get_child_names():
 				var content = part.get_child_with_name(part_name)
 				assert(content is MultiMounted)
+				var new_child_name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
+				if skip_hidden and not_visible.has(new_child_name):
+					continue # this part should not be shown, so don't instance it
 				var new_child: Node = content.scene.instance()
-				cached_cost += cost_of(content.scene)
 				if new_child!=null:
 					new_child.item_offset_x = content.x
 					new_child.item_offset_y = content.y
 					new_child.transform = child.transform
-					new_child.name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
+					new_child.name = new_child_name
 					body.add_child(new_child)
 					found = true
 			return found
 		elif part is Mounted:
-			cached_cost += cost_of(part.scene)
+			if skip_hidden and not_visible.has(child.name):
+				return false # this part should not be shown, so don't instance it
 			var new_child = part.scene.instance()
 			new_child.transform = child.transform
 			new_child.name = child.name
@@ -324,29 +331,53 @@ class ShipDesign extends simple_tree.SimpleNode:
 			return true
 		return false
 
-	func assemble_ship() -> Node:
-		cached_cost = cost_of(hull)
+	func assemble_body(): # -> Node or null
 		var body = hull.instance()
 		body.ship_display_name = display_name
 		if body == null:
 			push_error('assemble_ship: cannot instance scene: '+body)
-			return Node.new()
+			return null
 		body.save_transforms()
-		var found = false
+		return body
+
+	func assemble_stats(body: Node, reassemble: bool):
+		if reassemble and cached_stats:
+			body.set_stats(cached_stats)
+			body.update_stats()
+			body.restore_combat_stats()
+			return
+		var stats = body.pack_stats(true)
+		var _discard = body.set_cost(get_cost())
+		if cargo:
+			body.set_cargo(cargo)
+		cached_stats = stats.duplicate(true)
+		cache_remove_instance_info()
+
+	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
+		var body = assemble_body()
+		if not body:
+			return Node.new()
+		var reassemble = cached_stats!=null # true=already assembled design once
 		for child in body.get_children():
 			if child is CollisionShape and child.scale.y<10:
 				child.scale.y=10
-			found = assemble_part(body,child) or found
-		var stats = body.pack_stats(true)
-		var _discard = body.set_cost(cached_cost)
+			var _discard = assemble_part(body,child,reassemble and not retain_hidden_mounts)
+		var stats = null
+		if reassemble:
+			body.set_stats(cached_stats)
+		else:
+			stats = body.pack_stats(true)
+		var _discard = body.set_cost(get_cost())
 		if cargo:
 			body.set_cargo(cargo)
-		for child in body.get_children():
-			if child.has_method('is_not_mounted'):
-				# Unused slots are removed to save space in the scene tree
-				body.remove_child(child)
-				child.queue_free()
-		if not cached_stats:
+		if not retain_hidden_mounts:
+			for child in body.get_children():
+				if child.has_method('is_EquipmentStats') or child.has_method('is_MountStats'):
+					# This is not visible in space, so remove it from the scene tree.
+					not_visible[child.name]=1
+					body.remove_child(child)
+					child.queue_free()
+		if not reassemble and not retain_hidden_mounts:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
 		return body

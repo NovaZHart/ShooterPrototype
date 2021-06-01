@@ -38,6 +38,8 @@ export var help_page: String = 'equipment'
 var cached_stats
 var cached_bbcode
 
+func is_EquipmentStats(): pass # Never called; must only exist
+
 func is_mount_point(): # Never called; must only exist
 	pass
 

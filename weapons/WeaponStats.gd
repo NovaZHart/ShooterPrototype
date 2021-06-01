@@ -29,6 +29,8 @@ var cached_bbcode = null
 var cached_stats = null
 var skipped_runtime_stats: bool = true
 
+func is_WeaponStats(): pass # Never called; must only exist
+
 func is_mount_point(): # Never called; must only exist
 	pass
 

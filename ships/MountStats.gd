@@ -6,6 +6,8 @@ export var mount_type: String = 'equipment'
 
 var help_page = 'error: should never see this'
 
+func is_MountStats(): pass # Never called; must only exist
+
 func is_mount_point(): # Never called; must only exist
 	pass
 

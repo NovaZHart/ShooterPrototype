@@ -148,6 +148,9 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, q
 		if stats.has(varname):
 			combined_stats[varname] = clamp(stats[varname],0.0,combined_stats['max_'+varname])
 
+func set_stats(stats: Dictionary) -> void:
+	combined_stats = stats.duplicate(true)
+
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['explosion_damage']=base_explosion_damage
 	stats['explosion_radius']=base_explosion_radius
@@ -228,14 +231,14 @@ func max_and_repair(key,maxval,repairval) -> String:
 	return make_cell(key,maxval)
 
 func get_bbcode(annotation: String = '') -> String:
-	return text_gen.make_ship_bbcode(pack_stats(true),true,annotation)
+	return text_gen.make_ship_bbcode(pack_stats(true,true),true,annotation)
 
 func _ready():
-	var must_update: bool = false
+	var must_update: bool = true
 	if not combined_stats.has('empty_mass'):
 		var _discard = pack_stats(false)
-	else:
-		must_update = true
+#	else:
+#		must_update = not combined_stats.has('rid')
 
 	if not retain_hidden_mounts:
 		for child in get_children():
