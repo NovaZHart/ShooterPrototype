@@ -490,18 +490,18 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   visual_scale(1.0)
 {
   if(not (drag<999999 and drag>1e-6))
-    Godot::print(String("New ship has an invalid drag ")+String(Variant(drag)));
+    Godot::print_warning(String("New ship has an invalid drag ")+String(Variant(drag)),__FUNCTION__,__FILE__,__LINE__);
   if(not (inverse_mass<999999))
-    Godot::print(String("New ship has an invalid inverse mass ")+String(Variant(inverse_mass)));
+    Godot::print_warning(String("New ship has an invalid inverse mass ")+String(Variant(inverse_mass)),__FUNCTION__,__FILE__,__LINE__);
   if(not (turn_drag<999999 and turn_drag>1e-6))
-    Godot::print(String("New ship has an invalid turn drag ")+String(Variant(turn_drag)));
+    Godot::print_warning(String("New ship has an invalid turn drag ")+String(Variant(turn_drag)),__FUNCTION__,__FILE__,__LINE__);
   if(not (thrust<999999 and thrust>=0))
-    Godot::print(String("New ship has an invalid thrust ")+String(Variant(thrust)));
+    Godot::print_warning(String("New ship has an invalid thrust ")+String(Variant(thrust)),__FUNCTION__,__FILE__,__LINE__);
   if(not (reverse_thrust<999999 and reverse_thrust>=0))
-    Godot::print(String("New ship has an invalid reverse_thrust ")+String(Variant(reverse_thrust)));
+    Godot::print_warning(String("New ship has an invalid reverse_thrust ")+String(Variant(reverse_thrust)),__FUNCTION__,__FILE__,__LINE__);
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
   if(not (max_speed<999999 and max_speed>=0))
-    Godot::print(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)));
+    Godot::print_warning(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)),__FUNCTION__,__FILE__,__LINE__);
   max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
   turn_diameter_squared = make_turn_diameter_squared();
 }
