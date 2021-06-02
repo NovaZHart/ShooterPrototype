@@ -1,4 +1,13 @@
 
+@PAGE weapons/harpoon_missile
+@title Harpoon Anti-Ship Missile
+@price Price:
+@synopsis Military-grade ship-to-ship missile intended for medium-sized targets.
+@content
+This medium-range missile is intended to destroy medium-sized ships. The damage and blast radius are substantial, but it cannot maneuver fast enough to keep up with fighters.
+
+@bbcode_from_scene res://weapons/RedMissileLauncher.tscn
+
 @PAGE weapons/nuclear_pumped_laser
 @title Nuclear-Pumped Laser
 @price Price:
