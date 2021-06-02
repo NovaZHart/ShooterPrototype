@@ -190,7 +190,6 @@ void CombatEngine::init_factions(Dictionary data) {
     Dictionary faction_data = active_factions[i];
     faction_index_t faction_index = static_cast<faction_index_t>(faction_data["faction"]);
     factions.emplace(faction_index,Faction(faction_data,planets,rid2id));
-    Godot::print("Emplace faction index "+str(faction_index));
   }
 
   player_faction_index = data["player_faction"];
@@ -545,7 +544,7 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
 
   planets_const_iter p_planet = planets.find(planet_goal_data[i].planet);
   if(p_planet==planets.end()) {
-    Godot::print("Planet goal data is invalid");
+    //Godot::print("Planet goal data is invalid");
     goal.clear();
     return;
   }
@@ -937,9 +936,7 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     object_id target=overrides.target_id;
     if(target_selection==PLAYER_TARGET_OVERRIDE) {
       ship.target = target;
-      Godot::print("Player target override "+str(overrides.target_id));
     } else {
-      Godot::print("No player target override");
       if(target_selection==PLAYER_TARGET_NOTHING)
         target=-1;
       else if(target_selection==PLAYER_TARGET_PLANET) {
@@ -1061,11 +1058,11 @@ ships_iter CombatEngine::update_targetting(Ship &ship) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
     if(target_ptr->second.fate!=FATED_TO_FLY)
       pick_new_target = true;
-    else if(ship.tick-ship.tick_at_last_shot>600)
-      // After 10 seconds without firing, reevaluate target
+    else if(ship.tick-ship.tick_at_last_shot>900)
+      // After 15 seconds without firing, reevaluate target
       pick_new_target=true;
-    else if(ship.tick%1200==0) {
-      // After 20 seconds, if ship is out of range, reevaluate target
+    else if(ship.tick%1500==0) {
+      // After 25 seconds, if ship is out of range, reevaluate target
       real_t target_distance = ship.position.distance_to(target_ptr->second.position);
       pick_new_target = (target_distance > 1.5*ship.range.all);
     }
@@ -1180,7 +1177,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
 
   ships_iter target_ptr = update_targetting(ship);
   bool have_target = target_ptr!=ships.end();
-  bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<100;
+  bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<13*ship.max_speed;
   
   if(close_to_target) {
     ship.ai_flags=0;
@@ -1255,8 +1252,14 @@ bool CombatEngine::patrol_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.immobile)
     return false;
-  if(ship.position.distance_to(ship.destination)<10)
+  if(ship.position.distance_to(ship.destination)<10) {
     ship.randomize_destination();
+    if(ship.goal_target>=0) {
+      planets_iter p_planet = planets.find(ship.goal_target);
+      if(p_planet!=planets.end())
+        ship.destination += p_planet->second.position;
+    }
+  }
   move_to_intercept(ship, 5, 1, ship.destination, Vector3(0,0,0), false);
 }
 
@@ -1305,7 +1308,7 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
   real_t ship_rotation = ship.rotation[1];
   Vector3 confusion = ship.confusion;
   real_t max_distsq = ship.range.turrets*1.5*ship.range.turrets*1.5;
-  bool got_enemies = false;
+  bool got_enemies = false, have_a_target=false;
 
   int num_eptrs=0;
   Ship *eptrs[12];
@@ -1320,7 +1323,7 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
 
     if(!got_enemies) {
       const ship_hit_list_t &enemies = get_ships_within_turret_range(ship, 1.5);
-      bool have_a_target = target!=ships.end();
+      have_a_target = target!=ships.end();
       
       if(have_a_target) {
         real_t dp=target->second.position.distance_to(ship.position);
@@ -1368,6 +1371,10 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       
       // Score is adjusted to favor ships that the projectile will strike.
       real_t score = turn_time + (PI/weapon.turn_rate)*t;
+
+      if(i==0 and have_a_target)
+        score*=1.5; // prefer ship's target
+      
       if(score<best_score) {
         best_score=score;
         turret_angular_velocity = clamp(desired_angular_velocity, -weapon.turn_rate, weapon.turn_rate);
