@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
+[ext_resource path="res://weapons/meshes/RedOrangeMissileLauncher.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+damage = 280.0
+impulse = 95.0
+weapon_mass = 27.0
+weapon_structure = 90.0
+initial_velocity = 32.0
+projectile_mass = 0.35
+projectile_thrust = 300.0
+projectile_lifetime = 2.75
+projectile_turn_rate = 11.0
+firing_delay = 0.75
+blast_radius = 1.5
+guided = true
+guidance_uses_velocity = true
+projectile_mesh_path = "res://weapons/meshes/RedOrangeMissile.mesh"
+item_size_x = 2
+item_size_y = 4
+help_page = "weapons/harpoon_missile"
