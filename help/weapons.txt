@@ -1,5 +1,5 @@
 
-@PAGE weapons/harpoon_missile
+@PAGE weapons/mass_driver
 @title Mass Driver
 @price Price:
 @synopsis Launches chunks of rock or metal at relativistic velocity using anti-gravity fields.
