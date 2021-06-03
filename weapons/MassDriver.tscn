@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/meshes/MassDriver.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+script = ExtResource( 2 )
+damage = 1500.0
+impulse = 4500.0
+weapon_mass = 23.0
+weapon_structure = 210.0
+initial_velocity = 45.0
+projectile_mass = 2.0
+projectile_lifetime = 3.0
+firing_delay = 2.0
+projectile_mesh_path = "res://weapons/meshes/MassDriverRock.mesh"
+item_size_x = 3
+item_size_y = 4
+help_page = "weapons/mass_driver"

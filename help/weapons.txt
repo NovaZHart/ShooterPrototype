@@ -1,12 +1,21 @@
 
 @PAGE weapons/harpoon_missile
+@title Mass Driver
+@price Price:
+@synopsis Launches chunks of rock or metal at relativistic velocity using anti-gravity fields.
+@content
+This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even rubbish from the ship. A pile of trash may not sound like much of a threat, until it smashes through your ship's hull at a half the speed of light.
+
+@bbcode_from_scene res://weapons/MassDriver.tscn
+
+@PAGE weapons/harpoon_missile
 @title Harpoon Anti-Ship Missile
 @price Price:
 @synopsis Military-grade ship-to-ship missile intended for medium-sized targets.
 @content
-This medium-range missile is intended to destroy medium-sized ships. The damage and blast radius are substantial, but it cannot maneuver fast enough to keep up with fighters.
+This small missile is designed to destroy medium-sized ships. The damage and blast radius are substantial, but the missile cannot maneuver fast enough to keep up with fighters.
 
-@bbcode_from_scene res://weapons/RedMissileLauncher.tscn
+@bbcode_from_scene res://weapons/GreyMissileLauncher.tscn
 
 @PAGE weapons/nuclear_pumped_laser
 @title Nuclear-Pumped Laser

@@ -828,7 +828,7 @@ class TerranTradeCenter extends ProducerConsumer:
 
 class SmallLaserTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
-		result.add_products_from(all_products,['terran'],['particle','explosive','large','capital'])
+		result.add_products_from(all_products,['terran'],['particle','kinetic','large','capital'])
 
 class SmallParticleTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
@@ -935,7 +935,8 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://weapons/OrangeSpikeGun.tscn', 40, 11000, 11000, 0, 'particle', 'weapon', 'terran' ],
 		[ 'res://weapons/OrangeSpikeTurret.tscn', 40, 31000, 31000, 0, 'particle', 'weapon', 'terran' ],
 		[ 'res://weapons/PurpleHomingGun.tscn', 40, 54000, 54000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
-		[ 'res://weapons/RedMissileLauncher.tscn', 40, 79000, 79000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
+		[ 'res://weapons/GreyMissileLauncher.tscn', 40, 79000, 79000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
+		[ 'res://weapons/MassDriver.tscn', 40, 135000, 135000, 0, 'kinetic', 'weapon', 'terran', 'capital' ],
 		[ 'res://weapons/BlueLoopTurret.tscn', 40, 57000, 57000, 0, 'particle', 'weapon', 'terran', 'large' ],
 		[ 'res://weapons/NuclearPumpedLaser.tscn', 40, 71000, 71000, 0, 'laser', 'weapon', 'terran', 'large' ],
 		[ 'res://weapons/NuclearPumpedLaserTurret.tscn', 40, 94000, 94000, 0, 'laser', 'weapon', 'terran', 'capital' ],
