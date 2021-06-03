@@ -110,7 +110,7 @@ namespace godot {
     struct Weapon;
     struct Ship;
 
-    const int SHIP_LIGHT_LAYER_MASK = 4;
+    const int SHIP_LIGHT_LAYER_MASK = 1;
 
     enum goal_action_t {
       goal_patrol = 0,  // equal or surpass enemy threat; kill enemies
