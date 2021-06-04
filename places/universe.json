@@ -9,89 +9,80 @@
       "locals": [ "Faction", "Locals", [
             "Array",
             {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
+              "frequency": 1100,
+              "fleet": "popoto_lasers_trio",
+              "type": "light_military"
+            },
+            {
+              "frequency": 1100,
+              "fleet": "popoto_particles_trio",
               "type": "light_military"
             },
             {
               "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_lasers",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
+              "fleet": "bufeo_particles_escorted",
               "type": "light_military"
             },
             {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
+              "frequency": 900,
+              "fleet": "bufeo_lasers_escorted",
               "type": "light_military"
             },
             {
               "frequency": 400,
-              "fleet": "condor_lasers",
-              "type": "heavy_military"
+              "fleet": "bufeo_particles_trio",
+              "type": "light_military"
             },
             {
               "frequency": 400,
-              "fleet": "condor_cyclotrons",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 250,
-              "fleet": "condor_duo",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 800,
-              "fleet": "raven_duo_cyclotrons",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 800,
-              "fleet": "eagle_duo_cyclotrons",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 800,
-              "fleet": "eagle_duo_lasers",
-              "type": "heavy_military"
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
+              "fleet": "bufeo_lasers_trio",
               "type": "light_military"
             },
             {
-              "frequency": 800,
-              "fleet": "eagle_peregrine_lasers",
+              "frequency": 200,
+              "fleet": "orca_particles_missiles_escorted",
               "type": "light_military"
             },
             {
-              "frequency": 800,
-              "fleet": "raven_peregrine_cyclotrons",
+              "frequency": 200,
+              "fleet": "orca_lasers_missiles_escorted",
               "type": "light_military"
+            },
+
+            {
+              "frequency": 1000,
+              "fleet": "orca_particles_missiles_escorted",
+              "type": "heavy_military"
             },
             {
               "frequency": 1000,
-              "fleet": "peregrine_trio_cyclotrons",
-              "type": "light_military"
+              "fleet": "orca_lasers_missiles_escorted",
+              "type": "heavy_military"
             },
             {
-              "frequency": 1400,
-              "fleet": "peregrine_trio_lasers",
-              "type": "light_military"
+              "frequency": 700,
+              "fleet": "orca_mix_no_missiles",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 700,
+              "fleet": "orca_laser_missile_mix",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 700,
+              "fleet": "orca_particle_missile_mix",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 500,
+              "fleet": "ankylorhiza_missiles_particles_escorted",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 500,
+              "fleet": "ankylorhiza_driver_lasers_escorted",
+              "type": "heavy_military"
             }
           ], 3e5, {
               "raiders": -100,
@@ -100,28 +91,84 @@
       "raiders": [ "Faction", "Raiders", [
             "Array",
             {
-              "frequency": 450,
-              "fleet": "condor_lasers",
+              "frequency": 400,
+              "fleet": "condor_lasers_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 400,
+              "fleet": "condor_duo",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 400,
+              "fleet": "condor_particles_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 500,
+              "fleet": "raven_trio",
               "type": "large_raid"
             },
             {
               "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
+              "fleet": "two_eagles_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 500,
+              "fleet": "two_raven_missiles_escorted",
               "type": "large_raid"
             },
             {
               "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
+              "fleet": "raven_lasers_trio",
               "type": "large_raid"
             },
             {
               "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
+              "fleet": "raven_particles_trio",
+              "type": "large_raid"
+            },
+
+            {
+              "frequency": 600,
+              "fleet": "raven_missiles_escorted",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 600,
+              "fleet": "raven_duo_lasers",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 600,
+              "fleet": "raven_duo_particles",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 600,
+              "fleet": "eagle_particles_escorted",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 600,
+              "fleet": "rep_fleet_lasers",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 600,
+              "fleet": "rep_fleet_particles",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 600,
+              "fleet": "five_peregrines_particles",
               "type": "small_raid"
             },
             {
               "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
+              "fleet": "five_peregrines_lasers",
               "type": "small_raid"
             },
             {
@@ -130,43 +177,8 @@
               "type": "small_raid"
             },
             {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "type": "small_raid"
-            },
-            {
               "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
+              "fleet": "peregrine_trio_particles",
               "type": "small_raid"
             }
           ], 3e5, {
@@ -2053,103 +2065,642 @@
     "SimpleNode",
     {
 
-      "three_wing_empty": [
+      "ankylorhiza_driver_lasers": [
         "ShipDesign",
-        "Three Wing Hull",
-        [
-          "Resource",
-          "res://ships/GreyBlue/ThreeWingWarship.tscn"
-        ],
-        {},
-        null
-      ],
-
-      "popoto_empty": [
-        "ShipDesign",
-        "Empty Popoto Hull",
-        [
-          "Resource",
-          "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
-        ],
-        {},
-        null
-      ],
-        
-      "raven_hull": [
-        "ShipDesign",
-        "Empty Raven Hull",
-        [
-          "Resource",
-          "res://ships/PurpleShips/WarshipHull.tscn"
-        ],
-        {},
-        null
-      ],
-
-      "four_wing_empty": [
-        "ShipDesign",
-        "Four Wing Hull",
-        [
-          "Resource",
-          "res://ships/GreyBlue/FourWingWarship.tscn"
-        ],
-        {},
-        null
-      ],
-
-      "command_ship_empty": [
-        "ShipDesign",
-        "Command Ship Hull",
+        "Driver-Laser Ankylorhiza",
         [
           "Resource",
           "res://ships/GreyBlue/CommandShip.tscn"
         ],
-        {},
-        null
+        {
+          "SpinalCannon": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/MassDriver.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaser.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaser.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "MainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaserTurret.tscn"
+            ]
+          ],
+          "ForePortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "ForeStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "ForeStarboardTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "WheelEquipment": [
+            "MultiMount",
+            {
+              "WheelEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "WheelEquipment_at_x3_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                3,
+                0
+              ]
+            }
+          ]
+        }
       ],
-
-      "banner_hull": [
+          
+      "ankylorhiza_missiles_particles": [
         "ShipDesign",
-        "Empty Bannership Hull",
+        "Missile+Particle Ankylorhiza",
         [
           "Resource",
-          "res://ships/BannerShip/BannerShipHull.tscn"
+          "res://ships/GreyBlue/CommandShip.tscn"
         ],
-        {},
-        null
+        {
+          "SpinalCannon": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BigRedMissileLauncher.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "MainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLoopTurret.tscn"
+            ]
+          ],
+          "ForePortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "ForeStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForeStarboardTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "WheelEquipment": [
+            "MultiMount",
+            {
+              "WheelEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "WheelEquipment_at_x3_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                3,
+                0
+              ]
+            }
+          ]
+        }
       ],
-
-      "condor_hull": [
+        
+      "orca_missiles_particles": [
         "ShipDesign",
-        "Empty Condor Hull",
+        "Particle+Laser Orca",
         [
           "Resource",
-          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+          "res://ships/GreyBlue/FourWingWarship.tscn"
         ],
-        {},
-        null
+        {
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "ForwardMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLoopTurret.tscn"
+            ]
+          ],
+          "PortAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "StarboardAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForeEquipment": [
+            "MultiMount",
+            {
+            }
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
       ],
 
-      "eagle_hull": [
+      "orca_particles": [
         "ShipDesign",
-        "Empty Eagle Hull",
+        "Particle Orca",
         [
           "Resource",
-          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+          "res://ships/GreyBlue/FourWingWarship.tscn"
         ],
-        {},
-        null
+        {
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BigParticleGun.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BigParticleGun.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "ForwardMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLoopTurret.tscn"
+            ]
+          ],
+          "PortAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "StarboardAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForeEquipment": [
+            "MultiMount",
+            {
+            }
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
       ],
 
-      "peregrine_hull": [
+      "orca_missiles_lasers": [
         "ShipDesign",
-        "Empty Peregrine Hull",
+        "Missile+Laser Orca",
         [
           "Resource",
-          "res://ships/PurpleShips/InterceptorHull.tscn"
+          "res://ships/GreyBlue/FourWingWarship.tscn"
         ],
-        {},
-        null
+        {
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "ForwardMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaserTurret.tscn"
+            ]
+          ],
+          "PortAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "StarboardAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "ForeEquipment": [
+            "MultiMount",
+            {
+            }
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+
+      "orca_lasers": [
+        "ShipDesign",
+        "Laser Orca",
+        [
+          "Resource",
+          "res://ships/GreyBlue/FourWingWarship.tscn"
+        ],
+        {
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaser.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaser.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "ForwardMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaserTurret.tscn"
+            ]
+          ],
+          "PortAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "StarboardAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "ForeEquipment": [
+            "MultiMount",
+            {
+            }
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        }
+      ],
+
+      "bufeo_particles": [
+          "ShipDesign",
+          "Particle Bufeo",
+          [
+              "Resource",
+              "res://ships/GreyBlue/ThreeWingWarship.tscn"
+          ],
+          {
+              "MainCannon": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/BigParticleGun.tscn"
+                  ]
+              ],
+              "PortGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/OrangeSpikeGun.tscn"
+                  ]
+              ],
+              "Turret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/OrangeSpikeTurret.tscn"
+                  ]
+              ],
+              "MainEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x4.tscn"
+                  ]
+              ],
+              "StarboardGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/OrangeSpikeGun.tscn"
+                  ]
+              ],
+              "SmallEquipment": [
+                  "MultiMount",
+                  {}
+              ],
+              "LargeEquipment": [
+                  "MultiMount",
+                  {
+                      "LargeEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/Shield3x3.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ]
+          }
+      ],
+
+      "bufeo_lasers": [
+          "ShipDesign",
+          "Laser Bufeo",
+          [
+              "Resource",
+              "res://ships/GreyBlue/ThreeWingWarship.tscn"
+          ],
+          {
+              "MainCannon": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/NuclearPumpedLaser.tscn"
+                  ]
+              ],
+              "PortGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/GreenLaserGun.tscn"
+                  ]
+              ],
+              "Turret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/GreenLaserTurret.tscn"
+                  ]
+              ],
+              "MainEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x4.tscn"
+                  ]
+              ],
+              "StarboardGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/GreenLaserGun.tscn"
+                  ]
+              ],
+              "SmallEquipment": [
+                  "MultiMount",
+                  {}
+              ],
+              "LargeEquipment": [
+                  "MultiMount",
+                  {
+                      "LargeEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/Shield3x3.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ]
+          }
       ],
 
       "popoto_lasers": [
@@ -2179,6 +2730,53 @@
             [
               "Resource",
               "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        null
+      ],
+
+      "popoto_particles": [
+        "ShipDesign",
+        "Particle Popoto",
+        [
+          "Resource",
+          "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
             ]
           ],
           "Equipment": [
@@ -2259,9 +2857,130 @@
         },
         null
       ],
-      "raven_cyclotrons": [
+      "raven_particles": [
         "ShipDesign",
-        "Cyclotron Raven",
+        "Particle Raven",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        null
+      ],
+
+      "raven_missiles": [
+        "ShipDesign",
+        "Laser Raven",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        null
+      ],
+      "raven_particles": [
+        "ShipDesign",
+        "Particle Raven",
         [
           "Resource",
           "res://ships/PurpleShips/WarshipHull.tscn"
@@ -2397,9 +3116,170 @@
         null
       ],
 
-      "godship": [
+
+      "ankylorhiza_godship": [
         "ShipDesign",
-        "God's Ship",
+        "Ocean Goddess",
+        [
+          "Resource",
+          "res://ships/GreyBlue/CommandShip.tscn"
+        ],
+        {
+          "SpinalCannon": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BigRedMissileLauncher.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreyMissileLauncher.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "MainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaserTurret.tscn"
+            ]
+          ],
+          "ForePortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "ForeStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForeStarboardTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "WheelEquipment": [
+            "MultiMount",
+            {
+              "WheelEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/BigEquipmentTest.tscn"
+                ],
+                0,
+                0
+              ],
+              "WheelEquipment_at_x3_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/EquipmentTest.tscn"
+                ],
+                3,
+                0
+              ],
+              "WheelEquipment_at_x5_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                5,
+                0
+              ],
+              "WheelEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                0,
+                3
+              ],
+              "WheelEquipment_at_x1_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                1,
+                3
+              ],
+              "WheelEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                2,
+                3
+              ],
+              "WheelEquipment_at_x3_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                3,
+                3
+              ],
+              "WheelEquipment_at_x4_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                4,
+                3
+              ],
+              "WheelEquipment_at_x5_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cargo/CargoBay1x2.tscn"
+                ],
+                5,
+                3
+              ]
+            }
+          ]
+        }
+      ],
+
+      "condor_godship": [
+        "ShipDesign",
+        "Avian Goddess",
         [
           "Resource",
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"
@@ -2533,9 +3413,9 @@
         },
         null
       ],
-      "eagle_cyclotrons": [
+      "eagle_particles": [
         "ShipDesign",
-        "Cyclotron Eagle",
+        "Particle Eagle",
         [
           "Resource",
           "res://ships/PurpleShips/CurvyWarshipHull.tscn"
@@ -2607,14 +3487,14 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserGun.tscn"
+              "res://weapons/GreenLaserGun.tscn"
             ]
           ],
           "StarboardGun": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserGun.tscn"
+              "res://weapons/GreenLaserGun.tscn"
             ]
           ],
           "Turret": [
@@ -2657,9 +3537,9 @@
         },
         null
       ],
-      "peregrine_cyclotrons": [
+      "peregrine_particles": [
         "ShipDesign",
-        "Cyclotron Peregrine",
+        "Particle Peregrine",
         [
           "Resource",
           "res://ships/PurpleShips/InterceptorHull.tscn"
@@ -2749,9 +3629,9 @@
         },
         null
       ],
-      "condor_cyclotrons": [
+      "condor_particles": [
         "ShipDesign",
-        "Cyclotron Condor",
+        "Particle Condor",
         [
           "Resource",
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"
@@ -2944,18 +3824,243 @@
   "fleets": [
     "SimpleNode",
     {
-      "raven_duo_cyclotrons": [
+      "ankylorhiza_driver_lasers_escorted": [
         "Fleet",
-        "Raven Duo (Cyclotrons)",
+        "Driver+Laser Ankylorhiza with Escorts",
         {
-          "raven_cyclotrons": 2
+          "ankylorhiza_driver_lasers": 1,
+          "bufeo_particles": 1,
+          "popoto_lasers": 1,
+          "popoto_particles": 1
         }
       ],
-      "eagle_duo_cyclotrons": [
+      "ankylorhiza_missiles_particles_escorted": [
         "Fleet",
-        "Eagle Duo (Cyclotrons)",
+        "Missile+Particle Ankylorhiza with Escorts",
         {
-          "eagle_cyclotrons": 2
+          "ankylorhiza_missiles_particles": 1,
+          "bufeo_lasers": 1,
+          "popoto_lasers": 1,
+          "popoto_particles": 1
+        }
+      ],
+      "orca_particle_missile_mix": [
+        "Fleet",
+        "3xOrcas (M+P, 2xP)",
+        {
+          "orca_missiles_particles": 1,
+          "orca_particles": 2
+        }
+      ],
+      "orca_laser_missile_mix": [
+        "Fleet",
+        "3xOrcas (M+L, 2xL)",
+        {
+          "orca_missiles_lasers": 1,
+          "orca_lasers": 2
+        }
+      ],
+      "orca_mix_no_missiles": [
+        "Fleet",
+        "4xOrcas (2xLasers, 2xParticles)",
+        {
+          "orca_lasers": 2,
+          "orca_particles": 2
+        }
+      ],
+      "orca_lasers_missiles_escorted": [
+        "Fleet",
+        "Orcas (ML) plus Popotos",
+        {
+          "orca_missiles_lasers": 1,
+          "popoto_lasers": 2,
+          "popoto_particles": 1
+        }
+      ],
+      "orca_particles_missiles_escorted": [
+        "Fleet",
+        "Orcas (PL) plus Popotos",
+        {
+          "orca_missiles_particles": 1,
+          "popoto_lasers": 1,
+          "popoto_particles": 2
+        }
+      ],
+      "bufeo_particles_trio": [
+        "Fleet",
+        "3xBufeo (Particles)",
+        {
+          "bufeo_particles": 3
+        }
+      ],
+      "bufeo_lasers_trio": [
+        "Fleet",
+        "3xBufeo (Particles)",
+        {
+          "bufeo_particles": 3
+        }
+      ],
+      "bufeo_lasers_escorted": [
+        "Fleet",
+        "Bufeo (Lasers) + 2 Popotos",
+        {
+          "bufeo_lasers": 1,
+          "popoto_lasers": 1,
+          "popoto_particles": 1
+        }
+      ],
+      "bufeo_particles_escorted": [
+        "Fleet",
+        "Bufeo (Particles) + 2 Popotos",
+        {
+          "bufeo_particles": 1,
+          "popoto_lasers": 1,
+          "popoto_particles": 1
+        }
+      ],
+      "popoto_particles_trio": [
+        "Fleet",
+        "3xPopotos (Particles)",
+        {
+          "popoto_particles": 3
+        }
+      ],
+      "popoto_lasers_trio": [
+        "Fleet",
+        "3xPopotos (Lasers)",
+        {
+          "popoto_lasers": 3
+        }
+      ],
+
+
+      "condor_lasers_escorted": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_lasers": 1,
+          "raven_missiles": 1,
+          "peregrine_lasers": 2
+        }
+      ],
+      "condor_particles_escorted": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_particles": 1,
+          "raven_lasers": 2
+        }
+      ],
+      "raven_trio": [
+        "Fleet",
+        "3xRaven: Lasers, Particles, Missiles",
+        {
+          "raven_missiles": 1,
+          "raven_lasers": 1,
+          "raven_particles": 1
+        }
+      ],
+      "two_eagles_escorted": [
+        "Fleet",
+        "Eagles + 2 Peregrine (Lasers, Particles, each)",
+        {
+          "eagle_lasers": 1,
+          "eagle_particles": 1,
+          "peregrine_lasers": 1,
+          "peregrine_particles": 1
+        }
+      ],
+      "two_raven_missiles_escorted": [
+        "Fleet",
+        "2x Raven (Missiles) + 2 Peregrine (Particles)",
+        {
+          "raven_missiles": 2,
+          "peregrine_particles": 2
+        }
+      ],
+      "raven_lasers_trio": [
+        "Fleet",
+        "3x Raven (Lasers)",
+        {
+          "raven_lasers": 3
+        }
+      ],
+      "raven_particles_trio": [
+        "Fleet",
+        "3x Raven (Particles)",
+        {
+          "raven_particles": 3
+        }
+      ],
+
+      "raven_missiles_escorted": [
+        "Fleet",
+        "Missile Raven + 3 Peregrines",
+        {
+          "raven_missiles": 1,
+          "peregrine_lasers": 3
+        }
+      ],
+      "eagle_particles_escorted": [
+        "Fleet",
+        "Missile Raven + 3 Peregrines",
+        {
+          "eagle_particles": 1,
+          "peregrine_particles": 3
+        }
+      ],
+      "rep_fleet_lasers": [
+        "Fleet",
+        "Raven+Eagle+Peregrine (Lasers)",
+        {
+          "raven_lasers": 1,
+          "eagle_lasers": 1,
+          "peregrine_lasers": 1
+        }
+      ],
+      "rep_fleet_particles": [
+        "Fleet",
+        "Raven+Eagle+Peregrine (Particles)",
+        {
+          "raven_particles": 1,
+          "eagle_particles": 1,
+          "peregrine_particles": 1
+        }
+      ],
+      "five_peregrines_particles": [
+        "Fleet",
+        "Five Peregrines (Particles)",
+        {
+          "peregrine_particles": 5
+        }
+      ],
+      "five_peregrines_lasers": [
+        "Fleet",
+        "Five Peregrines (Lasers)",
+        {
+          "peregrine_lasers": 5
+        }
+      ],
+
+      "raven_duo_particles": [
+        "Fleet",
+        "Raven Duo (Particles)",
+        {
+          "raven_particles": 2
+        }
+      ],
+      "raven_duo_missiles": [
+        "Fleet",
+        "Raven Duo (Missiles)",
+        {
+          "raven_missiles": 2
+        }
+      ],
+      "eagle_duo_particles": [
+        "Fleet",
+        "Eagle Duo (Particles)",
+        {
+          "eagle_particles": 2
         }
       ],
       "eagle_duo_lasers": [
@@ -2973,12 +4078,12 @@
           "peregrine_lasers": 1
         }
       ],
-      "raven_peregrine_cyclotrons": [
+      "raven_peregrine_particles": [
         "Fleet",
-        "Raven and Peregrine (Cyclotrons)",
+        "Raven and Peregrine (Particles)",
         {
-          "eagle_cyclotrons": 1,
-          "peregrine_cyclotrons": 1
+          "eagle_particles": 1,
+          "peregrine_particles": 1
         }
       ],
       "peregrine_trio_lasers": [
@@ -2988,11 +4093,11 @@
           "peregrine_lasers": 3
         }
       ],
-      "peregrine_trio_cyclotrons": [
+      "peregrine_trio_particles": [
         "Fleet",
-        "Peregrine Trio (Cyclotrons)",
+        "Peregrine Trio (Particles)",
         {
-          "peregrine_cyclotrons": 3
+          "peregrine_particles": 3
         }
       ],
       "condor_lasers": [
@@ -3007,14 +4112,14 @@
         "Condor (Lasers)",
         {
           "condor_lasers": 1,
-          "condor_cyclotrons": 1
+          "condor_particles": 1
         }
       ],
-      "condor_cyclotrons": [
+      "condor_particles": [
         "Fleet",
-        "Condor (Cyclotrons)",
+        "Condor (Particles)",
         {
-          "condor_cyclotrons": 1
+          "condor_particles": 1
         }
       ],
       "banner_ship": [

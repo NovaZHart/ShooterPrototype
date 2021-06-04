@@ -479,7 +479,7 @@ class CombatState extends Reference:
 						safe_zone,center,false,entry_method,initial_ai))
 				else:
 					push_warning('Fleet '+str(fleet_node.get_path())+
-						' wants to spawn missing design '+str(design.get_path()))
+						' wants to spawn missing design '+str(design_name))
 		return result
 
 	func faction_threats(faction_index: int):

@@ -28,7 +28,7 @@ base_turn_drag = 0.4
 base_explosion_damage = 550.0
 base_explosion_radius = 4.0
 base_explosion_impulse = 950.0
-base_max_cargo = 34
+base_max_cargo = 17
 armor_density = 6.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
