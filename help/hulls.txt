@@ -67,7 +67,7 @@ The civilian-grade Eagle is a support ship, designed to fight in small groups, o
 @price Price:
 @synopsis Heavy weapons platform
 @content
-This massive ship is durable by every measure, and focuses on all-round firepower, with five turrets. The forward gun ports are large enough to support the largest human weapons. Though this hull is classified as civilian-grade, it can outclass most military vessels due to the shear number of weapon mounts.
+This massive ship is durable by every measure, and focuses on all-round firepower, with five turrets. The forward gun ports are large enough to support all but the largest Terran weapons. Though this hull is classified as civilian-grade, it can outclass most military vessels due to the shear number of weapon mounts.
 
 @bbcode_from_scene res://ships/PurpleShips/HeavyWarshipHull.tscn
 
