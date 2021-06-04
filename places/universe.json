@@ -2261,7 +2261,7 @@
         
       "orca_missiles_particles": [
         "ShipDesign",
-        "Particle+Laser Orca",
+        "Missile+Particle Orca",
         [
           "Resource",
           "res://ships/GreyBlue/FourWingWarship.tscn"
