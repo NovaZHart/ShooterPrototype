@@ -1,22 +1,23 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
-[ext_resource path="res://weapons/meshes/BlueLoopTurret.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://weapons/meshes/BigBlueCircleTurret.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 script = ExtResource( 1 )
-damage = 65.0
+damage = 85.0
 impulse = 4.0
-weapon_mass = 16.0
+weapon_mass = 23.0
 weapon_structure = 95.0
 initial_velocity = 60.0
 projectile_lifetime = 0.5
-firing_delay = 0.2
+firing_delay = 0.182
 turn_rate = 2.2
 projectile_mesh_path = "res://weapons/meshes/BlueBlob.mesh"
-item_size_x = 3
+item_size_x = 4
+item_size_y = 4
 mount_type = "turret"
 help_page = "weapons/he_accel"
