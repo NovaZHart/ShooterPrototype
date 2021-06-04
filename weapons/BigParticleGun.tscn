@@ -16,6 +16,7 @@ weapon_structure = 75.0
 initial_velocity = 60.0
 projectile_lifetime = 0.5
 firing_delay = 0.217
+projectile_mesh_path = "res://weapons/meshes/BlueBlob.mesh"
 item_size_x = 2
 item_size_y = 4
 help_page = "weapons/he_linear"
