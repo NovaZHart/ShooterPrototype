@@ -441,7 +441,7 @@ func place_in_single_mount(content, mount: MountData) -> bool:
 func copy_to_installed(installed_name: String,child,display_location: Vector3) -> NodePath:
 	var area = child.copy_only_item()
 	area.collision_layer = INSTALLED_LAYER_MASK
-	area.translation = Vector3(display_location.x,7,display_location.z)
+	area.translation = Vector3(display_location.x,9,display_location.z)
 	area.name = installed_name
 	var old = $Viewport/Installed.get_node_or_null(area.name)
 	if old:

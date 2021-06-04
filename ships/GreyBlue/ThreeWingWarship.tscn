@@ -69,19 +69,19 @@ script = ExtResource( 3 )
 mount_size_y = 4
 mount_type = "gun"
 
-[node name="PortTurret" type="Position3D" parent="."]
+[node name="Turret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.497014, -0.278597, -0.773574 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
 mount_type = "turret"
 
-[node name="StarboardTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.606993, -0.389246, 1.02306 )
+[node name="MainCannon" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.533019, 0.181, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 2
-mount_type = "turret"
+mount_size_y = 4
+mount_type = "gun"
 
 [node name="MainEngine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.02383, 0, 0 )
