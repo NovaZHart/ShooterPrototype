@@ -228,7 +228,7 @@ namespace godot {
     CE::ships_iter space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
     bool collide_projectile(CE::Projectile &projectile);
     void guide_projectile(CE::Projectile &projectile);
-    void velocity_to_heading(CE::Projectile &projectile);
+    void integrate_projectile_forces(CE::Projectile &projectile, bool thrust);
 
 
     // // // // // // // // // // // // // // // // // // // // // // // // 

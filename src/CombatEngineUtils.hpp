@@ -163,8 +163,16 @@ namespace godot {
     inline real_t dot2(const Vector3 &a, const Vector3 &b) {
       return a.x*b.x + a.z*b.z;
     }
+    
+    inline double dot2(const DVector3 &a, const DVector3 &b) {
+      return a.x*b.x + a.z*b.z;
+    }
 
     inline real_t cross2(const Vector3 &a, const Vector3 &b) {
+      return a.z*b.x - a.x*b.z;
+    }
+
+    inline double cross2(const DVector3 &a, const DVector3 &b) {
       return a.z*b.x - a.x*b.z;
     }
 

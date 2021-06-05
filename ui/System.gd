@@ -313,7 +313,7 @@ func pack_planet_stats_if_not_sent() -> Array:
 #			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
 func process_space(delta):
-	combat_engine.combat_state.immediate_entry = physics_tick<10
+	combat_engine.combat_state.immediate_entry = physics_tick<30
 	Player.system.process_space(self,delta)
 	var make_me: Array = combat_engine.combat_state.process_space(delta)
 	

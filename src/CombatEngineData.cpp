@@ -146,7 +146,10 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
     real_t estimated_range = weapon.projectile_lifetime*weapon.terminal_velocity;
     rotation.y += asin_clamp(weapon.position.z/estimated_range);
   }
-  linear_velocity = initial_velocity * x_axis.rotated(y_axis,rotation.y) + ship.linear_velocity;
+  // if(weapon.guided)
+  //   linear_velocity = ship.linear_velocity; // unit_from_angle(rotation.y)*weapon.terminal_velocity;
+  // else
+    linear_velocity = unit_from_angle(rotation.y)*max_speed + ship.linear_velocity;
 }
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
@@ -211,7 +214,7 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
   //  instance_id(get<RID>(dict,"instance_id")),
   mesh_id(make_mesh_id(get<String>(dict,"projectile_mesh_path"),last_id,mesh2path,path2mesh)),
-  terminal_velocity((projectile_drag>0 and projectile_thrust>0) ? projectile_thrust/projectile_drag : initial_velocity),
+  terminal_velocity((projectile_drag>0 and projectile_thrust>0 and projectile_drag>0) ? projectile_thrust/(projectile_drag*projectile_mass) : initial_velocity),
   projectile_range(projectile_lifetime*terminal_velocity),
   node_path(get<NodePath>(dict,"node_path")),
   is_turret(turn_rate>1e-5),

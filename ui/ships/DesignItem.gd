@@ -41,7 +41,7 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 		turrets += int(weapon['mount_type']=='turret')
 		guns += int(weapon['mount_type']=='gun')
 		dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])
-		max_range += text_gen.approximate_range(weapon)
+		max_range = max(max_range, text_gen.approximate_range(weapon))
 	return {
 		'dps':str(round(dps)), 'guns':str(guns), 'turrets':str(turrets), 
 		'max_speed':str(max_speed), 'weapon_range':str(round(max_range))

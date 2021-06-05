@@ -14,11 +14,6 @@
               "type": "light_military"
             },
             {
-              "frequency": 1100,
-              "fleet": "popoto_particles_trio",
-              "type": "light_military"
-            },
-            {
               "frequency": 900,
               "fleet": "bufeo_particles_escorted",
               "type": "light_military"
@@ -162,11 +157,6 @@
               "type": "small_raid"
             },
             {
-              "frequency": 600,
-              "fleet": "five_peregrines_particles",
-              "type": "small_raid"
-            },
-            {
               "frequency": 900,
               "fleet": "five_peregrines_lasers",
               "type": "small_raid"
@@ -174,11 +164,6 @@
             {
               "frequency": 1200,
               "fleet": "peregrine_trio_lasers",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_particles",
               "type": "small_raid"
             }
           ], 3e5, {
@@ -3830,8 +3815,7 @@
         {
           "ankylorhiza_driver_lasers": 1,
           "bufeo_particles": 1,
-          "popoto_lasers": 1,
-          "popoto_particles": 1
+          "popoto_lasers": 2
         }
       ],
       "ankylorhiza_missiles_particles_escorted": [
@@ -3840,8 +3824,7 @@
         {
           "ankylorhiza_missiles_particles": 1,
           "bufeo_lasers": 1,
-          "popoto_lasers": 1,
-          "popoto_particles": 1
+          "popoto_lasers": 2
         }
       ],
       "orca_particle_missile_mix": [
@@ -3873,8 +3856,7 @@
         "Orcas (ML) plus Popotos",
         {
           "orca_missiles_lasers": 1,
-          "popoto_lasers": 2,
-          "popoto_particles": 1
+          "popoto_lasers": 3
         }
       ],
       "orca_particles_missiles_escorted": [
@@ -3882,8 +3864,7 @@
         "Orcas (PL) plus Popotos",
         {
           "orca_missiles_particles": 1,
-          "popoto_lasers": 1,
-          "popoto_particles": 2
+          "popoto_lasers": 3
         }
       ],
       "bufeo_particles_trio": [
@@ -3905,8 +3886,7 @@
         "Bufeo (Lasers) + 2 Popotos",
         {
           "bufeo_lasers": 1,
-          "popoto_lasers": 1,
-          "popoto_particles": 1
+          "popoto_lasers": 2
         }
       ],
       "bufeo_particles_escorted": [
@@ -3914,8 +3894,7 @@
         "Bufeo (Particles) + 2 Popotos",
         {
           "bufeo_particles": 1,
-          "popoto_lasers": 1,
-          "popoto_particles": 1
+          "popoto_lasers": 2
         }
       ],
       "popoto_particles_trio": [
@@ -3962,20 +3941,19 @@
       ],
       "two_eagles_escorted": [
         "Fleet",
-        "Eagles + 2 Peregrine (Lasers, Particles, each)",
+        "Eagles Mix with Escorts",
         {
           "eagle_lasers": 1,
           "eagle_particles": 1,
-          "peregrine_lasers": 1,
-          "peregrine_particles": 1
+          "peregrine_lasers": 2
         }
       ],
       "two_raven_missiles_escorted": [
         "Fleet",
-        "2x Raven (Missiles) + 2 Peregrine (Particles)",
+        "2x Raven (Missiles) + 2 Peregrine (Lasers)",
         {
           "raven_missiles": 2,
-          "peregrine_particles": 2
+          "peregrine_lasers": 2
         }
       ],
       "raven_lasers_trio": [
@@ -4006,7 +3984,7 @@
         "Missile Raven + 3 Peregrines",
         {
           "eagle_particles": 1,
-          "peregrine_particles": 3
+          "peregrine_lasers": 3
         }
       ],
       "rep_fleet_lasers": [
@@ -4024,7 +4002,7 @@
         {
           "raven_particles": 1,
           "eagle_particles": 1,
-          "peregrine_particles": 1
+          "peregrine_lasers": 1
         }
       ],
       "five_peregrines_particles": [
@@ -4083,7 +4061,7 @@
         "Raven and Peregrine (Particles)",
         {
           "eagle_particles": 1,
-          "peregrine_particles": 1
+          "peregrine_lasers": 1
         }
       ],
       "peregrine_trio_lasers": [

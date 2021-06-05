@@ -4,7 +4,7 @@
 @price Price:
 @synopsis Launches chunks of rock or metal at relativistic velocity using anti-gravity fields.
 @content
-This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even rubbish from the ship. A pile of trash may not sound like much of a threat, until it smashes through your ship's hull at a half the speed of light.
+This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even rubbish from the ship. Garbage bags may not sound like much of a threat, until they smash through your ship's hull at a half the speed of light.
 
 @bbcode_from_scene res://weapons/MassDriver.tscn
 
@@ -14,6 +14,15 @@ This enormous gun contains a series of oscillating gravity fields which launch a
 @synopsis Military-grade ship-to-ship missile intended for medium-sized targets.
 @content
 This small missile is designed to destroy medium-sized ships. The damage and blast radius are substantial, but the missile cannot maneuver fast enough to keep up with fighters.
+
+@bbcode_from_scene res://weapons/GreyMissileLauncher.tscn
+
+@PAGE weapons/anthropomancer
+@title Anthropomancer Missile
+@price Price:
+@synopsis High-damage homing missile with a wide blast radius.
+@content
+This weapon of mass destruction is intended to target large ships or tight groups of small ships. The damage radius is about the size of a capital ship, and it does enough damage to destroy some fighters in one hit. Though it does home in on its target, the missile turns slowly, so it has trouble tracking small ships.
 
 @bbcode_from_scene res://weapons/GreyMissileLauncher.tscn
 

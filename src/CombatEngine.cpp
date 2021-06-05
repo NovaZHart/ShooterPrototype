@@ -455,7 +455,7 @@ void CombatEngine::update_affinity_masks() {
 
 PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, const Planet &planet, const FactionGoal &goal) const {
   FAST_PROFILING_FUNCTION;
-  float spawn_desire = min(100.0f,sqrt(max(100.0f,planet.population))+sqrt(max(0.0f,planet.industry)));
+  float spawn_desire = min(100.0f,sqrtf(max(100.0f,planet.population))+sqrtf(max(0.0f,planet.industry)));
   PlanetGoalData result = { 0.0f,spawn_desire,-1 };
   
   if(goal.action == goal_planet) {
@@ -478,7 +478,7 @@ PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, 
     else if(goal_datum.faction_mask&target_mask)
       enemy_threat = -goal_datum.threat;
   }
-  float threat_weight = sqrt(max(100.0f,fabsf(my_threat-enemy_threat))) / max(10.0f,faction.threat_per_second*60);
+  float threat_weight = sqrtf(max(100.0f,fabsf(my_threat-enemy_threat))) / max(10.0f,faction.threat_per_second*60);
   if(my_threat<enemy_threat)
     threat_weight = -threat_weight;
 
@@ -2063,62 +2063,83 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
 void CombatEngine::guide_projectile(Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
   ships_iter target_iter = ships.find(projectile.target);
-  if(target_iter == ships.end())
+  if(target_iter == ships.end()) {
+    integrate_projectile_forces(projectile,true);
     return; // Nothing to track.
+  }
 
   Ship &target = target_iter->second;
-  if(target.fate==FATED_TO_DIE)
+  if(target.fate==FATED_TO_DIE) {
+    integrate_projectile_forces(projectile,true);
     return; // Target is dead.
-  real_t max_speed = projectile.max_speed;
+  }
+  real_t max_speed = projectile.max_speed; // linear_velocity.length();
+  if(max_speed<1e-5) {
+    integrate_projectile_forces(projectile,true);
+    return; // Cannot track until we have a speed.
+  }
   real_t max_angular_velocity = projectile.turn_rate;
   Vector3 dp = target.position - projectile.position;
-  Vector3 dp_norm = dp.normalized();
+  DVector3 dp_d = DVector3(target.position) - DVector3(projectile.position);
+  //Vector3 dp_norm = dp.normalized();
+  DVector3 dp_norm_d = DVector3(dp).normalized();
   real_t intercept_time = dp.length()/max_speed;
   Vector3 heading = get_heading(projectile);
+  Vector3 dv = target.linear_velocity-heading*max_speed;
   bool is_facing_away = dot2(dp,heading)<0.0;
   real_t want_angular_velocity=0;
 
   if(projectile.guidance_uses_velocity) { // && intercept_time>0.1) {
     // // Turn towards interception point based on target velocity.
-    Vector3 tgt_vel = target.linear_velocity;
-    if(dot2(dp_norm,tgt_vel)<0) {
+    DVector3 dv_d = DVector3(dv);
+    if(dot2(dp_norm_d,dv_d)<0) {
       // Target is moving towards projectile.
-      Vector3 normal(dp_norm[2],0,-dp_norm[0]);
-      real_t norm_tgt_vel = dot2(normal,tgt_vel);
-      real_t len = sqrt(max(0.0f,max_speed*max_speed-norm_tgt_vel*norm_tgt_vel));
-      dp = len*dp_norm + norm_tgt_vel*normal;
+      DVector3 normal_d(dp_norm_d[2],0,-dp_norm_d[0]);
+      double dv_norm_d = dot2(normal_d,dv_d);
+      double max_speed_d = max_speed;
+      double len = sqrt(max(0.0,max_speed_d*max_speed_d-dv_norm_d*dv_norm_d));
+      dp = len*dp_norm_d + dv_norm_d*normal_d;
     } else {
       // Target is moving away from projectile.
-      dp += intercept_time*tgt_vel;
+      dp += intercept_time*target.linear_velocity;
       intercept_time = dp.length()/max_speed;
     }
-    dp_norm=dp.normalized();
+    dp_norm_d=DVector3(dp).normalized();
   }
   //    want_angular_velocity = (angle_to_intercept(projectile,target.position,target.linear_velocity).y-projectile.rotation.y)/delta;
   //  }
 
-  real_t cross = cross2(heading,dp_norm);
+  double cross = cross2(DVector3(heading),dp_norm_d);
   want_angular_velocity = asin_clamp(cross);
-  real_t actual_angular_velocity = clamp(want_angular_velocity,-max_angular_velocity,max_angular_velocity);
+  bool is_facing_target = heading.dot(dp)>0;
+  bool should_thrust = is_facing_target;
+  if(should_thrust) {
+    real_t time_to_face = want_angular_velocity/max_angular_velocity;
+    real_t time_to_reach = dp.length()/max_speed;
+    should_thrust = time_to_face*1.5<time_to_reach;
+  }
 
-  projectile.angular_velocity = Vector3(0,actual_angular_velocity,0);
-  velocity_to_heading(projectile);
-
-  //FIXME: put in proper projectile force logic
+  projectile.angular_velocity.y = clamp(want_angular_velocity,-max_angular_velocity,max_angular_velocity);
+  integrate_projectile_forces(projectile, should_thrust);
 }
 
-void CombatEngine::velocity_to_heading(Projectile &projectile) {
+void CombatEngine::integrate_projectile_forces(Projectile &projectile,bool thrust) {
   FAST_PROFILING_FUNCTION;
 
   projectile.rotation.y += projectile.angular_velocity.y*delta;
-  if(projectile.thrust>0) {
-    Vector3 old_vel = projectile.linear_velocity;
-    real_t thrust = min(1.0f,projectile.thrust);
-    real_t invmass = 1.0f/projectile.mass;
-    real_t next_speed = min(projectile.max_speed,old_vel.length() + thrust*invmass*delta);
-    projectile.linear_velocity = get_heading(projectile) * next_speed;
-  } else
-    projectile.linear_velocity = get_heading(projectile) * projectile.max_speed;
+
+  if(thrust) {
+    Vector3 heading = get_heading(projectile);
+    Vector3 new_vel = projectile.linear_velocity;
+    if(projectile.drag>0) {
+      Vector3 old_vel = new_vel;
+      if(projectile.thrust>0)
+        new_vel += projectile.thrust/(projectile.mass*projectile.drag)*heading*delta;
+      new_vel -= old_vel*projectile.drag*delta;
+      projectile.linear_velocity = heading*new_vel.length();
+    } else
+      projectile.linear_velocity = heading*projectile.max_speed;
+  }
 }
 
 

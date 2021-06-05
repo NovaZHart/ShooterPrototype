@@ -1,5 +1,25 @@
 extends Node
 
+class WeightArraySorter extends Object:
+	var weights: Array
+	func _init(weights_: Array):
+		weights=weights_
+	func cmp(index1,index2):
+		return weights[index1] < weights[index2]
+
+func sorted_array_by_weight(array: Array, weights: Array) -> Array:
+	# Return a sorted copy of array, sorted by weight.
+	assert(len(weights) == len(array))
+	var indices: Array = range(len(array))
+	var sorter = WeightArraySorter.new(weights)
+	indices.sort_custom(sorter,'cmp')
+	sorter.free()
+	var result: Array = []
+	result.resize(len(array))
+	for i in range(len(indices)):
+		result[i] = array[indices[i]]
+	return result
+
 class YieldActionQueue extends Reference:
 	var mutex: Mutex = Mutex.new()
 	var queue: Array = []
