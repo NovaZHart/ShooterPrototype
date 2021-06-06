@@ -110,7 +110,6 @@ base_armor = 1100.0
 base_structure = 900.0
 base_fuel = 35.0
 heal_shields = 0.0
-heal_armor = 0.0
 heal_structure = 7.0
 heal_fuel = 40.0
 base_turn_drag = 0.45
@@ -185,20 +184,22 @@ clip_text = true
 [node name="StarboardGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.79421, -0.283964, 0.558313 )
 script = ExtResource( 9 )
+mount_size_x = 2
 mount_size_y = 4
 mount_type = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.794, -0.284, -0.558 )
 script = ExtResource( 9 )
+mount_size_x = 2
 mount_size_y = 4
 mount_type = "gun"
 
 [node name="ForwardTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.77884, 0.628304, 0.0231927 )
 script = ExtResource( 9 )
-mount_size_x = 2
-mount_size_y = 2
+mount_size_x = 3
+mount_size_y = 3
 mount_type = "turret"
 
 [node name="AftPortTurret" type="Position3D" parent="."]

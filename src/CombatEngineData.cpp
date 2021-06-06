@@ -151,8 +151,6 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   //   linear_velocity = ship.linear_velocity; // unit_from_angle(rotation.y)*weapon.terminal_velocity;
   // else
     linear_velocity = unit_from_angle(rotation.y)*max_speed + ship.linear_velocity;
-  if(!damage_type)
-    Godot::print("Weapon damage type 0!");
 }
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
@@ -182,10 +180,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   scale(scale),
   alive(true),
   direct_fire(weapon.direct_fire)
-{
-  if(!damage_type)
-    Godot::print("Weapon damage type 0!");
-}
+{}
 
 Projectile::~Projectile() {}
 
@@ -230,10 +225,7 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   rotation(get<Vector3>(dict,"rotation")),
   harmony_angle(asin_clamp(position.z/projectile_range)),
   firing_countdown(0)
-{
-  if(!damage_type)
-    Godot::print("Weapon damage type 0!");
-}
+{}
 
 Weapon::~Weapon()
 {}
@@ -388,6 +380,8 @@ Ship::Ship(const Ship &o):
   fuel(o.fuel),
   ai_type(o.ai_type),
   ai_flags(o.ai_flags),
+  goal_action(o.goal_action),
+  goal_target(o.goal_target),
   rotation(o.rotation),
   position(o.position),
   linear_velocity(o.linear_velocity),
@@ -487,6 +481,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   fuel(get<real_t>(dict,"fuel",max_fuel)),
   ai_type(static_cast<ship_ai_t>(get<int>(dict,"ai_type",ATTACKER_AI))),
   ai_flags(0),
+  goal_action(goal_patrol),
+  goal_target(-1),
   
   // These eight will be replaced by the PhysicsDirectBodyState every
   // timestep.  The GDScript code must make sure mass and drag are set
@@ -544,10 +540,6 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
     Godot::print_warning(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)),__FUNCTION__,__FILE__,__LINE__);
   max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
   turn_diameter_squared = make_turn_diameter_squared();
-
-  Godot::print("New ship resistances:");
-  for(int i=0;i<NUM_DAMAGE_TYPES;i++)
-    Godot::print("Type "+str(i)+": "+str(shield_resist[i])+" "+str(shield_passthru[i])+" "+str(armor_resist[i])+" "+str(armor_passthru[i])+" "+str(structure_resist[i]));
 }
 
 Ship::~Ship()

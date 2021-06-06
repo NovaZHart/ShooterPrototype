@@ -1,3 +1,12 @@
+@PAGE equipment/structural-reinforcement
+@title Structural Reinforcement
+@price Price:
+@synopsis Boosts ship structure and structure repair rate; weighs a lot.
+@content
+This package of reinforcement beams, insulation, repair tools, and other equipment strengthen the ship's structure and facilitate access to damaged regions. This speeds repairs of damaged systems and increases the damage a ship can take before destruction.
+
+@bbcode_from_scene res://equipment/repair/Structure2x2.tscn
+
 @PAGE equipment/test
 @title Equipment Placeholder Test
 @price Price:

@@ -44,21 +44,21 @@ This weaponized laser uses fission fragments in a small nuclear reactor core to 
 
 @bbcode_from_scene res://weapons/NuclearPumpedLaserTurret.tscn
 
-@PAGE weapons/he_accel
-@title High-Energy Particle Accelerator
+@PAGE weapons/he_cyclotron
+@title High-Energy Cyclotron Turret
 @price Price:
-@synopsis Military-grade, high-energy, particle accelerator in a turret mount.
+@synopsis Military-grade, high-energy, cyclotron, in a turret mount.
 @content
 This cyclotron uses advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. It fires slower than civilian-grade [ref=weapons/linear_accelerator_turret]Linear Accelerator Turret[/ref], but does far more damage per shot.
 
 @bbcode_from_scene res://weapons/BlueLoopTurret.tscn
 
-@PAGE weapons/he_accel
-@title High-Energy Particle Accelerator
+@PAGE weapons/he_linear
+@title High-Energy Linear Accelerator
 @price Price:
 @synopsis Military-grade, high-energy, particle accelerator in a gun mount.
 @content
-This linear accelerator uses fine-scale anti-gravity fields and powerful magnetic fields to accelerate particles to extreme velocity over a short distance. It does far more damage than civilian-grade weaponry, at the cost of heat and power.
+This linear accelerator uses fine-scale anti-gravity fields and powerful magnetic fields to accelerate particles to extreme velocity over a short distance. It does far more damage than civilian-grade weaponry, but with much higher heat and power.
 
 @bbcode_from_scene res://weapons/BigParticleGun.tscn
 

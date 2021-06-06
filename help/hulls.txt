@@ -1,5 +1,5 @@
 @PAGE hulls/bufeo
-@title Bufeo-Class Warship
+@title Bufeo Warship Hull
 @price Price:
 @synopsis Standard police and patrol ship.
 @content
@@ -8,7 +8,7 @@ This mid-sized military-grade vessel is a standard policing craft, intended to d
 @bbcode_from_scene res://ships/GreyBlue/ThreeWingWarship.tscn
 
 @PAGE hulls/bufeo
-@title Popoto-Class Interceptor
+@title Popoto Interceptor Hull
 @price Price:
 @synopsis Fast military interceptor.
 @content
@@ -17,7 +17,7 @@ Though most military-grade ships are built much heavier than their civilian coun
 @bbcode_from_scene res://ships/GreyBlue/GreyBlueInterceptor.tscn
 
 @PAGE hulls/orca
-@title Orca-Class Warship
+@title Orca Warship Hull
 @price Price:
 @synopsis Military-grade heavy warship.
 @content
@@ -26,16 +26,16 @@ This is the standard military warship intended to take on any threats in human s
 @bbcode_from_scene res://ships/GreyBlue/GreyBlueInterceptor.tscn
 
 @PAGE hulls/ankylorhiza
-@title Ankylorhiza-Class Warship
+@title Ankylorhiza Capital Ship Hull
 @price Price:
 @synopsis General-purpose, military-grade, capital ship.
 @content
-Though these massive ships carry a deadly arsenal, they're most often used for peaceful purposes. Navies leverage the Ankylorhiza's huge cargo and personnel capacity for emergency supply transport, mobile hospitals, portable command ships, and transport of high-value cargo. Regardless, any large-scale military campaign will use Ankyloriza's massive spinal-mount cannon against distant targets to deadly effect.
+Though these massive ships carry a deadly arsenal, they're most often used for peaceful purposes. Navies leverage the Ankylorhiza's huge cargo and personnel capacity for emergency supply transport, mobile hospitals, portable command centers, and transport of high-value cargo. Regardless, any large-scale military campaign will use Ankyloriza's massive spinal-mount cannon against distant targets to deadly effect.
 
 @bbcode_from_scene res://ships/GreyBlue/CommandShip.tscn
 
 @PAGE hulls/peregrine
-@title Peregrine-Class Interceptor
+@title Peregrine Interceptor Hull
 @price Price:
 @synopsis Fast, lightly-armed, interceptor
 @content
@@ -44,7 +44,7 @@ This civilian-grade ship is built mostly for speed, to hunt down enemies using s
 @bbcode_from_scene res://ships/PurpleShips/InterceptorHull.tscn
 
 @PAGE hulls/raven
-@title Raven-Class Warship
+@title Raven Warship Hull
 @price Price:
 @synopsis Medium-strength warship
 @content
@@ -54,7 +54,7 @@ A civilian-grade warship with a good mix of shields and armor, with a decent arm
 
 @PAGE hulls/eagle
 
-@title Eagle-Class Warship
+@title Eagle Warship Hull
 @price Price:
 @synopsis Anti-fighter support ship.
 @content
@@ -63,7 +63,7 @@ The civilian-grade Eagle is a support ship, designed to fight in small groups, o
 @bbcode_from_scene res://ships/PurpleShips/CurvyWarshipHull.tscn
 
 @PAGE hulls/condor
-@title Condor-Class Capital Ship
+@title Condor Capital Ship Hull
 @price Price:
 @synopsis Heavy weapons platform
 @content
@@ -72,7 +72,7 @@ This massive ship is durable by every measure, and focuses on all-round firepowe
 @bbcode_from_scene res://ships/PurpleShips/HeavyWarshipHull.tscn
 
 @PAGE hulls/banner_ship
-@title Banner Ship
+@title Banner Ship Hull
 @price Price:
 @synopsis Advertisement ship
 @content

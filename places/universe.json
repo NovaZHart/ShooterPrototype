@@ -2905,7 +2905,7 @@
 
       "raven_missiles": [
         "ShipDesign",
-        "Laser Raven",
+        "Missile+Laser Raven",
         [
           "Resource",
           "res://ships/PurpleShips/WarshipHull.tscn"
@@ -3036,21 +3036,21 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
+              "res://weapons/GreenLaserTurret.tscn"
             ]
           ],
           "PortGun": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/GreenLaserGun.tscn"
+              "res://weapons/PurpleHomingGun.tscn"
             ]
           ],
           "StarboardGun": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/GreenLaserGun.tscn"
+              "res://weapons/PurpleHomingGun.tscn"
             ]
           ],
           "AftPortTurret": [
