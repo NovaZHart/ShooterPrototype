@@ -10,7 +10,6 @@ config_version=4
 
 _global_script_classes=[  ]
 _global_script_class_icons={
-
 }
 
 [application]
@@ -35,6 +34,10 @@ Player="*res://globals/Player.gd"
 mesh_loader="*res://globals/MeshLoaderNode.gd"
 builtin_commands="*res://globals/Commands.gd"
 input_state="*res://globals/InputState.gd"
+
+[display]
+
+window/size/borderless=true
 
 [gui]
 
