@@ -288,7 +288,7 @@ func _process(var _delta):
 			ticks=0
 		else:
 			ticks += 1
-			if ticks==180:
+			if ticks==10:
 				print('defer call and stop processing')
 				call_deferred('send_cached_textures')
 				set_process(not done)
