@@ -594,8 +594,7 @@
                       ],
                       "shipyard": [
                         "Array",
-                        "small_laser_terran",
-                        "large_terran"
+                        "small_laser_terran"
                       ],
                       "display_name": "Hellscape",
                       "description": "",
@@ -1364,7 +1363,7 @@
                 ],
                 "shipyard": [
                   "Array",
-                  "small_laser_terran"
+                  "large_terran"
                 ],
                 "display_name": "Kindra",
                 "description": "",

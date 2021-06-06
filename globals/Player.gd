@@ -1,5 +1,7 @@
 extends Node
 
+const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/kindra'
+
 var player_ship_design
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
@@ -396,11 +398,12 @@ func ensure_ship_parts_node():
 	return ship_parts
 
 func _enter_tree():
-	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/hellscape')))
-	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/hellscape'))
-	assert(pearl)
+	var start_node: NodePath = NodePath(PLAYER_START_LOCATION)
+	assert(game_state.tree.get_node_or_null(start_node))
+	var planet = game_state.systems.get_node_or_null(start_node)
+	assert(planet)
 	
-	set_player_location(pearl.get_path())
+	set_player_location(planet.get_path())
 	assert(player_location)
 	assert(system)
 	
