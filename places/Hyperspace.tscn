@@ -41,6 +41,7 @@ allow_saving = false
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -40, 0 )
 plasma_color = Color( 0.839216, 0.4, 1, 1 )
 hyperspace = true
+override_from = 2
 
 [node name="TopCamera" type="Camera" parent="."]
 transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65432e-14, -32.4787, 81.2257, 0 )
@@ -56,7 +57,6 @@ transform = Transform( 0.939693, 0.116978, -0.321394, 0, 0.939693, 0.34202, 0.34
 layers = 15
 light_cull_mask = 4293918735
 shadow_enabled = true
-shadow_contact = 1.5
 
 [node name="FPSLabel" type="Label" parent="."]
 margin_left = 920.0

@@ -6,6 +6,9 @@ const FACTION_TO_MASK: int = 16777215
 const MAX_ACTIVE_FACTIONS: int = 64
 const ALL_FACTIONS: int = FACTION_TO_MASK
 
+const DEFAULT_GOAL_RADIUS: float = 100.0
+const DEFAULT_GOAL_WEIGHT: float = 5.0
+
 class FactionList extends simple_tree.SimpleNode:
 	func is_FactionList(): pass # never called; just used for type checking
 	func encode():
@@ -78,25 +81,25 @@ class Faction extends simple_tree.SimpleNode:
 				var cost = data.get_cost()
 				min_cost = min(min_cost,cost)
 				var threat = data.get_threat()
-				var weight = frequency/3600.0 # spawns per second
-				assert(weight>0)
-				threat_per_cost += threat/max(1.0,cost)*weight
-				threat_per_second += threat*weight
+				assert(frequency>0)
+				var probability: float = clamp(frequency/3600,0,1)
+				threat_per_cost += threat/max(1.0,cost)*probability
+				threat_per_second += threat*probability
 				faction_state.fleet_weights.append(weight_sum)
-				weight_sum += weight
-				spawn_chance += (1.0-spawn_chance)*clamp(weight,0,1)
+				weight_sum += probability
+				spawn_chance += (1.0-spawn_chance)*probability
 				local_fleet['cost'] = cost
 				local_fleet['threat'] = threat
 				local_fleet['frequency'] = frequency
 				local_fleet['spawn_count'] = data.spawn_count()
 				faction_state.fleets.append(local_fleet)
 		faction_state.fleet_weights.append(weight_sum)
-		threat_per_cost /= max(1.0,weight_sum)
 		faction_state.min_fleet_cost = min_cost
 		faction_state.threat_per_second = min(threat_per_second,threat_per_cost*gain_rate)
-		if weight_sum>0:
+		if weight_sum>0 and spawn_chance>0:
+			threat_per_cost /= weight_sum
 			for i in range(len(faction_state.fleet_weights)):
-				faction_state.fleet_weights[i] /= weight_sum
+				faction_state.fleet_weights[i] *= spawn_chance/weight_sum
 
 	func _impl_store_goals(combat_state: CombatState,faction_state: FactionState):
 		if not combat_state.system_info:
@@ -130,8 +133,8 @@ class Faction extends simple_tree.SimpleNode:
 				'action':goal.get('action','patrol'),
 				'target_faction':target_faction,
 				'target_rid':target_rid,
-				'radius':max(0.0,float(goal.get('radius',100.0))),
-				'weight':max(0.0,float(goal.get('weight',1.0))),
+				'radius':max(0.0,float(goal.get('radius',DEFAULT_GOAL_RADIUS))),
+				'weight':max(0.0,float(goal.get('weight',DEFAULT_GOAL_WEIGHT))),
 				'goal_status':0.0,
 				'suggested_spawn_point':spawn_point,
 			})
@@ -202,19 +205,13 @@ class FactionState extends Reference:
 			goal['spawn_desire'] = spawn_desire[igoal]
 			goal['suggested_spawn_point'] = suggested_spawn_points[igoal]
 
-	# Given an amount of time that has passed (<=1 second), update money and available fleets.
+	# Given an amount of time that has passed (<=1 hour), update money and available fleets.
 	func process_space(delta):
 		# Gain money if we have any income:
 		resources_available += delta*resource_gain_rate
 		
 		# See if new fleets have arrived for recruitment.
-		var fleet = next_fleet(delta)
-		if fleet:
-			available_fleets.push_back(fleet)
-			if len(available_fleets)>max_available_fleets:
-				# We hit the limit for maximum fleets available, so
-				# the fleet waiting the longest leaves.
-				var _discard = available_fleets.pop_front()
+		make_fleets_available(delta)
 
 	func spawn_one_fleet(combat_state,only_if_available: bool) -> Array:
 		if resources_available<min_fleet_cost:
@@ -222,17 +219,21 @@ class FactionState extends Reference:
 		
 		var max_tries = max_available_fleets
 		var fleets_to_try: Array
+
+		var fleet_index: int = -1
 		
 		if only_if_available:
 			# Randomly choose up to 2 fleets to try to spawn, of the available_fleets
 			if not available_fleets:
 				return []
-			max_tries = min(len(available_fleets),min(max_tries,2))
-			var weights: Array = []
-			weights.resize(len(available_fleets))
+			var best_weight: float = -INF
 			for i in range(len(available_fleets)):
-				weights[i] = -randf()*(clamp(available_fleets[i]['cost'],1e5,1e7)-9e4)
-			fleets_to_try = utils.sorted_array_by_weight(available_fleets,weights)
+				var weight: float = randf()*(clamp(available_fleets[i]['cost'],1e5,1e7)-9e4)
+				if i==1 or weight>best_weight:
+					best_weight = weight
+					fleet_index = i
+			fleets_to_try = [ available_fleets[fleet_index] ]
+			max_tries = 1
 		
 		# Get combat statistics for this team
 		var stat = combat_state.system.team_stats.get(faction_index,{})
@@ -275,27 +276,49 @@ class FactionState extends Reference:
 				entry_method = combat_engine.ENTRY_FROM_ORBIT
 			elif goal['action'] == 'raid':
 				ai_type = combat_engine.RAIDER_AI
+
+			# Success! Remove this fleet from those available:
+			if fleet_index>=0:
+				available_fleets.remove(fleet_index)
 			
-			# Success! Add these ships to the list to spawn.
+			# Forward the request for this fleet to spawn.
 			return combat_state.spawn_fleet(fleet_node,faction_index,
 				goal['suggested_spawn_point'],entry_method,ai_type)
 		
 		# Could not spawn fleets this turn.
 		return []
 
-	# Given an amount of time that has passed (<= 1 second), decide what fleet may be spawned.
+	func make_fleets_available(delta):
+		var fleet = next_fleet(delta)
+		if fleet:
+			available_fleets.push_back(fleet)
+			if len(available_fleets)>max_available_fleets:
+				# We hit the limit for maximum fleets available, so
+				# the fleet waiting the longest leaves.
+				var _discard = available_fleets.pop_front()
+
+	# Given an amount of time that has passed, decide what fleet may be spawned.
 	# If delta is null, then a fleet is always returned (if there is one)
 	func next_fleet(delta):
 		if not fleets:
 			return null # This faction has no fleets
+			
+		if delta!=null and delta<=0:
+			return null # no time has passed, so nothing can spawn
 		
 		# How likely is it that a fleet should spawn?
-		var rand_val: float = randf()
 		var rand_max: float = fleet_weights[len(fleet_weights)-1]
-		if delta!=null and delta<1.0:
-			rand_max *= delta # scale by time that has passed
-		if rand_max>0:
+		if rand_max<=0:
+			# No fleets can spawn.
+			return null
+		var rand_val: float = randf()
+		
+		if delta==null:
 			rand_val /= rand_max
+		elif delta>0:
+			var rand_scale = clamp(rand_max*delta,0,1.0/rand_max) # scale by time passed
+			if rand_scale>0:
+				rand_val /= rand_scale
 		
 		# Find the fleet to spawn, if any
 		var fleet_index: int = fleet_weights.bsearch(rand_val)
@@ -575,5 +598,10 @@ class CombatState extends Reference:
 			return false
 		return true
 
-	func fill_system(_planet_time: float, _ship_time: float, _detail: int):
+	func fill_system(_planet_time: float, ship_time: float, _detail: int):
+		if ship_time>0:
+			for _i in range(5):
+				for faction in faction_states.values():
+					if faction.faction_index != player_faction_index:
+						faction.make_fleets_available(ship_time/5)
 		return [spawn_player_ship()]

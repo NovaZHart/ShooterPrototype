@@ -643,7 +643,7 @@ func set_layer_recursively(node: Node,layer: int):
 
 func _ready():
 	$Viewport.size = rect_size
-	$Viewport/SpaceBackground.update_from(Player.system)
+	#$Viewport/SpaceBackground.update_from(Player.system)
 	$Viewport/Red.layers = RED_LIGHT_CULL_LAYER
 	$Viewport/Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$Viewport/SpaceBackground.center_view(130,90,0,120,0)

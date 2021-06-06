@@ -91,7 +91,7 @@ Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
   faction_index(get<faction_index_t>(dict,"faction")),
   threat_per_second(get<float>(dict,"threat_per_second")),
   recouped_resources(0),
-  goals(), enemy_mask(0), friend_mask(0)
+  goals(), target_advice(), enemy_mask(0), friend_mask(0)
 {
   Array goal_array = get<Array>(dict,"goals");
   goals.reserve(goal_array.size());
@@ -114,7 +114,7 @@ ProjectileMesh::~ProjectileMesh() {}
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   id(id),
-  target(ship.target),
+  target(ship.get_target()),
   mesh_id(weapon.mesh_id),
   guided(weapon.guided),
   guidance_uses_velocity(weapon.guidance_uses_velocity),
@@ -395,6 +395,8 @@ Ship::Ship(const Ship &o):
   tick(o.tick),
   tick_at_last_shot(o.tick_at_last_shot),
   tick_at_rift_start(o.tick_at_rift_start),
+  ticks_since_targetting_change(o.ticks_since_targetting_change),
+  damage_since_targetting_change(o.damage_since_targetting_change),
   target(o.target),
   threat_vector(o.threat_vector),
   nearby_objects(o.nearby_objects),
@@ -503,6 +505,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   tick(0),
   tick_at_last_shot(TICKS_LONG_AGO),
   tick_at_rift_start(TICKS_LONG_AGO),
+  ticks_since_targetting_change(TICKS_LONG_AGO),
+  damage_since_targetting_change(0),
   target(-1),
   threat_vector(),
   nearby_objects(), nearby_enemies(),
@@ -703,15 +707,16 @@ real_t Ship::take_damage(real_t damage,int type) {
     // Structure is 0, so ship should explode.
     explosion_tick = tick+explosion_delay;
     fate = (explosion_tick>tick) ? FATED_TO_EXPLODE : FATED_TO_DIE;
-  }
+  } else
+    damage_since_targetting_change += damage;
   
   return damage;
 }
 
 Vector3 Ship::randomize_destination() {
-  float x=rand.randf();
-  float z=rand.randf();
-  return destination=Vector3(100*(x-0.5),0,100*(z-0.5));
+  real_t r=sqrt(rand.randf())*100;
+  real_t a=rand.randf()*2*PI;
+  return destination = unit_from_angle(a)*r;
 }
 
 void Ship::set_scale(real_t new_scale) {

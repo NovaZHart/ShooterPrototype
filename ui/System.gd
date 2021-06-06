@@ -545,11 +545,16 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 #		callv(call_arg[0],call_arg.slice(1,len(call_arg)))
 	center_view()
 	VisualServer.force_sync()
-	yield(get_tree(),'idle_frame')
-	get_tree().paused=false
+	call_deferred('unpause')
+
+func unpause():
+	if is_inside_tree():
+		var tree = get_tree()
+		if tree:
+			tree.paused = false
 
 func _ready() -> void:
-	init_system(randf()*500,50,150)
+	init_system(randf()*500,600,150)
 	combat_engine.set_world(get_world())
 	center_view()
 	combat_engine.set_visible_region(visible_region(),
@@ -584,4 +589,8 @@ func center_view(center=null) -> void:
 	# Maintain 30 degree sun angle unless were're very close to the sun.
 	$ShipLight.translation.y = min(max_sun_height,max(min_sun_height,
 		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
+	$ShipLight.omni_range = $EffectsLight.translation.y*3
+	$EffectsLight.translation.y = min(max_sun_height,max(min_sun_height,
+		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
+	$EffectsLight.omni_range = $EffectsLight.translation.y*3
 	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))

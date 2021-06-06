@@ -75,6 +75,40 @@ func change_scene(to):
 	else:
 		return get_tree().change_scene(to)
 
+var background_cache = null setget set_background_cache, get_background_cache
+var background_mutex = Mutex.new()
+var starfield_cache = null setget set_starfield_cache, get_starfield_cache
+var starfield_mutex = Mutex.new()
+
+func get_background_cache():
+	return background_cache
+func set_background_cache(c):
+	if c.bg_texture:
+		background_mutex.lock()
+		background_cache=c
+		background_mutex.unlock()
+
+func get_starfield_cache():
+	return starfield_cache
+func set_starfield_cache(c):
+	if c.bg_texture:
+		starfield_mutex.lock()
+		starfield_cache=c
+		starfield_mutex.unlock()
+
+class CachedImage extends Reference:
+	var bg_seed
+	var bg_color
+	var bg_texture
+	var hyperspace
+	func _init(bg_seed_, bg_color_, bg_texture_, hyperspace_):
+		assert(bg_texture_)
+		bg_seed=bg_seed_
+		bg_color=bg_color_
+		bg_texture=bg_texture_
+		hyperspace=hyperspace_
+		assert(bg_texture)
+
 class KeyEditorStub extends Control:
 	func add_ui_for_action_event(_action: String, _event: InputEvent, _index: int) -> bool:
 		return true

@@ -3,172 +3,167 @@
       "initial_player_faction": [ "Faction", "initial_player_faction", [
           "Array"
       ], 0.0, {
-              "raiders": -100,
-              "locals": 100
+              "raiders": -1,
+              "locals": 1
       }, {} ],
       "locals": [ "Faction", "Locals", [
             "Array",
             {
-              "frequency": 1100,
+              "frequency": 150,
               "fleet": "popoto_lasers_trio",
               "type": "light_military"
             },
             {
-              "frequency": 900,
+              "frequency": 110,
               "fleet": "bufeo_particles_escorted",
               "type": "light_military"
             },
             {
-              "frequency": 900,
+              "frequency": 110,
               "fleet": "bufeo_lasers_escorted",
               "type": "light_military"
             },
             {
-              "frequency": 400,
+              "frequency": 70,
               "fleet": "bufeo_particles_trio",
               "type": "light_military"
             },
             {
-              "frequency": 400,
+              "frequency": 70,
               "fleet": "bufeo_lasers_trio",
               "type": "light_military"
             },
             {
-              "frequency": 200,
+              "frequency": 40,
               "fleet": "orca_particles_missiles_escorted",
               "type": "light_military"
             },
             {
-              "frequency": 200,
+              "frequency": 40,
               "fleet": "orca_lasers_missiles_escorted",
               "type": "light_military"
             },
 
             {
-              "frequency": 1000,
+              "frequency": 70,
               "fleet": "orca_particles_missiles_escorted",
               "type": "heavy_military"
             },
             {
-              "frequency": 1000,
+              "frequency": 70,
               "fleet": "orca_lasers_missiles_escorted",
               "type": "heavy_military"
             },
             {
-              "frequency": 700,
+              "frequency": 50,
               "fleet": "orca_mix_no_missiles",
               "type": "heavy_military"
             },
             {
-              "frequency": 700,
+              "frequency": 50,
               "fleet": "orca_laser_missile_mix",
               "type": "heavy_military"
             },
             {
-              "frequency": 700,
+              "frequency": 50,
               "fleet": "orca_particle_missile_mix",
               "type": "heavy_military"
             },
             {
-              "frequency": 500,
+              "frequency": 30,
               "fleet": "ankylorhiza_missiles_particles_escorted",
               "type": "heavy_military"
             },
             {
-              "frequency": 500,
+              "frequency": 30,
               "fleet": "ankylorhiza_driver_lasers_escorted",
               "type": "heavy_military"
             }
           ], 3e5, {
-              "raiders": -100,
-              "initial_player_faction": 100
+              "raiders": -3,
+              "initial_player_faction": 0.5
           }, {} ],
       "raiders": [ "Faction", "Raiders", [
             "Array",
             {
-              "frequency": 400,
+              "frequency": 40,
               "fleet": "condor_lasers_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 400,
+              "frequency": 40,
               "fleet": "condor_duo",
               "type": "large_raid"
             },
             {
-              "frequency": 400,
+              "frequency": 40,
               "fleet": "condor_particles_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 500,
+              "frequency": 50,
               "fleet": "raven_trio",
               "type": "large_raid"
             },
             {
-              "frequency": 900,
+              "frequency": 90,
               "fleet": "two_eagles_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 500,
+              "frequency": 50,
               "fleet": "two_raven_missiles_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 900,
+              "frequency": 90,
               "fleet": "raven_lasers_trio",
               "type": "large_raid"
             },
             {
-              "frequency": 900,
+              "frequency": 90,
               "fleet": "raven_particles_trio",
               "type": "large_raid"
             },
 
             {
-              "frequency": 600,
+              "frequency": 60,
               "fleet": "raven_missiles_escorted",
               "type": "small_raid"
             },
             {
-              "frequency": 600,
+              "frequency": 60,
               "fleet": "raven_duo_lasers",
               "type": "small_raid"
             },
             {
-              "frequency": 600,
+              "frequency": 60,
               "fleet": "raven_duo_particles",
               "type": "small_raid"
             },
             {
-              "frequency": 600,
+              "frequency": 60,
               "fleet": "eagle_particles_escorted",
               "type": "small_raid"
             },
             {
-              "frequency": 600,
+              "frequency": 60,
               "fleet": "rep_fleet_lasers",
               "type": "small_raid"
             },
             {
-              "frequency": 600,
+              "frequency": 60,
               "fleet": "rep_fleet_particles",
               "type": "small_raid"
             },
             {
-              "frequency": 900,
+              "frequency": 90,
               "fleet": "five_peregrines_lasers",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
               "type": "small_raid"
             }
           ], 3e5, {
-              "locals": -100,
-              "initial_player_faction": -100
+              "locals": -1,
+              "initial_player_faction": -0.5
           }, {} ]
   }],
   "systems": [

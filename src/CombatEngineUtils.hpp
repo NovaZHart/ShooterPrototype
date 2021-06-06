@@ -188,7 +188,7 @@ namespace godot {
     inline uint32_t state_for_name(const String &name) {
       return name.hash();
     }
-
+    
     template<bool FIRST,class F,class C>
     CE::object_id select_target(const typename C::key_type &start,const F &selection_function,
                                 const C&container) {

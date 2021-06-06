@@ -20,7 +20,7 @@ const default_active_factions: Dictionary = {
 	'locals': { 'starting_money':1.2e6, 'income_per_second':300000, 'fleet_type_weights':{
 		'heavy_military':1.0, 'light_military':1.0 }
 	},
-	'raiders': { 'starting_money':0.3e6, 'income_per_second':150000, 'fleet_type_weights':{
+	'raiders': { 'starting_money':1.2e6, 'income_per_second':300000, 'fleet_type_weights':{
 		'large_raid':1.0, 'small_raid':1.0 }
 	},
 }
@@ -229,7 +229,7 @@ func process_space(_system,_delta,_immediate_entry: bool = false) -> Array:
 	return []
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true):
-	system.update_space_background(self)
+	#system.update_space_background(self)
 	system.raise_sun = not show_on_map
 	for child in get_children():
 		if child.is_a_planet():

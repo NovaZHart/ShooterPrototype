@@ -121,6 +121,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		var shade=ShaderMaterial.new()
 		shade.set_shader(sphere_shader)
 		sphere.material_override=shade
+		sphere.cast_shadow=false
 		sphere_material = sphere.material_override
 	#	sphere_material.set_shader_param('xyz',xyz)
 		sphere.set_layer_mask(4)

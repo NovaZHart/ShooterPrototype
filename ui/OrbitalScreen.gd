@@ -31,7 +31,7 @@ func _ready():
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
 	$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
 	$View/Port/SpaceBackground.center_view(130,90,0,100,0)
-	$View/Port/SpaceBackground.update_from(Player.system)
+	#$View/Port/SpaceBackground.update_from(Player.system)
 	update_astral_gate()
 	$ServiceSelector.update_service_list()
 	var _discard = get_viewport().connect('size_changed',self,'force_viewport_size')

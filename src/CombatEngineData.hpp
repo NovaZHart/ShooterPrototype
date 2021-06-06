@@ -140,7 +140,7 @@ namespace godot {
     struct Weapon;
     struct Ship;
 
-    const int SHIP_LIGHT_LAYER_MASK = 1;
+    const int EFFECTS_LIGHT_LAYER_MASK = 2;
 
     enum goal_action_t {
       goal_patrol = 0,  // equal or surpass enemy threat; kill enemies
@@ -183,11 +183,19 @@ namespace godot {
       float spawn_desire;
       object_id planet;
     };
+
+    struct TargetAdvice {
+      goal_action_t action;
+      float target_weight, radius;
+      object_id planet;
+      Vector3 position;
+    };
     
     struct Faction {
       const faction_index_t faction_index;
       const float threat_per_second;
-      static inline int affinity_key(const faction_index_t from_faction,const faction_index_t to_faction) {
+      static inline int affinity_key(const faction_index_t from_faction,
+                                     const faction_index_t to_faction) {
         return to_faction | (from_faction<<FACTION_BIT_SHIFT);
       }
 
@@ -198,19 +206,40 @@ namespace godot {
       void update_masks(const std::unordered_map<int,float> &affinities);
       void make_state_for_gdscript(Dictionary &factions);
 
-      inline const std::vector<FactionGoal> &get_goals() const { return goals; }
-      inline std::vector<FactionGoal> &get_goals() { return goals; }
-      inline faction_mask_t get_enemy_mask() const { return enemy_mask; }
-      inline faction_mask_t get_friend_mask() const { return friend_mask; }
-      inline void recoup_resources(float resources) { recouped_resources+=std::max(resources,0.0f); }
+      inline const std::vector<FactionGoal> &get_goals() const {
+        return goals;
+      }
+      inline std::vector<FactionGoal> &get_goals() {
+        return goals;
+      }
+      inline const std::vector<TargetAdvice> &get_target_advice() const {
+        return target_advice;
+      }
+      inline std::vector<TargetAdvice> &get_target_advice() {
+        return target_advice;
+      }
+      inline void clear_target_advice(int nplanets) {
+        target_advice.reserve(nplanets*goals.size());
+        target_advice.clear();
+      }
+      inline faction_mask_t get_enemy_mask() const {
+        return enemy_mask;
+      }
+      inline faction_mask_t get_friend_mask() const {
+        return friend_mask;
+      }
+      inline void recoup_resources(float resources) {
+        recouped_resources+=std::max(resources,0.0f);
+      }
     private:
       float recouped_resources;
       std::vector<FactionGoal> goals;
+      std::vector<TargetAdvice> target_advice;
       faction_mask_t enemy_mask, friend_mask;
     };
     typedef std::unordered_map<faction_index_t,CE::Faction> factions_t;
     typedef std::unordered_map<faction_index_t,CE::Faction>::iterator factions_iter;
-    typedef std::unordered_map<faction_index_t,CE::Faction>::const_iterator factions_citer;
+    typedef std::unordered_map<faction_index_t,CE::Faction>::const_iterator factions_const_iter;
   
     struct ProjectileMesh {
       object_id id;
@@ -347,8 +376,8 @@ namespace godot {
       int tick;
 
       // Targeting and firing logic:
-      int tick_at_last_shot, tick_at_rift_start;
-      object_id target;
+      int tick_at_last_shot, tick_at_rift_start, ticks_since_targetting_change;
+      real_t damage_since_targetting_change;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
       ship_hit_list_t nearby_enemies;
@@ -422,8 +451,31 @@ namespace godot {
       // Return a Dictionary to pass back to GDScript with the ship's info:
       Dictionary update_status(const std::unordered_map<object_id,Ship> &ships,
                                const std::unordered_map<object_id,Planet> &planets) const;
+
+      inline object_id get_target() const { return target; }
+      inline void new_target(object_id t) {
+        if(t!=target) {
+          ticks_since_targetting_change = 0;
+          damage_since_targetting_change = 0;
+          target = t;
+        }
+      }
+      inline void clear_target() {
+        if(target!=-1) {
+          ticks_since_targetting_change = 0;
+          damage_since_targetting_change = 0;
+          target = -1;
+        }
+      }
+
+      inline void update_timers() {
+        tick++;
+        ticks_since_targetting_change++;
+      }
+
     private:
       real_t visual_scale; // Intended to resize ship graphics when rifting
+      object_id target;
       
       inline real_t make_turn_diameter_squared() const {
         // This is a surprisingly expensive calculation, according to profiling.

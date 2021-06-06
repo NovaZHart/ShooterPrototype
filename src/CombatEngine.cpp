@@ -1,6 +1,7 @@
 #include <cstdint>
 #include <cmath>
 #include <limits>
+#include <map>
 
 #include <GodotGlobal.hpp>
 #include <PhysicsDirectBodyState.hpp>
@@ -492,13 +493,16 @@ PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, 
   return result;
 }
 
-void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &goal) const {
+void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) const {
   FAST_PROFILING_FUNCTION;
   planet_goal_data.reserve(planets.size());
   goal_weight_data.reserve(planets.size());
   planet_goal_data.clear();
   goal_weight_data.clear();
 
+  std::vector<TargetAdvice> &target_advice = faction.get_target_advice();
+  int target_advice_start = target_advice.size();
+  
   float accum = 0;
   float min_desire;
   float max_desire;
@@ -517,6 +521,13 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
       max_desire = max(spawn_desire,max_desire);
     }
     goal_weight_data.push_back(spawn_desire);
+    TargetAdvice ta;
+    ta.action = goal.action;
+    ta.target_weight = spawn_desire;
+    ta.radius = goal.radius;
+    ta.planet = id;
+    ta.position = p_planet->second.position;
+    target_advice.push_back(ta);
   }
 
   for(int i=0;i<goal_weight_data.size();i++) {
@@ -548,12 +559,26 @@ void CombatEngine::update_one_faction_goal(const Faction &faction, FactionGoal &
     goal.clear();
     return;
   }
+
+  for(int i=target_advice_start,n=target_advice.size();i<n;i++) {
+    if(max_desire==min_desire)
+      target_advice[i].target_weight = 0.5;
+    else {
+      target_advice[i].target_weight -= min_desire;
+      target_advice[i].target_weight /= max_desire-min_desire;
+    }
+    target_advice[i].target_weight *= goal.weight;
+  }
   
   const Planet &planet = p_planet->second;
   goal.suggested_spawn_point = planet.position;
-  goal.spawn_desire = (planet_goal_data[i].spawn_desire-min_desire);
-  if(max_desire>min_desire)
+  if(max_desire==min_desire)
+    goal.spawn_desire = 0.5;
+  else {
+    goal.spawn_desire = (planet_goal_data[i].spawn_desire-min_desire);
     goal.spawn_desire /= max_desire-min_desire;
+  }
+  
   goal.goal_success = planet_goal_data[i].goal_status;
 }
 
@@ -567,15 +592,20 @@ void CombatEngine::update_all_faction_goals() {
     } else
       p_planet->second.update_goal_data(p_first->second);
   }
-  for(auto &p_faction : factions)
-    for(auto &goal : p_faction.second.get_goals())
-      update_one_faction_goal(p_faction.second,goal);
+  int planet_count = planets.size();
+  for(auto &p_faction : factions) {
+    Faction &faction = p_faction.second;
+    faction.clear_target_advice(planet_count);
+    for(auto &goal : faction.get_goals())
+      update_one_faction_goal(faction,goal);
+  }
   last_planet_updated = -1;
   last_faction_updated = FACTION_ARRAY_SIZE;
 }
 
 void CombatEngine::faction_ai_step() {
-  //  if(p_tick==1)
+  // FIXME: Get this working.
+  //  if(p_tick<30)
     update_all_faction_goals();
   // if(p_tick % 2) {
   //   // Update a planet on odd ticks.
@@ -598,6 +628,7 @@ void CombatEngine::faction_ai_step() {
   //     p_faction=factions.begin();
   //   if(p_faction!=factions.end()) {
   //     Faction &faction = p_faction->second;
+  //     faction.clear_target_advice(planets.size());
   //     for(auto &goal : faction.get_goals())
   //       update_one_faction_goal(faction,goal);
   //     last_faction_updated = p_faction->first;
@@ -737,7 +768,7 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
       if(self_ptr!=ships.end() and
          ( planets.find(target_id_ptr->second)!=planets.end() or
            ships.find(target_id_ptr->second)!=ships.end()))
-        self_ptr->second.target = target_id_ptr->second;
+        self_ptr->second.new_target(target_id_ptr->second);
     }
   }
 }
@@ -803,7 +834,7 @@ void CombatEngine::rift_ai(Ship &ship) {
 
 void CombatEngine::explode_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  ship.tick++;
+  ship.update_timers();
   if(ship.tick>=ship.explosion_tick) {
     ship.fate=FATED_TO_DIE;
     if(ship.explosion_radius>0 and (ship.explosion_damage>0 or ship.explosion_impulse!=0)) {
@@ -934,9 +965,9 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
 
   if(target_selection) {
     object_id target=overrides.target_id;
-    if(target_selection==PLAYER_TARGET_OVERRIDE) {
-      ship.target = target;
-    } else {
+    if(target_selection==PLAYER_TARGET_OVERRIDE)
+      ship.new_target(target);
+    else {
       if(target_selection==PLAYER_TARGET_NOTHING)
         target=-1;
       else if(target_selection==PLAYER_TARGET_PLANET) {
@@ -956,7 +987,8 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
           target=select_target<true>(target,select_two(select_mask(mask),select_flying()),ships);
       }
       
-      overrides.target_id = ship.target = target;
+      ship.new_target(target);
+      overrides.target_id = target;
     }
   }
 
@@ -983,7 +1015,7 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     request_rotation(ship,0);
 
   if(overrides.orders&PLAYER_ORDER_FIRE_PRIMARIES) {
-    ships_iter target_ptr = ships.find(ship.target);
+    ships_iter target_ptr = ships.find(ship.get_target());
     if(not rotation and ship.should_autotarget and target_ptr!=ships.end()) {
       bool in_range=false;
       Vector3 aim = aim_forward(ship,target_ptr->second,in_range);
@@ -1008,7 +1040,7 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
     case PLAYER_GOAL_LANDING_AI: {
       planets_iter planet_p = planets.find(overrides.target_id);
       if(planet_p!=planets.end())
-        ship.target=planet_p->first;
+        ship.new_target(planet_p->first);
       landing_ai(ship);
       return true;
     }
@@ -1019,7 +1051,7 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
     case PLAYER_GOAL_INTERCEPT: {
       ships_iter target_p = ships.find(overrides.target_id);
       if(target_p!=ships.end()) {
-        ship.target=target_p->first;
+        ship.new_target(target_p->first);
         move_to_attack(ship,target_p->second);
       }
       return true;
@@ -1053,23 +1085,26 @@ void CombatEngine::update_near_objects(Ship &ship) {
   }
 }
 
+bool CombatEngine::should_update_targetting(Ship &ship,ships_iter &other) {
+  if(other->second.fate!=FATED_TO_FLY)
+    return true;
+  else if(ship.tick-ship.tick_at_last_shot>900)
+    // After 15 seconds without firing, reevaluate target
+    return true;
+  else if(ship.ticks_since_targetting_change%1500==0) {
+    // Every 25 seconds reevaluate target if target is out of range
+    real_t target_distance = ship.position.distance_to(other->second.position);
+    return target_distance > 1.5*ship.range.all;
+  }
+  real_t hp = ship.armor+ship.shields+ship.structure;
+  return hp/4<ship.damage_since_targetting_change;
+}
+
 ships_iter CombatEngine::update_targetting(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  ships_iter target_ptr = ship.target>=0 ? ships.find(ship.target) : ships.end();
-  bool pick_new_target = target_ptr==ships.end();
-  if(!pick_new_target) {
-    //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    if(target_ptr->second.fate!=FATED_TO_FLY)
-      pick_new_target = true;
-    else if(ship.tick-ship.tick_at_last_shot>900)
-      // After 15 seconds without firing, reevaluate target
-      pick_new_target=true;
-    else if(ship.tick%1500==0) {
-      // After 25 seconds, if ship is out of range, reevaluate target
-      real_t target_distance = ship.position.distance_to(target_ptr->second.position);
-      pick_new_target = (target_distance > 1.5*ship.range.all);
-    }
-  }
+  ships_iter target_ptr = ships.find(ship.get_target());
+  bool pick_new_target = target_ptr==ships.end() ||
+    should_update_targetting(ship,target_ptr);
   
   if(pick_new_target or target_ptr==ships.end()) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
@@ -1088,13 +1123,13 @@ void CombatEngine::attacker_ai(Ship &ship) {
   bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<100;
   
   if(close_to_target) {
-    ship.target=target_ptr->first;
+    ship.new_target(target_ptr->first);
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
   } else {
     if(not have_target)
-      ship.target=-1;
+      ship.clear_target();
     // FIXME: replace this with faction-level ai:
     if(ship.faction==player_faction_index)
       landing_ai(ship);
@@ -1134,13 +1169,13 @@ void CombatEngine::raider_ai(Ship &ship) {
 
   if(close_to_target) {
     ship.ai_flags=0;
-    ship.target=target_ptr->first;
+    ship.new_target(target_ptr->first);
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
   } else {
     if(not have_target)
-      ship.target=-1;
+      ship.clear_target();
     if(ship.ai_flags==0 and ship.rand.randf()<2e-5)
       ship.ai_flags=DECIDED_TO_RIFT;
     if(ship.ai_flags&DECIDED_TO_RIFT)
@@ -1150,20 +1185,173 @@ void CombatEngine::raider_ai(Ship &ship) {
   }
 }
 
+void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const {
+
+  // Minimum and maximum distances to target for calculations:
+  real_t min_move = clamp(max(3.0f*ship.max_speed,ship.range.all),10.0f,30.0f);
+  real_t max_move = clamp(20.0f*ship.max_speed+ship.range.all,100.0f,1000.0f);
+  real_t move_scale = max(max_move-min_move,1.0f);
+
+  factions_const_iter faction_it = factions.find(ship.faction);
+  
+  int i=0;
+  object_id target = -1;
+  real_t target_weight = -1.0f;
+
+  for(ships_const_iter it=ships.begin();it!=ships.end();it++,i++) {
+    real_t weight = 0.0f;
+    const Ship &other = it->second;
+    if(other.id==ship.id or not is_hostile_towards(ship.faction,other.faction))
+      // Cannot harm the other ship, so don't target it.
+      continue;
+
+    real_t ship_dist = other.position.distance_to(ship.position);
+    if(ship_dist>max_move and ship_dist>override_distance)
+      // Ship is essentially infinitely far away, so ignore it.
+      continue;
+
+    weight  = clamp(-affinity_towards(ship.faction,other.faction),0.5f,2.0f);
+    weight *= clamp((max_move-ship_dist)/move_scale, 0.1f, 1.0f);
+
+    // Lower weight for potential targets much stronger than the ship.
+    real_t rel_threat = max(100.0f,ship.threat)/other.threat;
+    if(prefer_strong_targets)
+      rel_threat = 1.0f/rel_threat;
+    rel_threat = clamp(rel_threat,0.3f,1.0f);
+    weight *= rel_threat;
+
+    weight *= 10.0f;
+
+    // Goal weight is now 1..10 for range times 0.15..2 for other factors
+
+    if(ship.get_target() == other.id)
+      weight += 5; // prefer the current target
+
+    if(faction_it!=factions.end()) {
+      real_t all_advice_weight_sq = 0;
+      for(auto &advice : faction_it->second.get_target_advice()) {
+        if(advice.action != goal_filter)
+          continue; // ship does not contribute to this goal
+
+        // Starting advice weight is goal weight multiplied by a number from 0..1:
+        real_t advice_weight = advice.target_weight;
+
+        // Reduce the weight based on distance to the goal, if the
+        // goal cares about distance.
+        if(advice.radius>0) {
+          real_t dist = advice.position.distance_to(ship.position);
+          if(advice.radius>dist)
+            continue; // target is outside goal radius
+          advice_weight *= (advice.radius-dist)/advice.radius;
+        }
+
+        if(advice_weight>0)
+          all_advice_weight_sq += advice_weight*advice_weight;
+      }
+
+      // Use the square root of sum of squares to accumulate so the
+      // relative values don't get too high if there are many goals.
+      if(all_advice_weight_sq>0)
+        weight += 5*sqrtf(all_advice_weight_sq);
+    }
+
+    if(weight<min_weight_to_target and ship_dist>override_distance)
+      continue; // Ship is too unimportant to attack
+    
+    if(weight>target_weight) {
+      target_weight = weight;
+      target = other.id;
+    }
+  }
+
+  if(target!=ship.get_target()) {
+    ship.new_target(target);
+    if(target>=0) {
+      ships_const_iter it=ships.find(target);
+      // if(ships.end()!=it)
+      //   Godot::print("Ship "+ship.name+" target changed to "+it->second.name);
+      // else
+      //   Godot::print("Ship "+ship.name+" target changed to ship "+str(target));
+    }
+  }
+
+  if(target<0 and ship.goal_target>0) {
+    // No ship to target, and this ship is tracking a planet-based
+    // goal, so we'll target that instead.
+
+    target = -1;
+    target_weight = -1.0f;
+
+    object_id closest_planet = select_target<false>(-1,select_nearest(ship.position),planets);
+
+    const vector<TargetAdvice> &target_advice = faction_it->second.get_target_advice();
+    unordered_map<object_id,float> weighted_planets;
+
+    weighted_planets.reserve(target_advice.size()*2);
+
+    real_t weight_sum;
+    for(auto &advice : target_advice) {
+      if(advice.action != goal_filter)
+        continue; // ship does not contribute to this goal
+
+      real_t weight = advice.target_weight;
+      
+      if(advice.planet == ship.goal_target)
+        weight *= 1.5;
+      if(advice.planet == closest_planet)
+        weight *= 1.5;
+
+      unordered_map<object_id,float>::iterator it=weighted_planets.find(advice.planet);
+      if(it==weighted_planets.end())
+        weighted_planets[advice.planet] = weight;
+      else
+        it->second += weight;
+      weight_sum += weight;
+    }
+
+    real_t randf = ship.rand.randf()*weight_sum;
+    unordered_map<object_id,float>::iterator choice = weighted_planets.begin();
+    unordered_map<object_id,float>::iterator next = choice;
+
+    while(next!=weighted_planets.end()) {
+      if(randf<choice->second)
+        break;
+      randf -= choice->second;
+      choice=next;
+      next++;
+    };
+
+    if(choice!=weighted_planets.end())
+      target = choice->first;
+
+    if(target>=0) {
+      if(target != ship.goal_target) {
+        planets_const_iter it=planets.find(target);
+        // if(planets.end()!=it)
+        //   Godot::print("Ship "+str(ship.name)+" goal target changed to "+it->second.name);
+        // else
+        //   Godot::print("Ship "+str(ship.name)+" goal target changed to planet "+str(target));
+      }
+      ship.goal_target = target;
+    }
+  }
+}
+
 void CombatEngine::patrol_ship_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
     return;
 
   if(ship.goal_target<0 and planets.size()>0) {
+    // Initial goal target is the nearest planet.
     ship.goal_target = select_target<false>(-1,select_nearest(ship.position),planets);
     planets_iter p_planet = planets.find(ship.goal_target);
     if(p_planet!=planets.end()) {
       ship.destination = p_planet->second.position;
       ship.goal_target = p_planet->second.id;
-      Godot::print("Ship "+str(ship.id)+" chose goal target "+str(ship.goal_target));
-    } else
-      Godot::print("Ship "+str(ship.id)+" could not choose a goal target (invalid planet "+str(ship.goal_target)+")");
+      //Godot::print("Ship "+str(ship.id)+" chose goal target "+p_planet->second.name);
+    } // else
+      // Godot::print("Ship "+str(ship.id)+" could not choose a goal target (invalid planet "+str(ship.goal_target)+")");
   }
 
   if(ship.ai_flags&DECIDED_TO_LAND) {
@@ -1182,24 +1370,39 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
     return;
   }
 
-  ships_iter target_ptr = update_targetting(ship);
+  ships_iter target_ptr;
+  bool find_new_target = false;
+  if(ship.get_target()<0 and ship.ticks_since_targetting_change%180==0)
+    find_new_target = true;
+  else {
+    target_ptr = ships.find(ship.get_target());
+    if(target_ptr == ships.end())
+      find_new_target = true;
+    else
+      find_new_target = should_update_targetting(ship,target_ptr);
+  }
+  if(find_new_target) {
+    choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f);
+    target_ptr = ships.find(ship.get_target());
+  }
+
   bool have_target = target_ptr!=ships.end();
   bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<13*ship.max_speed;
   
   if(close_to_target) {
     ship.ai_flags=0;
-    ship.target=target_ptr->first;
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
   } else {
     if(not have_target)
-      ship.target=-1;
+      ship.clear_target();
     if(ship.ai_flags==0) {
       float randf = ship.rand.randf();
-      if(randf<2e-5)
+      float scale = (ship.tick_at_last_shot-ship.tick)>7200 ? 1e-3 : 1e-5;
+      if(randf<2*scale)
         ship.ai_flags=DECIDED_TO_LAND;
-      else if(randf<4e-5)
+      else if(randf<4*scale)
         ship.ai_flags=DECIDED_TO_RIFT;
     }
     if(ship.ai_flags&DECIDED_TO_LAND)
@@ -1217,11 +1420,11 @@ void CombatEngine::landing_ai(Ship &ship) {
   if(ship.fate!=FATED_TO_FLY)
     return;
 
-  planets_iter target = planets.find(ship.target);
+  planets_iter target = planets.find(ship.get_target());
   if(target == planets.end()) {
     object_id target_id = select_target<false>(-1,select_nearest(ship.position),planets);
     target = planets.find(target_id);
-    ship.target=target_id;
+    ship.new_target(target_id);
   }
   if(target == planets.end())
     // Nowhere to land!
@@ -1525,7 +1728,7 @@ void CombatEngine::player_auto_target(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.immobile or ship.inactive)
     return;
-  ships_iter target = ships.find(ship.target);
+  ships_iter target = ships.find(ship.get_target());
   if(target!=ships.end()) {
     bool in_range=false;
     Vector3 aim = aim_forward(ship,target->second,in_range);
@@ -2164,7 +2367,7 @@ void CombatEngine::add_content() {
   VisibleContent *next = new VisibleContent();
   next->ships_and_planets.reserve(ships.size()+planets.size());
   ships_iter player_it = ships.find(player_ship_id);
-  object_id player_target_id = (player_it==ships.end()) ? -1 : player_it->second.target;
+  object_id player_target_id = (player_it==ships.end()) ? -1 : player_it->second.get_target();
   
   for(auto &it : ships) {
     Ship &ship = it.second;
@@ -2240,8 +2443,9 @@ bool CombatEngine::update_visual_instance(MeshInfo &mesh_info) {
       // Can't display this frame
       return false;
     }
-    visual_server->instance_set_layer_mask(mesh_info.visual_rid,SHIP_LIGHT_LAYER_MASK);
+    visual_server->instance_set_layer_mask(mesh_info.visual_rid,EFFECTS_LIGHT_LAYER_MASK);
     visual_server->instance_set_visible(mesh_info.visual_rid,true);
+    visual_server->instance_geometry_set_cast_shadows_setting(mesh_info.visual_rid,0);
   } else if(reset_scenario)
     visual_server->instance_set_scenario(mesh_info.visual_rid,scenario);
   return true;

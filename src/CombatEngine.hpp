@@ -152,12 +152,17 @@ namespace godot {
     inline bool is_friendly_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
       return friend_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
     }
+    inline real_t affinity_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
+      int key = CE::Faction::affinity_key(from_faction,to_faction);
+      std::unordered_map<int,float>::const_iterator it = affinities.find(key);
+      return (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
+    }
     void change_relations(CE::faction_index_t from_faction,CE::faction_index_t to_faction,
                           real_t how_much,bool immediate_update);
     void make_faction_state_for_gdscript(Dictionary &result);
     void update_affinity_masks();
     CE::PlanetGoalData update_planet_faction_goal(const CE::Faction &faction, const CE::Planet &planet, const CE::FactionGoal &goal) const;
-    void update_one_faction_goal(const CE::Faction &faction, CE::FactionGoal &goal) const;
+    void update_one_faction_goal(CE::Faction &faction, CE::FactionGoal &goal) const;
     void update_all_faction_goals();
     void faction_ai_step();
 
@@ -181,6 +186,7 @@ namespace godot {
     bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
     bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
     void update_near_objects(CE::Ship &ship);
+    bool should_update_targetting(CE::Ship &ship,CE::ships_iter &other);
     CE::ships_iter update_targetting(CE::Ship &ship);
     void attacker_ai(CE::Ship &ship);
     void patrol_ship_ai(CE::Ship &ship);
@@ -188,6 +194,7 @@ namespace godot {
     void landing_ai(CE::Ship &ship);
     void coward_ai(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);
+    void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;
     Vector3 make_threat_vector(CE::Ship &ship, real_t t);
     void evade(CE::Ship &ship);
     void aim_turrets(CE::Ship &ship,CE::ships_iter &target);

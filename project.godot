@@ -36,10 +36,6 @@ mesh_loader="*res://globals/MeshLoaderNode.gd"
 builtin_commands="*res://globals/Commands.gd"
 input_state="*res://globals/InputState.gd"
 
-[display]
-
-window/size/borderless=true
-
 [gui]
 
 theme/custom="res://ui/skins/MainTheme.tres"
@@ -187,6 +183,9 @@ common/enable_object_picking=false
 [rendering]
 
 threads/thread_model=2
+quality/shadow_atlas/quadrant_1_subdiv=3
+quality/shadow_atlas/quadrant_2_subdiv=4
+quality/shadow_atlas/quadrant_3_subdiv=6
 quality/reflections/texture_array_reflections=false
 quality/reflections/high_quality_ggx=false
 quality/subsurface_scattering/quality=0
