@@ -17,3 +17,4 @@ firing_delay = 0.0
 projectile_mesh_path = "res://weapons/meshes/green_line.mesh"
 item_size_y = 4
 help_page = "weapons/gamma_ray_laser"
+damage_type = 1

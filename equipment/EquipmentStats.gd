@@ -35,6 +35,12 @@ export var mount_size_y: int = 0 setget ,get_mount_size_y
 export var mount_type: String = 'equipment'
 export var help_page: String = 'equipment'
 
+export var add_shield_resist: PoolRealArray = PoolRealArray()
+export var add_shield_passthru: PoolRealArray = PoolRealArray()
+export var add_armor_resist: PoolRealArray = PoolRealArray()
+export var add_armor_passthru: PoolRealArray = PoolRealArray()
+export var add_structure_resist: PoolRealArray = PoolRealArray()
+
 var cached_stats
 var cached_bbcode
 
@@ -95,6 +101,16 @@ func get_bbcode() -> String:
 
 func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
 	stats['equipment'].append(pack_stats())
+	if add_shield_resist:
+		stats['shield_resist'] = utils.sum_of_squares(stats['shield_resist'],add_shield_resist)
+	if add_shield_passthru:
+		stats['shield_passthru'] = utils.sum_of_squares(stats['shield_passthru'],add_shield_passthru)
+	if add_armor_resist:
+		stats['armor_resist'] = utils.sum_of_squares(stats['armor_resist'],add_armor_resist)
+	if add_armor_passthru:
+		stats['armor_passthru'] = utils.sum_of_squares(stats['armor_passthru'],add_armor_passthru)
+	if add_structure_resist:
+		stats['structure_resist'] = utils.sum_of_squares(stats['structure_resist'],add_structure_resist)
 	if add_mass > 0:
 		stats['empty_mass'] = max(1,stats['empty_mass']+add_mass)
 	if add_thrust > 0:

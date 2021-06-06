@@ -186,8 +186,35 @@ var key_editor = KeyEditorStub.new()
 var fleet_tree_selection = null
 var game_editor_mode = false
 
+var editor_stack: Array = []
+
 func set_key_editor(what):
 	key_editor = what if(what is KeyEditorStub) else KeyEditorStub.new()
+
+func pop_editors():
+	var popped = editor_stack.pop_back() if editor_stack else {}
+	if popped:
+		sector_editor = popped['sector_editor']
+		system_editor = popped['system_editor']
+		ship_editor = popped['ship_editor']
+		fleet_editor = popped['fleet_editor']
+		hyperspace = popped['hyperspace']
+	else:
+		sector_editor = SectorEditorStub.new()
+		system_editor = SystemEditorStub.new()
+		ship_editor = ShipEditorStub.new()
+		fleet_editor = ShipEditorStub.new()
+		hyperspace = HyperspaceStub.new()
+
+func push_editors(what):
+	editor_stack.push_back({
+		'sector_editor': sector_editor,
+		'system_editor': system_editor,
+		'ship_editor': ship_editor,
+		'fleet_editor': fleet_editor,
+		'hyperspace': hyperspace
+	})
+	switch_editors(what)
 
 func switch_editors(what):
 	for design in ship_designs.get_children():

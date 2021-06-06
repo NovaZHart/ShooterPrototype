@@ -20,3 +20,4 @@ projectile_mesh_path = "res://weapons/meshes/MassDriverRock.mesh"
 item_size_x = 3
 item_size_y = 4
 help_page = "weapons/mass_driver"
+damage_type = 4

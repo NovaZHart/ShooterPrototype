@@ -9,6 +9,7 @@ material/0 = null
 material/1 = null
 script = ExtResource( 1 )
 damage = 60.0
+damage_type = 2
 impulse = 25.0
 weapon_mass = 23.0
 weapon_structure = 95.0

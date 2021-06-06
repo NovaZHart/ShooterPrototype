@@ -186,3 +186,14 @@ func event_position(event: InputEvent) -> Vector2:
 	if event and event is InputEventMouse:
 		return event.position
 	return get_viewport().get_mouse_position()
+
+func sum_of_squares(accum: PoolRealArray,add: PoolRealArray) -> PoolRealArray:
+	if not add:
+		return accum
+	for i in range(len(add)):
+		if i>=len(accum):
+			accum.append(add[i])
+		elif add[i]!=0:
+			var a = sign(accum[i])*accum[i]*accum[i] + sign(add[i])*add[i]*add[i]
+			accum[i] = sign(a)*sqrt(abs(a))
+	return accum

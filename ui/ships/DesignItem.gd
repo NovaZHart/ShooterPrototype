@@ -3,7 +3,7 @@ extends Control
 export var info_min_fraction: float = 0.2
 export var annotation_color: Color = Color(0.4,0.5,0.9,0.7)
 export var small_code: Font
-export var double_click_time: int = 250
+export var double_click_time: int = 400
 
 var selected = false
 var disabled = false setget set_disabled

@@ -7,7 +7,7 @@ var ZapBallShader = preload('res://places/ZapBall.shader')
 var native_combat_engine
 var native_visual_effects
 
-# These constants MUST match src/CombatEngineData.hpp
+# All constants MUST match src/CombatEngineData.hpp
 
 const FATED_TO_FLY: int = 0
 const FATED_TO_DIE: int = 1
@@ -44,6 +44,39 @@ const PATROL_SHIP_AI: int = 1
 const RAIDER_AI: int = 2
 const ARRIVING_MERCHANT_AI: int = 3
 const DEPARTING_MERCHANT_AI: int = 4
+
+const NUM_DAMAGE_TYPES: int = 9
+const DAMAGE_TYPELESS: int = 0    # Damage that ignores resist and passthru (do not use)
+const DAMAGE_LIGHT: int = 1       # Non-standing electromagnetic fields (light, photons)
+const DAMAGE_HE_PARTICLE: int = 2 # Non-zero mass particles with high energy (particle beam)
+const DAMAGE_PIERCING: int = 3    # Small macroscopic things moving quickly (bullets)
+const DAMAGE_IMPACT: int = 4      # Larger (nominally >1m) things moving quickly (asteroids)
+const DAMAGE_EM_FIELD: int = 5    # Standing or low-frequency EM fields (ie. EMP or big magnet)
+const DAMAGE_GRAVITY: int = 6     # Strong gravity or gravity waves
+const DAMAGE_ANTIMATTER: int = 7  # Antimatter particles
+const DAMAGE_HOT_MATTER: int = 8  # Explosion or beam of hot gas or plasma
+
+const DAMAGE_DISPLAY_NAMES: PoolStringArray = PoolStringArray([
+	"Typeless", "Light", "H.E.Particle", "Piercing", "Impact", "EM.Field", \
+	"Gravity", "Antimatter", "Hot Matter",
+])
+
+const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
+	"rules/damage/typeless", # Typeless damage should never show up
+	"rules/damage/light",
+	"rules/damage/he_particle",
+	"rules/damage/piercing",
+	"rules/damage/impact",
+	"rules/damage/em_field",
+	"rules/damage/gravity",
+	"rules/damage/antimatter",
+	"rules/damage/hot_matter",
+])
+
+const MAX_RESIST: float = 0.75
+const MIN_RESIST: float = -222.0
+const MIN_PASSTHRU: float = 0.0
+const MAX_PASSTHRU: float = 1.0
 
 var combat_state = null
 var visual_mutex: Mutex = Mutex.new()

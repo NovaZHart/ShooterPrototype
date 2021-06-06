@@ -23,12 +23,19 @@ export var base_explosion_damage: float = 100
 export var base_explosion_radius: float = 5
 export var base_explosion_impulse: float = 500
 export var base_explosion_delay: int = 10
+export var explosion_type: int = 8 # combat_engine.DAMAGE_HOT_MATTER
 export var base_max_cargo: int = 20
 export var fuel_density: float = 10.0
 export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 export var ai_type: int = 0 setget set_ai_type
 
+export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.0, 0.2, 0.1, 0.1, 0.0,-0.2, 0.1, 0.2])
+export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0])
+export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.1,-0.2,-0.1,-0.1])
+														 #       Tyl, Lgt, HEP, Prc, Imp, EMF, Grv, Atm, Hot
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
 var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []
@@ -195,7 +202,14 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['weapons']=Array()
 	stats['equipment']=Array()
 	stats['ai_type']=ai_type
-	
+
+	stats['explosion_type']=explosion_type
+	stats['shield_resist']=base_shield_resist
+	stats['shield_passthru']=base_shield_passthru
+	stats['armor_resist']=base_armor_resist
+	stats['armor_passthru']=base_armor_passthru
+	stats['structure_resist']=base_structure_resist
+
 	# Used for text generation, not CombatEngine:
 	stats['display_name']=ship_display_name
 	stats['help_page']=help_page

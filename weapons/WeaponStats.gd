@@ -1,6 +1,7 @@
 extends MeshInstance
 
 export var damage: float = 30
+export var damage_type: int = 0 # Make sure you override this!
 export var impulse: float = 0
 export var weapon_mass: float = 0
 export var weapon_structure: float = 30
@@ -24,6 +25,12 @@ export var mount_size_x: int = 0 setget ,get_mount_size_x
 export var mount_size_y: int = 0 setget ,get_mount_size_y
 export var mount_type: String = 'gun'
 export var help_page: String = 'weapons'
+
+export var add_shield_resist: PoolRealArray = PoolRealArray()
+export var add_shield_passthru: PoolRealArray = PoolRealArray()
+export var add_armor_resist: PoolRealArray = PoolRealArray()
+export var add_armor_passthru: PoolRealArray = PoolRealArray()
+export var add_structure_resist: PoolRealArray = PoolRealArray()
 
 var cached_bbcode = null
 var cached_stats = null
@@ -65,6 +72,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			th = 1.0/max(firing_delay,1.0/60) * damage
 		cached_stats = {
 			'damage':damage,
+			'damage_type':damage_type,
 			'impulse':impulse,
 			'initial_velocity':initial_velocity,
 			'projectile_mass':projectile_mass,
@@ -104,3 +112,13 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['max_structure'] += weapon_structure
 	stats['weapons'].append(pack_stats(skip_runtime_stats))
 	stats['threat'] += cached_stats['threat']
+	if add_shield_resist:
+		stats['shield_resist'] = utils.sum_of_squares(stats['shield_resist'],add_shield_resist)
+	if add_shield_passthru:
+		stats['shield_passthru'] = utils.sum_of_squares(stats['shield_passthru'],add_shield_passthru)
+	if add_armor_resist:
+		stats['armor_resist'] = utils.sum_of_squares(stats['armor_resist'],add_armor_resist)
+	if add_armor_passthru:
+		stats['armor_passthru'] = utils.sum_of_squares(stats['armor_passthru'],add_armor_passthru)
+	if add_structure_resist:
+		stats['structure_resist'] = utils.sum_of_squares(stats['structure_resist'],add_structure_resist)

@@ -206,6 +206,9 @@ func update_buttons():
 	$All/Left/Buttons/Redo.disabled = universe_edits.state.redo_stack.empty()
 	$All/Left/Buttons/Undo.disabled = universe_edits.state.undo_stack.empty()
 
+func _enter_tree():
+	universe_edits.push_editors(self)
+
 func _ready():
 	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
 	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
@@ -216,7 +219,6 @@ func _ready():
 		shop_parts = Player.update_ship_parts_at(Player.player_location)
 		text_gen.add_price_callback(self)
 	reset_parts_and_designs()
-	game_state.switch_editors(self)
 	if game_state.game_editor_mode:
 		remove_child($MainDialogTrigger)
 		$All/Left/Buttons/Depart.text='Fleet'
@@ -266,9 +268,9 @@ func update_cargo_and_money():
 	return { 'ship_design':ship_design, 'cargo_mass':cargo_mass, 'max_cargo_mass':max_cargo_mass, 'money':money }
 
 func _exit_tree():
-	game_state.switch_editors(null)
 	universe_edits.state.disconnect('undo_stack_changed',self,'update_buttons')
 	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
+	universe_edits.pop_editors()
 	if not game_state.game_editor_mode:
 		universe_edits.state.clear()
 		text_gen.remove_price_callback(self)

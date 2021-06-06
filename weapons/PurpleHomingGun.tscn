@@ -23,3 +23,4 @@ guidance_uses_velocity = true
 projectile_mesh_path = "res://weapons/meshes/PurpleBlob.mesh"
 item_size_x = 2
 help_page = "weapons/shockwave_torpedo"
+damage_type = 8

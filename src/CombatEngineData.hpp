@@ -3,25 +3,43 @@
 
 #include "DVector3.hpp"
 
+// All constants MUST match CombatEngine.gd
+
 #define FOREVER 189000000000 /* more ticks than a game should reach (about 100 years) */
 #define TICKS_LONG_AGO -9999 /* for ticks before object began (just needs to be negative) */
 #define FAST 9999999 /* faster than any object should move */
 #define FAR 9999999 /* farther than any distance that should be considered */
 #define BIG 9999999 /* bigger than any object should be */
 #define PLAYER_COLLISION_LAYER_BITS 1
-#define PROJECTILE_HEIGHT 27
+#define PROJECTILE_HEIGHT 27 /* Y value of projectile translations */
 #define PI 3.141592653589793
 
-#define THREAT_EPSILON 1.0f
-#define AFFINITY_EPSILON 1e-9f
+#define THREAT_EPSILON 1.0f /* Threat difference that is considered 0 */
+#define AFFINITY_EPSILON 1e-9f /* Affinity difference that is considered 0 */
 #define FACTION_BIT_SHIFT 24
-#define FACTION_TO_MASK 16777215
+#define FACTION_TO_MASK 16777215 /* 2**FACTION_BIT_SHIFT-1 */
 #define ALL_FACTIONS FACTION_TO_MASK
 #define FACTION_ARRAY_SIZE 64
 #define MAX_ALLOWED_FACTION 29
 #define MIN_ALLOWED_FACTION 0
 #define PLAYER_FACTION 0
-#define DEFAULT_AFFINITY 0.0f
+#define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
+
+#define NUM_DAMAGE_TYPES 9
+#define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (do not use) */
+#define DAMAGE_LIGHT 1       /* Non-standing electromagnetic fields (ie. lasers) */
+#define DAMAGE_HE_PARTICLE 2 /* Non-zero mass particles with high energy (particle beam) */
+#define DAMAGE_PIERCING 3    /* Small macroscopic things moving quickly (ie. bullets) */
+#define DAMAGE_IMPACT 4      /* Larger things with high momentum (ie. asteroids) */
+#define DAMAGE_EM_FIELD 5    /* Standing or low-frequency EM fields (ie. EMP or big magnet) */
+#define DAMAGE_GRAVITY 6     /* Strong gravity or gravity waves */
+#define DAMAGE_ANTIMATTER 7  /* Antimatter particles */
+#define DAMAGE_HOT_MATTER 8  /* Explosion or beam of hot gas or plasma */
+
+#define MAX_RESIST 0.75
+#define MIN_RESIST -222.0
+#define MIN_PASSTHRU 0.0
+#define MAX_PASSTHRU 1.0
 
 #include <unordered_set>
 #include <unordered_map>
@@ -54,7 +72,11 @@
 namespace godot {
   namespace CE {
 
-    class CheapRand32 { // Note: not thread-safe
+    class CheapRand32 {
+      // Low-memory-footprint, fast, 32-bit, random number, generator
+      // that produces high-quality random numbers.  Note: not
+      // thread-safe; multiple threads may get the same random number
+      // state sometimes. Numbers and state will always be valid though.
       uint32_t state;
     public:
       CheapRand32():
@@ -62,17 +84,23 @@ namespace godot {
       {};
       CheapRand32(uint32_t state): state(state) {}
       inline uint32_t randi() {
+        // Random 32-bit integer, uniformly distributed.
         return state=bob_full_avalanche(state);
       }
       inline float randf() {
+        // Random float in [0..1), uniformly distributed.
         return int2float(state=bob_full_avalanche(state));
       }
       inline float rand_angle() {
         return randf()*2*PI;
       }
 
-      // from https://burtleburtle.net/bob/hash/integer.html
-      inline uint32_t bob_full_avalanche(uint32_t a) {
+      static inline uint32_t bob_full_avalanche(uint32_t a) {
+        // Generator magic from https://burtleburtle.net/bob/hash/integer.html
+        // Calls to this routine are why the class is not thread-safe.
+        // There is no protection against updating the state twice at the same time.
+        // That means the state will be valid, but two threads may see the same
+        // state if they update it at the same time.
         a = (a+0x7ed55d16) + (a<<12);
         a = (a^0xc761c23c) ^ (a>>19);
         a = (a+0x165667b1) + (a<<5);
@@ -82,7 +110,9 @@ namespace godot {
         return a;
       }
       
-      inline float int2float(uint32_t i) {
+      static inline float int2float(uint32_t i) {
+        // Not the fastest int->float conversion method, but is
+        // simpler and more portable than bit manipulation.
         return std::min(float(i%8388608)/8388608.0f,1.0f);
       }
     };
@@ -203,6 +233,7 @@ namespace godot {
       const real_t mass, drag, thrust, lifetime, initial_velocity, max_speed;
       //const int collision_mask;
       const faction_index_t faction;
+      const int damage_type;
       Vector3 position, linear_velocity, rotation, angular_velocity;
       real_t age, scale;
       bool alive, direct_fire;
@@ -222,6 +253,7 @@ namespace godot {
       const real_t terminal_velocity, projectile_range;
       const NodePath node_path;
       const bool is_turret;
+      const int damage_type;
       
       Vector3 position, rotation;
       const real_t harmony_angle;
@@ -267,6 +299,8 @@ namespace godot {
     enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
     enum ship_ai_t { ATTACKER_AI=0, PATROL_SHIP_AI=1, RAIDER_AI=2, ARRIVING_MERCHANT_AI=3, DEPARTING_MERCHANT_AI=4 };
     enum ai_flags { DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=3 };
+
+    typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
     
     struct Ship {
       const object_id id;
@@ -278,15 +312,18 @@ namespace godot {
       const real_t max_shields, max_armor, max_structure, max_fuel;
       const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
       const real_t fuel_efficiency;
-      const AABB aabb;
-      const real_t turn_drag, radius;
+      const AABB aabb; // of ship, either guessed or from GDScript ShipSpecs
+      const real_t turn_drag;
+      const real_t radius; // effective radius of ship from aabb
       const real_t empty_mass, cargo_mass, fuel_density, armor_density;
-      //const int team, enemy_team, collision_layer, enemy_mask;
-      const faction_index_t faction;
-      const faction_mask_t faction_mask;
+      const faction_index_t faction; // faction number
+      const faction_mask_t faction_mask; // 2<<faction
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
-
+      const int explosion_type; // damage type of explosion
+      const damage_array shield_resist, shield_passthru, armor_resist, armor_passthru;
+      const damage_array structure_resist;
+      
       int explosion_tick;
       fate_t fate;
       entry_t entry_method;
@@ -305,57 +342,100 @@ namespace godot {
       
       std::vector<Weapon> weapons;
       const WeaponRanges range;
-      int tick, tick_at_last_shot, tick_at_rift_start;
+
+      // Lifetime counter:
+      int tick;
+
+      // Targeting and firing logic:
+      int tick_at_last_shot, tick_at_rift_start;
       object_id target;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
       ship_hit_list_t nearby_enemies;
       int nearby_enemies_tick;
       real_t nearby_enemies_range;
+
+      // Ship-local random number generator (just 32 bits)
       CheapRand32 rand;
+
+      // Where we want to go; meaning depends on active ai.
       Vector3 destination;
+
+      // Projectile collision checks use 2<<collision_layer as a mask.
       int collision_layer;
-      
+
+      // Randomize where we shoot:
       real_t aim_multiplier, confusion_multiplier;
       Vector3 confusion, confusion_velocity;
 
-      // Cached calculations:
-      real_t max_speed;
-      real_t max_angular_velocity;
+      // Cached calculations, updated when other info changes:
+      real_t max_speed; // Terminal linear velocity
+      real_t max_angular_velocity; // Terminal angular velocity
       real_t turn_diameter_squared;
-      Vector3 drag_force;
+      Vector3 drag_force; // Drag term in the integrated force equation
       
-      bool updated_mass_stats, immobile, inactive;
+      bool updated_mass_stats; // Have we updated the mass and calculated values yet?
+      bool immobile; // Ship cannot move for any reason
+      bool inactive; // Do not run ship AI
+      bool should_autotarget; // Player only: disable auto-targeting.
 
+      // Determine how much money is recouped when this ship leaves the system alive:
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
           * (1.0f - std::clamp(float(tick)/(18000.0f),0.0f,1.0f) );
       }
+
+      // Update internal state from the physics server:
       bool update_from_physics_server(PhysicsServer *server);
+
+      // Update information derived from physics server info:
       void update_stats(PhysicsServer *state, bool update_server);
+
+      // Repair the ship based on information from the system (or hyperspace):
       void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
-      
-      Ship(const Ship &other);
+
+      // Generate a Ship from GDScript objects:
       Ship(Dictionary dict, object_id id, object_id &last_id,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      
+      Ship(const Ship &other); // There are strange crashes without this.
+      
       ~Ship();
+      
+      // Update the ship's firing inaccuracy vectors:
       void update_confusion();
+
+      // Generate the Weapon vector from GDScript datatypes:
       std::vector<Weapon> get_weapons(Array a, object_id &last_id, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
-      real_t take_damage(real_t damage);
+
+      // All damage, resist, and passthru logic:
+      real_t take_damage(real_t damage, int damage_type);
+
+      // update destination from rand
       Vector3 randomize_destination();
+
+      // Update visual_scale:
       void set_scale(real_t scale);
+      
       DVector3 stopping_point(DVector3 tgt_vel, bool &should_reverse) const;
+
+      // Return a Dictionary to pass back to GDScript with the ship's info:
       Dictionary update_status(const std::unordered_map<object_id,Ship> &ships,
                                const std::unordered_map<object_id,Planet> &planets) const;
     private:
-      real_t visual_scale;
+      real_t visual_scale; // Intended to resize ship graphics when rifting
+      
       inline real_t make_turn_diameter_squared() const {
+        // This is a surprisingly expensive calculation, according to profiling.
+        // It is cached, and only updated when needed.
         real_t turn_diameter = (2*PI/max_angular_velocity) * max_speed / PI;
         return turn_diameter*turn_diameter;
       }
     };
 
     class select_flying {
+      // Filter for target selection logic. Allows only ships that are
+      // not leaving the system nor already gone.
     public:
       select_flying() {};
       template<class I>
@@ -388,6 +468,7 @@ namespace godot {
     static const int PLAYER_ORDER_FIRE_PRIMARIES = 1;
     static const int PLAYER_ORDER_STOP_SHIP = 2;
     static const int PLAYER_ORDER_MAINTAIN_SPEED = 4;
+    static const int PLAYER_ORDER_AUTO_TARGET = 8;
     
     static const int PLAYER_TARGET_CONDITION = 0xF00;
     static const int PLAYER_TARGET_NEXT = 0x100;
@@ -431,6 +512,7 @@ namespace godot {
     // FIXME: Implement this:
     const int VISIBLE_OBJECT_GOAL = 32;
 
+    // A planet or ship to be displayed on the screen (minimap or main viewer)
     struct VisibleObject {
       const real_t x, z, radius, rotation_y, vx, vz, max_speed;
       int flags;
@@ -438,6 +520,7 @@ namespace godot {
       VisibleObject(const Planet &);
     };
 
+    // A projectile to be displayed on-screen (minimap or main viewer)
     struct VisibleProjectile {
       const real_t rotation_y, scale_x;
       const Vector2 center, half_size;
@@ -447,12 +530,17 @@ namespace godot {
     };
     typedef std::vector<VisibleProjectile>::iterator visible_projectiles_iter;
 
+    // Tracks info about all projectiles that may end up as multimesh instances:
     struct MeshInstanceInfo {
       const real_t x, z, rotation_y, scale_x;
     };
     typedef std::unordered_multimap<object_id,MeshInstanceInfo> instance_locations_t;
     typedef std::unordered_multimap<object_id,MeshInstanceInfo>::iterator instlocs_iterator;
-    
+
+    // The output of the physics timestep from CombatEngine, to be
+    // processed in the visual timestep.  This is placed in a
+    // thread-safe linked list.  It is the only means by which the
+    // physics and visual threads communicate in GDNative.
     struct VisibleContent {
       std::vector<VisibleObject> ships_and_planets;
       std::vector<VisibleProjectile> projectiles;
@@ -462,7 +550,8 @@ namespace godot {
       ~VisibleContent();
     };
     typedef std::unordered_map<object_id,String>::iterator mesh_paths_iter;
-    
+
+    // Any Mesh from projectiles that may be in a multimesh
     struct MeshInfo {
       const object_id id;
       const String resource_path;

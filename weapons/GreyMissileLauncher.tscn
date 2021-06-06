@@ -27,3 +27,4 @@ projectile_mesh_path = "res://weapons/meshes/GreyMissile.mesh"
 item_size_x = 2
 item_size_y = 4
 help_page = "weapons/harpoon_missile"
+damage_type = 8

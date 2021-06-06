@@ -18,3 +18,4 @@ projectile_mesh_path = "res://weapons/meshes/purple_line.mesh"
 item_size_x = 2
 item_size_y = 4
 help_page = "weapons/nuclear_pumped_laser"
+damage_type = 1

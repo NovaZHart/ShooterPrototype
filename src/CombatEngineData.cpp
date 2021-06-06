@@ -131,6 +131,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   max_speed(weapon.terminal_velocity),
   position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
   faction(ship.faction),
+  damage_type(weapon.damage_type),
   linear_velocity(),
   rotation(),
   angular_velocity(),
@@ -150,6 +151,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   //   linear_velocity = ship.linear_velocity; // unit_from_angle(rotation.y)*weapon.terminal_velocity;
   // else
     linear_velocity = unit_from_angle(rotation.y)*max_speed + ship.linear_velocity;
+  if(!damage_type)
+    Godot::print("Weapon damage type 0!");
 }
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
@@ -171,6 +174,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   max_speed(weapon.terminal_velocity),
   position(position),
   faction(ship.faction),
+  damage_type(weapon.damage_type),
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
@@ -178,7 +182,10 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   scale(scale),
   alive(true),
   direct_fire(weapon.direct_fire)
-{}
+{
+  if(!damage_type)
+    Godot::print("Weapon damage type 0!");
+}
 
 Projectile::~Projectile() {}
 
@@ -209,6 +216,7 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   blast_radius(get<real_t>(dict,"blast_radius")),
   detonation_range(get<real_t>(dict,"detonation_range")),
   threat(get<real_t>(dict,"threat")),
+  damage_type(clamp(get<int>(dict,"damage_type"),0,NUM_DAMAGE_TYPES-1)),
   direct_fire(firing_delay<1e-5),
   guided(not direct_fire and get<bool>(dict,"guided")),
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
@@ -222,7 +230,10 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   rotation(get<Vector3>(dict,"rotation")),
   harmony_angle(asin_clamp(position.z/projectile_range)),
   firing_countdown(0)
-{}
+{
+  if(!damage_type)
+    Godot::print("Weapon damage type 0!");
+}
 
 Weapon::~Weapon()
 {}
@@ -363,6 +374,12 @@ Ship::Ship(const Ship &o):
   explosion_impulse(o.explosion_impulse),
   explosion_delay(o.explosion_delay),
   explosion_tick(o.explosion_tick),
+  explosion_type(o.explosion_type),
+  shield_resist(o.shield_resist),
+  shield_passthru(o.shield_passthru),
+  armor_resist(o.armor_resist),
+  armor_passthru(o.armor_passthru),
+  structure_resist(o.structure_resist),
   fate(o.fate),
   entry_method(o.entry_method),
   shields(o.shields),
@@ -402,8 +419,20 @@ Ship::Ship(const Ship &o):
   updated_mass_stats(o.updated_mass_stats),
   immobile(o.immobile),
   inactive(o.inactive),
+  should_autotarget(o.should_autotarget),
   visual_scale(o.visual_scale)
 {}
+
+static inline damage_array to_damage_array(Variant var,real_t clamp_min,real_t clamp_max) {
+  PoolRealArray a = static_cast<PoolRealArray>(var);
+  PoolRealArray::Read reader = a.read();
+  const real_t *reals = reader.ptr();
+  damage_array d;
+  int a_size=a.size(), d_size=d.size();
+  for(int i=0;i<d_size;i++)
+    d[i] = (i<a_size) ? clamp(reals[i],clamp_min,clamp_max) : 0;
+  return d;
+}
 
 Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh):
@@ -440,6 +469,13 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   explosion_impulse(get<real_t>(dict,"explosion_impulse",0)),
   explosion_delay(get<int>(dict,"explosion_delay",0)),
   explosion_tick(0),
+  explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_HOT_MATTER),0,NUM_DAMAGE_TYPES-1)),
+
+  shield_resist(to_damage_array(dict["shield_resist"],MIN_RESIST,MAX_RESIST)),
+  shield_passthru(to_damage_array(dict["shield_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
+  armor_resist(to_damage_array(dict["armor_resist"],MIN_RESIST,MAX_RESIST)),
+  armor_passthru(to_damage_array(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
+  structure_resist(to_damage_array(dict["structure_resist"],MIN_RESIST,MAX_RESIST)),
   
   fate(FATED_TO_FLY),
   entry_method(static_cast<entry_t>(get<int>(dict,"entry_method",static_cast<int>(ENTRY_COMPLETE)))),
@@ -490,6 +526,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   updated_mass_stats(false),
   immobile(false),
   inactive(false),
+  should_autotarget(true),
   visual_scale(1.0)
 {
   if(not (drag<999999 and drag>1e-6))
@@ -507,6 +544,10 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
     Godot::print_warning(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)),__FUNCTION__,__FILE__,__LINE__);
   max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
   turn_diameter_squared = make_turn_diameter_squared();
+
+  Godot::print("New ship resistances:");
+  for(int i=0;i<NUM_DAMAGE_TYPES;i++)
+    Godot::print("Type "+str(i)+": "+str(shield_resist[i])+" "+str(shield_passthru[i])+" "+str(armor_resist[i])+" "+str(armor_passthru[i])+" "+str(structure_resist[i]));
 }
 
 Ship::~Ship()
@@ -601,32 +642,73 @@ void Ship::update_confusion() {
   confusion = 0.999*(confusion+confusion_velocity*(confusion_multiplier*aim_multiplier));
 }
 
-real_t Ship::take_damage(real_t damage) {
-  real_t taken;
+static void apply_damage(real_t &damage,real_t &life,int type,
+                         const damage_array &resists,
+                         const damage_array &passthrus,bool allow_passthru) {
+  // Apply damage of the given type to life (shields, armor, or structure) based on
+  // resistances (resist) and optionally passthru (if non-null)
+  // On return:
+  //   damage = amount of damage not applied
+  //   life = life remaining after damage is applied
+
+  // Assumes 0<=type<NUM_DAMAGE_TYPES
+
+  if(life<=0 or damage<=0)
+    return;
+
+  real_t applied = 1.0 - resists[type];
+  if(applied<1e-5)
+    return;
+
+  real_t passed = 0.0f;
+  real_t taken = damage;
+
+  if(allow_passthru) {
+    real_t passthru = passthrus[type];
+    if(passthru>=1.0)
+      return; // All damage is passed, so we have no more to do.
+    if(passthru>0) {
+      taken = (1.0-passthru)*damage;
+      passed = passthru*damage;
+    }
+  }
+
+  // Apply resistance to damage:
+  taken *= applied;
+
+  if(taken>life) {
+    // Too much damage for life.
+    // Pass remaining damage, after reversing resistances:
+    passed += (taken-life)/applied;
+    life = 0;
+  } else
+    life -= taken;
+
+  damage = passed;
+}
+
+real_t Ship::take_damage(real_t damage,int type) {
+  // Applies damage of the given type to the ship, considering fate,
+  // resistances, and passthru. If structure becomes 0, marks the ship
+  // as FATED_TO_EXPLODE or FATED_TO_DIE, as appropriate. Returns the
+  // amount of damage not applied. Ships that are not FATED_TO_FLY
+  // will not apply any damage or change their fate.  Assumes
+  // 0<=type<NUM_DAMAGE_TYPES
   
   if(fate!=FATED_TO_FLY)
     return damage; // already dead or leaving, so cannot take more damage
   
   if(damage>0) {
-    taken=min(shields,damage);
-    damage-=taken;
-    shields-=taken;
-    
+    apply_damage(damage,shields,type,shield_resist,shield_passthru,true);
     if(damage>0) {
-      taken=min(armor,damage);
-      damage-=taken;
-      armor-=taken;
-      updated_mass_stats=true;
-      
-      if(damage>0) {
-        taken=min(structure,damage);
-        damage-=taken;
-        structure-=taken;
-      }
+      apply_damage(damage,armor,type,armor_resist,armor_passthru,true);
+      if(damage>0)
+        apply_damage(damage,structure,type,structure_resist,armor_passthru,false);
     }
   }
 
   if(structure<=0) {
+    // Structure is 0, so ship should explode.
     explosion_tick = tick+explosion_delay;
     fate = (explosion_tick>tick) ? FATED_TO_EXPLODE : FATED_TO_DIE;
   }

@@ -20,3 +20,4 @@ projectile_mesh_path = "res://weapons/meshes/green_line.mesh"
 item_size_x = 3
 mount_type = "turret"
 help_page = "weapons/gamma_ray_laser_turret"
+damage_type = 1

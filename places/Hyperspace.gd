@@ -208,7 +208,8 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var thrust: int = int(Input.is_action_pressed('ui_up'))-int(Input.is_action_pressed('ui_down'))
 	var rotate: int = int(Input.is_action_pressed('ui_left'))-int(Input.is_action_pressed('ui_right'))
 	var land: bool = Input.is_action_just_pressed('ui_land')
-	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
+	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet') \
+		or Input.is_action_just_pressed('ui_next_enemy')
 	var deselect: bool = Input.is_action_just_pressed('ui_deselect_target')
 	var depart: bool = Input.is_action_just_pressed('ui_depart')
 	
@@ -255,14 +256,14 @@ func make_player_orders(_delta: float) -> Dictionary:
 	return result
 
 func _enter_tree() -> void:
-	game_state.switch_editors(self)
+	universe_edits.push_editors(self)
 	combat_engine.change_worlds(get_viewport().world)
 	combat_engine.set_system_stats(true,-1.0,0.0)
 	old_target_fps = Engine.target_fps
 	Engine.target_fps = Engine.iterations_per_second
 
 func _exit_tree():
-	game_state.switch_editors(null)
+	universe_edits.pop_editors()
 	if old_target_fps != null:
 		Engine.target_fps = old_target_fps
 	Player.disconnect('destination_system_changed',self,'_on_destination_system_changed')

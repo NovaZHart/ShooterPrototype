@@ -20,3 +20,4 @@ item_size_x = 4
 item_size_y = 4
 mount_type = "turret"
 help_page = "weapons/nuclear_pumped_laser_turret"
+damage_type = 1

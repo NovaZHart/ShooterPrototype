@@ -15,6 +15,7 @@
 #include <RID.hpp>
 #include <GodotGlobal.hpp>
 #include <OS.hpp>
+#include <PoolArrays.hpp>
 
 #include "DVector3.hpp"
 #include "CombatEngineData.hpp"

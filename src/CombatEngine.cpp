@@ -829,10 +829,10 @@ void CombatEngine::explode_ship(Ship &ship) {
         real_t distance = max(0.0f,other.position.distance_to(ship.position)-other.radius);
         real_t dropoff = 1.0 - distance/ship.explosion_radius;
         dropoff*=dropoff;
-        other.take_damage(ship.explosion_damage*dropoff);
+        other.take_damage(ship.explosion_damage*dropoff,ship.explosion_type);
         if(other.immobile)
           continue;
-        if(ship.explosion_impulse!=0) {
+        if(not ship.immobile and ship.explosion_impulse!=0) {
           Vector3 impulse = ship.explosion_impulse * dropoff *
             (other.position-ship.position).normalized();
           if(impulse.length_squared())
@@ -960,6 +960,9 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     }
   }
 
+  if(overrides.orders&PLAYER_ORDER_AUTO_TARGET)
+    ship.should_autotarget = not ship.should_autotarget;
+  
   if(overrides.orders&PLAYER_ORDER_STOP_SHIP) {
     request_stop(ship,Vector3(0,0,0),0);
     thrust = rotation = true;
@@ -981,11 +984,11 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
 
   if(overrides.orders&PLAYER_ORDER_FIRE_PRIMARIES) {
     ships_iter target_ptr = ships.find(ship.target);
-    if(!rotation and target_ptr!=ships.end()) {
+    if(not rotation and ship.should_autotarget and target_ptr!=ships.end()) {
       bool in_range=false;
       Vector3 aim = aim_forward(ship,target_ptr->second,in_range);
-      request_heading(ship,aim);
-      rotation=true;
+        request_heading(ship,aim);
+        rotation=true;
     }
     aim_turrets(ship,target_ptr);
     fire_primary_weapons(ship);
@@ -1155,8 +1158,12 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
   if(ship.goal_target<0 and planets.size()>0) {
     ship.goal_target = select_target<false>(-1,select_nearest(ship.position),planets);
     planets_iter p_planet = planets.find(ship.goal_target);
-    if(p_planet!=planets.end())
+    if(p_planet!=planets.end()) {
       ship.destination = p_planet->second.position;
+      ship.goal_target = p_planet->second.id;
+      Godot::print("Ship "+str(ship.id)+" chose goal target "+str(ship.goal_target));
+    } else
+      Godot::print("Ship "+str(ship.id)+" could not choose a goal target (invalid planet "+str(ship.goal_target)+")");
   }
 
   if(ship.ai_flags&DECIDED_TO_LAND) {
@@ -1623,7 +1630,7 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
       
       // Direct fire projectiles do damage when launched.
       if(weapon.damage)
-        hit_ptr->second.take_damage(weapon.damage);
+        hit_ptr->second.take_damage(weapon.damage,weapon.damage_type);
       if(weapon.impulse and not hit_ptr->second.immobile) {
         Vector3 impulse = weapon.impulse*projectile_heading;
         if(impulse.length_squared())
@@ -1993,7 +2000,7 @@ bool CombatEngine::collide_point_projectile(Projectile &projectile) {
   if(p_ship==ships.end())
     return false;
   
-  p_ship->second.take_damage(projectile.damage);
+  p_ship->second.take_damage(projectile.damage,projectile.damage_type);
   if(projectile.impulse and not p_ship->second.immobile) {
     Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
     if(impulse.length_squared())
@@ -2037,7 +2044,7 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
           real_t distance = max(0.0f,ship.position.distance_to(projectile.position)-ship.radius);
           real_t dropoff = 1.0 - distance/projectile.blast_radius;
           dropoff*=dropoff;
-          ship.take_damage(projectile.damage*dropoff);
+          ship.take_damage(projectile.damage*dropoff,projectile.damage_type);
           if(have_impulse and not ship.immobile) {
             Vector3 impulse = projectile.impulse*dropoff*
               (ship.position-projectile.position).normalized();
@@ -2048,7 +2055,7 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
       }
     } else {
       Ship &ship = closest->second;
-      closest->second.take_damage(projectile.damage);
+      closest->second.take_damage(projectile.damage,projectile.damage_type);
       if(have_impulse and not ship.immobile) {
         Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
         if(impulse.length_squared())

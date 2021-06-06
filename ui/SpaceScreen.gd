@@ -104,10 +104,11 @@ func make_player_orders(_delta: float) -> Dictionary:
 	
 	var orders: int = 0
 	if shoot:                   orders = combat_engine.PLAYER_ORDER_FIRE_PRIMARIES
-	elif double_down_active:
+	if double_down_active:
 		orders = combat_engine.PLAYER_ORDER_STOP_SHIP
 		thrust = 0
-	elif not thrust:            orders = combat_engine.PLAYER_ORDER_MAINTAIN_SPEED
+	elif not thrust and not shoot:
+		orders = combat_engine.PLAYER_ORDER_MAINTAIN_SPEED
 	
 	if auto_target:
 		auto_target_flag = not auto_target_flag
