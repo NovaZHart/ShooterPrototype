@@ -47,8 +47,9 @@ CombatEngine::CombatEngine():
   dead_ships(),
   last_id(0),
   delta(1.0/60),
+  idelta(delta*ticks_per_second),
   player_ship_id(-1),
-  p_tick(0),
+  p_frame(0),
   
   factions(),
   affinities(),
@@ -75,7 +76,7 @@ CombatEngine::CombatEngine():
   v_delta(0),
   v_camera_location(FAR,FAR,FAR),
   v_camera_size(BIG,BIG,BIG),
-  v_tick(0),
+  v_frame(0),
   scenario(),
   canvas(),
   reset_scenario(false),
@@ -205,9 +206,12 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
                             Array update_request_rid) {
   FAST_PROFILING_FUNCTION;
 
-  p_tick++;
+  p_frame++;
   
   delta = new_delta;
+  idelta = roundf(new_delta*ticks_per_second);
+  ai_ticks += idelta;
+  
   space = new_space;
 
   // Clear arrays and add any new ships or planets.
@@ -267,7 +271,7 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   //NOTE: entry point from gdscript
 
   // Time has passed:
-  v_tick++;
+  v_frame++;
 
   // Location is center of camera view and size is the world-space
   // distance from x=left-right z=top-bottom. Y values are ignored.
@@ -330,7 +334,7 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
     pair<instlocs_iterator,instlocs_iterator> instances =
       instance_locations.equal_range(vit.first);
 
-    mesh_info.last_tick_used=v_tick;
+    mesh_info.last_frame_used=v_frame;
 
     // Make sure we have a multimesh with enough space
     if(!allocate_multimesh(mesh_info,count))
@@ -605,10 +609,10 @@ void CombatEngine::update_all_faction_goals() {
 
 void CombatEngine::faction_ai_step() {
   // FIXME: Get this working.
-  //  if(p_tick<30)
+  //  if(ai_ticks<ticks_per_second/2)
     update_all_faction_goals();
-  // if(p_tick % 2) {
-  //   // Update a planet on odd ticks.
+  // if(p_frame % 2) {
+  //   // Update a planet on odd frames
   //   planets_iter p_planet = planets.find(last_planet_updated);
   //   if(p_planet!=planets.end())
   //     p_planet++;
@@ -620,7 +624,7 @@ void CombatEngine::faction_ai_step() {
   //   } else
   //     last_planet_updated = -1;
   // } else {
-  //   // Update a faction on even ticks
+  //   // Update a faction on even frames
   //   factions_iter p_faction = factions.find(last_faction_updated);
   //   if(p_faction!=factions.end())
   //     p_faction++;
@@ -667,6 +671,7 @@ void CombatEngine::step_all_ships() {
       if(ship.fate==FATED_TO_EXPLODE)
         explode_ship(ship);
     } else {
+      ship.advance_time(idelta);
       ai_step_ship(ship);
       negate_drag_force(ship);
       if(ship.updated_mass_stats)
@@ -805,37 +810,31 @@ void CombatEngine::negate_drag_force(Ship &ship) {
 }
 
 void CombatEngine::rift_ai(Ship &ship) {
-  if(ship.tick_at_rift_start>=0 and ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS<=ship.tick) {
+  if(ship.rift_timer.alarmed()) {
     // If the ship has already opened the rift, and survived the minimum duration,
     // it can vanish into the rift.
     ship.fate = FATED_TO_RIFT;
-    return;
-  }
-
-  if(ship.tick_at_rift_start<0 and request_stop(ship,Vector3(0,0,0),3.0f)) {
+  } else if(not ship.rift_timer.active() and request_stop(ship,Vector3(0,0,0),3.0f)) {
     // Once the ship is stopped, paralyze it and open a rift.
     ship.immobile = true;
     ship.inactive = true;
-    ship.tick_at_rift_start = ship.tick;
+    ship.rift_timer.reset();
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
       rift_position.y = ship.visual_height+1.1f;
       visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
       visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
     }
-  }
-
-  if(ship.tick_at_rift_start>=0) {
+  } else {
     // During the rift animation, shrink the ship.
-    real_t rift_fraction = (ship.tick-ship.tick_at_rift_start)/real_t(SPATIAL_RIFT_LIFETIME_TICKS*2);
+    real_t rift_fraction = ship.rift_timer.ticks_left()/real_t(SPATIAL_RIFT_LIFETIME_TICKS*2);
     ship.set_scale(rift_fraction);
   }
 }
 
 void CombatEngine::explode_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  ship.update_timers();
-  if(ship.tick>=ship.explosion_tick) {
+  if(ship.explosion_timer.alarmed()) {
     ship.fate=FATED_TO_DIE;
     if(ship.explosion_radius>0 and (ship.explosion_damage>0 or ship.explosion_impulse!=0)) {
       Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
@@ -874,41 +873,43 @@ void CombatEngine::explode_ship(Ship &ship) {
   }
 }
 
+void CombatEngine::heal_ship(Ship &ship) {
+  ship.heal(hyperspace,system_fuel_recharge,center_fuel_recharge,delta);
+}
+
 void CombatEngine::ai_step_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
 
-  // Increment this ship's internal time counters:
-  ship.tick++;
-
-  ship.heal(hyperspace,system_fuel_recharge,center_fuel_recharge,delta);
+  heal_ship(ship);
 
   if(ship.entry_method!=ENTRY_COMPLETE and not init_ship(ship))
     return; // Ship has not yet fully arrived.
+
+  for(auto &weapon : ship.weapons) {
+    weapon.firing_countdown.advance(idelta);
+  }
   
-  if(ship.tick_at_rift_start>=0)
+  if(ship.rift_timer.active())
     rift_ai(ship);
   else {
-    for(auto &weapon : ship.weapons)
-      weapon.firing_countdown = max(static_cast<real_t>(0.0),weapon.firing_countdown-delta);
     player_orders_iter orders_p = player_orders.find(ship.id);
     bool have_orders = orders_p!=player_orders.end();
     if(have_orders) {
       PlayerOverrides &orders = orders_p->second;
-      
-      if(apply_player_orders(ship,orders))
-        return;
-      
-      if(apply_player_goals(ship,orders))
-        return;
-      
-      return;
-    }
-    switch(ship.ai_type) {
-    case PATROL_SHIP_AI: patrol_ship_ai(ship); return;
-    case RAIDER_AI: raider_ai(ship); return;
-    case ARRIVING_MERCHANT_AI: landing_ai(ship); return;
-    case DEPARTING_MERCHANT_AI: rift_ai(ship); return;
-    default: attacker_ai(ship);
+      if(not apply_player_orders(ship,orders))
+        apply_player_goals(ship,orders);
+    } else
+      switch(ship.ai_type) {
+      case PATROL_SHIP_AI: patrol_ship_ai(ship); return;
+      case RAIDER_AI: raider_ai(ship); return;
+      case ARRIVING_MERCHANT_AI: landing_ai(ship); return;
+      case DEPARTING_MERCHANT_AI: rift_ai(ship); return;
+      default: attacker_ai(ship); return;
+      }
+
+    if(ship.confusion_timer.alarmed()) {
+      ship.update_confusion();
+      ship.confusion_timer.reset();
     }
   }
 }
@@ -927,11 +928,11 @@ bool CombatEngine::init_ship(Ship &ship) {
     ship.entry_method=ENTRY_COMPLETE;
     return false;
   }
-  if(ship.tick==1) {
+  if(ship.at_first_tick) {
     // Ship is arriving via spatial rift. Trigger the animation and start a timer.
     ship.immobile=true;
     ship.inactive=true;
-    ship.tick_at_rift_start = ship.tick;
+    ship.rift_timer.reset();
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
       rift_position.y = ship.visual_height+1.1f;
@@ -940,9 +941,9 @@ bool CombatEngine::init_ship(Ship &ship) {
     }
     set_angular_velocity(ship,Vector3(0.0,15.0+ship.rand.randf()*15.0,0.0));
     return false;
-  } else if(ship.tick_at_rift_start+SPATIAL_RIFT_LIFETIME_TICKS<=ship.tick) {
+  } else if(ship.rift_timer.alarmed()) {
     // Rift animation just completed.
-    ship.tick_at_rift_start=TICKS_LONG_AGO;
+    ship.rift_timer.clear_alarm();
     ship.immobile=false;
     ship.inactive=false;
     if(ship.max_speed>0 and ship.max_speed<999999 and
@@ -1088,11 +1089,13 @@ void CombatEngine::update_near_objects(Ship &ship) {
 bool CombatEngine::should_update_targetting(Ship &ship,ships_iter &other) {
   if(other->second.fate!=FATED_TO_FLY)
     return true;
-  else if(ship.tick-ship.tick_at_last_shot>900)
+  else if(ship.shot_at_target_timer.alarmed()) {
     // After 15 seconds without firing, reevaluate target
+    ship.shot_at_target_timer.reset();
     return true;
-  else if(ship.ticks_since_targetting_change%1500==0) {
+  } else if(ship.range_check_timer.alarmed()) {
     // Every 25 seconds reevaluate target if target is out of range
+    ship.range_check_timer.reset();
     real_t target_distance = ship.position.distance_to(other->second.position);
     return target_distance > 1.5*ship.range.all;
   }
@@ -1176,8 +1179,13 @@ void CombatEngine::raider_ai(Ship &ship) {
   } else {
     if(not have_target)
       ship.clear_target();
-    if(ship.ai_flags==0 and ship.rand.randf()<2e-5)
-      ship.ai_flags=DECIDED_TO_RIFT;
+    if(ship.ai_flags==0) {
+      float randf = ship.rand.randf();
+      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .15 : .015;
+      scale *= delta/60;
+      if(randf<scale)
+        ship.ai_flags=DECIDED_TO_RIFT;
+    }
     if(ship.ai_flags&DECIDED_TO_RIFT)
       rift_ai(ship);
     else
@@ -1268,10 +1276,6 @@ void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,g
     ship.new_target(target);
     if(target>=0) {
       ships_const_iter it=ships.find(target);
-      // if(ships.end()!=it)
-      //   Godot::print("Ship "+ship.name+" target changed to "+it->second.name);
-      // else
-      //   Godot::print("Ship "+ship.name+" target changed to ship "+str(target));
     }
   }
 
@@ -1327,10 +1331,6 @@ void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,g
     if(target>=0) {
       if(target != ship.goal_target) {
         planets_const_iter it=planets.find(target);
-        // if(planets.end()!=it)
-        //   Godot::print("Ship "+str(ship.name)+" goal target changed to "+it->second.name);
-        // else
-        //   Godot::print("Ship "+str(ship.name)+" goal target changed to planet "+str(target));
       }
       ship.goal_target = target;
     }
@@ -1372,9 +1372,10 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
 
   ships_iter target_ptr;
   bool find_new_target = false;
-  if(ship.get_target()<0 and ship.ticks_since_targetting_change%180==0)
+  if(ship.get_target()<0 and ship.no_target_timer.alarmed()) {
+    ship.no_target_timer.reset();
     find_new_target = true;
-  else {
+  } else {
     target_ptr = ships.find(ship.get_target());
     if(target_ptr == ships.end())
       find_new_target = true;
@@ -1399,11 +1400,12 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       ship.clear_target();
     if(ship.ai_flags==0) {
       float randf = ship.rand.randf();
-      float scale = (ship.tick_at_last_shot-ship.tick)>7200 ? 1e-3 : 1e-5;
-      if(randf<2*scale)
-        ship.ai_flags=DECIDED_TO_LAND;
-      else if(randf<4*scale)
+      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .5 : .05;
+      scale *= delta*60;
+      if(randf<scale)
         ship.ai_flags=DECIDED_TO_RIFT;
+      else if(randf<2*scale)
+        ship.ai_flags=DECIDED_TO_LAND;
     }
     if(ship.ai_flags&DECIDED_TO_LAND)
       landing_ai(ship);
@@ -1715,7 +1717,7 @@ void CombatEngine::fire_primary_weapons(Ship &ship) {
     return;
   // FIXME: UPDATE ONCE SECONDARY WEAPONS EXIST
   for(auto &weapon : ship.weapons) {
-    if(weapon.firing_countdown>0)
+    if(weapon.firing_countdown.ticking())
       continue;
     if(weapon.direct_fire)
       fire_direct_weapon(ship,weapon,true);
@@ -1765,7 +1767,8 @@ const ship_hit_list_t &CombatEngine::get_ships_within_range(Ship &ship, real_t d
   real_t nearby_enemies_range=ship.nearby_enemies_range;
   int nearby_enemies_tick = ship.nearby_enemies_tick;
   int tick=ship.tick;
-  if(nearby_enemies_range<desired_range || nearby_enemies_tick + 10 < tick) {
+  if(nearby_enemies_range<desired_range || nearby_enemies_tick + ticks_per_second/6 < tick) {
+    ship.nearby_enemies_tick = ship.tick;
     ship.nearby_enemies_range = desired_range;
     ship.nearby_enemies.clear();
     for(auto &other : ships) {
@@ -1833,9 +1836,9 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
       
       // Direct fire projectiles do damage when launched.
       if(weapon.damage)
-        hit_ptr->second.take_damage(weapon.damage,weapon.damage_type);
+        hit_ptr->second.take_damage(weapon.damage*idelta/60,weapon.damage_type);
       if(weapon.impulse and not hit_ptr->second.immobile) {
-        Vector3 impulse = weapon.impulse*projectile_heading;
+        Vector3 impulse = weapon.impulse*projectile_heading*idelta/60;
         if(impulse.length_squared())
           physics_server->body_apply_central_impulse(hit_ptr->second.rid,impulse);
       }
@@ -1875,7 +1878,7 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
   bool ships_in_range=false;
   
   for(auto &weapon : ship.weapons) {
-    if(weapon.firing_countdown>0)
+    if(weapon.firing_countdown.ticking())
       continue;
     
     if(weapon.guided and have_a_target) {
@@ -2112,20 +2115,21 @@ void CombatEngine::integrate_projectiles() {
 
 void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {
   FAST_PROFILING_FUNCTION;
-  if(weapon.firing_countdown>0)
+  if(weapon.firing_countdown.ticking())
     return;
+  weapon.firing_countdown.reset(weapon.firing_delay*ticks_per_second);
   ship.tick_at_last_shot=ship.tick;
-  weapon.firing_countdown = weapon.firing_delay;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
 }
 
 void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
   FAST_PROFILING_FUNCTION;
-  if(weapon.firing_countdown>0)
+  if(weapon.firing_countdown.ticking())
     return;
+  weapon.firing_countdown.reset(weapon.firing_delay*ticks_per_second);
+  assert(weapon.firing_countdown.ticking());
   ship.tick_at_last_shot=ship.tick;
-  weapon.firing_countdown = weapon.firing_delay;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));
 }
@@ -2487,7 +2491,7 @@ void CombatEngine::unused_multimesh(MeshInfo &mesh_info) {
   if(!mesh_info.visual_rid.is_valid() and !mesh_info.multimesh_rid.is_valid())
     return;
   
-  if(v_tick > mesh_info.last_tick_used+1200) {
+  if(v_frame > mesh_info.last_frame_used+1200) {
     if(mesh_info.visual_rid.is_valid())
       visual_server->free_rid(mesh_info.visual_rid);
     if(mesh_info.multimesh_rid.is_valid())

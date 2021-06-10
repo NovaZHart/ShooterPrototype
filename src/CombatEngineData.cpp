@@ -250,7 +250,7 @@ Dictionary Weapon::make_status_dict() const {
   s["position"]=position;
   s["rotation"]=rotation;
   //  s["instance_id"]=instance_id;
-  s["firing_countdown"]=firing_countdown;
+  s["firing_countdown"]=firing_countdown.ticks_left()/real_t(ticks_per_second);
   return s;
 }
 
@@ -331,94 +331,6 @@ WeaponRanges make_ranges(const vector<Weapon> &weapons) {
   return r;
 }
 
-// This copy constructor should not be necessary, but the game crashes without it.
-Ship::Ship(const Ship &o):
-  id(o.id),
-  name(o.name),
-  rid(o.rid),
-  cost(o.cost),
-  thrust(o.thrust),
-  reverse_thrust(o.reverse_thrust),
-  turn_thrust(o.turn_thrust),
-  threat(o.threat),
-  visual_height(o.visual_height),
-  max_shields(o.max_shields),
-  max_armor(o.max_armor),
-  max_structure(o.max_structure),
-  max_fuel(o.max_fuel),
-  heal_shields(o.heal_shields),
-  heal_armor(o.heal_armor),
-  heal_structure(o.heal_structure),
-  heal_fuel(o.heal_fuel),
-  fuel_efficiency(o.fuel_efficiency),
-  aabb(o.aabb),
-  turn_drag(o.turn_drag),
-  radius(o.radius),
-  empty_mass(o.empty_mass),
-  cargo_mass(o.cargo_mass),
-  fuel_density(o.fuel_density),
-  armor_density(o.armor_density),
-  faction(o.faction),
-  faction_mask(o.faction_mask),
-  range(o.range),
-  explosion_damage(o.explosion_damage),
-  explosion_radius(o.explosion_radius),
-  explosion_impulse(o.explosion_impulse),
-  explosion_delay(o.explosion_delay),
-  explosion_tick(o.explosion_tick),
-  explosion_type(o.explosion_type),
-  shield_resist(o.shield_resist),
-  shield_passthru(o.shield_passthru),
-  armor_resist(o.armor_resist),
-  armor_passthru(o.armor_passthru),
-  structure_resist(o.structure_resist),
-  fate(o.fate),
-  entry_method(o.entry_method),
-  shields(o.shields),
-  armor(o.armor),
-  structure(o.structure),
-  fuel(o.fuel),
-  ai_type(o.ai_type),
-  ai_flags(o.ai_flags),
-  goal_action(o.goal_action),
-  goal_target(o.goal_target),
-  rotation(o.rotation),
-  position(o.position),
-  linear_velocity(o.linear_velocity),
-  angular_velocity(o.angular_velocity),
-  heading(o.heading),
-  drag(o.drag),
-  inverse_mass(o.inverse_mass),
-  inverse_inertia(o.inverse_inertia),
-  transform(o.transform),
-  weapons(o.weapons),
-  tick(o.tick),
-  tick_at_last_shot(o.tick_at_last_shot),
-  tick_at_rift_start(o.tick_at_rift_start),
-  ticks_since_targetting_change(o.ticks_since_targetting_change),
-  damage_since_targetting_change(o.damage_since_targetting_change),
-  target(o.target),
-  threat_vector(o.threat_vector),
-  nearby_objects(o.nearby_objects),
-  nearby_enemies(o.nearby_enemies),
-  nearby_enemies_tick(o.nearby_enemies_tick),
-  nearby_enemies_range(o.nearby_enemies_range),
-  rand(o.rand),
-  destination(o.destination),
-  aim_multiplier(o.aim_multiplier),
-  confusion_multiplier(o.confusion_multiplier),
-  confusion(o.confusion),
-  confusion_velocity(o.confusion_velocity),
-  max_speed(o.max_speed),
-  max_angular_velocity(o.max_angular_velocity),
-  turn_diameter_squared(o.turn_diameter_squared),
-  updated_mass_stats(o.updated_mass_stats),
-  immobile(o.immobile),
-  inactive(o.inactive),
-  should_autotarget(o.should_autotarget),
-  visual_scale(o.visual_scale)
-{}
-
 static inline damage_array to_damage_array(Variant var,real_t clamp_min,real_t clamp_max) {
   PoolRealArray a = static_cast<PoolRealArray>(var);
   PoolRealArray::Read reader = a.read();
@@ -464,7 +376,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   explosion_radius(get<real_t>(dict,"explosion_radius",0)),
   explosion_impulse(get<real_t>(dict,"explosion_impulse",0)),
   explosion_delay(get<int>(dict,"explosion_delay",0)),
-  explosion_tick(0),
+  explosion_timer(),
   explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_HOT_MATTER),0,NUM_DAMAGE_TYPES-1)),
 
   shield_resist(to_damage_array(dict["shield_resist"],MIN_RESIST,MAX_RESIST)),
@@ -503,8 +415,11 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   weapons(get_weapons(get<Array>(dict,"weapons"),last_id,mesh2path,path2mesh)),
   range(make_ranges(weapons)),
   tick(0),
+  rift_timer(inactive_ticks),
+  no_target_timer(),
+  range_check_timer(),
+  shot_at_target_timer(),
   tick_at_last_shot(TICKS_LONG_AGO),
-  tick_at_rift_start(TICKS_LONG_AGO),
   ticks_since_targetting_change(TICKS_LONG_AGO),
   damage_since_targetting_change(0),
   target(-1),
@@ -527,6 +442,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   immobile(false),
   inactive(false),
   should_autotarget(true),
+  at_first_tick(true),
   visual_scale(1.0)
 {
   if(not (drag<999999 and drag>1e-6))
@@ -626,7 +542,7 @@ void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_r
 }
 
 void Ship::update_confusion() {
-  bool is_firing = tick_at_last_shot+1 <= tick;
+  bool is_firing = tick_at_last_shot==tick;
   aim_multiplier = 0.99*aim_multiplier + 0.01*(is_firing ? 0.5 : 2.0);
   if(confusion.x!=0 or confusion.y!=0)
     confusion_velocity -= 0.001*confusion.normalized();
@@ -705,8 +621,8 @@ real_t Ship::take_damage(real_t damage,int type) {
 
   if(structure<=0) {
     // Structure is 0, so ship should explode.
-    explosion_tick = tick+explosion_delay;
-    fate = (explosion_tick>tick) ? FATED_TO_EXPLODE : FATED_TO_DIE;
+    explosion_timer.reset(explosion_delay*ticks_per_second);
+    fate = explosion_timer.alarmed() ? FATED_TO_EXPLODE : FATED_TO_DIE;
   } else
     damage_since_targetting_change += damage;
   
@@ -884,7 +800,7 @@ MeshInfo::MeshInfo(object_id id, const String &resource_path):
   mesh_rid(), multimesh_rid(), visual_rid(),
   instance_count(0),
   visible_instance_count(0),
-  last_tick_used(0),
+  last_frame_used(0),
   invalid(false),
   floats()
 {}

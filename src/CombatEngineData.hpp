@@ -41,6 +41,7 @@
 #define MIN_PASSTHRU 0.0
 #define MAX_PASSTHRU 1.0
 
+#include <cstdint>
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
@@ -71,7 +72,82 @@
 
 namespace godot {
   namespace CE {
+    
+    typedef int64_t ticks_t;
+    const ticks_t ticks_per_second = 10800;
+    const ticks_t ticks_per_minute = 648000;
+    const ticks_t zero_ticks = 0;
+    const ticks_t inactive_ticks = -1;
 
+    class AbstractCountdown {
+      // Timer that counts down to zero.
+      // A negative value means the timer is not running nor ringing.
+      // Zero means the timer is ringing.
+      ticks_t now;
+    public:
+      inline bool advance(ticks_t how_much) {
+        if(active())
+          return 0 == (now=std::max(zero_ticks,now-how_much));
+        return false;
+      }
+      inline bool ticking() const { return now>0; }
+      inline bool alarmed() const { return not now; }
+      inline bool active() const { return now>=0; }
+      inline void clear_alarm() { if(alarmed()) stop(); }
+      inline void stop() { now=inactive_ticks; }
+      inline ticks_t ticks_left() const { return now; }
+    protected:
+      inline ticks_t set_ticks(ticks_t what) { now=what; }
+      AbstractCountdown(const AbstractCountdown &o): now(o.now) {}
+      AbstractCountdown(ticks_t now): now(now) {}
+      AbstractCountdown(): now(inactive_ticks) {}
+      AbstractCountdown & operator = (const AbstractCountdown &o) {
+        now=o.now;
+        return *this;
+      }
+      bool operator == (const AbstractCountdown &o) const {
+        return now==o.now;
+      }
+    };
+
+    template<ticks_t DURATION>
+    class PresetCountdown: public AbstractCountdown {
+      // A countdown timer whose duration is fixed.
+    public:
+      static const ticks_t duration = DURATION;
+      PresetCountdown(): AbstractCountdown(inactive_ticks) {}
+      PresetCountdown(ticks_t duration):
+        AbstractCountdown(std::clamp(duration,inactive_ticks,DURATION))
+      {}
+      PresetCountdown(const PresetCountdown<DURATION> &o):
+        AbstractCountdown(o)
+      {}
+      PresetCountdown<DURATION> &operator = (const PresetCountdown<DURATION> &o) {
+        set_ticks(o.ticks_left());
+        return *this;
+      }
+      bool operator == (const PresetCountdown<DURATION> &o) const {
+        return o.ticks_left()==ticks_left();
+      }
+      inline ticks_t reset() { set_ticks(DURATION); }
+    };
+
+    class Countdown: public AbstractCountdown {
+      // A countdown timer whose duration is set in the constructor or
+      // reset() method.
+    public:
+      Countdown(ticks_t duration=inactive_ticks): AbstractCountdown(duration) {}
+      Countdown(const Countdown &o): AbstractCountdown(o) {}
+      Countdown &operator = (const Countdown &o) {
+        set_ticks(o.ticks_left());
+        return *this;
+      }
+      bool operator == (const Countdown &o) const {
+        return o.ticks_left()==ticks_left();
+      }
+      inline ticks_t reset(ticks_t duration) { set_ticks(duration); }
+    };
+    
     class CheapRand32 {
       // Low-memory-footprint, fast, 32-bit, random number, generator
       // that produces high-quality random numbers.  Note: not
@@ -286,7 +362,7 @@ namespace godot {
       
       Vector3 position, rotation;
       const real_t harmony_angle;
-      real_t firing_countdown;
+      Countdown firing_countdown;
       
       Weapon(Dictionary dict,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       ~Weapon();
@@ -352,8 +428,8 @@ namespace godot {
       const int explosion_type; // damage type of explosion
       const damage_array shield_resist, shield_passthru, armor_resist, armor_passthru;
       const damage_array structure_resist;
-      
-      int explosion_tick;
+
+      Countdown explosion_timer;
       fate_t fate;
       entry_t entry_method;
       real_t shields, armor, structure, fuel;
@@ -373,15 +449,19 @@ namespace godot {
       const WeaponRanges range;
 
       // Lifetime counter:
-      int tick;
+      ticks_t tick;
 
       // Targeting and firing logic:
-      int tick_at_last_shot, tick_at_rift_start, ticks_since_targetting_change;
+      PresetCountdown<ticks_per_second*3> rift_timer, no_target_timer;
+      PresetCountdown<ticks_per_second*25> range_check_timer;
+      PresetCountdown<ticks_per_second*15> shot_at_target_timer;
+      PresetCountdown<ticks_per_second/60> confusion_timer;
+      ticks_t tick_at_last_shot, ticks_since_targetting_change;
       real_t damage_since_targetting_change;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
       ship_hit_list_t nearby_enemies;
-      int nearby_enemies_tick;
+      ticks_t nearby_enemies_tick;
       real_t nearby_enemies_range;
 
       // Ship-local random number generator (just 32 bits)
@@ -407,11 +487,12 @@ namespace godot {
       bool immobile; // Ship cannot move for any reason
       bool inactive; // Do not run ship AI
       bool should_autotarget; // Player only: disable auto-targeting.
+      bool at_first_tick; // true iff this is the frame at which the ship spawned
 
       // Determine how much money is recouped when this ship leaves the system alive:
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
-          * (1.0f - std::clamp(float(tick)/(18000.0f),0.0f,1.0f) );
+          * (1.0f - std::clamp(tick/(300.0f*ticks_per_second),0.0f,1.0f) );
       }
 
       // Update internal state from the physics server:
@@ -427,7 +508,7 @@ namespace godot {
       Ship(Dictionary dict, object_id id, object_id &last_id,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       
-      Ship(const Ship &other); // There are strange crashes without this.
+      // Ship(const Ship &other); // There are strange crashes without this.
       
       ~Ship();
       
@@ -457,6 +538,9 @@ namespace godot {
         if(t!=target) {
           ticks_since_targetting_change = 0;
           damage_since_targetting_change = 0;
+          shot_at_target_timer.reset();
+          no_target_timer.reset();
+          range_check_timer.reset();
           target = t;
         }
       }
@@ -464,15 +548,26 @@ namespace godot {
         if(target!=-1) {
           ticks_since_targetting_change = 0;
           damage_since_targetting_change = 0;
+          shot_at_target_timer.reset();
+          no_target_timer.reset();
+          range_check_timer.reset();
           target = -1;
         }
       }
 
-      inline void update_timers() {
-        tick++;
-        ticks_since_targetting_change++;
-      }
+      inline void advance_time(ticks_t idelta) {
+        at_first_tick = not tick;
+        tick += idelta;
+        ticks_since_targetting_change+=idelta;
 
+        explosion_timer.advance(idelta);
+        rift_timer.advance(idelta);
+        no_target_timer.advance(idelta);
+        range_check_timer.advance(idelta);
+        shot_at_target_timer.advance(idelta);
+        confusion_timer.advance(idelta);
+      }
+      
     private:
       real_t visual_scale; // Intended to resize ship graphics when rifting
       object_id target;
@@ -507,7 +602,7 @@ namespace godot {
     // These constants MUST match globals/CombatEngine.gd.
 
     const float SPATIAL_RIFT_LIFETIME_SECS = 3.0f;
-    const int SPATIAL_RIFT_LIFETIME_TICKS = int(roundf(SPATIAL_RIFT_LIFETIME_SECS*60.0f));
+    const ticks_t SPATIAL_RIFT_LIFETIME_TICKS = roundf(SPATIAL_RIFT_LIFETIME_SECS*ticks_per_second);
 
     static const int PLAYER_GOAL_ATTACKER_AI = 1;
     static const int PLAYER_GOAL_LANDING_AI = 2;
@@ -609,7 +704,7 @@ namespace godot {
       const String resource_path;
       Ref<Resource> mesh_resource;
       RID mesh_rid, multimesh_rid, visual_rid;
-      int instance_count, visible_instance_count, last_tick_used;
+      int instance_count, visible_instance_count, last_frame_used;
       bool invalid;
       PoolRealArray floats;
       MeshInfo(object_id,const String &);

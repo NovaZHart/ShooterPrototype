@@ -67,8 +67,10 @@ namespace godot {
     std::unordered_set<CE::object_id> dead_ships;
     CE::object_id last_id;
     real_t delta;
+    CE::ticks_t idelta;
     CE::object_id player_ship_id;
-    int p_tick;
+    int p_frame;
+    int ai_ticks; // ticks since last reset
 
     std::unordered_map<CE::faction_index_t,CE::Faction> factions;
     std::unordered_map<int,float> affinities;
@@ -100,7 +102,7 @@ namespace godot {
     std::unordered_set<String,CE::hash_String> v_invalid_paths;
     real_t v_delta;
     Vector3 v_camera_location, v_camera_size;
-    int v_tick;
+    int v_frame;
     RID scenario, canvas;
     bool reset_scenario;
 
@@ -220,7 +222,8 @@ namespace godot {
     void request_thrust(CE::Ship &ship, real_t forward, real_t reverse);
     void set_angular_velocity(CE::Ship &ship,const Vector3 &angular_velocity);
     void set_velocity(CE::Ship &ship,const Vector3 &velocity);
-
+    void heal_ship(CE::Ship &ship);
+  
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Projectile methods:
     // // // // // // // // // // // // // // // // // // // // // // // // 
