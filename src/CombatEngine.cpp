@@ -1172,7 +1172,6 @@ void CombatEngine::raider_ai(Ship &ship) {
 
   if(close_to_target) {
     ship.ai_flags=0;
-    ship.new_target(target_ptr->first);
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
@@ -1181,13 +1180,15 @@ void CombatEngine::raider_ai(Ship &ship) {
       ship.clear_target();
     if(ship.ai_flags==0) {
       float randf = ship.rand.randf();
-      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .15 : .015;
-      scale *= delta/60;
+      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .05 : .25;
+      scale *= delta/3600;
       if(randf<scale)
         ship.ai_flags=DECIDED_TO_RIFT;
     }
     if(ship.ai_flags&DECIDED_TO_RIFT)
       rift_ai(ship);
+    else if(have_target)
+      move_to_attack(ship,target_ptr->second);
     else
       patrol_ai(ship);
   }
@@ -1400,8 +1401,8 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       ship.clear_target();
     if(ship.ai_flags==0) {
       float randf = ship.rand.randf();
-      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .5 : .05;
-      scale *= delta*60;
+      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .05 : .15;
+      scale *= delta/3600;
       if(randf<scale)
         ship.ai_flags=DECIDED_TO_RIFT;
       else if(randf<2*scale)
@@ -1411,6 +1412,8 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       landing_ai(ship);
     else if(ship.ai_flags&DECIDED_TO_RIFT)
       rift_ai(ship);
+    else if(have_target)
+      move_to_attack(ship,target_ptr->second);
     else
       patrol_ai(ship);
   }

@@ -17,10 +17,10 @@ var faction_goals: Array
 var active_factions: Dictionary
 
 const default_active_factions: Dictionary = {
-	'locals': { 'starting_money':1.2e6, 'income_per_second':300000, 'fleet_type_weights':{
+	'locals': { 'starting_money':3500000, 'income_per_second':35000, 'fleet_type_weights':{
 		'heavy_military':1.0, 'light_military':1.0 }
 	},
-	'raiders': { 'starting_money':1.2e6, 'income_per_second':300000, 'fleet_type_weights':{
+	'raiders': { 'starting_money':1000000, 'income_per_second':45000, 'fleet_type_weights':{
 		'large_raid':1.0, 'small_raid':1.0 }
 	},
 }
