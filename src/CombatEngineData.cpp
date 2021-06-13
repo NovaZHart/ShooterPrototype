@@ -566,21 +566,27 @@ void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
       efficiency -= 0.3*-energy/max_energy;
   }
 
-  if(max_thrust) {
-    thrust = max_thrust * clamp(efficiency*(max_thrust-thrust_loss)/max_thrust, 0.4, 1.6);
-    if(max_reverse_thrust)
-      reverse_thrust = max_reverse_thrust *
-        clamp(efficiency * (max_reverse_thrust - thrust_loss*max_reverse_thrust/max_thrust)/max_reverse_thrust, 0.4, 1.6);
-    else
-      Godot::print(name+": ship has no max_reverse_thrust!");
-    if(max_turning_thrust)
-      turning_thrust = max_turning_thrust *
-        clamp(efficiency * (max_turning_thrust - thrust_loss*max_turning_thrust/max_thrust)/max_turning_thrust, 0.4, 1.6);
-    else
-      Godot::print(name+": ship has no max_turning_thrust!");
-  } else
-    Godot::print(name+": ship has no max_thrust!");
-
+  if(thrust_loss) {
+    if(max_thrust) {
+      thrust = max_thrust * clamp(efficiency*(max_thrust-thrust_loss)/max_thrust, 0.4, 1.6);
+      if(max_reverse_thrust)
+        reverse_thrust = max_reverse_thrust *
+          clamp(efficiency * (max_reverse_thrust - thrust_loss*max_reverse_thrust/max_thrust)/max_reverse_thrust, 0.4, 1.6);
+      else
+        Godot::print(name+": ship has no max_reverse_thrust!");
+      if(max_turning_thrust)
+        turning_thrust = max_turning_thrust *
+          clamp(efficiency * (max_turning_thrust - thrust_loss*max_turning_thrust/max_thrust)/max_turning_thrust, 0.4, 1.6);
+      else
+        Godot::print(name+": ship has no max_turning_thrust!");
+    } else
+      Godot::print(name+": ship has no max_thrust!");
+  } else {
+    thrust = max_thrust;
+    turning_thrust = max_turning_thrust;
+    reverse_thrust = max_reverse_thrust;
+  }
+    
   inverse_mass = 1.0f/new_mass;
   drag_force = -linear_velocity*drag/inverse_mass;
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
