@@ -22,3 +22,5 @@ item_size_x = 4
 item_size_y = 4
 mount_type = "turret"
 help_page = "weapons/he_cyclotron"
+firing_heat = 15.0
+firing_energy = 10.0

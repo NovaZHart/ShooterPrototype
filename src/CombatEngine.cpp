@@ -674,8 +674,7 @@ void CombatEngine::step_all_ships() {
       ship.advance_time(idelta);
       ai_step_ship(ship);
       negate_drag_force(ship);
-      if(ship.updated_mass_stats)
-        ship.update_stats(physics_server,true);
+      ship.update_stats(physics_server,true);
       if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
         factions_iter p_faction = factions.find(ship.faction);
         if(p_faction!=factions.end())
@@ -859,7 +858,7 @@ void CombatEngine::explode_ship(Ship &ship) {
         real_t distance = max(0.0f,other.position.distance_to(ship.position)-other.radius);
         real_t dropoff = 1.0 - distance/ship.explosion_radius;
         dropoff*=dropoff;
-        other.take_damage(ship.explosion_damage*dropoff,ship.explosion_type);
+        other.take_damage(ship.explosion_damage*dropoff,ship.explosion_type,0.1,0,0);
         if(other.immobile)
           continue;
         if(not ship.immobile and ship.explosion_impulse!=0) {
@@ -886,7 +885,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
     return; // Ship has not yet fully arrived.
 
   for(auto &weapon : ship.weapons) {
-    weapon.firing_countdown.advance(idelta);
+    weapon.firing_countdown.advance(idelta*ship.efficiency);
   }
   
   if(ship.rift_timer.active())
@@ -997,7 +996,7 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     ship.should_autotarget = not ship.should_autotarget;
   
   if(overrides.orders&PLAYER_ORDER_STOP_SHIP) {
-    request_stop(ship,Vector3(0,0,0),0);
+    request_stop(ship,Vector3(0,0,0),3.0f);
     thrust = rotation = true;
   }
   
@@ -1839,11 +1838,11 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
       
       // Direct fire projectiles do damage when launched.
       if(weapon.damage)
-        hit_ptr->second.take_damage(weapon.damage*idelta/60,weapon.damage_type);
-      if(weapon.impulse and not hit_ptr->second.immobile) {
-        Vector3 impulse = weapon.impulse*projectile_heading*idelta/60;
-        if(impulse.length_squared())
-          physics_server->body_apply_central_impulse(hit_ptr->second.rid,impulse);
+        hit_ptr->second.take_damage(weapon.damage*idelta/60*ship.efficiency,weapon.damage_type,
+                                    weapon.heat_fraction,weapon.energy_fraction,weapon.thrust_fraction);
+      if(not hit_ptr->second.immobile and weapon.impulse) {
+        Vector3 impulse = weapon.impulse*projectile_heading*idelta/60*ship.efficiency;
+        physics_server->body_apply_central_impulse(hit_ptr->second.rid,impulse);
       }
       if(not hit_position.length_squared())
         hit_position = hit_ptr->second.position;
@@ -1855,6 +1854,9 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
       return false;
     hit_position=point2;
   }
+
+  ship.heat += weapon.firing_heat*ship.efficiency;
+  ship.energy += weapon.firing_energy*ship.efficiency;
   
   hit_position[1]=0;
   point1[1]=0;
@@ -2048,6 +2050,8 @@ void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
   if(ship.immobile or hyperspace and ship.fuel<=0)
     return;
   real_t ai_thrust = ship.thrust*clamp(forward,0.0f,1.0f) - ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
+  ship.energy += ship.forward_thrust_energy*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_energy*ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
+  ship.heat += ship.forward_thrust_heat*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_heat*ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
   Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(y_axis,ship.rotation.y);
   physics_server->body_add_central_force(ship.rid,v_thrust);
 }
@@ -2055,14 +2059,19 @@ void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
 void CombatEngine::set_angular_velocity(Ship &ship,const Vector3 &angular_velocity) {
   FAST_PROFILING_FUNCTION;
   // Apply an impulse that gives the ship a new angular velocity.
-  physics_server->body_apply_torque_impulse(ship.rid,(angular_velocity-ship.angular_velocity)/ship.inverse_inertia);
+  Vector3 change = angular_velocity-ship.angular_velocity;
+  physics_server->body_apply_torque_impulse(ship.rid,change/ship.inverse_inertia);
+  real_t thrust = fabsf(change.length()/ship.max_angular_velocity)*ship.turning_thrust;
+  ship.heat += thrust*ship.turning_thrust_heat;
+  ship.energy -= thrust*ship.turning_thrust_energy;
   // Update our internal copy of the ship's angular velocity.
   ship.angular_velocity = angular_velocity;
 }
 
 void CombatEngine::set_velocity(Ship &ship,const Vector3 &velocity) {
-  FAST_PROFILING_FUNCTION;
   // Apply an impulse that gives the ship the new velocity.
+  // Assumes the impulse is small, so we can ignore heat and energy
+  FAST_PROFILING_FUNCTION;
   if(ship.inverse_mass<1e-5) {
     Godot::print_error(String("Invalid inverse mass ")+String(Variant(ship.inverse_mass)),__FUNCTION__,__FILE__,__LINE__);
     return;
@@ -2135,6 +2144,8 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));
+  ship.heat += weapon.firing_heat;
+  ship.energy += weapon.firing_energy;
 }
 
 ships_iter CombatEngine::ship_for_rid(const RID &rid) {
@@ -2210,7 +2221,8 @@ bool CombatEngine::collide_point_projectile(Projectile &projectile) {
   if(p_ship==ships.end())
     return false;
   
-  p_ship->second.take_damage(projectile.damage,projectile.damage_type);
+  p_ship->second.take_damage(projectile.damage,projectile.damage_type,
+                             projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
   if(projectile.impulse and not p_ship->second.immobile) {
     Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
     if(impulse.length_squared())
@@ -2254,7 +2266,8 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
           real_t distance = max(0.0f,ship.position.distance_to(projectile.position)-ship.radius);
           real_t dropoff = 1.0 - distance/projectile.blast_radius;
           dropoff*=dropoff;
-          ship.take_damage(projectile.damage*dropoff,projectile.damage_type);
+          ship.take_damage(projectile.damage*dropoff,projectile.damage_type,
+                           projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
           if(have_impulse and not ship.immobile) {
             Vector3 impulse = projectile.impulse*dropoff*
               (ship.position-projectile.position).normalized();
@@ -2265,7 +2278,8 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
       }
     } else {
       Ship &ship = closest->second;
-      closest->second.take_damage(projectile.damage,projectile.damage_type);
+      closest->second.take_damage(projectile.damage,projectile.damage_type,
+                                  projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
       if(have_impulse and not ship.immobile) {
         Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
         if(impulse.length_squared())

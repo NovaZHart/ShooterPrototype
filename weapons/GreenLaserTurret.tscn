@@ -21,3 +21,5 @@ item_size_x = 3
 mount_type = "turret"
 help_page = "weapons/gamma_ray_laser_turret"
 damage_type = 1
+firing_heat = 0.7
+firing_energy = 0.7

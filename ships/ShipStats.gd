@@ -5,7 +5,7 @@ export var help_page: String = 'hulls'
 export var base_mass: float = 0
 export var base_thrust: float = 3000
 export var base_reverse_thrust: float = 800
-export var base_turn_thrust: float = 100
+export var base_turning_thrust: float = 100
 export var base_shields: float = 800
 export var base_armor: float = 500
 export var base_structure: float = 300
@@ -28,6 +28,24 @@ export var base_max_cargo: int = 20
 export var fuel_density: float = 10.0
 export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
+
+export var base_heat_capacity: float = 10.0
+export var base_cooling: float = 0.5
+export var base_shield_repair_heat: float = 0.3
+export var base_armor_repair_heat: float = 0.3
+export var base_structure_repair_heat: float = 0.2
+export var base_shield_repair_energy: float = 0.3
+export var base_armor_repair_energy: float = 0.3
+export var base_structure_repair_energy: float = 0.2
+export var base_forward_thrust_heat: float = 4
+export var base_reverse_thrust_heat: float = 4
+export var base_turning_thrust_heat: float = 4
+export var base_forward_thrust_energy: float = 2.5
+export var base_reverse_thrust_energy: float = 2.5
+export var base_turning_thrust_energy: float = 2.5
+export var base_battery: float = 2000.0
+export var base_power: float = 200.0
+
 export var ai_type: int = 0 setget set_ai_type
 
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -168,7 +186,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 		stats['rid']=get_rid()
 	stats['thrust']=base_thrust
 	stats['reverse_thrust']=base_reverse_thrust
-	stats['turn_thrust']=base_turn_thrust
+	stats['turning_thrust']=base_turning_thrust
 	#stats['turn_rate']=base_turn_rate
 	if base_threat<0:
 		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
@@ -209,6 +227,23 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['armor_resist']=base_armor_resist
 	stats['armor_passthru']=base_armor_passthru
 	stats['structure_resist']=base_structure_resist
+
+	stats['heat_capacity']=base_heat_capacity
+	stats['cooling']=base_cooling
+	stats['shield_repair_heat']=base_shield_repair_heat
+	stats['armor_repair_heat']=base_armor_repair_heat
+	stats['structure_repair_heat']=base_structure_repair_heat
+	stats['shield_repair_energy']=base_shield_repair_energy
+	stats['armor_repair_energy']=base_armor_repair_energy
+	stats['structure_repair_energy']=base_structure_repair_energy
+	stats['forward_thrust_heat']=base_forward_thrust_heat
+	stats['reverse_thrust_heat']=base_reverse_thrust_heat
+	stats['turning_thrust_heat']=base_turning_thrust_heat
+	stats['forward_thrust_energy']=base_forward_thrust_energy
+	stats['reverse_thrust_energy']=base_reverse_thrust_energy
+	stats['turning_thrust_energy']=base_turning_thrust_energy
+	stats['battery']=base_battery
+	stats['power']=base_power
 
 	# Used for text generation, not CombatEngine:
 	stats['display_name']=ship_display_name

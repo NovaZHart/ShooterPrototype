@@ -37,7 +37,7 @@
 #define DAMAGE_HOT_MATTER 8  /* Explosion or beam of hot gas or plasma */
 
 #define MAX_RESIST 0.75
-#define MIN_RESIST -222.0
+#define MIN_RESIST -1.0
 #define MIN_PASSTHRU 0.0
 #define MAX_PASSTHRU 1.0
 
@@ -78,6 +78,7 @@ namespace godot {
     const ticks_t ticks_per_minute = 648000;
     const ticks_t zero_ticks = 0;
     const ticks_t inactive_ticks = -1;
+    const double thrust_loss_heal = 0.7;
 
     class AbstractCountdown {
       // Timer that counts down to zero.
@@ -336,6 +337,7 @@ namespace godot {
       const bool guided, guidance_uses_velocity;
       const real_t damage, impulse, blast_radius, detonation_range, turn_rate;
       const real_t mass, drag, thrust, lifetime, initial_velocity, max_speed;
+      const real_t heat_fraction, energy_fraction, thrust_fraction;
       //const int collision_mask;
       const faction_index_t faction;
       const int damage_type;
@@ -353,6 +355,7 @@ namespace godot {
       const real_t projectile_mass, projectile_drag, projectile_thrust, projectile_lifetime;
       const real_t projectile_turn_rate;
       const real_t firing_delay, turn_rate, blast_radius, detonation_range, threat;
+      const real_t heat_fraction, energy_fraction, thrust_fraction, firing_energy, firing_heat;
       const bool direct_fire, guided, guidance_uses_velocity;
       const object_id mesh_id;
       const real_t terminal_velocity, projectile_range;
@@ -412,7 +415,7 @@ namespace godot {
       const String name; // last element of node path
       const RID rid; // of rigid body
       const real_t cost;
-      const real_t thrust, reverse_thrust, turn_thrust;
+      const real_t max_thrust, max_reverse_thrust, max_turning_thrust;
       const real_t threat, visual_height;
       const real_t max_shields, max_armor, max_structure, max_fuel;
       const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
@@ -428,11 +431,20 @@ namespace godot {
       const int explosion_type; // damage type of explosion
       const damage_array shield_resist, shield_passthru, armor_resist, armor_passthru;
       const damage_array structure_resist;
+      const real_t max_cooling, max_energy, max_power, max_heat;
+      const real_t shield_repair_heat, armor_repair_heat, structure_repair_heat;
+      const real_t shield_repair_energy, armor_repair_energy, structure_repair_energy;
+      const real_t forward_thrust_heat, reverse_thrust_heat, turning_thrust_heat;
+      const real_t forward_thrust_energy, reverse_thrust_energy, turning_thrust_energy;
+
+      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency;
+      double thrust_loss;
 
       Countdown explosion_timer;
       fate_t fate;
       entry_t entry_method;
-      real_t shields, armor, structure, fuel;
+      double shields, armor, structure;
+      real_t fuel;
 
       ship_ai_t ai_type;
       int ai_flags;
@@ -519,7 +531,7 @@ namespace godot {
       std::vector<Weapon> get_weapons(Array a, object_id &last_id, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
 
       // All damage, resist, and passthru logic:
-      real_t take_damage(real_t damage, int damage_type);
+      real_t take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction);
 
       // update destination from rand
       Vector3 randomize_destination();
@@ -567,8 +579,10 @@ namespace godot {
         shot_at_target_timer.advance(idelta);
         confusion_timer.advance(idelta);
       }
-      
+
     private:
+      void heal_stat(double &stat,double new_value,real_t heal_energy,real_t heal_heat);
+      
       real_t visual_scale; // Intended to resize ship graphics when rifting
       object_id target;
       

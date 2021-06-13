@@ -26,6 +26,18 @@ export var mount_size_y: int = 0 setget ,get_mount_size_y
 export var mount_type: String = 'gun'
 export var help_page: String = 'weapons'
 
+export var add_heat_capacity: float = 0.0
+export var add_cooling: float = 0.0
+export var add_battery: float = 0.0
+export var add_power: float = 0.0
+
+export var firing_heat: float = 30.0
+export var firing_energy: float = 30.0
+
+export var heat_fraction: float = 0
+export var energy_fraction: float = 0
+export var thrust_fraction: float = 0
+
 export var add_shield_resist: PoolRealArray = PoolRealArray()
 export var add_shield_passthru: PoolRealArray = PoolRealArray()
 export var add_armor_resist: PoolRealArray = PoolRealArray()
@@ -92,6 +104,12 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'rotation':rotation,
 			'node_path':(get_path() if (not skip_runtime_stats and is_inside_tree()) else NodePath()),
 			'name':name,
+
+			'firing_heat':firing_heat,
+			'firing_energy':firing_energy,
+			'heat_fraction':heat_fraction,
+			'energy_fraction':energy_fraction,
+			'thrust_fraction':thrust_fraction,
 			
 			# Used for text generation, not CombatEngine:
 			'help_page':help_page,
@@ -108,6 +126,14 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 	return cached_stats
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
+	if add_heat_capacity:
+		stats['heat_capacity'] += add_heat_capacity
+	if add_cooling:
+		stats['cooling'] += add_cooling
+	if add_battery:
+		stats['battery'] += add_battery
+	if add_power:
+		stats['power'] += add_power
 	stats['empty_mass'] += weapon_mass
 	stats['max_structure'] += weapon_structure
 	stats['weapons'].append(pack_stats(skip_runtime_stats))

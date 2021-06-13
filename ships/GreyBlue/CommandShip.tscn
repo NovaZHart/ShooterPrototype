@@ -35,6 +35,8 @@ base_explosion_impulse = 2400.0
 base_max_cargo = 120
 armor_density = 6.0
 override_size = Vector3( 7, 0, 3.2 )
+base_battery = 5000
+base_power = 550
 
 [node name="Wheel" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.723207, 0 )

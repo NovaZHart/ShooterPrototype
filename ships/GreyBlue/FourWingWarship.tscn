@@ -35,6 +35,8 @@ base_explosion_impulse = 1300.0
 base_max_cargo = 40
 armor_density = 6.0
 override_size = Vector3( 4, 0, 3.5 )
+base_battery = 3500
+base_power = 380
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 2 )

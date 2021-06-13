@@ -28,3 +28,6 @@ item_size_x = 2
 item_size_y = 4
 help_page = "weapons/harpoon_missile"
 damage_type = 8
+firing_heat = 5.0
+firing_energy = 5.0
+heat_fraction = 0.3

@@ -118,6 +118,8 @@ base_explosion_radius = 7.5
 base_explosion_impulse = 1075.0
 base_max_cargo = 95
 override_size = Vector3( 6, 0, 3 )
+base_battery = 3000
+base_power = 200
 
 [node name="GunMesh" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 0.997432, -0.0716189, 0, 0.0716189, 0.997432, 2.32337, -0.45044, 0.467378 )

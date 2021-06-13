@@ -129,6 +129,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   lifetime(weapon.projectile_lifetime),
   initial_velocity(weapon.initial_velocity),
   max_speed(weapon.terminal_velocity),
+  heat_fraction(weapon.heat_fraction),
+  energy_fraction(weapon.energy_fraction),
+  thrust_fraction(weapon.thrust_fraction),
   position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
   faction(ship.faction),
   damage_type(weapon.damage_type),
@@ -170,6 +173,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   lifetime(weapon.projectile_lifetime),
   initial_velocity(weapon.initial_velocity),
   max_speed(weapon.terminal_velocity),
+  heat_fraction(weapon.heat_fraction),
+  energy_fraction(weapon.energy_fraction),
+  thrust_fraction(weapon.thrust_fraction),
   position(position),
   faction(ship.faction),
   damage_type(weapon.damage_type),
@@ -211,6 +217,11 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   blast_radius(get<real_t>(dict,"blast_radius")),
   detonation_range(get<real_t>(dict,"detonation_range")),
   threat(get<real_t>(dict,"threat")),
+  heat_fraction(get<real_t>(dict,"heat_fraction")),
+  energy_fraction(get<real_t>(dict,"energy_fraction")),
+  thrust_fraction(get<real_t>(dict,"thrust_fraction")),
+  firing_energy(get<real_t>(dict,"firing_energy")),
+  firing_heat(get<real_t>(dict,"firing_heat")),
   damage_type(clamp(get<int>(dict,"damage_type"),0,NUM_DAMAGE_TYPES-1)),
   direct_fire(firing_delay<1e-5),
   guided(not direct_fire and get<bool>(dict,"guided")),
@@ -339,6 +350,7 @@ static inline damage_array to_damage_array(Variant var,real_t clamp_min,real_t c
   int a_size=a.size(), d_size=d.size();
   for(int i=0;i<d_size;i++)
     d[i] = (i<a_size) ? clamp(reals[i],clamp_min,clamp_max) : 0;
+  d[DAMAGE_TYPELESS]=0; // typeless ignores resistances and passthrus
   return d;
 }
 
@@ -347,35 +359,35 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   id(id),
   name(get<String>(dict,"name")),
   rid(get<RID>(dict,"rid")),
-  cost(get<real_t>(dict,"cost")),
-  thrust(get<real_t>(dict,"thrust")),
-  reverse_thrust(get<real_t>(dict,"reverse_thrust",0)),
-  turn_thrust(get<real_t>(dict,"turn_thrust",0)),
-  threat(get<real_t>(dict,"threat")),
+  cost(max(0.0f,get<real_t>(dict,"cost"))),
+  max_thrust(max(0.0f,get<real_t>(dict,"thrust"))),
+  max_reverse_thrust(max(0.0f,get<real_t>(dict,"reverse_thrust",0))),
+  max_turning_thrust(max(0.0f,get<real_t>(dict,"turning_thrust",0))),
+  threat(max(0.0f,get<real_t>(dict,"threat"))),
   visual_height(get<real_t>(dict,"visual_height",5.0f)),
-  max_shields(get<real_t>(dict,"max_shields",0)),
-  max_armor(get<real_t>(dict,"max_armor",0)),
-  max_structure(get<real_t>(dict,"max_structure")),
-  max_fuel(get<real_t>(dict,"max_fuel")),
-  heal_shields(get<real_t>(dict,"heal_shields",0)),
-  heal_armor(get<real_t>(dict,"heal_armor",0)),
-  heal_structure(get<real_t>(dict,"heal_structure",0)),
-  heal_fuel(get<real_t>(dict,"heal_fuel",0)),
-  fuel_efficiency(get<real_t>(dict,"fuel_efficiency",1.0)),
+  max_shields(max(1e-5f,get<real_t>(dict,"max_shields",0))),
+  max_armor(max(1e-5f,get<real_t>(dict,"max_armor",0))),
+  max_structure(max(1e-5f,get<real_t>(dict,"max_structure"))),
+  max_fuel(max(0.0f,get<real_t>(dict,"max_fuel"))),
+  heal_shields(max(0.0f,get<real_t>(dict,"heal_shields",0))),
+  heal_armor(max(0.0f,get<real_t>(dict,"heal_armor",0))),
+  heal_structure(max(0.0f,get<real_t>(dict,"heal_structure",0))),
+  heal_fuel(max(0.0f,get<real_t>(dict,"heal_fuel",0))),
+  fuel_efficiency(max(0.0f,get<real_t>(dict,"fuel_efficiency",1.0))),
   aabb(get<AABB>(dict,"aabb")),
-  turn_drag(get<real_t>(dict,"turn_drag")),
-  radius((aabb.size.x+aabb.size.z)/2.0),
-  empty_mass(get<real_t>(dict,"empty_mass",0)),
-  cargo_mass(get<real_t>(dict,"cargo_mass",0)),
-  fuel_density(get<real_t>(dict,"fuel_density",0)),
-  armor_density(get<real_t>(dict,"armor_density",0)),
-  faction(get<real_t>(dict,"faction_index",0)),
+  turn_drag(max(1e-5f,get<real_t>(dict,"turn_drag"))),
+  radius(max(1e-5f,(aabb.size.x+aabb.size.z)/2.0f)),
+  empty_mass(max(0.0f,get<real_t>(dict,"empty_mass",0))),
+  cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
+  fuel_density(max(0.0f,get<real_t>(dict,"fuel_density",0))),
+  armor_density(max(0.0f,get<real_t>(dict,"armor_density",0))),
+  faction(clamp(get<int>(dict,"faction_index",0),MIN_ALLOWED_FACTION,MAX_ALLOWED_FACTION)),
   faction_mask(static_cast<faction_mask_t>(1)<<faction),
   
-  explosion_damage(get<real_t>(dict,"explosion_damage",0)),
-  explosion_radius(get<real_t>(dict,"explosion_radius",0)),
+  explosion_damage(max(0.0f,get<real_t>(dict,"explosion_damage",0))),
+  explosion_radius(max(0.0f,get<real_t>(dict,"explosion_radius",0))),
   explosion_impulse(get<real_t>(dict,"explosion_impulse",0)),
-  explosion_delay(get<int>(dict,"explosion_delay",0)),
+  explosion_delay(max(0,get<int>(dict,"explosion_delay",0))),
   explosion_timer(),
   explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_HOT_MATTER),0,NUM_DAMAGE_TYPES-1)),
 
@@ -384,15 +396,43 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   armor_resist(to_damage_array(dict["armor_resist"],MIN_RESIST,MAX_RESIST)),
   armor_passthru(to_damage_array(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
   structure_resist(to_damage_array(dict["structure_resist"],MIN_RESIST,MAX_RESIST)),
+
+  max_cooling(max(0.0f,get<real_t>(dict,"cooling")*empty_mass)),
+  max_energy(max(0.0f,get<real_t>(dict,"battery"))),
+  max_power(max(0.0f,get<real_t>(dict,"power"))),
+  max_heat(max(0.0f,get<real_t>(dict,"heat_capacity")*empty_mass)),
+
+  shield_repair_heat(max(0.0f,get<real_t>(dict,"shield_repair_heat"))),
+  armor_repair_heat(max(0.0f,get<real_t>(dict,"armor_repair_heat"))),
+  structure_repair_heat(max(0.0f,get<real_t>(dict,"structure_repair_heat"))),
+  shield_repair_energy(max(0.0f,get<real_t>(dict,"shield_repair_energy"))),
+  armor_repair_energy(max(0.0f,get<real_t>(dict,"armor_repair_energy"))),
+  structure_repair_energy(max(0.0f,get<real_t>(dict,"structure_repair_energy"))),
+  forward_thrust_heat(max(0.0f,get<real_t>(dict,"forward_thrust_heat"))/1000.0f),
+  reverse_thrust_heat(max(0.0f,get<real_t>(dict,"reverse_thrust_heat"))/1000.0f),
+  turning_thrust_heat(max(0.0f,get<real_t>(dict,"turning_thrust_heat"))/1000.0f),
+  forward_thrust_energy(max(0.0f,get<real_t>(dict,"forward_thrust_energy"))/1000.0f),
+  reverse_thrust_energy(max(0.0f,get<real_t>(dict,"reverse_thrust_energy"))/1000.0f),
+  turning_thrust_energy(max(0.0f,get<real_t>(dict,"turning_thrust_energy"))/1000.0f),
+
+  energy(max_energy),
+  heat(max_heat),
+  power(max_power),
+  cooling(max_cooling),
+  thrust(max_thrust),
+  reverse_thrust(max_reverse_thrust),
+  turning_thrust(max_turning_thrust),
+
+  thrust_loss(0.0f),
   
   fate(FATED_TO_FLY),
   entry_method(static_cast<entry_t>(get<int>(dict,"entry_method",static_cast<int>(ENTRY_COMPLETE)))),
   //  turn_diameter(max_speed()*2.0/max_angular_velocity),
 
-  shields(get<real_t>(dict,"shields",max_shields)),
-  armor(get<real_t>(dict,"armor",max_armor)),
-  structure(get<real_t>(dict,"structure",max_structure)),
-  fuel(get<real_t>(dict,"fuel",max_fuel)),
+  shields(max(0.0f,get<real_t>(dict,"shields",max_shields))),
+  armor(max(0.0f,get<real_t>(dict,"armor",max_armor))),
+  structure(max(0.0f,get<real_t>(dict,"structure",max_structure))),
+  fuel(max(0.0f,get<real_t>(dict,"fuel",max_fuel))),
   ai_type(static_cast<ship_ai_t>(get<int>(dict,"ai_type",ATTACKER_AI))),
   ai_flags(0),
   goal_action(goal_patrol),
@@ -407,7 +447,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   linear_velocity(get<Vector3>(dict,"linear_velocity",Vector3(0,0,0))),
   angular_velocity(get<Vector3>(dict,"angular_velocity",Vector3(0,0,0))),
   heading(get_heading(*this)),
-  drag(get<real_t>(dict,"drag")),
+  drag(max(1e-5f,get<real_t>(dict,"drag"))),
   inverse_mass(1.0/(empty_mass+cargo_mass+fuel*fuel_density/1000.0+armor*armor_density/1000.0)),
   inverse_inertia(get<Vector3>(dict,"inverse_inertia",Vector3(0,1,0))),
   transform(get<Transform>(dict,"transform")),
@@ -458,8 +498,14 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
   if(not (max_speed<999999 and max_speed>=0))
     Godot::print_warning(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)),__FUNCTION__,__FILE__,__LINE__);
-  max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
+  max_angular_velocity = turning_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
   turn_diameter_squared = make_turn_diameter_squared();
+  if(name=="player_ship") {
+    Godot::print(name+": max thrust energy: r="+str(reverse_thrust_energy*max_reverse_thrust)+" s="+str(forward_thrust_energy*max_thrust)+" t="+str(turning_thrust_energy*max_turning_thrust));
+    Godot::print(name+": max thrust heat: r="+str(reverse_thrust_heat*max_reverse_thrust)+" s="+str(forward_thrust_heat*max_thrust)+" t="+str(turning_thrust_heat*max_turning_thrust));
+    Godot::print(name+": power="+str(power)+" Cooling="+str(cooling));
+    Godot::print(name+": max_energy="+str(max_energy)+" max_heat="+str(max_heat));
+  }
 }
 
 Ship::~Ship()
@@ -503,25 +549,74 @@ bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
 void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
   real_t new_mass = empty_mass+cargo_mass;
   if(max_fuel>=.001)
-    fuel*clamp(fuel_density/max_fuel,0.0f,1.0f);
+    new_mass += fuel*clamp(fuel_density/max_fuel,0.0f,1.0f);
   if(max_armor>=.001)
-    armor*clamp(armor_density/max_armor,0.0f,1.0f);
+    new_mass += armor*clamp(armor_density/max_armor,0.0f,1.0f);
   real_t old_mass = 1.0/inverse_mass;
+
+  efficiency = 1.0;
+  if(max_heat>0) {
+    heat = clamp(heat,0.0f,2*max_heat);
+    if(heat>max_heat)
+      efficiency -= 0.3*(heat-max_heat)/max_heat;
+  }
+  if(max_energy>0) {
+    energy = clamp(energy,-max_energy,max_energy);
+    if(energy<0)
+      efficiency -= 0.3*-energy/max_energy;
+  }
+
+  if(max_thrust) {
+    thrust = max_thrust * clamp(efficiency*(max_thrust-thrust_loss)/max_thrust, 0.4, 1.6);
+    if(max_reverse_thrust)
+      reverse_thrust = max_reverse_thrust *
+        clamp(efficiency * (max_reverse_thrust - thrust_loss*max_reverse_thrust/max_thrust)/max_reverse_thrust, 0.4, 1.6);
+    else
+      Godot::print(name+": ship has no max_reverse_thrust!");
+    if(max_turning_thrust)
+      turning_thrust = max_turning_thrust *
+        clamp(efficiency * (max_turning_thrust - thrust_loss*max_turning_thrust/max_thrust)/max_turning_thrust, 0.4, 1.6);
+    else
+      Godot::print(name+": ship has no max_turning_thrust!");
+  } else
+    Godot::print(name+": ship has no max_thrust!");
+
   inverse_mass = 1.0f/new_mass;
   drag_force = -linear_velocity*drag/inverse_mass;
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
-  max_angular_velocity = turn_thrust/turn_drag*inverse_mass*PI/30.0f;
+  max_angular_velocity = turning_thrust/turn_drag*inverse_mass*PI/30.0f;
   turn_diameter_squared = make_turn_diameter_squared();
 
   if(fabsf(new_mass-old_mass)>0.01f)
-    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,1.0/inverse_mass);
-  updated_mass_stats = false;
+    physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,new_mass);
+  updated_mass_stats = true;
+}
+
+void Ship::heal_stat(double &stat,double new_value,real_t heal_energy,real_t heal_heat) {
+  real_t diff=max(0.0,stat-new_value);
+  stat=new_value;
+  if(heal_energy)
+    energy-=heal_energy*diff;
+  if(heal_heat)
+    heat-=heal_heat*diff;
 }
 
 void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {
-  shields = min(shields+heal_shields*delta,max_shields);
-  armor = min(armor+heal_armor*delta,max_armor);
-  structure = min(structure+heal_structure*delta,max_structure);
+  energy = clamp(energy+power*delta,-max_energy,max_energy);
+  heat = clamp(heat-cooling*delta,0.0f,2.0f*max_heat);
+  if(thrust_loss) {
+    thrust_loss *= pow(thrust_loss_heal,delta);
+    if(thrust_loss<.01)
+      thrust_loss=0;
+  }
+
+  heal_stat(shields,min(shields+heal_shields*delta*efficiency,double(max_shields)),
+            shield_repair_energy,shield_repair_heat);
+  if(heal_armor)
+    heal_stat(armor, min(armor+heal_armor*delta*efficiency,double(max_armor)),
+              armor_repair_energy,armor_repair_heat);
+  heal_stat(structure, min(structure+heal_structure*delta*efficiency,double(max_structure)),
+            structure_repair_energy,structure_repair_heat);
 
   if(hyperspace and fuel>0.0f) {
     real_t new_fuel = clamp(fuel-delta/inverse_mass*linear_velocity.length()/
@@ -554,9 +649,9 @@ void Ship::update_confusion() {
   confusion = 0.999*(confusion+confusion_velocity*(confusion_multiplier*aim_multiplier));
 }
 
-static void apply_damage(real_t &damage,real_t &life,int type,
-                         const damage_array &resists,
-                         const damage_array &passthrus,bool allow_passthru) {
+static real_t apply_damage(real_t &damage,double &life,int type,
+                           const damage_array &resists,
+                           const damage_array &passthrus,bool allow_passthru) {
   // Apply damage of the given type to life (shields, armor, or structure) based on
   // resistances (resist) and optionally passthru (if non-null)
   // On return:
@@ -566,11 +661,11 @@ static void apply_damage(real_t &damage,real_t &life,int type,
   // Assumes 0<=type<NUM_DAMAGE_TYPES
 
   if(life<=0 or damage<=0)
-    return;
+    return 0.0f;
 
   real_t applied = 1.0 - resists[type];
   if(applied<1e-5)
-    return;
+    return 0.0f;
 
   real_t passed = 0.0f;
   real_t taken = damage;
@@ -578,7 +673,7 @@ static void apply_damage(real_t &damage,real_t &life,int type,
   if(allow_passthru) {
     real_t passthru = passthrus[type];
     if(passthru>=1.0)
-      return; // All damage is passed, so we have no more to do.
+      return 0.0f; // All damage is passed, so we have no more to do.
     if(passthru>0) {
       taken = (1.0-passthru)*damage;
       passed = passthru*damage;
@@ -597,36 +692,51 @@ static void apply_damage(real_t &damage,real_t &life,int type,
     life -= taken;
 
   damage = passed;
+  return taken;
 }
 
-real_t Ship::take_damage(real_t damage,int type) {
+real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction) {
   // Applies damage of the given type to the ship, considering fate,
   // resistances, and passthru. If structure becomes 0, marks the ship
   // as FATED_TO_EXPLODE or FATED_TO_DIE, as appropriate. Returns the
   // amount of damage not applied. Ships that are not FATED_TO_FLY
   // will not apply any damage or change their fate.  Assumes
   // 0<=type<NUM_DAMAGE_TYPES
+
+  // Returns the overkill damage (damage remaining after ship died from it).
   
   if(fate!=FATED_TO_FLY)
     return damage; // already dead or leaving, so cannot take more damage
+
+  real_t remaining=damage;
+  real_t structure_damage=0;
   
-  if(damage>0) {
-    apply_damage(damage,shields,type,shield_resist,shield_passthru,true);
-    if(damage>0) {
-      apply_damage(damage,armor,type,armor_resist,armor_passthru,true);
-      if(damage>0)
-        apply_damage(damage,structure,type,structure_resist,armor_passthru,false);
+  if(remaining>0) {
+    apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
+    if(remaining>0) {
+      apply_damage(remaining,armor,type,armor_resist,armor_passthru,true);
+      if(remaining>0)
+        structure_damage = apply_damage(remaining,structure,type,structure_resist,armor_passthru,false);
     }
   }
 
   if(structure<=0) {
     // Structure is 0, so ship should explode.
-    explosion_timer.reset(explosion_delay*ticks_per_second);
+    explosion_timer.reset(explosion_delay/60.0f*ticks_per_second);
     fate = explosion_timer.alarmed() ? FATED_TO_EXPLODE : FATED_TO_DIE;
-  } else
+  } else {
     damage_since_targetting_change += damage;
+    if(structure_damage) {
+      if(heat_fraction)
+        heat += heat_fraction*structure_damage;
+      if(energy_fraction)
+        energy -= energy_fraction*structure_damage;
+      if(thrust_fraction)
+        thrust_loss += thrust_fraction*structure_damage;
+    }
+  }
   
-  return damage;
+  return remaining;
 }
 
 Vector3 Ship::randomize_destination() {
@@ -685,6 +795,11 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["max_armor"]=max_armor;
   s["max_structure"]=max_structure;
   s["max_fuel"]=max_fuel;
+  s["energy"]=energy;
+  s["max_energy"]=max_energy;
+  s["heat"]=heat;
+  s["max_heat"]=max_heat;
+  s["efficiency"]=efficiency;
   s["radius"] = radius;
   s["visual_scale"] = visual_scale;
   Dictionary r;

@@ -197,3 +197,11 @@ func sum_of_squares(accum: PoolRealArray,add: PoolRealArray) -> PoolRealArray:
 			var a = sign(accum[i])*accum[i]*accum[i] + sign(add[i])*add[i]*add[i]
 			accum[i] = sign(a)*sqrt(abs(a))
 	return accum
+
+func weighted_add(add_value,add_weight: float,stats: Dictionary,value_key: String,weight_key: String):
+	var weight: float = stats[weight_key]
+	var value: float = stats[value_key]
+	if not weight and not add_weight:
+		stats[value_key] = (add_value+value)/2
+	else:
+		stats[value_key] = (add_value*add_weight + value*weight)/(add_weight+weight)

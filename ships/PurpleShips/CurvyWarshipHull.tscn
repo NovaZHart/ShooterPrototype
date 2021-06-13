@@ -31,6 +31,8 @@ base_explosion_radius = 3.5
 base_explosion_impulse = 800.0
 base_max_cargo = 23
 override_size = Vector3( 2.4, 0, 3 )
+base_battery = 2000.0
+base_power = 200.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.210989, 0, 0 )

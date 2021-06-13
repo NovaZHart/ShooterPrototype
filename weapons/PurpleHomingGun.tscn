@@ -24,3 +24,6 @@ projectile_mesh_path = "res://weapons/meshes/PurpleBlob.mesh"
 item_size_x = 2
 help_page = "weapons/shockwave_torpedo"
 damage_type = 8
+firing_heat = 40.0
+firing_energy = 10.0
+heat_fraction = 2.0

@@ -261,7 +261,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Turn RPM:',round(s['turn_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
+	bbcode += make_cell('Turn RPM:',round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
 
 	var k = s['max_fuel']*s['fuel_density']/s['empty_mass']
 	var d = s['max_fuel']*s['fuel_efficiency']/s['empty_mass']
@@ -312,7 +312,7 @@ func make_equipment_bbcode(equipment_stats):
 		items[0].append(add_max_and_repair('Armor:',s['add_armor'],s['add_heal_armor']))
 	items[0].append(add_max_and_repair('Structure:',s['add_structure'],s['add_heal_structure']))
 
-	if s['add_thrust'] or s['add_reverse_thrust'] or s['add_turn_thrust']:
+	if s['add_thrust'] or s['add_reverse_thrust'] or s['add_turning_thrust']:
 		items.append([
 			make_cell('Thrust:',plus_minus(s['add_thrust'])),
 			make_cell('Reverse:',plus_minus(s['add_reverse_thrust'])),
