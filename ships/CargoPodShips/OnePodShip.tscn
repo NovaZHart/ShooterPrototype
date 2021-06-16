@@ -8,7 +8,7 @@
 [sub_resource type="ConvexPolygonShape" id=1]
 points = PoolVector3Array( 0, 1, 10, 0, 1, -10, 0, 1, 10, 0, 1, -10, -1, -1, 10, 1, -1, -10, 1, -1, 10, -1, -1, -10, 0, 1, 10, 0, 1, -10, 0, 1, -10, 0, 1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10, -1, -1, 10, -1, -1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10 )
 
-[node name="RigidBody" type="RigidBody"]
+[node name="OnePodShip" type="RigidBody"]
 script = ExtResource( 1 )
 base_mass = 220.0
 base_thrust = 3500.0

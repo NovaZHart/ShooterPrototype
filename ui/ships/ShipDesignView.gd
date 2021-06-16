@@ -11,7 +11,7 @@ const INSTALLED_LAYER_MASK: int = 2
 const MOUNT_POINT_LAYER_MASK: int = 4
 const MULTIMOUNT_LAYER_MASK: int = 32
 
-const ITEM_LIGHT_CULL_LAYER: int = 1
+const ITEM_LIGHT_CULL_LAYER: int = 2
 const SHIP_LIGHT_CULL_LAYER: int = 2
 const RED_LIGHT_CULL_LAYER: int = 8
 
@@ -404,7 +404,7 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 		install.collision_mask=0
 		install.collision_layer=0
 	ship_mount.add_child(install)
-	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
+	set_layer_recursively(install,ITEM_LIGHT_CULL_LAYER)
 	if install.name!=cell_name:
 		install.queue_free()
 		return false
@@ -433,7 +433,7 @@ func place_in_single_mount(content, mount: MountData) -> bool:
 		child.replace_by(install)
 	else:
 		$Viewport/Ship.add_child(install)
-	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
+	set_layer_recursively(install,ITEM_LIGHT_CULL_LAYER)
 	install.owner=$Viewport/Ship
 	install.name = mount.get_name()
 	return true

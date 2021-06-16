@@ -1,6 +1,5 @@
 extends RigidBody
 
-export var ship_display_name: String = 'Unnamed'
 export var help_page: String = 'hulls'
 export var base_mass: float = 0
 export var base_thrust: float = 3000
@@ -30,7 +29,7 @@ export var armor_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 
 export var base_heat_capacity: float = 10.0
-export var base_cooling: float = 0.5
+export var base_cooling: float = 1.0
 export var base_shield_repair_heat: float = 0.3
 export var base_armor_repair_heat: float = 0.3
 export var base_structure_repair_heat: float = 0.2
@@ -54,6 +53,9 @@ export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.0, 0.2, 
 export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0])
 export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.1,-0.2,-0.1,-0.1])
 														 #       Tyl, Lgt, HEP, Prc, Imp, EMF, Grv, Atm, Hot
+
+var ship_display_name: String = 'Unnamed'
+
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
 var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []

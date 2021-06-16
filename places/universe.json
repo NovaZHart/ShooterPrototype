@@ -2053,6 +2053,26 @@
         ],
         {}
       ],
+
+      "empty_two_pod": [
+        "ShipDesign",
+        "Empty Two-Pod Ship",
+        [
+          "Resource",
+          "res://ships/CargoPodShips/TwoPodShip.tscn"
+        ],
+        {}
+      ],
+
+      "empty_six_pod": [
+        "ShipDesign",
+        "Empty Six-Pod Ship",
+        [
+          "Resource",
+          "res://ships/CargoPodShips/SixPodShip.tscn"
+        ],
+        {}
+      ],
         
       "ankylorhiza_driver_lasers": [
         "ShipDesign",

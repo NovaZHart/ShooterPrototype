@@ -556,14 +556,14 @@ void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
 
   efficiency = 1.0;
   if(max_heat>0) {
-    heat = clamp(heat,0.0f,2*max_heat);
+    heat = clamp(heat,0.0f,1.3f*max_heat);
     if(heat>max_heat)
-      efficiency -= 0.3*(heat-max_heat)/max_heat;
+      efficiency -= (heat-max_heat)/max_heat;
   }
   if(max_energy>0) {
-    energy = clamp(energy,-max_energy,max_energy);
+    energy = clamp(energy,-0.3f*max_energy,max_energy);
     if(energy<0)
-      efficiency -= 0.3*-energy/max_energy;
+      efficiency -= -energy/max_energy;
   }
 
   if(thrust_loss) {

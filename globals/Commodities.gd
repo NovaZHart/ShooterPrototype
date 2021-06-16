@@ -964,6 +964,8 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://ships/PurpleShips/InterceptorHull.tscn', 12, 85000, 85000, 0, 'hull/combat/interceptor', 'terran' ],
 		[ 'res://ships/PurpleShips/WarshipHull.tscn', 3, 141000, 141000, 0, 'hull/combat/warship', 'terran' ],
 		[ 'res://ships/CargoPodShips/OnePodShip.tscn', 2, 133000, 133000, 0, 'hull/cargo/container', 'terran' ],
+		[ 'res://ships/CargoPodShips/TwoPodShip.tscn', 2, 252000, 252000, 0, 'hull/cargo/container', 'terran', 'large' ],
+		[ 'res://ships/CargoPodShips/SixPodShip.tscn', 2, 745000, 745000, 0, 'hull/cargo/container', 'terran', 'capital' ],
 	]
 	# FIXME: Pregenerate this somehow:
 	for datum in data:
