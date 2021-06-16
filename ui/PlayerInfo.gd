@@ -56,7 +56,6 @@ func draw_hp_arc(viewport_size: Vector2,now: float,cap: float,radius: float,widt
 	draw_arc(viewport_size,radius,-PI*size/2.0,-PI,40,have,width*0.4)
 
 func _draw():
-	print('heat='+str(heat)+'/'+str(max_heat)+'  and  energy='+str(energy)+'/'+str(max_energy))
 	var viewport_size: Vector2 = get_viewport_rect().size
 	var goal = viewport_size*Vector2(.1,.17)
 	var radius = min(goal[0],goal[1])

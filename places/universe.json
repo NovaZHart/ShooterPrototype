@@ -2044,6 +2044,16 @@
     "SimpleNode",
     {
 
+      "empty_one_pod": [
+        "ShipDesign",
+        "Empty One-Pod Ship",
+        [
+          "Resource",
+          "res://ships/CargoPodShips/OnePodShip.tscn"
+        ],
+        {}
+      ],
+        
       "ankylorhiza_driver_lasers": [
         "ShipDesign",
         "Driver-Laser Ankylorhiza",
