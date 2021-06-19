@@ -1,4 +1,4 @@
-extends Node
+extends Viewport
 
 export var label_font_data: DynamicFontData
 export var min_sun_height: float = 50.0
@@ -63,7 +63,7 @@ func set_raise_sun(flag: bool):
 		$PlanetLight.translation.y += 10000
 
 func get_label_scale() -> float:
-	var view_size = max(1,get_viewport().size.y)
+	var view_size = max(1,size.y)
 	var camera_size = $TopCamera.size
 	return target_label_height/view_size * camera_size
 
@@ -107,7 +107,7 @@ func make_more_labels():
 	finished_making_labels=true
 
 func get_world():
-	return get_viewport().get_world()
+	return find_world()
 
 func _enter_tree():
 	old_target_fps = Engine.target_fps
@@ -194,7 +194,7 @@ func sync_Ships_with_stat_requests() -> void:
 
 func visible_region() -> AABB:
 	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
-	var lr: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	var lr: Vector3 = $TopCamera.project_position(size,0)
 	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
 		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
 
@@ -225,7 +225,7 @@ func _process(delta) -> void:
 	
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
-	combat_engine.step_visual_effects(delta,get_viewport().world)
+	combat_engine.step_visual_effects(delta,get_world())
 	
 	if player_ship_stats==null:
 		return

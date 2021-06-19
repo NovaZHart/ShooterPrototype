@@ -10,7 +10,9 @@ ambient_light_color = Color( 0.666667, 0.666667, 1, 1 )
 ambient_light_energy = 0.1
 ambient_light_sky_contribution = 0.0
 
-[node name="System" type="Node"]
+[node name="System" type="Viewport"]
+size = Vector2( 1600, 900 )
+own_world = true
 script = ExtResource( 2 )
 label_font_data = ExtResource( 3 )
 

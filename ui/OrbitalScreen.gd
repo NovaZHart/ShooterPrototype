@@ -79,9 +79,9 @@ func activate_service(service_name: String,var service):
 
 func camera_and_label(system_name: String,planet_name: String):
 	if system_name == planet_name:
-		$LocationLabel.text=system_name
+		$Labels/LocationLabel.text=system_name
 	else:
-		$LocationLabel.text=system_name+' '+planet_name
+		$Labels/LocationLabel.text=system_name+' '+planet_name
 	planet.get_sphere().scale=Vector3(6.5,6.5,6.5)
 	$View/Port/Camera.set_identity()
 	$View/Port/Camera.rotate_x(-0.575959)
@@ -141,9 +141,9 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	planet=planet_info.make_planet(600,0,planet)
 	planet.translation = Vector3(0,0,0)
 	if system_info.display_name == planet_info.display_name:
-		$LocationLabel.text=system_info.display_name
+		$Labels/LocationLabel.text=system_info.display_name
 	else:
-		$LocationLabel.text=planet_info.full_display_name()
+		$Labels/LocationLabel.text=planet_info.full_display_name()
 	yield(get_tree(),'idle_frame')
 	camera_and_label(system_info.display_name,planet.display_name)
 	$ServiceSelector.update_service_list()
@@ -159,7 +159,7 @@ func deorbit():
 	if not check:
 		return
 	Player.apply_departure()
-	game_state.print_to_console('Departing '+$LocationLabel.text)
+	game_state.print_to_console('Departing '+$Labels/LocationLabel.text)
 	game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 
 func _input(event):

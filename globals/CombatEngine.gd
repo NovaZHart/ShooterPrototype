@@ -145,6 +145,7 @@ func change_worlds(world: World) -> void:
 	visual_mutex.unlock()
 
 func set_world(world: World) -> void:
+	assert(world)
 	visual_mutex.lock()
 	physics_mutex.lock()
 	native_visual_effects.set_scenario(world.scenario)
@@ -177,6 +178,7 @@ func set_visible_region(visible_area: AABB,
 	native_visual_effects.set_visible_region(visible_area,visibility_expansion_rate)
 
 func step_visual_effects(delta: float, world: World):
+	assert(world)
 	native_visual_effects.step_effects(delta,world.scenario)
 
 func draw_space(camera: Camera,viewport: Viewport) -> void:

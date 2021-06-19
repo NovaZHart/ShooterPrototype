@@ -37,6 +37,8 @@ input_state="*res://globals/InputState.gd"
 
 [display]
 
+window/size/width=1600
+window/size/height=900
 window/size/borderless=true
 
 [gui]

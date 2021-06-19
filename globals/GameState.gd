@@ -150,7 +150,7 @@ class ShipEditorStub extends Panel:
 	func cancel_drag() -> bool:
 		return true
 
-class HyperspaceStub extends Node2D:
+class HyperspaceStub extends Node:
 	func change_selection_to(_what, _center: bool = false) -> bool:
 		return true
 	func deselect(_what) -> bool:

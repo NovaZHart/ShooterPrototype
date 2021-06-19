@@ -14,8 +14,8 @@ var max_heat: float = 1.0
 var max_energy: float = 1.0
 
 export var background_color: Color = Color(0,0, 0.0, 0.3)
-export var structure_have: Color =   Color(0.7, 0.4, 0.1)
-export var structure_lack: Color =   Color(0.3, 0.2, 0.0)
+export var structure_have: Color =   Color(0.8, 0.4, 0.2)
+export var structure_lack: Color =   Color(0.5, 0.2, 0.0)
 export var armor_have: Color =       Color(0.9, 0.7, 0.1)
 export var armor_lack: Color =       Color(0.5, 0.3, 0.0)
 export var shields_have: Color =     Color(0.4, 0.4, 1.0)
@@ -64,5 +64,5 @@ func _draw():
 	draw_hp_arc(viewport_size,shields,max_shields,radius*0.57,radius/10,shields_have,shields_lack)
 	draw_hp_arc(viewport_size,armor,max_armor,radius*0.5,radius/10,armor_have,armor_lack)
 	draw_hp_arc(viewport_size,structure,max_structure,radius*0.43,radius/10,structure_have,structure_lack)
-	draw_hp_arc(viewport_size,heat,max_heat,radius*0.34,radius/10,heat_have,heat_lack)
-	draw_hp_arc(viewport_size,energy,max_energy,radius*0.27,radius/10,energy_have,energy_lack)
+	draw_hp_arc(viewport_size,heat,max_heat,radius*0.36,radius/10,heat_have,heat_lack)
+	draw_hp_arc(viewport_size,energy,max_energy,radius*0.29,radius/10,energy_have,energy_lack)
