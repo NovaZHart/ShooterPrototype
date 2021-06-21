@@ -23,7 +23,9 @@ export var item_size_x: int = 1
 export var item_size_y: int = 3
 export var mount_size_x: int = 0 setget ,get_mount_size_x
 export var mount_size_y: int = 0 setget ,get_mount_size_y
-export var mount_type: String = 'gun'
+export var mount_type_all: String = 'gun'
+export var mount_type_any: String = ''
+export var mount_type_display: String = 'gun'
 export var help_page: String = 'weapons'
 
 export var add_heat_capacity: float = 0.0
@@ -44,17 +46,56 @@ export var add_armor_resist: PoolRealArray = PoolRealArray()
 export var add_armor_passthru: PoolRealArray = PoolRealArray()
 export var add_structure_resist: PoolRealArray = PoolRealArray()
 
+var mount_flags_any: int = 0 setget set_mount_flags_any,get_mount_flags_any
+var mount_flags_all: int = 0 setget set_mount_flags_all,get_mount_flags_all
+var initialized_mount_flags: bool = false
 var cached_bbcode = null
 var cached_stats = null
 var skipped_runtime_stats: bool = true
+var item_offset_x: int = -1
+var item_offset_y: int = -1
 
 func is_WeaponStats(): pass # Never called; must only exist
 
-func is_mount_point(): # Never called; must only exist
+func is_mountable(): # Never called; must only exist
+	# Defining this ensures the weapon can be placed in a mount
 	pass
 
-func is_mounted(): # Never called; must only exist
+func is_shown_in_space(): # Never called; must only exist
+	# Defining this ensures the equipment mesh is spawned in space
 	pass
+
+func set_mount_flags_any(m: int):
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	mount_flags_any = m
+
+func set_mount_flags_all(m: int):
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	mount_flags_all = m
+
+func get_mount_flags_any() -> int:
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	return mount_flags_any
+
+func get_mount_flags_all() -> int:
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	return mount_flags_all
+
+func is_gun() -> bool:
+	return mount_flags_any&game_state.MOUNT_FLAG_GUN or mount_flags_all&game_state.MOUNT_FLAG_GUN
+
+func is_turret() -> bool:
+	return mount_flags_any&game_state.MOUNT_FLAG_TURRET or mount_flags_all&game_state.MOUNT_FLAG_TURRET
+
+func initialize_mount_flags():
+	mount_flags_any = utils.mount_type_to_int(mount_type_any)
+	mount_flags_all = utils.mount_type_to_int(mount_type_all)
+	assert(mount_flags_any or mount_flags_all)
+	initialized_mount_flags = true
 
 func approximate_range() -> float:
 	if projectile_drag>0 and projectile_thrust>0:
@@ -117,7 +158,9 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'item_size_y':item_size_y,
 			'weapon_mass':weapon_mass,
 			'weapon_structure':weapon_structure,
-			'mount_type':mount_type,
+			'is_gun':is_gun(),
+			'is_turret':is_turret(),
+			'mount_type_display':mount_type_display,
 		}
 		skipped_runtime_stats=skip_runtime_stats
 	elif not skip_runtime_stats and skipped_runtime_stats:

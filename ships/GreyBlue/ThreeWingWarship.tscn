@@ -30,8 +30,8 @@ base_explosion_radius = 4.0
 base_explosion_impulse = 950.0
 base_max_cargo = 17
 armor_density = 6.0
-base_battery = 2700
-base_power = 300
+base_battery = 1200
+base_power = 80
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
@@ -52,42 +52,51 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100758, 0, -0.557964 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
+mount_type = "internal equipment"
+mount_type_display = "equipment"
 
 [node name="LargeEquipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.342137, 0, 0.497438 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
 
 [node name="StarboardGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517656, -0.736991, 0.974354 )
 script = ExtResource( 3 )
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517542, -0.736943, -0.974 )
 script = ExtResource( 3 )
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="Turret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.497014, -0.278597, -0.773574 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
-mount_type = "turret"
+mount_type = "external turret"
+mount_type_display = "turret"
 
 [node name="MainCannon" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.533019, 0.181, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="MainEngine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.02383, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4
-mount_type = "engine"
+mount_type = "external engine"
+mount_type_display = "engine"

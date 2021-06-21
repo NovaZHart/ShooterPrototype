@@ -40,3 +40,4 @@ reverse_thrust_energy = 0.001
 turning_thrust_energy = 0.001
 add_cooling = 3000
 add_power = 800
+mount_type_any = "internal external"

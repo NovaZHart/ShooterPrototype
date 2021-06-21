@@ -11,12 +11,12 @@
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=10]
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=11]
 
-[sub_resource type="DynamicFont" id=5]
+[sub_resource type="DynamicFont" id=1]
 size = 18
 font_data = ExtResource( 1 )
 
-[sub_resource type="Theme" id=6]
-default_font = SubResource( 5 )
+[sub_resource type="Theme" id=2]
+default_font = SubResource( 1 )
 
 [sub_resource type="DynamicFont" id=3]
 size = 13
@@ -30,6 +30,9 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource( 11 )
 script = ExtResource( 2 )
+__meta__ = {
+"_edit_use_anchors_": false
+}
 
 [node name="View" type="ViewportContainer" parent="."]
 anchor_right = 1.0
@@ -73,7 +76,7 @@ size_flags_vertical = 4
 margin_right = 104.0
 margin_bottom = 23.0
 size_flags_horizontal = 3
-theme = SubResource( 6 )
+theme = SubResource( 2 )
 text = "Planet Name"
 align = 2
 script = ExtResource( 6 )
@@ -100,7 +103,6 @@ __meta__ = {
 [node name="ServiceSelector" parent="." instance=ExtResource( 9 )]
 
 [connection signal="jump_complete" from="." to="SystemSelector" method="update_selectability"]
-[connection signal="resized" from="." to="." method="_on_Landing_resized"]
 [connection signal="dialog_hidden" from="MainDialogTrigger" to="." method="_on_MainDialogTrigger_dialog_hidden"]
 [connection signal="dialog_shown" from="MainDialogTrigger" to="." method="_on_MainDialogTrigger_dialog_shown"]
 [connection signal="astral_jump" from="SystemSelector" to="." method="astral_jump"]

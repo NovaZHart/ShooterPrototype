@@ -28,11 +28,11 @@ export var add_explosion_delay: int = 0
 
 export var item_size_x: int = 1
 export var item_size_y: int = 3
-export var item_offset_x: int = -1
-export var item_offset_y: int = -1
 export var mount_size_x: int = 0 setget ,get_mount_size_x
 export var mount_size_y: int = 0 setget ,get_mount_size_y
-export var mount_type: String = 'equipment'
+export var mount_type_display: String = 'equipment'
+export var mount_type_all: String = ''
+export var mount_type_any: String = ''
 export var help_page: String = 'equipment'
 
 export var add_shield_resist: PoolRealArray = PoolRealArray()
@@ -49,25 +49,63 @@ export var structure_repair_heat: float = .2
 export var shield_repair_energy: float = 0.3
 export var armor_repair_energy: float = 0.3
 export var structure_repair_energy: float = .2
-export var forward_thrust_heat: float = 4
-export var reverse_thrust_heat: float = 4
-export var turning_thrust_heat: float = 4
-export var forward_thrust_energy: float = 1.5
-export var reverse_thrust_energy: float = 1.5
-export var turning_thrust_energy: float = 1.5
+export var forward_thrust_heat: float = 0.3
+export var reverse_thrust_heat: float = 0.3
+export var turning_thrust_heat: float = 0.9
+export var forward_thrust_energy: float = 0.05
+export var reverse_thrust_energy: float = 0.05
+export var turning_thrust_energy: float = 0.15
 export var add_battery: float = 0.0
 export var add_power: float = 0.0
 
 var cached_stats
 var cached_bbcode
 
+var item_offset_x: int = -1
+var item_offset_y: int = -1
+
+var mount_flags_any: int = 0 setget set_mount_flags_any,get_mount_flags_any
+var mount_flags_all: int = 0 setget set_mount_flags_all,get_mount_flags_all
+var initialized_mount_flags: bool = false
+
 func is_EquipmentStats(): pass # Never called; must only exist
 
-func is_mount_point(): # Never called; must only exist
+func is_mountable(): # Never called; must only exist
+	# Defining this ensures the equipment can be placed in a mount
 	pass
 
 func is_not_mounted(): # Never called; must only exist
+	# Defining this ensures the equipment mesh is not spawned in space
 	pass
+
+func is_gun():
+	return false
+
+func set_mount_flags_any(m: int):
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	mount_flags_any = m
+
+func set_mount_flags_all(m: int):
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	mount_flags_all = m
+
+func get_mount_flags_any() -> int:
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	return mount_flags_any
+
+func get_mount_flags_all() -> int:
+	if not initialized_mount_flags:
+		initialize_mount_flags()
+	return mount_flags_all
+
+func initialize_mount_flags():
+	mount_flags_any = utils.mount_type_to_int(mount_type_any)
+	mount_flags_all = utils.mount_type_to_int(mount_type_all)
+	assert(mount_flags_any or mount_flags_all)
+	initialized_mount_flags = true
 
 func get_mount_size_x() -> int:
 	return mount_size_x if mount_size_x>0 else item_size_x
@@ -79,7 +117,9 @@ func pack_stats() -> Dictionary:
 	if not cached_stats:
 		cached_stats = {
 			'name':name,
-			'mount_type':mount_type,
+			'mount_type_display':mount_type_display,
+			'mount_type_all':mount_type_all,
+			'mount_type_any':mount_type_any,
 			'help_page':help_page,
 			'item_size_x':item_size_x,
 			'item_size_y':item_size_y,

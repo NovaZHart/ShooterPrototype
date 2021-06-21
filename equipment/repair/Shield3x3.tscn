@@ -15,3 +15,4 @@ add_explosion_damage = 70.0
 add_explosion_impulse = 140.0
 item_size_x = 3
 help_page = "equipment/energy-shield-large"
+mount_type_any = "internal external"

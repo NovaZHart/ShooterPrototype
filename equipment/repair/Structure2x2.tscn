@@ -13,3 +13,4 @@ add_heal_structure = 4.0
 item_size_x = 2
 item_size_y = 2
 help_page = "equipment/structural-reinforcement"
+mount_type_any = "internal equipment"

@@ -14,3 +14,4 @@ add_structure = 75.0
 item_size_x = 3
 item_size_y = 4
 help_page = "equipment/cargo_bay_3x4"
+mount_type_any = "internal"

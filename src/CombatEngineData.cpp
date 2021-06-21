@@ -416,7 +416,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   turning_thrust_energy(max(0.0f,get<real_t>(dict,"turning_thrust_energy"))/1000.0f),
 
   energy(max_energy),
-  heat(max_heat),
+  heat(0.0f),
   power(max_power),
   cooling(max_cooling),
   thrust(max_thrust),
@@ -604,7 +604,7 @@ void Ship::heal_stat(double &stat,double new_value,real_t heal_energy,real_t hea
   if(heal_energy)
     energy-=heal_energy*diff;
   if(heal_heat)
-    heat-=heal_heat*diff;
+    heat+=heal_heat*diff;
 }
 
 void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {

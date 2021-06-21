@@ -10,13 +10,13 @@ const mesh_list: Array = [
 
 # Called when the node enters the scene tree for the first time.
 func _ready():
-	call_deferred('generate_instance')
+	assert(get_parent())
+	call_deferred('generate_instance',get_parent())
 
-func generate_instance():
-	
+func generate_instance(parent):
 	var instance=MeshInstance.new()
 	instance.transform=transform
 	instance.mesh=mesh_list[randi()%len(mesh_list)]
 	instance.name=name+'_instanced'
-	get_parent().add_child(instance)
+	parent.add_child(instance)
 	queue_free()

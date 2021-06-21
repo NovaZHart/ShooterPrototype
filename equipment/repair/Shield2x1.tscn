@@ -16,3 +16,4 @@ add_explosion_impulse = 30.0
 item_size_x = 2
 item_size_y = 1
 help_page = "equipment/energy-shield-small"
+mount_type_any = "internal external"

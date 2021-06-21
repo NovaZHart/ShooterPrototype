@@ -16,10 +16,10 @@
 size = 14
 font_data = ExtResource( 10 )
 
-[sub_resource type="Theme" id=3]
+[sub_resource type="Theme" id=2]
 default_font = SubResource( 1 )
 
-[sub_resource type="Theme" id=2]
+[sub_resource type="Theme" id=3]
 default_font = SubResource( 1 )
 
 [sub_resource type="World" id=4]
@@ -51,13 +51,13 @@ __meta__ = {
 }
 
 [node name="Left" type="GridContainer" parent="All"]
-margin_right = 286.0
-margin_bottom = 600.0
+margin_right = 451.0
+margin_bottom = 900.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Buttons" type="GridContainer" parent="All/Left"]
-margin_right = 286.0
+margin_right = 451.0
 margin_bottom = 23.0
 columns = 5
 
@@ -97,8 +97,8 @@ text = "Redo"
 
 [node name="Shop" type="VSplitContainer" parent="All/Left"]
 margin_top = 27.0
-margin_right = 286.0
-margin_bottom = 600.0
+margin_right = 451.0
+margin_bottom = 900.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.2
@@ -106,15 +106,15 @@ size_flags_stretch_ratio = 1.2
 [node name="Info" parent="All/Left/Shop" instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 286.0
-margin_bottom = 223.0
+margin_right = 451.0
+margin_bottom = 343.0
 size_flags_stretch_ratio = 2.0
 allow_input = false
 
 [node name="Tabs" type="TabContainer" parent="All/Left/Shop"]
-margin_top = 235.0
-margin_right = 286.0
-margin_bottom = 573.0
+margin_top = 355.0
+margin_right = 451.0
+margin_bottom = 873.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 3.0
@@ -144,13 +144,12 @@ margin_top = 35.0
 margin_right = -4.0
 margin_bottom = -4.0
 min_listed_designs = 3
-default_listed_designs = 4
 show_Cancel = false
 
 [node name="Show" type="Panel" parent="All"]
-margin_left = 298.0
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_left = 463.0
+margin_right = 1600.0
+margin_bottom = 900.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 2.5
@@ -165,7 +164,7 @@ __meta__ = {
 }
 
 [node name="Top" type="GridContainer" parent="All/Show/Grid"]
-margin_right = 726.0
+margin_right = 1137.0
 margin_bottom = 27.0
 size_flags_horizontal = 3
 columns = 4
@@ -178,22 +177,22 @@ text = "ID"
 
 [node name="IDEdit" type="LineEdit" parent="All/Show/Grid/Top"]
 margin_left = 19.0
-margin_right = 330.0
+margin_right = 536.0
 margin_bottom = 27.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 placeholder_text = "(alphanumeric key)"
 
 [node name="NameLabel" type="Label" parent="All/Show/Grid/Top"]
-margin_left = 334.0
+margin_left = 540.0
 margin_top = 5.0
-margin_right = 410.0
+margin_right = 616.0
 margin_bottom = 22.0
 text = "Design Name"
 
 [node name="NameEdit" type="LineEdit" parent="All/Show/Grid/Top"]
-margin_left = 414.0
-margin_right = 725.0
+margin_left = 620.0
+margin_right = 1137.0
 margin_bottom = 27.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -203,8 +202,8 @@ placeholder_text = "(Human-Readable Ship Name)"
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_top = 31.0
-margin_right = 726.0
-margin_bottom = 600.0
+margin_right = 1137.0
+margin_bottom = 900.0
 size_flags_stretch_ratio = 2.5
 
 [node name="Text" type="GridContainer" parent="All/Show"]
@@ -215,7 +214,7 @@ __meta__ = {
 }
 
 [node name="CargoMass" type="Label" parent="All/Show/Text"]
-margin_right = 361.0
+margin_right = 566.0
 margin_bottom = 18.0
 rect_min_size = Vector2( 0, 18 )
 hint_tooltip = "Total mass in your ship's cargo hold, and maximum carrying capacity. More mass slows down your ship. 
@@ -223,7 +222,7 @@ You cannot leave if your ship is beyond capacity."
 mouse_filter = 1
 size_flags_horizontal = 3
 size_flags_vertical = 1
-theme = SubResource( 3 )
+theme = SubResource( 2 )
 text = "Cargo: 999/999 kg"
 valign = 1
 script = ExtResource( 11 )
@@ -232,13 +231,13 @@ __meta__ = {
 }
 
 [node name="LocationLabel" type="Label" parent="All/Show/Text"]
-margin_left = 365.0
-margin_right = 726.0
+margin_left = 570.0
+margin_right = 1136.0
 margin_bottom = 18.0
 grow_horizontal = 0
 size_flags_horizontal = 3
 size_flags_vertical = 1
-theme = SubResource( 2 )
+theme = SubResource( 3 )
 text = "Planet Name"
 align = 2
 script = ExtResource( 11 )
@@ -277,6 +276,7 @@ transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62
 projection = 1
 current = true
 size = 2.16
+
 [connection signal="pressed" from="All/Left/Buttons/Depart" to="." method="_on_Depart_pressed"]
 [connection signal="pressed" from="All/Left/Buttons/Save" to="." method="_on_Save_pressed"]
 [connection signal="pressed" from="All/Left/Buttons/Load" to="." method="_on_Load_pressed"]

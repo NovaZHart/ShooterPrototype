@@ -1856,7 +1856,7 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
   }
 
   ship.heat += weapon.firing_heat*ship.efficiency;
-  ship.energy += weapon.firing_energy*ship.efficiency;
+  ship.energy -= weapon.firing_energy*ship.efficiency;
   
   hit_position[1]=0;
   point1[1]=0;
@@ -2050,7 +2050,7 @@ void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
   if(ship.immobile or hyperspace and ship.fuel<=0)
     return;
   real_t ai_thrust = ship.thrust*clamp(forward,0.0f,1.0f) - ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
-  ship.energy += ship.forward_thrust_energy*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_energy*ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
+  ship.energy -= ship.forward_thrust_energy*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_energy*ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
   ship.heat += ship.forward_thrust_heat*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_heat*ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
   Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(y_axis,ship.rotation.y);
   physics_server->body_add_central_force(ship.rid,v_thrust);
@@ -2145,7 +2145,7 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));
   ship.heat += weapon.firing_heat;
-  ship.energy += weapon.firing_energy;
+  ship.energy -= weapon.firing_energy;
 }
 
 ships_iter CombatEngine::ship_for_rid(const RID &rid) {

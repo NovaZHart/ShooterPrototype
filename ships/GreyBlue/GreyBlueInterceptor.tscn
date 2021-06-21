@@ -32,8 +32,8 @@ base_explosion_impulse = 375.0
 base_max_cargo = 3
 armor_density = 6.0
 override_size = Vector3( 1.9, 1.6, 0 )
-base_battery = 2000
-base_power = 220
+base_battery = 540
+base_power = 36
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
@@ -53,23 +53,28 @@ shape = SubResource( 2 )
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517, -0.15, 0.56 )
 script = ExtResource( 3 )
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517, -0.15, -0.56 )
 script = ExtResource( 3 )
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="Equipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.118446, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
+mount_type = "internal equipment"
+mount_type_display = "equipment"
 
 [node name="Engine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.272167, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
-mount_type = "engine"
+mount_type = "external engine"
+mount_type_display = "engine"

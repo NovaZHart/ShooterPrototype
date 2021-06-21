@@ -18,6 +18,13 @@ const EPOCH_ONE_DAY: int = EPOCH_ONE_HOUR*24
 
 const EPOCH_GAME_START: int = 0 # = January 1, 2770
 
+const MOUNT_FLAG_INTERNAL: int = 1
+const MOUNT_FLAG_EXTERNAL: int = 2
+const MOUNT_FLAG_GUN: int = 4
+const MOUNT_FLAG_TURRET: int = 8
+const MOUNT_FLAG_EQUIPMENT: int = 16
+const MOUNT_FLAG_ENGINE: int = 32
+
 var epoch_time: int = EPOCH_GAME_START
 var max_ships: int = standalone_max_ships
 var max_ships_per_faction: int = standalone_max_ships_per_faction

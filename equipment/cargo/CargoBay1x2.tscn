@@ -13,3 +13,4 @@ add_max_cargo = 4.0
 add_structure = 10.0
 item_size_y = 2
 help_page = "equipment/cargo_bay_1x2"
+mount_type_all = "internal"

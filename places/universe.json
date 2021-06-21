@@ -2043,37 +2043,606 @@
   "ship_designs": [
     "SimpleNode",
     {
-
-      "empty_one_pod": [
+      "one_pod_laser_missile": [
         "ShipDesign",
-        "Empty One-Pod Ship",
+        "Monopod Hauler",
         [
           "Resource",
           "res://ships/CargoPodShips/OnePodShip.tscn"
         ],
-        {}
+        {
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "Equipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "PortForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardAftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "MiddleEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ]
+        }
       ],
-
-      "empty_two_pod": [
+      "two_pod_particles_missiles": [
         "ShipDesign",
-        "Empty Two-Pod Ship",
+        "Bipod (Particles+Missiles)",
         [
           "Resource",
           "res://ships/CargoPodShips/TwoPodShip.tscn"
         ],
-        {}
-      ],
-
-      "empty_six_pod": [
+        {
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "MainEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "SpinalEquipment": [
+            "MultiMount",
+            {
+              "SpinalEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "SpinalEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "MainGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "ForwardMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ]
+        }
+      ],    
+      "two_pod_lasers_missiles": [
         "ShipDesign",
-        "Empty Six-Pod Ship",
+        "Bipod (Lasers+Missiles)",
+        [
+          "Resource",
+          "res://ships/CargoPodShips/TwoPodShip.tscn"
+        ],
+        {
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "MainEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "SpinalEquipment": [
+            "MultiMount",
+            {
+              "SpinalEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "SpinalEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "MainGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "ForwardMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftMainTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ]
+        }
+      ],    
+      "hexapod_particles_missiles": [
+        "ShipDesign",
+        "Hexapod (Particles+Missiles)",
         [
           "Resource",
           "res://ships/CargoPodShips/SixPodShip.tscn"
         ],
-        {}
+        {
+          "PortMainGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "PortAuxGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "SpinalEquipment": [
+            "MultiMount",
+            {
+              "SpinalEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "SpinalEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                3
+              ],
+              "SpinalEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                6
+              ],
+              "SpinalEquipment_at_x0_y8": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                8
+              ]
+            }
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardMainGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardAuxGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardTurret1": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "PortTurret1": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "PortTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "StarboardTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ]
+        }
       ],
-        
+      "hexapod_lasers_missiles": [
+        "ShipDesign",
+        "Hexapod (Lasers+Missiles)",
+        [
+          "Resource",
+          "res://ships/CargoPodShips/SixPodShip.tscn"
+        ],
+        {
+          "PortMainGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "PortAuxGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "SpinalEquipment": [
+            "MultiMount",
+            {
+              "SpinalEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "SpinalEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                3
+              ],
+              "SpinalEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                6
+              ],
+              "SpinalEquipment_at_x0_y8": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                8
+              ]
+            }
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardMainGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardAuxGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "StarboardTurret1": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "PortTurret1": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "PortTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "PortEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ],
+          "StarboardTurret2": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "StarboardEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine4x4.tscn"
+            ]
+          ]
+        }
+      ],
       "ankylorhiza_driver_lasers": [
         "ShipDesign",
         "Driver-Laser Ankylorhiza",

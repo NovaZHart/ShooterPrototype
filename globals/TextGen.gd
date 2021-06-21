@@ -169,7 +169,7 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 		var bbcode: String = '[table=2]'
 		
 		# Weapon stats:
-		bbcode += make_cell('type',stats['mount_type'])
+		bbcode += make_cell('type',stats['mount_type_display'])
 		bbcode += make_cell('size',str(stats['item_size_x'])+'x'+str(stats['item_size_y']))
 		bbcode += make_cell('weapon mass',stats['weapon_mass'])
 		bbcode += make_cell('structure bonus',stats['weapon_structure'])
@@ -231,8 +231,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 			contents += '\n[b]'+weapon['name'].capitalize() + \
 				':[/b] {ref '+weapon['help_page']+'}\n' + \
 				make_weapon_bbcode(weapon)
-		if weapon['mount_type']=='gun' or weapon['mount_type']=='turret':
-			dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])
+		dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])
 	
 	if with_contents:
 		for equip in ship_stats['equipment']:
@@ -302,7 +301,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 func make_equipment_bbcode(equipment_stats):
 	var s = equipment_stats
 	var items=[ [
-		make_cell(s['mount_type'].capitalize()+':',
+		make_cell(s['mount_type_display'].capitalize()+':',
 			str(s['item_size_x'])+'x'+str(s['item_size_y'])),
 		make_cell('Mass:',plus_minus(s['add_mass'])),
 	] ]

@@ -36,14 +36,14 @@ export var base_structure_repair_heat: float = 0.2
 export var base_shield_repair_energy: float = 0.3
 export var base_armor_repair_energy: float = 0.3
 export var base_structure_repair_energy: float = 0.2
-export var base_forward_thrust_heat: float = 4
-export var base_reverse_thrust_heat: float = 4
-export var base_turning_thrust_heat: float = 4
-export var base_forward_thrust_energy: float = 2.5
-export var base_reverse_thrust_energy: float = 2.5
-export var base_turning_thrust_energy: float = 2.5
+export var base_forward_thrust_heat: float = 0.3
+export var base_reverse_thrust_heat: float = 0.3
+export var base_turning_thrust_heat: float = 0.9
+export var base_forward_thrust_energy: float = 0.05
+export var base_reverse_thrust_energy: float = 0.05
+export var base_turning_thrust_energy: float = 0.15
 export var base_battery: float = 2000.0
-export var base_power: float = 200.0
+export var base_power: float = 20.0
 
 export var ai_type: int = 0 setget set_ai_type
 
@@ -293,8 +293,7 @@ func _ready():
 
 	if not retain_hidden_mounts:
 		for child in get_children():
-			if child.has_method('is_mount_point') and \
-					child.mount_type!='gun' and child.mount_type!='turret':
+			if child.has_method('is_mountable') and not child.has_method('is_shown_in_space'):
 				remove_child(child)
 				child.queue_free()
 				must_update=true

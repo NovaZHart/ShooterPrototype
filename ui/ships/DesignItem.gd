@@ -38,8 +38,8 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	var mass = utils.ship_mass(stats)
 	var max_speed = round(max_thrust/max(1e-9,stats['drag']*mass)*10)/10
 	for weapon in stats['weapons']:
-		turrets += int(weapon['mount_type']=='turret')
-		guns += int(weapon['mount_type']=='gun')
+		turrets += int(weapon['is_turret'])
+		guns += int(weapon['is_gun'])
 		dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])
 		max_range = max(max_range, text_gen.approximate_range(weapon))
 	return {

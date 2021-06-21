@@ -20,6 +20,63 @@ func sorted_array_by_weight(array: Array, weights: Array) -> Array:
 		result[i] = array[indices[i]]
 	return result
 
+func can_mount_flags(mount_type: int, item_type_all: int, item_type_any: int) -> bool:
+	return  ( not item_type_all or item_type_all&mount_type == item_type_all ) \
+		and \
+		( not item_type_any or item_type_any&mount_type != 0 )
+
+func can_mount(mount_flags: int, item) -> bool:
+	return  ( not item.mount_flags_all or item.mount_flags_all&mount_flags == item.mount_flags_all ) \
+		and \
+		( not item.mount_flags_any or item.mount_flags_any&mount_flags != 0 )
+
+func mount_type_to_int(mount_type: String) -> int:
+	var mount_flags: int = 0
+	for s in mount_type.split(' ',false,false):
+		if   s=='internal':  mount_flags = game_state.MOUNT_FLAG_INTERNAL  + mount_flags
+		elif s=='external':  mount_flags = game_state.MOUNT_FLAG_EXTERNAL  + mount_flags
+		elif s=='gun':       mount_flags = game_state.MOUNT_FLAG_GUN       + mount_flags
+		elif s=='turret':    mount_flags = game_state.MOUNT_FLAG_TURRET    + mount_flags
+		elif s=='equipment': mount_flags = game_state.MOUNT_FLAG_EQUIPMENT + mount_flags
+		elif s=='engine':    mount_flags = game_state.MOUNT_FLAG_ENGINE    + mount_flags
+		else:
+			push_warning('Invalid mount type "'+str(s)+'"')
+	return mount_flags
+
+func mount_string(mount_flags: int,sep: String = ' ',before_last: String = ''):
+	var result: Array = []
+	if mount_flags&game_state.MOUNT_FLAG_INTERNAL:  result+=[ 'internal' ]
+	if mount_flags&game_state.MOUNT_FLAG_EXTERNAL:  result+=[ 'external' ]
+	if mount_flags&game_state.MOUNT_FLAG_GUN:       result+=[ 'gun' ]
+	if mount_flags&game_state.MOUNT_FLAG_TURRET:    result+=[ 'turret' ]
+	if mount_flags&game_state.MOUNT_FLAG_EQUIPMENT: result+=[ 'equipment' ]
+	if mount_flags&game_state.MOUNT_FLAG_ENGINE:    result+=[ 'engine' ]
+	var string: String = ''
+	for i in range(len(result)):
+		if i:
+			string += sep
+			if i==len(result)-1:
+				string += before_last
+		string += result[i]
+	return string
+
+func mount_string_for(mount) -> String:
+	return mount_string(mount.mount_flags,' ','')
+
+func mountable_string_for(mountable) -> String:
+	return mountable_string(mountable.mount_flags_all,mountable.mount_flags_any)
+
+func mountable_string(mount_flags_all: int, mount_flags_any: int) -> String:
+	if mount_flags_all:
+		if mount_flags_any:
+			return 'all of ['+mount_string(mount_flags_all,' ','and ')+' = '+str(mount_flags_all)+']'+ \
+				' and any of ['+mount_string(mount_flags_any,' ','or ')+' = '+str(mount_flags_any)+']'
+		else:
+			return 'all of ['+mount_string(mount_flags_all,' ','and ')+' = '+str(mount_flags_all)+']'
+	elif mount_flags_any:
+		return 'any of ['+mount_string(mount_flags_any,' ','or ')+' = '+str(mount_flags_any)+']'
+	return 'anything (fits in any slot)'
+
 class YieldActionQueue extends Reference:
 	var mutex: Mutex = Mutex.new()
 	var queue: Array = []

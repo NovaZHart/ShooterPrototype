@@ -35,8 +35,8 @@ base_explosion_impulse = 2400.0
 base_max_cargo = 120
 armor_density = 6.0
 override_size = Vector3( 7, 0, 3.2 )
-base_battery = 5000
-base_power = 550
+base_battery = 4800
+base_power = 320
 
 [node name="Wheel" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.723207, 0 )
@@ -67,66 +67,77 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.437882, 0, 0 )
 script = ExtResource( 5 )
 mount_size_x = 6
 mount_size_y = 5
+mount_type = "internal equipment"
+mount_type_display = "equipment"
 
 [node name="ForePortTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.33545, -0.390913, -0.626674 )
 script = ExtResource( 5 )
 mount_size_x = 3
 mount_size_y = 3
-mount_type = "turret"
+mount_type = "external turret"
+mount_type_display = "turret"
 
 [node name="MainTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.6746, -0.162835, 0.0151538 )
 script = ExtResource( 5 )
 mount_size_x = 4
 mount_size_y = 4
-mount_type = "turret"
+mount_type = "external turret"
+mount_type_display = "turret"
 
 [node name="ForeStarboardTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.335, -0.391, 0.627 )
 script = ExtResource( 5 )
 mount_size_x = 3
 mount_size_y = 3
-mount_type = "turret"
+mount_type = "external turret"
+mount_type_display = "turret"
 
 [node name="AftPortTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.71715, -0.231413, -0.932158 )
 script = ExtResource( 5 )
 mount_size_x = 3
 mount_size_y = 3
-mount_type = "turret"
+mount_type = "external turret"
+mount_type_display = "turret"
 
 [node name="ForeStarboardTurret2" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.717, -0.391, 0.932 )
 script = ExtResource( 5 )
 mount_size_x = 3
 mount_size_y = 3
-mount_type = "turret"
+mount_type = "external turret"
+mount_type_display = "turret"
 
 [node name="StarboardGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.63399, -0.874771, 1.05746 )
 script = ExtResource( 5 )
 mount_size_x = 2
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.634, -0.874771, -1.057 )
 script = ExtResource( 5 )
 mount_size_x = 2
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "external gun"
+mount_type_display = "gun"
 
 [node name="SpinalCannon" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.948123, 0.177248, 0 )
 script = ExtResource( 5 )
 mount_size_x = 3
 mount_size_y = 4
-mount_type = "gun"
+mount_type = "internal gun"
+mount_type_display = "spinal mount"
 
 [node name="Engine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.91072, 0, 0 )
 script = ExtResource( 5 )
 mount_size_x = 4
 mount_size_y = 4
-mount_type = "engine"
+mount_type = "external engine"
+mount_type_display = "engine"
