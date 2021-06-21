@@ -16,6 +16,8 @@
 
 namespace godot {
   class VisualEffects;
+
+  const int EFFECTS_LIGHT_LAYER_MASK = 2;
   
   struct MeshEffect {
     Ref<Mesh> mesh;

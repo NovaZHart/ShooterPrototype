@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/meshes/BigParticleGun.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 2 )
+damage = 60.0
+damage_type = 2
+impulse = 25.0
+weapon_mass = 17.0
+weapon_structure = 75.0
+initial_velocity = 55.0
+projectile_lifetime = 0.45
+firing_delay = 0.167
+projectile_mesh_path = "res://weapons/meshes/BlueBlob.mesh"
+item_size_x = 2
+item_size_y = 4
+help_page = "weapons/he_linear"
+firing_heat = 8.5
+firing_energy = 12.0

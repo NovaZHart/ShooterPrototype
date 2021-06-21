@@ -7,6 +7,7 @@ var player_ship_design_name = 'player_ship_design'
 var systems: simple_tree.SimpleNode
 var ship_designs: simple_tree.SimpleNode
 var fleets: simple_tree.SimpleNode
+var factions: Factions.FactionList
 var ui: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
@@ -20,24 +21,27 @@ signal system_display_name_changed
 signal system_position_changed
 signal link_position_changed
 
-func mandatory_add_child(child: simple_tree.SimpleNode, child_name: String):
+func mandatory_add_child(child, child_name: String):
+	assert(child.has_method('is_SimpleNode')) # type checking breaks here
 	child.name=child_name
 	if not add_child(child):
 		push_error('Could not add '+child_name+' child to universe.')
 
 func _init():
 	systems = simple_tree.SimpleNode.new()
-	#systems.set_name('systems')
 	mandatory_add_child(systems,'systems')
+	
 	ship_designs = simple_tree.SimpleNode.new()
-	#ship_designs.set_name('ship_designs')
 	mandatory_add_child(ship_designs,'ship_designs')
+	
 	fleets = simple_tree.SimpleNode.new()
-	#fleets.set_name('fleets')
 	mandatory_add_child(fleets,'fleets')
+	
 	ui = simple_tree.SimpleNode.new()
-	#ui.set_name('ui')
 	mandatory_add_child(ui,'ui')
+	
+	factions = Factions.FactionList.new()
+	mandatory_add_child(factions,'factions')
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -82,7 +86,7 @@ func get_interstellar_systems():
 			continue
 	return interstellar_systems
 
-func decode_children(parent, children):
+static func decode_children(parent, children):
 	if not children is Dictionary:
 		push_error("encoded parent's children are not stored in a Dictionary")
 		return
@@ -95,18 +99,18 @@ func decode_children(parent, children):
 			if not parent.add_child(decoded):
 				push_error('decode_children failed to add child')
 
-func encode_children(parent) -> Dictionary:
+static func encode_children(parent) -> Dictionary:
 	var result = {}
 	for child_name in parent.get_child_names():
 		result[child_name] = encode_helper(parent.get_child_with_name(child_name))
 	return result
 
-func encode_ProductsNode(p: Commodities.ProductsNode):
+static func encode_ProductsNode(p: Commodities.ProductsNode):
 	return [ 'ProductsNode', str(p.update_time),
 		encode_helper(p.products.encode() if p.products else {}),
 		encode_children(p) ]
 
-func decode_ProductsNode(v):
+static func decode_ProductsNode(v):
 	var result = Commodities.ProductsNode.new()
 	if len(v)<4:
 		push_error('Expected two arguments in encoded ProductsNode, not '+str(len(v)))
@@ -139,10 +143,10 @@ class Mounted extends simple_tree.SimpleNode:
 	func _init(scene_: PackedScene):
 		scene=scene_
 
-func encode_Mounted(m: Mounted):
+static func encode_Mounted(m: Mounted):
 	return [ 'Mounted', encode_helper(m.scene) ]
 
-func decode_Mounted(v):
+static func decode_Mounted(v):
 	if not v is Array or not len(v)>1 or v[0]!='Mounted':
 		push_error('Invalid input to decode_Mounted')
 		return null
@@ -160,10 +164,10 @@ class MultiMounted extends Mounted:
 	func set_name_with_prefix(prefix: String):
 		set_name(prefix+'_at_x'+str(x)+'_y'+str(y))
 
-func encode_MultiMounted(m: MultiMounted):
+static func encode_MultiMounted(m: MultiMounted):
 	return [ 'MultiMounted', encode_helper(m.scene), m.x, m.y ]
 
-func decode_MultiMounted(v):
+static func decode_MultiMounted(v):
 	if not v is Array or not len(v)>3 or not v[0]=='MultiMounted':
 		push_error('Invalid input to decode_MultiMounted: '+str(v))
 		return null
@@ -188,7 +192,7 @@ class MultiMount extends simple_tree.SimpleNode:
 #					return false
 #		return true
 
-func decode_MultiMount(v):
+static func decode_MultiMount(v):
 	if not v is Array or not len(v)>0 or not v[0]=='MultiMount':
 		push_error('Invalid input to decode_MultiMount')
 		return null
@@ -197,7 +201,7 @@ func decode_MultiMount(v):
 		decode_children(result,v[1])
 	return result
 
-func encode_MultiMount(m: MultiMount):
+static func encode_MultiMount(m: MultiMount):
 	return [ 'MultiMount', encode_children(m) ]
 
 
@@ -207,11 +211,22 @@ class ShipDesign extends simple_tree.SimpleNode:
 	var hull: PackedScene
 	var cached_stats = null setget ,get_stats
 	var cargo setget set_cargo
+	var cached_cost = -1.0
+	var not_visible: Dictionary = {} # names of children that should not be in scene tree
 	
 	func set_cargo(new_cargo):
 		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
 		cargo = new_cargo
 		clear_cached_stats()
+	
+	func get_cost(from=null):
+		if cached_cost<0:
+			var parts = Commodities.ManyProducts.new()
+			if from==null:
+				from = Commodities.ship_parts
+			list_ship_parts(parts,from)
+			cached_cost = parts.get_value()
+		return cached_cost
 	
 	func is_ShipDesign(): pass # for type detection; never called
 	
@@ -266,33 +281,47 @@ class ShipDesign extends simple_tree.SimpleNode:
 	
 	func clear_cached_stats():
 		cached_stats=null
+		cached_cost=-1.0
+		not_visible = {}
 	
 	func cache_remove_instance_info():
 		cached_stats.erase('rid')
 		for i in range(len(cached_stats['weapons'])):
 			cached_stats['weapons'][i]['node_path']=NodePath()
 	
-	func assemble_part(body: Node, child: Node) -> bool:
+	func cost_of(scene: PackedScene) -> float:
+		var resource_path = scene.resource_path
+		var id = Commodities.ship_parts.by_name.get(resource_path,-1)
+		if id<0:
+			push_warning('No product for scene "'+str(resource_path)+'"')
+			return 0.0
+		var product = Commodities.ship_parts.all.get(id,null)
+		return float(product[Commodities.Products.VALUE_INDEX] if product else 0.0)
+	
+	func assemble_part(body: Node, child: Node, skip_hidden: bool) -> bool:
 		var part = get_child_with_name(child.name)
 		if not part:
 			return false
 		elif part is MultiMount:
-#			if not part.get_child_names():
-#				push_warning('multimount has no contents')
 			var found = false
 			for part_name in part.get_child_names():
 				var content = part.get_child_with_name(part_name)
 				assert(content is MultiMounted)
+				var new_child_name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
+				if skip_hidden and not_visible.has(new_child_name):
+					continue # this part should not be shown, so don't instance it
 				var new_child: Node = content.scene.instance()
 				if new_child!=null:
 					new_child.item_offset_x = content.x
 					new_child.item_offset_y = content.y
 					new_child.transform = child.transform
-					new_child.name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
+					new_child.name = new_child_name
 					body.add_child(new_child)
 					found = true
 			return found
 		elif part is Mounted:
+			if skip_hidden and not_visible.has(child.name):
+				return false # this part should not be shown, so don't instance it
 			var new_child = part.scene.instance()
 			new_child.transform = child.transform
 			new_child.name = child.name
@@ -302,38 +331,62 @@ class ShipDesign extends simple_tree.SimpleNode:
 			return true
 		return false
 
-	func assemble_ship() -> Node:
+	func assemble_body(): # -> Node or null
 		var body = hull.instance()
 		body.ship_display_name = display_name
 		if body == null:
 			push_error('assemble_ship: cannot instance scene: '+body)
-			return Node.new()
+			return null
 		body.save_transforms()
-		var found = false
+		return body
+
+	func assemble_stats(body: Node, reassemble: bool):
+		if reassemble and cached_stats:
+			body.set_stats(cached_stats)
+			body.update_stats()
+			body.restore_combat_stats()
+			return
+		var stats = body.pack_stats(true)
+		var _discard = body.set_cost(get_cost())
+		if cargo:
+			body.set_cargo(cargo)
+		cached_stats = stats.duplicate(true)
+		cache_remove_instance_info()
+
+	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
+		var body = assemble_body()
+		if not body:
+			return Node.new()
+		var reassemble = cached_stats!=null # true=already assembled design once
 		for child in body.get_children():
 			if child is CollisionShape and child.scale.y<10:
 				child.scale.y=10
-			found = assemble_part(body,child) or found
-		if not found:
-			push_warning('No parts found in ship')
-		var stats = body.pack_stats(true)
+			var _discard = assemble_part(body,child,reassemble and not retain_hidden_mounts)
+		var stats = null
+		if reassemble:
+			body.set_stats(cached_stats)
+		else:
+			stats = body.pack_stats(true)
+		var _discard = body.set_cost(get_cost())
 		if cargo:
 			body.set_cargo(cargo)
-		for child in body.get_children():
-			if child.has_method('is_not_mounted'):
-				# Unused slots are removed to save space in the scene tree
-				body.remove_child(child)
-				child.queue_free()
-		if not cached_stats:
+		if not retain_hidden_mounts:
+			for child in body.get_children():
+				if child.has_method('is_EquipmentStats') or child.has_method('is_MountStats'):
+					# This is not visible in space, so remove it from the scene tree.
+					not_visible[child.name]=1
+					body.remove_child(child)
+					child.queue_free()
+		if not reassemble and not retain_hidden_mounts:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
 		return body
 
-func encode_ShipDesign(d: ShipDesign):
+static func encode_ShipDesign(d: ShipDesign):
 	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d),
 		( encode_helper(d.cargo.all) if d.cargo is Commodities.Products else null ) ]
 
-func decode_ShipDesign(v):
+static func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
 		return null
 	var result = ShipDesign.new(str(v[1]), decode_helper(v[2]))
@@ -356,10 +409,10 @@ class UIState extends simple_tree.SimpleNode:
 	func _init(state):
 		ui_state = state
 
-func encode_UIState(u: UIState):
+static func encode_UIState(u: UIState):
 	return [ 'UIState', u.ui_state ]
 
-func decode_UIState(v):
+static func decode_UIState(v):
 	if not v is Array or len(v)<2 or not v[0] is String or v[0]!='UIState':
 		return null
 	return UIState.new(decode_helper(v[1]))
@@ -367,12 +420,28 @@ func decode_UIState(v):
 class Fleet extends simple_tree.SimpleNode:
 	var spawn_info: Dictionary = {}
 	var display_name: String = 'Unnamed'
-	
+	var cached_stats = null
 	func is_Fleet(): pass # for type detection; never called
 	
 	func _init(display_name_, spawn_info_ = {}):
 		display_name = display_name_
 		set_spawn_info(spawn_info_)
+	func get_stats():
+		if cached_stats==null:
+			var result = { 'threat':0.0, 'cost':0.0 }
+			for design_name in spawn_info:
+				var design = game_state.ship_designs.get_node_or_null(design_name)
+				var count = int(spawn_info[design_name])
+				if design and count>0:
+					var design_stats = design.get_stats()
+					result['cost'] += design.get_cost()*count
+					result['threat'] += design_stats.get('threat',0.0)*count
+			cached_stats = result
+		return cached_stats
+	func get_threat():
+		return get_stats().get('threat',0.0)
+	func get_cost():
+		return get_stats().get('cost',0.0)
 	func set_spawn_info(dict: Dictionary):
 		spawn_info.clear()
 		for key in dict:
@@ -411,13 +480,18 @@ class Fleet extends simple_tree.SimpleNode:
 		return spawn_info.keys()
 	func spawn_count_for(design_name: String) -> int:
 		return spawn_info.get(design_name,0)
+	func spawn_count() -> int:
+		var result = 0
+		for count in spawn_info.values():
+			result += count
+		return result
 	func as_dict() -> Dictionary:
 		return spawn_info.duplicate(true)
 
-func encode_Fleet(f: Fleet):
+static func encode_Fleet(f: Fleet):
 	return [ 'Fleet', str(f.display_name), encode_helper(f.spawn_info) ]
 
-func decode_Fleet(v):
+static func decode_Fleet(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='Fleet':
 		return null
 	var display_name = decode_helper(v[1])
@@ -432,7 +506,7 @@ func decode_Fleet(v):
 
 
 
-func decode_InputEvent(data):
+static func decode_InputEvent(data):
 	if not data is Array or not len(data)==2:
 		push_warning('Unable to decode an input event from '+str(data))
 		return null
@@ -458,7 +532,7 @@ func decode_InputEvent(data):
 	assert(event==null or event is InputEvent)
 	return event
 
-func encode_InputEvent(event: InputEvent):
+static func encode_InputEvent(event: InputEvent):
 	if event is InputEventKey:
 		return [ 'InputEventKey', { 
 			'pressed': event.pressed,
@@ -545,6 +619,14 @@ func decode_places(json_string,context: String) -> bool:
 		push_error(context+': no ship_designs to load')
 		return false
 	
+	var content_factions = content['factions']
+	if content_factions:
+		for child_name in content_factions.get_child_names():
+			var child = content_factions.get_child_with_name(child_name)
+			if child:
+				content_factions.remove_child(child)
+				var _discard = factions.add_child(child)
+	
 	var content_fleets = content['fleets']
 	if content_fleets:
 		var _discard = fleets.remove_all_children()
@@ -585,7 +667,7 @@ func decode_places(json_string,context: String) -> bool:
 			printerr('warning: system with id ',system_id,' has invalid objects for destination systems in its links')
 	return true
 
-func decode_helper(what,key=null):
+static func decode_helper(what,key=null):
 	if what is Dictionary:
 		var result = {}
 		for encoded_key in what:
@@ -612,6 +694,10 @@ func decode_helper(what,key=null):
 			return Color(float(what[1]),float(what[2]),float(what[3]),float(what[4]))
 		elif what[0].begins_with('InputEvent'):
 			return decode_InputEvent(what)
+		elif what[0] == 'Faction' and len(what)>1:
+			return Factions.decode_Faction(what)
+		elif what[0] == 'FactionList' and len(what)>1:
+			return Factions.decode_FactionList(what)
 		elif what[0] == 'NodePath' and len(what)>1:
 			return NodePath(what[1])
 		elif what[0] == 'Fleet':
@@ -656,7 +742,7 @@ func decode_helper(what,key=null):
 func encode_places() -> String:
 	return JSON.print(encode_helper(children_),'  ')
 
-func encode_helper(what):
+static func encode_helper(what):
 	if what is Dictionary:
 		var result = {}
 		for key in what:
@@ -717,7 +803,7 @@ func encode_helper(what):
 
 
 
-func make_key(id1: String, id2: String) -> Array:
+static func make_key(id1: String, id2: String) -> Array:
 	return [id1,id2] if id1<id2 else [id2,id1]
 
 func get_link_by_key(key): # -> Dictionary or null
@@ -798,7 +884,7 @@ func link_sin_cos(arg): # -> Dictionary or null
 	}
 
 # warning-ignore:shadowed_variable
-func string_for(selection) -> String:
+static func string_for(selection) -> String:
 	if selection is Dictionary:
 		return selection['link_key'][0]+'->'+selection['link_key'][1]
 	return str(selection)

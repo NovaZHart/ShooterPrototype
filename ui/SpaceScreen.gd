@@ -1,4 +1,4 @@
-extends Node2D
+extends Control
 
 var tick: int = 0
 var death_start: int = -1
@@ -40,8 +40,8 @@ func _input(event: InputEvent):
 		selected_position = get_viewport().get_mouse_position()
 	if selected_position==null:
 		return
-	var space: PhysicsDirectSpaceState = $System.get_world().direct_space_state
-	var camera = $System.get_main_camera()
+	var space: PhysicsDirectSpaceState = $View/System.get_world().direct_space_state
+	var camera = $View/System.get_main_camera()
 	var from = camera.project_ray_origin(selected_position)
 	from.y = camera.translation.y+500
 	var to = from + camera.project_ray_normal(selected_position)
@@ -65,7 +65,7 @@ func handle_zoom(_delta: float):
 	ui_scroll*=0.7
 	if abs(ui_scroll)<.05:
 		ui_scroll=0
-	var _zoom_level = $System.set_zoom(zoom)
+	var _zoom_level = $View/System.set_zoom(zoom)
 
 func make_player_orders(_delta: float) -> Dictionary:
 	if Input.is_action_just_released('ui_down'):
@@ -104,10 +104,11 @@ func make_player_orders(_delta: float) -> Dictionary:
 	
 	var orders: int = 0
 	if shoot:                   orders = combat_engine.PLAYER_ORDER_FIRE_PRIMARIES
-	elif double_down_active:
+	if double_down_active:
 		orders = combat_engine.PLAYER_ORDER_STOP_SHIP
 		thrust = 0
-	elif not thrust:            orders = combat_engine.PLAYER_ORDER_MAINTAIN_SPEED
+	elif not thrust and not shoot:
+		orders = combat_engine.PLAYER_ORDER_MAINTAIN_SPEED
 	
 	if auto_target:
 		auto_target_flag = not auto_target_flag
@@ -128,8 +129,8 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var target_rid = mouse_selection
 	mouse_selection=RID()
 	mouse_selection_mutex.unlock()
-	if not target_rid.get_id() or target_rid==$System.get_player_rid():
-		target_rid = $System.get_player_target_rid()
+	if not target_rid.get_id() or target_rid==$View/System.get_player_rid():
+		target_rid = $View/System.get_player_target_rid()
 	else:
 		target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 	
@@ -164,9 +165,9 @@ func _process(delta: float) -> void:
 	handle_zoom(delta)
 	if get_tree().paused:
 		return
-	if $System.player_has_a_ship():
+	if $View/System.player_has_a_ship():
 		if tick>2:
-			$System.receive_player_orders(make_player_orders(delta))
+			$View/System.receive_player_orders(make_player_orders(delta))
 	else:
 		if death_start<0:
 			death_start = tick
@@ -182,9 +183,9 @@ func _process(delta: float) -> void:
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	var system_name = Player.system.display_name
-	$LocationLabel.text=system_name
+	$Labels/LocationLabel.text=system_name
 	game_state.print_to_console('Entered system '+system_name)
-	var _discard = $System.connect("view_center_changed",$System/Minimap,"view_center_changed")
+	var _discard = $View/System.connect("view_center_changed",$View/System/Minimap,"view_center_changed")
 
 func get_player_system() -> Node:
 	return $Player

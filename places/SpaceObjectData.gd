@@ -48,6 +48,7 @@ var population: Dictionary = {}
 var industry: float = 0
 var locality_adjustments: Dictionary = {}
 var shipyard_locality_adjustments: Dictionary = {}
+var cached_unique_name: String
 
 const default_planet_trading: Array = [ 'suvar', 'human' ]
 const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
@@ -78,6 +79,15 @@ func has_market():
 
 func has_shipyard():
 	return not not shipyard
+
+func total_population() -> float:
+	var result: float = 0.0
+	for p in population.values():
+		result += p
+	return result
+
+func total_industry() -> float:
+	return industry
 
 func get_system(): # -> SystemData or null
 	var parent = get_parent()
@@ -206,6 +216,11 @@ func get_it(info: Dictionary,type: Dictionary,key: String, var default):
 	return result if result!=null else type.get(key,default)
 
 func make_unique_name() -> String:
+	if not cached_unique_name:
+		cached_unique_name = _impl_make_unique_name()
+	return cached_unique_name
+
+func _impl_make_unique_name() -> String:
 	var uname = get_name()
 	var parent = get_parent()
 	if parent==null:

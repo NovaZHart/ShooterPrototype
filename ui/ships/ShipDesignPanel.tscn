@@ -25,29 +25,29 @@ __meta__ = {
 }
 
 [node name="Top" type="GridContainer" parent="All"]
-margin_right = 1024.0
-margin_bottom = 576.0
+margin_right = 1600.0
+margin_bottom = 876.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 2
 
 [node name="List" type="GridContainer" parent="All/Top"]
-margin_right = 1008.0
-margin_bottom = 576.0
+margin_right = 1584.0
+margin_bottom = 876.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Scroll" type="VScrollBar" parent="All/Top"]
-margin_left = 1012.0
-margin_right = 1024.0
-margin_bottom = 576.0
+margin_left = 1588.0
+margin_right = 1600.0
+margin_bottom = 876.0
 step = 1.0
 
 [node name="Buttons" type="GridContainer" parent="All"]
-margin_top = 580.0
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_top = 880.0
+margin_right = 1600.0
+margin_bottom = 900.0
 size_flags_horizontal = 3
 columns = 6
 __meta__ = {
@@ -89,13 +89,14 @@ text = "Cancel"
 
 [node name="Zoom" type="HScrollBar" parent="All/Buttons"]
 margin_left = 284.0
-margin_right = 1024.0
+margin_right = 1600.0
 margin_bottom = 20.0
 hint_tooltip = "Zoom"
 size_flags_horizontal = 3
 size_flags_vertical = 1
 step = 1.0
 page = 1.0
+
 [connection signal="resized" from="." to="." method="_on_DesignList_resized"]
 [connection signal="value_changed" from="All/Top/Scroll" to="." method="_on_Scroll_value_changed"]
 [connection signal="pressed" from="All/Buttons/Add" to="." method="_on_Add_pressed"]

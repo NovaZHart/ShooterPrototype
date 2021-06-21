@@ -7,7 +7,7 @@ var ZapBallShader = preload('res://places/ZapBall.shader')
 var native_combat_engine
 var native_visual_effects
 
-# These constants MUST match src/CombatEngineData.hpp
+# All constants MUST match src/CombatEngineData.hpp
 
 const FATED_TO_FLY: int = 0
 const FATED_TO_DIE: int = 1
@@ -39,14 +39,67 @@ const PLAYER_TARGET_PLANET: int = 48
 const PLAYER_TARGET_OVERRIDE: int = 64
 const PLAYER_TARGET_NOTHING: int = 240
 
+const ATTACKER_AI: int = 0
+const PATROL_SHIP_AI: int = 1
+const RAIDER_AI: int = 2
+const ARRIVING_MERCHANT_AI: int = 3
+const DEPARTING_MERCHANT_AI: int = 4
+
+const NUM_DAMAGE_TYPES: int = 9
+const DAMAGE_TYPELESS: int = 0    # Damage that ignores resist and passthru (do not use)
+const DAMAGE_LIGHT: int = 1       # Non-standing electromagnetic fields (light, photons)
+const DAMAGE_HE_PARTICLE: int = 2 # Non-zero mass particles with high energy (particle beam)
+const DAMAGE_PIERCING: int = 3    # Small macroscopic things moving quickly (bullets)
+const DAMAGE_IMPACT: int = 4      # Larger (nominally >1m) things moving quickly (asteroids)
+const DAMAGE_EM_FIELD: int = 5    # Standing or low-frequency EM fields (ie. EMP or big magnet)
+const DAMAGE_GRAVITY: int = 6     # Strong gravity or gravity waves
+const DAMAGE_ANTIMATTER: int = 7  # Antimatter particles
+const DAMAGE_HOT_MATTER: int = 8  # Explosion or beam of hot gas or plasma
+
+const DAMAGE_DISPLAY_NAMES: PoolStringArray = PoolStringArray([
+	"Typeless", "Light", "H.E.Particle", "Piercing", "Impact", "EM.Field", \
+	"Gravity", "Antimatter", "Hot Matter",
+])
+
+const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
+	"rules/damage/typeless", # Typeless damage should never show up
+	"rules/damage/light",
+	"rules/damage/he_particle",
+	"rules/damage/piercing",
+	"rules/damage/impact",
+	"rules/damage/em_field",
+	"rules/damage/gravity",
+	"rules/damage/antimatter",
+	"rules/damage/hot_matter",
+])
+
+const MAX_RESIST: float = 0.75
+const MIN_RESIST: float = -222.0
+const MIN_PASSTHRU: float = 0.0
+const MAX_PASSTHRU: float = 1.0
+
+var combat_state = null
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()
 
-func _init():
+func _enter_tree():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
 	native_visual_effects.set_shaders(RiftShader,ZapBallShader)
+
+func init_combat_state(system_info,system,immediate_entry: bool) -> void:
+	# Call in _ready to create the CombatState for a System or Hyperspace
+	# system_info = SystemData for current system or null for Hyperspace
+	# system = System or Hyperspace
+	# immediate_entry = if true, ships have no entry animation
+	combat_state = Factions.CombatState.new(system_info,system,immediate_entry)
+	visual_mutex.lock()
+	physics_mutex.lock()
+	var data_for_native: Dictionary = combat_state.data_for_native()
+	native_combat_engine.init_factions(data_for_native)
+	physics_mutex.unlock()
+	visual_mutex.unlock()
 
 func clear_ai() -> void:
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
@@ -58,6 +111,7 @@ func clear_ai() -> void:
 	physics_mutex.lock()
 	native_combat_engine.clear_ai()
 	native_visual_effects.clear_all_effects()
+	combat_state = null
 	physics_mutex.unlock()
 	visual_mutex.unlock()
 
@@ -91,6 +145,7 @@ func change_worlds(world: World) -> void:
 	visual_mutex.unlock()
 
 func set_world(world: World) -> void:
+	assert(world)
 	visual_mutex.lock()
 	physics_mutex.lock()
 	native_visual_effects.set_scenario(world.scenario)
@@ -108,12 +163,13 @@ func ai_step(delta: float,new_ships: Array,new_planets: Array,
 	physics_mutex.lock()
 	var array: Array = native_combat_engine.ai_step(delta,new_ships,new_planets,
 		player_orders,player_ship_rid,space,update_request)
+	var weapon_rotations = array[len(array)-2]
+	var faction_info = array[len(array)-1]
 	var results: Dictionary = Dictionary()
-	for result in array:
-		if 'name' in result:
-			results[result.name] = result
-		else:
-			results['weapon_rotations'] = result.duplicate(true)
+	for iresult in range(len(array)-2):
+		results[array[iresult]['name']] = array[iresult]
+	results['weapon_rotations'] = weapon_rotations.duplicate(true)
+	results['faction_info'] = faction_info.duplicate(true)
 	physics_mutex.unlock()
 	return results
 
@@ -122,6 +178,7 @@ func set_visible_region(visible_area: AABB,
 	native_visual_effects.set_visible_region(visible_area,visibility_expansion_rate)
 
 func step_visual_effects(delta: float, world: World):
+	assert(world)
 	native_visual_effects.step_effects(delta,world.scenario)
 
 func draw_space(camera: Camera,viewport: Viewport) -> void:

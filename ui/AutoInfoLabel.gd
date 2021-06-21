@@ -37,7 +37,7 @@ func _process(var _delta: float) -> void:
 	if auto_info == "FPS":
 		text = String(Engine.get_frames_per_second())+" FPS"
 	elif auto_info == "ships":
-		var ships = get_node_or_null("../System/Ships")
+		var ships = get_node_or_null("../View/System/Ships")
 		if ships!=null:
 			text = String(ships.get_children().size())+" ships"
 		else:

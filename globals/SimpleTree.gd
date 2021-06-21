@@ -15,6 +15,9 @@ class SimpleNode extends Reference:
 	var node_path_ = null
 	var path_string_ = null
 	var is_root_ = false
+	var called_ready_ = false
+
+	func is_SimpleNode(): pass # for type checking; never called
 
 	func is_root():
 		return is_root_
@@ -27,6 +30,15 @@ class SimpleNode extends Reference:
 
 	func has_child(id) -> bool:
 		return children_.has(id)
+	
+	func _impl_ready(force: bool=false):
+		for child_name in children_:
+			var child = children_.get(child_name,null)
+			if child:
+				child._impl_ready(force)
+		if (force or not called_ready_) and has_method('_ready'):
+			call('_ready',[])
+		called_ready_ = true
 
 	func set_name(n: String):
 		var p = parent_.get_ref()
@@ -40,6 +52,7 @@ class SimpleNode extends Reference:
 
 	func set_tree(tree):
 		tree_=tree
+		called_ready_=false
 		for child in children_.values():
 			child.set_tree(tree)
 
@@ -235,9 +248,13 @@ class SimpleNode extends Reference:
 
 class SimpleTree extends Reference:
 	var root: SimpleNode setget set_root, get_root
+	func is_SimpleTree(): pass # for type checking; never called
 	func _init(root_):
 		root = root_
 		root.make_root_of(weakref(self))
+	func call_ready(force: bool = false):
+		if root:
+			root._impl_ready(force)
 	func get_root():
 		return root
 	func set_root(root_: SimpleNode):

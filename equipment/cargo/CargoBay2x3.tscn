@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/cargo/cargo-bay-2x3.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+script = ExtResource( 1 )
+add_mass = 11.0
+add_max_cargo = 15.0
+add_structure = 35.0
+item_size_x = 2
+help_page = "equipment/cargo_bay_2x3"
+mount_type_any = "internal"

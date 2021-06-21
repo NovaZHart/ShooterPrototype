@@ -105,12 +105,18 @@ func set_window_location():
 	$Window.set_initial_rect(window_position,window_size)
 	print('new position: '+str($Window.get_global_rect()))
 
+func _exit_tree():
+	if allow_selection:
+		universe_edits.pop_editors()
+
+func _enter_tree():
+	if allow_selection:
+		universe_edits.push_editors(self)
+
 func _ready():
 	$Window.get_close_button().visible=false
 	maybe_show_window()
 	
-	if allow_selection:
-		game_state.switch_editors(self)
 	$MapColorbar.set_title('Prices')
 	starmap.name = 'Starmap'
 	starmap.set_camera_path(NodePath('../Camera'))

@@ -1,5 +1,82 @@
 extends Node
 
+class WeightArraySorter extends Object:
+	var weights: Array
+	func _init(weights_: Array):
+		weights=weights_
+	func cmp(index1,index2):
+		return weights[index1] < weights[index2]
+
+func sorted_array_by_weight(array: Array, weights: Array) -> Array:
+	# Return a sorted copy of array, sorted by weight.
+	assert(len(weights) == len(array))
+	var indices: Array = range(len(array))
+	var sorter = WeightArraySorter.new(weights)
+	indices.sort_custom(sorter,'cmp')
+	sorter.free()
+	var result: Array = []
+	result.resize(len(array))
+	for i in range(len(indices)):
+		result[i] = array[indices[i]]
+	return result
+
+func can_mount_flags(mount_type: int, item_type_all: int, item_type_any: int) -> bool:
+	return  ( not item_type_all or item_type_all&mount_type == item_type_all ) \
+		and \
+		( not item_type_any or item_type_any&mount_type != 0 )
+
+func can_mount(mount_flags: int, item) -> bool:
+	return  ( not item.mount_flags_all or item.mount_flags_all&mount_flags == item.mount_flags_all ) \
+		and \
+		( not item.mount_flags_any or item.mount_flags_any&mount_flags != 0 )
+
+func mount_type_to_int(mount_type: String) -> int:
+	var mount_flags: int = 0
+	for s in mount_type.split(' ',false,false):
+		if   s=='internal':  mount_flags = game_state.MOUNT_FLAG_INTERNAL  + mount_flags
+		elif s=='external':  mount_flags = game_state.MOUNT_FLAG_EXTERNAL  + mount_flags
+		elif s=='gun':       mount_flags = game_state.MOUNT_FLAG_GUN       + mount_flags
+		elif s=='turret':    mount_flags = game_state.MOUNT_FLAG_TURRET    + mount_flags
+		elif s=='equipment': mount_flags = game_state.MOUNT_FLAG_EQUIPMENT + mount_flags
+		elif s=='engine':    mount_flags = game_state.MOUNT_FLAG_ENGINE    + mount_flags
+		else:
+			push_warning('Invalid mount type "'+str(s)+'"')
+	return mount_flags
+
+func mount_string(mount_flags: int,sep: String = ' ',before_last: String = ''):
+	var result: Array = []
+	if mount_flags&game_state.MOUNT_FLAG_INTERNAL:  result+=[ 'internal' ]
+	if mount_flags&game_state.MOUNT_FLAG_EXTERNAL:  result+=[ 'external' ]
+	if mount_flags&game_state.MOUNT_FLAG_GUN:       result+=[ 'gun' ]
+	if mount_flags&game_state.MOUNT_FLAG_TURRET:    result+=[ 'turret' ]
+	if mount_flags&game_state.MOUNT_FLAG_EQUIPMENT: result+=[ 'equipment' ]
+	if mount_flags&game_state.MOUNT_FLAG_ENGINE:    result+=[ 'engine' ]
+	var string: String = ''
+	for i in range(len(result)):
+		if i:
+			string += sep
+			if i==len(result)-1:
+				string += before_last
+		string += result[i]
+	return string
+
+func mount_string_for(mount) -> String:
+	return mount_string(mount.mount_flags,' ','')
+
+func mountable_string_for(mountable) -> String:
+	return mountable_string(mountable.mount_flags_all,mountable.mount_flags_any)
+
+func mountable_string(mount_flags_all: int, mount_flags_any: int) -> String:
+	if mount_flags_all:
+		if mount_flags_any:
+			return 'all of ['+mount_string(mount_flags_all,' ','and ')+' = '+str(mount_flags_all)+']'+ \
+				' and any of ['+mount_string(mount_flags_any,' ','or ')+' = '+str(mount_flags_any)+']'
+		else:
+			return 'all of ['+mount_string(mount_flags_all,' ','and ')+' = '+str(mount_flags_all)+']'
+	elif mount_flags_any:
+		return 'any of ['+mount_string(mount_flags_any,' ','or ')+' = '+str(mount_flags_any)+']'
+	return 'anything (fits in any slot)'
+
 class YieldActionQueue extends Reference:
 	var mutex: Mutex = Mutex.new()
 	var queue: Array = []
@@ -166,3 +243,22 @@ func event_position(event: InputEvent) -> Vector2:
 	if event and event is InputEventMouse:
 		return event.position
 	return get_viewport().get_mouse_position()
+
+func sum_of_squares(accum: PoolRealArray,add: PoolRealArray) -> PoolRealArray:
+	if not add:
+		return accum
+	for i in range(len(add)):
+		if i>=len(accum):
+			accum.append(add[i])
+		elif add[i]!=0:
+			var a = sign(accum[i])*accum[i]*accum[i] + sign(add[i])*add[i]*add[i]
+			accum[i] = sign(a)*sqrt(abs(a))
+	return accum
+
+func weighted_add(add_value,add_weight: float,stats: Dictionary,value_key: String,weight_key: String):
+	var weight: float = stats[weight_key]
+	var value: float = stats[value_key]
+	if not weight and not add_weight:
+		stats[value_key] = (add_value+value)/2
+	else:
+		stats[value_key] = (add_value*add_weight + value*weight)/(add_weight+weight)

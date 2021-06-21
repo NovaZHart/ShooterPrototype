@@ -10,14 +10,20 @@ ambient_light_color = Color( 0.666667, 0.666667, 1, 1 )
 ambient_light_energy = 0.1
 ambient_light_sky_contribution = 0.0
 
-[node name="System" type="Node"]
+[node name="System" type="Viewport"]
+size = Vector2( 1600, 900 )
+own_world = true
 script = ExtResource( 2 )
 label_font_data = ExtResource( 3 )
 
 [node name="ShipLight" type="OmniLight" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0 )
+light_indirect_energy = 0.1
+light_specular = 0.0
 light_cull_mask = 4293918721
 shadow_enabled = true
+shadow_bias = 2.0
+shadow_contact = 12.0
 omni_range = 999999.0
 omni_attenuation = 0.0228763
 
@@ -38,10 +44,20 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -40, 0 )
 transform = Transform( -1.62921e-07, 1, 1.62921e-07, 0, -1.62921e-07, 1, 1, 1.62921e-07, 2.65432e-14, -32.4787, 81.2257, 0 )
 projection = 1
 fov = 96.768
-size = 200.0
+size = 100.0
 
 [node name="Ships" type="Node" parent="."]
 
 [node name="Planets" type="Node" parent="."]
 
 [node name="Labels" type="Node" parent="."]
+
+[node name="EffectsLight" type="OmniLight" parent="."]
+layers = 2
+light_indirect_energy = 0.25
+light_specular = 0.25
+light_cull_mask = 4293918722
+shadow_bias = 2.0
+shadow_contact = 10.0
+omni_range = 999999.0
+omni_attenuation = 0.0228763

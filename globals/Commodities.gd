@@ -138,6 +138,8 @@ class Products extends Reference:
 			if not product:
 				continue
 			var prod_hash: int = hash(product[NAME_INDEX])
+			var scale = max(1.0,product[VALUE_INDEX])/max(1.0,product[MASS_INDEX])
+			scale = clamp(scale,3.0,30.0)
 			for ivar in [ VALUE_INDEX, QUANTITY_INDEX ]:
 				seed(randseed+ivar*31337+prod_hash)
 				var f = 0.0
@@ -151,7 +153,10 @@ class Products extends Reference:
 					w += abs(w1)+abs(w2)
 				var w3 = randf()
 				var s = 0.08*pow(0.7,sqrt(w3))+0.15*pow(0.98,sqrt(w3))+0.02
-				product[ivar] = int(ceil(product[ivar]*(1.0 + s*f/w)))
+				var final = 1.0+s*f/w
+				if ivar==VALUE_INDEX:
+					final = final/(final+scale)+scale/(scale+1)
+				product[ivar] = int(ceil(product[ivar]*final))
 	
 	func randomly_erase_products():
 		var ids=all.keys()
@@ -163,17 +168,43 @@ class Products extends Reference:
 					product[QUANTITY_INDEX] = 0
 
 	func apply_multiplier_list(multipliers: Dictionary):
+		var scan_products: Dictionary = {}
 		for tag in multipliers:
 			if by_tag.has(tag):
-				var quantity_value_fine = multipliers[tag]
 				for id in by_tag[tag]:
-					var product = all[id]
-					if quantity_value_fine[0]>=0:
-						product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*quantity_value_fine[0])
-					if quantity_value_fine[1]>=0:
-						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
-					if quantity_value_fine[2]>=0:
-						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
+					scan_products[id]=1
+		for id in scan_products:
+			var product = all.get(id,null)
+			if product:
+				var f_quantity=1.0
+				var f_value=1.0
+				var f_fine=1.0
+				for itag in range(FIRST_TAG_INDEX,len(product)):
+					var tag = product[itag]
+					var mul = multipliers.get(tag,null)
+					if mul:
+						if mul[0]>=0: f_quantity*=mul[0]
+						if mul[1]>=0: f_value*=mul[1]
+						if mul[2]>=0: f_fine*=mul[2]
+				var scale = max(1.0,product[VALUE_INDEX])/max(1.0,product[MASS_INDEX])
+				scale = clamp(scale,3.0,30.0)
+				f_quantity = f_quantity/(f_quantity+1.0)+1.0/2.0
+				f_value = f_value/(f_value+scale)+scale/(scale+1)
+				f_fine = f_fine/(f_fine+scale)+scale/(scale+1)
+				product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*f_quantity)
+				product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*f_value)
+				product[FINE_INDEX] = ceil(product[FINE_INDEX]*f_fine)
+#		for tag in multipliers:
+#			if by_tag.has(tag):
+#				var quantity_value_fine = multipliers[tag]
+#				for id in by_tag[tag]:
+#					var product = all[id]
+#					if quantity_value_fine[0]>=0:
+#						product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*quantity_value_fine[0])
+#					if quantity_value_fine[1]>=0:
+#						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
+#					if quantity_value_fine[2]>=0:
+#						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
 	
 	func apply_multipliers(quantity_multiplier,value_multiplier,fine_multiplier):
 		for id in all:
@@ -797,7 +828,7 @@ class TerranTradeCenter extends ProducerConsumer:
 
 class SmallLaserTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
-		result.add_products_from(all_products,['terran'],['particle','explosive','large','capital'])
+		result.add_products_from(all_products,['terran'],['particle','kinetic','large','capital'])
 
 class SmallParticleTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
@@ -900,22 +931,41 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://weapons/BlueLaserGun.tscn', 40, 9000, 9000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/BlueLaserTurret.tscn', 25, 16000, 16000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/GreenLaserGun.tscn', 40, 22000, 22000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/GreenLaserTurret.tscn', 40, 39000, 39000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/OrangeSpikeGun.tscn', 40, 11000, 11000, 0, 'particle', 'weapon', 'terran' ],
 		[ 'res://weapons/OrangeSpikeTurret.tscn', 40, 31000, 31000, 0, 'particle', 'weapon', 'terran' ],
 		[ 'res://weapons/PurpleHomingGun.tscn', 40, 54000, 54000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
+		[ 'res://weapons/GreyMissileLauncher.tscn', 40, 79000, 79000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],
+		[ 'res://weapons/BigRedMissileLauncher.tscn', 40, 96000, 96000, 0, 'explosive', 'homing', 'weapon', 'terran', 'capital' ],
+		[ 'res://weapons/MassDriver.tscn', 40, 135000, 135000, 0, 'kinetic', 'weapon', 'terran', 'capital' ],
+		[ 'res://weapons/BlueLoopTurret.tscn', 40, 97000, 97000, 0, 'particle', 'weapon', 'terran', 'capital' ],
+		[ 'res://weapons/BigParticleGun.tscn', 40, 75000, 75000, 0, 'particle', 'weapon', 'terran', 'large' ],
+		[ 'res://weapons/NuclearPumpedLaser.tscn', 40, 71000, 71000, 0, 'laser', 'weapon', 'terran', 'large' ],
+		[ 'res://weapons/NuclearPumpedLaserTurret.tscn', 40, 94000, 94000, 0, 'laser', 'weapon', 'terran', 'capital' ],
 		[ 'res://equipment/engines/Engine2x2.tscn', 40, 11000, 11000, 0, 'engine', 'terran' ],
 		[ 'res://equipment/engines/Engine2x4.tscn', 40, 23000, 23000, 0, 'engine', 'terran' ],
 		[ 'res://equipment/engines/Engine4x4.tscn', 40, 47000, 47000, 0, 'engine', 'terran', 'large' ],
+		[ 'res://equipment/repair/Structure2x2.tscn', 40, 16000, 16000, 0, 'equipment', 'structure', 'terran' ],
 		[ 'res://equipment/repair/Shield2x1.tscn', 40, 16000, 16000, 0, 'equipment', 'shield', 'terran' ],
 		[ 'res://equipment/repair/Shield2x2.tscn', 40, 35000, 35000, 0, 'equipment', 'shield', 'terran' ],
 		[ 'res://equipment/repair/Shield3x3.tscn', 40, 79000, 79000, 0, 'equipment', 'shield', 'terran', 'large' ],
+		[ 'res://equipment/cargo/CargoBay1x2.tscn', 40, 6000, 6000, 0, 'equipment', 'cargo_bay', 'terran' ],
+		[ 'res://equipment/cargo/CargoBay2x3.tscn', 40, 19000, 19000, 0, 'equipment', 'cargo_bay', 'terran' ],
+		[ 'res://equipment/cargo/CargoBay3x4.tscn', 40, 40000, 40000, 0, 'equipment', 'cargo_bay', 'terran', 'large' ],
 		[ 'res://equipment/BigEquipmentTest.tscn', 40, 200, 200, 0, 'test', 'equipment', 'terran', 'large' ],
 		[ 'res://equipment/EquipmentTest.tscn', 40, 100, 100, 0, 'test', 'equipment', 'terran' ],
 		[ 'res://ships/BannerShip/BannerShipHull.tscn', 3, 394000, 394000, 0, 'hull/civilian/advertisment', 'terran', 'large' ],
+		[ 'res://ships/GreyBlue/GreyBlueInterceptor.tscn', 9, 108000, 108000, 0, 'hull/combat/interceptor', 'terran' ],
+		[ 'res://ships/GreyBlue/ThreeWingWarship.tscn', 4, 228000, 228000, 0, 'hull/combat/warship', 'terran' ],
+		[ 'res://ships/GreyBlue/FourWingWarship.tscn', 2, 581000, 581000, 0, 'hull/combat/warship', 'terran', 'large' ],
+		[ 'res://ships/GreyBlue/CommandShip.tscn', 1, 1308000, 1308000, 0, 'hull/combat/capital', 'terran', 'capital' ],
 		[ 'res://ships/PurpleShips/CurvyWarshipHull.tscn', 3, 133000, 133000, 0, 'hull/combat/warship', 'terran' ],
 		[ 'res://ships/PurpleShips/HeavyWarshipHull.tscn', 1, 793000, 793000, 0, 'hull/combat/capital', 'terran', 'capital' ],
 		[ 'res://ships/PurpleShips/InterceptorHull.tscn', 12, 85000, 85000, 0, 'hull/combat/interceptor', 'terran' ],
 		[ 'res://ships/PurpleShips/WarshipHull.tscn', 3, 141000, 141000, 0, 'hull/combat/warship', 'terran' ],
+		[ 'res://ships/CargoPodShips/OnePodShip.tscn', 2, 133000, 133000, 0, 'hull/cargo/container', 'terran' ],
+		[ 'res://ships/CargoPodShips/TwoPodShip.tscn', 2, 252000, 252000, 0, 'hull/cargo/container', 'terran', 'large' ],
+		[ 'res://ships/CargoPodShips/SixPodShip.tscn', 2, 745000, 745000, 0, 'hull/cargo/container', 'terran', 'capital' ],
 	]
 	# FIXME: Pregenerate this somehow:
 	for datum in data:

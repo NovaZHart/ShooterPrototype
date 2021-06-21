@@ -6,7 +6,7 @@ var Help
 var Clear
 var Location
 
-func _init():
+func _enter_tree():
 	var BuiltinCommands = load('res://ui/commands/BuiltinCommands.tscn')
 	commands = BuiltinCommands.instance()
 	commands.name = 'Commands'

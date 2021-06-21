@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/meshes/NuclearPumpedLaser.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+script = ExtResource( 2 )
+damage = 5.5
+damage_type = 1
+weapon_mass = 13.0
+weapon_structure = 65.0
+initial_velocity = 1380.0
+projectile_lifetime = 0.0
+firing_delay = 0.0
+projectile_mesh_path = "res://weapons/meshes/purple_line.mesh"
+item_size_x = 2
+item_size_y = 4
+help_page = "weapons/nuclear_pumped_laser"
+firing_heat = 0.8
+firing_energy = 0.8

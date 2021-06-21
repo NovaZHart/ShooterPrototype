@@ -206,6 +206,9 @@ func update_buttons():
 	$All/Left/Buttons/Redo.disabled = universe_edits.state.redo_stack.empty()
 	$All/Left/Buttons/Undo.disabled = universe_edits.state.undo_stack.empty()
 
+func _enter_tree():
+	universe_edits.push_editors(self)
+
 func _ready():
 	universe_edits.state.connect('undo_stack_changed',self,'update_buttons')
 	universe_edits.state.connect('redo_stack_changed',self,'update_buttons')
@@ -216,13 +219,11 @@ func _ready():
 		shop_parts = Player.update_ship_parts_at(Player.player_location)
 		text_gen.add_price_callback(self)
 	reset_parts_and_designs()
-	game_state.switch_editors(self)
 	if game_state.game_editor_mode:
 		remove_child($MainDialogTrigger)
 		$All/Left/Buttons/Depart.text='Fleet'
-		$All/Show.remove_child($All/Show/LocationLabel)
-		$All/Show.remove_child($All/Show/CargoMass)
-		$All/Show/CargoMass.visible=false
+		$All/Show/Text.remove_child($All/Show/Text/LocationLabel)
+		$All/Show/Text/CargoMass.visible=false
 	elif not game_state.game_editor_mode:
 		remove_child($Autosave)
 		$All/Left/Shop/Tabs/Designs.forbid_edits()
@@ -237,7 +238,7 @@ func _ready():
 		$All/Show/Grid/Top.visible=false
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Save)
 		$All/Left/Buttons.remove_child($All/Left/Buttons/Load)
-		$All/Show/LocationLabel.set_location_label()
+		$All/Show/Text/LocationLabel.set_location_label()
 		update_cargo_and_money()
 		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
 	show_edited_design_info()
@@ -248,7 +249,7 @@ func price_ship_design(design_path: NodePath) -> int:
 	if not design:
 		return 0
 	var parts = Commodities.ManyProducts.new()
-	$All/Show/Grid/Ship.list_ship_parts(parts,shop_parts)
+	design.list_ship_parts(parts,shop_parts)
 	parts.remove_absent_products()
 	parts = price_ship_parts(parts)
 	return parts.get_value()
@@ -263,13 +264,13 @@ func update_cargo_and_money():
 	var cargo_mass: int = 0
 	if ship_design.cargo:
 		cargo_mass = int(round(ship_design.cargo.get_mass()))
-	$All/Show/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(money)
+	$All/Show/Text/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(money)
 	return { 'ship_design':ship_design, 'cargo_mass':cargo_mass, 'max_cargo_mass':max_cargo_mass, 'money':money }
 
 func _exit_tree():
-	game_state.switch_editors(null)
 	universe_edits.state.disconnect('undo_stack_changed',self,'update_buttons')
 	universe_edits.state.disconnect('redo_stack_changed',self,'update_buttons')
+	universe_edits.pop_editors()
 	if not game_state.game_editor_mode:
 		universe_edits.state.clear()
 		text_gen.remove_price_callback(self)

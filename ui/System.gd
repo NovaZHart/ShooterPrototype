@@ -1,4 +1,4 @@
-extends Node
+extends Viewport
 
 export var label_font_data: DynamicFontData
 export var min_sun_height: float = 50.0
@@ -32,8 +32,8 @@ var ship_stats_requests_mutex: Mutex = Mutex.new()
 #var ship_maker_thread: Thread = Thread.new()
 var ships_to_spawn: Array = Array()
 var ship_maker_mutex: Mutex = Mutex.new()
-
-var team_stats: Array = [{'count':0,'threat':0},{'count':0,'threat':0}]
+var ship_count: int = 0
+var team_stats: Dictionary = {}
 var team_stats_mutex: Mutex = Mutex.new()
 
 var ship_stats: Dictionary = {}
@@ -63,7 +63,7 @@ func set_raise_sun(flag: bool):
 		$PlanetLight.translation.y += 10000
 
 func get_label_scale() -> float:
-	var view_size = max(1,get_viewport().size.y)
+	var view_size = max(1,size.y)
 	var camera_size = $TopCamera.size
 	return target_label_height/view_size * camera_size
 
@@ -107,7 +107,7 @@ func make_more_labels():
 	finished_making_labels=true
 
 func get_world():
-	return get_viewport().get_world()
+	return find_world()
 
 func _enter_tree():
 	old_target_fps = Engine.target_fps
@@ -194,7 +194,7 @@ func sync_Ships_with_stat_requests() -> void:
 
 func visible_region() -> AABB:
 	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
-	var lr: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	var lr: Vector3 = $TopCamera.project_position(size,0)
 	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
 		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
 
@@ -225,7 +225,7 @@ func _process(delta) -> void:
 	
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
-	combat_engine.step_visual_effects(delta,get_viewport().world)
+	combat_engine.step_visual_effects(delta,get_world())
 	
 	if player_ship_stats==null:
 		return
@@ -265,17 +265,31 @@ func pack_ship_stats() -> Array:
 	new_ships.clear()
 	new_ships_mutex.unlock()
 
-	var threats: Array = [0, 0]
 	var new_ships_packed: Array = []
+	var threats: Dictionary = {}
+	team_stats_mutex.lock()
 	for ship in my_new_ships:
 		if ship!=null and ship is RigidBody:
 			new_ships_packed.append(ship.pack_stats())
-			threats[ship.team] += max(0,ship.combined_stats.get('threat',0))
+			if ship.faction_index<0:
+				push_error("Tried to spawn a ship with no faction index.")
+			elif threats.has(ship.faction_index):
+				threats[ship.faction_index] += ship.combined_stats.get('threat',0.0)
+			else:
+				threats[ship.faction_index] = ship.combined_stats.get('threat',0.0)
 
-	team_stats_mutex.lock()
 	# Count was incremented in _physics_process
-	for team in range(len(threats)):
-		team_stats[team]['threat'] += threats[team]
+	for faction_index in threats:
+		var team_stat = team_stats.get(faction_index,null)
+		if not team_stat:
+			# Should never get here.
+			push_warning('No team_stats['+str(faction_index)+'] during pack_ship_stats')
+			team_stats[faction_index] = {
+				'threat':threats[faction_index],
+				'count':1,
+			}
+		else:
+			team_stat['threat'] += threats[faction_index]
 	team_stats_mutex.unlock()
 
 	return new_ships_packed
@@ -298,16 +312,26 @@ func pack_planet_stats_if_not_sent() -> Array:
 #		else:
 #			callv(spawn_me[0],spawn_me.slice(1,len(spawn_me)))
 
-func _physics_process(delta):
-	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
-	physics_tick += 1
-	
-	var make_me: Array = Player.system.process_space(self,delta)
+func process_space(delta):
+	combat_engine.combat_state.immediate_entry = physics_tick<30
+	Player.system.process_space(self,delta)
+	var make_me: Array = combat_engine.combat_state.process_space(delta)
 	
 	team_stats_mutex.lock()
 	for ship in make_me:
-		var team: int = ship[4] # "team" argument to spawn_ship
-		team_stats[team]['count']+=1
+		var faction_index: int = ship[4] # "team" argument to spawn_ship
+		if faction_index<0 :
+			push_error('Refusing to spawn a ship with no faction index: '+str(ship))
+			continue
+		elif not team_stats.has(faction_index):
+			team_stats[faction_index] = { 'threat':0.0, 'count':1 }
+		else:
+			team_stats[faction_index]['count'] += 1
+	var new_ship_count: int = 0
+	for faction_index in team_stats:
+		var stat = team_stats[faction_index]
+		new_ship_count += stat['count']
+	ship_count = new_ship_count
 	team_stats_mutex.unlock()
 	
 	ship_maker_mutex.lock()
@@ -321,6 +345,11 @@ func _physics_process(delta):
 			break
 		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
+
+func _physics_process(delta):
+	combat_engine.combat_state.immediate_entry = false
+	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
+	physics_tick += 1
 	
 	combat_engine_mutex.lock() # ensure clear() does not run during _physics_process()
 	
@@ -360,6 +389,10 @@ func _physics_process(delta):
 				if weapon!=null:
 					weapon.rotation.y = ship[weapon_path]
 			continue
+		elif ship_name=='faction_info':
+			# This is actually information about faction states, not a ship.
+			combat_engine.combat_state.update_from_native(ship)
+			continue
 		var fate: int = ship.get('fate',combat_engine.FATED_TO_FLY)
 		if fate<=0:
 			continue # ship is still flying
@@ -382,8 +415,9 @@ func _physics_process(delta):
 			elif fate==combat_engine.FATED_TO_RIFT:
 				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
 		team_stats_mutex.lock()
-		team_stats[ship_node.team]['count'] -= 1
-		team_stats[ship_node.team]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
+		if team_stats.has(ship_node.faction_index):
+			team_stats[ship_node.faction_index]['count'] -= 1
+			team_stats[ship_node.faction_index]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
 		team_stats_mutex.unlock()
 		ship_node.call_deferred("queue_free")
 	if not player_died:
@@ -394,6 +428,7 @@ func _physics_process(delta):
 	ship_stats = result
 	
 	combat_engine_mutex.unlock()
+	process_space(delta)
 
 func get_main_camera() -> Node:
 	return $TopCamera
@@ -413,17 +448,21 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 		receive_player_orders({})
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
-		team: int, is_player: bool, entry_method: int) -> void:
+		faction_index: int, is_player: bool, entry_method: int,
+		initial_ai: int) -> void:
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
 	ship.translation=translation
-	ship.set_team(team)
+	ship.ai_type=initial_ai
+	ship.set_faction_index(faction_index)
 	if is_player:
+		print('spawn_ship receiving player ship')
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
+		assert(ship.faction_index==0)
 		print('add player ship of design ',str(ship_design))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
@@ -457,8 +496,7 @@ func clear() -> void: # must be called in visual thread
 	label_maker = null
 	label_being_made = ''
 	
-	team_stats = [{'count':0,'threat':0},{'count':0,'threat':0}]
-	
+	team_stats = Dictionary()
 	new_ships=Array()
 	player_orders=Array()
 	ship_stats_requests=Dictionary()
@@ -474,12 +512,19 @@ func clear() -> void: # must be called in visual thread
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
 	#Player.system.fill_system(self,planet_time,ship_time,detail)
-	
-	var make_me: Array = Player.system.fill_system(self,planet_time,ship_time,detail)
+	combat_engine.init_combat_state(Player.system,self,true)
+	Player.system.fill_system(self,planet_time,ship_time,detail)
+	var make_me: Array = combat_engine.combat_state.fill_system(planet_time,ship_time,detail)
 	team_stats_mutex.lock()
 	for ship in make_me:
-		var team: int = ship[4] # "team" argument to spawn_ship
-		team_stats[team]['count']+=1
+		var faction_index: int = ship[4] # "faction" argument to spawn_ship
+		if faction_index<0:
+			push_error('Refusing to make a ship with no faction index: '+str(ship))
+			continue
+		elif not team_stats.has(faction_index):
+			team_stats[faction_index] = { 'threat':0.0, 'count':1 }
+		else:
+			team_stats[faction_index]['count'] += 1
 	team_stats_mutex.unlock()
 	
 	ship_maker_mutex.lock()
@@ -500,11 +545,16 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 #		callv(call_arg[0],call_arg.slice(1,len(call_arg)))
 	center_view()
 	VisualServer.force_sync()
-	yield(get_tree(),'idle_frame')
-	get_tree().paused=false
+	call_deferred('unpause')
+
+func unpause():
+	if is_inside_tree():
+		var tree = get_tree()
+		if tree:
+			tree.paused = false
 
 func _ready() -> void:
-	init_system(randf()*500,50,150)
+	init_system(randf()*500,600,150)
 	combat_engine.set_world(get_world())
 	center_view()
 	combat_engine.set_visible_region(visible_region(),
@@ -539,4 +589,8 @@ func center_view(center=null) -> void:
 	# Maintain 30 degree sun angle unless were're very close to the sun.
 	$ShipLight.translation.y = min(max_sun_height,max(min_sun_height,
 		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
+	$ShipLight.omni_range = $EffectsLight.translation.y*3
+	$EffectsLight.translation.y = min(max_sun_height,max(min_sun_height,
+		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
+	$EffectsLight.omni_range = $EffectsLight.translation.y*3
 	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))

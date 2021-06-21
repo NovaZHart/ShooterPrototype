@@ -2,7 +2,6 @@ extends Spatial
 
 export var nx: int = 2
 export var ny: int = 2
-export var mount_type: String = 'equipment'
 const multimount: bool = false
 
 const fail_cull_layer_mask: int = 8
@@ -16,6 +15,7 @@ var slots: Array = []
 var used: Array = []
 var scenes: Array = []
 var all_slots: Dictionary = {}
+var mount_flags: int = 0
 
 func is_InventoryArray(): pass # used for type checking; never called
 
@@ -29,10 +29,10 @@ func scene_at(x: int,y: int): # -> PackedScene or null
 		return null
 	return scenes[y*nx+x]
 
-func create(nx_: int,ny_: int,mount_type_: String):
+func create(nx_: int,ny_: int,mount_flags_: int):
 	nx=nx_
 	ny=ny_
-	mount_type=mount_type_
+	mount_flags=mount_flags_
 	for y in range(ny):
 		for x in range(nx):
 			all_slots['slot_x'+str(x)+'_y'+str(y)]=1
@@ -118,12 +118,44 @@ func slot_xy_for(loc: Vector3,slotx: int,sloty: int) -> Array:
 	var xy1 = Vector2(round(dtr.z-(slotx-1)/2.0),round(-dtr.x-(sloty-1)/2.0))
 	return [ clamp(int(xy1.x),0,nx-1), clamp(int(xy1.y),0,ny-1) ]
 
-func insert_at_grid_range(content,use_item_offset: bool,_console=null) -> Array:
-	if content.mount_type!=mount_type:
-		push_warning('multimount: cannot mount item with wrong type "'+content.mount_type+'"')
+func check_at_grid_range(item_nx: int,item_ny: int,slot_x: int, slot_y: int) -> Array:
+	# Checks if an item can be inserted at slot_x,slot_y (from slot_xy_for)
+	# with width item_nx and height item_ny
+	
+	# Returns [null] if the item does not fit
+	# Returns [] if the item fits and nothing is in the way
+	
+	# If something is in the way, returns [path1,scene1,path2,scene2,...]
+	# with one path and scene for each item that is in the way
+	if not item_nx or not item_ny or item_nx>nx or item_ny>ny:
+		return [null]
+	var y1 = clamp(int(slot_y),0,ny-1)
+	var y2 = clamp(int(slot_y)+item_ny,0,ny)
+	var x1 = clamp(int(slot_x),0,nx-1)
+	var x2 = clamp(int(slot_x)+item_nx,0,nx)
+	if x2-x1 < item_nx or y2-y1 < item_ny:
+		return [null]
+	var in_the_way: Dictionary = {}
+	for y in range(y1,y2):
+		for x in range(x1,x2):
+			var path: NodePath = used[y*nx+x]
+			if not path.is_empty():
+				in_the_way[path] = scenes[y*nx+x]
+	if in_the_way:
+		var retval = []
+		for key in in_the_way.keys():
+			retval += [ key,in_the_way[key] ]
+		return retval
+	return []
+
+func insert_at_grid_range(content,use_item_offset: bool) -> Array:
+	if not utils.can_mount(mount_flags,content):
+		push_warning('multimount: cannot mount item with wrong type; expected '+ \
+			utils.mountable_string_for(content)+'.')
 		return []
 	elif content.nx>nx or content.ny>ny:
-		push_warning('multimount: cannot mount item ('+str(content.nx)+'x'+str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
+		push_warning('multimount: cannot mount item ('+str(content.nx)+'x'+ \
+			str(content.ny)+') larger than mount space ('+str(nx)+'x'+str(ny)+')')
 		return []
 	# item location, upper-left (-x, -y) corner:
 	var xy1
@@ -171,12 +203,14 @@ func color_slots(set: Dictionary,mask: int):
 		if child:
 			child.color(mask)
 
-func update_coloring(size_x: int,size_y: int,pos,type: String):
-	if type and type!=mount_type:
+func update_coloring(pos,item):
+	if item and not utils.can_mount(mount_flags,item):
 		return color_slots(all_slots,fail_cull_layer_mask)
-	elif not type or pos==null or size_x<=0 or size_y<=0:
+	elif not item or pos==null:
 		return color_slots(all_slots,0)
 	var dtr = (pos-first-translation)/grid_cell_size
+	var size_x = item.item_size_x
+	var size_y = item.item_size_y
 	# item location, upper-left (-x, -y) corner:
 	var xy1 = Vector2(round(dtr.z-(size_x-1)/2.0),round(-dtr.x-(size_y-1)/2.0))
 	var not_free: int = size_x*size_y
@@ -210,7 +244,7 @@ func _ready():
 			var slot = Area.new()
 			slot.set_script(preload('res://ui/ships/InventorySlot.gd'))
 			slot.name = 'slot_x'+str(x)+'_y'+str(y)
-			slot.create_only_box(1,1,mount_type)
+			slot.create_only_box(1,1,mount_flags)
 			slot.mount_name = name
 			slot.translation = first + Vector3(-y,0,x)*gs
 			slot.collision_layer = my_collision_mask

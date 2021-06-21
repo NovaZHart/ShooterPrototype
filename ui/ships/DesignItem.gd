@@ -3,7 +3,7 @@ extends Control
 export var info_min_fraction: float = 0.2
 export var annotation_color: Color = Color(0.4,0.5,0.9,0.7)
 export var small_code: Font
-export var double_click_time: int = 250
+export var double_click_time: int = 400
 
 var selected = false
 var disabled = false setget set_disabled
@@ -38,10 +38,10 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	var mass = utils.ship_mass(stats)
 	var max_speed = round(max_thrust/max(1e-9,stats['drag']*mass)*10)/10
 	for weapon in stats['weapons']:
-		turrets += int(weapon['mount_type']=='turret')
-		guns += int(weapon['mount_type']=='gun')
+		turrets += int(weapon['is_turret'])
+		guns += int(weapon['is_gun'])
 		dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])
-		max_range += text_gen.approximate_range(weapon)
+		max_range = max(max_range, text_gen.approximate_range(weapon))
 	return {
 		'dps':str(round(dps)), 'guns':str(guns), 'turrets':str(turrets), 
 		'max_speed':str(max_speed), 'weapon_range':str(round(max_range))

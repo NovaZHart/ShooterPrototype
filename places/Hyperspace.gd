@@ -52,10 +52,13 @@ var stellar_systems: Array = []
 var player_fuel: float = 10.0
 var stopped_without_fuel: float = 0.0 # seconds
 
+var ship_count: int = 0
+var team_stats: Dictionary = { 0:{'count':1,'threat':1} }
+
 signal view_center_changed
 
 func depart_hyperspace():
-	var ship = $Ships.get_node_or_null(player_ship_name)
+	var ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	if not ship:
 		return
 	var y500 = Vector3(0,500,0)
@@ -77,7 +80,7 @@ func depart_hyperspace():
 
 func get_label_scale() -> float:
 	var view_size = max(1,get_viewport().size.y)
-	var camera_size = $TopCamera.size
+	var camera_size = $View/System/TopCamera.size
 	return target_label_height/view_size * camera_size
 
 func label_hyperspace():
@@ -85,7 +88,7 @@ func label_hyperspace():
 	if label_being_made and label_maker:
 		if not label_maker.step():
 			return # not done making this label
-		var system = $Systems.get_node_or_null(label_being_made)
+		var system = $View/System/Systems.get_node_or_null(label_being_made)
 		if system:
 			var shift = system.get_radius()/sqrt(2)
 			var xyz: Vector3 = Vector3(shift,0,shift)
@@ -93,33 +96,33 @@ func label_hyperspace():
 			var scale = get_label_scale()
 			label_maker.instance.scale = Vector3(scale,scale,scale)
 		label_maker.instance.name = label_being_made
-		$Labels.add_child(label_maker.instance)
+		$View/System/Labels.add_child(label_maker.instance)
 		label_being_made=''
 	
 	# Add or remove labels
-	var ul_corner: Vector3 = $TopCamera.project_position(Vector2(),0)
-	var lr_corner: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	var ul_corner: Vector3 = $View/System/TopCamera.project_position(Vector2(),0)
+	var lr_corner: Vector3 = $View/System/TopCamera.project_position(get_viewport().size,0)
 	var mid: Vector3 = (ul_corner+lr_corner)/2.0
 	mid.y=0
 	var span: Vector3 = lr_corner-mid
 	span = Vector3(abs(span.x),0,abs(span.z))
 	var del: Vector3 = label_deletion_distance*span
 	var add: Vector3 = label_generation_distance*span
-	for system in $Systems.get_children():
+	for system in $View/System/Systems.get_children():
 		var system_name: String = system.name
 		var system_pos: Vector3 = Vector3(system.translation)
 		system_pos.y=0
 		var rel_pos: Vector3 = system_pos-mid
 		rel_pos = Vector3(abs(rel_pos.x),0,abs(rel_pos.z))
-		var label = $Labels.get_node_or_null(system_name)
+		var label = $View/System/Labels.get_node_or_null(system_name)
 		if label and rel_pos.x>del.x and rel_pos.z>del.z:
 			print('remove label')
-			$Labels.remove_child(label)
+			$View/System/Labels.remove_child(label)
 			label.queue_free()
 		elif not label_being_made and not label and rel_pos.x<add.x and rel_pos.z<add.z:
 			label_being_made = system_name
 			var display_name = system.display_name
-			var color = Color($SpaceBackground.plasma_color)
+			var color = Color($View/System/SpaceBackground.plasma_color)
 			color.v = 0.7
 			if label_maker:
 				label_maker.reset(display_name,color)
@@ -140,7 +143,7 @@ func _input(event: InputEvent):
 	if selected_position==null:
 		return
 	var space: PhysicsDirectSpaceState = get_world().direct_space_state
-	var camera = $TopCamera
+	var camera = $View/System/TopCamera
 	var from = camera.project_ray_origin(selected_position)
 	from.y = camera.translation.y+500
 	var to = from + camera.project_ray_normal(selected_position)
@@ -158,7 +161,7 @@ func _input(event: InputEvent):
 func _on_destination_system_changed(path: NodePath):
 	var data_node = game_state.systems.get_node_or_null(path)
 	if data_node and data_node.has_method('is_SystemData'):
-		var scene_node = $Systems.get_node_or_null(data_node.name)
+		var scene_node = $View/System/Systems.get_node_or_null(data_node.name)
 		if scene_node and scene_node is Area:
 			mouse_selection_mutex.lock()
 			mouse_selection = scene_node.get_rid()
@@ -175,9 +178,9 @@ func clear():
 	combat_engine_mutex.lock()
 	combat_engine.clear_ai()
 	
-	for ship in $Ships.get_children():
+	for ship in $View/System/Ships.get_children():
 		ship.queue_free()
-	for planet in $Systems.get_children():
+	for planet in $View/System/Systems.get_children():
 		planet.queue_free()
 	combat_engine_mutex.unlock()
 
@@ -186,7 +189,7 @@ func get_initial_player_target():
 		return null
 	var data_node = game_state.systems.get_node_or_null(Player.destination_system)
 	if data_node:
-		var node = $Systems.get_node_or_null(data_node.name)
+		var node = $View/System/Systems.get_node_or_null(data_node.name)
 		if node==null or not node is Area:
 			push_warning('Cannot find system with name '+data_node.name)
 		else:
@@ -205,7 +208,8 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var thrust: int = int(Input.is_action_pressed('ui_up'))-int(Input.is_action_pressed('ui_down'))
 	var rotate: int = int(Input.is_action_pressed('ui_left'))-int(Input.is_action_pressed('ui_right'))
 	var land: bool = Input.is_action_just_pressed('ui_land')
-	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
+	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet') \
+		or Input.is_action_just_pressed('ui_next_enemy')
 	var deselect: bool = Input.is_action_just_pressed('ui_deselect_target')
 	var depart: bool = Input.is_action_just_pressed('ui_depart')
 	
@@ -252,14 +256,14 @@ func make_player_orders(_delta: float) -> Dictionary:
 	return result
 
 func _enter_tree() -> void:
-	game_state.switch_editors(self)
+	universe_edits.push_editors(self)
 	combat_engine.change_worlds(get_viewport().world)
 	combat_engine.set_system_stats(true,-1.0,0.0)
 	old_target_fps = Engine.target_fps
 	Engine.target_fps = Engine.iterations_per_second
 
 func _exit_tree():
-	game_state.switch_editors(null)
+	universe_edits.pop_editors()
 	if old_target_fps != null:
 		Engine.target_fps = old_target_fps
 	Player.disconnect('destination_system_changed',self,'_on_destination_system_changed')
@@ -271,8 +275,8 @@ func change_selection_to(new_selection,_center: bool = false) -> bool:
 	return true
 
 func visible_region() -> AABB:
-	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
-	var lr: Vector3 = $TopCamera.project_position(get_viewport().size,0)
+	var ul: Vector3 = $View/System/TopCamera.project_position(Vector2(0,0),0)
+	var lr: Vector3 = $View/System/TopCamera.project_position(get_viewport().size,0)
 	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
 		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
 
@@ -280,7 +284,7 @@ func visible_region_expansion_rate() -> Vector3:
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
 	if not player_ship_stats:
 		return Vector3(0,0,0)
-	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	if not player_ship:
 		return Vector3(0,0,0)
 	var rate: float = utils.ship_max_speed(player_ship.combined_stats,
@@ -292,7 +296,7 @@ func _process(delta: float) -> void:
 	visual_tick += max(1,round(delta*60.0))
 	if dialog_paused:
 		return
-	combat_engine.draw_space($TopCamera,get_tree().root)
+	combat_engine.draw_space($View/System/TopCamera,get_tree().root)
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
 	combat_engine.step_visual_effects(delta,get_viewport().world)
@@ -315,17 +319,18 @@ func _ready():
 	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT_STATIONARY)
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):
 		push_error("Cannot connect to Player destination_system_changed signal.")
-	$Ships.add_child(player_ship)
+	$View/System/Ships.add_child(player_ship)
 	interstellar_systems = game_state.universe.get_interstellar_systems().keys()
 	stellar_systems = game_state.universe.get_stellar_systems().keys()
 	for system_name in stellar_systems:
 		var system_entrance = SystemEntrance.instance()
 		if system_entrance.init_system(system_name):
-			$Systems.add_child(system_entrance)
+			$View/System/Systems.add_child(system_entrance)
 		else:
 			push_warning(system_name+': could not add system')
 	_on_destination_system_changed(Player.destination_system)
 	center_view()
+	combat_engine.init_combat_state(null,self,false)
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
 	if OK!=get_viewport().connect('size_changed',self,'_on_viewport_size_changed'):
@@ -336,7 +341,7 @@ func _on_viewport_size_changed():
 
 func pack_ship_stats_if_not_sent():
 	if not sent_systems_and_player:
-		var player_ship = $Ships.get_node_or_null(player_ship_name)
+		var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 		var packed: Dictionary = player_ship.pack_stats()
 		var target = get_initial_player_target()
 		if target:
@@ -347,22 +352,22 @@ func pack_ship_stats_if_not_sent():
 func pack_system_stats_if_not_sent() -> Array:
 	var new_planets_packed: Array = []
 	if not sent_systems_and_player:
-		for planet in $Systems.get_children():
+		for planet in $View/System/Systems.get_children():
 			new_planets_packed.append(planet.pack_stats())
 	return new_planets_packed
 
 func get_world():
 	return get_viewport().get_world()
 func get_player_rid() -> RID:
-	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	return RID() if player_ship==null else player_ship.get_rid()
 
 func get_player_target_rid() -> RID:
 	var new_target = latest_target_info.get('new','')
-	var target_ship = $Ships.get_node_or_null(new_target)
+	var target_ship = $View/System/Ships.get_node_or_null(new_target)
 	if target_ship!=null:
 		return target_ship.get_rid()
-	var target_planet = $Systems.get_node_or_null(new_target)
+	var target_planet = $View/System/Systems.get_node_or_null(new_target)
 	if target_planet!=null:
 		return target_planet.get_rid()
 	return RID() 
@@ -376,7 +381,7 @@ func _physics_process(delta):
 	var new_systems_packed: Array = pack_system_stats_if_not_sent().duplicate(true)
 	sent_systems_and_player = true
 	
-	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	var player_ship_rid = RID() if player_ship==null else player_ship.get_rid()
 	var old_player_target_name = ''
 	if ship_stats.has(player_ship_name):
@@ -394,7 +399,7 @@ func _physics_process(delta):
 		delta,new_ships_packed,new_systems_packed,
 		orders_copy,player_ship_rid,space,update_request_rids)
 	
-	var player_died: bool = $Ships.get_node_or_null(player_ship_name) == null
+	var player_died: bool = $View/System/Ships.get_node_or_null(player_ship_name) == null
 	for ship_name in result.keys():
 		var ship: Dictionary = result[ship_name]
 		var fate: int = ship.get('fate',combat_engine.FATED_TO_FLY)
@@ -402,17 +407,17 @@ func _physics_process(delta):
 			if ship_name==player_ship_name:
 				var stats = result[ship_name]
 				player_fuel = stats.get('fuel',10.0)
-				$PlayerInfo.update_ship_stats(result[ship_name])
+				$View/System/PlayerInfo.update_ship_stats(result[ship_name])
 			continue # ship is still flying
 		player_died = player_died or ship_name == player_ship_name
-		var ship_node = $Ships.get_node_or_null(ship_name)
+		var ship_node = $View/System/Ships.get_node_or_null(ship_name)
 		if ship_node==null:
 			continue
 		if ship_name==player_ship_name:
 			#emit_signal('player_target_changed',self) # remove target display (if any)
 			if fate==combat_engine.FATED_TO_LAND:
 				var planet_name = ship.get('target_name','no-name')
-				var node = $Systems.get_node_or_null(planet_name)
+				var node = $View/System/Systems.get_node_or_null(planet_name)
 				if node==null:
 					push_warning('SYSTEM '+planet_name+' HAS NO NODE!')
 				else:
@@ -448,24 +453,24 @@ func _physics_process(delta):
 	combat_engine_mutex.unlock()
 
 func set_zoom(zoom: float,original: float=-1) -> void:
-	var from: float = original if original>1 else $TopCamera.size
-	$TopCamera.size = clamp(zoom*from,min_camera_size,max_camera_size)
+	var from: float = original if original>1 else $View/System/TopCamera.size
+	$View/System/TopCamera.size = clamp(zoom*from,min_camera_size,max_camera_size)
 
 func center_view(center=null) -> void:
 	if center==null:
-		var player_ship = $Ships.get_node_or_null(player_ship_name)
-		var center_object = $TopCamera 
+		var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
+		var center_object = $View/System/TopCamera 
 		if player_ship!=null:
 			center_object=player_ship
 		center = center_object.translation
-	var size=$TopCamera.size
-	$TopCamera.translation = Vector3(center.x, 50, center.z)
-	$SpaceBackground.center_view(center.x,center.z,0,size,30)
-	$Minimap.view_center_changed(Vector3(center.x,50,center.z),Vector3(size,0,size))
+	var size=$View/System/TopCamera.size
+	$View/System/TopCamera.translation = Vector3(center.x, 50, center.z)
+	$View/System/SpaceBackground.center_view(center.x,center.z,0,size,30)
+	$View/System/Minimap.view_center_changed(Vector3(center.x,50,center.z),Vector3(size,0,size))
 	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))
 
 func receive_player_orders(new_orders: Dictionary) -> void:
-	var player_ship = $Ships.get_node_or_null(player_ship_name)
+	var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	if player_ship!=null:
 		var rid: RID = player_ship.get_rid()
 		var id: int = rid.get_id()

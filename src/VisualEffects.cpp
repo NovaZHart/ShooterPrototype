@@ -230,6 +230,8 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   VisualServer *visual_server = VisualServer::get_singleton();
   RID rid = visual_server->instance_create2(mesh->get_rid(),scenario);
   visual_server->instance_set_transform(rid,trans);
+  visual_server->instance_set_layer_mask(rid,EFFECTS_LIGHT_LAYER_MASK);
+  visual_server->instance_geometry_set_cast_shadows_setting(rid,0);
   if(rid.get_id()) {
     effect.instance = allocate_visual_rid(rid);
   } else {

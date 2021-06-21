@@ -1,0 +1,45 @@
+Top-down:
+
+
+Factions are groups with common political goals. In-game, they have
+relations that are non-changing long-term except by storyline
+actions. 
+
+The relations are represented with floating-point numbers in a matrix
+that may not be symmetric. Negative numbers means hostile relations,
+positive means friendly relations, and zero means indifferent. The
+larger the number, the more they want to fight each other in space.
+
+Each host of the player will have its own faction. The relations will
+be set initially based on where the host came from. For example, if
+the host was part of a government, the relations will be the same as
+for that government.
+
+In space, there may be a short-lived change of relations if one shoots
+the other.  For example, if Faction A hates Faction B, but Faction B
+likes Faction A, then Faction B will never shoot first. Once Faction A
+shoots Faction B, Faction B will reciprocate. That temporary change in
+relations ends once the player leaves the system.
+
+The exception to this is the player's faction, whose relations change
+based on combat in the system. If they attack a faction, that
+faction's opinion of them will drop permanently.
+
+All of that can be overridden by storyline events.
+
+
+
+
+
+
+
+TO DO:
+
+Recheck everything
+Compile gdscript code
+Make it run
+Add a third faction with cargo ships
+Faction affinity inheritence
+Unified faction for cargo + patrol. Both factions inherit the unified faction's affinities
+
+Faction editor

@@ -10,7 +10,6 @@ config_version=4
 
 _global_script_classes=[  ]
 _global_script_class_icons={
-
 }
 
 [application]
@@ -25,6 +24,7 @@ utils="*res://globals/Utils.gd"
 simple_tree="*res://globals/SimpleTree.gd"
 text_gen="*res://globals/TextGen.gd"
 undo_tool="*res://globals/UndoTool.gd"
+Factions="*res://globals/Factions.gd"
 Commodities="*res://globals/Commodities.gd"
 game_state="*res://globals/GameState.gd"
 universe_edits="*res://globals/UniverseEdits.gd"
@@ -37,6 +37,8 @@ input_state="*res://globals/InputState.gd"
 
 [display]
 
+window/size/width=1600
+window/size/height=900
 window/size/borderless=true
 
 [gui]
@@ -186,8 +188,11 @@ common/enable_object_picking=false
 [rendering]
 
 threads/thread_model=2
+quality/shadow_atlas/quadrant_1_subdiv=3
+quality/shadow_atlas/quadrant_2_subdiv=4
+quality/shadow_atlas/quadrant_3_subdiv=6
+quality/reflections/texture_array_reflections=false
 quality/reflections/high_quality_ggx=false
-quality/depth_prepass/enable=false
 quality/subsurface_scattering/quality=0
 quality/subsurface_scattering/weight_samples=false
 environment/default_environment="res://default_env.tres"

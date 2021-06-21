@@ -2,11 +2,13 @@ extends Area
 
 var scene: PackedScene
 
-# From item_size_x, item_size_y, page, mount_type of *Stats.gd:
+# From item_size_x, item_size_y, page, mount_flags of *Stats.gd:
 var nx: int = 2
 var ny: int = 2
 var page: String = 'weapons'
-var mount_type: String = ''
+var mount_flags: int = 0
+var mount_flags_all: int = 0
+var mount_flags_any: int = 0
 var mount_name: String = '' setget ,get_mount_name
 
 # x,y location within an InventoryArray
@@ -74,15 +76,16 @@ func color(mask: int):
 			if child!=null:
 				child.layers = child.layers&~LIGHT_LAYER_MASK | mask
 
-func update_coloring(size_x: int,size_y: int,pos,type: String):
+func update_coloring(pos,item):
 	if my_x>0:
 		var parent=get_parent()
 		if parent:
-			parent.update_coloring(size_x,size_y,pos,type)
+			parent.update_coloring(pos,item)
 	else:
 		var mask: int = 0
 		# special case: no type means deselect
-		if type and (size_x>nx or size_y>ny or type!=mount_type):
+		if item and (item.item_size_x>nx or item.item_size_y>ny or \
+				not utils.can_mount(mount_flags,item)):
 			mask |= RED_LIGHT_LAYER_MASK
 		elif pos!=null:
 			var pos3_half_x: float = ny*box_scale
@@ -101,10 +104,12 @@ func copy_only_item() -> Area:
 	new.create_item(scene,false)
 	return new
 
-func create_only_box(nx_: int,ny_: int,mount_type_: String):
+func create_only_box(nx_: int,ny_: int,mount_flags_: int):
 	nx=nx_
 	ny=ny_
-	mount_type=mount_type_
+	mount_flags=mount_flags_
+	mount_flags_any=0
+	mount_flags_all=0
 	collision_layer=16
 	var shape: CollisionShape = CollisionShape.new()
 	shape.shape = BoxShape.new()
@@ -112,7 +117,7 @@ func create_only_box(nx_: int,ny_: int,mount_type_: String):
 	shape.name='shape'
 	add_child(shape)
 	make_box()
-	assert(mount_type)
+	assert(mount_flags)
 
 func create_item(scene_: PackedScene,with_box: bool,position = null,item = null):
 	scene=scene_
@@ -122,7 +127,11 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 	nx=item.mount_size_x
 	ny=item.mount_size_y
 	page=item.help_page
-	mount_type=item.mount_type
+	mount_flags_any=item.mount_flags_any
+	mount_flags_all=item.mount_flags_all
+	mount_flags=0
+	
+	assert(nx>0 and ny>0)
 	
 	if position!=null:
 		assert(position is Vector2)
@@ -139,13 +148,17 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 	collision_mask = 0
 	item.name='item'
 	item.transform = Transform()
-	if item.mount_type=='gun':
+	if item.is_gun():
 		item.translation.x = (item.mount_size_y-1.0)*item_scale
 	add_child(item)
 	
 	if with_box:
 		make_box()
-	assert(mount_type)
+	assert(mount_flags_all or mount_flags_any)
+
+func is_shown_in_space() -> bool:
+	var m=mount_flags_all|mount_flags_any|mount_flags
+	return m&(game_state.MOUNT_FLAG_TURRET|game_state.MOUNT_FLAG_GUN)
 
 func place_near(mount: Vector3,space: PhysicsDirectSpaceState,_mask: int):
 	var badness: float = INF

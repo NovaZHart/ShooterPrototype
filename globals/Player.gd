@@ -1,5 +1,7 @@
 extends Node
 
+const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/kindra'
+
 var player_ship_design
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
@@ -9,13 +11,14 @@ var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
-var money: int = 38000
+var money: int = 3800000
 var markets: simple_tree.SimpleNode
 var ship_parts: simple_tree.SimpleNode
 var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
 var tree: simple_tree.SimpleTree = simple_tree.SimpleTree.new(root)
 var stored_system_path
 var stored_player_path
+var player_faction = 'initial_player_faction'
 signal destination_system_changed
 
 func is_entering_from_rift() -> bool:
@@ -394,12 +397,13 @@ func ensure_ship_parts_node():
 	ship_parts = ship_parts_node
 	return ship_parts
 
-func _init():
-	assert(game_state.tree.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl')))
-	var pearl = game_state.systems.get_node_or_null(NodePath('/root/systems/alef_93/astra/pearl'))
-	assert(pearl)
+func _enter_tree():
+	var start_node: NodePath = NodePath(PLAYER_START_LOCATION)
+	assert(game_state.tree.get_node_or_null(start_node))
+	var planet = game_state.systems.get_node_or_null(start_node)
+	assert(planet)
 	
-	set_player_location(pearl.get_path())
+	set_player_location(planet.get_path())
 	assert(player_location)
 	assert(system)
 	

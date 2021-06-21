@@ -1,8 +1,8 @@
 extends Node
 
-const standalone_team_maximums: Array = [ 200,200 ]
+const standalone_max_ships_per_faction: int = 180
 const standalone_max_ships: int = 300
-const debug_team_maximums: Array = [35, 35]
+const debug_max_ships_per_faction: int = 40
 const debug_max_ships: int = 60
 
 const EPOCH_ONE_SECOND: int = 10080 # Number of epoch ticks in one second.
@@ -18,9 +18,16 @@ const EPOCH_ONE_DAY: int = EPOCH_ONE_HOUR*24
 
 const EPOCH_GAME_START: int = 0 # = January 1, 2770
 
+const MOUNT_FLAG_INTERNAL: int = 1
+const MOUNT_FLAG_EXTERNAL: int = 2
+const MOUNT_FLAG_GUN: int = 4
+const MOUNT_FLAG_TURRET: int = 8
+const MOUNT_FLAG_EQUIPMENT: int = 16
+const MOUNT_FLAG_ENGINE: int = 32
+
 var epoch_time: int = EPOCH_GAME_START
-var team_maximums: Array = standalone_team_maximums
 var max_ships: int = standalone_max_ships
+var max_ships_per_faction: int = standalone_max_ships_per_faction
 
 var Universe = preload('res://places/Universe.gd')
 var PlanetServices = load('res://ui/PlanetServices.gd')
@@ -41,6 +48,7 @@ var systems
 var ship_designs
 var fleets
 var ui
+var factions
 
 const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
 
@@ -73,6 +81,40 @@ func change_scene(to):
 		return get_tree().change_scene_to(to)
 	else:
 		return get_tree().change_scene(to)
+
+var background_cache = null setget set_background_cache, get_background_cache
+var background_mutex = Mutex.new()
+var starfield_cache = null setget set_starfield_cache, get_starfield_cache
+var starfield_mutex = Mutex.new()
+
+func get_background_cache():
+	return background_cache
+func set_background_cache(c):
+	if c.bg_texture:
+		background_mutex.lock()
+		background_cache=c
+		background_mutex.unlock()
+
+func get_starfield_cache():
+	return starfield_cache
+func set_starfield_cache(c):
+	if c.bg_texture:
+		starfield_mutex.lock()
+		starfield_cache=c
+		starfield_mutex.unlock()
+
+class CachedImage extends Reference:
+	var bg_seed
+	var bg_color
+	var bg_texture
+	var hyperspace
+	func _init(bg_seed_, bg_color_, bg_texture_, hyperspace_):
+		assert(bg_texture_)
+		bg_seed=bg_seed_
+		bg_color=bg_color_
+		bg_texture=bg_texture_
+		hyperspace=hyperspace_
+		assert(bg_texture)
 
 class KeyEditorStub extends Control:
 	func add_ui_for_action_event(_action: String, _event: InputEvent, _index: int) -> bool:
@@ -115,7 +157,7 @@ class ShipEditorStub extends Panel:
 	func cancel_drag() -> bool:
 		return true
 
-class HyperspaceStub extends Node2D:
+class HyperspaceStub extends Node:
 	func change_selection_to(_what, _center: bool = false) -> bool:
 		return true
 	func deselect(_what) -> bool:
@@ -185,8 +227,35 @@ var key_editor = KeyEditorStub.new()
 var fleet_tree_selection = null
 var game_editor_mode = false
 
+var editor_stack: Array = []
+
 func set_key_editor(what):
 	key_editor = what if(what is KeyEditorStub) else KeyEditorStub.new()
+
+func pop_editors():
+	var popped = editor_stack.pop_back() if editor_stack else {}
+	if popped:
+		sector_editor = popped['sector_editor']
+		system_editor = popped['system_editor']
+		ship_editor = popped['ship_editor']
+		fleet_editor = popped['fleet_editor']
+		hyperspace = popped['hyperspace']
+	else:
+		sector_editor = SectorEditorStub.new()
+		system_editor = SystemEditorStub.new()
+		ship_editor = ShipEditorStub.new()
+		fleet_editor = ShipEditorStub.new()
+		hyperspace = HyperspaceStub.new()
+
+func push_editors(what):
+	editor_stack.push_back({
+		'sector_editor': sector_editor,
+		'system_editor': system_editor,
+		'ship_editor': ship_editor,
+		'fleet_editor': fleet_editor,
+		'hyperspace': hyperspace
+	})
+	switch_editors(what)
 
 func switch_editors(what):
 	for design in ship_designs.get_children():
@@ -232,6 +301,7 @@ func load_universe_from_json(file_path: String):
 	if not universe.load_places_from_json(file_path):
 		push_error('Failed to load places from json at path "'+file_path+'"')
 		return false
+	universe.get_tree().call_ready()
 	emit_signal('universe_postload')
 
 func assemble_ship(design_path: NodePath): # -> RigidBody or null
@@ -241,44 +311,59 @@ func assemble_ship(design_path: NodePath): # -> RigidBody or null
 		return null
 	return design.assemble_ship()
 
-func _init():
+func load_universe():
+	# Destroy the universe:
 	universe = Universe.new()
-	tree = simple_tree.SimpleTree.new(universe)
+	if tree:
+		tree.set_root(universe)
+	else:
+		tree = simple_tree.SimpleTree.new(universe)
+	
+	# Basic checks:
+	assert(universe)
 	assert(tree.root==universe)
 	assert(tree.root.children_.has('ship_designs'))
 	assert(tree.root.children_.has('systems'))
 	assert(tree.root.children_.has('fleets'))
 	assert(universe.is_root())
 	assert(universe.get_path_str()=='/root')
+	
+	# Actually load the universe here:
 	universe.load_places_from_json('res://places/universe.json')
 	assert(tree.root.children_.has('ship_designs'))
 	assert(tree.root.children_.has('systems'))
+	
+	# Make aliases for parts of the universe:
 	ship_designs = universe.ship_designs
 	systems = universe.systems
 	fleets = universe.fleets
 	ui = universe.ui
+	factions = universe.factions
+	
+	# More basic checks:
 	assert(ship_designs)
 	assert(ship_designs is simple_tree.SimpleNode)
 	assert(not ship_designs.has_method('is_SpaceObjectData'))
 	assert(not ship_designs.has_method('is_SystemData'))
 
-#	assert(systems.get_child_with_name('alef_93'))
-#	assert(systems.get_node_or_null(NodePath('alef_93')))
-#	assert(systems.get_node_or_null(NodePath('alef_93/astra')))
-	assert(tree.root.children_.has('ship_designs'))
-	assert(tree.root.children_.has('systems'))
-	
-	if not OS.has_feature('standalone'):
-		max_ships = debug_max_ships
-		team_maximums = debug_team_maximums
-		print('Reducing ship count for debug build: ',max_ships,' ',team_maximums)
-	services['test'] = PlanetServices.ChildInstanceService.new(
-		'Service Text',preload('res://ui/TestService.tscn'))
-	services['alttest'] = PlanetServices.ChildInstanceService.new(
-		'Service Button',preload('res://ui/AltTestService.tscn'))
+func make_services():
 	services['info'] = PlanetServices.PlanetDescription.new(
 		'Planet Description',preload('res://ui/PlanetDescription.tscn'))
 	services['shipeditor'] = PlanetServices.SceneChangeService.new(
 		'Shipyard',load('res://ui/ships/ShipDesignScreen.tscn'))
 	services['market'] = PlanetServices.SceneChangeService.new(
 		'Market',load('res://ui/commodities/TradingScreen.tscn'))
+	
+	# For debugging services code:
+	services['test'] = PlanetServices.ChildInstanceService.new(
+		'Service Text',preload('res://ui/TestService.tscn'))
+	services['alttest'] = PlanetServices.ChildInstanceService.new(
+		'Service Button',preload('res://ui/AltTestService.tscn'))
+
+func _enter_tree():
+	load_universe()
+	make_services()
+	if not OS.has_feature('standalone'):
+		max_ships = debug_max_ships
+		max_ships_per_faction = debug_max_ships_per_faction
+		print('Reducing ship count for debug build: ',max_ships,' ',max_ships_per_faction)

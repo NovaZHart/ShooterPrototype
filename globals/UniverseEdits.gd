@@ -2,6 +2,20 @@ extends Node
 
 var state = undo_tool.UndoStack.new(false)
 const SpaceObjectData = preload('res://places/SpaceObjectData.gd')
+var editor_stack: Array = []
+
+func push_editors(what):
+	editor_stack.push_back(state)
+	state = undo_tool.UndoStack.new(false)
+	game_state.push_editors(what)
+
+func pop_editors():
+	var popped = editor_stack.pop_back() if editor_stack else null
+	if popped:
+		state = popped
+	else:
+		state = undo_tool.UndoStack.new(false)
+	game_state.pop_editors()
 
 class AddSystem extends undo_tool.Action:
 	var system

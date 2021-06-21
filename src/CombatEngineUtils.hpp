@@ -15,6 +15,7 @@
 #include <RID.hpp>
 #include <GodotGlobal.hpp>
 #include <OS.hpp>
+#include <PoolArrays.hpp>
 
 #include "DVector3.hpp"
 #include "CombatEngineData.hpp"
@@ -163,8 +164,16 @@ namespace godot {
     inline real_t dot2(const Vector3 &a, const Vector3 &b) {
       return a.x*b.x + a.z*b.z;
     }
+    
+    inline double dot2(const DVector3 &a, const DVector3 &b) {
+      return a.x*b.x + a.z*b.z;
+    }
 
     inline real_t cross2(const Vector3 &a, const Vector3 &b) {
+      return a.z*b.x - a.x*b.z;
+    }
+
+    inline double cross2(const DVector3 &a, const DVector3 &b) {
       return a.z*b.x - a.x*b.z;
     }
 
@@ -179,7 +188,7 @@ namespace godot {
     inline uint32_t state_for_name(const String &name) {
       return name.hash();
     }
-
+    
     template<bool FIRST,class F,class C>
     CE::object_id select_target(const typename C::key_type &start,const F &selection_function,
                                 const C&container) {

@@ -28,19 +28,11 @@ handle_input_locally = false
 render_target_update_mode = 3
 
 [node name="ShipLight" type="DirectionalLight" parent="Viewport"]
-transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.90081, 10.6671, 9.82405 )
+transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.901, 30, 9.824 )
 light_indirect_energy = 0.0
-light_cull_mask = 4293918722
-shadow_enabled = true
-shadow_bias = -0.21
-
-[node name="EquipmentLight" type="DirectionalLight" parent="Viewport"]
-transform = Transform( 0.621162, 0.258923, -0.739673, 0.0939634, 0.912428, 0.398304, 0.778029, -0.316914, 0.542436, 4.90081, 10.6671, 9.82405 )
-light_energy = 0.1
-light_indirect_energy = 0.0
-light_cull_mask = 4293918721
-shadow_enabled = true
-shadow_contact = 0.1
+light_cull_mask = 4293918723
+shadow_bias = 2.0
+shadow_contact = 12.0
 
 [node name="SpaceBackground" parent="Viewport" instance=ExtResource( 3 )]
 transform = Transform( 0.125, 0, 0, 0, 0.125, 0, 0, 0, 0.125, 0, -10, 0 )
@@ -74,8 +66,10 @@ current = true
 size = 10.0
 
 [node name="MountPoints" type="Spatial" parent="Viewport"]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 6, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, 0 )
 
 [node name="Installed" type="Spatial" parent="Viewport"]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 9, 0 )
 script = ExtResource( 4 )
+
 [connection signal="resized" from="." to="." method="_on_ViewportContainer_resized"]

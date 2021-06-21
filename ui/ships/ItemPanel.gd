@@ -202,7 +202,7 @@ func add_mountable_part(scene: PackedScene) -> bool:
 	if not item is MeshInstance:
 		push_error('Tried to add an item that was not a MeshInstance.')
 		return false
-	if not item.has_method('is_mount_point'):
+	if not item.has_method('is_mountable'):
 		push_error('Tried to add an item of an invalid type.')
 		return false
 	var area: Area = Area.new()

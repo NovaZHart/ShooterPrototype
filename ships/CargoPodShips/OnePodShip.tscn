@@ -1,0 +1,125 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=1]
+[ext_resource path="res://ships/CargoPodShips/OnePodShip.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://ships/CargoPodShips/PodSpawnPoint.gd" type="Script" id=3]
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=4]
+
+[sub_resource type="ConvexPolygonShape" id=1]
+points = PoolVector3Array( 0, 1, 10, 0, 1, -10, 0, 1, 10, 0, 1, -10, -1, -1, 10, 1, -1, -10, 1, -1, 10, -1, -1, -10, 0, 1, 10, 0, 1, -10, 0, 1, -10, 0, 1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10, -1, -1, 10, -1, -1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10 )
+
+[node name="OnePodShip" type="RigidBody"]
+script = ExtResource( 1 )
+base_mass = 220.0
+base_thrust = 3500.0
+base_reverse_thrust = 3000.0
+base_turning_thrust = 2000.0
+base_shields = 1200.0
+base_armor = 1100.0
+base_structure = 400.0
+base_fuel = 19.0
+heal_shields = 6.0
+heal_fuel = 20.0
+base_drag = 1.8
+base_turn_drag = 0.6
+base_explosion_damage = 400.0
+base_explosion_radius = 3.5
+base_explosion_impulse = 800.0
+base_max_cargo = 200
+base_battery = 1600.0
+base_power = 80.0
+
+[node name="Hull" type="MeshInstance" parent="."]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+
+[node name="PodSpawnPoint" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.042, 0.72, 0 )
+script = ExtResource( 3 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( -8.62665e-08, 1.49483, -4.37114e-08, 0, -6.53411e-08, -1, -1.97355, -6.53411e-08, 1.91069e-15, 0.398085, -1.74008e-08, -1.74008e-08 )
+shape = SubResource( 1 )
+
+[node name="PortEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.37716, 0, -0.949121 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="StarboardEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.377, 0, 0.949 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="MiddleEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.328, 0, 0 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="PortForwardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961312, 0.443365, -0.746793 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="StarboardForwardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961, 0.443, 0.747 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="StarboardAftTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.761013, 0.619312, 0.961765 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="PortAftTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.761, 0.619, -0.962 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="StarboardGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.632, -0.142, 0.562 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="PortGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.63172, -0.142, -0.562 )
+script = ExtResource( 4 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="Equipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.390945, 0 )
+script = ExtResource( 4 )
+mount_size_x = 3
+mount_size_y = 4
+mount_type = "internal equipment"
+mount_type_display = "equipment"

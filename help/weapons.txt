@@ -1,12 +1,66 @@
 
-@PAGE weapons/linear_accelerator_turret
-@title Linear Accelerator Turret
+@PAGE weapons/mass_driver
+@title Mass Driver
 @price Price:
-@synopsis A large weaponized particle accelerator.
+@synopsis Launches chunks of rock or metal at relativistic velocity using anti-gravity fields.
 @content
-This linear particle accelerator uses powerful superconducting magnets to accelerate particles near the speed of light over a very short distance. Though it is much larger than the [ref=weapons/cyclotron_cannon]Cyclotron Cannon[/ref], it fires twice as fast.
+This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even rubbish from the ship. Garbage bags may not sound like much of a threat, until they smash through your ship's hull at a half the speed of light.
 
-@bbcode_from_scene res://weapons/OrangeSpikeTurret.tscn
+@bbcode_from_scene res://weapons/MassDriver.tscn
+
+@PAGE weapons/harpoon_missile
+@title Harpoon Anti-Ship Missile
+@price Price:
+@synopsis Military-grade ship-to-ship missile intended for medium-sized targets.
+@content
+This small missile is designed to destroy medium-sized ships. The damage and blast radius are substantial, but the missile cannot maneuver fast enough to keep up with fighters.
+
+@bbcode_from_scene res://weapons/GreyMissileLauncher.tscn
+
+@PAGE weapons/anthropomancer
+@title Anthropomancer Missile
+@price Price:
+@synopsis High-damage homing missile with a wide blast radius.
+@content
+This weapon of mass destruction is intended to target large ships or tight groups of small ships. The damage radius is about the size of a capital ship, and it does enough damage to destroy some fighters in one hit. Though it does home in on its target, the missile turns slowly, so it has trouble tracking small ships.
+
+@bbcode_from_scene res://weapons/BigRedMissileLauncher.tscn
+
+@PAGE weapons/nuclear_pumped_laser
+@title Nuclear-Pumped Laser
+@price Price:
+@synopsis Military-grade X-ray laser
+@content
+This weaponized laser uses fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. Because it contains its own power source, the power draw of this weapon is minimal, but it generates immense amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaser.tscn
+
+@PAGE weapons/nuclear_pumped_laser_turret
+@title Nuclear-Pumped Laser Turret
+@price Price:
+@synopsis Military-grade X-ray laser turret
+@content
+This weaponized laser uses fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. Because it contains its own power source, the power draw of this weapon is minimal, but it generates immense amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret.tscn
+
+@PAGE weapons/he_cyclotron
+@title High-Energy Cyclotron Turret
+@price Price:
+@synopsis Military-grade, high-energy, cyclotron, in a turret mount.
+@content
+This cyclotron uses advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. It fires slower than civilian-grade [ref=weapons/linear_accelerator_turret]Linear Accelerator Turret[/ref], but does far more damage per shot.
+
+@bbcode_from_scene res://weapons/BlueLoopTurret.tscn
+
+@PAGE weapons/he_linear
+@title High-Energy Linear Accelerator
+@price Price:
+@synopsis Military-grade, high-energy, particle accelerator in a gun mount.
+@content
+This linear accelerator uses fine-scale anti-gravity fields and powerful magnetic fields to accelerate particles to extreme velocity over a short distance. It does far more damage than civilian-grade weaponry, but with much higher heat and power.
+
+@bbcode_from_scene res://weapons/BigParticleGun.tscn
 
 @PAGE weapons/df_laser
 @title Deuterium-Fluoride Laser
@@ -35,6 +89,15 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 
 @bbcode_from_scene res://weapons/GreenLaserGun.tscn
 
+@PAGE weapons/gamma_ray_laser_turret
+@title Gamma Ray Laser Turret
+@price Price:
+@synopsis A turret-mounted industrial laser that does immense damage
+@content
+Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
+
+@bbcode_from_scene res://weapons/GreenLaserTurret.tscn
+
 @PAGE weapons/shockwave_torpedo
 @title Shockwave Torpedo
 @price Price:
@@ -42,15 +105,26 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 @content
 This gun fires small self-propelled torpedoes with simple guidance systems that home in on a target. Each torpedo a stores two super-heated, highly volatile, chemicals that are so hot no known physical barrier can hold them. Instead, the torpedoes contain them using energy shields. When they reach their target, the containers break, the chemicals mix, and explode with a significant blast radius.
 
-This is one of the largest and most dangerous weapons produced in human space.
+This is the strongest civilian-grade weapon available in human space.
 
 @bbcode_from_scene res://weapons/PurpleHomingGun.tscn
 
-@PAGE weapons/cyclotron_cannon
-@title Cyclotron Cannon
+@PAGE weapons/linear_accelerator_gun
+@title Linear Accelerator
 @price Price:
 @synopsis A weaponized particle accelerator.
 @content
-This isochronous cyclotron, built from superconducting magnets, has been installed in a gun. It fires bursts of particles near the speed of light, cooling the gun between each burst.
+This linear particle accelerator uses powerful superconducting magnets to accelerate particles near the speed of light over a very short distance. It emits the particles in bursts, cooling the gun between shots.
 
 @bbcode_from_scene res://weapons/OrangeSpikeGun.tscn
+
+@PAGE weapons/linear_accelerator_turret
+@title Linear Accelerator Turret
+@price Price:
+@synopsis A large weaponized particle accelerator.
+@content
+This linear particle accelerator uses powerful superconducting magnets to accelerate particles near the speed of light over a very short distance. It emits the particles in bursts, cooling the gun between shots.
+
+Though this turret is much larger than the [ref=weapons/linear_accelerator_gun]gun version[/ref], it fires twice as fast, due to a built-in cooling system.
+
+@bbcode_from_scene res://weapons/OrangeSpikeTurret.tscn

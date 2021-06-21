@@ -21,5 +21,6 @@ add_explosion_radius = 2.0
 add_explosion_impulse = 300.0
 item_size_x = 4
 item_size_y = 4
-mount_type = "engine"
+mount_type_all = "engine"
+mount_type_display = "engine"
 help_page = "engine/test"

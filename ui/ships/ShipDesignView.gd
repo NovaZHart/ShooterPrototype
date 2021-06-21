@@ -11,7 +11,7 @@ const INSTALLED_LAYER_MASK: int = 2
 const MOUNT_POINT_LAYER_MASK: int = 4
 const MULTIMOUNT_LAYER_MASK: int = 32
 
-const ITEM_LIGHT_CULL_LAYER: int = 1
+const ITEM_LIGHT_CULL_LAYER: int = 2
 const SHIP_LIGHT_CULL_LAYER: int = 2
 const RED_LIGHT_CULL_LAYER: int = 8
 
@@ -60,28 +60,35 @@ func update_hover(what):
 class MountData extends simple_tree.SimpleNode:
 	var nx: int
 	var ny: int
-	var mount_type: String
+	var mount_flags: int
 	var transform: Transform
 	var box: NodePath
 	var box_translation: Vector3
-	var multimount: bool
+	var multimount: bool = false
 	var content: NodePath = NodePath()
 	var scene = null # : PackedScene or null
+	
+	func is_shown_in_space() -> bool:
+		return not not mount_flags&(game_state.MOUNT_FLAG_TURRET|game_state.MOUNT_FLAG_GUN)
 	
 	func _init(child,ship_design_view: ViewportContainer):
 		var loc: Vector3 = Vector3(child.translation.x,0,child.translation.z)
 		nx = child.mount_size_x
 		ny = child.mount_size_y
 		set_name(child.name)
-		mount_type = child.mount_type
+		mount_flags = child.mount_flags
 		transform = child.transform
 		
-		multimount = child.mount_type=='equipment'
+		multimount = child.is_multimount()
+		
+		if multimount and child.name.find('Gun')>=0:
+			push_warning('fuck godot with a multimount '+str(child.name))
+		
 		var mp
 		if multimount:
-			mp = ship_design_view.multimount_point(nx,ny,loc,child.mount_type,child.name)
+			mp = ship_design_view.multimount_point(nx,ny,loc,child.mount_flags,child.name)
 		else:
-			mp = ship_design_view.mount_point(nx,ny,loc,child.name,child.mount_type)
+			mp = ship_design_view.mount_point(nx,ny,loc,child.name,child.mount_flags)
 		box_translation = mp.translation
 		box = mp.get_path()
 
@@ -97,7 +104,7 @@ func deselect():
 	selection_click=null
 	selection_dragging=false
 	selected_scene=null
-	emit_signal('update_coloring',-1,-1,null,'')
+	emit_signal('update_coloring',null,null)
 
 func get_cell_pixel_height() -> float:
 	var view_size: Vector2 = $Viewport.size
@@ -177,7 +184,7 @@ func _input(event):
 			if collider and collider.has_method('is_InventorySlot'):
 				if collider.my_x<0:
 					if is_location_select:
-						emit_signal('select_item',collider)
+						emit_signal('select_item',collider,collider.scene)
 						selection_click = mouse_pos
 						selection = collider.get_path()
 						selected_scene = collider.scene
@@ -214,9 +221,9 @@ func dragging_item(item: MeshInstance):
 	var path = collider.get_path() if collider!=null else NodePath()
 	if old_collider_path!=path or old_drag_location.distance_to(pos3)>0.05:
 		if collider:
-			collider.update_coloring(item.item_size_x,item.item_size_y,pos3,item.mount_type)
+			collider.update_coloring(pos3,item)
 		else:
-			emit_signal('update_coloring',item.item_size_x,item.item_size_y,pos3,item.mount_type)
+			emit_signal('update_coloring',pos3,item)
 	old_collider_path=path
 	old_drag_location=pos3
 
@@ -267,11 +274,11 @@ func clear_ship():
 		$Viewport/MountPoints.remove_child(child)
 		child.queue_free()
 
-func multimount_point(width: int,height: int,loc: Vector3,mount_type: String,box_name: String) -> Spatial:
+func multimount_point(width: int,height: int,loc: Vector3,mount_flags: int,box_name: String) -> Spatial:
 	# Create an area that allows multiple non-overlapping items to be mounted
 	var box: Spatial = Spatial.new()
 	box.set_script(InventoryArray)
-	box.create(width,height,mount_type)
+	box.create(width,height,mount_flags)
 	# Note: equipment box is not displaced, unlike regular mounts.
 	box.translation = Vector3(loc.x,0,loc.z)
 	box.name=box_name
@@ -279,11 +286,11 @@ func multimount_point(width: int,height: int,loc: Vector3,mount_type: String,box
 	$Viewport/MountPoints.add_child(box)
 	return box
 
-func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_type: String) -> Area:
+func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_flags: int) -> Area:
 	# Create an area that allows only one item to be mounted
 	var box: Area = Area.new()
 	box.set_script(InventorySlot)
-	box.create_only_box(width,height,mount_type)
+	box.create_only_box(width,height,mount_flags)
 	box.place_near(loc,ship_world().direct_space_state, \
 		MOUNT_POINT_LAYER_MASK | SHIP_LAYER_MASK)
 	box.translation.y = loc.y
@@ -309,8 +316,9 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 	if not mount_name:
 		push_warning('Tried to drag into mount "'+mount_name+'" which does not exist.')
 		return false
-	if mount.mount_type != item.mount_type:
-		print('Mount type mismatch: item='+item.mount_type+' mount='+mount.mount_type)
+	if not utils.can_mount(mount.mount_flags,item):
+		push_error('Mount type mismatch: item="'+utils.mountable_string_for(item)+ \
+			'" mount="'+utils.mount_string_for(mount)+'"')
 		return false
 	var x = -1
 	var y = -1
@@ -319,6 +327,22 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 		var slot_xy = inventory_array.slot_xy_for(pos3,item.item_size_x,item.item_size_y)
 		x=slot_xy[0]
 		y=slot_xy[1]
+		var check: Array = inventory_array.check_at_grid_range(item.item_size_x,item.item_size_y,x,y)
+		if len(check)==1:
+			return false
+		var size: int = len(check)
+		size /= 2
+		for i in range(size):
+			var installed = get_node_or_null(check[i*2])
+			if not installed:
+				push_error('Item is missing from '+str(check[i]))
+				return false
+			if not installed or not universe_edits.state.push(
+					ship_edits.RemoveItem.new(check[i*2+1],mount_name,
+					installed.item_offset_x,installed.item_offset_y)):
+				push_error('Could not remove item from '+mount_name+' at '+
+					str(installed.item_offset_x)+','+str(installed.item_offset_y))
+				return false
 	var installed = $Viewport/Installed.get_node_or_null(mount_name)
 	if installed!=null and not universe_edits.state.push(
 			ship_edits.RemoveItem.new(installed.scene,mount_name,x,y)):
@@ -333,7 +357,7 @@ func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 		push_error('tried to mount on a non-existent mount "'+mount_name+'"')
 		return false
 	var content = InventoryContent.new()
-	content.create(mount.transform.origin,item.item_size_x,item.item_size_y,item.mount_type,scene,x,y)
+	content.create(mount.transform.origin,item.item_size_x,item.item_size_y,item.mount_flags_all,item.mount_flags_any,scene,x,y)
 	return try_to_mount(content, mount_name, true)
 
 func remove_item(_scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
@@ -404,7 +428,7 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 		install.collision_mask=0
 		install.collision_layer=0
 	ship_mount.add_child(install)
-	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
+	set_layer_recursively(install,ITEM_LIGHT_CULL_LAYER)
 	if install.name!=cell_name:
 		install.queue_free()
 		return false
@@ -420,10 +444,8 @@ func place_in_single_mount(content, mount: MountData) -> bool:
 	mount.content = copy_to_installed(mount.get_name(),content,mount.box_translation)
 	mount.scene = content.scene
 	
-	var make_visible = mount.mount_type=='gun' or mount.mount_type=='turret'
-	
 	var install = content.scene.instance()
-	install.visible = make_visible
+	install.visible = mount.is_shown_in_space() and content.is_shown_in_space()
 	install.transform = mount.transform
 	install.name = mount.get_name()
 	install.mount_size_x = mount.nx
@@ -433,7 +455,7 @@ func place_in_single_mount(content, mount: MountData) -> bool:
 		child.replace_by(install)
 	else:
 		$Viewport/Ship.add_child(install)
-	set_layer_recursively(install,SHIP_LIGHT_CULL_LAYER)
+	set_layer_recursively(install,ITEM_LIGHT_CULL_LAYER)
 	install.owner=$Viewport/Ship
 	install.name = mount.get_name()
 	return true
@@ -441,7 +463,7 @@ func place_in_single_mount(content, mount: MountData) -> bool:
 func copy_to_installed(installed_name: String,child,display_location: Vector3) -> NodePath:
 	var area = child.copy_only_item()
 	area.collision_layer = INSTALLED_LAYER_MASK
-	area.translation = Vector3(display_location.x,7,display_location.z)
+	area.translation = Vector3(display_location.x,9,display_location.z)
 	area.name = installed_name
 	var old = $Viewport/Installed.get_node_or_null(area.name)
 	if old:
@@ -529,12 +551,13 @@ func make_ship(design):
 	if design.cargo:
 		ship.set_cargo(design.cargo.copy())
 	for child in sorted_ship_children(ship):
-		if child.get('mount_type')!=null:
+		if child.get('mount_flags')!=null:
 			_discard = mounts.add_child(MountData.new(child,self))
 
 	for mount_name in decoded.get_child_names():
 		var mount = decoded.get_child_with_name(mount_name)
-		if mount and mounts.has_child(mount_name):
+		var my_mount = mounts.get_child_with_name(mount_name)
+		if mount and my_mount:
 			if mount.has_method('is_MultiMount'):
 				add_multimount_contents(mount_name,decoded)
 				continue
@@ -598,10 +621,11 @@ func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# or multimount.
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount:
-		print('no mounts for '+mount_name)
+		push_warning('no mounts for '+mount_name)
 		return false
-	if content.mount_type!=mount.mount_type:
-		print('mount type mismatch: content '+content.mount_type+' vs. mount '+mount.mount_type)
+	if not utils.can_mount(mount.mount_flags,content):
+		push_error('Mount type mismatch: item="'+utils.mountable_string_for(content)+ \
+			'" mount="'+utils.mount_string_for(mount)+'"')
 		return false
 	if not content.scene:
 		push_warning('content has no scene '+mount_name)
@@ -614,8 +638,8 @@ func try_to_mount(content, mount_name: String, use_item_offset: bool):
 class CompareMountLocations:
 	static func cmp(a: Spatial,b: Spatial) -> bool:
 		# Sort function to beautify the locations of mount points on the screen.
-		var eq_a: bool = a.mount_type=='equipment'
-		var eq_b: bool = b.mount_type=='equipment'
+		var eq_a: bool = a.mount_flags&game_state.MOUNT_FLAG_EQUIPMENT
+		var eq_b: bool = b.mount_flags&game_state.MOUNT_FLAG_EQUIPMENT
 		if eq_a and not eq_b:
 			return true
 		elif eq_b and not eq_a:
@@ -630,7 +654,7 @@ func sorted_ship_children(ship: Node) -> Array:
 	# Return a sorted list of mount names, arranged to beautify the locations of mounts.
 	var just_mounts: Array = []
 	for child in ship.get_children():
-		if child.get('mount_type')!=null:
+		if child.has_method('is_MountStats'):
 			just_mounts.append(child)
 	just_mounts.sort_custom(CompareMountLocations,'cmp')
 	return just_mounts
@@ -643,7 +667,7 @@ func set_layer_recursively(node: Node,layer: int):
 
 func _ready():
 	$Viewport.size = rect_size
-	$Viewport/SpaceBackground.update_from(Player.system)
+	#$Viewport/SpaceBackground.update_from(Player.system)
 	$Viewport/Red.layers = RED_LIGHT_CULL_LAYER
 	$Viewport/Red.light_cull_mask = RED_LIGHT_CULL_LAYER
 	$Viewport/SpaceBackground.center_view(130,90,0,120,0)

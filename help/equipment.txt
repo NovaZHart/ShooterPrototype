@@ -1,3 +1,12 @@
+@PAGE equipment/structural-reinforcement
+@title Structural Reinforcement
+@price Price:
+@synopsis Boosts ship structure and structure repair rate; weighs a lot.
+@content
+This package of reinforcement beams, insulation, repair tools, and other equipment strengthen the ship's structure and facilitate access to damaged regions. This speeds repairs of damaged systems and increases the damage a ship can take before destruction.
+
+@bbcode_from_scene res://equipment/repair/Structure2x2.tscn
+
 @PAGE equipment/test
 @title Equipment Placeholder Test
 @price Price:
@@ -42,4 +51,31 @@ This warship-class shield recharger is strong enough to fully repair a warship's
 This recharger heals a shield so quickly that it can absorb the full damage output of weaker ships.
 
 @bbcode_from_scene res://equipment/repair/Shield3x3.tscn
+
+@PAGE equipment/cargo_bay_1x2
+@title Small Cargo Bay
+@price Price:
+@synopsis Increases ship cargo capacity by a small amount.
+@content
+This tiny bay fits easily in unused spaces within ships, and adds a small, but useful, amount of cargo capacity.
+
+@bbcode_from_scene res://equipment/cargo/CargoBay1x2.tscn
+
+@PAGE equipment/cargo_bay_2x3
+@title Medium Cargo Bay
+@price Price:
+@synopsis Increases ship cargo capacity by a moderate amount.
+@content
+This cargo bay takes a significant amount of space, but increases the cargo capacity of a ship quite substantially.
+
+@bbcode_from_scene res://equipment/cargo/CargoBay2x3.tscn
+
+@PAGE equipment/cargo_bay_3x4
+@title Large Cargo Bay
+@price Price:
+@synopsis Increases ship cargo capacity by a moderate amount.
+@content
+This huge bay adds large amounts of storage space to ships with enormous excess of equipment capacity.
+
+@bbcode_from_scene res://equipment/cargo/CargoBay3x4.tscn
 
