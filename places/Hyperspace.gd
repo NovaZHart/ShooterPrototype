@@ -268,6 +268,11 @@ func _exit_tree():
 		Engine.target_fps = old_target_fps
 	Player.disconnect('destination_system_changed',self,'_on_destination_system_changed')
 
+func store_player_ship_stats():
+	var player_ship_stats = ship_stats.get(player_ship_name,null)
+	if player_ship_stats:
+		Player.set_ship_combat_stats(player_ship_stats)
+
 func change_selection_to(new_selection,_center: bool = false) -> bool:
 	game_state.universe.lock()
 	Player.destination_system = new_selection.get_path()
@@ -423,6 +428,7 @@ func _physics_process(delta):
 				else:
 					Player.player_location=node.game_state_path
 				clear()
+				store_player_ship_stats()
 				game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 				return
 			elif fate==combat_engine.FATED_TO_RIFT:

@@ -5,23 +5,23 @@
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=3]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=4]
 [ext_resource path="res://ui/AutoInfoLabel.gd" type="Script" id=5]
-[ext_resource path="res://ui/PlayerInfo.gd" type="Script" id=6]
+[ext_resource path="res://ui/hud/StatDisplay.tscn" type="PackedScene" id=6]
 [ext_resource path="res://places/Hyperspace.gd" type="Script" id=7]
 [ext_resource path="res://ui/Minimap.gd" type="Script" id=8]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=9]
 
-[sub_resource type="Environment" id=3]
+[sub_resource type="Environment" id=1]
 background_energy = 0.0
 ambient_light_color = Color( 0.666667, 0.666667, 1, 1 )
 ambient_light_energy = 0.1
 ambient_light_sky_contribution = 0.0
 
-[sub_resource type="DynamicFont" id=1]
+[sub_resource type="DynamicFont" id=2]
 size = 18
 font_data = ExtResource( 3 )
 
-[sub_resource type="Theme" id=2]
-default_font = SubResource( 1 )
+[sub_resource type="Theme" id=3]
+default_font = SubResource( 2 )
 
 [node name="Hyperspace" type="Container"]
 anchor_right = 1.0
@@ -59,7 +59,7 @@ fov = 96.768
 size = 200.0
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="View/System"]
-environment = SubResource( 3 )
+environment = SubResource( 1 )
 
 [node name="Light" type="DirectionalLight" parent="View/System"]
 transform = Transform( 0.939693, 0.116978, -0.321394, 0, 0.939693, 0.34202, 0.34202, -0.321394, 0.883022, 0, 30, 0 )
@@ -74,10 +74,22 @@ shadow_enabled = true
 [node name="Minimap" type="Node2D" parent="View/System"]
 script = ExtResource( 8 )
 
-[node name="PlayerInfo" type="Node2D" parent="View/System"]
-script = ExtResource( 6 )
-
 [node name="Labels" type="Node" parent="View/System"]
+
+[node name="PlayerInfo" parent="View/System" instance=ExtResource( 6 )]
+anchor_top = 0.85
+anchor_right = 0.17
+x_justify = -1
+y_justify = 1
+background_color = Color( 0, 0, 0, 0.27451 )
+outline_color = Color( 0.6, 0.6, 0.6, 0.6 )
+structure_color = Color( 0.8, 0.4, 0.2, 1 )
+armor_color = Color( 0.9, 0.7, 0.1, 1 )
+shields_color = Color( 0.4, 0.4, 1, 1 )
+fuel_color = Color( 0.7, 0.4, 1, 1 )
+heat_color = Color( 0.9, 0.4, 0.4, 1 )
+energy_color = Color( 0.9, 0.9, 0.7, 1 )
+efficiency_color = Color( 0.2, 0.8, 0.2, 1 )
 
 [node name="Labels" type="GridContainer" parent="."]
 anchor_left = 1.0
@@ -87,10 +99,10 @@ size_flags_horizontal = 2
 size_flags_vertical = 2
 
 [node name="LocationLabel" type="Label" parent="Labels"]
-margin_right = 101.0
+margin_right = 85.0
 margin_bottom = 21.0
 size_flags_horizontal = 3
-theme = SubResource( 2 )
+theme = SubResource( 3 )
 text = "Hyperspace"
 align = 2
 valign = 1
@@ -98,10 +110,10 @@ script = ExtResource( 4 )
 
 [node name="FPSLabel" type="Label" parent="Labels"]
 margin_top = 25.0
-margin_right = 101.0
+margin_right = 85.0
 margin_bottom = 46.0
 size_flags_horizontal = 3
-theme = SubResource( 2 )
+theme = SubResource( 3 )
 text = "60 FPS"
 align = 2
 valign = 1

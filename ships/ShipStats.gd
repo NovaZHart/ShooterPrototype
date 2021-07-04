@@ -167,13 +167,16 @@ func set_cargo(products: Commodities.Products, quiet: bool = false,
 	return combined_stats
 
 func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
+	if not stats:
+		push_error('no combat stats to restore in restore_combat_stats')
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in restore_combat_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
-	for varname in [ 'fuel', 'shields', 'armor', 'structure' ]:
-		if stats.has(varname):
-			combined_stats[varname] = clamp(stats[varname],0.0,combined_stats['max_'+varname])
+	for varname in [ 'fuel', 'shields', 'armor', 'structure', 'energy', 'heat' ]:
+		if stats.has(varname) and stats.has('max_'+varname):
+			combined_stats[varname] = clamp(stats[varname],0.0,stats['max_'+varname])
+			print('restored '+str(varname)+' to '+str(combined_stats[varname]))
 
 func set_stats(stats: Dictionary) -> void:
 	combined_stats = stats.duplicate(true)

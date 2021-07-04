@@ -120,6 +120,11 @@ func _exit_tree():
 func player_has_a_ship() -> bool:
 	return $Ships.get_node_or_null(player_ship_name)!=null
 
+func store_player_ship_stats():
+	var player_ship_stats = ship_stats.get(player_ship_name,null)
+	if player_ship_stats:
+		Player.set_ship_combat_stats(player_ship_stats)
+
 func update_space_background(from=null):
 	if from==null:
 		from=Player.system
@@ -410,9 +415,11 @@ func _physics_process(delta):
 				else:
 					Player.player_location=node.game_state_path
 				clear()
+				store_player_ship_stats()
 				game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 				return
 			elif fate==combat_engine.FATED_TO_RIFT:
+				store_player_ship_stats()
 				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
 		team_stats_mutex.lock()
 		if team_stats.has(ship_node.faction_index):
@@ -434,6 +441,7 @@ func get_main_camera() -> Node:
 	return $TopCamera
 
 func land_player() -> int:
+	store_player_ship_stats()
 	return get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
 func add_spawned_ship(ship: RigidBody,is_player: bool):

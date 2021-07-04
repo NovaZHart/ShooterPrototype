@@ -6,7 +6,7 @@
 [ext_resource path="res://ui/Minimap.gd" type="Script" id=4]
 [ext_resource path="res://ui/AutoInfoLabel.gd" type="Script" id=5]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=6]
-[ext_resource path="res://ui/PlayerInfo.gd" type="Script" id=7]
+[ext_resource path="res://ui/hud/StatDisplay.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=8]
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=9]
 
@@ -59,11 +59,24 @@ render_direct_to_screen = true
 render_target_update_mode = 3
 make_labels = true
 
-[node name="PlayerInfo" type="Node2D" parent="View/System"]
-script = ExtResource( 7 )
-
 [node name="Minimap" type="Node2D" parent="View/System"]
 script = ExtResource( 4 )
+
+[node name="PlayerInfo" parent="View/System" instance=ExtResource( 7 )]
+anchor_top = 0.85
+anchor_right = 0.17
+grow_vertical = 0
+x_justify = -1
+y_justify = 1
+background_color = Color( 0, 0, 0, 0.4 )
+outline_color = Color( 0.6, 0.6, 0.6, 0.6 )
+structure_color = Color( 0.8, 0.4, 0.2, 1 )
+armor_color = Color( 0.9, 0.7, 0.1, 1 )
+shields_color = Color( 0.4, 0.4, 1, 1 )
+fuel_color = Color( 0.7, 0.4, 1, 1 )
+heat_color = Color( 0.9, 0.4, 0.4, 1 )
+energy_color = Color( 0.9, 0.9, 0.7, 1 )
+efficiency_color = Color( 0.2, 0.8, 0.2, 1 )
 
 [node name="Labels" type="GridContainer" parent="."]
 anchor_left = 1.0

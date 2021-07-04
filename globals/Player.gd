@@ -27,9 +27,11 @@ func is_entering_from_rift() -> bool:
 
 func set_ship_combat_stats(stats: Dictionary):
 	var subset = {}
-	for varname in [ 'fuel', 'armor', 'structure', 'shields' ]:
+	for varname in [ 'fuel', 'armor', 'structure', 'shields', 'energy', 'heat' ]:
 		if stats.has(varname):
 			subset[varname] = stats[varname]
+		if stats.has('max_'+varname):
+			subset['max_'+varname] = stats['max_'+varname]
 	ship_combat_stats = subset
 
 func set_hyperspace_position(new_position: Vector3):

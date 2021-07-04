@@ -806,6 +806,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["heat"]=heat;
   s["max_heat"]=max_heat;
   s["efficiency"]=efficiency;
+  s["max_efficiency"]=max(1.6f,efficiency);
   s["radius"] = radius;
   s["visual_scale"] = visual_scale;
   Dictionary r;
