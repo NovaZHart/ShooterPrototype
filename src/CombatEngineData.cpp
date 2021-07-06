@@ -379,8 +379,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   radius(max(1e-5f,(aabb.size.x+aabb.size.z)/2.0f)),
   empty_mass(max(0.0f,get<real_t>(dict,"empty_mass",0))),
   cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
-  fuel_density(max(0.0f,get<real_t>(dict,"fuel_density",0))),
-  armor_density(max(0.0f,get<real_t>(dict,"armor_density",0))),
+  fuel_inverse_density(max(0.0f,get<real_t>(dict,"fuel_inverse_density",10.0f))),
+  armor_inverse_density(max(0.0f,get<real_t>(dict,"armor_inverse_density",200.0f))),
   faction(clamp(get<int>(dict,"faction_index",0),MIN_ALLOWED_FACTION,MAX_ALLOWED_FACTION)),
   faction_mask(static_cast<faction_mask_t>(1)<<faction),
   
@@ -448,7 +448,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   angular_velocity(get<Vector3>(dict,"angular_velocity",Vector3(0,0,0))),
   heading(get_heading(*this)),
   drag(max(1e-5f,get<real_t>(dict,"drag"))),
-  inverse_mass(1.0/(empty_mass+cargo_mass+fuel*fuel_density/1000.0+armor*armor_density/1000.0)),
+  inverse_mass(1.0/(empty_mass+cargo_mass+fuel_inverse_density*fuel+armor_inverse_density*armor)),
   inverse_inertia(get<Vector3>(dict,"inverse_inertia",Vector3(0,1,0))),
   transform(get<Transform>(dict,"transform")),
   
@@ -549,9 +549,9 @@ bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
 void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
   real_t new_mass = empty_mass+cargo_mass;
   if(max_fuel>=.001)
-    new_mass += fuel*clamp(fuel_density/max_fuel,0.0f,1.0f);
+    new_mass += fuel/fuel_inverse_density;
   if(max_armor>=.001)
-    new_mass += armor*clamp(armor_density/max_armor,0.0f,1.0f);
+    new_mass += armor/armor_inverse_density;
   real_t old_mass = 1.0/inverse_mass;
 
   efficiency = 1.0;

@@ -13,24 +13,15 @@ points = PoolVector3Array( 0, 1.3, 10, 0, 1.3, -10, 0, 1.3, 10, 0, 1.3, -10, -1.
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 2 )
 help_page = "hulls/bufeo"
-base_mass = 101.0
-base_thrust = 1900.0
-base_reverse_thrust = 1300.0
-base_turn_thrust = 650.0
-base_shields = 1450.0
-base_armor = 1900.0
-base_structure = 600.0
+base_mass = 131
+base_shields = 2900.0
+base_armor = 3800.0
+armor_inverse_density = 300.0
+base_structure = 1200.0
 base_fuel = 13.0
-heal_shields = 10.0
-heal_structure = 14.0
 heal_fuel = 25.0
 base_turn_drag = 0.4
-base_explosion_damage = 550.0
-base_explosion_radius = 4.0
-base_explosion_impulse = 950.0
 base_max_cargo = 17
-armor_density = 6.0
-base_battery = 1200
 base_power = 80
 
 [node name="MeshInstance" type="MeshInstance" parent="."]

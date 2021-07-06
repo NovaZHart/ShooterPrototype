@@ -423,7 +423,7 @@ namespace godot {
       const AABB aabb; // of ship, either guessed or from GDScript ShipSpecs
       const real_t turn_drag;
       const real_t radius; // effective radius of ship from aabb
-      const real_t empty_mass, cargo_mass, fuel_density, armor_density;
+      const real_t empty_mass, cargo_mass, fuel_inverse_density, armor_inverse_density;
       const faction_index_t faction; // faction number
       const faction_mask_t faction_mask; // 2<<faction
       const real_t explosion_damage, explosion_radius, explosion_impulse;

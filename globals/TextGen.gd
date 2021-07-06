@@ -262,7 +262,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 	bbcode += '[cell] [/cell]'
 	bbcode += make_cell('Turn RPM:',round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
 
-	var k = s['max_fuel']*s['fuel_density']/s['empty_mass']
+	var k = s['max_fuel']*s['fuel_inverse_density']/s['empty_mass']
 	var d = s['max_fuel']*s['fuel_efficiency']/s['empty_mass']
 	var travel_distance = d * 1.0/k * log(1.0/(1.0+k))
 	bbcode += max_and_repair('Fuel:',s['max_fuel'],s['heal_fuel'])

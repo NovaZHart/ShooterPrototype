@@ -1,31 +1,33 @@
 extends RigidBody
 
+# In this list, -1 means, "use calculated defaults in add_stats"
+
 export var help_page: String = 'hulls'
 export var base_mass: float = 0
-export var base_thrust: float = 3000
-export var base_reverse_thrust: float = 800
-export var base_turning_thrust: float = 100
-export var base_shields: float = 800
-export var base_armor: float = 500
-export var base_structure: float = 300
-export var base_fuel: float = 100
-export var heal_shields: float = 20
+export var base_thrust: float = -1
+export var base_reverse_thrust: float = -1
+export var base_turning_thrust: float = -1
+export var base_shields: float = 1600
+export var base_armor: float = 1000
+export var base_structure: float = 600
+export var base_fuel: float = 30
+export var heal_shields: float = -1
 export var heal_armor: float = 0
-export var heal_structure: float = 5
-export var heal_fuel: float = 3
+export var heal_structure: float = -1
+export var heal_fuel: float = 30
 export var fuel_efficiency: float = 0.9
 export var base_drag: float = 1.5
 export var base_turn_drag: float = 1.5
 #export var base_turn_rate: float = 2
 export var base_threat: float = -1
-export var base_explosion_damage: float = 100
-export var base_explosion_radius: float = 5
-export var base_explosion_impulse: float = 500
+export var base_explosion_damage: float = -1
+export var base_explosion_radius: float = -1
+export var base_explosion_impulse: float = -1
 export var base_explosion_delay: int = 10
 export var explosion_type: int = 8 # combat_engine.DAMAGE_HOT_MATTER
 export var base_max_cargo: int = 20
-export var fuel_density: float = 10.0
-export var armor_density: float = 10.0
+export var armor_inverse_density: float = 200.0
+export var fuel_inverse_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 
 export var base_heat_capacity: float = 10.0
@@ -42,8 +44,8 @@ export var base_turning_thrust_heat: float = 0.9
 export var base_forward_thrust_energy: float = 0.05
 export var base_reverse_thrust_energy: float = 0.05
 export var base_turning_thrust_energy: float = 0.15
-export var base_battery: float = 2000.0
-export var base_power: float = 20.0
+export var base_battery: float = -1
+export var base_power: float = -1
 
 export var ai_type: int = 0 setget set_ai_type
 
@@ -182,17 +184,34 @@ func set_stats(stats: Dictionary) -> void:
 	combined_stats = stats.duplicate(true)
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
-	stats['explosion_damage']=base_explosion_damage
-	stats['explosion_radius']=base_explosion_radius
-	stats['explosion_impulse']=base_explosion_impulse
+	if base_explosion_damage>=0:
+		stats['explosion_damage']=base_explosion_damage
+	else:
+		stats['explosion_damage']=(base_armor+base_shields+base_structure+10*base_mass)/20
+	if base_explosion_radius>=0:
+		stats['explosion_radius']=base_explosion_radius
+	else:
+		stats['explosion_radius']=stats['explosion_damage']/100.0
+	if base_explosion_impulse>=0:
+		stats['explosion_impulse']=base_explosion_impulse
+	else:
+		stats['explosion_impulse']=stats['explosion_damage']*3
 	stats['explosion_delay']=base_explosion_delay
 	stats['name']=name
 	if not skip_runtime_stats and is_inside_tree():
 		stats['rid']=get_rid()
-	stats['thrust']=base_thrust
-	stats['reverse_thrust']=base_reverse_thrust
-	stats['turning_thrust']=base_turning_thrust
-	#stats['turn_rate']=base_turn_rate
+	if base_thrust>=0:
+		stats['thrust']=base_thrust
+	else:
+		stats['thrust']=base_mass*16
+	if base_reverse_thrust>=0:
+		stats['reverse_thrust']=base_reverse_thrust
+	else:
+		stats['reverse_thrust']=base_mass*12
+	if base_turning_thrust>=0:
+		stats['turning_thrust']=base_turning_thrust
+	else:
+		stats['turning_thrust']=base_mass*15
 	if base_threat<0:
 		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
 			heal_shields+heal_armor+heal_structure
@@ -203,24 +222,27 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['max_structure']=base_structure
 	stats['max_fuel']=base_fuel
 	stats['max_cargo']=base_max_cargo
-	stats['heal_shields']=heal_shields
+	if heal_shields>=0:
+		stats['heal_shields']=heal_shields
+	else:
+		stats['heal_shields']=base_shields/60.0
 	stats['heal_armor']=heal_armor
-	stats['heal_structure']=heal_structure
+	if heal_structure>=0:
+		stats['heal_structure']=heal_structure
+	else:
+		stats['heal_structure']=base_structure/120.0
 	stats['heal_fuel']=heal_fuel
 	stats['fuel_efficiency']=fuel_efficiency
 	stats['aabb']=get_combined_aabb()
 	stats['turn_drag']=base_turn_drag
-#	stats['enemy_mask']=enemy_mask
 	stats['collision_layer']=collision_layer
-#	stats['team']=team
-#	stats['enemy_team']=enemy_team
 	stats['faction_index']=faction_index
 	stats['rotation']=rotation
 	stats['position']=Vector3(translation.x,0,translation.z)
 	stats['transform']=transform
 	stats['empty_mass']=base_mass
-	stats['armor_density']=armor_density
-	stats['fuel_density']=fuel_density
+	stats['armor_inverse_density']=armor_inverse_density
+	stats['fuel_inverse_density']=fuel_inverse_density
 	stats['drag']=base_drag
 	stats['weapons']=Array()
 	stats['equipment']=Array()
@@ -247,8 +269,14 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['forward_thrust_energy']=base_forward_thrust_energy
 	stats['reverse_thrust_energy']=base_reverse_thrust_energy
 	stats['turning_thrust_energy']=base_turning_thrust_energy
-	stats['battery']=base_battery
-	stats['power']=base_power
+	if base_power>=0:
+		stats['power']=base_power
+	else:
+		stats['power']=(base_shields+base_armor+base_structure+base_mass*10)/56.0
+	if base_battery>=0:
+		stats['battery']=base_battery
+	else:
+		stats['battery']=stats['power']*15
 
 	# Used for text generation, not CombatEngine:
 	stats['display_name']=ship_display_name
