@@ -123,6 +123,7 @@ void CombatEngine::_register_methods() {
   register_method("prepare_visual_frame", &CombatEngine::prepare_visual_frame);
   register_method("update_overhead_view", &CombatEngine::update_overhead_view);
   register_method("draw_minimap_contents", &CombatEngine::draw_minimap_contents);
+  register_method("draw_minimap_rect_contents", &CombatEngine::draw_minimap_rect_contents);
   register_method("ai_step", &CombatEngine::ai_step);
   register_method("init_factions", &CombatEngine::init_factions);
 }
@@ -394,6 +395,56 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
     if(minimap_scaled.length_squared() > outside_squared)
       continue;
     visual_server->canvas_item_add_circle(canvas,minimap_center+minimap_scaled,1,projectile_color);
+  }
+}
+
+
+
+void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap) {
+  FAST_PROFILING_FUNCTION;
+  //NOTE: entry point from gdscript
+  canvas=new_canvas;
+
+  if(!visible_content)
+    return; // Nothing to display yet.
+
+  Vector2 map_center = map.position+map.size/2.0f;
+  Vector2 minimap_center = minimap.position+minimap.size/2.0f;
+  Vector2 map_half_size(fabsf(map.size.x)/2.0f,fabsf(map.size.y)/2.0f);
+  Vector2 minimap_half_size(fabsf(minimap.size.x)/2.0f,fabsf(minimap.size.y)/2.0f);
+  Vector2 map_scale(minimap_half_size.x/map_half_size.x,minimap_half_size.y/map_half_size.y);
+  real_t radius_scale = map_scale.length();
+
+  // Draw ships and planets.
+  for(auto &object : visible_content->ships_and_planets) {
+    Vector2 center(object.z,-object.x);
+    const Color &color = pick_object_color(object);
+    Vector2 loc = place_in_rect(Vector2(object.z,-object.x),
+                                map_center,map_scale,minimap_center,minimap_half_size);
+    if(object.flags & VISIBLE_OBJECT_PLANET) {
+      real_t rad = object.radius*radius_scale;
+      if(object.flags&VISIBLE_OBJECT_PLAYER_TARGET)
+        draw_crosshairs(loc,rad,color);
+      draw_anulus(loc,rad*3-0.75,rad*3+0.75,color,false);
+    } else { // ship
+      visual_server->canvas_item_add_circle(canvas,loc,min(2.5f,object.radius/2.0f),color);
+      if(object.flags&(VISIBLE_OBJECT_PLAYER_TARGET|VISIBLE_OBJECT_PLAYER)) {
+        rect_draw_heading(object,loc,map_center,map_scale,minimap_center,minimap_half_size,color);
+        rect_draw_velocity(object,loc,map_center,map_scale,minimap_center,minimap_half_size,color);
+      }
+    }
+  }
+
+  // Draw only the projectiles within the minimap; skip outsiders.
+  //real_t outside=minimap_radius*0.95;
+  //real_t outside_squared = outside*outside;
+  const Color &color = projectile_color;
+  for(auto &projectile : visible_content->projectiles) {
+    Vector2 scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) *map_scale;
+    if(scaled.x>minimap_half_size.x and scaled.x<-minimap_half_size.x and
+       scaled.y>minimap_half_size.y and scaled.y<-minimap_half_size.y)
+      continue;
+    visual_server->canvas_item_add_circle(canvas,minimap_center+scaled,1,projectile_color);
   }
 }
 
@@ -2619,6 +2670,42 @@ void CombatEngine::catalog_projectiles(const Vector3 &location,const Vector3 &si
 }
 
 
+static inline bool origin_intersection(real_t end_x,real_t end_y,real_t bound_x,real_t bound_y,real_t &intersection) {
+  if(end_x<bound_x)
+    return false;
+  intersection = end_y*bound_x/end_x;
+  return intersection>-bound_y and intersection<bound_y;
+}
+
+
+Vector2 CombatEngine::place_in_rect(const Vector2 &map_location,
+                                    const Vector2 &map_center,const Vector2 &map_scale,
+                                    const Vector2 &minimap_center,const Vector2 &minimap_half_size) {
+  FAST_PROFILING_FUNCTION;
+  Vector2 centered = (map_location-map_center)*map_scale;
+  real_t intersection;
+
+  if(origin_intersection(centered.x,centered.y,minimap_half_size.x,minimap_half_size.y,intersection))
+    // Object is to the left of the minimap.
+    return Vector2(minimap_half_size.x,intersection)+minimap_center;
+
+  if(origin_intersection(-centered.x,centered.y,minimap_half_size.x,minimap_half_size.y,intersection))
+    // Object is to the right of the minimap.
+    return Vector2(-minimap_half_size.x,intersection)+minimap_center;
+
+  if(origin_intersection(centered.y,centered.x,minimap_half_size.y,minimap_half_size.x,intersection))
+    // Object is below the minimap.
+    return Vector2(intersection,minimap_half_size.y)+minimap_center;
+
+  if(origin_intersection(-centered.y,centered.x,minimap_half_size.y,minimap_half_size.x,intersection))
+    // Object is above the minimap.
+    return Vector2(intersection,-minimap_half_size.y)+minimap_center;
+
+  // Object is within the minimap.
+  return centered+minimap_center;
+}
+
+
 Vector2 CombatEngine::place_center(const Vector2 &where,
                                    const Vector2 &map_center,real_t map_radius,
                                    const Vector2 &minimap_center,real_t minimap_radius) {
@@ -2696,6 +2783,28 @@ void CombatEngine::draw_heading(VisibleObject &ship, const Vector2 &loc,
   Vector2 heading2(heading3.z,-heading3.x);
   Vector2 minimap_heading = place_center(Vector2(ship.z,-ship.x)+ship.max_speed*1.25*heading2,
                                          map_center,map_radius,minimap_center,minimap_radius);
+  visual_server->canvas_item_add_line(canvas,loc,minimap_heading,color,1,true);
+}
+
+void CombatEngine::rect_draw_velocity(VisibleObject &ship, const Vector2 &loc,
+                                      const Vector2 &map_center,const Vector2 &map_scale,
+                                      const Vector2 &minimap_center,const Vector2 &minimap_half_size,
+                                      const Color &color) {
+  FAST_PROFILING_FUNCTION;
+  Vector2 away = place_in_rect(Vector2(ship.z,-ship.x)+Vector2(ship.vz,-ship.vx),
+                               map_center,map_scale,minimap_center,minimap_half_size);
+  visual_server->canvas_item_add_line(canvas,loc,away,color,1.5,true);
+}
+
+void CombatEngine::rect_draw_heading(VisibleObject &ship, const Vector2 &loc,
+                                     const Vector2 &map_center,const Vector2 &map_scale,
+                                     const Vector2 &minimap_center,const Vector2 &minimap_half_size,
+                                     const Color &color) {
+  FAST_PROFILING_FUNCTION;
+  Vector3 heading3 = unit_from_angle(ship.rotation_y);
+  Vector2 heading2(heading3.z,-heading3.x);
+  Vector2 minimap_heading = place_in_rect(Vector2(ship.z,-ship.x)+ship.max_speed*1.25*heading2,
+                                          map_center,map_scale,minimap_center,minimap_half_size);
   visual_server->canvas_item_add_line(canvas,loc,minimap_heading,color,1,true);
 }
 

@@ -12,6 +12,8 @@ export var game_time_ratio: float = 30
 export var make_labels: bool = false
 export var target_label_height: float = 32
 
+export var TargetDisplay: PackedScene = preload('res://ui/TargetDisplay.tscn')
+
 const ImageLabelMaker = preload('res://ui/ImageLabelMaker.gd')
 
 var label_maker
@@ -44,13 +46,14 @@ var latest_target_info: Dictionary = Dictionary()
 
 var raise_sun: bool = false setget set_raise_sun
 
-var Landing = preload('res://ui/OrbitalScreen.tscn')
-var TargetDisplay = preload('res://ui/TargetDisplay.tscn')
+var Landiing = preload('res://ui/OrbitalScreen.tscn')
+
 
 var old_target_fps = null
 
 signal view_center_changed          #<-- visual thread
 signal player_ship_stats_updated    #<-- visual thread
+signal player_target_nothing        #<-- visual thread
 signal player_target_stats_updated  #<-- visual thread
 signal player_target_changed        #<-- visual thread and clear()
 
@@ -252,15 +255,17 @@ func _process(delta) -> void:
 func update_target_display(old_target_name: String,new_target_name: String) -> void:
 	assert(old_target_name!=new_target_name)
 	remove_ship_stat_request(old_target_name)
-	emit_signal('player_target_changed',self) # remove old display
 	var new_target = $Ships.get_node_or_null(new_target_name)
 	if new_target==null:
 		new_target = $Planets.get_node_or_null(new_target_name)
 	if new_target==null:
+		emit_signal('player_target_nothing',self)
 		return # target does not exist, so don't make a new target display.
+	emit_signal('player_target_changed',self,new_target)
 	add_ship_stat_request(new_target_name)
 	var display = TargetDisplay.instance()
-	var _discard=connect('player_target_changed',display,'player_target_changed')
+	var _discard=connect('player_target_nothing',display,'player_target_nothing')
+	_discard=connect('player_target_changed',display,'player_target_changed')
 	_discard = connect('player_target_stats_updated',display,'player_target_stats_updated')
 	new_target.call_deferred('add_child',display)
 
@@ -406,7 +411,7 @@ func _physics_process(delta):
 		if ship_node==null:
 			continue
 		if ship_name==player_ship_name:
-			emit_signal('player_target_changed',self) # remove target display (if any)
+			emit_signal('player_target_nothing',self) # remove target display (if any)
 			if fate==combat_engine.FATED_TO_LAND:
 				var planet_name = ship.get('target_name','no-name')
 				var node = $Planets.get_node_or_null(planet_name)
@@ -485,7 +490,7 @@ func spawn_planet(planet: Spatial) -> void:
 func clear() -> void: # must be called in visual thread
 	combat_engine_mutex.lock() # Ensure _physics_process() does not run during clear()
 	
-	emit_signal('player_target_changed',self) # remove old target display
+	emit_signal('player_target_nothing',self) # remove old target display
 	
 	new_ships_mutex.lock()
 	player_orders_mutex.lock()

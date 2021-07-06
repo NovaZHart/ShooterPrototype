@@ -139,6 +139,7 @@ namespace godot {
     void update_overhead_view(Vector3 location,Vector3 size,real_t projectile_scale);
     void draw_minimap_contents(RID new_canvas, Vector2 map_center, float map_radius,
                                Vector2 minimap_center, float minimap_radius);
+    void draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap);
 
   protected:
 
@@ -261,9 +262,21 @@ namespace godot {
     Vector2 place_center(const Vector2 &where,
                          const Vector2 &map_center,float map_radius,
                          const Vector2 &minimap_center,float minimap_radius);
+    Vector2 place_in_rect(const Vector2 &map_location,
+                          const Vector2 &map_center,const Vector2 &map_scale,
+                          const Vector2 &minimap_center,const Vector2 &minimap_half_size);
     void draw_anulus(const Vector2 &center,float inner_radius,float outer_radius,
                      const Color &color,bool antialiased);
     void draw_crosshairs(const Vector2 &loc, float minimap_radius, const Color &color);
+    void rect_draw_velocity(CE::VisibleObject &ship, const Vector2 &loc,
+                            const Vector2 &map_center,const Vector2 &map_scale,
+                            const Vector2 &minimap_center,const Vector2 &minimap_half_size,
+                            const Color &color);
+    void rect_draw_heading(CE::VisibleObject &ship, const Vector2 &loc,
+                           const Vector2 &map_center,const Vector2 &map_scale,
+                           const Vector2 &minimap_center,const Vector2 &minimap_half_size,
+                           const Color &color);
+
     void draw_velocity(CE::VisibleObject &ship, const Vector2 &loc,
                        const Vector2 &map_center,real_t map_radius,
                        const Vector2 &minimap_center,real_t minimap_radius,

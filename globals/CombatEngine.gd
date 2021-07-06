@@ -192,6 +192,15 @@ func draw_space(camera: Camera,viewport: Viewport) -> void:
 	native_combat_engine.update_overhead_view(camera.translation,size,projectile_scale)
 	visual_mutex.unlock()
 
+func draw_minimap_rect(minimap: Node2D,map_rect: Rect2,minimap_rect: Rect2) -> void:
+	# Call in VISUAL THREAD to draw the minimap
+	# Note: map_rect is the bounds of the minimap view in world space, and
+	# minimap_rect is the bounds of the minimap on the screen
+	# Large objects will extend slightly outside the bounds.
+	visual_mutex.lock()
+	native_combat_engine.draw_minimap_rect_contents(minimap.get_canvas_item(),map_rect,minimap_rect)
+	visual_mutex.unlock()
+
 func draw_minimap(minimap: Node2D,minimap_size: float,
 		map_center: Vector2,map_radius: float) -> void:
 	# Call in VISUAL THREAD to draw the minimap

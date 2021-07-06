@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=2]
+[gd_scene load_steps=19 format=2]
 
 [ext_resource path="res://ui/System.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/SpaceScreen.gd" type="Script" id=2]
@@ -9,6 +9,19 @@
 [ext_resource path="res://ui/hud/StatDisplay.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/ResizingLabel.gd" type="Script" id=8]
 [ext_resource path="res://fonts/limousine/Limousine.ttf" type="DynamicFontData" id=9]
+[ext_resource path="res://fonts/ShooterPrototypeIcons.ttf" type="DynamicFontData" id=10]
+
+[sub_resource type="DynamicFont" id=7]
+size = 12
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 10 )
+
+[sub_resource type="DynamicFont" id=8]
+size = 12
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 10 )
 
 [sub_resource type="DynamicFont" id=1]
 size = 18
@@ -63,12 +76,31 @@ make_labels = true
 script = ExtResource( 4 )
 
 [node name="PlayerInfo" parent="View/System" instance=ExtResource( 7 )]
-anchor_top = 0.85
-anchor_right = 0.17
+anchor_top = 0.84
+anchor_right = 0.2
 grow_vertical = 0
+icon_font = SubResource( 7 )
 x_justify = -1
 y_justify = 1
-background_color = Color( 0, 0, 0, 0.4 )
+background_color = Color( 0, 0, 0, 0.5 )
+outline_color = Color( 0.6, 0.6, 0.6, 0.6 )
+structure_color = Color( 0.8, 0.4, 0.2, 1 )
+armor_color = Color( 0.9, 0.7, 0.1, 1 )
+shields_color = Color( 0.4, 0.4, 1, 1 )
+fuel_color = Color( 0.7, 0.4, 1, 1 )
+heat_color = Color( 0.9, 0.4, 0.4, 1 )
+energy_color = Color( 0.9, 0.9, 0.7, 1 )
+efficiency_color = Color( 0.2, 0.8, 0.2, 1 )
+
+[node name="TargetInfo" parent="View/System" instance=ExtResource( 7 )]
+visible = false
+anchor_left = 0.8
+anchor_top = 0.84
+icon_font = SubResource( 8 )
+x_justify = 1
+y_justify = 1
+x_orientation = 1
+background_color = Color( 0, 0, 0, 0.5 )
 outline_color = Color( 0.6, 0.6, 0.6, 0.6 )
 structure_color = Color( 0.8, 0.4, 0.2, 1 )
 armor_color = Color( 0.9, 0.7, 0.1, 1 )
@@ -136,3 +168,6 @@ auto_info = "ships"
 [connection signal="dialog_hidden" from="MainDialogTrigger" to="." method="_on_MainDialogTrigger_dialog_hidden"]
 [connection signal="dialog_shown" from="MainDialogTrigger" to="." method="_on_MainDialogTrigger_dialog_shown"]
 [connection signal="player_ship_stats_updated" from="View/System" to="View/System/PlayerInfo" method="update_ship_stats"]
+[connection signal="player_target_changed" from="View/System" to="View/System/TargetInfo" method="player_target_changed"]
+[connection signal="player_target_nothing" from="View/System" to="View/System/TargetInfo" method="player_target_nothing"]
+[connection signal="player_target_stats_updated" from="View/System" to="View/System/TargetInfo" method="update_ship_stats"]

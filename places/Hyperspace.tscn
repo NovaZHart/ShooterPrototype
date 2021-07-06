@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MainDialog/MainDialogTrigger.tscn" type="PackedScene" id=2]
@@ -9,6 +9,7 @@
 [ext_resource path="res://places/Hyperspace.gd" type="Script" id=7]
 [ext_resource path="res://ui/Minimap.gd" type="Script" id=8]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=9]
+[ext_resource path="res://fonts/ShooterPrototypeIcons.ttf" type="DynamicFontData" id=10]
 
 [sub_resource type="Environment" id=1]
 background_energy = 0.0
@@ -17,11 +18,17 @@ ambient_light_energy = 0.1
 ambient_light_sky_contribution = 0.0
 
 [sub_resource type="DynamicFont" id=2]
+size = 12
+use_mipmaps = true
+use_filter = true
+font_data = ExtResource( 10 )
+
+[sub_resource type="DynamicFont" id=3]
 size = 18
 font_data = ExtResource( 3 )
 
-[sub_resource type="Theme" id=3]
-default_font = SubResource( 2 )
+[sub_resource type="Theme" id=4]
+default_font = SubResource( 3 )
 
 [node name="Hyperspace" type="Container"]
 anchor_right = 1.0
@@ -79,6 +86,7 @@ script = ExtResource( 8 )
 [node name="PlayerInfo" parent="View/System" instance=ExtResource( 6 )]
 anchor_top = 0.85
 anchor_right = 0.17
+icon_font = SubResource( 2 )
 x_justify = -1
 y_justify = 1
 background_color = Color( 0, 0, 0, 0.27451 )
@@ -102,7 +110,7 @@ size_flags_vertical = 2
 margin_right = 85.0
 margin_bottom = 21.0
 size_flags_horizontal = 3
-theme = SubResource( 3 )
+theme = SubResource( 4 )
 text = "Hyperspace"
 align = 2
 valign = 1
@@ -113,7 +121,7 @@ margin_top = 25.0
 margin_right = 85.0
 margin_bottom = 46.0
 size_flags_horizontal = 3
-theme = SubResource( 3 )
+theme = SubResource( 4 )
 text = "60 FPS"
 align = 2
 valign = 1

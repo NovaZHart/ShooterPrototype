@@ -16,8 +16,13 @@ export var ship_target_border: float = 6.5
 var stats: Dictionary = {}
 var first: bool = true
 
-func player_target_changed(var system):
+func player_target_changed(var system,var _node):
+	player_target_nothing(system)
+
+func player_target_nothing(var system):
+	print('target nothing')
 	system.disconnect('player_target_changed',self,'player_target_changed')
+	system.disconnect('player_target_nothing',self,'player_target_nothing')
 	queue_free()
 
 func player_target_stats_updated(var new_stats: Dictionary):
