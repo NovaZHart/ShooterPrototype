@@ -4,7 +4,7 @@ export var damage: float = 30
 export var damage_type: int = 0 # Make sure you override this!
 export var impulse: float = 0
 export var weapon_mass: float = 0
-export var weapon_structure: float = 30
+export var weapon_structure: float = -1
 export var initial_velocity: float = 30
 export var projectile_mass: float = 0.3
 export var projectile_drag: float = 1
@@ -27,6 +27,11 @@ export var mount_type_all: String = 'gun'
 export var mount_type_any: String = ''
 export var mount_type_display: String = 'gun'
 export var help_page: String = 'weapons'
+
+export var ammo_capacity: int = 0
+export var reload_delay: float = 0.0
+export var reload_heat: float = 0.0
+export var reload_energy: float = 0.0
 
 export var add_heat_capacity: float = 0.0
 export var add_cooling: float = 0.0
@@ -51,6 +56,7 @@ var mount_flags_all: int = 0 setget set_mount_flags_all,get_mount_flags_all
 var initialized_mount_flags: bool = false
 var cached_bbcode = null
 var cached_stats = null
+var cached_structure = null
 var skipped_runtime_stats: bool = true
 var item_offset_x: int = -1
 var item_offset_y: int = -1
@@ -120,6 +126,7 @@ func get_mount_size_y() -> int:
 
 func pack_stats(skip_runtime_stats=false) -> Dictionary:
 	if not cached_stats:
+		cached_structure = weapon_structure if weapon_structure>=0 else weapon_mass*25
 		var th = threat
 		if th<0:
 			th = 1.0/max(firing_delay,1.0/60) * damage
@@ -137,6 +144,10 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'turn_rate':turn_rate,
 			'blast_radius':blast_radius,
 			'detonation_range':detonation_range,
+			'ammo_capacity':ammo_capacity,
+			'reload_delay':reload_delay,
+			'reload_energy':reload_energy,
+			'reload_heat':reload_heat,
 			'threat':th,
 			'guided':guided,
 			'guidance_uses_velocity':guidance_uses_velocity,
@@ -157,7 +168,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'item_size_x':item_size_x,
 			'item_size_y':item_size_y,
 			'weapon_mass':weapon_mass,
-			'weapon_structure':weapon_structure,
+			'weapon_structure':cached_structure,
 			'is_gun':is_gun(),
 			'is_turret':is_turret(),
 			'mount_type_display':mount_type_display,
@@ -169,6 +180,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 	return cached_stats
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
+	stats['weapons'].append(pack_stats(skip_runtime_stats))
 	if add_heat_capacity:
 		stats['heat_capacity'] += add_heat_capacity
 	if add_cooling:
@@ -178,8 +190,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	if add_power:
 		stats['power'] += add_power
 	stats['empty_mass'] += weapon_mass
-	stats['max_structure'] += weapon_structure
-	stats['weapons'].append(pack_stats(skip_runtime_stats))
+	stats['max_structure'] += cached_structure
 	stats['threat'] += cached_stats['threat']
 	if add_shield_resist:
 		stats['shield_resist'] = utils.sum_of_squares(stats['shield_resist'],add_shield_resist)

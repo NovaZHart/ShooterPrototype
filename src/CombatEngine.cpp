@@ -441,8 +441,8 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
   const Color &color = projectile_color;
   for(auto &projectile : visible_content->projectiles) {
     Vector2 scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) *map_scale;
-    if(scaled.x>minimap_half_size.x and scaled.x<-minimap_half_size.x and
-       scaled.y>minimap_half_size.y and scaled.y<-minimap_half_size.y)
+    if(scaled.x>minimap_half_size.x or scaled.x<-minimap_half_size.x or
+       scaled.y>minimap_half_size.y or scaled.y<-minimap_half_size.y)
       continue;
     visual_server->canvas_item_add_circle(canvas,minimap_center+scaled,1,projectile_color);
   }
@@ -868,6 +868,7 @@ void CombatEngine::rift_ai(Ship &ship) {
     // Once the ship is stopped, paralyze it and open a rift.
     ship.immobile = true;
     ship.inactive = true;
+    ship.damage_multiplier = RIFTING_DAMAGE_MULTIPLIER;
     ship.rift_timer.reset();
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
@@ -935,9 +936,8 @@ void CombatEngine::ai_step_ship(Ship &ship) {
   if(ship.entry_method!=ENTRY_COMPLETE and not init_ship(ship))
     return; // Ship has not yet fully arrived.
 
-  for(auto &weapon : ship.weapons) {
-    weapon.firing_countdown.advance(idelta*ship.efficiency);
-  }
+  for(auto &weapon : ship.weapons)
+    weapon.reload(ship,idelta);
   
   if(ship.rift_timer.active())
     rift_ai(ship);
@@ -982,6 +982,7 @@ bool CombatEngine::init_ship(Ship &ship) {
     // Ship is arriving via spatial rift. Trigger the animation and start a timer.
     ship.immobile=true;
     ship.inactive=true;
+    ship.damage_multiplier = RIFTING_DAMAGE_MULTIPLIER;
     ship.rift_timer.reset();
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
@@ -996,6 +997,7 @@ bool CombatEngine::init_ship(Ship &ship) {
     ship.rift_timer.clear_alarm();
     ship.immobile=false;
     ship.inactive=false;
+    ship.damage_multiplier=1.0;
     if(ship.max_speed>0 and ship.max_speed<999999 and
        ship.entry_method!=ENTRY_FROM_RIFT_STATIONARY)
       set_velocity(ship,ship.heading*ship.max_speed);
@@ -1770,7 +1772,7 @@ void CombatEngine::fire_primary_weapons(Ship &ship) {
     return;
   // FIXME: UPDATE ONCE SECONDARY WEAPONS EXIST
   for(auto &weapon : ship.weapons) {
-    if(weapon.firing_countdown.ticking())
+    if(not weapon.can_fire())
       continue;
     if(weapon.direct_fire)
       fire_direct_weapon(ship,weapon,true);
@@ -1934,7 +1936,7 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
   bool ships_in_range=false;
   
   for(auto &weapon : ship.weapons) {
-    if(weapon.firing_countdown.ticking())
+    if(not weapon.can_fire())
       continue;
     
     if(weapon.guided and have_a_target) {
@@ -2178,9 +2180,9 @@ void CombatEngine::integrate_projectiles() {
 
 void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {
   FAST_PROFILING_FUNCTION;
-  if(weapon.firing_countdown.ticking())
+  if(not weapon.can_fire())
     return;
-  weapon.firing_countdown.reset(weapon.firing_delay*ticks_per_second);
+  weapon.fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
@@ -2188,10 +2190,9 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
 
 void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
   FAST_PROFILING_FUNCTION;
-  if(weapon.firing_countdown.ticking())
+  if(not weapon.can_fire())
     return;
-  weapon.firing_countdown.reset(weapon.firing_delay*ticks_per_second);
-  assert(weapon.firing_countdown.ticking());
+  weapon.fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));

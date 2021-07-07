@@ -223,6 +223,11 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   firing_energy(get<real_t>(dict,"firing_energy")),
   firing_heat(get<real_t>(dict,"firing_heat")),
   damage_type(clamp(get<int>(dict,"damage_type"),0,NUM_DAMAGE_TYPES-1)),
+  reload_delay(max(0.0f,get<real_t>(dict,"reload_delay"))),
+  reload_energy(max(0.0f,get<real_t>(dict,"reload_energy"))),
+  reload_heat(max(0.0f,get<real_t>(dict,"reload_heat"))),
+  ammo_capacity(max(0,get<int>(dict,"ammo_capacity"))),
+  ammo(get<int>(dict,"ammo",ammo_capacity)),
   direct_fire(firing_delay<1e-5),
   guided(not direct_fire and get<bool>(dict,"guided")),
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
@@ -236,10 +241,34 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   rotation(get<Vector3>(dict,"rotation")),
   harmony_angle(asin_clamp(position.z/projectile_range)),
   firing_countdown(0)
-{}
+{
+  if(not ammo_capacity)
+    ammo=-1;
+}
 
 Weapon::~Weapon()
 {}
+
+void Weapon::reload(Ship &ship,ticks_t idelta) {
+  firing_countdown.advance(idelta*ship.efficiency);
+  if(ammo_capacity and reload_delay) {
+    reload_countdown.advance(idelta*ship.efficiency);
+    if(not reload_countdown.ticking() and ammo<ammo_capacity) {
+      ammo++;
+      if(reload_energy)
+        ship.energy -= reload_energy;
+      if(reload_heat)
+        ship.heat += reload_heat;
+      reload_countdown.reset(reload_delay*ticks_per_second);
+    }
+  }
+}
+
+void Weapon::fire(Ship &ship,ticks_t idelta) {
+  firing_countdown.reset(firing_delay*ticks_per_second);
+  if(ammo_capacity)
+    ammo--;
+}
 
 Dictionary Weapon::make_status_dict() const {
   Dictionary s;
@@ -260,6 +289,8 @@ Dictionary Weapon::make_status_dict() const {
   s["guidance_uses_velocity"]=guidance_uses_velocity;
   s["position"]=position;
   s["rotation"]=rotation;
+  if(ammo_capacity)
+    s["ammo"]=ammo;
   //  s["instance_id"]=instance_id;
   s["firing_countdown"]=firing_countdown.ticks_left()/real_t(ticks_per_second);
   return s;
@@ -481,6 +512,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   updated_mass_stats(false),
   immobile(false),
   inactive(false),
+  damage_multiplier(1.0f),
   should_autotarget(true),
   at_first_tick(true),
   visual_scale(1.0)
@@ -711,6 +743,8 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
 
   // Returns the overkill damage (damage remaining after ship died from it).
   
+  damage*=damage_multiplier;
+
   if(fate!=FATED_TO_FLY)
     return damage; // already dead or leaving, so cannot take more damage
 

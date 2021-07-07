@@ -1,6 +1,6 @@
 extends MeshInstance
 
-export var add_mass: float = 1
+export var add_mass: float = 0
 export var add_threat: float = 0
 export var add_max_cargo: float = 0
 
@@ -16,7 +16,7 @@ export var mult_turn_drag: float = 1
 
 export var add_shields: float = 0
 export var add_armor: float = 0
-export var add_structure: float = 0
+export var add_structure: float = -1
 export var add_heal_shields: float = 0
 export var add_heal_armor: float = 0
 export var add_heal_structure: float = 0
@@ -57,6 +57,8 @@ export var reverse_thrust_energy: float = 0.05
 export var turning_thrust_energy: float = 0.15
 export var add_battery: float = 0.0
 export var add_power: float = 0.0
+
+var cached_structure
 
 var cached_stats
 var cached_bbcode
@@ -115,6 +117,7 @@ func get_mount_size_y() -> int:
 
 func pack_stats() -> Dictionary:
 	if not cached_stats:
+		cached_structure = add_structure if add_structure>=0 else add_mass*25
 		cached_stats = {
 			'name':name,
 			'mount_type_display':mount_type_display,
@@ -129,7 +132,7 @@ func pack_stats() -> Dictionary:
 			'add_turning_thrust':add_turning_thrust,
 			'add_shields':add_shields,
 			'add_armor':add_armor,
-			'add_structure':add_structure,
+			'add_structure':cached_structure,
 			'add_fuel':add_fuel,
 			'add_heal_shields':add_heal_shields,
 			'add_heal_armor':add_heal_armor,
@@ -176,8 +179,7 @@ func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
 		stats['armor_passthru'] = utils.sum_of_squares(stats['armor_passthru'],add_armor_passthru)
 	if add_structure_resist:
 		stats['structure_resist'] = utils.sum_of_squares(stats['structure_resist'],add_structure_resist)
-	if add_mass > 0:
-		stats['empty_mass'] = max(1,stats['empty_mass']+add_mass)
+	stats['empty_mass'] = max(1,stats['empty_mass']+add_mass)
 	if add_thrust > 0:
 		utils.weighted_add(forward_thrust_heat,add_thrust,stats,'forward_thrust_heat','thrust')
 		utils.weighted_add(forward_thrust_energy,add_thrust,stats,'forward_thrust_energy','thrust')

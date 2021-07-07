@@ -24,6 +24,7 @@
 #define MIN_ALLOWED_FACTION 0
 #define PLAYER_FACTION 0
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
+#define RIFTING_DAMAGE_MULTIPLIER 0.3f
 
 #define NUM_DAMAGE_TYPES 9
 #define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (do not use) */
@@ -363,10 +364,23 @@ namespace godot {
       const bool is_turret;
       const int damage_type;
       
+      const real_t reload_delay, reload_energy, reload_heat;
+      const int ammo_capacity;
+      
+      int ammo;
+
       Vector3 position, rotation;
       const real_t harmony_angle;
       Countdown firing_countdown;
+      Countdown reload_countdown;
+
+      void reload(Ship &ship,ticks_t idelta);
+      void fire(Ship &ship,ticks_t idelta);
       
+      inline bool can_fire() const {
+        return ammo and not firing_countdown.ticking();
+      }
+
       Weapon(Dictionary dict,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       ~Weapon();
       Dictionary make_status_dict() const;
@@ -498,6 +512,7 @@ namespace godot {
       bool updated_mass_stats; // Have we updated the mass and calculated values yet?
       bool immobile; // Ship cannot move for any reason
       bool inactive; // Do not run ship AI
+      real_t damage_multiplier; // Reduce damage while rifting.
       bool should_autotarget; // Player only: disable auto-targeting.
       bool at_first_tick; // true iff this is the frame at which the ship spawned
 
