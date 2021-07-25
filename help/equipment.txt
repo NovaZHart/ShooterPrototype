@@ -1,3 +1,12 @@
+@PAGE equipment/defensive-scatterer
+@title Defensive Scatterer
+@price Price:
+@synopsis Boosts resistance to light-based weapons.
+@content
+Lasers are an age-old weapon; cheap to build, low power usage, and cool-running, but they have one major flaw. It is easy to scatter, refract, or reflect light. This device sprays a mist of light-scattering particles in the direction of any incoming intense light. Light is either refracted away from the ship, or spread across the ship's whole surface, reducing the effect of the weapon. If a ship has one of these devices installed, it has a strong resistance to lasers. 
+
+@bbcode_from_scene res://equipment/defense/DefensiveScatterer.tscn
+
 @PAGE equipment/structural-reinforcement
 @title Structural Reinforcement
 @price Price:

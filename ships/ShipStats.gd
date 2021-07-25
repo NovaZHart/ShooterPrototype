@@ -49,8 +49,8 @@ export var base_power: float = -1
 
 export var ai_type: int = 0 setget set_ai_type
 
-export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.0, 0.2, 0.1, 0.1, 0.0,-0.2, 0.1, 0.2])
 export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0])
 export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.1,-0.2,-0.1,-0.1])

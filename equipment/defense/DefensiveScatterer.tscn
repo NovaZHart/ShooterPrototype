@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/defense/DefensiveScatterer.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+script = ExtResource( 2 )
+add_mass = 8.0
+item_size_x = 2
+item_size_y = 2
+mount_type_any = "internal external"
+help_page = "equipment/defensive-scatterer"
+add_armor_resist = PoolRealArray( 0, 0.25 )
+add_structure_resist = PoolRealArray( 0, 0.25 )

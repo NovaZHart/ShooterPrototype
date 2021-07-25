@@ -2058,7 +2058,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 0
@@ -2184,10 +2184,19 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 2
+              ],
+              "SpinalEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
               ]
             }
           ],
@@ -2301,10 +2310,19 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 2
+              ],
+              "SpinalEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
               ]
             }
           ],
@@ -2420,7 +2438,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 6
@@ -2429,7 +2447,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 8
@@ -2555,7 +2573,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 6
@@ -2564,7 +2582,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Structure2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 8
@@ -2734,6 +2752,33 @@
                 ],
                 3,
                 0
+              ],
+              "WheelEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "WheelEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                3
+              ],
+              "WheelEquipment_at_x4_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                4,
+                3
               ]
             }
           ]
@@ -2831,6 +2876,33 @@
                 ],
                 3,
                 0
+              ],
+              "WheelEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "WheelEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                3
+              ],
+              "WheelEquipment_at_x4_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                4,
+                3
               ]
             }
           ]
@@ -2899,19 +2971,42 @@
             {
             }
           ],
+          "ForeEquipment": [
+              "MultiMount",
+              {
+                  "ForeEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      0
+                  ]
+              }
+          ],
           "AftEquipment": [
-            "MultiMount",
-            {
-              "AftEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
-                ],
-                0,
-                0
-              ]
-            }
+              "MultiMount",
+              {
+                  "AftEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/repair/Shield3x3.tscn"
+                      ],
+                      0,
+                      0
+                  ],
+                  "AftEquipment_at_x0_y3": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      3
+                  ]
+              }
           ]
         }
       ],
@@ -2978,19 +3073,42 @@
             {
             }
           ],
+          "ForeEquipment": [
+              "MultiMount",
+              {
+                  "ForeEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      0
+                  ]
+              }
+          ],
           "AftEquipment": [
-            "MultiMount",
-            {
-              "AftEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
-                ],
-                0,
-                0
-              ]
-            }
+              "MultiMount",
+              {
+                  "AftEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/repair/Shield3x3.tscn"
+                      ],
+                      0,
+                      0
+                  ],
+                  "AftEquipment_at_x0_y3": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      3
+                  ]
+              }
           ]
         }
       ],
@@ -3057,19 +3175,42 @@
             {
             }
           ],
+          "ForeEquipment": [
+              "MultiMount",
+              {
+                  "ForeEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      0
+                  ]
+              }
+          ],
           "AftEquipment": [
-            "MultiMount",
-            {
-              "AftEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
-                ],
-                0,
-                0
-              ]
-            }
+              "MultiMount",
+              {
+                  "AftEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/repair/Shield3x3.tscn"
+                      ],
+                      0,
+                      0
+                  ],
+                  "AftEquipment_at_x0_y3": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      3
+                  ]
+              }
           ]
         }
       ],
@@ -3136,19 +3277,42 @@
             {
             }
           ],
+          "ForeEquipment": [
+              "MultiMount",
+              {
+                  "ForeEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      0
+                  ]
+              }
+          ],
           "AftEquipment": [
-            "MultiMount",
-            {
-              "AftEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
-                ],
-                0,
-                0
-              ]
-            }
+              "MultiMount",
+              {
+                  "AftEquipment_at_x0_y0": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/repair/Shield3x3.tscn"
+                      ],
+                      0,
+                      0
+                  ],
+                  "AftEquipment_at_x0_y3": [
+                      "MultiMounted",
+                      [
+                          "Resource",
+                          "res://equipment/defense/DefensiveScatterer.tscn"
+                      ],
+                      0,
+                      3
+                  ]
+              }
           ]
         }
       ],
@@ -3198,7 +3362,17 @@
               ],
               "SmallEquipment": [
                   "MultiMount",
-                  {}
+                  {
+                      "SmallEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/DefensiveScatterer.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
               ],
               "LargeEquipment": [
                   "MultiMount",
@@ -3262,7 +3436,17 @@
               ],
               "SmallEquipment": [
                   "MultiMount",
-                  {}
+                  {
+                      "SmallEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/DefensiveScatterer.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
               ],
               "LargeEquipment": [
                   "MultiMount",
@@ -3429,6 +3613,15 @@
                 ],
                 0,
                 0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                0
               ]
             }
           ]
@@ -3488,6 +3681,15 @@
                   "res://equipment/repair/Shield2x2.tscn"
                 ],
                 0,
+                0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
                 0
               ]
             }
@@ -3550,6 +3752,15 @@
                 ],
                 0,
                 0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                0
               ]
             }
           ]
@@ -3609,6 +3820,15 @@
                   "res://equipment/repair/Shield2x2.tscn"
                 ],
                 0,
+                0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
                 0
               ]
             }
@@ -3687,6 +3907,33 @@
                 ],
                 3,
                 0
+              ],
+              "Equipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "Equipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                3
+              ],
+              "Equipment_at_x4_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                4,
+                3
               ]
             }
           ]
@@ -3800,54 +4047,27 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/cargo/CargoBay1x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
-                3
-              ],
-              "WheelEquipment_at_x1_y3": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/cargo/CargoBay1x2.tscn"
-                ],
-                1,
                 3
               ],
               "WheelEquipment_at_x2_y3": [
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/cargo/CargoBay1x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 2,
-                3
-              ],
-              "WheelEquipment_at_x3_y3": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/cargo/CargoBay1x2.tscn"
-                ],
-                3,
                 3
               ],
               "WheelEquipment_at_x4_y3": [
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/cargo/CargoBay1x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 4,
-                3
-              ],
-              "WheelEquipment_at_x5_y3": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/cargo/CargoBay1x2.tscn"
-                ],
-                5,
                 3
               ]
             }
@@ -3954,7 +4174,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 0
@@ -3963,7 +4183,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 2
@@ -3972,7 +4192,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 4
@@ -3981,7 +4201,7 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
+                  "res://equipment/defense/DefensiveScatterer.tscn"
                 ],
                 0,
                 6
@@ -4049,6 +4269,20 @@
                 2
               ]
             }
+          ],
+          "StarboardEquipment": [
+            "MultiMount",
+            {
+              "StarboardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ]
+            }
           ]
         },
         null
@@ -4109,6 +4343,20 @@
                 ],
                 0,
                 2
+              ]
+            }
+          ],
+          "StarboardEquipment": [
+            "MultiMount",
+            {
+              "StarboardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
               ]
             }
           ]
@@ -4298,6 +4546,47 @@
                 0
               ]
             }
+          ],
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                6
+              ]
+            }
           ]
         },
         null
@@ -4391,6 +4680,47 @@
                 ],
                 0,
                 0
+              ]
+            }
+          ],
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                6
               ]
             }
           ]
