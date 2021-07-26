@@ -30,6 +30,8 @@ export var armor_inverse_density: float = 200.0
 export var fuel_inverse_density: float = 10.0
 export var override_size: Vector3 = Vector3(0,0,0)
 
+export var rifting_damage_multiplier: float = 0.5
+
 export var base_heat_capacity: float = 10.0
 export var base_cooling: float = 1.0
 export var base_shield_repair_heat: float = 0.3
@@ -254,6 +256,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['armor_resist']=base_armor_resist
 	stats['armor_passthru']=base_armor_passthru
 	stats['structure_resist']=base_structure_resist
+	stats['rifting_damage_multiplier']=rifting_damage_multiplier
 
 	stats['heat_capacity']=base_heat_capacity
 	stats['cooling']=base_cooling

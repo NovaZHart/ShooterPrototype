@@ -446,6 +446,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   reverse_thrust_energy(max(0.0f,get<real_t>(dict,"reverse_thrust_energy"))/1000.0f),
   turning_thrust_energy(max(0.0f,get<real_t>(dict,"turning_thrust_energy"))/1000.0f),
 
+  rifting_damage_multiplier(clamp(get<real_t>(dict,"rifting_damage_multiplier",0.3f),0.0f,1.0f)),
+  
   energy(max_energy),
   heat(0.0f),
   power(max_power),

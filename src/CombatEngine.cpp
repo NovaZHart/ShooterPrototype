@@ -868,7 +868,7 @@ void CombatEngine::rift_ai(Ship &ship) {
     // Once the ship is stopped, paralyze it and open a rift.
     ship.immobile = true;
     ship.inactive = true;
-    ship.damage_multiplier = RIFTING_DAMAGE_MULTIPLIER;
+    ship.damage_multiplier = ship.rifting_damage_multiplier;
     ship.rift_timer.reset();
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
@@ -971,18 +971,20 @@ bool CombatEngine::init_ship(Ship &ship) {
     if(ship.max_speed>0 and ship.max_speed<999999)
       set_velocity(ship,ship.heading*ship.max_speed);
     ship.entry_method=ENTRY_COMPLETE;
+    ship.damage_multiplier=1.0;
     return false;
   } else if(ship.entry_method != ENTRY_FROM_RIFT and
             ship.entry_method != ENTRY_FROM_RIFT_STATIONARY) {
     // Invalid entry method; treat it as ENTRY_COMPLETE.
     ship.entry_method=ENTRY_COMPLETE;
+    ship.damage_multiplier=1.0;
     return false;
   }
   if(ship.at_first_tick) {
     // Ship is arriving via spatial rift. Trigger the animation and start a timer.
     ship.immobile=true;
     ship.inactive=true;
-    ship.damage_multiplier = RIFTING_DAMAGE_MULTIPLIER;
+    ship.damage_multiplier = ship.rifting_damage_multiplier;
     ship.rift_timer.reset();
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;

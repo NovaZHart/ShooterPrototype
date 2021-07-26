@@ -24,7 +24,6 @@
 #define MIN_ALLOWED_FACTION 0
 #define PLAYER_FACTION 0
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
-#define RIFTING_DAMAGE_MULTIPLIER 0.3f
 
 #define NUM_DAMAGE_TYPES 9
 #define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (do not use) */
@@ -450,7 +449,8 @@ namespace godot {
       const real_t shield_repair_energy, armor_repair_energy, structure_repair_energy;
       const real_t forward_thrust_heat, reverse_thrust_heat, turning_thrust_heat;
       const real_t forward_thrust_energy, reverse_thrust_energy, turning_thrust_energy;
-
+      const real_t rifting_damage_multiplier;
+      
       real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency;
       double thrust_loss;
 
