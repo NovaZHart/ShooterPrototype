@@ -33,7 +33,7 @@ export var override_size: Vector3 = Vector3(0,0,0)
 export var rifting_damage_multiplier: float = 0.5
 
 export var base_heat_capacity: float = 10.0
-export var base_cooling: float = 1.0
+export var base_cooling: float = -1.0
 export var base_shield_repair_heat: float = 0.3
 export var base_armor_repair_heat: float = 0.3
 export var base_structure_repair_heat: float = 0.2
@@ -259,7 +259,10 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['rifting_damage_multiplier']=rifting_damage_multiplier
 
 	stats['heat_capacity']=base_heat_capacity
-	stats['cooling']=base_cooling
+	if base_cooling>=0:
+		stats['cooling']=base_cooling
+	else:
+		stats['cooling']=base_mass/100.0
 	stats['shield_repair_heat']=base_shield_repair_heat
 	stats['armor_repair_heat']=base_armor_repair_heat
 	stats['structure_repair_heat']=base_structure_repair_heat

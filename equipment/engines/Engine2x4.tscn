@@ -15,6 +15,6 @@ add_explosion_damage = 200.0
 add_explosion_impulse = 400.0
 item_size_x = 2
 item_size_y = 4
-mount_type_all = "engine"
 mount_type_display = "engine"
+mount_type_all = "engine"
 help_page = "engine/plasma-medium"

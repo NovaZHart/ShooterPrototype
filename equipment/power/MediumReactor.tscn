@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/power/MediumReactor.mesh" type="ArrayMesh" id=2]
+
+[node name="MediumReactor" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+script = ExtResource( 1 )
+add_mass = 8.0
+item_size_x = 2
+item_size_y = 2
+add_cooling = -2.8
+add_battery = 850.0
+add_power = 85.0
+mount_type_all = "internal equipment"
