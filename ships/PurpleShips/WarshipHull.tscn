@@ -16,15 +16,12 @@ script = ExtResource( 4 )
 help_page = "hulls/raven"
 base_mass = 85.0
 base_thrust = 1300.0
-base_turn_thrust = 450.0
 base_shields = 1300.0
 base_armor = 900.0
 base_structure = 400.0
 base_fuel = 16.0
 heal_shields = 7.0
-heal_armor = 0.0
 heal_structure = 12.0
-heal_fuel = 30.0
 base_turn_drag = 0.4
 base_explosion_damage = 400.0
 base_explosion_radius = 4.0
@@ -85,7 +82,15 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="Engine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.970066, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2148, 0, -0.362236 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="AuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.215, 0, 0.362 )
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 4

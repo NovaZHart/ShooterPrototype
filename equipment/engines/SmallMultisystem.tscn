@@ -1,0 +1,25 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/engines/SmallMultisystem.mesh" type="ArrayMesh" id=2]
+
+[node name="SmallMultisystem" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+add_mass = 8.0
+add_thrust = 500.0
+add_reverse_thrust = 1200.0
+add_turning_thrust = 1100.0
+add_structure = 120.0
+mount_type_all = "engine"
+item_size_x = 2
+item_size_y = 2
+forward_thrust_heat = 0.25
+reverse_thrust_heat = 0.25
+turning_thrust_heat = 0.7
+forward_thrust_energy = 0.035
+reverse_thrust_energy = 0.035
+turning_thrust_energy = 0.12

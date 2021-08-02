@@ -221,6 +221,20 @@ mount_size_x = 2
 mount_size_y = 4
 mount_type = "external engine"
 
+[node name="PortAuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.05396, -1.09221, -0.660123 )
+script = ExtResource( 9 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+
+[node name="StarboardAuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.054, -1.092, 0.66 )
+script = ExtResource( 9 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+
 [node name="Equipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.171693, 0.47904, 0 )
 script = ExtResource( 9 )
@@ -228,4 +242,3 @@ mount_size_x = 6
 mount_size_y = 5
 mount_type = "internal equipment"
 mount_type_display = "equipment"
-

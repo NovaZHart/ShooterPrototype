@@ -13,12 +13,10 @@ extents = Vector3( 0.5, 10, 1.4 )
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 1 )
 help_page = "hulls/eagle"
-base_mass = 114
 base_shields = 3200.0
 base_armor = 2400.0
 base_structure = 1000.0
 base_fuel = 15.0
-heal_fuel = 30.0
 base_drag = 1.7
 base_turn_drag = 0.45
 base_max_cargo = 23
@@ -79,9 +77,17 @@ mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="Engine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.10581, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.10581, 0.211483, 0 )
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="AuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.10581, -0.00460815, 0.0137019 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"

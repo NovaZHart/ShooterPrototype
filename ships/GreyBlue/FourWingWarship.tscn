@@ -19,14 +19,12 @@ help_page = "hulls/orca"
 base_mass = 182.0
 base_shields = 3600.0
 base_armor = 4800.0
-armor_inverse_density = 300.0
 base_structure = 1600.0
 base_fuel = 22.0
-heal_fuel = 30.0
 base_drag = 1.75
 base_turn_drag = 0.5
 base_max_cargo = 40
-armor_density = 6.0
+armor_inverse_density = 300.0
 override_size = Vector3( 4, 0, 3.5 )
 base_power = 160.0
 

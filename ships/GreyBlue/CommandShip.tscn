@@ -20,16 +20,14 @@ help_page = "hulls/ankylorhiza"
 base_mass = 377.0
 base_shields = 7000.0
 base_armor = 11000.0
-armor_inverse_density = 300.0
 base_structure = 4800.0
 base_fuel = 32.0
 heal_fuel = 40.0
 base_drag = 2.2
 base_turn_drag = 0.6
 base_max_cargo = 120
-armor_density = 6.0
+armor_inverse_density = 300.0
 override_size = Vector3( 7, 0, 3.2 )
-base_power = 320
 
 [node name="Wheel" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.723207, 0 )
@@ -132,5 +130,21 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.91072, 0, 0 )
 script = ExtResource( 5 )
 mount_size_x = 4
 mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="PortAuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.91072, -0.785552, -0.734499 )
+script = ExtResource( 5 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="StarboardAuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.911, -0.785552, 0.734 )
+script = ExtResource( 5 )
+mount_size_x = 2
+mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"

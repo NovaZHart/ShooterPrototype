@@ -1,22 +1,22 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
-[ext_resource path="res://equipment/engines/engine-4x4.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://equipment/engines/FusionEngine.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
+material/2 = null
+material/3 = null
 script = ExtResource( 1 )
 add_mass = 32.0
-add_structure = 640.0
-add_thrust = 8000.0
-add_reverse_thrust = 5300.0
-add_turning_thrust = 4100.0
-add_explosion_damage = 400.0
-add_explosion_impulse = 800.0
+add_thrust = 12700.0
 item_size_x = 4
 item_size_y = 4
 mount_type_all = "engine"
-mount_type_display = "engine"
-help_page = "engine/plasma-large"
+add_cooling = -4.8
+forward_thrust_heat = 0.5
+forward_thrust_energy = 0.1
+add_battery = 1800.0
+add_power = 240.0
