@@ -202,18 +202,25 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['name']=name
 	if not skip_runtime_stats and is_inside_tree():
 		stats['rid']=get_rid()
+	if base_mass<=0:
+		push_warning('invalid base mass '+str(base_mass))
+		base_mass = 1.0
+		stats['invalid']=true
 	if base_thrust>=0:
 		stats['thrust']=base_thrust
 	else:
 		stats['thrust']=base_mass*16
+	assert(stats['thrust']>0)
 	if base_reverse_thrust>=0:
 		stats['reverse_thrust']=base_reverse_thrust
 	else:
 		stats['reverse_thrust']=base_mass*12
+	assert(stats['reverse_thrust']>0)
 	if base_turning_thrust>=0:
 		stats['turning_thrust']=base_turning_thrust
 	else:
 		stats['turning_thrust']=base_mass*15
+	assert(stats['turning_thrust']>0)
 	if base_threat<0:
 		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
 			heal_shields+heal_armor+heal_structure
@@ -262,7 +269,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	if base_cooling>=0:
 		stats['cooling']=base_cooling
 	else:
-		stats['cooling']=base_mass/100.0
+		stats['cooling']=base_mass*base_heat_capacity/1200.0
 	stats['shield_repair_heat']=base_shield_repair_heat
 	stats['armor_repair_heat']=base_armor_repair_heat
 	stats['structure_repair_heat']=base_structure_repair_heat
@@ -309,6 +316,7 @@ func update_stats():
 			assert(not wep['node_path'].is_empty())
 	combined_stats['aabb']=get_combined_aabb()
 	skipped_runtime_stats=false
+	assert(combined_stats['turning_thrust']>0)
 
 func make_cell(key,value) -> String:
 	return '[cell]'+key+'[/cell][cell]'+str(value)+'[/cell]'

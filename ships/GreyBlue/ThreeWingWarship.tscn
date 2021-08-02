@@ -21,6 +21,7 @@ heal_fuel = 25.0
 base_turn_drag = 0.4
 base_max_cargo = 17
 armor_inverse_density = 300.0
+base_mass = 131
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )

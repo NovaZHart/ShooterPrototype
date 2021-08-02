@@ -255,10 +255,17 @@ func sum_of_squares(accum: PoolRealArray,add: PoolRealArray) -> PoolRealArray:
 			accum[i] = sign(a)*sqrt(abs(a))
 	return accum
 
+func isfinite(f: float) -> bool:
+	return not is_inf(f) and not is_nan(f)
+
 func weighted_add(add_value,add_weight: float,stats: Dictionary,value_key: String,weight_key: String):
-	var weight: float = stats[weight_key]
-	var value: float = stats[value_key]
-	if not weight and not add_weight:
-		stats[value_key] = (add_value+value)/2
-	else:
-		stats[value_key] = (add_value*add_weight + value*weight)/(add_weight+weight)
+	if not add_weight:
+		return
+
+	var abs_weight: float = abs(stats.get(weight_key,add_weight))
+	var abs_add_weight: float = abs(add_weight)
+	var value: float = stats.get(value_key,0.0)
+	var denom: float = abs_weight+abs_add_weight
+
+	stats[value_key] = (add_value*abs_add_weight + value*abs_weight)/denom
+	assert(isfinite(stats[value_key]))

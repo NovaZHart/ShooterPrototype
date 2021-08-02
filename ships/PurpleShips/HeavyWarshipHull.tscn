@@ -26,6 +26,7 @@ armor_inverse_density = 250.0
 override_size = Vector3( 5.5, 0, 4 )
 base_battery = 3600.0
 base_power = 240.0
+base_mass = 293
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )

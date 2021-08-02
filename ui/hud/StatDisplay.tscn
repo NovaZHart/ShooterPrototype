@@ -17,16 +17,5 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 icon_font = SubResource( 1 )
-x_justify = null
-y_justify = null
-background_color = null
-outline_color = null
-structure_color = null
-armor_color = null
-shields_color = null
-fuel_color = null
-heat_color = null
-energy_color = null
-efficiency_color = null
 
 [connection signal="resized" from="." to="." method="_on_Control_resized"]

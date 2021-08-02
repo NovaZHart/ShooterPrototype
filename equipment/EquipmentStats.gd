@@ -164,11 +164,11 @@ func get_bbcode() -> String:
 
 func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
 	stats['equipment'].append(pack_stats())
-	if add_heat_capacity:
+	if add_heat_capacity>0.0:
 		stats['heat_capacity'] += add_heat_capacity
 	if add_cooling:
 		stats['cooling'] += add_cooling
-	if add_battery:
+	if add_battery>0.0:
 		stats['battery'] += add_battery
 	if add_power:
 		stats['power'] += add_power

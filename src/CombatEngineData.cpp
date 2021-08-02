@@ -259,6 +259,8 @@ void Weapon::reload(Ship &ship,ticks_t idelta) {
         ship.energy -= reload_energy;
       if(reload_heat)
         ship.heat += reload_heat;
+      if(not isfinite(ship.heat))
+        Godot::print_warning(ship.name+String(": non-finite ship heat after reload"),__FUNCTION__,__FILE__,__LINE__);
       reload_countdown.reset(reload_delay*ticks_per_second);
     }
   }
@@ -428,10 +430,10 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   armor_passthru(to_damage_array(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
   structure_resist(to_damage_array(dict["structure_resist"],MIN_RESIST,MAX_RESIST)),
 
-  max_cooling(max(0.0f,get<real_t>(dict,"cooling")*empty_mass)),
-  max_energy(max(0.0f,get<real_t>(dict,"battery"))),
-  max_power(max(0.0f,get<real_t>(dict,"power"))),
-  max_heat(max(0.0f,get<real_t>(dict,"heat_capacity")*empty_mass)),
+  max_cooling(get<real_t>(dict,"cooling")*empty_mass),
+  max_energy(max(1e-5f,get<real_t>(dict,"battery"))),
+  max_power(max(1e-5f,get<real_t>(dict,"power"))),
+  max_heat(max(1e-5f,get<real_t>(dict,"heat_capacity")*empty_mass)),
 
   shield_repair_heat(max(0.0f,get<real_t>(dict,"shield_repair_heat"))),
   armor_repair_heat(max(0.0f,get<real_t>(dict,"armor_repair_heat"))),
@@ -519,19 +521,25 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   at_first_tick(true),
   visual_scale(1.0)
 {
+  if(max_energy<=1e-5)
+    Godot::print_warning(name+String(": new ship has invalid max_energy (battery)."),__FUNCTION__,__FILE__,__LINE__);
+  if(max_heat<=1e-5)
+    Godot::print_warning(name+String(": new ship has invalid max_heat (heat_capacity*empty_mass)."),__FUNCTION__,__FILE__,__LINE__);
+  if(max_power<=1e-5)
+    Godot::print_warning(name+String(": new ship has invalid max_power (power)."),__FUNCTION__,__FILE__,__LINE__);
   if(not (drag<999999 and drag>1e-6))
-    Godot::print_warning(String("New ship has an invalid drag ")+String(Variant(drag)),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+String(": new ship has an invalid drag ")+String(Variant(drag)),__FUNCTION__,__FILE__,__LINE__);
   if(not (inverse_mass<999999))
-    Godot::print_warning(String("New ship has an invalid inverse mass ")+String(Variant(inverse_mass)),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+String(": new ship has an invalid inverse mass ")+String(Variant(inverse_mass)),__FUNCTION__,__FILE__,__LINE__);
   if(not (turn_drag<999999 and turn_drag>1e-6))
-    Godot::print_warning(String("New ship has an invalid turn drag ")+String(Variant(turn_drag)),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+String(": new ship has an invalid turn drag ")+String(Variant(turn_drag)),__FUNCTION__,__FILE__,__LINE__);
   if(not (thrust<999999 and thrust>=0))
-    Godot::print_warning(String("New ship has an invalid thrust ")+String(Variant(thrust)),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+String(": new ship has an invalid thrust ")+String(Variant(thrust)),__FUNCTION__,__FILE__,__LINE__);
   if(not (reverse_thrust<999999 and reverse_thrust>=0))
-    Godot::print_warning(String("New ship has an invalid reverse_thrust ")+String(Variant(reverse_thrust)),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+String(": new ship has an invalid reverse_thrust ")+String(Variant(reverse_thrust)),__FUNCTION__,__FILE__,__LINE__);
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;
   if(not (max_speed<999999 and max_speed>=0))
-    Godot::print_warning(String("New ship's calculated max speed is invalid ")+String(Variant(max_speed)),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+String(": new ship's calculated max speed is invalid ")+String(Variant(max_speed)),__FUNCTION__,__FILE__,__LINE__);
   max_angular_velocity = turning_thrust/turn_drag*inverse_mass*PI/30.0f; // convert from RPM
   turn_diameter_squared = make_turn_diameter_squared();
   if(name=="player_ship") {
@@ -593,6 +601,8 @@ void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
     heat = clamp(heat,0.0f,1.3f*max_heat);
     if(heat>max_heat)
       efficiency -= (heat-max_heat)/max_heat;
+    if(not isfinite(heat))
+      Godot::print_warning(name+String(": non-finite ship heat after clamping"),__FUNCTION__,__FILE__,__LINE__);
   }
   if(max_energy>0) {
     energy = clamp(energy,-0.3f*max_energy,max_energy);
@@ -639,6 +649,8 @@ void Ship::heal_stat(double &stat,double new_value,real_t heal_energy,real_t hea
     energy-=heal_energy*diff;
   if(heal_heat)
     heat+=heal_heat*diff;
+  if(not isfinite(heat))
+    Godot::print_warning(name+String(": non-finite ship heat after healing"),__FUNCTION__,__FILE__,__LINE__);
 }
 
 void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {
@@ -769,8 +781,11 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
   } else {
     damage_since_targetting_change += damage;
     if(structure_damage) {
-      if(heat_fraction)
+      if(heat_fraction) {
         heat += heat_fraction*structure_damage;
+        if(not isfinite(heat))
+          Godot::print_warning(name+String(": non-finite ship heat after heat damage"),__FUNCTION__,__FILE__,__LINE__);
+      }
       if(energy_fraction)
         energy -= energy_fraction*structure_damage;
       if(thrust_fraction)
@@ -856,7 +871,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["ranges"]=r;
   s["destination"]=destination;
   s["faction_index"]=faction;
-
+  
   ships_const_iter target_p = ships.find(target);
   if(target_p!=ships.end() and target_p->second.structure>0) {
     s["target_rid"] = target_p->second.rid;
