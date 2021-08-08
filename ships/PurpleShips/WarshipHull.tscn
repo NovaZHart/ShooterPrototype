@@ -27,8 +27,6 @@ base_explosion_damage = 400.0
 base_explosion_radius = 4.0
 base_explosion_impulse = 800.0
 override_size = Vector3( 2.4, 0, 3 )
-base_battery = 900.0
-base_power = 60.0
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )

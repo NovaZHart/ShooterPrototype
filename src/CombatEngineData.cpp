@@ -430,7 +430,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   armor_passthru(to_damage_array(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
   structure_resist(to_damage_array(dict["structure_resist"],MIN_RESIST,MAX_RESIST)),
 
-  max_cooling(get<real_t>(dict,"cooling")*empty_mass),
+  max_cooling(get<real_t>(dict,"cooling")),
   max_energy(max(1e-5f,get<real_t>(dict,"battery"))),
   max_power(max(1e-5f,get<real_t>(dict,"power"))),
   max_heat(max(1e-5f,get<real_t>(dict,"heat_capacity")*empty_mass)),
@@ -651,6 +651,15 @@ void Ship::heal_stat(double &stat,double new_value,real_t heal_energy,real_t hea
     heat+=heal_heat*diff;
   if(not isfinite(heat))
     Godot::print_warning(name+String(": non-finite ship heat after healing"),__FUNCTION__,__FILE__,__LINE__);
+}
+
+void Ship::apply_heat_and_energy_costs(real_t delta) {
+  real_t angular_speed = angular_velocity.length();
+  if(angular_speed) {
+    real_t mag = clamp(angular_speed/max_angular_velocity,0.0f,1.0f)*turning_thrust*delta;
+    energy -= mag*turning_thrust_energy;
+    heat += mag*turning_thrust_heat;
+  }
 }
 
 void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {

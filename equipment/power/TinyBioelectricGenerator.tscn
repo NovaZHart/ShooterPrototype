@@ -1,0 +1,19 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/power/TinyBioelectricGenerator.mesh" type="ArrayMesh" id=2]
+
+[node name="TinyBioelectricGenerator" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+script = ExtResource( 1 )
+item_size_x = 1
+item_size_y = 1
+add_mass = 2.0
+add_structure = 30.0
+add_cooling = -0.45
+add_battery = 135.0
+add_power = 4.5

@@ -15,3 +15,5 @@ mount_type_any = "internal external"
 help_page = "equipment/defensive-scatterer"
 add_armor_resist = PoolRealArray( 0, 0.25 )
 add_structure_resist = PoolRealArray( 0, 0.25 )
+add_cooling = -0.1
+add_power = -1.0

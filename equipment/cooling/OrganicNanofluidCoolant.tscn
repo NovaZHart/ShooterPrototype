@@ -13,5 +13,6 @@ add_mass = 8.0
 add_structure = 160.0
 item_size_x = 2
 item_size_y = 2
-add_cooling = 4.5
 mount_type_all = "internal equipment"
+add_cooling = 11.0
+add_power = -0.22

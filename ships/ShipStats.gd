@@ -32,7 +32,7 @@ export var override_size: Vector3 = Vector3(0,0,0)
 
 export var rifting_damage_multiplier: float = 0.5
 
-export var base_heat_capacity: float = 10.0
+export var base_heat_capacity: float = 0.2
 export var base_cooling: float = -1.0
 export var base_shield_repair_heat: float = 0.3
 export var base_armor_repair_heat: float = 0.3
@@ -185,6 +185,53 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, q
 func set_stats(stats: Dictionary) -> void:
 	combined_stats = stats.duplicate(true)
 
+func count_item_slots() -> int:
+	var result: int = 0
+	for child in get_children():
+		result += count_item_slots_in(child)
+	return result
+
+func count_item_slots_in(node) -> int:
+	if not node:
+		return 0
+	var result: int = 0
+	if node.has_method('get_mount_size'):
+		result = node.get_mount_size()
+	for child in node.get_children():
+		result += count_item_slots_in(child)
+	return result
+
+func set_power_and_cooling(stats: Dictionary):
+	var need = 2
+	if base_power>=0:
+		stats['power'] = base_power
+		need -= 1
+	if base_cooling>=0:
+		stats['cooling'] = base_cooling
+		need -= 1
+	if need<=0:
+		return
+
+	var slots: int = count_item_slots()
+	if not (base_power>=0):
+		var power: float = slots/4.0
+		power += max(stats['thrust']*stats['forward_thrust_energy'], \
+			stats['reverse_thrust']*stats['reverse_thrust_energy'])/1000.0 + \
+			stats['turning_thrust']*stats['turning_thrust_energy']/1000.0 + \
+			stats['heal_shields']*stats['shield_repair_energy'] + \
+			stats['heal_armor']*stats['armor_repair_energy'] + \
+			stats['heal_structure']*stats['structure_repair_energy']
+		stats['power'] = power
+	if not (base_cooling>=0):
+		var heat: float = slots/30.0
+		heat += max(stats['thrust']*stats['forward_thrust_heat'], \
+			stats['reverse_thrust']*stats['reverse_thrust_heat'])/1000.0 + \
+			stats['turning_thrust']*stats['turning_thrust_heat']/1000.0 + \
+			stats['heal_shields']*stats['shield_repair_heat'] + \
+			stats['heal_armor']*stats['armor_repair_heat'] + \
+			stats['heal_structure']*stats['structure_repair_heat']
+		stats['cooling'] = heat
+
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	if base_explosion_damage>=0:
 		stats['explosion_damage']=base_explosion_damage
@@ -266,10 +313,6 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['rifting_damage_multiplier']=rifting_damage_multiplier
 
 	stats['heat_capacity']=base_heat_capacity
-	if base_cooling>=0:
-		stats['cooling']=base_cooling
-	else:
-		stats['cooling']=base_mass*base_heat_capacity/1200.0
 	stats['shield_repair_heat']=base_shield_repair_heat
 	stats['armor_repair_heat']=base_armor_repair_heat
 	stats['structure_repair_heat']=base_structure_repair_heat
@@ -282,10 +325,9 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	stats['forward_thrust_energy']=base_forward_thrust_energy
 	stats['reverse_thrust_energy']=base_reverse_thrust_energy
 	stats['turning_thrust_energy']=base_turning_thrust_energy
-	if base_power>=0:
-		stats['power']=base_power
-	else:
-		stats['power']=(base_shields+base_armor+base_structure+base_mass*10)/56.0
+
+	set_power_and_cooling(stats)
+
 	if base_battery>=0:
 		stats['battery']=base_battery
 	else:

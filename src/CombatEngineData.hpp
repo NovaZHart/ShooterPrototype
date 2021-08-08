@@ -528,6 +528,9 @@ namespace godot {
       // Update information derived from physics server info:
       void update_stats(PhysicsServer *state, bool update_server);
 
+      // Pay for rotation or other constant usage:
+      void apply_heat_and_energy_costs(real_t delta);
+      
       // Repair the ship based on information from the system (or hyperspace):
       void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
 

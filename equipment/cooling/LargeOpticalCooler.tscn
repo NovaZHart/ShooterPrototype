@@ -7,11 +7,12 @@
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
+material/2 = null
 script = ExtResource( 1 )
-item_size_x = 2
-item_size_y = 1
 add_mass = 4.0
 add_structure = 60.0
-add_cooling = 2.5
-add_power = -2.5
+item_size_x = 2
+item_size_y = 1
 mount_type_all = "internal equipment"
+add_cooling = 6.0
+add_power = -0.3

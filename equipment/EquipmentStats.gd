@@ -43,18 +43,18 @@ export var add_structure_resist: PoolRealArray = PoolRealArray()
 
 export var add_heat_capacity: float = 0.0
 export var add_cooling: float = 0.0
-export var shield_repair_heat: float = 0.3
-export var armor_repair_heat: float = 0.3
-export var structure_repair_heat: float = .2
-export var shield_repair_energy: float = 0.3
-export var armor_repair_energy: float = 0.3
+export var shield_repair_heat: float = 0.013
+export var armor_repair_heat: float = 0.0165
+export var structure_repair_heat: float = .02
+export var shield_repair_energy: float = 0.13
+export var armor_repair_energy: float = 0.165
 export var structure_repair_energy: float = .2
-export var forward_thrust_heat: float = 0.3
-export var reverse_thrust_heat: float = 0.3
-export var turning_thrust_heat: float = 0.9
-export var forward_thrust_energy: float = 0.05
-export var reverse_thrust_energy: float = 0.05
-export var turning_thrust_energy: float = 0.15
+export var forward_thrust_heat: float = .12
+export var reverse_thrust_heat: float = .12
+export var turning_thrust_heat: float = .36
+export var forward_thrust_energy: float = 1.2
+export var reverse_thrust_energy: float = 1.2
+export var turning_thrust_energy: float = 3.6
 export var add_battery: float = 0.0
 export var add_power: float = 0.0
 
@@ -117,6 +117,9 @@ func get_mount_size_x() -> int:
 
 func get_mount_size_y() -> int:
 	return mount_size_y if mount_size_y>0 else item_size_y
+
+func get_mount_size() -> int:
+	 return get_mount_size_x()*get_mount_size_y()
 
 func pack_stats() -> Dictionary:
 	if not cached_stats:

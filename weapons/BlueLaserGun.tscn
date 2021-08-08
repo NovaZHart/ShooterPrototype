@@ -17,5 +17,5 @@ projectile_lifetime = 0.0
 firing_delay = 0.0
 projectile_mesh_path = "res://weapons/meshes/dark_blue_line.mesh"
 help_page = "weapons/df_laser"
-firing_heat = 0.5
+firing_heat = 0.05
 firing_energy = 0.5
