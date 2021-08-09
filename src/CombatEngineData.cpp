@@ -259,8 +259,6 @@ void Weapon::reload(Ship &ship,ticks_t idelta) {
         ship.energy -= reload_energy;
       if(reload_heat)
         ship.heat += reload_heat;
-      if(not isfinite(ship.heat))
-        Godot::print_warning(ship.name+String(": non-finite ship heat after reload"),__FUNCTION__,__FILE__,__LINE__);
       reload_countdown.reset(reload_delay*ticks_per_second);
     }
   }
@@ -601,8 +599,6 @@ void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
     heat = clamp(heat,0.0f,1.3f*max_heat);
     if(heat>max_heat)
       efficiency -= (heat-max_heat)/max_heat;
-    if(not isfinite(heat))
-      Godot::print_warning(name+String(": non-finite ship heat after clamping"),__FUNCTION__,__FILE__,__LINE__);
   }
   if(max_energy>0) {
     energy = clamp(energy,-0.3f*max_energy,max_energy);
@@ -649,16 +645,16 @@ void Ship::heal_stat(double &stat,double new_value,real_t heal_energy,real_t hea
     energy-=heal_energy*diff;
   if(heal_heat)
     heat+=heal_heat*diff;
-  if(not isfinite(heat))
-    Godot::print_warning(name+String(": non-finite ship heat after healing"),__FUNCTION__,__FILE__,__LINE__);
 }
 
 void Ship::apply_heat_and_energy_costs(real_t delta) {
-  real_t angular_speed = angular_velocity.length();
-  if(angular_speed) {
-    real_t mag = clamp(angular_speed/max_angular_velocity,0.0f,1.0f)*turning_thrust*delta;
-    energy -= mag*turning_thrust_energy;
-    heat += mag*turning_thrust_heat;
+  if(not immobile) { // ship does not pay to spin while arriving via a rift
+    real_t angular_speed = angular_velocity.length();
+    if(angular_speed) {
+      real_t mag = clamp(angular_speed/max_angular_velocity,0.0f,1.0f)*turning_thrust*delta;
+      energy -= mag*turning_thrust_energy;
+      heat += mag*turning_thrust_heat;
+    }
   }
 }
 
@@ -772,12 +768,12 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
     return damage; // already dead or leaving, so cannot take more damage
 
   real_t remaining=damage;
-  real_t structure_damage=0;
+  real_t shield_damage=0, armor_damage=0, structure_damage=0;
   
   if(remaining>0) {
-    apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
+    shield_damage = apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
     if(remaining>0) {
-      apply_damage(remaining,armor,type,armor_resist,armor_passthru,true);
+      armor_damage = apply_damage(remaining,armor,type,armor_resist,armor_passthru,true);
       if(remaining>0)
         structure_damage = apply_damage(remaining,structure,type,structure_resist,armor_passthru,false);
     }
@@ -789,17 +785,14 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
     fate = explosion_timer.alarmed() ? FATED_TO_EXPLODE : FATED_TO_DIE;
   } else {
     damage_since_targetting_change += damage;
-    if(structure_damage) {
-      if(heat_fraction) {
-        heat += heat_fraction*structure_damage;
-        if(not isfinite(heat))
-          Godot::print_warning(name+String(": non-finite ship heat after heat damage"),__FUNCTION__,__FILE__,__LINE__);
-      }
-      if(energy_fraction)
-        energy -= energy_fraction*structure_damage;
-      if(thrust_fraction)
-        thrust_loss += thrust_fraction*structure_damage;
+
+    if(heat_fraction) {
+      heat += heat_fraction*((shield_damage/2+armor_damage)/2+structure_damage);
     }
+    if(energy_fraction)
+      energy -= energy_fraction*((shield_damage/2+armor_damage)/2+structure_damage);
+    if(thrust_fraction)
+      thrust_loss += thrust_fraction*((shield_damage/2+armor_damage)/2+structure_damage);
   }
   
   return remaining;

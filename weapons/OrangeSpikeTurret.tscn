@@ -22,5 +22,5 @@ item_size_x = 3
 mount_type_all = "turret"
 mount_type_display = "turret"
 help_page = "weapons/linear_accelerator_turret"
-firing_heat = 7.0
-firing_energy = 9.0
+firing_heat = 0.06383
+firing_energy = 0.6383

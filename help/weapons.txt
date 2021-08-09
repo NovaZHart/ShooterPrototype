@@ -2,9 +2,9 @@
 @PAGE weapons/mass_driver
 @title Mass Driver
 @price Price:
-@synopsis Launches chunks of rock or metal at relativistic velocity using anti-gravity fields.
+@synopsis Launches chunks of rock or debris at relativistic velocity using anti-gravity fields.
 @content
-This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even rubbish from the ship. Garbage bags may not sound like much of a threat, until they smash through your ship's hull at a half the speed of light.
+This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even garbage. A dumpster may not sound like much of a threat, until it smashes through your ship's hull at half the speed of light.
 
 @bbcode_from_scene res://weapons/MassDriver.tscn
 

@@ -17,5 +17,5 @@ projectile_lifetime = 0.45
 firing_delay = 0.167
 projectile_mesh_path = "res://weapons/meshes/OrangeIsoBlob.mesh"
 help_page = "weapons/linear_accelerator_gun"
-firing_heat = 4.0
-firing_energy = 5.0
+firing_heat = 0.06012
+firing_energy = 0.6012

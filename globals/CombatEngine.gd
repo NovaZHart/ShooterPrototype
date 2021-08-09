@@ -56,11 +56,6 @@ const DAMAGE_GRAVITY: int = 6     # Strong gravity or gravity waves
 const DAMAGE_ANTIMATTER: int = 7  # Antimatter particles
 const DAMAGE_HOT_MATTER: int = 8  # Explosion or beam of hot gas or plasma
 
-const DAMAGE_DISPLAY_NAMES: PoolStringArray = PoolStringArray([
-	"Typeless", "Light", "H.E.Particle", "Piercing", "Impact", "EM.Field", \
-	"Gravity", "Antimatter", "Hot Matter",
-])
-
 const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
 	"rules/damage/typeless", # Typeless damage should never show up
 	"rules/damage/light",

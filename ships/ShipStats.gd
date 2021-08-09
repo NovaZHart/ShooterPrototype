@@ -34,12 +34,12 @@ export var rifting_damage_multiplier: float = 0.5
 
 export var base_heat_capacity: float = 0.2
 export var base_cooling: float = -1.0
-export var base_shield_repair_heat: float = 0.3
-export var base_armor_repair_heat: float = 0.3
-export var base_structure_repair_heat: float = 0.2
-export var base_shield_repair_energy: float = 0.3
-export var base_armor_repair_energy: float = 0.3
-export var base_structure_repair_energy: float = 0.2
+export var base_shield_repair_heat: float = 0.013
+export var base_armor_repair_heat: float = 0.0165
+export var base_structure_repair_heat: float = .02
+export var base_shield_repair_energy: float = 0.13
+export var base_armor_repair_energy: float = 0.165
+export var base_structure_repair_energy: float = .2
 export var base_forward_thrust_heat: float = 0.3
 export var base_reverse_thrust_heat: float = 0.3
 export var base_turning_thrust_heat: float = 0.9
@@ -59,7 +59,7 @@ export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 
 														 #       Tyl, Lgt, HEP, Prc, Imp, EMF, Grv, Atm, Hot
 
 var ship_display_name: String = 'Unnamed'
-
+var item_slots: int = -1 setget set_item_slots,get_item_slots
 var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
 var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []
@@ -185,20 +185,19 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, q
 func set_stats(stats: Dictionary) -> void:
 	combined_stats = stats.duplicate(true)
 
-func count_item_slots() -> int:
+func set_item_slots(_ignored):
+	var _discard = get_item_slots()
+
+func get_item_slots() -> int:
+	if item_slots<0:
+		item_slots = count_item_slots_impl()
+	return item_slots
+
+func count_item_slots_impl() -> int:
 	var result: int = 0
 	for child in get_children():
-		result += count_item_slots_in(child)
-	return result
-
-func count_item_slots_in(node) -> int:
-	if not node:
-		return 0
-	var result: int = 0
-	if node.has_method('get_mount_size'):
-		result = node.get_mount_size()
-	for child in node.get_children():
-		result += count_item_slots_in(child)
+		if child.has_method('get_mount_size'):
+			result += child.get_mount_size()
 	return result
 
 func set_power_and_cooling(stats: Dictionary):
@@ -212,7 +211,7 @@ func set_power_and_cooling(stats: Dictionary):
 	if need<=0:
 		return
 
-	var slots: int = count_item_slots()
+	var slots: int = stats['item_slots']
 	if not (base_power>=0):
 		var power: float = slots/4.0
 		power += max(stats['thrust']*stats['forward_thrust_energy'], \
@@ -233,6 +232,7 @@ func set_power_and_cooling(stats: Dictionary):
 		stats['cooling'] = heat
 
 func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
+	stats['item_slots'] = get_item_slots()
 	if base_explosion_damage>=0:
 		stats['explosion_damage']=base_explosion_damage
 	else:

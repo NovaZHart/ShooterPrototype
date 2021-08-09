@@ -10,6 +10,9 @@ var mount_flags: int setget set_mount_flags,get_mount_flags
 var initialized_mount_flags: bool = false
 var help_page = 'error: should never see this'
 
+func get_mount_size():
+	return max(1,mount_size_x*mount_size_y)
+
 func set_mount_flags(f: int):
 	if not initialized_mount_flags:
 		initialize_mount_flags()

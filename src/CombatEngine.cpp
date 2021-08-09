@@ -1894,10 +1894,10 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
       
       // Direct fire projectiles do damage when launched.
       if(weapon.damage)
-        hit_ptr->second.take_damage(weapon.damage*idelta/60*ship.efficiency,weapon.damage_type,
+        hit_ptr->second.take_damage(weapon.damage*delta*ship.efficiency,weapon.damage_type,
                                     weapon.heat_fraction,weapon.energy_fraction,weapon.thrust_fraction);
       if(not hit_ptr->second.immobile and weapon.impulse) {
-        Vector3 impulse = weapon.impulse*projectile_heading*idelta/60*ship.efficiency;
+        Vector3 impulse = weapon.impulse*projectile_heading*delta*ship.efficiency;
         physics_server->body_apply_central_impulse(hit_ptr->second.rid,impulse);
       }
       if(not hit_position.length_squared())
@@ -1912,8 +1912,6 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
   }
 
   ship.heat += weapon.firing_heat*ship.efficiency*delta;
-  if(not isfinite(ship.heat))
-    Godot::print_warning(ship.name+String(": non-finite ship heat after firing heat"),__FUNCTION__,__FILE__,__LINE__);
   ship.energy -= weapon.firing_energy*ship.efficiency*delta;
   
   hit_position[1]=0;
@@ -2110,8 +2108,6 @@ void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
   real_t ai_thrust = ship.thrust*clamp(forward,0.0f,1.0f) - ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
   ship.energy -= delta*(ship.forward_thrust_energy*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_energy*ship.reverse_thrust*clamp(reverse,0.0f,1.0f));
   ship.heat += delta*(ship.forward_thrust_heat*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_heat*ship.reverse_thrust*clamp(reverse,0.0f,1.0f));
-  if(not isfinite(ship.heat))
-    Godot::print_warning(ship.name+String(": non-finite ship heat after thrusting"),__FUNCTION__,__FILE__,__LINE__);
   Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(y_axis,ship.rotation.y);
   physics_server->body_add_central_force(ship.rid,v_thrust);
 }
@@ -2201,8 +2197,6 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));
   ship.heat += weapon.firing_heat;
-  if(not isfinite(ship.heat))
-    Godot::print_warning(ship.name+String(": non-finite ship heat after creating a projectile"),__FUNCTION__,__FILE__,__LINE__);
   ship.energy -= weapon.firing_energy;
 }
 

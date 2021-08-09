@@ -33,6 +33,10 @@ var tag_filters = {
 	'[/small_code]':'[/code]',
 	'[error_code]':'[code][color=#ff7788]',
 	'[/error_code]':'[/color][/code]',
+	'[error]':'[color=#ff7788]',
+	'[/error]':'[/color]',
+	'[warning]':'[color=#bbbb44]',
+	'[/warning]':'[/color]',
 }
 
 var ZWSP: String = '\u200B' # zero-width space
