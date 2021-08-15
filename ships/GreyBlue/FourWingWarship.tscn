@@ -26,7 +26,6 @@ base_turn_drag = 0.5
 base_max_cargo = 40
 armor_inverse_density = 300.0
 override_size = Vector3( 4, 0, 3.5 )
-base_power = 160.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 2 )

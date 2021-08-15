@@ -20,7 +20,6 @@ base_shields = 3700.0
 base_armor = 1900.0
 base_structure = 800.0
 base_fuel = 16.0
-heal_shields = 7.0
 heal_structure = 12.0
 base_turn_drag = 0.4
 base_explosion_damage = 400.0

@@ -1,0 +1,28 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
+[ext_resource path="res://weapons/meshes/BlueMissileLauncher.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+script = ExtResource( 1 )
+damage = 18.0
+damage_type = 8
+impulse = 100.0
+weapon_mass = 6.0
+initial_velocity = 0.0
+projectile_mass = 0.15
+projectile_drag = 0.9
+projectile_thrust = 6.5
+projectile_lifetime = 2.0
+projectile_turn_rate = 65.0
+firing_delay = 0.5
+guided = true
+projectile_mesh_path = "res://weapons/meshes/BlueMissile.mesh"
+ammo_capacity = 80
+reload_delay = 1.0
+firing_heat = 0.1
+firing_energy = 1.0
+heat_fraction = 0.07

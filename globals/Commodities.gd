@@ -930,6 +930,7 @@ func shipyard_data_tables() -> ManyProducts:
 	var data = [ # name, quantity, value, fine, density, tags
 		[ 'res://weapons/BlueLaserGun.tscn', 40, 9000, 9000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/BlueLaserTurret.tscn', 25, 16000, 16000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/BlueMissileLauncher.tscn', 40, 13000, 13000, 0, 'explosive', 'homing', 'weapon', 'terran' ],
 		[ 'res://weapons/GreenLaserGun.tscn', 40, 22000, 22000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/GreenLaserTurret.tscn', 40, 39000, 39000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/OrangeSpikeGun.tscn', 40, 11000, 11000, 0, 'particle', 'weapon', 'terran' ],

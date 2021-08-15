@@ -281,7 +281,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
 	if heal_shields>=0:
 		stats['heal_shields']=heal_shields
 	else:
-		stats['heal_shields']=base_shields/60.0
+		stats['heal_shields']=base_shields/180.0
 	stats['heal_armor']=heal_armor
 	if heal_structure>=0:
 		stats['heal_structure']=heal_structure
