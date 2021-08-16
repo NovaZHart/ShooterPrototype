@@ -410,7 +410,7 @@ func _enter_tree():
 	assert(system)
 	
 	#var start_ship = game_state.ship_designs.get_node_or_null('godship')
-	var start_ship = game_state.ship_designs.get_node_or_null('raven_lasers')
+	var start_ship = game_state.ship_designs.get_node_or_null('raven_rail_missile')
 	assert(start_ship)
 	player_ship_design = start_ship
 	

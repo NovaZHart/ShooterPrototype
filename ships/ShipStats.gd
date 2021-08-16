@@ -171,8 +171,8 @@ func set_cargo(products: Commodities.Products, quiet: bool = false,
 	return combined_stats
 
 func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
-	if not stats:
-		push_error('no combat stats to restore in restore_combat_stats')
+	#if not stats:
+	#	push_error('no combat stats to restore in restore_combat_stats')
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in restore_combat_stats! Making stats now.')

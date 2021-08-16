@@ -2043,7 +2043,305 @@
   "ship_designs": [
     "SimpleNode",
     {
-      "one_pod_laser_missile": [
+      "raven_laser_wave": [
+        "ShipDesign",
+        "Laser-Wave Raven",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "AuxEquipment": [
+            "MultiMount",
+            {
+              "AuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                0
+              ],
+              "Equipment_at_x0_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                1
+              ]
+            }
+          ],
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ]
+        },
+        null
+      ],
+      
+      "raven_rail_missile":[
+        "ShipDesign",
+        "Rail-Missile Raven",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "AuxEquipment": [
+            "MultiMount",
+            {
+              "AuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                0,
+                0
+              ],
+              "AuxEquipment_at_x1_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                1,
+                0
+              ]
+            }
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                0
+              ]
+            }
+          ],
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueMissileLauncher.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/MagneticRailGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/MagneticRailGun.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ]
+        },
+        null
+      ],
+      
+
+      "raven_particles":[
+        "ShipDesign",
+        "Particle Raven",
+        [
+          "Resource",
+          "res://ships/PurpleShips/WarshipHull.tscn"
+        ],
+        {
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "AuxEquipment": [
+            "MultiMount",
+            {
+              "AuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                2,
+                0
+              ]
+            }
+          ],
+          "PortMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "PortOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/LargeOrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardMiddleGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardOuterGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/LargeOrangeSpikeGun.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ]
+        },
+        null
+      ],
+
+
+
+
+
+
+
+        "one_pod_laser_missile": [
         "ShipDesign",
         "Monopod Hauler",
         [
@@ -3559,284 +3857,6 @@
         null
       ],
         
-      "raven_lasers": [
-        "ShipDesign",
-        "Laser Raven",
-        [
-          "Resource",
-          "res://ships/PurpleShips/WarshipHull.tscn"
-        ],
-        {
-          "PortMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "PortOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserGun.tscn"
-            ]
-          ],
-          "StarboardMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "StarboardOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserGun.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
-            ]
-          ],
-          "Equipment": [
-            "MultiMount",
-            {
-              "Equipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
-              ],
-              "Equipment_at_x2_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                2,
-                0
-              ]
-            }
-          ]
-        },
-        null
-      ],
-      "raven_particles": [
-        "ShipDesign",
-        "Particle Raven",
-        [
-          "Resource",
-          "res://ships/PurpleShips/WarshipHull.tscn"
-        ],
-        {
-          "PortMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "PortOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "StarboardMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "StarboardOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
-            ]
-          ],
-          "Equipment": [
-            "MultiMount",
-            {
-              "Equipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
-              ],
-              "Equipment_at_x2_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                2,
-                0
-              ]
-            }
-          ]
-        },
-        null
-      ],
-
-      "raven_missiles": [
-        "ShipDesign",
-        "Missile+Laser Raven",
-        [
-          "Resource",
-          "res://ships/PurpleShips/WarshipHull.tscn"
-        ],
-        {
-          "PortMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "PortOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "StarboardMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "StarboardOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
-            ]
-          ],
-          "Equipment": [
-            "MultiMount",
-            {
-              "Equipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
-              ],
-              "Equipment_at_x2_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                2,
-                0
-              ]
-            }
-          ]
-        },
-        null
-      ],
-      "raven_particles": [
-        "ShipDesign",
-        "Particle Raven",
-        [
-          "Resource",
-          "res://ships/PurpleShips/WarshipHull.tscn"
-        ],
-        {
-          "PortMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "PortOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "StarboardMiddleGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "StarboardOuterGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
-            ]
-          ],
-          "Equipment": [
-            "MultiMount",
-            {
-              "Equipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
-              ],
-              "Equipment_at_x2_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                2,
-                0
-              ]
-            }
-          ]
-        },
-        null
-      ],
-
       "banner_default": [
         "ShipDesign",
         "Bannership",
@@ -4211,7 +4231,7 @@
         },
         null
       ],
-      "eagle_particles": [
+      "eagle_particles":[
         "ShipDesign",
         "Particle Eagle",
         [
@@ -4233,6 +4253,13 @@
               "res://weapons/OrangeSpikeGun.tscn"
             ]
           ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
           "Turret": [
             "Mounted",
             [
@@ -4244,8 +4271,31 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/Engine2x2.tscn"
             ]
+          ],
+          "PortEquipment2": [
+            "MultiMount",
+            {
+              "PortEquipment2_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ],
+              "PortEquipment2_at_x1_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                1,
+                0
+              ]
+            }
           ],
           "PortEquipment": [
             "MultiMount",
@@ -4281,13 +4331,22 @@
                 ],
                 0,
                 0
+              ],
+              "StarboardEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
               ]
             }
           ]
         },
         null
       ],
-      "eagle_lasers": [
+      "eagle_lasers":[
         "ShipDesign",
         "Laser Eagle",
         [
@@ -4309,6 +4368,13 @@
               "res://weapons/GreenLaserGun.tscn"
             ]
           ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
           "Turret": [
             "Mounted",
             [
@@ -4320,8 +4386,22 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/Engine2x2.tscn"
             ]
+          ],
+          "PortEquipment2": [
+            "MultiMount",
+            {
+              "PortEquipment2_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallReactor.tscn"
+                ],
+                0,
+                0
+              ]
+            }
           ],
           "PortEquipment": [
             "MultiMount",
@@ -4357,12 +4437,23 @@
                 ],
                 0,
                 0
+              ],
+              "StarboardEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                2
               ]
             }
           ]
         },
         null
       ],
+
+
       "peregrine_particles": [
         "ShipDesign",
         "Particle Peregrine",
@@ -4841,7 +4932,7 @@
         "Condor (Lasers)",
         {
           "condor_lasers": 1,
-          "raven_missiles": 1,
+          "raven_rail_missile": 1,
           "peregrine_lasers": 2
         }
       ],
@@ -4850,15 +4941,15 @@
         "Condor (Lasers)",
         {
           "condor_particles": 1,
-          "raven_lasers": 2
+          "raven_laser_wave": 2
         }
       ],
       "raven_trio": [
         "Fleet",
         "3xRaven: Lasers, Particles, Missiles",
         {
-          "raven_missiles": 1,
-          "raven_lasers": 1,
+          "raven_rail_missile": 1,
+          "raven_laser_wave": 1,
           "raven_particles": 1
         }
       ],
@@ -4873,9 +4964,9 @@
       ],
       "two_raven_missiles_escorted": [
         "Fleet",
-        "2x Raven (Missiles) + 2 Peregrine (Lasers)",
+        "2x Raven (Rail/Missiles) + 2 Peregrine (Lasers)",
         {
-          "raven_missiles": 2,
+          "raven_rail_missile": 2,
           "peregrine_lasers": 2
         }
       ],
@@ -4883,7 +4974,7 @@
         "Fleet",
         "3x Raven (Lasers)",
         {
-          "raven_lasers": 3
+          "raven_laser_wave": 3
         }
       ],
       "raven_particles_trio": [
@@ -4898,7 +4989,7 @@
         "Fleet",
         "Missile Raven + 3 Peregrines",
         {
-          "raven_missiles": 1,
+          "raven_laser_missile": 1,
           "peregrine_lasers": 3
         }
       ],
@@ -4914,7 +5005,7 @@
         "Fleet",
         "Raven+Eagle+Peregrine (Lasers)",
         {
-          "raven_lasers": 1,
+          "raven_laser_wave": 1,
           "eagle_lasers": 1,
           "peregrine_lasers": 1
         }
@@ -4954,7 +5045,7 @@
         "Fleet",
         "Raven Duo (Missiles)",
         {
-          "raven_missiles": 2
+          "raven_rail_missile": 2
         }
       ],
       "eagle_duo_particles": [

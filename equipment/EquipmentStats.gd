@@ -107,7 +107,7 @@ func initialize_mount_flags():
 	mount_flags_any = utils.mount_type_to_int(mount_type_any)
 	mount_flags_all = utils.mount_type_to_int(mount_type_all)
 	if not mount_flags_any and not mount_flags_all:
-		push_warning('No mount flags in EquipmentStats; assuming equipment')
+		#push_warning('No mount flags in EquipmentStats; assuming equipment')
 		mount_type_all = 'equipment'
 		mount_flags_all = utils.mount_type_to_int(mount_type_all)
 	initialized_mount_flags = true

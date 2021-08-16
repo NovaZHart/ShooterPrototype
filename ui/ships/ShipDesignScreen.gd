@@ -127,6 +127,12 @@ func _input(event):
 			universe_edits.state.push(ship_edits.ShipEditorToFleetEditor.new())
 		else:
 			exit_to_orbit()
+	elif event is InputEventKey and event.scancode==KEY_F12:
+		print('copy design to clipboard')
+		var design = make_edited_ship_design()
+		var encoded = game_state.universe.encode_helper(design)
+		var json = JSON.print(encoded,'  ')
+		OS.set_clipboard(json)
 
 func make_edited_ship_design() -> simple_tree.SimpleNode:
 	return $All/Show/Grid/Ship.make_design(design_id,design_display_name)

@@ -21,7 +21,6 @@ base_drag = 1.7
 base_turn_drag = 0.45
 base_max_cargo = 23
 override_size = Vector3( 2.4, 0, 3 )
-base_mass = 114
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.210989, 0, 0 )
@@ -43,6 +42,13 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.572948, 0, -0.807037 )
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="PortEquipment2" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.488462, 0, 0 )
+script = ExtResource( 2 )
+mount_size_x = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
