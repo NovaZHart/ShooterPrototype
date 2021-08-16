@@ -61,6 +61,14 @@ mount_size_y = 5
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
+[node name="ForwardEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.75323, 0, 0 )
+script = ExtResource( 5 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
 [node name="ForePortTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.33545, -0.390913, -0.626674 )
 script = ExtResource( 5 )

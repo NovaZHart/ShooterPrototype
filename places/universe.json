@@ -2266,9 +2266,18 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x1.tscn"
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
                 ],
                 0,
+                0
+              ],
+              "AuxEquipment_at_x1_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                1,
                 0
               ]
             }
@@ -2335,13 +2344,7 @@
         null
       ],
 
-
-
-
-
-
-
-        "one_pod_laser_missile": [
+      "one_pod_laser_missile": [
         "ShipDesign",
         "Monopod Hauler",
         [
@@ -2361,14 +2364,59 @@
                 0,
                 0
               ],
+              "Equipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                0
+              ],
+              "Equipment_at_x2_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                1
+              ],
               "Equipment_at_x0_y2": [
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
+                  "res://equipment/power/SmallReactor.tscn"
                 ],
                 0,
                 2
+              ],
+              "Equipment_at_x2_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                2
+              ],
+              "Equipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                3
+              ],
+              "Equipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                3
               ]
             }
           ],
@@ -2425,7 +2473,7 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
+              "res://equipment/repair/Shield2x2.tscn"
             ]
           ],
           "StarboardEngine": [
@@ -2435,8 +2483,10 @@
               "res://equipment/engines/Engine2x4.tscn"
             ]
           ]
-        }
+        },
+        null
       ],
+        
       "two_pod_particles_missiles": [
         "ShipDesign",
         "Bipod (Particles+Missiles)",
@@ -2523,7 +2573,7 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
+              "res://weapons/LargeOrangeSpikeGun.tscn"
             ]
           ],
           "AftStarboardTurret": [
@@ -2561,8 +2611,10 @@
               "res://weapons/OrangeSpikeTurret.tscn"
             ]
           ]
-        }
-      ],    
+        },
+        null
+      ],
+        
       "two_pod_lasers_missiles": [
         "ShipDesign",
         "Bipod (Lasers+Missiles)",
@@ -2621,6 +2673,15 @@
                 ],
                 0,
                 4
+              ],
+              "SpinalEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallReactor.tscn"
+                ],
+                0,
+                6
               ]
             }
           ],
@@ -2635,6 +2696,33 @@
                 ],
                 0,
                 0
+              ],
+              "AftEquipment_at_x3_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                3,
+                0
+              ],
+              "AftEquipment_at_x3_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                3,
+                1
+              ],
+              "AftEquipment_at_x3_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                3,
+                2
               ]
             }
           ],
@@ -2687,8 +2775,10 @@
               "res://weapons/GreenLaserTurret.tscn"
             ]
           ]
-        }
-      ],    
+        },
+        null
+      ],
+              
       "hexapod_particles_missiles": [
         "ShipDesign",
         "Hexapod (Particles+Missiles)",
@@ -2727,10 +2817,46 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
+                  "res://equipment/repair/Structure2x2.tscn"
                 ],
                 0,
                 3
+              ],
+              "SpinalEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                3
+              ],
+              "SpinalEquipment_at_x2_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                4
+              ],
+              "SpinalEquipment_at_x0_y5": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallBioelectricGenerator.tscn"
+                ],
+                0,
+                5
+              ],
+              "SpinalEquipment_at_x2_y5": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                5
               ],
               "SpinalEquipment_at_x0_y6": [
                 "MultiMounted",
@@ -2741,6 +2867,24 @@
                 0,
                 6
               ],
+              "SpinalEquipment_at_x2_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                6
+              ],
+              "SpinalEquipment_at_x2_y7": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                7
+              ],
               "SpinalEquipment_at_x0_y8": [
                 "MultiMounted",
                 [
@@ -2749,6 +2893,24 @@
                 ],
                 0,
                 8
+              ],
+              "SpinalEquipment_at_x2_y8": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                8
+              ],
+              "SpinalEquipment_at_x2_y9": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                9
               ]
             }
           ],
@@ -2756,7 +2918,7 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
+              "res://equipment/repair/Shield2x2.tscn"
             ]
           ],
           "StarboardMainGun": [
@@ -2777,7 +2939,7 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
+              "res://equipment/repair/Shield2x2.tscn"
             ]
           ],
           "StarboardTurret1": [
@@ -2822,8 +2984,10 @@
               "res://equipment/engines/Engine4x4.tscn"
             ]
           ]
-        }
+        },
+        null
       ],
+
       "hexapod_lasers_missiles": [
         "ShipDesign",
         "Hexapod (Lasers+Missiles)",
@@ -2862,10 +3026,46 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
+                  "res://equipment/repair/Structure2x2.tscn"
                 ],
                 0,
                 3
+              ],
+              "SpinalEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                3
+              ],
+              "SpinalEquipment_at_x2_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                4
+              ],
+              "SpinalEquipment_at_x0_y5": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallReactor.tscn"
+                ],
+                0,
+                5
+              ],
+              "SpinalEquipment_at_x2_y5": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                5
               ],
               "SpinalEquipment_at_x0_y6": [
                 "MultiMounted",
@@ -2876,6 +3076,24 @@
                 0,
                 6
               ],
+              "SpinalEquipment_at_x2_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                6
+              ],
+              "SpinalEquipment_at_x2_y7": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                7
+              ],
               "SpinalEquipment_at_x0_y8": [
                 "MultiMounted",
                 [
@@ -2884,6 +3102,24 @@
                 ],
                 0,
                 8
+              ],
+              "SpinalEquipment_at_x2_y8": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                8
+              ],
+              "SpinalEquipment_at_x2_y9": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                9
               ]
             }
           ],
@@ -2891,7 +3127,7 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
+              "res://equipment/repair/Shield2x2.tscn"
             ]
           ],
           "StarboardMainGun": [
@@ -2912,7 +3148,7 @@
             "Mounted",
             [
               "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
+              "res://equipment/repair/Shield2x2.tscn"
             ]
           ],
           "StarboardTurret1": [
@@ -2957,8 +3193,233 @@
               "res://equipment/engines/Engine4x4.tscn"
             ]
           ]
-        }
+        },
+        null
       ],
+
+      "eagle_particles": [
+        "ShipDesign",
+        "Particle Eagle",
+        [
+          "Resource",
+          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "Turret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "ForwardEquipment": [
+            "MultiMount",
+            {
+              "ForwardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForwardEquipment_at_x1_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                1,
+                0
+              ]
+            }
+          ],
+          "PortEquipment": [
+            "MultiMount",
+            {
+              "PortEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "PortEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ],
+          "StarboardEquipment": [
+            "MultiMount",
+            {
+              "StarboardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "StarboardEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        null
+      ],
+              
+      "eagle_lasers": [
+        "ShipDesign",
+        "Laser Eagle",
+        [
+          "Resource",
+          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+        ],
+        {
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "Turret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "ForwardEquipment": [
+            "MultiMount",
+            {
+              "ForwardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortEquipment": [
+            "MultiMount",
+            {
+              "PortEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "PortEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallBioelectricGenerator.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ],
+          "StarboardEquipment": [
+            "MultiMount",
+            {
+              "StarboardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "StarboardEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ]
+        },
+        null
+      ],
+        
       "ankylorhiza_driver_lasers": [
         "ShipDesign",
         "Driver-Laser Ankylorhiza",
@@ -2967,6 +3428,13 @@
           "res://ships/GreyBlue/CommandShip.tscn"
         ],
         {
+          "PortAuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/SmallMultisystem.tscn"
+            ]
+          ],
           "SpinalCannon": [
             "Mounted",
             [
@@ -3013,7 +3481,7 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine4x4.tscn"
+              "res://equipment/engines/FusionEngine.tscn"
             ]
           ],
           "ForeStarboardTurret": [
@@ -3029,6 +3497,45 @@
               "Resource",
               "res://weapons/GreenLaserTurret.tscn"
             ]
+          ],
+          "StarboardAuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/SmallMultisystem.tscn"
+            ]
+          ],
+          "ForwardEquipment": [
+            "MultiMount",
+            {
+              "ForwardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForwardEquipment_at_x0_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                1
+              ],
+              "ForwardEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                ],
+                0,
+                2
+              ]
+            }
           ],
           "WheelEquipment": [
             "MultiMount",
@@ -3080,7 +3587,8 @@
               ]
             }
           ]
-        }
+        },
+        null
       ],
           
       "ankylorhiza_missiles_particles": [
@@ -3091,6 +3599,13 @@
           "res://ships/GreyBlue/CommandShip.tscn"
         ],
         {
+          "PortAuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
           "SpinalCannon": [
             "Mounted",
             [
@@ -3154,6 +3669,36 @@
               "res://weapons/OrangeSpikeTurret.tscn"
             ]
           ],
+          "StarboardAuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "ForwardEquipment": [
+            "MultiMount",
+            {
+              "ForwardEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/MediumReactor.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForwardEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                ],
+                0,
+                2
+              ]
+            }
+          ],
           "WheelEquipment": [
             "MultiMount",
             {
@@ -3204,7 +3749,8 @@
               ]
             }
           ]
-        }
+        },
+        null
       ],
         
       "orca_missiles_particles": [
@@ -3267,46 +3813,69 @@
           "ForeEquipment": [
             "MultiMount",
             {
+              "ForeEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForeEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ]
             }
           ],
-          "ForeEquipment": [
-              "MultiMount",
-              {
-                  "ForeEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      0
-                  ]
-              }
-          ],
           "AftEquipment": [
-              "MultiMount",
-              {
-                  "AftEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/repair/Shield3x3.tscn"
-                      ],
-                      0,
-                      0
-                  ],
-                  "AftEquipment_at_x0_y3": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      3
-                  ]
-              }
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "AftEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "AftEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                3
+              ],
+              "AftEquipment_at_x2_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                4
+              ]
+            }
           ]
-        }
+        },
+        null
       ],
 
       "orca_particles": [
@@ -3369,46 +3938,69 @@
           "ForeEquipment": [
             "MultiMount",
             {
+              "ForeEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForeEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ]
             }
           ],
-          "ForeEquipment": [
-              "MultiMount",
-              {
-                  "ForeEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      0
-                  ]
-              }
-          ],
           "AftEquipment": [
-              "MultiMount",
-              {
-                  "AftEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/repair/Shield3x3.tscn"
-                      ],
-                      0,
-                      0
-                  ],
-                  "AftEquipment_at_x0_y3": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      3
-                  ]
-              }
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "AftEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "AftEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                3
+              ],
+              "AftEquipment_at_x2_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                4
+              ]
+            }
           ]
-        }
+        },
+        null
       ],
 
       "orca_missiles_lasers": [
@@ -3437,14 +4029,14 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/LargeMultisystem.tscn"
             ]
           ],
           "PortEngine": [
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/FissionEngine.tscn"
             ]
           ],
           "ForwardMainTurret": [
@@ -3471,46 +4063,69 @@
           "ForeEquipment": [
             "MultiMount",
             {
+              "ForeEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForeEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                ],
+                0,
+                2
+              ]
             }
           ],
-          "ForeEquipment": [
-              "MultiMount",
-              {
-                  "ForeEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      0
-                  ]
-              }
-          ],
           "AftEquipment": [
-              "MultiMount",
-              {
-                  "AftEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/repair/Shield3x3.tscn"
-                      ],
-                      0,
-                      0
-                  ],
-                  "AftEquipment_at_x0_y3": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      3
-                  ]
-              }
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "AftEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "AftEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                3
+              ],
+              "AftEquipment_at_x2_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                4
+              ]
+            }
           ]
-        }
+        },
+        null
       ],
 
       "orca_lasers": [
@@ -3539,14 +4154,14 @@
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/LargeMultisystem.tscn"
             ]
           ],
           "PortEngine": [
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
+              "res://equipment/engines/FissionEngine.tscn"
             ]
           ],
           "ForwardMainTurret": [
@@ -3573,194 +4188,296 @@
           "ForeEquipment": [
             "MultiMount",
             {
+              "ForeEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "ForeEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                ],
+                0,
+                2
+              ]
             }
           ],
-          "ForeEquipment": [
-              "MultiMount",
-              {
-                  "ForeEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      0
-                  ]
-              }
-          ],
           "AftEquipment": [
-              "MultiMount",
-              {
-                  "AftEquipment_at_x0_y0": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/repair/Shield3x3.tscn"
-                      ],
-                      0,
-                      0
-                  ],
-                  "AftEquipment_at_x0_y3": [
-                      "MultiMounted",
-                      [
-                          "Resource",
-                          "res://equipment/defense/DefensiveScatterer.tscn"
-                      ],
-                      0,
-                      3
-                  ]
-              }
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ],
+              "AftEquipment_at_x0_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                3
+              ],
+              "AftEquipment_at_x2_y3": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                3
+              ],
+              "AftEquipment_at_x2_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                4
+              ]
+            }
           ]
-        }
+        },
+        null
       ],
 
       "bufeo_particles": [
-          "ShipDesign",
-          "Particle Bufeo",
-          [
+        "ShipDesign",
+        "Particle Bufeo",
+        [
+          "Resource",
+          "res://ships/GreyBlue/ThreeWingWarship.tscn"
+        ],
+        {
+          "AuxEngine": [
+            "Mounted",
+            [
               "Resource",
-              "res://ships/GreyBlue/ThreeWingWarship.tscn"
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
           ],
-          {
-              "MainCannon": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/BigParticleGun.tscn"
-                  ]
+          "MainEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "MainCannon": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BigParticleGun.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Turret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "SmallEquipment": [
+            "MultiMount",
+            {
+              "SmallEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
               ],
-              "PortGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
-                  ]
+              "SmallEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                0,
+                2
               ],
-              "Turret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
-                  ]
-              ],
-              "MainEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/Engine2x4.tscn"
-                  ]
-              ],
-              "StarboardGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
-                  ]
-              ],
-              "SmallEquipment": [
-                  "MultiMount",
-                  {
-                      "SmallEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
-              ],
-              "LargeEquipment": [
-                  "MultiMount",
-                  {
-                      "LargeEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
+              "SmallEquipment_at_x1_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                1,
+                2
               ]
-          }
+            }
+          ],
+          "LargeEquipment": [
+            "MultiMount",
+            {
+              "LargeEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ]
+        },
+        null
       ],
 
       "bufeo_lasers": [
-          "ShipDesign",
-          "Laser Bufeo",
-          [
+        "ShipDesign",
+        "Laser Bufeo",
+        [
+          "Resource",
+          "res://ships/GreyBlue/ThreeWingWarship.tscn"
+        ],
+        {
+          "AuxEngine": [
+            "Mounted",
+            [
               "Resource",
-              "res://ships/GreyBlue/ThreeWingWarship.tscn"
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
           ],
-          {
-              "MainCannon": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/NuclearPumpedLaser.tscn"
-                  ]
+          "MainEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "MainCannon": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/NuclearPumpedLaser.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "Turret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "SmallEquipment": [
+            "MultiMount",
+            {
+              "SmallEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
               ],
-              "PortGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenLaserGun.tscn"
-                  ]
-              ],
-              "Turret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenLaserTurret.tscn"
-                  ]
-              ],
-              "MainEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/Engine2x4.tscn"
-                  ]
-              ],
-              "StarboardGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenLaserGun.tscn"
-                  ]
-              ],
-              "SmallEquipment": [
-                  "MultiMount",
-                  {
-                      "SmallEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
-              ],
-              "LargeEquipment": [
-                  "MultiMount",
-                  {
-                      "LargeEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
+              "SmallEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallBioelectricGenerator.tscn"
+                ],
+                0,
+                2
               ]
-          }
+            }
+          ],
+          "LargeEquipment": [
+            "MultiMount",
+            {
+              "LargeEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "LargeEquipment_at_x2_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                0
+              ],
+              "LargeEquipment_at_x2_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                2,
+                1
+              ],
+              "LargeEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                2
+              ],
+              "LargeEquipment_at_x2_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                2,
+                2
+              ]
+            }
+          ]
+        },
+        null
       ],
 
       "popoto_lasers": [
@@ -3771,13 +4488,6 @@
           "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
         ],
         {
-          "PortGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
           "Engine": [
             "Mounted",
             [
@@ -3785,12 +4495,33 @@
               "res://equipment/engines/Engine2x2.tscn"
             ]
           ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
+          "PortAuxEquipment2": [
+            "MultiMount",
+            {
+              "PortAuxEquipment2_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortAuxEquipment": [
+            "MultiMount",
+            {
+              "PortAuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ]
+            }
           ],
           "Equipment": [
             "MultiMount",
@@ -3803,8 +4534,31 @@
                 ],
                 0,
                 0
+              ],
+              "Equipment_at_x0_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                1
               ]
             }
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
           ]
         },
         null
@@ -3818,13 +4572,6 @@
           "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
         ],
         {
-          "PortGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
           "Engine": [
             "Mounted",
             [
@@ -3832,12 +4579,33 @@
               "res://equipment/engines/Engine2x2.tscn"
             ]
           ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
+          "PortAuxEquipment2": [
+            "MultiMount",
+            {
+              "PortAuxEquipment2_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortAuxEquipment": [
+            "MultiMount",
+            {
+              "PortAuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                0
+              ]
+            }
           ],
           "Equipment": [
             "MultiMount",
@@ -3846,12 +4614,26 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/repair/Shield2x1.tscn"
+                  "res://equipment/repair/Shield2x2.tscn"
                 ],
                 0,
                 0
               ]
             }
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
           ]
         },
         null
@@ -3865,47 +4647,51 @@
           "res://ships/BannerShip/BannerShipHull.tscn"
         ],
         {
-          "ForwardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserTurret.tscn"
-            ]
+          "PortAuxEquipment": [
+            "MultiMount",
+            {
+              "PortAuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "PortAuxEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallReactor.tscn"
+                ],
+                0,
+                2
+              ]
+            }
           ],
-          "PortGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "AftPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
-            ]
-          ],
-          "AftStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x4.tscn"
-            ]
+          "StarboardAuxEquipment": [
+            "MultiMount",
+            {
+              "StarboardAuxEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Structure2x2.tscn"
+                ],
+                0,
+                0
+              ],
+              "StarboardAuxEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                ],
+                0,
+                2
+              ]
+            }
           ],
           "Equipment": [
             "MultiMount",
@@ -3956,9 +4742,64 @@
                 3
               ]
             }
+          ],
+          "PortAuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/SmallMultisystem.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "StarboardAuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
           ]
         },
-        null
       ],
 
 
@@ -4103,18 +4944,59 @@
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"
         ],
         {
-          "PortLargeGun": [
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                6
+              ]
+            }
+          ],
+          "MidPortTurret": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
+              "res://weapons/OrangeSpikeTurret.tscn"
             ]
           ],
-          "StarboardLargeGun": [
+          "ForwardTurret": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
+              "res://weapons/BlueLaserTurret.tscn"
             ]
           ],
           "PortSmallGun": [
@@ -4129,48 +5011,6 @@
             [
               "Resource",
               "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "ForwardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "AftPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "AftStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "MidPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
-            ]
-          ],
-          "MidStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine4x4.tscn"
             ]
           ],
           "AftEquipment": [
@@ -4187,272 +5027,58 @@
               ]
             }
           ],
-          "NeckEquipment": [
-            "MultiMount",
-            {
-              "NeckEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                0
-              ],
-              "NeckEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                2
-              ],
-              "NeckEquipment_at_x0_y4": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                4
-              ],
-              "NeckEquipment_at_x0_y6": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                6
-              ]
-            }
-          ]
-        },
-        null
-      ],
-      "eagle_particles":[
-        "ShipDesign",
-        "Particle Eagle",
-        [
-          "Resource",
-          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
-        ],
-        {
-          "PortGun": [
+          "PortLargeGun": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
+              "res://weapons/BigParticleGun.tscn"
             ]
           ],
-          "StarboardGun": [
+          "AftPortTurret": [
             "Mounted",
             [
               "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
+              "res://weapons/BlueLaserTurret.tscn"
             ]
           ],
-          "AuxEngine": [
+          "Engine": [
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
+              "res://equipment/engines/FissionEngine.tscn"
             ]
           ],
-          "Turret": [
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BigParticleGun.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
             "Mounted",
             [
               "Resource",
               "res://weapons/OrangeSpikeTurret.tscn"
             ]
           ],
-          "Engine": [
+          "AftStarboardTurret": [
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
-            ]
-          ],
-          "PortEquipment2": [
-            "MultiMount",
-            {
-              "PortEquipment2_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/power/TinyBioelectricGenerator.tscn"
-                ],
-                0,
-                0
-              ],
-              "PortEquipment2_at_x1_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/cooling/SmallOpticalCooler.tscn"
-                ],
-                1,
-                0
-              ]
-            }
-          ],
-          "PortEquipment": [
-            "MultiMount",
-            {
-              "PortEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
-              ],
-              "PortEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x1.tscn"
-                ],
-                0,
-                2
-              ]
-            }
-          ],
-          "StarboardEquipment": [
-            "MultiMount",
-            {
-              "StarboardEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                0
-              ],
-              "StarboardEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x1.tscn"
-                ],
-                0,
-                2
-              ]
-            }
-          ]
-        },
-        null
-      ],
-      "eagle_lasers":[
-        "ShipDesign",
-        "Laser Eagle",
-        [
-          "Resource",
-          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
-        ],
-        {
-          "PortGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
+              "res://weapons/BlueLaserTurret.tscn"
             ]
           ],
           "AuxEngine": [
             "Mounted",
             [
               "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
+              "res://equipment/engines/FissionEngine.tscn"
             ]
-          ],
-          "Turret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserTurret.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
-            ]
-          ],
-          "PortEquipment2": [
-            "MultiMount",
-            {
-              "PortEquipment2_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/power/SmallReactor.tscn"
-                ],
-                0,
-                0
-              ]
-            }
-          ],
-          "PortEquipment": [
-            "MultiMount",
-            {
-              "PortEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
-              ],
-              "PortEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x1.tscn"
-                ],
-                0,
-                2
-              ]
-            }
-          ],
-          "StarboardEquipment": [
-            "MultiMount",
-            {
-              "StarboardEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                0
-              ],
-              "StarboardEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/cooling/LargeOpticalCooler.tscn"
-                ],
-                0,
-                2
-              ]
-            }
           ]
         },
         null
       ],
-
 
       "peregrine_particles": [
         "ShipDesign",
@@ -4462,27 +5088,6 @@
           "res://ships/PurpleShips/InterceptorHull.tscn"
         ],
         {
-          "PortGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
-            ]
-          ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
           "Equipment": [
             "MultiMount",
             {
@@ -4494,8 +5099,47 @@
                 ],
                 0,
                 0
+              ],
+              "Equipment_at_x0_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                1
+              ],
+              "Equipment_at_x1_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                1,
+                1
               ]
             }
+          ],
+          "PortGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x2.tscn"
+            ]
+          ],
+          "StarboardGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
           ]
         },
         null
@@ -4508,6 +5152,38 @@
           "res://ships/PurpleShips/InterceptorHull.tscn"
         ],
         {
+          "Equipment": [
+            "MultiMount",
+            {
+              "Equipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield2x1.tscn"
+                ],
+                0,
+                0
+              ],
+              "Equipment_at_x0_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                ],
+                0,
+                1
+              ],
+              "Equipment_at_x1_y1": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                ],
+                1,
+                1
+              ]
+            }
+          ],
           "PortGun": [
             "Mounted",
             [
@@ -4528,20 +5204,6 @@
               "Resource",
               "res://weapons/BlueLaserGun.tscn"
             ]
-          ],
-          "Equipment": [
-            "MultiMount",
-            {
-              "Equipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x1.tscn"
-                ],
-                0,
-                0
-              ]
-            }
           ]
         },
         null
@@ -4554,90 +5216,6 @@
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"
         ],
         {
-          "MidPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
-            ]
-          ],
-          "ForwardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "PortSmallGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "StarboardSmallGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeGun.tscn"
-            ]
-          ],
-          "PortLargeGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "AftPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "StarboardLargeGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "MidStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/OrangeSpikeTurret.tscn"
-            ]
-          ],
-          "AftStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine4x4.tscn"
-            ]
-          ],
-          "AftEquipment": [
-            "MultiMount",
-            {
-              "AftEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
-                ],
-                0,
-                0
-              ]
-            }
-          ],
           "NeckEquipment": [
             "MultiMount",
             {
@@ -4672,17 +5250,403 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
+                  "res://equipment/power/MediumBioelectricGenerator.tscn"
                 ],
                 0,
                 6
               ]
             }
+          ],
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeGun.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/LargeOrangeSpikeGun.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/LargeOrangeSpikeGun.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
           ]
         },
         null
       ],
-      "condor_lasers": [
+      "condor_rail_guns":[
+        "ShipDesign",
+        "Rail Gun Condor",
+        [
+          "Resource",
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+        ],
+        {
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/SmallReactor.tscn"
+                ],
+                0,
+                6
+              ],
+              "NeckEquipment_at_x0_y7": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                ],
+                0,
+                7
+              ]
+            }
+          ],
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueMissileLauncher.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/MagneticRailGun.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/MagneticRailGun.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ]
+        },
+        null
+      ],
+      "condor_missiles":[
+        "ShipDesign",
+        "Missile Condor",
+        [
+          "Resource",
+          "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+        ],
+        {
+          "NeckEquipment": [
+            "MultiMount",
+            {
+              "NeckEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                0
+              ],
+              "NeckEquipment_at_x0_y2": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                2
+              ],
+              "NeckEquipment_at_x0_y4": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/defense/DefensiveScatterer.tscn"
+                ],
+                0,
+                4
+              ],
+              "NeckEquipment_at_x0_y6": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/power/MediumBioelectricGenerator.tscn"
+                ],
+                0,
+                6
+              ]
+            }
+          ],
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueMissileLauncher.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueMissileLauncher.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/OrangeSpikeTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/Engine2x4.tscn"
+            ]
+          ]
+        },
+        null
+      ],
+      "condor_lasers":[
         "ShipDesign",
         "Laser Condor",
         [
@@ -4690,90 +5654,6 @@
           "res://ships/PurpleShips/HeavyWarshipHull.tscn"
         ],
         {
-          "PortLargeGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "StarboardLargeGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/PurpleHomingGun.tscn"
-            ]
-          ],
-          "PortSmallGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "StarboardSmallGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserGun.tscn"
-            ]
-          ],
-          "ForwardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "AftPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "AftStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/BlueLaserTurret.tscn"
-            ]
-          ],
-          "MidPortTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserTurret.tscn"
-            ]
-          ],
-          "MidStarboardTurret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GreenLaserTurret.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine4x4.tscn"
-            ]
-          ],
-          "AftEquipment": [
-            "MultiMount",
-            {
-              "AftEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield3x3.tscn"
-                ],
-                0,
-                0
-              ]
-            }
-          ],
           "NeckEquipment": [
             "MultiMount",
             {
@@ -4808,12 +5688,103 @@
                 "MultiMounted",
                 [
                   "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
+                  "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
                 ],
                 0,
                 6
               ]
             }
+          ],
+          "MidPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "ForwardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "PortSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "StarboardSmallGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserGun.tscn"
+            ]
+          ],
+          "AftEquipment": [
+            "MultiMount",
+            {
+              "AftEquipment_at_x0_y0": [
+                "MultiMounted",
+                [
+                  "Resource",
+                  "res://equipment/repair/Shield3x3.tscn"
+                ],
+                0,
+                0
+              ]
+            }
+          ],
+          "PortLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "AftPortTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "Engine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/LargeMultisystem.tscn"
+            ]
+          ],
+          "StarboardLargeGun": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/PurpleHomingGun.tscn"
+            ]
+          ],
+          "MidStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/GreenLaserTurret.tscn"
+            ]
+          ],
+          "AftStarboardTurret": [
+            "Mounted",
+            [
+              "Resource",
+              "res://weapons/BlueLaserTurret.tscn"
+            ]
+          ],
+          "AuxEngine": [
+            "Mounted",
+            [
+              "Resource",
+              "res://equipment/engines/FissionEngine.tscn"
+            ]
           ]
         },
         null

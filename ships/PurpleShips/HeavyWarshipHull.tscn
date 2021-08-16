@@ -120,7 +120,7 @@ mount_type_display = "turret"
 [node name="Engine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.93357, 0, -0.835636 )
 script = ExtResource( 3 )
-mount_size_x = 4
+mount_size_x = 2
 mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"

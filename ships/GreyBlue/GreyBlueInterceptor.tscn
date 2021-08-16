@@ -23,7 +23,7 @@ base_turn_drag = 0.28
 base_max_cargo = 3
 armor_inverse_density = 250.0
 override_size = Vector3( 1.9, 1.6, 0 )
-base_mass = 59
+base_mass = 65
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
@@ -58,6 +58,18 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.118446, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="PortAuxEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.299251, 0, -0.604012 )
+script = ExtResource( 3 )
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="PortAuxEquipment2" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.299, 0, 0.604 )
+script = ExtResource( 3 )
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
