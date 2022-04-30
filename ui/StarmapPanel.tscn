@@ -46,7 +46,7 @@ __meta__ = {
 }
 
 [node name="Port" type="Viewport" parent="View"]
-size = Vector2( 1024, 600 )
+size = Vector2( 1600, 900 )
 own_world = true
 world = SubResource( 3 )
 handle_input_locally = false
@@ -87,6 +87,7 @@ __meta__ = {
 [node name="Tree" parent="Window" instance=ExtResource( 8 )]
 size_flags_horizontal = 3
 size_flags_vertical = 3
+
 [connection signal="resized" from="." to="." method="_on_StarmapPanel_resized"]
 [connection signal="visibility_changed" from="." to="." method="_on_StarmapPanel_visibility_changed"]
 [connection signal="center_on_node" from="Window/Tree" to="." method="_on_Tree_center_on_node"]

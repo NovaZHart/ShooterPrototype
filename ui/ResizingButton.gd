@@ -18,10 +18,7 @@ func _ready():
 	anchor_bottom=0
 	
 func _process(var _delta: float) -> void:
-	var window_size: Vector2 = get_tree().root.size
-	var project_height: int = ProjectSettings.get_setting("display/window/size/height")
-	var project_width: int = ProjectSettings.get_setting("display/window/size/width")
-	var scale: Vector2 = window_size / Vector2(project_width,project_height)
+	var scale: Vector2 = utils.get_viewport_scale()
 	
 	margin_left = floor(starting_left*scale[0])
 	margin_right = ceil(starting_right*scale[0])

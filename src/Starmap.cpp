@@ -2,6 +2,10 @@
 #include <MultiMeshInstance.hpp>
 #include <assert.h>
 
+#include "SceneTree.hpp"
+#include "Viewport.hpp"
+#include "ProjectSettings.hpp"
+
 using namespace godot;
 using namespace std;
 
@@ -409,6 +413,20 @@ void Starmap::set_reference_size(real_t system_diameter, real_t link_width) {
   update();
 }
 
+real_t Starmap::get_viewport_scale() {
+  SceneTree *tree = get_tree();
+  if(!tree)
+    return 1;
+  Viewport *root = tree->get_root();
+  if(!root)
+    return 1;
+  Vector2 window_size = root->get_size();
+  ProjectSettings *project_settings = ProjectSettings::get_singleton();
+  int64_t project_height = project_settings->get_setting("display/window/size/height");
+  int64_t project_width = project_settings->get_setting("display/window/size/width");
+  return min(window_size.x/project_width,window_size.y/project_height);
+}
+
 void Starmap::_draw() {
   Viewport *viewport = get_viewport();
   if(not viewport) {
@@ -436,10 +454,12 @@ void Starmap::_draw() {
   int extra_count = extra_lines.size();
   int line_count = extra_count + int(show_links)*link_count;
 
+  real_t scale = get_viewport_scale();
+
   Vector3 pixel_rect = proj.project_position(Vector2(1,1),-10)-proj.project_position(Vector2(0,0),-10);
   pixel_size = fabsf((pixel_rect.x+pixel_rect.y)/2.0);
-  real_t system_diameter = pixel_size*system_diameter_pixels;
-  real_t link_width = pixel_size*link_width_pixels;
+  real_t system_diameter = pixel_size*system_diameter_pixels*scale;
+  real_t link_width = pixel_size*link_width_pixels*scale;
   real_t padding = max(max_system_scale*system_diameter,max_link_scale*link_width);
   Vector3 vadding(padding,padding,padding);
   

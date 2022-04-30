@@ -1,4 +1,4 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://ui/ships/DesignItem.gd" type="Script" id=1]
 [ext_resource path="res://ui/skins/ConsoleBoldItalic.tres" type="DynamicFont" id=2]
@@ -8,6 +8,7 @@
 [ext_resource path="res://ui/skins/ConsoleItalic.tres" type="DynamicFont" id=6]
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=7]
 [ext_resource path="res://ui/skins/ConsoleSmallCode.tres" type="DynamicFont" id=8]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=9]
 
 [sub_resource type="World" id=1]
 environment = ExtResource( 7 )
@@ -90,6 +91,14 @@ custom_fonts/bold_font = ExtResource( 5 )
 custom_fonts/normal_font = ExtResource( 3 )
 bbcode_enabled = true
 scroll_active = false
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="FontResizer" parent="Info" instance=ExtResource( 9 )]
+resize_property_fonts = "custom_fonts/font custom_fonts/mono_font custom_fonts/bold_italics_font custom_fonts/italics_font custom_fonts/bold_font custom_fonts/normal_font"
+resize_node_theme_default_font = false
+resize_node_theme_all_fonts = false
 
 [connection signal="item_rect_changed" from="." to="." method="_on_DesignItem_item_rect_changed"]
 [connection signal="resized" from="." to="." method="_on_DesignItem_resized"]

@@ -204,7 +204,9 @@ namespace godot {
 
     // Update multimeshes, redraw labels:
     void _draw();
-    
+
+    // Resolution scaling factor, based on relative size of window and project window size.
+    real_t get_viewport_scale();
   private:
     static Ref<ArrayMesh> make_circle_mesh(real_t radius,int count,Vector3 center);
     static Ref<ArrayMesh> make_box_mesh(const Vector3 &from, real_t x_step,

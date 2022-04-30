@@ -34,7 +34,7 @@ func set_page(child_name):
 	var node = get_node_or_null(child_name)
 	if node:
 		for child in get_children():
-			if child.name!=child_name:
+			if child.name!=child_name and child is Control:
 				child.visible=false
 		node.visible=true
 

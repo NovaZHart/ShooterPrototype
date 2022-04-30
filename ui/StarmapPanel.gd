@@ -21,6 +21,8 @@ export var bar4_color = Color('#FFF100')
 export var bar5_color = Color('#EB6100')
 export var bar6_color = Color('#F63332')
 export var no_sale = Color('#999999')
+export var min_font_size = 8
+export var target_font_size = 10
 
 const NAVIGATIONAL: int = 0
 const MIN_PRICE: int = 1
@@ -85,13 +87,12 @@ func maybe_show_window():
 	$Window.set_process_input(show)
 	$Window/Tree.set_process_input(show)
 	if first_show:
-		set_window_location()
+		set_window_location(true)
 		first_show = false
 
-func set_window_location():
-	var font: Font = get_font('default_font')
-	var M_size: Vector2 = font.get_char_size(ord('M'))
-	var window_size: Vector2 = Vector2(M_size.x*25,M_size.y*10)
+func set_window_location(set_initial_rect):
+	var root_size: Vector2 = get_tree().root.size
+	var window_size: Vector2 = root_size/7
 	var me: Rect2 = get_global_rect()
 	#var window_top_pad = M_size.y + M_size.x
 	#var window_right_pad = M_size.x/2
@@ -106,6 +107,7 @@ func set_window_location():
 	print('new position: '+str($Window.get_global_rect()))
 
 func _exit_tree():
+	get_tree().root.disconnect('size_changed',self,'_on_root_viewport_size_changed')
 	if allow_selection:
 		universe_edits.pop_editors()
 
@@ -114,6 +116,8 @@ func _enter_tree():
 		universe_edits.push_editors(self)
 
 func _ready():
+	get_tree().root.connect('size_changed',self,'_on_root_viewport_size_changed')
+	
 	$Window.get_close_button().visible=false
 	maybe_show_window()
 	
@@ -146,10 +150,20 @@ func _ready():
 	send_systems_to_starmap()
 	update_starmap_visuals()
 
+func _on_root_viewport_size_changed():
+	if $Window.visible:
+		set_window_location(false)
+
 func _on_StarmapPanel_resized():
 	starmap.set_max_scale(3.0, 3.0, rect_global_position)
+	var scale: Vector2 = utils.get_viewport_scale()
+	label_font.size = max(min_font_size,target_font_size*min(scale[0],scale[1]))
+	highlighted_font.size = max(min_font_size,target_font_size*min(scale[0],scale[1]))
 #	if $Window.visible:
-		
+
+func get_viewport_scale() -> float:
+	var scale: Vector2 = utils.get_viewport_scale()
+	return min(scale[0],scale[1])
 
 func process_if(flag):
 	if flag:

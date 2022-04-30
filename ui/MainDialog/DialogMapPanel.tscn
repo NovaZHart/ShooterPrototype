@@ -1,10 +1,11 @@
-[gd_scene load_steps=6 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/MainDialog/DialogPageSelector.tscn" type="PackedScene" id=2]
 [ext_resource path="res://ui/commodities/TradingList.tscn" type="PackedScene" id=3]
 [ext_resource path="res://ui/MainDialog/DialogMapPanel.gd" type="Script" id=4]
 [ext_resource path="res://ui/StarmapPanel.tscn" type="PackedScene" id=5]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=6]
 
 [node name="DialogMapPanel" type="Panel"]
 anchor_right = 1.0
@@ -26,62 +27,62 @@ __meta__ = {
 }
 
 [node name="Info" type="GridContainer" parent="All"]
-margin_right = 295.0
-margin_bottom = 600.0
+margin_right = 464.0
+margin_bottom = 900.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="DialogPageSelector" parent="All/Info" instance=ExtResource( 2 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 295.0
+margin_right = 464.0
 margin_bottom = 20.0
 enable_Map = false
 
 [node name="Bottom" type="VSplitContainer" parent="All/Info"]
 margin_top = 24.0
-margin_right = 295.0
-margin_bottom = 600.0
+margin_right = 464.0
+margin_bottom = 900.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Console" parent="All/Info/Bottom" instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 295.0
-margin_bottom = 215.0
+margin_right = 464.0
+margin_bottom = 330.0
 allow_input = false
 
 [node name="Markets" type="GridContainer" parent="All/Info/Bottom"]
-margin_top = 227.0
-margin_right = 295.0
-margin_bottom = 576.0
+margin_top = 342.0
+margin_right = 464.0
+margin_bottom = 876.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.6
 
 [node name="Middle" type="GridContainer" parent="All/Info/Bottom/Markets"]
-margin_right = 295.0
+margin_right = 464.0
 margin_bottom = 24.0
 columns = 2
 
 [node name="Label" type="Label" parent="All/Info/Bottom/Markets/Middle"]
 margin_top = 5.0
-margin_right = 201.0
+margin_right = 370.0
 margin_bottom = 19.0
 size_flags_horizontal = 3
 text = "Planet"
 
 [node name="SalePrice" type="CheckBox" parent="All/Info/Bottom/Markets/Middle"]
-margin_left = 205.0
-margin_right = 295.0
+margin_left = 374.0
+margin_right = 464.0
 margin_bottom = 24.0
 text = "Sale Price"
 
 [node name="Tabs" type="TabContainer" parent="All/Info/Bottom/Markets"]
 margin_top = 28.0
-margin_right = 295.0
-margin_bottom = 349.0
+margin_right = 464.0
+margin_bottom = 534.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -104,11 +105,14 @@ market_type = 1
 [node name="StarmapPanel" parent="All" instance=ExtResource( 5 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_left = 307.0
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_left = 476.0
+margin_right = 1600.0
+margin_bottom = 900.0
 size_flags_stretch_ratio = 2.4
 show_space_objects = true
+
+[node name="FontResizer" parent="." instance=ExtResource( 6 )]
+
 [connection signal="page_selected" from="All/Info/DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="toggled" from="All/Info/Bottom/Markets/Middle/SalePrice" to="." method="_on_SalePrice_toggled"]
 [connection signal="tab_changed" from="All/Info/Bottom/Markets/Tabs" to="." method="_on_Tabs_tab_changed"]

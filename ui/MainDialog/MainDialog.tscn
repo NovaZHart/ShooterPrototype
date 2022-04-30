@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=2]
+[gd_scene load_steps=12 format=2]
 
 [ext_resource path="res://fonts/LiberationSerif-Regular.ttf" type="DynamicFontData" id=1]
 [ext_resource path="res://ui/MainDialog/MainDialog.gd" type="Script" id=2]
@@ -8,6 +8,7 @@
 [ext_resource path="res://ui/MainDialog/DialogKeysPanel.tscn" type="PackedScene" id=6]
 [ext_resource path="res://ui/MainDialog/DialogSavePanel.tscn" type="PackedScene" id=7]
 [ext_resource path="res://ui/MainDialog/DialogExitPanel.tscn" type="PackedScene" id=8]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=9]
 
 [sub_resource type="DynamicFont" id=1]
 size = 14
@@ -66,6 +67,9 @@ margin_left = 4.0
 margin_top = 4.0
 margin_right = -4.0
 margin_bottom = -4.0
+
+[node name="FontResizer" parent="." instance=ExtResource( 9 )]
+
 [connection signal="page_selected" from="Keys" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Help" to="." method="_on_page_selected"]
 [connection signal="page_selected" from="Ship" to="." method="_on_page_selected"]

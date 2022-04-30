@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=8 format=2]
 
 [ext_resource path="res://ui/ships/ScrollEnvironment.tres" type="Environment" id=1]
 [ext_resource path="res://ui/ships/ItemPanel.gd" type="Script" id=2]
 [ext_resource path="res://fonts/LiberationSerif-Bold.ttf" type="DynamicFontData" id=3]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=4]
 
 [sub_resource type="DynamicFont" id=1]
 outline_size = 1
@@ -160,6 +161,11 @@ min_value = 6.0
 max_value = 14.0
 page = 1.0
 value = 6.0
+
+[node name="FontResizer" parent="." instance=ExtResource( 4 )]
+resize_property_fonts = "custom_fonts/font enabled_font disabled_font"
+resize_node_theme_default_font = false
+resize_node_theme_all_fonts = false
 
 [connection signal="visibility_changed" from="." to="." method="_on_ItemPanel_visibility_changed"]
 [connection signal="resized" from="All/Top/View" to="." method="_on_View_resized"]

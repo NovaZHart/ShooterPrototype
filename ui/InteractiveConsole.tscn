@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=2]
+[gd_scene load_steps=14 format=2]
 
 [ext_resource path="res://ui/InteractiveConsole.gd" type="Script" id=1]
 [ext_resource path="res://ui/skins/Console.tres" type="Theme" id=2]
@@ -7,6 +7,7 @@
 [ext_resource path="res://ui/skins/ConsoleH1.tres" type="DynamicFont" id=5]
 [ext_resource path="res://ui/skins/ConsoleBoldItalic.tres" type="DynamicFont" id=6]
 [ext_resource path="res://ui/skins/ConsoleNormal.tres" type="DynamicFont" id=7]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=8]
 [ext_resource path="res://ui/skins/ConsoleMono.tres" type="DynamicFont" id=9]
 [ext_resource path="res://ui/skins/ConsoleBold.tres" type="DynamicFont" id=10]
 [ext_resource path="res://ui/skins/ConsoleItalic.tres" type="DynamicFont" id=11]
@@ -39,8 +40,8 @@ __meta__ = {
 }
 
 [node name="Output" type="RichTextLabel" parent="Console"]
-margin_right = 1024.0
-margin_bottom = 573.0
+margin_right = 1600.0
+margin_bottom = 873.0
 focus_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -59,10 +60,13 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="FontResizer" parent="Console/Output" instance=ExtResource( 8 )]
+resize_property_fonts = "custom_fonts/mono_font custom_fonts/bold_italics_font custom_fonts/italics_font custom_fonts/bold_font custom_fonts/normal_font"
+
 [node name="Input" type="LineEdit" parent="Console"]
-margin_top = 577.0
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_top = 877.0
+margin_right = 1600.0
+margin_bottom = 900.0
 theme = ExtResource( 2 )
 placeholder_text = "Use controls or enter commands here."
 caret_blink_speed = 0.5
@@ -93,6 +97,9 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="FontResizer" parent="Tooltip/Text" instance=ExtResource( 8 )]
+resize_property_fonts = "custom_fonts/mono_font custom_fonts/bold_italics_font custom_fonts/italics_font custom_fonts/bold_font custom_fonts/normal_font"
+
 [node name="Viewport" type="Viewport" parent="."]
 size = Vector2( 64, 64 )
 own_world = true
@@ -109,6 +116,10 @@ projection = 1
 transform = Transform( 0.568687, 0.713081, -0.410012, -0.533023, 0.699114, 0.476577, 0.626483, -0.052478, 0.777666, -2.81608, 2.77962, 3.6697 )
 
 [node name="Content" type="Spatial" parent="Viewport"]
+
+[node name="FontResizer" parent="." instance=ExtResource( 8 )]
+resize_property_fonts = "custom_fonts/font small_code_font h1_font h2_font"
+
 [connection signal="meta_clicked" from="Console/Output" to="." method="_on_Output_meta_clicked"]
 [connection signal="meta_hover_ended" from="Console/Output" to="." method="_on_Output_meta_hover_ended"]
 [connection signal="meta_hover_started" from="Console/Output" to="." method="_on_Output_meta_hover_started"]

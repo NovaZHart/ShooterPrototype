@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://ui/SaveList.tscn" type="PackedScene" id=1]
 [ext_resource path="res://ui/SaveLoadControl.gd" type="Script" id=2]
 [ext_resource path="res://ui/MainDialog/ConfirmationDialog.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=4]
 
 [node name="SaveLoadControl" type="GridContainer"]
 anchor_right = 1.0
@@ -18,17 +19,17 @@ ConfirmDialog = ExtResource( 3 )
 [node name="SaveList" parent="." instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_right = 1024.0
-margin_bottom = 576.0
+margin_right = 1600.0
+margin_bottom = 876.0
 
 [node name="Center" type="CenterContainer" parent="."]
-margin_top = 580.0
-margin_right = 1024.0
-margin_bottom = 600.0
+margin_top = 880.0
+margin_right = 1600.0
+margin_bottom = 900.0
 
 [node name="Buttons" type="GridContainer" parent="Center"]
-margin_left = 381.0
-margin_right = 643.0
+margin_left = 669.0
+margin_right = 931.0
 margin_bottom = 20.0
 columns = 7
 
@@ -76,6 +77,9 @@ margin_right = 262.0
 margin_bottom = 20.0
 hint_tooltip = "Re-read the saves directory and update the list."
 text = "Rescan"
+
+[node name="FontResizer" parent="." instance=ExtResource( 4 )]
+
 [connection signal="new_save" from="SaveList" to="." method="_on_SaveList_new_save"]
 [connection signal="no_save_selected" from="SaveList" to="." method="_on_SaveList_no_save_selected"]
 [connection signal="save_double_clicked" from="SaveList" to="." method="_on_SaveList_save_double_clicked"]

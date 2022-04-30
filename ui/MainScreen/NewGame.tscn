@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/MainScreen/NewGame.gd" type="Script" id=2]
 [ext_resource path="res://ui/MainScreen/Title.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=4]
 
 [node name="NewGame" type="Panel"]
 anchor_right = 1.0
@@ -16,9 +17,9 @@ __meta__ = {
 }
 
 [node name="Center" type="CenterContainer" parent="."]
-anchor_left = 0.35
+anchor_left = 0.3
 anchor_top = 0.15
-anchor_right = 0.65
+anchor_right = 0.7
 anchor_bottom = 0.75
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -27,35 +28,47 @@ __meta__ = {
 }
 
 [node name="Grid" type="GridContainer" parent="Center"]
-margin_left = 53.0
-margin_top = 142.0
-margin_right = 253.0
-margin_bottom = 217.0
+margin_left = 207.0
+margin_top = 232.0
+margin_right = 432.0
+margin_bottom = 307.0
+grow_horizontal = 2
+grow_vertical = 2
 size_flags_horizontal = 3
-size_flags_vertical = 3
+size_flags_vertical = 4
 
 [node name="Label" type="Label" parent="Center/Grid"]
-margin_right = 200.0
+margin_right = 225.0
 margin_bottom = 17.0
-text = "Player Name"
+text = "                   Player Name                   "
 align = 1
 
 [node name="PlayerName" type="LineEdit" parent="Center/Grid"]
 margin_top = 21.0
-margin_right = 200.0
+margin_right = 225.0
 margin_bottom = 48.0
+grow_horizontal = 2
+grow_vertical = 2
 rect_min_size = Vector2( 200, 0 )
+size_flags_horizontal = 3
+size_flags_vertical = 5
 placeholder_text = "Enter a name here."
 
 [node name="Center" type="CenterContainer" parent="Center/Grid"]
 margin_top = 52.0
-margin_right = 200.0
+margin_right = 225.0
 margin_bottom = 75.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
 
 [node name="GridContainer" type="GridContainer" parent="Center/Grid/Center"]
-margin_left = 35.0
-margin_right = 165.0
+margin_left = 47.0
+margin_right = 177.0
 margin_bottom = 23.0
+grow_horizontal = 2
+grow_vertical = 2
+size_flags_horizontal = 5
+size_flags_vertical = 5
 columns = 2
 
 [node name="StartGame" type="Button" parent="Center/Grid/Center/GridContainer"]
@@ -84,9 +97,10 @@ __meta__ = {
 "_edit_use_anchors_": false
 }
 
+[node name="FontResizer" parent="." instance=ExtResource( 4 )]
+
 [node name="Title" parent="." instance=ExtResource( 3 )]
-anchor_top = 0.2
-anchor_bottom = 0.2
+
 [connection signal="text_entered" from="Center/Grid/PlayerName" to="." method="_on_PlayerName_text_entered"]
 [connection signal="pressed" from="Center/Grid/Center/GridContainer/StartGame" to="." method="_on_Button_pressed"]
 [connection signal="pressed" from="Center/Grid/Center/GridContainer/Cancel" to="." method="_on_Cancel_pressed"]

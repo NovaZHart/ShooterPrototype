@@ -1,8 +1,9 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=5 format=2]
 
 [ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=1]
 [ext_resource path="res://ui/MainDialog/DialogExitPanel.gd" type="Script" id=2]
 [ext_resource path="res://ui/MainDialog/DialogPageSelector.tscn" type="PackedScene" id=3]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=4]
 
 [node name="Panel" type="Panel"]
 anchor_right = 1.0
@@ -54,6 +55,9 @@ margin_top = 60.0
 margin_right = 175.0
 margin_bottom = 83.0
 text = "Go to Main Menu"
+
+[node name="FontResizer" parent="." instance=ExtResource( 4 )]
+
 [connection signal="page_selected" from="DialogPageSelector" to="." method="_on_DialogPageSelector_page_selected"]
 [connection signal="pressed" from="Grid/Button" to="." method="_on_Button_pressed"]
 [connection signal="pressed" from="Grid/MainMenu" to="." method="_on_MainMenu_pressed"]

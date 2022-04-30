@@ -1,5 +1,12 @@
 extends Node
 
+func get_viewport_scale() -> Vector2:
+	var window_size: Vector2 = get_tree().root.size
+	var project_height: int = ProjectSettings.get_setting("display/window/size/height")
+	var project_width: int = ProjectSettings.get_setting("display/window/size/width")
+	var scale: Vector2 = window_size / Vector2(project_width,project_height)
+	return scale
+
 class WeightArraySorter extends Object:
 	var weights: Array
 	func _init(weights_: Array):
@@ -187,14 +194,16 @@ func Tree_remove_where(item: TreeItem,object: Object,method: String) -> bool:
 
 func Tree_depth_first(item: TreeItem,object: Object,method: String):
 	var scan = item.get_children()
-	while scan:
+	while scan and scan.has_method('get_next'):
 		var result = Tree_depth_first(scan,object,method)
+		var scan_next = null
+		if scan:
+			scan_next = scan.get_next()
 		if not result:
 			result = object.call(method,item,scan)
 		if result:
 			return result
-		if scan:
-			scan = scan.get_next()
+		scan = scan_next
 	return false
 
 func Tree_remove_subtree(parent: TreeItem,child: TreeItem):
@@ -207,8 +216,6 @@ func Tree_clear(tree: Tree):
 		return
 	var _discard = Tree_depth_first(root,self,'_TreeItem_remove_child')
 	tree.clear()
-	if root:
-		root.free()
 
 func _TreeItem_remove_child(parent: TreeItem,child: TreeItem) -> void:
 	parent.remove_child(child)

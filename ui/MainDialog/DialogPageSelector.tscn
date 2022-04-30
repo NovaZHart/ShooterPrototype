@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://ui/MainDialog/DialogPageSelector.gd" type="Script" id=1]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=2]
 
 [node name="DialogPageSelector" type="GridContainer"]
 anchor_right = 1.0
@@ -46,6 +47,9 @@ margin_left = 230.0
 margin_right = 265.0
 margin_bottom = 20.0
 text = "Exit"
+
+[node name="FontResizer" parent="." instance=ExtResource( 2 )]
+
 [connection signal="pressed" from="Help" to="." method="_on_Help_pressed"]
 [connection signal="pressed" from="Keys" to="." method="_on_Keys_pressed"]
 [connection signal="pressed" from="Map" to="." method="_on_Map_pressed"]
