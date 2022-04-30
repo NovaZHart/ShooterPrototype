@@ -1,6 +1,8 @@
 #include <GodotGlobal.hpp>
 #include "VisualEffects.hpp"
 
+#include <GodotGlobal.hpp>
+
 using namespace std;
 using namespace godot;
 using namespace godot::CE;
@@ -30,9 +32,12 @@ void VisualEffects::_register_methods() {
   register_method("set_scenario", &VisualEffects::set_scenario);
 }
 
-void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader) {
+void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
+                                Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture) {
   this->spatial_rift_shader = spatial_rift_shader;
   this->zap_ball_shader = zap_ball_shader;
+  this->hyperspacing_polygon_shader = hyperspacing_polygon_shader;
+  this->hyperspacing_texture = hyperspacing_texture;
 }
 
 void VisualEffects::clear_all_effects() {
@@ -240,6 +245,68 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   }
 
   return effect;
+}
+
+void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse) {
+ 
+  if(not hyperspacing_polygon_shader.is_valid() or not duration>0.0f or not hyperspacing_texture.is_valid())
+    return;
+
+  Godot::print("Add hyperspacing polygon");
+  if(radius<1e-5)
+
+    Godot::print_warning("Impossible ship radius!"+str(radius),__FUNCTION__,__FILE__,__LINE__);
+
+  real_t scaled_radius=radius/0.95;
+  PoolVector3Array pool_vertices;
+  PoolVector2Array pool_uv;
+  int polycount = clamp(int(roundf(PI*radius/0.1)),12,120);
+  int nvert = polycount*3;
+  pool_vertices.resize(nvert);
+  pool_uv.resize(nvert);
+  PoolVector3Array::Write write_vertices = pool_vertices.write();
+  PoolVector2Array::Write write_uv = pool_uv.write();
+  Vector3 *vertices = write_vertices.ptr();
+  Vector2 *uv = write_uv.ptr();
+
+  Vector3 prior=Vector3(sinf(0),0,cosf(0));
+  for(int i=0;i<polycount;i++) {
+    real_t next_angle = 2*PI*(i+1.0f)/polycount;
+    Vector3 next = Vector3(sinf(next_angle),0,cosf(next_angle));
+    
+    vertices[i*3+0] = prior*scaled_radius;
+    uv[i*3+0] = Vector2((prior.z+1)/2,(prior.x+1)/2);
+    vertices[i*3+1] = Vector3();
+    uv[i*3+1] = Vector2(0.5,0.5);
+    vertices[i*3+2] = next*scaled_radius;
+    uv[i*3+2] = Vector2((next.z+1)/2,(next.x+1)/2);
+
+    prior=next;
+  }
+
+  Array data;
+  data.resize(ArrayMesh::ARRAY_MAX);
+  data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
+  data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
+  MeshEffect &effect = add_MeshEffect(data,duration,position,hyperspacing_polygon_shader);
+
+  if(not effect.dead) {
+    effect.shader_material->set_shader_param("time",0.0f);
+    if(reverse) {
+      effect.shader_material->set_shader_param("time_zero_radius",0.95);
+      effect.shader_material->set_shader_param("time_middle_radius",0.475);
+      effect.shader_material->set_shader_param("time_end_radius",0.0);
+    } else {
+      effect.shader_material->set_shader_param("time_zero_radius",0.3);
+      effect.shader_material->set_shader_param("time_middle_radius",0.95);
+      effect.shader_material->set_shader_param("time_end_radius",0.0);
+    }
+    effect.shader_material->set_shader_param("falloff_thickness",0.05);
+    effect.shader_material->set_shader_param("duration",duration);
+    effect.shader_material->set_shader_param("texture_scale",1.0);
+    effect.shader_material->set_shader_param("texture_albedo",hyperspacing_texture);
+    effect.ready=true;
+  }
 }
 
 void VisualEffects::add_zap_ball(real_t duration, Vector3 position, real_t radius, bool reverse) {

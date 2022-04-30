@@ -4,8 +4,10 @@ var GDNativeVisualEffects = preload("res://bin/VisualEffects.gdns")
 var GDNativeCombatEngine = preload("res://bin/CombatEngine.gdns")
 var RiftShader = preload('res://places/Rift.shader')
 var ZapBallShader = preload('res://places/ZapBall.shader')
+var HyperspacingPolygonShader = preload('res://places/HyperspacingPolygon.shader')
 var native_combat_engine
 var native_visual_effects
+var hyperspacing_texture = preload('res://textures/blue-squiggles.jpeg')
 
 # All constants MUST match src/CombatEngineData.hpp
 
@@ -81,7 +83,7 @@ func _enter_tree():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
-	native_visual_effects.set_shaders(RiftShader,ZapBallShader)
+	native_visual_effects.set_shaders(RiftShader,ZapBallShader,HyperspacingPolygonShader,hyperspacing_texture)
 
 func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	# Call in _ready to create the CombatState for a System or Hyperspace

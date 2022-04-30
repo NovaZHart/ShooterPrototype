@@ -873,8 +873,13 @@ void CombatEngine::rift_ai(Ship &ship) {
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
       rift_position.y = ship.visual_height+1.1f;
-      visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
-      visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
+      if(rift_position.y<ship.position.y)
+        Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
+      else
+        Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y)+" radius "+str(ship.radius*1.5f));
+      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
+      // visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
+      // visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
     }
   } else {
     // During the rift animation, shrink the ship.
@@ -990,8 +995,13 @@ bool CombatEngine::init_ship(Ship &ship) {
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
       rift_position.y = ship.visual_height+1.1f;
-      visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
-      visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
+      if(rift_position.y<ship.position.y)
+        Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
+      else
+        Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y));
+      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
+      //visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
+      //visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
     }
     set_angular_velocity(ship,Vector3(0.0,15.0+ship.rand.randf()*15.0,0.0));
     return false;

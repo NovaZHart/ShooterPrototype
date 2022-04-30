@@ -67,7 +67,7 @@ var non_weapon_stats: Array = []
 #var enemy_team: int = 1
 #var enemy_mask: int = 2
 var faction_index: int = -1
-var height: float = 5
+var height: float = 5 setget set_height
 var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
@@ -76,6 +76,10 @@ var cargo: Commodities.Products setget set_cargo
 var skipped_runtime_stats: bool = true
 
 func is_ShipStats(): pass # for type detection; never called
+
+func set_height(new_height: float):
+	height=new_height
+	combined_stats['visual_height'] = new_height+game_state.SHIP_HEIGHT
 
 func save_transforms():
 	for child in get_children():

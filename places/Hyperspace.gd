@@ -319,6 +319,7 @@ func _ready():
 	var player_ship = Player.assemble_player_ship()
 	player_ship.name = player_ship_name
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
+	player_ship.set_height(0)
 	player_ship.translation.y = game_state.SHIP_HEIGHT
 	player_ship.restore_combat_stats(Player.ship_combat_stats)
 	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT_STATIONARY)

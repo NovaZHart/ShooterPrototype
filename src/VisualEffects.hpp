@@ -9,6 +9,7 @@
 #include <Reference.hpp>
 #include <VisualServer.hpp>
 #include <ShaderMaterial.hpp>
+#include <Texture.hpp>
 
 #include <cmath>
 
@@ -50,7 +51,8 @@ namespace godot {
     std::unordered_map<CE::object_id,MeshEffect> mesh_effects;
     std::vector<Vector3> vertex_holder;
     std::vector<Vector2> uv2_holder, uv_holder;
-    Ref<Shader> spatial_rift_shader, zap_ball_shader;
+    Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader;
+    Ref<Texture> hyperspacing_texture;
 
     typedef std::unordered_map<CE::object_id,MeshEffect>::iterator mesh_effects_iter;
     typedef std::unordered_map<CE::object_id,MeshEffect>::const_iterator mesh_effects_citer;
@@ -64,7 +66,8 @@ namespace godot {
 
     // Registered methods:
     void clear_all_effects();
-    void set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader);
+    void set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
+                     Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture);
     void set_visible_region(AABB visible_area, Vector3 expansion_rate);
     void set_scenario(RID scenario);
     void step_effects(real_t delta);
@@ -72,7 +75,8 @@ namespace godot {
     // Interface for CombatEngine:
     void add_zap_pattern(real_t lifetime, Vector3 position, real_t radius, bool reverse);
     void add_zap_ball(real_t lifetime, Vector3 position, real_t radius, bool reverse);
-    
+    void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse);
+  
   private:
     void free_unused_effects();
     void extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,

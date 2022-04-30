@@ -266,7 +266,8 @@ func set_player_location(s: NodePath):
 		if game_state.systems.has_child(system_name):
 			system = game_state.systems.get_child_with_name(system_name)
 			player_location = n.get_path()
-			set_hyperspace_position(system.position)
+			if not hyperspace_position or system.show_on_map:
+				set_hyperspace_position(system.position)
 		else:
 			push_error('No system parent at path '+str(s))
 	else:
