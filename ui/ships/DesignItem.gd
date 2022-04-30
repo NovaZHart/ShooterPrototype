@@ -29,6 +29,12 @@ func is_DesignItem(): pass # used for type checking; never called
 func refresh():
 	var _discard = set_design(design_path)
 
+func weapon_dps(weapon: Dictionary) -> float:
+	var dps: float = weapon['damage']
+	if weapon['firing_delay']:
+		dps /= max(1.0/60,weapon['firing_delay'])
+	return dps
+
 func stat_summary(stats: Dictionary) -> Dictionary:
 	var dps: float = 0
 	var guns: int = 0
@@ -40,7 +46,7 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	for weapon in stats['weapons']:
 		turrets += int(weapon['is_turret'])
 		guns += int(weapon['is_gun'])
-		dps += weapon['damage'] / max(1.0/60,weapon['firing_delay'])
+		dps += weapon_dps(weapon)
 		max_range = max(max_range, text_gen.approximate_range(weapon))
 	return {
 		'dps':str(round(dps)), 'guns':str(guns), 'turrets':str(turrets), 

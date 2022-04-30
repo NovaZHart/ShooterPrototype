@@ -309,15 +309,19 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 			contents += '\n[b]'+weapon['name'].capitalize() + \
 				':[/b] {ref '+weapon['help_page']+'}\n' + \
 				make_weapon_bbcode(weapon)
+		var this_weapon_dps = weapon['damage']
+		var this_weapon_heat = weapon['firing_heat']
+		var this_weapon_energy = weapon['firing_energy']
+		assert(this_weapon_dps<1000)
 		if weapon['firing_delay']:
-			dps += weapon['damage']*max(1.0/60.0,weapon['firing_delay'])
-			weapon_heat += weapon['firing_heat']*max(1.0/60.0,weapon['firing_delay'])
-			weapon_energy -= weapon['firing_energy']*max(1.0/60.0,weapon['firing_delay'])
-		else:
-			dps += weapon['damage']
-			weapon_heat += weapon['firing_heat']
-			weapon_energy -= weapon['firing_energy']
-	
+			var delay = max(1.0/60.0,weapon['firing_delay'])
+			this_weapon_dps /= delay
+			this_weapon_heat /= delay
+			this_weapon_energy /= delay
+		assert(dps<5000)
+		dps += this_weapon_dps
+		weapon_heat += this_weapon_heat
+		weapon_energy += this_weapon_energy
 	if with_contents:
 		for equip in ship_stats['equipment']:
 			contents += '\n[b]'+equip['name'].capitalize() + \
@@ -327,7 +331,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 	var energy_data: Array = [ s['power'], 
 		-max(s['thrust']*s['forward_thrust_energy'],s['reverse_thrust']*s['reverse_thrust_energy'])/1000, \
 		-s['turning_thrust']*s['turning_thrust_energy']/1000,
-		weapon_energy,
+		-weapon_energy,
 		-s['heal_shields']*s['shield_repair_energy']-s['heal_armor']*s['armor_repair_energy']- \
 			s['heal_structure']*s['structure_repair_energy'],
 		0 ]
@@ -361,6 +365,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
 	bbcode += '[cell] [/cell]'
+	assert(dps<5000)
 	bbcode += make_cell('Damage:',str(round(dps))+'/s')
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
