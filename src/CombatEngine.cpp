@@ -928,7 +928,6 @@ void CombatEngine::explode_ship(Ship &ship) {
         }
       }
     }
-    Godot::print("Should now create flotsam for ship.");
     create_flotsam(ship);
   }
 }
@@ -2205,12 +2204,11 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
 void CombatEngine::create_flotsam(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   for(auto & salvage_ptr : ship.salvage) {
-    Godot::print("Create flotsam.");
     Vector3 v = ship.linear_velocity;
-    real_t speed = v.length();
+    real_t speed = ship.rand.randf()*5+5;
     real_t angle = ship.rand.rand_angle();
     Vector3 heading = unit_from_angle(angle);
-    v += heading*speed/10;
+    v = heading*speed*0.5 + v*0.5;
     object_id new_id=last_id++;
     projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,last_id,mesh2path,path2mesh));
   }
