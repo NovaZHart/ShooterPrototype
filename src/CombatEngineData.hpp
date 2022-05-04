@@ -447,7 +447,7 @@ namespace godot {
       const String name; // last element of node path
       const RID rid; // of rigid body
       const real_t cost;
-      const real_t max_thrust, max_reverse_thrust, max_turning_thrust;
+      const real_t max_thrust, max_reverse_thrust, max_turning_thrust, max_cargo_mass;
       const real_t threat, visual_height;
       const real_t max_shields, max_armor, max_structure, max_fuel;
       const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
@@ -455,7 +455,7 @@ namespace godot {
       const AABB aabb; // of ship, either guessed or from GDScript ShipSpecs
       const real_t turn_drag;
       const real_t radius; // effective radius of ship from aabb
-      const real_t empty_mass, cargo_mass, fuel_inverse_density, armor_inverse_density;
+      const real_t empty_mass, fuel_inverse_density, armor_inverse_density;
       const faction_index_t faction; // faction number
       const faction_mask_t faction_mask; // 2<<faction
       const real_t explosion_damage, explosion_radius, explosion_impulse;
@@ -470,7 +470,7 @@ namespace godot {
       const real_t forward_thrust_energy, reverse_thrust_energy, turning_thrust_energy;
       const real_t rifting_damage_multiplier;
       
-      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency;
+      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency, cargo_mass;
       double thrust_loss;
 
       Countdown explosion_timer;

@@ -160,13 +160,15 @@ func ai_step(delta: float,new_ships: Array,new_planets: Array,
 	physics_mutex.lock()
 	var array: Array = native_combat_engine.ai_step(delta,new_ships,new_planets,
 		player_orders,player_ship_rid,space,update_request)
-	var weapon_rotations = array[len(array)-2]
-	var faction_info = array[len(array)-1]
+	var weapon_rotations = array[len(array)-3]
+	var faction_info = array[len(array)-2]
+	var salvaged_items = array[len(array)-1]
 	var results: Dictionary = Dictionary()
-	for iresult in range(len(array)-2):
+	for iresult in range(len(array)-3):
 		results[array[iresult]['name']] = array[iresult]
 	results['weapon_rotations'] = weapon_rotations.duplicate(true)
 	results['faction_info'] = faction_info.duplicate(true)
+	results['salvaged_items'] = salvaged_items.duplicate(true)
 	physics_mutex.unlock()
 	return results
 

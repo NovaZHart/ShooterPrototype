@@ -389,8 +389,23 @@ func _physics_process(delta):
 		delta,new_ships_packed,new_planets_packed,
 		orders_copy,player_ship_rid,space,update_request_rids)
 	
+	if result['salvaged_items']:
+		var added_items: bool = false
+		for item in result['salvaged_items']:
+			if not item:
+				continue
+			if item['ship_name'] == player_ship_name:
+				print('Player salvaged ',item['count'], \
+					' units of ',item['product_name'],' with unit mass ', \
+					item['unit_mass'])
+				if item['count']>0:
+					added_items = Player.add_cargo_to_hold(item['product_name'],item['count'])>0 \
+						or added_items
+	
 	var player_died: bool = $Ships.get_node_or_null(player_ship_name) == null
 	for ship_name in result.keys():
+		if ship_name == 'salvaged_items':
+			continue
 		var ship: Dictionary = result[ship_name]
 		if ship_name=='weapon_rotations':
 			# This is actually a list of weapons to rotate, not a ship.

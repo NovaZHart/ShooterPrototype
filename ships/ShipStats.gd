@@ -174,6 +174,9 @@ func set_ai_type(type: int):
 	if combined_stats.has('empty_mass'):
 		combined_stats['ai_type'] = ai_type
 
+func update_cargo_stats():
+	pack_cargo_stats(combined_stats)
+
 func pack_cargo_stats(stats):
 	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
 

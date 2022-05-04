@@ -63,6 +63,7 @@ namespace godot {
     std::unordered_map<CE::object_id,CE::PlayerOverrides> player_orders;
     std::unordered_map<String,CE::object_id,CE::hash_String> path2mesh;
     std::unordered_map<CE::object_id,String> mesh2path;
+    std::unordered_multimap<CE::object_id,std::shared_ptr<const CE::Salvage>> salvaged_items;
     Dictionary weapon_rotations;
     std::unordered_set<CE::object_id> dead_ships;
     CE::object_id last_id;
@@ -83,6 +84,7 @@ namespace godot {
     CE::object_id last_planet_updated;
     int last_faction_updated;
     Dictionary faction_info;
+    Array encoded_salvaged_items;
     
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
@@ -115,7 +117,6 @@ namespace godot {
     CE::VisibleContent *visible_content;
     
   public:
-
     
     CombatEngine();
     ~CombatEngine();
@@ -224,7 +225,8 @@ namespace godot {
     void set_angular_velocity(CE::Ship &ship,const Vector3 &angular_velocity);
     void set_velocity(CE::Ship &ship,const Vector3 &velocity);
     void heal_ship(CE::Ship &ship);
-  
+    void encode_salvaged_items_for_gdscript(Array result);
+    
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Projectile methods:
     // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -239,6 +241,7 @@ namespace godot {
     bool collide_point_projectile(CE::Projectile &projectile);
     CE::ships_iter space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
     bool collide_projectile(CE::Projectile &projectile);
+    void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
     void guide_projectile(CE::Projectile &projectile);
     void integrate_projectile_forces(CE::Projectile &projectile, bool thrust);
 

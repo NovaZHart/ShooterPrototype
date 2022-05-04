@@ -201,6 +201,7 @@ void CombatEngine::init_factions(Dictionary data) {
   update_affinity_masks();
 }
 
+// Main entry point to the AI code from godot.
 Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
                             Array new_player_orders,RID player_ship_rid,
                             PhysicsDirectSpaceState *new_space,
@@ -250,6 +251,9 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   result.push_back(weapon_rotations);
   make_faction_state_for_gdscript(faction_info);
   result.push_back(faction_info);
+  encode_salvaged_items_for_gdscript(encoded_salvaged_items);
+  result.push_back(encoded_salvaged_items);
+  salvaged_items.clear();
   return result;
 }
 
@@ -873,10 +877,10 @@ void CombatEngine::rift_ai(Ship &ship) {
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
       rift_position.y = ship.visual_height+1.1f;
-      if(rift_position.y<ship.position.y)
-        Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
-      else
-        Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y)+" radius "+str(ship.radius*1.5f));
+      // if(rift_position.y<ship.position.y)
+      //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
+      // else
+      //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y)+" radius "+str(ship.radius*1.5f));
       visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
       // visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
       // visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
@@ -998,10 +1002,10 @@ bool CombatEngine::init_ship(Ship &ship) {
     if(visual_effects.is_valid()) {
       Vector3 rift_position = ship.position;
       rift_position.y = ship.visual_height+1.1f;
-      if(rift_position.y<ship.position.y)
-        Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
-      else
-        Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y));
+      // if(rift_position.y<ship.position.y)
+      //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
+      // else
+      //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y));
       visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
       //visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
       //visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
@@ -1502,7 +1506,7 @@ void CombatEngine::landing_ai(Ship &ship) {
   if(target == planets.end())
     // Nowhere to land!
     patrol_ai(ship);
-  else if(move_to_intercept(ship, target->second.radius, 3.0, target->second.position,
+  else if(move_to_intercept(ship, target->second.radius, 5.0, target->second.position,
                             Vector3(0,0,0), true)) {
     // Reached planet.
     // FIXME: implement factions, etc.:
@@ -1752,6 +1756,27 @@ bool CombatEngine::request_stop(Ship &ship,Vector3 desired_heading,real_t max_sp
   if(fabsf(request_heading(ship,-velocity_norm))>0.9)
     request_thrust(ship,speed/(delta*ship.inverse_mass*ship.thrust),0);
   return false;
+}
+
+void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
+  result.clear();
+  result.resize(salvaged_items.size());
+  int next_index=0;
+  for(auto &ship_id_salvage : salvaged_items) {
+    if(not ship_id_salvage.second)
+      continue;
+    const Salvage &salvage = *ship_id_salvage.second;
+
+    ships_iter ship_ptr = ships.find(ship_id_salvage.first);
+    if(ship_ptr==ships.end())
+      continue;
+    const Ship &ship = ship_ptr->second;
+
+    result[next_index++] = Dictionary::make("ship_name",ship.name,"product_name",salvage.cargo_name,
+                                            "count",salvage.cargo_count,
+                                            "unit_mass",salvage.cargo_unit_mass);
+  }
+  result.resize(next_index+1);
 }
 
 double CombatEngine::rendezvous_time(Vector3 target_location,Vector3 target_velocity,
@@ -2073,7 +2098,7 @@ bool CombatEngine::move_to_intercept(Ship &ship,double close, double slow,
   bool should_reverse = false;
   dp = tgt_pos - ship.stopping_point(tgt_vel, should_reverse);
 
-  if(should_reverse and dp.length()<close) {
+  if(should_reverse and dp.length()<close*.95) {
     request_thrust(ship,0,1);
     return false;
   }
@@ -2291,6 +2316,25 @@ CE::ships_iter CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 p
   return ships.find(there->second);
 }
 
+void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
+  if(projectile.salvage) {
+    const Salvage & salvage = *projectile.salvage;
+    salvaged_items.emplace(ship.id,projectile.salvage);
+    if(salvage.structure_repair>0)
+      ship.structure = min(double(ship.max_structure),ship.structure+salvage.structure_repair);
+    if(salvage.armor_repair>0)
+      ship.armor = min(double(ship.max_armor),ship.armor+salvage.armor_repair);
+    if(salvage.cargo_unit_mass>0 and salvage.cargo_count>0) {
+      float unit_mass = salvage.cargo_unit_mass/1000; // Convert kg->tons
+      float old_mass = ship.cargo_mass;
+      float original_max_mass = max(ship.cargo_mass,ship.max_cargo_mass);
+      ship.cargo_mass = min(original_max_mass,ship.cargo_mass+unit_mass*salvage.cargo_count);
+      if(ship.cargo_mass != old_mass)
+        Godot::print("Ship cargo mass increased from "+str(old_mass)+" to "+str(ship.cargo_mass));
+    }
+  }
+}
+
 bool CombatEngine::collide_point_projectile(Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
   Vector3 point1(projectile.position.x,500,projectile.position.z);
@@ -2298,14 +2342,18 @@ bool CombatEngine::collide_point_projectile(Projectile &projectile) {
   ships_iter p_ship = space_intersect_ray_p_ship(point1,point2,enemy_masks[projectile.faction]);
   if(p_ship==ships.end())
     return false;
-  
-  p_ship->second.take_damage(projectile.damage,projectile.damage_type,
-                             projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
+
+  if(projectile.damage)
+    p_ship->second.take_damage(projectile.damage,projectile.damage_type,
+                               projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
   if(projectile.impulse and not p_ship->second.immobile) {
     Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
     if(impulse.length_squared())
       physics_server->body_apply_central_impulse(p_ship->second.rid,impulse);
   }
+
+  if(p_ship->second.fate==FATED_TO_FLY and projectile.salvage)
+    salvage_projectile(p_ship->second,projectile);
   return true;
 }
 
@@ -2335,7 +2383,7 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
 
   if(hit_something) {
     bool have_impulse = projectile.impulse>1e-5;
-    if(projectile.blast_radius>1e-5) {
+    if(not projectile.salvage and projectile.blast_radius>1e-5) {
       projectile_hit_list_t blasted = find_projectile_collisions(projectile,projectile.blast_radius,max_ships_hit_per_projectile_blast);
 
       for(auto &blastee : blasted) {
@@ -2344,8 +2392,9 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
           real_t distance = max(0.0f,ship.position.distance_to(projectile.position)-ship.radius);
           real_t dropoff = 1.0 - distance/projectile.blast_radius;
           dropoff*=dropoff;
-          ship.take_damage(projectile.damage*dropoff,projectile.damage_type,
-                           projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
+          if(projectile.damage)
+            ship.take_damage(projectile.damage*dropoff,projectile.damage_type,
+                             projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
           if(have_impulse and not ship.immobile) {
             Vector3 impulse = projectile.impulse*dropoff*
               (ship.position-projectile.position).normalized();
@@ -2356,13 +2405,16 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
       }
     } else {
       Ship &ship = closest->second;
-      closest->second.take_damage(projectile.damage,projectile.damage_type,
-                                  projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
+      if(projectile.damage)
+        closest->second.take_damage(projectile.damage,projectile.damage_type,
+                                    projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
       if(have_impulse and not ship.immobile) {
         Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
         if(impulse.length_squared())
           physics_server->body_apply_central_impulse(ship.rid,impulse);
       }
+      if(ship.fate==FATED_TO_FLY and projectile.salvage)
+        salvage_projectile(ship,projectile);
     }
     return true;
   } else

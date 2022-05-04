@@ -407,6 +407,8 @@ func _physics_process(delta):
 	
 	var player_died: bool = $View/System/Ships.get_node_or_null(player_ship_name) == null
 	for ship_name in result.keys():
+		if ship_name == 'salvaged_items':
+			continue
 		var ship: Dictionary = result[ship_name]
 		var fate: int = ship.get('fate',combat_engine.FATED_TO_FLY)
 		if fate<=0:
