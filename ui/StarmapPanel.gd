@@ -90,7 +90,7 @@ func maybe_show_window():
 		set_window_location(true)
 		first_show = false
 
-func set_window_location(set_initial_rect):
+func set_window_location(_set_initial_rect):
 	var root_size: Vector2 = get_tree().root.size
 	var window_size: Vector2 = root_size/7
 	var me: Rect2 = get_global_rect()
@@ -116,7 +116,7 @@ func _enter_tree():
 		universe_edits.push_editors(self)
 
 func _ready():
-	get_tree().root.connect('size_changed',self,'_on_root_viewport_size_changed')
+	var _discard = get_tree().root.connect('size_changed',self,'_on_root_viewport_size_changed')
 	
 	$Window.get_close_button().visible=false
 	maybe_show_window()

@@ -60,7 +60,7 @@ export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 
 
 var ship_display_name: String = 'Unnamed'
 var item_slots: int = -1 setget set_item_slots,get_item_slots
-var combined_stats: Dictionary = {'weapons':[],'equipment':[]}
+var combined_stats: Dictionary = {'weapons':[],'equipment':[],'salvage':[]}
 var stats_overridden: Dictionary = {}
 var non_weapon_stats: Array = []
 #var team: int = 0
@@ -86,6 +86,27 @@ func save_transforms():
 		if child is Spatial:
 			transforms[child.name] = child.transform
 
+class SortByPriority:
+	static func by_priority(a,b):
+		return a.get("spawn_priority",50)>b.get("spawn_priority",50)
+
+func select_salvage():
+	combined_stats["salvage"] = select_salvage_from(combined_stats["salvage"])
+
+func select_salvage_from(possibilities: Array) -> Array:
+	return Array(possibilities)
+	var selected: Array = []
+	var seen: Dictionary = {}
+	for sal in possibilities:
+		var path = sal.get("path",null)
+		if path and seen.has(path):
+			continue
+		if randf()<=sal.get("spawn_probability",-1):
+			if path:
+				seen[path]=1
+			selected.append(Array(sal))
+	return selected
+
 func restore_transforms():
 	for key in transforms:
 		var child = get_node_or_null(key)
@@ -96,7 +117,7 @@ func set_entry_method(method: int, quiet: bool = false, skip_runtime_stats: bool
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in set_entry_method! Making stats now.')
-		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	combined_stats['entry_method'] = method
 
 func set_faction_index(new_faction_index: int):
@@ -122,16 +143,17 @@ func get_combined_aabb(node: Node = self) -> AABB:
 
 func make_stats(node: Node, stats: Dictionary,skip_runtime_stats=false) -> Dictionary:
 	if node.has_method("add_stats"):
-		node.add_stats(stats,skip_runtime_stats)
+		node.add_stats(stats,skip_runtime_stats,self)
 	if node.has_method('pack_cargo_stats'):
 		node.pack_cargo_stats(stats)
 	var children: Array = node.get_children()
 	for child in children:
 		var _discard = make_stats(child,stats,skip_runtime_stats)
+	stats["salvage"].sort_custom(SortByPriority,"by_priority")
 	return stats
 
 func repack_stats(skip_runtime_stats=false) -> Dictionary:
-	var new_stats = make_stats(self,{'weapons':[],'equipment':[]},
+	var new_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},
 		skip_runtime_stats and skipped_runtime_stats)
 	if not new_stats['equipment'] and combined_stats and combined_stats['equipment']:
 		new_stats['equipment'] = combined_stats['equipment']
@@ -142,7 +164,7 @@ func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in pack_stats! Making stats now.')
-		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	elif not skip_runtime_stats and skipped_runtime_stats:
 		update_stats()
 	return combined_stats
@@ -159,7 +181,7 @@ func set_cost(cost: float, quiet: bool = false, skip_runtime_stats=false) -> Dic
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_warning('No stats in set_cost! Making stats now.')
-		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	combined_stats['cost']=cost
 	return combined_stats
 
@@ -168,7 +190,7 @@ func set_cargo(products: Commodities.Products, quiet: bool = false,
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_warning('No stats in set_cargo! Making stats now.')
-		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	cargo = Commodities.ManyProducts.new()
 	var _success = cargo.decode(products.all)
 	pack_cargo_stats(combined_stats)
@@ -180,7 +202,7 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, q
 	if not combined_stats.has('empty_mass'):
 		if not quiet:
 			push_error('No stats in restore_combat_stats! Making stats now.')
-		combined_stats = make_stats(self,{'weapons':[],'equipment':[]},skip_runtime_stats)
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	for varname in [ 'fuel', 'shields', 'armor', 'structure', 'energy', 'heat' ]:
 		if stats.has(varname) and stats.has('max_'+varname):
 			combined_stats[varname] = clamp(stats[varname],0.0,stats['max_'+varname])
@@ -235,7 +257,9 @@ func set_power_and_cooling(stats: Dictionary):
 			stats['heal_structure']*stats['structure_repair_heat']
 		stats['cooling'] = heat
 
-func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
+func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> void:
+	if ship_node==null:
+		ship_node=self
 	stats['item_slots'] = get_item_slots()
 	if base_explosion_damage>=0:
 		stats['explosion_damage']=base_explosion_damage

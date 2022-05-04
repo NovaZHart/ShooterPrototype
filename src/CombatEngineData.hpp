@@ -23,6 +23,7 @@
 #define MAX_ALLOWED_FACTION 29
 #define MIN_ALLOWED_FACTION 0
 #define PLAYER_FACTION 0
+#define FLOTSAM_FACTION 1
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
 
 #define NUM_DAMAGE_TYPES 9
@@ -47,6 +48,7 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
+#include <memory>
 
 #include <Godot.hpp>
 #include <Color.hpp>
@@ -317,6 +319,21 @@ namespace godot {
     typedef std::unordered_map<faction_index_t,CE::Faction> factions_t;
     typedef std::unordered_map<faction_index_t,CE::Faction>::iterator factions_iter;
     typedef std::unordered_map<faction_index_t,CE::Faction>::const_iterator factions_const_iter;
+
+    struct Salvage {
+      const String flotsam_mesh_path;
+      const float flotsam_scale;
+      const String cargo_name;
+      const int cargo_count;
+      const float cargo_unit_mass;
+      const float armor_repair;
+      const float structure_repair;
+      const float spawn_duration;
+      const float grab_radius;
+
+      Salvage(Dictionary dict);
+      ~Salvage();
+    };
   
     struct ProjectileMesh {
       object_id id;
@@ -344,8 +361,10 @@ namespace godot {
       Vector3 position, linear_velocity, rotation, angular_velocity;
       real_t age, scale;
       bool alive, direct_fire;
+      const std::shared_ptr<const Salvage> salvage;
       Projectile(object_id id,const Ship &ship,const Weapon &weapon);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
+      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       ~Projectile();
     };
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;
@@ -470,6 +489,8 @@ namespace godot {
       real_t drag, inverse_mass;
       Vector3 inverse_inertia;
       Transform transform;
+
+      const std::vector<std::shared_ptr<const Salvage>> salvage;
       
       std::vector<Weapon> weapons;
       const WeaponRanges range;
@@ -544,6 +565,9 @@ namespace godot {
       
       // Update the ship's firing inaccuracy vectors:
       void update_confusion();
+
+      // Generate the Salvage vector from GDScript datatypes:
+      std::vector<std::shared_ptr<const Salvage>> get_salvage(Array a);
 
       // Generate the Weapon vector from GDScript datatypes:
       std::vector<Weapon> get_weapons(Array a, object_id &last_id, mesh2path_t &mesh2path, path2mesh_t &path2mesh);

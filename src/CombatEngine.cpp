@@ -891,8 +891,10 @@ void CombatEngine::rift_ai(Ship &ship) {
 void CombatEngine::explode_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.explosion_timer.alarmed()) {
+    Godot::print("Explosion timer is armed.");
     ship.fate=FATED_TO_DIE;
     if(ship.explosion_radius>0 and (ship.explosion_damage>0 or ship.explosion_impulse!=0)) {
+      Godot::print("Calculate damage from ship blast.");
       Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
       query->set_shape(search_cylinder);
       Transform trans;
@@ -926,6 +928,8 @@ void CombatEngine::explode_ship(Ship &ship) {
         }
       }
     }
+    Godot::print("Should now create flotsam for ship.");
+    create_flotsam(ship);
   }
 }
 
@@ -2196,6 +2200,20 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=last_id++;
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
+}
+
+void CombatEngine::create_flotsam(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+  for(auto & salvage_ptr : ship.salvage) {
+    Godot::print("Create flotsam.");
+    Vector3 v = ship.linear_velocity;
+    real_t speed = v.length();
+    real_t angle = ship.rand.rand_angle();
+    Vector3 heading = unit_from_angle(angle);
+    v += heading*speed/10;
+    object_id new_id=last_id++;
+    projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,last_id,mesh2path,path2mesh));
+  }
 }
 
 void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {

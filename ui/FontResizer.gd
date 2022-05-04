@@ -13,7 +13,7 @@ func _ready():
 	var _discard = get_tree().root.connect('size_changed',self,'update_font_size')
 
 func _exit_tree():
-	var _discard = get_tree().root.disconnect('size_changed',self,'update_font_size')
+	get_tree().root.disconnect('size_changed',self,'update_font_size')
 
 func choose_font_size() -> float:
 	var scale: Vector2 = utils.get_viewport_scale()

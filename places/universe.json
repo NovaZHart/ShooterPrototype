@@ -4,7 +4,13 @@
           "Array"
       ], 0.0, {
               "raiders": -1,
-              "locals": 1
+              "locals": 1,
+              "flotsam": -1
+      }, {} ],
+      "flotsam": [ "Faction", "flotsam", [
+          "Array"
+      ], 0.0, {
+          "initial_player_faction": -1
       }, {} ],
       "locals": [ "Faction", "Locals", [
             "Array",
@@ -81,7 +87,8 @@
             }
           ], 3e5, {
               "raiders": -3,
-              "initial_player_faction": 0.5
+              "initial_player_faction": 0.5,
+              "flotsam": -1
           }, {} ],
       "raiders": [ "Faction", "Raiders", [
             "Array",
@@ -163,7 +170,8 @@
             }
           ], 3e5, {
               "locals": -1,
-              "initial_player_faction": -0.5
+              "initial_player_faction": -0.5,
+              "flotsam": -1
           }, {} ]
   }],
   "systems": [
@@ -5960,7 +5968,7 @@
         "Fleet",
         "Missile Raven + 3 Peregrines",
         {
-          "raven_laser_missile": 1,
+          "raven_laser_wave": 1,
           "peregrine_lasers": 3
         }
       ],

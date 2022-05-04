@@ -231,6 +231,7 @@ namespace godot {
 
     void integrate_projectiles();
     void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,CE::object_id target);
+    void create_flotsam(CE::Ship &ship);
     void create_projectile(CE::Ship &ship,CE::Weapon &weapon);
     CE::ships_iter ship_for_rid(const RID &rid);
     CE::ships_iter ship_for_rid(int rid_id);

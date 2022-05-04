@@ -9,6 +9,8 @@ const ALL_FACTIONS: int = FACTION_TO_MASK
 const DEFAULT_GOAL_RADIUS: float = 100.0
 const DEFAULT_GOAL_WEIGHT: float = 5.0
 
+const FLOTSAM_FACTION_NAME: String = "flotsam"
+
 class FactionList extends simple_tree.SimpleNode:
 	func is_FactionList(): pass # never called; just used for type checking
 	func encode():
@@ -358,14 +360,18 @@ class CombatState extends Reference:
 	var faction_int_affinity: Dictionary = {}
 	
 	var player_faction_index: int
+	var flotsam_faction_index: int
 
 	func _init(system_info_, system_, immediate_entry_: bool):
 		system_info = system_info_
 		system = system_
 		immediate_entry = immediate_entry_
 		_impl_add_faction(Player.player_faction)
+		_impl_add_faction(FLOTSAM_FACTION_NAME)
 		player_faction_index = faction_name2int[Player.player_faction]
 		assert(player_faction_index==0)
+		flotsam_faction_index = faction_name2int[FLOTSAM_FACTION_NAME]
+		assert(flotsam_faction_index==1)
 		if system_info:
 			for goal in system_info.faction_goals:
 				_impl_add_faction(goal.get('faction_name',''))

@@ -193,7 +193,7 @@ func get_bbcode() -> String:
 		cached_bbcode = text_gen.make_equipment_bbcode(pack_stats())
 	return cached_bbcode
 
-func add_stats(stats: Dictionary,_skip_runtime_stats=false) -> void:
+func add_stats(stats: Dictionary,_skip_runtime_stats=false,_ship_node=null) -> void:
 	stats['equipment'].append(pack_stats())
 	if add_heat_capacity>0.0:
 		stats['heat_capacity'] += add_heat_capacity

@@ -14,6 +14,17 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
+object_id make_mesh_id(const String &path,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh) {
+  path2mesh_t::iterator it = path2mesh.find(path);
+  if(it == path2mesh.end()) {
+    object_id id = last_id++;
+    path2mesh.emplace(path,id);
+    mesh2path.emplace(id,path);
+    return id;
+  }
+  return it->second;
+}
+
 goal_action_t FactionGoal::action_enum_for_string(String string_goal) {
   if(string_goal=="raid")
     return goal_raid;
@@ -101,6 +112,19 @@ Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
 
 Faction::~Faction() {}
 
+Salvage::Salvage(Dictionary dict):
+flotsam_mesh_path(get<String>(dict,"flotsam_mesh_path")),
+flotsam_scale(get<float>(dict,"flotsam_scale")),
+cargo_name(get<String>(dict,"cargo_name")),
+cargo_count(get<int>(dict,"cargo_count")),
+cargo_unit_mass(get<real_t>(dict,"cargo_unit_mass")),
+armor_repair(get<real_t>(dict,"armor_repair")),
+structure_repair(get<real_t>(dict,"structure_repair")),
+spawn_duration(get<real_t>(dict,"spawn_duration")),
+grab_radius(get<real_t>(dict,"grab_radius"))
+{}
+Salvage::~Salvage() {}
+
 ProjectileMesh::ProjectileMesh(RID mesh_rid,object_id id):
   id(id),
   mesh_id(mesh_id),
@@ -141,7 +165,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   age(0),
   scale(1.0f),
   alive(true),
-  direct_fire(weapon.direct_fire)
+  direct_fire(weapon.direct_fire),
+  salvage()
 {
   rotation.y = ship.rotation.y;
   if(weapon.turn_rate>0)
@@ -185,21 +210,44 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   age(0),
   scale(scale),
   alive(true),
-  direct_fire(weapon.direct_fire)
+  direct_fire(weapon.direct_fire),
+  salvage()
+{}
+
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh):
+  id(id),
+  target(target),
+  mesh_id(make_mesh_id(salvage->flotsam_mesh_path,last_id,mesh2path,path2mesh)),
+  guided(false),
+  guidance_uses_velocity(false),
+  damage(0),
+  impulse(0),
+  blast_radius(0),
+  detonation_range(salvage->grab_radius),
+  turn_rate(0),
+  mass(1),
+  drag(1),
+  thrust(1),
+  lifetime(salvage->spawn_duration),
+  initial_velocity(velocity.length()),
+  max_speed(velocity.length()),
+  heat_fraction(0),
+  energy_fraction(0),
+  thrust_fraction(0),
+  position(position),
+  faction(FLOTSAM_FACTION),
+  damage_type(DAMAGE_TYPELESS),
+  linear_velocity(velocity),
+  rotation(Vector3(0,rotation,0)),
+  angular_velocity(),
+  age(0),
+  scale(salvage->flotsam_scale),
+  alive(true),
+  direct_fire(false),
+  salvage(salvage)
 {}
 
 Projectile::~Projectile() {}
-
-object_id make_mesh_id(const String &path,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh) {
-  path2mesh_t::iterator it = path2mesh.find(path);
-  if(it == path2mesh.end()) {
-    object_id id = last_id++;
-    path2mesh.emplace(path,id);
-    mesh2path.emplace(id,path);
-    return id;
-  }
-  return it->second;
-}
 
 Weapon::Weapon(Dictionary dict,object_id &last_id,
                mesh2path_t &mesh2path,
@@ -484,6 +532,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   inverse_mass(1.0/(empty_mass+cargo_mass+fuel_inverse_density*fuel+armor_inverse_density*armor)),
   inverse_inertia(get<Vector3>(dict,"inverse_inertia",Vector3(0,1,0))),
   transform(get<Transform>(dict,"transform")),
+
+  salvage(get_salvage(get<Array>(dict,"salvage"))),
   
   weapons(get_weapons(get<Array>(dict,"weapons"),last_id,mesh2path,path2mesh)),
   range(make_ranges(weapons)),
@@ -781,8 +831,8 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
 
   if(structure<=0) {
     // Structure is 0, so ship should explode.
-    explosion_timer.reset(explosion_delay/60.0f*ticks_per_second);
-    fate = explosion_timer.alarmed() ? FATED_TO_EXPLODE : FATED_TO_DIE;
+    explosion_timer.reset(explosion_delay/60.0f);
+    fate = FATED_TO_EXPLODE;
   } else {
     damage_since_targetting_change += damage;
 
@@ -914,6 +964,16 @@ std::vector<Weapon> Ship::get_weapons(Array a,object_id &last_id,
   int s=a.size();
   for(int i=0;i<s;i++)
     result.emplace_back(static_cast<Dictionary>(a[i]),last_id,mesh2path,path2mesh);
+  return result;
+}
+
+std::vector<std::shared_ptr<const Salvage>> Ship::get_salvage(Array a) {
+  vector<std::shared_ptr<const Salvage>> result;
+  int s=a.size();
+  for(int i=0;i<s;i++) {
+    result.emplace_back(make_shared<const Salvage>(static_cast<Dictionary>(a[i])));
+    Godot::print("Salvage found: "+result.back()->flotsam_mesh_path);
+  }
   return result;
 }
 

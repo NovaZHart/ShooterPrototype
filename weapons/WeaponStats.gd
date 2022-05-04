@@ -193,7 +193,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 		skipped_runtime_stats=false
 	return cached_stats
 
-func add_stats(stats: Dictionary,skip_runtime_stats=false) -> void:
+func add_stats(stats: Dictionary,skip_runtime_stats=false,_ship_node=null) -> void:
 	stats['weapons'].append(pack_stats(skip_runtime_stats))
 	if add_heat_capacity:
 		stats['heat_capacity'] += add_heat_capacity

@@ -381,6 +381,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not reassemble and not retain_hidden_mounts:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
+		body.select_salvage()
 		return body
 
 static func encode_ShipDesign(d: ShipDesign):
