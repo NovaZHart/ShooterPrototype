@@ -291,19 +291,13 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
   MeshEffect &effect = add_MeshEffect(data,duration,position,hyperspacing_polygon_shader);
 
   if(not effect.dead) {
+    effect.shader_material->set_shader_param("half_animation",reverse);
     effect.shader_material->set_shader_param("time",0.0f);
-    if(reverse) {
-      effect.shader_material->set_shader_param("time_zero_radius",0.95);
-      effect.shader_material->set_shader_param("time_middle_radius",0.475);
-      effect.shader_material->set_shader_param("time_end_radius",0.0);
-    } else {
-      effect.shader_material->set_shader_param("time_zero_radius",0.3);
-      effect.shader_material->set_shader_param("time_middle_radius",0.95);
-      effect.shader_material->set_shader_param("time_end_radius",0.0);
-    }
+    effect.shader_material->set_shader_param("radius",0.95);
     effect.shader_material->set_shader_param("falloff_thickness",0.05);
     effect.shader_material->set_shader_param("duration",duration);
     effect.shader_material->set_shader_param("texture_scale",1.0);
+    effect.shader_material->set_shader_param("full_alpha",1.0);
     effect.shader_material->set_shader_param("texture_albedo",hyperspacing_texture);
     effect.ready=true;
   }

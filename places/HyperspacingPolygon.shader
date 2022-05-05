@@ -4,43 +4,76 @@ render_mode unshaded;
 uniform sampler2D texture_albedo;
 uniform vec2 xy_location=vec2(0.0,0.0);
 uniform float texture_scale=1.0;
-uniform float time_zero_radius = 0.8;
-uniform float time_middle_radius = 0.4;
-uniform float time_end_radius = 0.0;
+uniform float radius = 0.8;
+uniform int spin_speed = 4;
 uniform float falloff_thickness = 0.05;
-
+uniform float full_alpha = 0.8;
 uniform float time=0.5;
 uniform float duration=1.0;
+uniform bool half_animation = false;
+
+const float PI = 3.14159;
+
+
+float get_shape_radius(float subtime,float theta,float spin) {
+	//0.5*r*(t/d + (1-t/d)*(1+math.sin(np.pi + 2*((theta+t/d*7*np.pi)%(np.pi/2)))))
+	return 0.5*radius*(subtime+(1.0-subtime)*(1.0+sin(PI+2.0*mod((theta+spin*2.0*PI),(PI/2.0)))));
+}
+
+float spin_expand(float subtime,float theta,float point_radius,bool shrink) {
+	float spin = float(spin_speed);
+	if(shrink) {
+		subtime = 1.0-subtime;
+		spin = -spin;
+	}
+	float radius_at_theta = get_shape_radius(0.0,theta,spin*subtime)*(0.2+subtime*0.8)*radius;
+	if(point_radius<radius_at_theta)
+		return full_alpha;
+	else if(point_radius>=radius_at_theta && point_radius<=radius_at_theta+falloff_thickness)
+		return full_alpha*(1.0-(point_radius-radius_at_theta)/falloff_thickness);
+	else
+		return 0.0;
+}
+	
+float spinup(float subtime,float theta,float point_radius,bool spindown) {
+	float spin = float(spin_speed);
+	if(spindown) {
+		subtime = 1.0-subtime;
+		spin = -spin;
+	}
+	float radius_at_theta = get_shape_radius(subtime,theta,spin*subtime)*radius;
+	if(point_radius<radius_at_theta)
+		return full_alpha;
+	else if(point_radius>=radius_at_theta && point_radius<=radius_at_theta+falloff_thickness)
+		return full_alpha*(1.0-(point_radius-radius_at_theta)/falloff_thickness);
+	else
+		return 0.0;
+}
 
 void fragment() {
-  vec2 there = UV+texture_scale*xy_location;
-  vec3 lores = texture(texture_albedo,mod(there/2.0,1.0)).rgb;
-  vec3 midres = texture(texture_albedo,mod(there,1.0)).rgb;
-  vec3 hires = texture(texture_albedo,mod(there*2.0,1.0)).rgb;
-  ALBEDO = (lores+midres+hires)/3.0;
-
-
-
-  float point_radius = clamp(length((UV-vec2(0.5,0.5))*2.0),0.0,1.0);
-
-  //ALBEDO = vec3(point_radius,0.0,1.0-point_radius);
-  //ALBEDO = vec3(UV.x,UV.y,1.0);
-
-  float circle_radius;
-  float when=clamp(time/duration,0.0,1.0);
-  if(when<0.5) {
-	float weight = 1.0-when*2.0;
-	circle_radius = time_zero_radius*weight + time_middle_radius*(1.0-weight);
-  } else {
-	float weight = 1.0-(when-0.5)*2.0;
-    circle_radius = time_middle_radius*weight + time_end_radius*(1.0-weight);
-  }
-  circle_radius = sin(circle_radius*2.0/3.14159);
-  if(point_radius<circle_radius) {
-    ALPHA=0.8;
-  } else if(point_radius>=circle_radius && point_radius<=circle_radius+falloff_thickness) {
-    ALPHA=0.8*(1.0-(point_radius-circle_radius)/falloff_thickness);
-  } else {
-    ALPHA=0.0;
-  }
+	vec2 there = UV+texture_scale*xy_location;
+	vec3 lores = texture(texture_albedo,mod(there/2.0,1.0)).rgb;
+	vec3 midres = texture(texture_albedo,mod(there,1.0)).rgb;
+	vec3 hires = texture(texture_albedo,mod(there*2.0,1.0)).rgb;
+	ALBEDO = (lores+midres+hires)/3.0;
+	vec2 xy = 2.0*(UV-0.5);
+	float theta = atan(xy.y,xy.x);
+	float r = length(xy);
+	float fulltime;
+	if(half_animation)
+		fulltime = 0.5+0.5*clamp(time/duration,0.0,1.0);
+	else
+		fulltime = clamp(time/duration,0.0,1.0);
+	float subtime = mod(fulltime*4.0,1.0);
+	if(fulltime>=0.0 && fulltime<0.25)  {
+		ALPHA = spin_expand(subtime,theta,r,false);
+	} else if(fulltime<0.5) {
+		ALPHA = spinup(subtime,theta,r,false);
+	} else if(fulltime<0.75) {
+		ALPHA = spinup(subtime,theta,r,true);
+	} else if(fulltime<=1.0) {
+		ALPHA = spin_expand(subtime,theta,r,true);
+	} else {
+		ALPHA = 0.5;
+	}
 }
