@@ -304,6 +304,8 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   visible_content = new_content;
   v_camera_location = location;
   v_camera_size = size;
+
+  visual_effects->set_visible_content(visible_content);
   
   // Delete content from prior frames, and any content we skipped:
   VisibleContent *delete_list = visible_content->next;
@@ -370,7 +372,8 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
     return; // Nothing to display yet.
   
   // Draw ships and planets.
-  for(auto &object : visible_content->ships_and_planets) {
+  for(auto &id_object : visible_content->ships_and_planets) {
+    VisibleObject &object = id_object.second;
     Vector2 center(object.z,-object.x);
     const Color &color = pick_object_color(object);
     Vector2 loc = place_center(Vector2(object.z,-object.x),
@@ -420,7 +423,8 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
   real_t radius_scale = map_scale.length();
 
   // Draw ships and planets.
-  for(auto &object : visible_content->ships_and_planets) {
+  for(auto &id_object : visible_content->ships_and_planets) {
+    VisibleObject &object = id_object.second;
     Vector2 center(object.z,-object.x);
     const Color &color = pick_object_color(object);
     Vector2 loc = place_in_rect(Vector2(object.z,-object.x),
@@ -881,7 +885,7 @@ void CombatEngine::rift_ai(Ship &ship) {
       //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
       // else
       //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y)+" radius "+str(ship.radius*1.5f));
-      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
+      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false,ship.id);
       // visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
       // visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
     }
@@ -1006,7 +1010,7 @@ bool CombatEngine::init_ship(Ship &ship) {
       //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
       // else
       //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y));
-      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
+      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true,ship.id);
       //visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
       //visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
     }
@@ -2523,19 +2527,21 @@ void CombatEngine::add_content() {
   for(auto &it : ships) {
     Ship &ship = it.second;
     bool hostile = player_faction_mask&enemy_masks[ship.faction];
-    VisibleObject &visual = next->ships_and_planets.emplace_back(ship,hostile);
+    VisibleObject visual(ship,hostile);
     if(ship.id == player_ship_id)
       visual.flags |= VISIBLE_OBJECT_PLAYER;
     else if(ship.id == player_target_id)
       visual.flags |= VISIBLE_OBJECT_PLAYER_TARGET;
     if(ship.faction_mask&enemy_masks[ship.faction])
       visual.flags |= VISIBLE_OBJECT_HOSTILE;
+    next->ships_and_planets.emplace(ship.id,visual);
   }
   for(auto &it : planets) {
     Planet &planet = it.second;
-    VisibleObject &visual = next->ships_and_planets.emplace_back(it.second);
+    VisibleObject visual(planet);
     if(planet.id == player_target_id)
       visual.flags |= VISIBLE_OBJECT_PLAYER_TARGET;
+    next->ships_and_planets.emplace(it.second.id,visual);
   }
 
   next->projectiles.reserve(projectiles.size());

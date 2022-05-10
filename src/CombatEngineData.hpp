@@ -740,12 +740,16 @@ namespace godot {
     typedef std::unordered_multimap<object_id,MeshInstanceInfo> instance_locations_t;
     typedef std::unordered_multimap<object_id,MeshInstanceInfo>::iterator instlocs_iterator;
 
+    typedef std::unordered_map<object_id,VisibleObject> ships_and_planets_t;
+    typedef ships_and_planets_t::iterator ships_and_planets_iter;
+    typedef ships_and_planets_t::const_iterator ships_and_planets_citer;
+    
     // The output of the physics timestep from CombatEngine, to be
     // processed in the visual timestep.  This is placed in a
     // thread-safe linked list.  It is the only means by which the
     // physics and visual threads communicate in GDNative.
     struct VisibleContent {
-      std::vector<VisibleObject> ships_and_planets;
+      ships_and_planets_t ships_and_planets;
       std::vector<VisibleProjectile> projectiles;
       std::unordered_map<object_id,String> mesh_paths;
       VisibleContent *next;

@@ -64,6 +64,12 @@ void VisualEffects::set_scenario(RID scenario) {
 }
 
 void VisualEffects::step_effects(real_t delta) {
+  VisibleContent *content_ptr = (VisibleContent*)visible_content;
+  if(!content_ptr) {
+    Godot::print_warning("No visible content from combat engine!",__FUNCTION__,__FILE__,__LINE__);
+    return;
+  }
+  VisibleContent &vc = *content_ptr;
   VisualServer *visual_server = VisualServer::get_singleton();
   this->delta=delta;
   now+=delta;
@@ -71,7 +77,6 @@ void VisualEffects::step_effects(real_t delta) {
     MeshEffect &effect = it->second;
     if(not effect.ready or effect.dead)
       continue;
-    
     if((now-effect.start_time)>effect.duration)
       effect.dead=true;
     else {
@@ -79,18 +84,44 @@ void VisualEffects::step_effects(real_t delta) {
                     visible_area.size + 2*visibility_expansion_rate*effect.duration);
       if(not expanded.intersects(effect.lifetime_aabb))
         effect.dead=true;
-      else {
-        if(effect.velocity.length_squared()>1e-10 and effect.instance->rid.get_id()) {
-          effect.transform.origin += delta*effect.velocity;
-          visual_server->instance_set_transform(effect.instance->rid,effect.transform);
-        }
-        if(effect.shader_material.is_valid())
-          effect.shader_material->set_shader_param("time",float(now-effect.start_time+effect.time_shift));
-      }
+      else
+        step_effect(vc,effect,visual_server);
     }
   }
   // FIXME: move this to another thread:
   free_unused_effects();
+}
+
+void VisualEffects::step_effect(VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server) {
+  switch(effect.behavior) {
+  case(MeshEffect::CENTER_ON_TARGET1): {
+    ships_and_planets_iter object_iter = vc.ships_and_planets.find(effect.target1);
+    if(object_iter!=vc.ships_and_planets.end()) {
+      VisibleObject &object=object_iter->second;
+      if(object.x!=effect.transform.origin.x or object.z!=effect.transform.origin.z) {
+        effect.transform.origin.x = object.x;
+        effect.transform.origin.z = object.z;
+        visual_server->instance_set_transform(effect.instance->rid,effect.transform);
+      }
+    } else {
+      Godot::print("Object "+str(effect.target1)+" no longer exists.");
+      effect.behavior=MeshEffect::STATIONARY;
+      effect.shader_material->set_shader_param("death_time",float(now-effect.start_time+effect.time_shift));
+    }
+  } break;
+  case(MeshEffect::CONSTANT_VELOCITY): {
+    if(effect.velocity.length_squared()>1e-10 and effect.instance->rid.get_id()) {
+      effect.transform.origin += delta*effect.velocity;
+      visual_server->instance_set_transform(effect.instance->rid,effect.transform);
+    }
+  } break;
+  };
+  if(effect.shader_material.is_valid())
+    effect.shader_material->set_shader_param("time",float(now-effect.start_time+effect.time_shift));
+}
+
+void VisualEffects::set_visible_content(VisibleContent *visible) {
+  visible_content=visible;
 }
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
@@ -247,14 +278,12 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   return effect;
 }
 
-void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse) {
- 
+void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, int ship_id) {
   if(not hyperspacing_polygon_shader.is_valid() or not duration>0.0f or not hyperspacing_texture.is_valid())
     return;
 
   Godot::print("Add hyperspacing polygon");
   if(radius<1e-5)
-
     Godot::print_warning("Impossible ship radius!"+str(radius),__FUNCTION__,__FILE__,__LINE__);
 
   real_t scaled_radius=radius/0.95;
@@ -293,6 +322,7 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
   if(not effect.dead) {
     effect.shader_material->set_shader_param("half_animation",reverse);
     effect.shader_material->set_shader_param("time",0.0f);
+    effect.shader_material->set_shader_param("death_time",duration);
     effect.shader_material->set_shader_param("radius",0.95);
     effect.shader_material->set_shader_param("falloff_thickness",0.05);
     effect.shader_material->set_shader_param("duration",duration);
@@ -300,6 +330,8 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
     effect.shader_material->set_shader_param("full_alpha",1.0);
     effect.shader_material->set_shader_param("texture_albedo",hyperspacing_texture);
     effect.ready=true;
+    effect.target1=ship_id;
+    effect.behavior=MeshEffect::CENTER_ON_TARGET1;
   }
 }
 
