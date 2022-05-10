@@ -102,6 +102,7 @@ env.Append(LIBS=[cpp_library])
 env.Append(CPPPATH=['src/'])
 
 ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['ShooterNative_target_name'] , source=[
+    "src/SpaceHash.cpp",
     "src/CombatEngine.cpp",
     "src/CombatEngineData.cpp",
     "src/CombatEngineUtils.cpp",

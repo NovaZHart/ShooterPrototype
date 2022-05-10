@@ -28,7 +28,7 @@ namespace godot {
   String str(const T &t) {
     return String(Variant(t));
   }
-
+  
   template<class T>
   struct FreeRID {
     RID rid;

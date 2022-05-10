@@ -13,6 +13,8 @@
 #include "CombatEngineUtils.hpp"
 #include "CombatEngineData.hpp"
 
+#include "SpaceHash.hpp"
+
 using namespace godot;
 using namespace godot::CE;
 using namespace std;
@@ -201,6 +203,59 @@ void CombatEngine::init_factions(Dictionary data) {
   update_affinity_masks();
 }
 
+void CombatEngine::test_SpaceHash() { // FIXME: DELETE THIS
+  const int position_box_size=1;
+  Godot::print("Testing SpaceHash class.");
+  SpaceHash<object_id> o;
+
+  Rect2 r(.7,1.3,2,2);
+  IntRect2 ir(r,position_box_size);
+
+  Godot::print("Rect2 "+str(r)+" -> IntRect2 "+str(ir));
+
+  Rect2 r2(1.1,2.2,.1,-.3);
+  IntRect2 ir2(r,position_box_size);
+
+  Godot::print("Rect2 "+str(r2)+" -> IntRect2 "+str(ir2)+" pos=> "+str(ir2.positive_size()));
+
+  SpaceHash<object_id> ohash(position_box_size);
+
+  ohash.reserve(40,1000);
+  
+  // Godot::print("Empty ohash:");
+  // ohash.dump();
+
+  // Godot::print("Add 1 => "+str(r));
+  ohash.set_rect(1,r);
+  // ohash.dump();
+
+  // Godot::print("Add 2 => "+str(r2));
+  ohash.set_rect(2,r2);
+  ohash.dump();
+
+  unordered_set<object_id> matches;
+  {
+    Rect2 region(0,0,10,10);
+    ohash.within_region(region,matches);
+    Godot::print("Have "+str(matches.size())+" matches in "+str(region));
+    for(auto &id : matches)
+      Godot::print("  match "+str(id));
+  }
+
+  matches.clear();
+  {
+    Rect2 region(0,0,0.8,10);
+    ohash.within_region(region,matches);
+    Godot::print("Have "+str(matches.size())+" matches in "+str(region));
+    for(auto &id : matches)
+      Godot::print("  match "+str(id));
+  }
+  
+  Godot::print("Remove object 1");
+  ohash.remove(1);
+  ohash.dump();
+}
+
 // Main entry point to the AI code from godot.
 Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
                             Array new_player_orders,RID player_ship_rid,
@@ -213,6 +268,9 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   delta = new_delta;
   idelta = roundf(new_delta*ticks_per_second);
   ai_ticks += idelta;
+
+  if(p_frame==131)
+    test_SpaceHash(); // FIXME: DELETE THIS
   
   space = new_space;
 

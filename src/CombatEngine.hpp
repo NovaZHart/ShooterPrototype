@@ -116,6 +116,10 @@ namespace godot {
     CE::VisibleContent *volatile new_content;
     CE::VisibleContent *visible_content;
     
+
+
+    void test_SpaceHash(); // FIXME: DELETE THIS
+    
   public:
     
     CombatEngine();
