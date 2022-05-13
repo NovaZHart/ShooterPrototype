@@ -177,8 +177,16 @@ namespace godot {
       return a.z*b.x - a.x*b.z;
     }
 
+    inline float angle2(const Vector3 &a, const Vector3 &b) {
+      return atan2f(cross2(a,b),dot2(a,b));
+    }
+
+    inline double angle2(const DVector3 &a, const DVector3 &b) {
+      return atan2(cross2(a,b),dot2(a,b));
+    }
+    
     inline real_t angle_diff(const Vector3 &a,const Vector3 &b) {
-      return atan2(b.x,-b.z)-atan2(a.x,-a.z);
+      return fmodf(atan2(b.x,-b.z)-atan2(a.x,-a.z),2*PI);
     }
 
     inline real_t distsq(const Vector3 &a,const Vector3 &b) {

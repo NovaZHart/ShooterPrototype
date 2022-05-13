@@ -18,6 +18,7 @@ const action_text: Dictionary = {
 	'ui_intercept': 'Intercept',
 	'ui_toggle_auto_targeting': 'Toggle Auto-Targetting',
 	'ui_deselect_target': 'Deselect Target',
+	'ui_toggle_cargo_web': 'Toggle Cargo Web',
 }
 
 var undo_stack_top_at_last_save = null

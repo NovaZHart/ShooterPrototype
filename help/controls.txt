@@ -4,6 +4,12 @@
 @content
 Press this in the shipyard screen to return to orbit, or in orbit to return to the surrounding star system.
 
+@PAGE controls/ui_toggle_cargo_web
+@title Toggle Cargo Web
+@synopsis The Cargo Web pulls cargo towards your ship for salvage.
+@content
+In space, press this to pull any debris towards your ship for salvage. Once the debris reaches your ship, the Cargo Web places it in your cargo hold where your crew salvages what they can.
+
 @PAGE controls/ui_land
 @title Orbit/Land/Dock
 @synopsis Orbit, land, or dock on the selected space object.

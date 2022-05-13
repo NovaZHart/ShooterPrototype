@@ -20,6 +20,7 @@ namespace godot {
       y(int(floorf(v.y/position_box_size))*position_box_size)
     {}
     bool operator == (const IntVector2 &o) const { return o.x==x and o.y==y; }
+    bool operator != (const IntVector2 &o) const { return o.x!=x or o.y!=y; }
   };
 
   template<>
@@ -27,6 +28,13 @@ namespace godot {
     return str("(x=")+str(t.x)+",y="+str(t.y)+")";
   }
 
+  inline Rect2 rect_for_circle(Vector2 c,real_t r) {
+    return Rect2(c.x-r,c.y-r,2*r,2*r);
+  }
+  inline Rect2 rect_for_circle(Vector3 c,real_t r) {
+    return Rect2(c.z-r,-c.x-r,2*r,2*r);
+  }
+  
   struct IntRect2 {
     IntVector2 position,size;
     inline bool contains(const IntVector2 &i) {
@@ -40,6 +48,7 @@ namespace godot {
     {}
     IntRect2 positive_size();
     bool operator == (const IntRect2 &o) const { return o.position==position and o.size==size; }
+    bool operator != (const IntRect2 &o) const { return o.position!=position or o.size!=size; }
   };
 
   template<>
@@ -59,23 +68,33 @@ namespace std {
 }
   
 namespace godot {
+  struct SpaceHashInfo {
+    Rect2 rect;
+    IntRect2 irect;
+    SpaceHashInfo(Rect2 r,IntRect2 i): rect(r),irect(i) {}
+    SpaceHashInfo(Rect2 r,real_t position_box_size):
+      rect(r), irect(r,position_box_size)
+    {}
+    SpaceHashInfo(): rect(), irect() {}
+    SpaceHashInfo(const SpaceHashInfo &s): rect(s.rect), irect(s.irect) {}
+  };
   template<class T>
   class SpaceHash {
   public:
     typedef T data_type;
     typedef std::unordered_multimap<IntVector2,data_type> int_to_data_map;
     typedef std::unordered_multimap<data_type,IntVector2> data_to_int_map;
-    typedef std::unordered_map<data_type,Rect2> data_to_rect_map;
+    typedef std::unordered_map<data_type,SpaceHashInfo> data_to_info_map;
     typedef typename int_to_data_map::iterator int_to_data_iter;
     typedef typename int_to_data_map::const_iterator int_to_data_const_iter;
     typedef typename data_to_int_map::iterator data_to_int_iter;
     typedef typename data_to_int_map::const_iterator data_to_int_const_iter;
-    typedef typename data_to_rect_map::iterator data_to_rect_iter;
-    typedef typename data_to_rect_map::const_iterator data_to_rect_const_iter;
+    typedef typename data_to_info_map::iterator data_to_info_iter;
+    typedef typename data_to_info_map::const_iterator data_to_info_const_iter;
   private:
     int_to_data_map int2data;
     data_to_int_map data2int;
-    data_to_rect_map data2rect;
+    data_to_info_map data2info;
     const real_t position_box_size;
   public:
     SpaceHash(real_t position_box_size=10.0f);
@@ -91,7 +110,7 @@ namespace godot {
   
   template<class T>
   SpaceHash<T>::SpaceHash(real_t position_box_size):
-    int2data(),data2int(),data2rect(),position_box_size(position_box_size)
+    int2data(),data2int(),data2info(),position_box_size(position_box_size)
   {}
   
   template<class T>
@@ -101,7 +120,7 @@ namespace godot {
   void SpaceHash<T>::reserve(int data,int positions) {
     int2data.reserve(positions);
     data2int.reserve(positions);
-    data2rect.reserve(positions);
+    data2info.reserve(positions);
   }
   
   template<class T>
@@ -114,10 +133,9 @@ namespace godot {
         for(int_to_data_const_iter it=range.first;it!=range.second;it++) {
           const T &what = it->second;
           if(result.find(what)==result.end()) {
-            data_to_rect_const_iter d2r_it = data2rect.find(what);
-            if(d2r_it!=data2rect.end() and d2r_it->second.intersects(region)) {
+            data_to_info_const_iter d2r_it = data2info.find(what);
+            if(d2r_it!=data2info.end() and d2r_it->second.rect.intersects(region))
               result.insert(what);
-            }
           }
         }
       }
@@ -126,6 +144,11 @@ namespace godot {
   template<class T>
   void SpaceHash<T>::set_rect(const data_type &what,const Rect2 &real_rect) {
     IntRect2 new_rect = IntRect2(real_rect,position_box_size).positive_size();
+    data_to_info_iter old=data2info.find(what);
+    if(old!=data2info.end() and new_rect==old->second.irect) {
+      old->second.rect=real_rect;
+      return; // do not need to move things yet
+    }
     Godot::print("SET_RECT what="+str(what)+" at "+str(real_rect)+" = "+str(new_rect));
     // std::pair<data_to_int_iter,data_to_int_iter> dit=data2int.equal_range(what);
     // for(data_to_int_iter it=dit.first;it!=dit.second;it++) {
@@ -156,15 +179,15 @@ namespace godot {
           data2int.emplace(what,here);
         }
       }
-    data2rect.emplace(what,real_rect);
+    data2info.emplace(what,SpaceHashInfo(real_rect,new_rect));
   }
   
   template<class T>
   void SpaceHash<T>::remove(const data_type &what) {
-    data_to_rect_iter there=data2rect.find(what);
-    if(there==data2rect.end())
+    data_to_info_iter there=data2info.find(what);
+    if(there==data2info.end())
       return;
-    data2rect.erase(there);
+    data2info.erase(there);
     
     std::pair<data_to_int_iter,data_to_int_iter> dit=data2int.equal_range(what);
     for(data_to_int_iter it=dit.first;it!=dit.second;it++) {
@@ -189,9 +212,9 @@ namespace godot {
     Godot::print("  data2int = {");
     for(auto &data_int : data2int)
       Godot::print("    "+str(data_int.first)+" -> "+str(data_int.second));
-    Godot::print("  data2rect = {");
-    for(auto &data_rect : data2rect)
-      Godot::print("    "+str(data_rect.first)+" -> "+str(data_rect.second));    
+    Godot::print("  data2info = {");
+    for(auto &data_rect : data2info)
+      Godot::print("    "+str(data_rect.first)+" -> "+str(data_rect.second.rect)+" "+str(data_rect.second.irect));    
     Godot::print("  }");
     Godot::print("}");
   }

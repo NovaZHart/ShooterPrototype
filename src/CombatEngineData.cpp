@@ -162,10 +162,13 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   linear_velocity(),
   rotation(),
   angular_velocity(),
+  forces(),
   age(0),
   scale(1.0f),
   alive(true),
   direct_fire(weapon.direct_fire),
+  possible_hit(true),
+  integrate_forces(false),
   salvage()
 {
   rotation.y = ship.rotation.y;
@@ -207,14 +210,17 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
+  forces(),
   age(0),
   scale(scale),
   alive(true),
   direct_fire(weapon.direct_fire),
+  possible_hit(true),
+  integrate_forces(false),
   salvage()
 {}
 
-Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh):
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh):
   id(id),
   target(target),
   mesh_id(make_mesh_id(salvage->flotsam_mesh_path,last_id,mesh2path,path2mesh)),
@@ -225,9 +231,9 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   blast_radius(0),
   detonation_range(salvage->grab_radius),
   turn_rate(0),
-  mass(1),
+  mass(mass),
   drag(1),
-  thrust(1),
+  thrust(0),
   lifetime(salvage->spawn_duration),
   initial_velocity(velocity.length()),
   max_speed(velocity.length()),
@@ -240,10 +246,13 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   linear_velocity(velocity),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
+  forces(),
   age(0),
   scale(salvage->flotsam_scale),
   alive(true),
   direct_fire(false),
+  possible_hit(false),
+  integrate_forces(true),
   salvage(salvage)
 {}
 
@@ -495,6 +504,8 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   turning_thrust_energy(max(0.0f,get<real_t>(dict,"turning_thrust_energy"))/1000.0f),
 
   rifting_damage_multiplier(clamp(get<real_t>(dict,"rifting_damage_multiplier",0.3f),0.0f,1.0f)),
+  cargo_web_radius(get<real_t>(dict,"cargo_web_radius",2*radius)),
+  cargo_web_strength(get<real_t>(dict,"cargo_web_strength",900)),
   cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
   
   energy(max_energy),
@@ -563,6 +574,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   max_angular_velocity(0),
   turn_diameter_squared(0),
   updated_mass_stats(false),
+  cargo_web_active(false),
   immobile(false),
   inactive(false),
   damage_multiplier(1.0f),

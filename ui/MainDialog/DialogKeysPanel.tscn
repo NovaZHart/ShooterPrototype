@@ -27,13 +27,13 @@ EmptyTexture = ExtResource( 6 )
 
 [node name="All" type="HSplitContainer" parent="."]
 margin_right = 1600.0
-margin_bottom = 900.0
+margin_bottom = 896.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
 [node name="Left" type="GridContainer" parent="All"]
 margin_right = 565.0
-margin_bottom = 900.0
+margin_bottom = 896.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -48,7 +48,7 @@ enable_Keys = false
 [node name="Consoles" type="VSplitContainer" parent="All/Left"]
 margin_top = 27.0
 margin_right = 565.0
-margin_bottom = 900.0
+margin_bottom = 896.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
@@ -56,7 +56,7 @@ size_flags_vertical = 3
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 565.0
-margin_bottom = 430.0
+margin_bottom = 428.0
 initial_bbcode = ""
 follow_urls = false
 allow_input = false
@@ -64,14 +64,14 @@ allow_input = false
 [node name="Help" parent="All/Left/Consoles" instance=ExtResource( 8 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 442.0
+margin_top = 440.0
 margin_right = 565.0
-margin_bottom = 873.0
+margin_bottom = 869.0
 
 [node name="Right" type="GridContainer" parent="All"]
 margin_left = 577.0
 margin_right = 1600.0
-margin_bottom = 900.0
+margin_bottom = 896.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 size_flags_stretch_ratio = 1.8
@@ -113,7 +113,7 @@ text = "Reset to Defaults"
 [node name="Scroll" type="ScrollContainer" parent="All/Right"]
 margin_top = 27.0
 margin_right = 1023.0
-margin_bottom = 900.0
+margin_bottom = 896.0
 grow_horizontal = 2
 grow_vertical = 2
 size_flags_horizontal = 3
@@ -124,7 +124,7 @@ __meta__ = {
 
 [node name="Panel" type="GridContainer" parent="All/Right/Scroll"]
 margin_right = 220.0
-margin_bottom = 873.0
+margin_bottom = 869.0
 grow_horizontal = 2
 size_flags_vertical = 3
 columns = 3

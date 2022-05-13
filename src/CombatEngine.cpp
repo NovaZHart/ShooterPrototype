@@ -13,8 +13,6 @@
 #include "CombatEngineUtils.hpp"
 #include "CombatEngineData.hpp"
 
-#include "SpaceHash.hpp"
-
 using namespace godot;
 using namespace godot::CE;
 using namespace std;
@@ -65,6 +63,9 @@ CombatEngine::CombatEngine():
   last_faction_updated(FACTION_ARRAY_SIZE),
   faction_info(),
 
+  encoded_salvaged_items(),
+  flotsam_locations(position_box_size),
+
   update_request_id(),
   planet_goal_data(),
   goal_weight_data(),
@@ -85,6 +86,7 @@ CombatEngine::CombatEngine():
 
   instance_locations(),
   need_new_meshes(),
+  objects_found(),
   
   new_content(nullptr),
   visible_content(nullptr)
@@ -100,6 +102,7 @@ CombatEngine::CombatEngine():
   update_request_id.reserve(max_ships/10);
   instance_locations.reserve(max_ships*60);
   need_new_meshes.reserve(max_meshes);
+  objects_found.reserve(max_ships*10);
   rid2id.reserve(max_ships*10+max_planets);
   planets.reserve(max_planets);
   ships.reserve(max_ships);
@@ -203,59 +206,6 @@ void CombatEngine::init_factions(Dictionary data) {
   update_affinity_masks();
 }
 
-void CombatEngine::test_SpaceHash() { // FIXME: DELETE THIS
-  const int position_box_size=1;
-  Godot::print("Testing SpaceHash class.");
-  SpaceHash<object_id> o;
-
-  Rect2 r(.7,1.3,2,2);
-  IntRect2 ir(r,position_box_size);
-
-  Godot::print("Rect2 "+str(r)+" -> IntRect2 "+str(ir));
-
-  Rect2 r2(1.1,2.2,.1,-.3);
-  IntRect2 ir2(r,position_box_size);
-
-  Godot::print("Rect2 "+str(r2)+" -> IntRect2 "+str(ir2)+" pos=> "+str(ir2.positive_size()));
-
-  SpaceHash<object_id> ohash(position_box_size);
-
-  ohash.reserve(40,1000);
-  
-  // Godot::print("Empty ohash:");
-  // ohash.dump();
-
-  // Godot::print("Add 1 => "+str(r));
-  ohash.set_rect(1,r);
-  // ohash.dump();
-
-  // Godot::print("Add 2 => "+str(r2));
-  ohash.set_rect(2,r2);
-  ohash.dump();
-
-  unordered_set<object_id> matches;
-  {
-    Rect2 region(0,0,10,10);
-    ohash.within_region(region,matches);
-    Godot::print("Have "+str(matches.size())+" matches in "+str(region));
-    for(auto &id : matches)
-      Godot::print("  match "+str(id));
-  }
-
-  matches.clear();
-  {
-    Rect2 region(0,0,0.8,10);
-    ohash.within_region(region,matches);
-    Godot::print("Have "+str(matches.size())+" matches in "+str(region));
-    for(auto &id : matches)
-      Godot::print("  match "+str(id));
-  }
-  
-  Godot::print("Remove object 1");
-  ohash.remove(1);
-  ohash.dump();
-}
-
 // Main entry point to the AI code from godot.
 Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
                             Array new_player_orders,RID player_ship_rid,
@@ -268,9 +218,6 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   delta = new_delta;
   idelta = roundf(new_delta*ticks_per_second);
   ai_ticks += idelta;
-
-  if(p_frame==131)
-    test_SpaceHash(); // FIXME: DELETE THIS
   
   space = new_space;
 
@@ -1134,6 +1081,17 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     request_stop(ship,Vector3(0,0,0),3.0f);
     thrust = rotation = true;
   }
+
+  if(overrides.orders&PLAYER_ORDER_TOGGLE_CARGO_WEB) {
+    if(!ship.cargo_web_active)
+      activate_cargo_web(ship);
+    else
+      deactivate_cargo_web(ship);
+    ship.cargo_web_active = !ship.cargo_web_active;
+  }
+
+  if(ship.cargo_web_active)
+    use_cargo_web(ship);
   
   if(!rotation and fabsf(overrides.manual_rotation)>1e-5) {
     request_rotation(ship,overrides.manual_rotation);
@@ -1162,6 +1120,40 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
   }
 
   return thrust or rotation;
+}
+
+void CombatEngine::activate_cargo_web(Ship &ship) {
+  Rect2 cargo_web_rect = rect_for_circle(ship.position,ship.cargo_web_radius);
+  Godot::print(ship.name+" is activating its cargo web at "+str(cargo_web_rect));
+  flotsam_locations.dump();
+}
+void CombatEngine::deactivate_cargo_web(Ship &ship) {
+  Godot::print(ship.name+" has turned off its cargo web.");
+}
+
+void CombatEngine::use_cargo_web(Ship &ship) {
+  Rect2 cargo_web_rect = rect_for_circle(ship.position,ship.cargo_web_radius);
+  objects_found.clear();
+  flotsam_locations.within_region(cargo_web_rect,objects_found);
+  real_t thrust=ship.cargo_web_strength;
+  for(auto &id : objects_found) {
+    projectiles_iter proj_ptr = projectiles.find(id);
+    if(proj_ptr!=projectiles.end()) {
+      Projectile &proj = proj_ptr->second;
+      
+      Vector3 dp = ship.position-proj.position;
+
+      if(dp.length()>ship.cargo_web_radius)
+        return;
+      proj.possible_hit = dp.length()<ship.radius;
+      real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
+
+      Vector3 dv=ship.linear_velocity-proj.linear_velocity;
+
+      Vector3 vdelta = dv+dp*dv.length()/dp.length();
+      proj.forces += vdelta.normalized()*thrust;
+    }
+  }
 }
 
 bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
@@ -1713,8 +1705,8 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       } else
         dp += dv*t;
       double angle_to_target = angle_diff(dp.normalized(),proj_heading);
-      if(angle_to_target>PI)
-        angle_to_target-=2*PI;
+      //if(angle_to_target>PI)
+      //  angle_to_target-=2*PI;
       real_t desired_angular_velocity = angle_to_target/delta;
       real_t turn_time = fabsf(angle_to_target/weapon.turn_rate);
       
@@ -2258,19 +2250,30 @@ void CombatEngine::integrate_projectiles() {
     
     if(projectile.guided)
       guide_projectile(projectile);
-    
+    else if(projectile.integrate_forces) {
+      integrate_projectile_forces(projectile,false);
+      if(projectile.salvage)
+        flotsam_locations.set_rect(projectile.id,rect_for_circle(projectile.position,projectile.radius()));
+    }
+
     projectile.position += projectile.linear_velocity*delta;
-    projectile.rotation += projectile.angular_velocity*delta;
+    //projectile.rotation += projectile.angular_velocity*delta;
 
     bool collided=false;
-    if(projectile.detonation_range>1e-5)
-      collided = collide_projectile(projectile);
-    else
-      collided = collide_point_projectile(projectile);
+    if(projectile.possible_hit) {
+      if(projectile.detonation_range>1e-5)
+        collided = collide_projectile(projectile);
+      else
+        collided = collide_point_projectile(projectile);
+      if(projectile.salvage)
+        projectile.possible_hit=false;
+    }
     
-    if(collided or projectile.age > projectile.lifetime)
+    if(collided or projectile.age > projectile.lifetime) {
+      if(projectile.salvage)
+        flotsam_locations.remove(projectile.id);
       it=projectiles.erase(it);
-    else
+    } else
       it++;
     //      deleteme.push_back(it->first);
   }
@@ -2292,12 +2295,17 @@ void CombatEngine::create_flotsam(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   for(auto & salvage_ptr : ship.salvage) {
     Vector3 v = ship.linear_velocity;
-    real_t speed = ship.rand.randf()*5+5;
+    real_t flotsam_mass = 10.0f;
+    real_t speed = min(ship.explosion_impulse/flotsam_mass,30.0f);
+    speed = speed*(1+ship.rand.randf())/2;
     real_t angle = ship.rand.rand_angle();
     Vector3 heading = unit_from_angle(angle);
-    v = heading*speed*0.5 + v*0.5;
+    v += heading*speed;
     object_id new_id=last_id++;
-    projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,last_id,mesh2path,path2mesh));
+    std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,last_id,flotsam_mass,mesh2path,path2mesh));
+    real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
+    flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
+    emplaced.first->second.possible_hit=false;
   }
 }
 
@@ -2329,7 +2337,7 @@ ships_iter CombatEngine::ship_for_rid(int rid_id) {
     // Ship no longer exists or target is not a ship.
     return ships.end();
   return ships.find(p_id->second);
-}  
+}
 
 projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &projectile,real_t radius,int max_results) {
   FAST_PROFILING_FUNCTION;
@@ -2503,6 +2511,7 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   }
   real_t max_angular_velocity = projectile.turn_rate;
   Vector3 dp = target.position - projectile.position;
+  const Vector3 dp0 = dp;
   DVector3 dp_d = DVector3(target.position) - DVector3(projectile.position);
   //Vector3 dp_norm = dp.normalized();
   DVector3 dp_norm_d = DVector3(dp).normalized();
@@ -2532,23 +2541,32 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   //    want_angular_velocity = (angle_to_intercept(projectile,target.position,target.linear_velocity).y-projectile.rotation.y)/delta;
   //  }
 
-  double cross = cross2(DVector3(heading),dp_norm_d);
-  want_angular_velocity = asin_clamp(cross);
-  bool is_facing_target = heading.dot(dp)>0;
+  //double cross = cross2(DVector3(heading),dp_norm_d);
+  want_angular_velocity = angle2(DVector3(heading),dp_norm_d);
+  bool is_facing_target = fabsf(want_angular_velocity)<PI/2;
   bool should_thrust = is_facing_target;
   if(should_thrust) {
     real_t time_to_face = want_angular_velocity/max_angular_velocity;
-    real_t time_to_reach = dp.length()/max_speed;
-    should_thrust = time_to_face*1.5<time_to_reach;
+    //real_t time_to_reach = dp.length()/max_speed;
+    should_thrust = time_to_face*1.5<intercept_time; // time_to_reach;
   }
 
   projectile.angular_velocity.y = clamp(want_angular_velocity,-max_angular_velocity,max_angular_velocity);
-  integrate_projectile_forces(projectile, should_thrust);
+  integrate_projectile_forces(projectile,should_thrust);
 }
 
 void CombatEngine::integrate_projectile_forces(Projectile &projectile,bool thrust) {
   FAST_PROFILING_FUNCTION;
 
+  if(projectile.integrate_forces) {
+    real_t mass=max(projectile.mass,1e-5f);
+    if(projectile.thrust)
+      projectile.forces += projectile.thrust*get_heading(projectile);
+    projectile.linear_velocity += projectile.forces*delta/mass;
+    projectile.linear_velocity -= projectile.linear_velocity*projectile.drag*delta;
+    projectile.forces = Vector3(0,0,0);
+  }
+  
   projectile.rotation.y += projectile.angular_velocity.y*delta;
 
   if(thrust) {

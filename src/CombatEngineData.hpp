@@ -358,13 +358,16 @@ namespace godot {
       //const int collision_mask;
       const faction_index_t faction;
       const int damage_type;
-      Vector3 position, linear_velocity, rotation, angular_velocity;
+      Vector3 position, linear_velocity, rotation, angular_velocity, forces;
       real_t age, scale;
-      bool alive, direct_fire;
+      bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
+      inline real_t radius() const {
+        return std::max(1e-5f,detonation_range);
+      }
       Projectile(object_id id,const Ship &ship,const Weapon &weapon);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
-      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       ~Projectile();
     };
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;
@@ -468,7 +471,7 @@ namespace godot {
       const real_t shield_repair_energy, armor_repair_energy, structure_repair_energy;
       const real_t forward_thrust_heat, reverse_thrust_heat, turning_thrust_heat;
       const real_t forward_thrust_energy, reverse_thrust_energy, turning_thrust_energy;
-      const real_t rifting_damage_multiplier;
+      const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_strength;
       
       real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency, cargo_mass;
       double thrust_loss;
@@ -531,6 +534,7 @@ namespace godot {
       Vector3 drag_force; // Drag term in the integrated force equation
       
       bool updated_mass_stats; // Have we updated the mass and calculated values yet?
+      bool cargo_web_active;
       bool immobile; // Ship cannot move for any reason
       bool inactive; // Do not run ship AI
       real_t damage_multiplier; // Reduce damage while rifting.
@@ -668,21 +672,22 @@ namespace godot {
     
     static const int PLAYER_ORDERS_MAX_GOALS = 3;
 
-    static const int PLAYER_ORDER_FIRE_PRIMARIES = 1;
-    static const int PLAYER_ORDER_STOP_SHIP = 2;
-    static const int PLAYER_ORDER_MAINTAIN_SPEED = 4;
-    static const int PLAYER_ORDER_AUTO_TARGET = 8;
+    static const int PLAYER_ORDER_FIRE_PRIMARIES   = 0x0001;
+    static const int PLAYER_ORDER_STOP_SHIP        = 0x0002;
+    static const int PLAYER_ORDER_MAINTAIN_SPEED   = 0x0004;
+    static const int PLAYER_ORDER_AUTO_TARGET      = 0x0008;
+    static const int PLAYER_ORDER_TOGGLE_CARGO_WEB = 0x0010;
     
-    static const int PLAYER_TARGET_CONDITION = 0xF00;
-    static const int PLAYER_TARGET_NEXT = 0x100;
-    static const int PLAYER_TARGET_NEAREST = 0x200;
+    static const int PLAYER_TARGET_CONDITION       = 0xF000;
+    static const int PLAYER_TARGET_NEXT            = 0x1000;
+    static const int PLAYER_TARGET_NEAREST         = 0x2000;
 
-    static const int PLAYER_TARGET_SELECTION = 0xF0;
-    static const int PLAYER_TARGET_ENEMY = 0x10;
-    static const int PLAYER_TARGET_FRIEND = 0x20;
-    static const int PLAYER_TARGET_PLANET = 0x30;
-    static const int PLAYER_TARGET_OVERRIDE= 0x40;
-    static const int PLAYER_TARGET_NOTHING = 0xF0;
+    static const int PLAYER_TARGET_SELECTION       = 0x0F00;
+    static const int PLAYER_TARGET_ENEMY           = 0x0100;
+    static const int PLAYER_TARGET_FRIEND          = 0x0200;
+    static const int PLAYER_TARGET_PLANET          = 0x0300;
+    static const int PLAYER_TARGET_OVERRIDE        = 0x0400;
+    static const int PLAYER_TARGET_NOTHING         = 0x0F00;
 
     struct GoalsArray {
       int goal[PLAYER_ORDERS_MAX_GOALS];

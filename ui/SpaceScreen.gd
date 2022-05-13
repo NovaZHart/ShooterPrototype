@@ -85,6 +85,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 	var intercept: bool = Input.is_action_just_pressed('ui_intercept')
 	var next_enemy: bool = Input.is_action_just_pressed('ui_next_enemy')
 	var next_planet: bool = Input.is_action_just_pressed('ui_next_planet')
+	var toggle_cargo_web: bool = Input.is_action_just_pressed('ui_toggle_cargo_web')
 
 	#if jump:
 		#game_state.call_deferred('change_scene',preload('res://places/Hyperspace.tscn'))
@@ -114,6 +115,9 @@ func make_player_orders(_delta: float) -> Dictionary:
 		auto_target_flag = not auto_target_flag
 		if auto_target_flag:
 			orders |= combat_engine.PLAYER_ORDER_AUTO_TARGET
+
+	if toggle_cargo_web:
+		orders |= combat_engine.PLAYER_ORDER_TOGGLE_CARGO_WEB
 	
 	if thrust:              goal=0
 	elif intercept:         goal=combat_engine.PLAYER_GOAL_INTERCEPT

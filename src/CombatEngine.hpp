@@ -31,6 +31,7 @@
 
 #include "CombatEngineData.hpp"
 #include "VisualEffects.hpp"
+#include "SpaceHash.hpp"
 
 namespace godot {
       
@@ -41,6 +42,7 @@ namespace godot {
     // Game mechanics constants and settings:
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
+    static constexpr float position_box_size = 10.0f;
     static const int max_ships_hit_per_projectile_blast = 100;
     static constexpr float search_cylinder_radius = 30.0f;
     static constexpr real_t crosshairs_width = 1;
@@ -85,6 +87,8 @@ namespace godot {
     int last_faction_updated;
     Dictionary faction_info;
     Array encoded_salvaged_items;
+
+    SpaceHash<CE::object_id> flotsam_locations;
     
     // For temporary use in some functions:
     std::unordered_set<CE::object_id> update_request_id;
@@ -110,16 +114,11 @@ namespace godot {
 
     // For temporary use in some functions:
     CE::instance_locations_t instance_locations;
-    std::unordered_set<CE::object_id> need_new_meshes;
+    std::unordered_set<CE::object_id> need_new_meshes, objects_found;
     
     // Sending data from physics to visual thread:
     CE::VisibleContent *volatile new_content;
     CE::VisibleContent *visible_content;
-    
-
-
-    void test_SpaceHash(); // FIXME: DELETE THIS
-    
   public:
     
     CombatEngine();
@@ -191,6 +190,10 @@ namespace godot {
     void explode_ship(CE::Ship &ship);
     void ai_step_ship(CE::Ship &ship);
     bool init_ship(CE::Ship &ship);
+
+    void activate_cargo_web(CE::Ship &ship);
+    void deactivate_cargo_web(CE::Ship &ship);
+    void use_cargo_web(CE::Ship &ship);
     bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
     bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
     void update_near_objects(CE::Ship &ship);
