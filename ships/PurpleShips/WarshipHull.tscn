@@ -1,8 +1,7 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ships/PurpleShips/PurpleWarship.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=2]
-[ext_resource path="res://ships/Salvage.gd" type="Script" id=3]
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=4]
 [ext_resource path="res://ships/Salvage.tscn" type="PackedScene" id=5]
 
@@ -84,6 +83,7 @@ mount_type_display = "equipment"
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.578543, 0, 0 )
 script = ExtResource( 2 )
 mount_size_x = 2
+mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
@@ -103,8 +103,7 @@ mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"
 
-[node name="Node" type="Node" parent="." instance=ExtResource( 5 )]
-script = ExtResource( 3 )
+[node name="Node" parent="." instance=ExtResource( 5 )]
 flotsam_mesh_path = "weapons/meshes/MassDriver.mesh"
 flotsam_scale = 0.3
 product_name = "diamonds"

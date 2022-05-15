@@ -1,9 +1,8 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=7 format=2]
 
 [ext_resource path="res://ships/PurpleShips/PurpleHeavyWarship.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=2]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
-[ext_resource path="res://ships/Salvage.gd" type="Script" id=4]
 [ext_resource path="res://ships/Salvage.tscn" type="PackedScene" id=5]
 
 [sub_resource type="CylinderShape" id=1]
@@ -54,6 +53,20 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.58377, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="PortEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.784108, 0, -1.15182 )
+script = ExtResource( 3 )
+mount_size_y = 2
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="StarboardEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.784, 0, 1.152 )
+script = ExtResource( 3 )
+mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
@@ -143,8 +156,7 @@ mount_size_y = 8
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
-[node name="Node" type="Node" parent="." instance=ExtResource( 5 )]
-script = ExtResource( 4 )
+[node name="Node" parent="." instance=ExtResource( 5 )]
 flotsam_mesh_path = "weapons/meshes/MassDriver.mesh"
 flotsam_scale = 0.3
 product_name = "diamonds"
