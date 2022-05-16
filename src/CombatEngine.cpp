@@ -1144,14 +1144,23 @@ void CombatEngine::use_cargo_web(Ship &ship) {
       Vector3 dp = ship.position-proj.position;
 
       if(dp.length()>ship.cargo_web_radius)
-        return;
+        continue;
       proj.possible_hit = dp.length()<ship.radius;
       real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
 
       Vector3 dv=ship.linear_velocity-proj.linear_velocity;
 
       Vector3 vdelta = dv+dp*dv.length()/dp.length();
-      proj.forces += vdelta.normalized()*thrust;
+      Vector3 force = vdelta.normalized()*thrust;
+      proj.forces += force;
+
+      if(ship.rand.randf()<.5) {
+        Godot::print("Make cargo web puff");
+        Vector3 ship_position(ship.position.x,ship.visual_height,ship.position.z);
+        Vector3 random_perturbation((ship.rand.randf()-1)/2,ship.rand.randf()/10,(ship.rand.randf()-1)/2);
+        visual_effects->add_cargo_web_puff(ship.id,ship_position,Vector3(-dp.x,-1,-dp.z)+random_perturbation,-0.7f*dv,1,0.4,ship.cargo_puff_texture);
+      } else
+        Godot::print("Not making cargo web puff");
     }
   }
 }

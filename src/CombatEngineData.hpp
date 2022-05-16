@@ -2,6 +2,7 @@
 #define COMBATENGINEDATA_H
 
 #include "DVector3.hpp"
+#include "Texture.hpp"
 
 // All constants MUST match CombatEngine.gd
 
@@ -472,6 +473,7 @@ namespace godot {
       const real_t forward_thrust_heat, reverse_thrust_heat, turning_thrust_heat;
       const real_t forward_thrust_energy, reverse_thrust_energy, turning_thrust_energy;
       const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_strength;
+      const Ref<Texture> cargo_puff_texture;
       
       real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency, cargo_mass;
       double thrust_loss;

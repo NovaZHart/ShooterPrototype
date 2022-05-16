@@ -504,9 +504,10 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
   turning_thrust_energy(max(0.0f,get<real_t>(dict,"turning_thrust_energy"))/1000.0f),
 
   rifting_damage_multiplier(clamp(get<real_t>(dict,"rifting_damage_multiplier",0.3f),0.0f,1.0f)),
-  cargo_web_radius(get<real_t>(dict,"cargo_web_radius",2*radius)),
+  cargo_web_radius(radius+get<real_t>(dict,"cargo_web_add_radius",0)),
   cargo_web_strength(get<real_t>(dict,"cargo_web_strength",900)),
   cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
+  cargo_puff_texture(get<Ref<Texture>>(dict,"cargo_puff_texture")),
   
   energy(max_energy),
   heat(0.0f),

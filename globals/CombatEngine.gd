@@ -8,6 +8,8 @@ var HyperspacingPolygonShader = preload('res://places/HyperspacingPolygon.shader
 var native_combat_engine
 var native_visual_effects
 var hyperspacing_texture = preload('res://textures/blue-squiggles.jpeg')
+var cargo_puff_texture = preload('res://textures/magenta-beige-puff.png')
+var fade_out_texture = preload('res://textures/FadeOutTexture.shader')
 
 # All constants MUST match src/CombatEngineData.hpp
 
@@ -84,7 +86,7 @@ func _enter_tree():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
-	native_visual_effects.set_shaders(RiftShader,ZapBallShader,HyperspacingPolygonShader,hyperspacing_texture)
+	native_visual_effects.set_shaders(RiftShader,ZapBallShader,HyperspacingPolygonShader,hyperspacing_texture,fade_out_texture,cargo_puff_texture)
 
 func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	# Call in _ready to create the CombatState for a System or Hyperspace

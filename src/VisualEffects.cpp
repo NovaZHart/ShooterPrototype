@@ -33,11 +33,14 @@ void VisualEffects::_register_methods() {
 }
 
 void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
-                                Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture) {
+                                Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture,
+                                Ref<Shader> fade_out_texture, Ref<Texture> cargo_puff_texture) {
   this->spatial_rift_shader = spatial_rift_shader;
   this->zap_ball_shader = zap_ball_shader;
   this->hyperspacing_polygon_shader = hyperspacing_polygon_shader;
   this->hyperspacing_texture = hyperspacing_texture;
+  this->fade_out_texture = fade_out_texture;
+  this->cargo_puff_texture = cargo_puff_texture;
 }
 
 void VisualEffects::clear_all_effects() {
@@ -92,27 +95,44 @@ void VisualEffects::step_effects(real_t delta) {
   free_unused_effects();
 }
 
+VisibleObject * VisualEffects::get_object_or_make_stationary(VisibleContent &vc,object_id target,MeshEffect &effect) {
+  ships_and_planets_iter object_iter = vc.ships_and_planets.find(effect.target1);
+  if(object_iter!=vc.ships_and_planets.end())
+    return &object_iter->second;
+
+  Godot::print("Object "+str(effect.target1)+" no longer exists.");
+  effect.behavior=MeshEffect::STATIONARY;
+  effect.shader_material->set_shader_param("death_time",float(now-effect.start_time+effect.time_shift));
+  return nullptr;
+}
+
 void VisualEffects::step_effect(VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server) {
   switch(effect.behavior) {
   case(MeshEffect::CENTER_ON_TARGET1): {
-    ships_and_planets_iter object_iter = vc.ships_and_planets.find(effect.target1);
-    if(object_iter!=vc.ships_and_planets.end()) {
-      VisibleObject &object=object_iter->second;
-      if(object.x!=effect.transform.origin.x or object.z!=effect.transform.origin.z) {
-        effect.transform.origin.x = object.x;
-        effect.transform.origin.z = object.z;
-        visual_server->instance_set_transform(effect.instance->rid,effect.transform);
-      }
-    } else {
-      Godot::print("Object "+str(effect.target1)+" no longer exists.");
-      effect.behavior=MeshEffect::STATIONARY;
-      effect.shader_material->set_shader_param("death_time",float(now-effect.start_time+effect.time_shift));
+    VisibleObject *object = get_object_or_make_stationary(vc,effect.target1,effect);
+    if(object and (object->x!=effect.transform.origin.x or object->z!=effect.transform.origin.z)) {
+      effect.transform.origin.x = object->x;
+      effect.transform.origin.z = object->z;
+      visual_server->instance_set_transform(effect.instance->rid,effect.transform);
     }
   } break;
   case(MeshEffect::CONSTANT_VELOCITY): {
     if(effect.velocity.length_squared()>1e-10 and effect.instance->rid.get_id()) {
       effect.transform.origin += delta*effect.velocity;
       visual_server->instance_set_transform(effect.instance->rid,effect.transform);
+    }
+  } break;
+  case(MeshEffect::VELOCITY_RELATIVE_TO_TARGET): {
+    VisibleObject *object = get_object_or_make_stationary(vc,effect.target1,effect);
+    if(object) {
+      effect.relative_position += delta*effect.velocity;
+      real_t x=object->x+effect.relative_position.x;
+      real_t z=object->z+effect.relative_position.z;
+      if(effect.transform.origin.x!=x or effect.transform.origin.z!=z) {
+        effect.transform.origin.x = x;
+        effect.transform.origin.z = z;
+        visual_server->instance_set_transform(effect.instance->rid,effect.transform);
+      }
     }
   } break;
   };
@@ -278,6 +298,52 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   return effect;
 }
 
+void VisualEffects::add_cargo_web_puff(object_id ship_id,Vector3 ship_position,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
+  if(not fade_out_texture.is_valid() or ship_id<0 or not cargo_puff.is_valid())
+    return;
+
+  PoolVector3Array pool_vertices;
+  PoolVector2Array pool_uv;
+  pool_vertices.resize(6);
+  pool_uv.resize(6);
+  PoolVector3Array::Write write_vertices = pool_vertices.write();
+  PoolVector2Array::Write write_uv = pool_uv.write();
+  Vector3 *vertices = write_vertices.ptr();
+  Vector2 *uv = write_uv.ptr();
+  
+  vertices[0] = Vector3(-length/2,0,length/2);
+  uv[0] = Vector2(0,1);
+  vertices[1] = Vector3(-length/2,0,-length/2);
+  uv[1] = Vector2(0,0);
+  vertices[2] = Vector3(length/2,0,-length/2);
+  uv[2] = Vector2(1,0);
+
+  vertices[3] = Vector3(length/2,0,-length/2);
+  uv[3] = Vector2(1,0);
+  vertices[4] = Vector3(length/2,0,length/2);
+  uv[4] = Vector2(1,1);
+  vertices[5] = Vector3(-length/2,0,length/2);
+  uv[5] = Vector2(0,1);
+  
+  Array data;
+  data.resize(ArrayMesh::ARRAY_MAX);
+  data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
+  data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
+  MeshEffect &effect = add_MeshEffect(data,duration,ship_position+relative_position,fade_out_texture);
+
+  if(not effect.dead) {
+    effect.behavior = MeshEffect::VELOCITY_RELATIVE_TO_TARGET;
+    effect.velocity = relative_velocity;
+    effect.target1 = ship_id;
+    effect.relative_position = relative_position;
+    effect.shader_material->set_shader_param("image_texture",cargo_puff);
+    effect.shader_material->set_shader_param("time",0.0f);
+    effect.shader_material->set_shader_param("death_time",duration);
+    effect.shader_material->set_shader_param("duration",duration);
+    effect.ready = true;
+  }
+}
+
 void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, int ship_id) {
   if(not hyperspacing_polygon_shader.is_valid() or not duration>0.0f or not hyperspacing_texture.is_valid())
     return;
@@ -329,9 +395,9 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
     effect.shader_material->set_shader_param("texture_scale",1.0);
     effect.shader_material->set_shader_param("full_alpha",1.0);
     effect.shader_material->set_shader_param("texture_albedo",hyperspacing_texture);
-    effect.ready=true;
     effect.target1=ship_id;
     effect.behavior=MeshEffect::CENTER_ON_TARGET1;
+    effect.ready=true;
   }
 }
 

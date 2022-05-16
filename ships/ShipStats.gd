@@ -51,6 +51,10 @@ export var base_power: float = -1
 
 export var ai_type: int = 0 setget set_ai_type
 
+export var cargo_puff: Texture = load('res://textures/magenta-beige-puff.png')
+export var cargo_web_add_radius: float = 3
+export var cargo_web_strength: float = 900
+
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.0, 0.2, 0.1, 0.1, 0.0,-0.2, 0.1, 0.2])
@@ -309,6 +313,8 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	stats['max_structure']=base_structure
 	stats['max_fuel']=base_fuel
 	stats['max_cargo']=base_max_cargo
+	stats['cargo_web_add_radius']=cargo_web_add_radius
+	stats['cargo_web_strength']=cargo_web_strength
 	if heal_shields>=0:
 		stats['heal_shields']=heal_shields
 	else:
@@ -388,6 +394,7 @@ func update_stats():
 			wep['node_path'] = child.get_path()
 			assert(not wep['node_path'].is_empty())
 	combined_stats['aabb']=get_combined_aabb()
+	combined_stats['cargo_puff_texture']=cargo_puff
 	skipped_runtime_stats=false
 	assert(combined_stats['turning_thrust']>0)
 

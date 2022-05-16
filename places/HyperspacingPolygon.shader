@@ -1,4 +1,6 @@
 shader_type spatial;
+render_mode depth_test_disable;
+render_mode shadows_disabled;
 render_mode unshaded;
 
 uniform sampler2D texture_albedo;
