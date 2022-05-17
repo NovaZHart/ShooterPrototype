@@ -7,10 +7,10 @@
 mesh = ExtResource( 1 )
 material/0 = null
 script = ExtResource( 2 )
-add_mass = 16
+add_mass = 16.0
 add_structure = 400.0
 add_heal_structure = 20.0
 item_size_x = 2
 item_size_y = 2
+mount_type_all = "internal"
 help_page = "equipment/structural-reinforcement"
-mount_type_any = "internal equipment"

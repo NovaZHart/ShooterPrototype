@@ -98,7 +98,7 @@ func select_salvage():
 	combined_stats["salvage"] = select_salvage_from(combined_stats["salvage"])
 
 func select_salvage_from(possibilities: Array) -> Array:
-	return Array(possibilities)
+	return Array(possibilities) # FIXME: REMOVE
 	var selected: Array = []
 	var seen: Dictionary = {}
 	for sal in possibilities:

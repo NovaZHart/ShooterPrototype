@@ -34,7 +34,7 @@ func initialize_mount_flags():
 	assert(mount_flags)
 
 func is_multimount():
-	return mount_flags == (game_state.MOUNT_FLAG_EQUIPMENT|game_state.MOUNT_FLAG_INTERNAL)
+	return mount_flags & game_state.MOUNT_FLAG_EQUIPMENT
 
 func is_mount_point(): # Never called; must only exist
 	pass

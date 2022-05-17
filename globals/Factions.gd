@@ -316,19 +316,21 @@ class FactionState extends Reference:
 		var rand_val: float = randf()
 		
 		if delta==null:
-			rand_val /= rand_max
+			rand_val *= rand_max
 		elif delta>0:
 			var rand_scale = clamp(rand_max*delta,0,1.0/rand_max) # scale by time passed
 			if rand_scale>0:
 				rand_val /= rand_scale
 		
 		# Find the fleet to spawn, if any
-		var fleet_index: int = fleet_weights.bsearch(rand_val)
+# warning-ignore:narrowing_conversion
+		var fleet_index: int = max(0,fleet_weights.bsearch(rand_val)-1)
 		
 		# Return the fleet to spawn
 		if fleet_index<len(fleets):
 			return fleets[fleet_index] # Index within array means a fleet was chosen
 		elif delta==null:
+			push_warning('Returning end of fleets list. This should not happen.')
 			return fleets.back() # null delta means we spawn a fleet regardless
 		
 		# No fleet was chosen. Try again next timestep.

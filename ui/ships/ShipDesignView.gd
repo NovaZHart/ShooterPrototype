@@ -279,8 +279,13 @@ func multimount_point(width: int,height: int,loc: Vector3,mount_flags: int,box_n
 	var box: Spatial = Spatial.new()
 	box.set_script(InventoryArray)
 	box.create(width,height,mount_flags)
-	# Note: equipment box is not displaced, unlike regular mounts.
-	box.translation = Vector3(loc.x,0,loc.z)
+	if mount_flags & game_state.MOUNT_FLAG_EXTERNAL:
+		box.place_near(loc,ship_world().direct_space_state, \
+			MOUNT_POINT_LAYER_MASK | SHIP_LAYER_MASK)
+		box.translation.y = loc.y
+	else:
+		# Note: internal equipment box is not displaced, unlike regular mounts.
+		box.translation = Vector3(loc.x,0,loc.z)
 	box.name=box_name
 	var _discard=connect('update_coloring',box,'update_coloring')
 	$Viewport/MountPoints.add_child(box)
@@ -317,7 +322,7 @@ func release_dragged_item(item: MeshInstance, scene: PackedScene) -> bool:
 		push_warning('Tried to drag into mount "'+mount_name+'" which does not exist.')
 		return false
 	if not utils.can_mount(mount.mount_flags,item):
-		push_error('Mount type mismatch: item="'+utils.mountable_string_for(item)+ \
+		print('Mount type mismatch: item="'+utils.mountable_string_for(item)+ \
 			'" mount="'+utils.mount_string_for(mount)+'"')
 		return false
 	var x = -1

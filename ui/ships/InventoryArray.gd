@@ -10,12 +10,17 @@ const both_cull_layer_mask: int = fail_cull_layer_mask|okay_cull_layer_mask
 const my_collision_mask: int = 32
 const grid_cell_size: float = 0.135*2
 
+var InventorySlot = preload('res://ui/ships/InventorySlot.gd')
+var cached_shape = null
 var first: Vector3
 var slots: Array = []
 var used: Array = []
 var scenes: Array = []
 var all_slots: Dictionary = {}
 var mount_flags: int = 0
+
+const x_axis: Vector3 = Vector3(1,0,0)
+const y_axis: Vector3 = Vector3(0,1,0)
 
 func is_InventoryArray(): pass # used for type checking; never called
 
@@ -75,6 +80,67 @@ func content_for_design(mount_name: String): # -> MultiMount
 			multimount.add_child(mounted)
 			paths_processed[path]=node
 	return multimount
+
+func make_shape() -> Shape:
+	if cached_shape==null:
+		var shape = BoxShape.new()
+		shape.extents = Vector3(ny*InventorySlot.box_scale,10,nx*InventorySlot.box_scale)
+		cached_shape = shape
+	return cached_shape
+
+func place_near(mount: Vector3,space: PhysicsDirectSpaceState,_mask: int):
+	var badness: float = INF
+	var loc: Vector3 = mount
+	var angles: Array = []
+	for i in range(0,10,1):
+		angles.append(i/10.0)
+		if i>0:
+			angles.append(-i/10.0)
+	for i in range(10,100,10):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	for i in range(100,200,20):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	for i in range(200,350,30):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	for i in range(350,750,50):
+		angles.append(i/10.0)
+		angles.append(-i/10.0)
+	var radii: Array = [ .1, .2, .3, .5, .8, 1.3, 2.1, 3.4, 5.5, 8.9 ]
+	var shape: Shape = make_shape()
+	var query: PhysicsShapeQueryParameters = PhysicsShapeQueryParameters.new()
+
+	query.margin=0.25
+	query.collide_with_areas=true
+	#query.collision_mask = mask
+	query.shape_rid=shape.get_rid()
+	var exclude: Array = []
+	for child in get_children():
+		if child.has_method('is_InventorySlot'):
+			exclude.append(child.get_rid());
+		else:
+			push_warning('InventoryArray child is not inventory slot: '+child.get_class())
+	query.exclude = exclude
+	var unit: Vector3 = Vector3(mount.x,0,mount.z).normalized()
+	if unit.length()<0.99: # mount was precisely at the origin
+		unit=x_axis
+	for angle in angles:
+		if mount.z<0:
+			angle=-angle
+		angle *= PI/180
+		for radius in radii:
+			var trans: Vector3 = mount + unit.rotated(y_axis,angle)*radius
+			query.transform.origin=trans
+			var result: Dictionary = space.get_rest_info(query)
+			if result.empty():
+				trans[1]=0
+				var bad: float = Vector3(trans.x,0,trans.z).length()*(1+pow(1-cos(angle),.8))
+				if bad<badness:
+					badness=bad
+					loc=trans
+	translation=Vector3(loc.x,0,loc.z)
 
 func all_children_xy() -> Array:
 	var results: Dictionary = {}
@@ -242,7 +308,7 @@ func _ready():
 	for y in range(ny):
 		for x in range(nx):
 			var slot = Area.new()
-			slot.set_script(preload('res://ui/ships/InventorySlot.gd'))
+			slot.set_script(InventorySlot)
 			slot.name = 'slot_x'+str(x)+'_y'+str(y)
 			slot.create_only_box(1,1,mount_flags)
 			slot.mount_name = name

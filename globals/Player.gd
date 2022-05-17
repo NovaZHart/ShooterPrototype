@@ -126,6 +126,7 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 	var allowed_items: int = count
 	if unit_mass>0:
 		allowed_items = int(floor(available_mass/unit_mass))
+# warning-ignore:narrowing_conversion
 	var added_items: int = min(count,allowed_items)
 	
 	if added_items:
