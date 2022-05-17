@@ -1,9 +1,6 @@
 #ifndef COMBATENGINEDATA_H
 #define COMBATENGINEDATA_H
 
-#include "DVector3.hpp"
-#include "Texture.hpp"
-
 // All constants MUST match CombatEngine.gd
 
 #define FOREVER 189000000000 /* more ticks than a game should reach (about 100 years) */
@@ -51,6 +48,7 @@
 #include <utility>
 #include <memory>
 
+#include <Texture.hpp>
 #include <Godot.hpp>
 #include <Color.hpp>
 #include <Vector2.hpp>
@@ -72,6 +70,9 @@
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
 #include <OS.hpp>
+
+#include "DVector3.hpp"
+#include "ObjectIdGenerator.hpp"
 
 namespace godot {
   namespace CE {
@@ -197,8 +198,6 @@ namespace godot {
       }
     };
 
-    typedef int object_id;
-      
     struct hash_String {
       inline int operator() (const String &s) const {
         return s.hash();
@@ -368,7 +367,7 @@ namespace godot {
       }
       Projectile(object_id id,const Ship &ship,const Weapon &weapon);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
-      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,ObjectIdGenerator &idgen,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       ~Projectile();
     };
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;
@@ -403,7 +402,7 @@ namespace godot {
         return ammo and not firing_countdown.ticking();
       }
 
-      Weapon(Dictionary dict,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      Weapon(Dictionary dict,ObjectIdGenerator &idgen,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       ~Weapon();
       Dictionary make_status_dict() const;
     };
@@ -562,7 +561,7 @@ namespace godot {
       void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
 
       // Generate a Ship from GDScript objects:
-      Ship(Dictionary dict, object_id id, object_id &last_id,
+      Ship(Dictionary dict, object_id id, ObjectIdGenerator &idgen,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh);
       
       // Ship(const Ship &other); // There are strange crashes without this.
@@ -576,7 +575,7 @@ namespace godot {
       std::vector<std::shared_ptr<const Salvage>> get_salvage(Array a);
 
       // Generate the Weapon vector from GDScript datatypes:
-      std::vector<Weapon> get_weapons(Array a, object_id &last_id, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
+      std::vector<Weapon> get_weapons(Array a, ObjectIdGenerator &idgen, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
 
       // All damage, resist, and passthru logic:
       real_t take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction);

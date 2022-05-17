@@ -58,20 +58,20 @@ namespace godot {
     Ref<CylinderShape> search_cylinder;
     PhysicsServer *physics_server;
     PhysicsDirectSpaceState *space;
-    std::unordered_map<int32_t,CE::object_id> rid2id;
-    std::unordered_map<CE::object_id,CE::Planet> planets;
-    std::unordered_map<CE::object_id,CE::Ship> ships;
-    std::unordered_map<CE::object_id,CE::Projectile> projectiles;
-    std::unordered_map<CE::object_id,CE::PlayerOverrides> player_orders;
-    std::unordered_map<String,CE::object_id,CE::hash_String> path2mesh;
-    std::unordered_map<CE::object_id,String> mesh2path;
-    std::unordered_multimap<CE::object_id,std::shared_ptr<const CE::Salvage>> salvaged_items;
+    std::unordered_map<int32_t,object_id> rid2id;
+    std::unordered_map<object_id,CE::Planet> planets;
+    std::unordered_map<object_id,CE::Ship> ships;
+    std::unordered_map<object_id,CE::Projectile> projectiles;
+    std::unordered_map<object_id,CE::PlayerOverrides> player_orders;
+    std::unordered_map<String,object_id,CE::hash_String> path2mesh;
+    std::unordered_map<object_id,String> mesh2path;
+    std::unordered_multimap<object_id,std::shared_ptr<const CE::Salvage>> salvaged_items;
     Dictionary weapon_rotations;
-    std::unordered_set<CE::object_id> dead_ships;
-    CE::object_id last_id;
+    std::unordered_set<object_id> dead_ships;
+    ObjectIdGenerator idgen;
     real_t delta;
     CE::ticks_t idelta;
-    CE::object_id player_ship_id;
+    object_id player_ship_id;
     int p_frame;
     int ai_ticks; // ticks since last reset
 
@@ -83,15 +83,15 @@ namespace godot {
     bool need_to_update_affinity_masks;
     CE::faction_index_t player_faction_index;
     CE::faction_mask_t player_faction_mask;
-    CE::object_id last_planet_updated;
+    object_id last_planet_updated;
     int last_faction_updated;
     Dictionary faction_info;
     Array encoded_salvaged_items;
 
-    SpaceHash<CE::object_id> flotsam_locations;
+    SpaceHash<object_id> flotsam_locations;
     
     // For temporary use in some functions:
-    std::unordered_set<CE::object_id> update_request_id;
+    std::unordered_set<object_id> update_request_id;
     mutable std::vector<CE::PlanetGoalData> planet_goal_data;
     mutable std::vector<float> goal_weight_data;
     mutable CE::CheapRand32 rand;
@@ -102,9 +102,9 @@ namespace godot {
 
     ResourceLoader *loader;
     VisualServer *visual_server;
-    std::unordered_map<CE::object_id,CE::MeshInfo> v_meshes;
-    typedef std::unordered_map<CE::object_id,CE::MeshInfo>::iterator v_meshes_iter;
-    std::unordered_map<String,CE::object_id,CE::hash_String> v_path2id;
+    std::unordered_map<object_id,CE::MeshInfo> v_meshes;
+    typedef std::unordered_map<object_id,CE::MeshInfo>::iterator v_meshes_iter;
+    std::unordered_map<String,object_id,CE::hash_String> v_path2id;
     std::unordered_set<String,CE::hash_String> v_invalid_paths;
     real_t v_delta;
     Vector3 v_camera_location, v_camera_size;
@@ -114,7 +114,7 @@ namespace godot {
 
     // For temporary use in some functions:
     CE::instance_locations_t instance_locations;
-    std::unordered_set<CE::object_id> need_new_meshes, objects_found;
+    std::unordered_set<object_id> need_new_meshes, objects_found;
     
     // Sending data from physics to visual thread:
     CE::VisibleContent *volatile new_content;
@@ -239,7 +239,7 @@ namespace godot {
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
     void integrate_projectiles();
-    void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,CE::object_id target);
+    void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
     void create_flotsam(CE::Ship &ship);
     void create_projectile(CE::Ship &ship,CE::Weapon &weapon);
     CE::ships_iter ship_for_rid(const RID &rid);
@@ -269,7 +269,7 @@ namespace godot {
                           PoolRealArray &floats,CE::MeshInfo &mesh_info,real_t projectile_scale);
     void catalog_projectiles(const Vector3 &location,const Vector3 &size,
                              CE::instance_locations_t &instance_locations,
-                             std::unordered_set<CE::object_id> &need_new_meshes);
+                             std::unordered_set<object_id> &need_new_meshes);
     Vector2 place_center(const Vector2 &where,
                          const Vector2 &map_center,float map_radius,
                          const Vector2 &minimap_center,float minimap_radius);

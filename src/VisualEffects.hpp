@@ -39,7 +39,7 @@ namespace godot {
     VisualRIDPtr instance;
     volatile bool ready, dead;
     mesh_effect_behavior behavior;
-    CE::object_id target1, target2;
+    object_id target1, target2;
     MeshEffect(int dummy=0):
       mesh(), shader_material(), lifetime_aabb(), start_time(-9e9),
       duration(0.0f), time_shift(0.0f), velocity(0,0,0), relative_position(), 
@@ -58,8 +58,8 @@ namespace godot {
     real_t delta;
     double now;
     CE::CheapRand32 rand;
-    CE::object_id last_id;
-    std::unordered_map<CE::object_id,MeshEffect> mesh_effects;
+    object_id last_id;
+    std::unordered_map<object_id,MeshEffect> mesh_effects;
     std::vector<Vector3> vertex_holder;
     std::vector<Vector2> uv2_holder, uv_holder;
     Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader, fade_out_texture;
@@ -67,9 +67,9 @@ namespace godot {
 
     volatile CE::VisibleContent *visible_content;
     
-    typedef std::unordered_map<CE::object_id,MeshEffect>::iterator mesh_effects_iter;
-    typedef std::unordered_map<CE::object_id,MeshEffect>::const_iterator mesh_effects_citer;
-    typedef std::unordered_map<CE::object_id,MeshEffect>::value_type mesh_effects_value;
+    typedef std::unordered_map<object_id,MeshEffect>::iterator mesh_effects_iter;
+    typedef std::unordered_map<object_id,MeshEffect>::const_iterator mesh_effects_citer;
+    typedef std::unordered_map<object_id,MeshEffect>::value_type mesh_effects_value;
   public:
 
     VisualEffects();
@@ -89,12 +89,12 @@ namespace godot {
     // Interface for CombatEngine:
     void add_zap_pattern(real_t lifetime, Vector3 position, real_t radius, bool reverse);
     void add_zap_ball(real_t lifetime, Vector3 position, real_t radius, bool reverse);
-    void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, CE::object_id id);
+    void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id id);
     void set_visible_content(CE::VisibleContent *visible);
-    void add_cargo_web_puff(CE::object_id ship_id,Vector3 ship_position,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
+    void add_cargo_web_puff(object_id ship_id,Vector3 ship_position,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
   
   private:
-    CE::VisibleObject *get_object_or_make_stationary(CE::VisibleContent &vc,CE::object_id target,MeshEffect &effect);
+    CE::VisibleObject *get_object_or_make_stationary(CE::VisibleContent &vc,object_id target,MeshEffect &effect);
     void step_effect(CE::VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server);
     void free_unused_effects();
     void extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,

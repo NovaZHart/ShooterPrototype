@@ -14,10 +14,10 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
-object_id make_mesh_id(const String &path,object_id &last_id,mesh2path_t &mesh2path,path2mesh_t &path2mesh) {
+object_id make_mesh_id(const String &path,ObjectIdGenerator &idgen,mesh2path_t &mesh2path,path2mesh_t &path2mesh) {
   path2mesh_t::iterator it = path2mesh.find(path);
   if(it == path2mesh.end()) {
-    object_id id = last_id++;
+    object_id id = idgen.next();
     path2mesh.emplace(path,id);
     mesh2path.emplace(id,path);
     return id;
@@ -220,10 +220,10 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   salvage()
 {}
 
-Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,object_id last_id,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh):
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,ObjectIdGenerator &idgen,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh):
   id(id),
   target(target),
-  mesh_id(make_mesh_id(salvage->flotsam_mesh_path,last_id,mesh2path,path2mesh)),
+  mesh_id(make_mesh_id(salvage->flotsam_mesh_path,idgen,mesh2path,path2mesh)),
   guided(false),
   guidance_uses_velocity(false),
   damage(0),
@@ -258,7 +258,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
 
 Projectile::~Projectile() {}
 
-Weapon::Weapon(Dictionary dict,object_id &last_id,
+Weapon::Weapon(Dictionary dict,ObjectIdGenerator &idgen,
                mesh2path_t &mesh2path,
                path2mesh_t &path2mesh):
   damage(get<real_t>(dict,"damage")),
@@ -289,7 +289,7 @@ Weapon::Weapon(Dictionary dict,object_id &last_id,
   guided(not direct_fire and get<bool>(dict,"guided")),
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
   //  instance_id(get<RID>(dict,"instance_id")),
-  mesh_id(make_mesh_id(get<String>(dict,"projectile_mesh_path"),last_id,mesh2path,path2mesh)),
+  mesh_id(make_mesh_id(get<String>(dict,"projectile_mesh_path"),idgen,mesh2path,path2mesh)),
   terminal_velocity((projectile_drag>0 and projectile_thrust>0 and projectile_drag>0) ? projectile_thrust/(projectile_drag*projectile_mass) : initial_velocity),
   projectile_range(projectile_lifetime*terminal_velocity),
   node_path(get<NodePath>(dict,"node_path")),
@@ -442,7 +442,7 @@ static inline damage_array to_damage_array(Variant var,real_t clamp_min,real_t c
   return d;
 }
 
-Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
+Ship::Ship(Dictionary dict, object_id id, ObjectIdGenerator &idgen,
            mesh2path_t &mesh2path,path2mesh_t &path2mesh):
   id(id),
   name(get<String>(dict,"name")),
@@ -548,7 +548,7 @@ Ship::Ship(Dictionary dict, object_id id, object_id &last_id,
 
   salvage(get_salvage(get<Array>(dict,"salvage"))),
   
-  weapons(get_weapons(get<Array>(dict,"weapons"),last_id,mesh2path,path2mesh)),
+  weapons(get_weapons(get<Array>(dict,"weapons"),idgen,mesh2path,path2mesh)),
   range(make_ranges(weapons)),
   tick(0),
   rift_timer(inactive_ticks),
@@ -972,12 +972,12 @@ GoalsArray::GoalsArray(const Array &a) {
     goal[i] = 0;
 }
 
-std::vector<Weapon> Ship::get_weapons(Array a,object_id &last_id,
+std::vector<Weapon> Ship::get_weapons(Array a,ObjectIdGenerator &idgen,
                                       mesh2path_t &mesh2path, path2mesh_t &path2mesh) {
   vector<Weapon> result;
   int s=a.size();
   for(int i=0;i<s;i++)
-    result.emplace_back(static_cast<Dictionary>(a[i]),last_id,mesh2path,path2mesh);
+    result.emplace_back(static_cast<Dictionary>(a[i]),idgen,mesh2path,path2mesh);
   return result;
 }
 

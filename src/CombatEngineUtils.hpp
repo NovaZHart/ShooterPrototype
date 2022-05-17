@@ -198,10 +198,10 @@ namespace godot {
     }
     
     template<bool FIRST,class F,class C>
-    CE::object_id select_target(const typename C::key_type &start,const F &selection_function,
+    object_id select_target(const typename C::key_type &start,const F &selection_function,
                                 const C&container) {
       typename C::const_iterator start_p = container.find(start);
-      CE::object_id selection = (start_p==container.end()) ? -1 : start_p->second.id;
+      object_id selection = (start_p==container.end()) ? -1 : start_p->second.id;
       typename C::const_iterator next = start_p;
       if(start_p==container.end()) {
         next=container.begin();

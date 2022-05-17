@@ -45,7 +45,7 @@ CombatEngine::CombatEngine():
   mesh2path(),
   weapon_rotations(),
   dead_ships(),
-  last_id(0),
+  idgen(),
   delta(1.0/60),
   idelta(delta*ticks_per_second),
   player_ship_id(-1),
@@ -807,7 +807,7 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
   // Add new planets
   for(int i=0,size=new_planets.size();i<size;i++) {
     Dictionary planet = static_cast<Dictionary>(new_planets[i]);
-    object_id id = last_id++;
+    object_id id = idgen.next();
     pair<planets_iter,bool> pp_planet = planets.emplace(id, Planet(planet,id));
     rid2id[pp_planet.first->second.rid.get_id()] = id;
   }
@@ -817,10 +817,10 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
   // Add new ships
   for(int i=0,size=new_ships.size();i<size;i++) {
     Dictionary ship = static_cast<Dictionary>(new_ships[i]);
-    object_id id = last_id++;
+    object_id id = idgen.next();
     if(ship.has("initial_target"))
       has_initial_target[static_cast<RID>(ship["initial_target"]).get_id()] = id;
-    Ship new_ship = Ship(ship,id,last_id,mesh2path,path2mesh);
+    Ship new_ship = Ship(ship,id,idgen,mesh2path,path2mesh);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
     bool hostile = is_hostile_towards(pp_ship.first->second.faction,player_faction_index);
@@ -2296,7 +2296,7 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
     return;
   weapon.fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
-  object_id new_id=last_id++;
+  object_id new_id=idgen.next();
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
 }
 
@@ -2310,8 +2310,8 @@ void CombatEngine::create_flotsam(Ship &ship) {
     real_t angle = ship.rand.rand_angle();
     Vector3 heading = unit_from_angle(angle);
     v += heading*speed;
-    object_id new_id=last_id++;
-    std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,last_id,flotsam_mass,mesh2path,path2mesh));
+    object_id new_id=idgen.next();
+    std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,idgen,flotsam_mass,mesh2path,path2mesh));
     real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
     flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
     emplaced.first->second.possible_hit=false;
@@ -2324,7 +2324,7 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
     return;
   weapon.fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
-  object_id new_id=last_id++;
+  object_id new_id=idgen.next();
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon));
   ship.heat += weapon.firing_heat;
   ship.energy -= weapon.firing_energy;
