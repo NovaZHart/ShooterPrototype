@@ -87,6 +87,7 @@ namespace godot {
 
   
   namespace CE {
+    
     static const Vector3 x_axis(1,0,0);
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);

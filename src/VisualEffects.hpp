@@ -15,6 +15,7 @@
 
 #include "CombatEngineUtils.hpp"
 #include "CombatEngineData.hpp"
+#include "hash_String.hpp"
 
 namespace godot {
   class VisualEffects;
@@ -65,7 +66,7 @@ namespace godot {
     Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader, fade_out_texture;
     Ref<Texture> hyperspacing_texture, cargo_puff_texture;
 
-    volatile CE::VisibleContent *visible_content;
+    volatile VisibleContent *visible_content;
     
     typedef std::unordered_map<object_id,MeshEffect>::iterator mesh_effects_iter;
     typedef std::unordered_map<object_id,MeshEffect>::const_iterator mesh_effects_citer;
@@ -90,12 +91,12 @@ namespace godot {
     void add_zap_pattern(real_t lifetime, Vector3 position, real_t radius, bool reverse);
     void add_zap_ball(real_t lifetime, Vector3 position, real_t radius, bool reverse);
     void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id id);
-    void set_visible_content(CE::VisibleContent *visible);
+    void set_visible_content(VisibleContent *visible);
     void add_cargo_web_puff(object_id ship_id,Vector3 ship_position,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
   
   private:
-    CE::VisibleObject *get_object_or_make_stationary(CE::VisibleContent &vc,object_id target,MeshEffect &effect);
-    void step_effect(CE::VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server);
+    VisibleObject *get_object_or_make_stationary(VisibleContent &vc,object_id target,MeshEffect &effect);
+    void step_effect(VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server);
     void free_unused_effects();
     void extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,
                             real_t extent, real_t radius, int depth);

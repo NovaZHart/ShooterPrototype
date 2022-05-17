@@ -48,12 +48,18 @@ namespace godot {
     static constexpr real_t crosshairs_width = 1;
     real_t system_fuel_recharge, center_fuel_recharge;
     bool hyperspace;
-  
+
+    
+    // // // // // // // // // // // // // // // // // // // // // // // // 
+    // Management of Projectiles and Animations (physics & visual thread)
+    // // // // // // // // // // // // // // // // // // // // // // // // 
+    
+    Ref<VisualEffects> visual_effects;
+    MultiMeshManager multimeshes;
+    
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Members for the physics thread:
     // // // // // // // // // // // // // // // // // // // // // // // // 
-
-    Ref<VisualEffects> visual_effects;
     
     Ref<CylinderShape> search_cylinder;
     PhysicsServer *physics_server;
@@ -63,8 +69,6 @@ namespace godot {
     std::unordered_map<object_id,CE::Ship> ships;
     std::unordered_map<object_id,CE::Projectile> projectiles;
     std::unordered_map<object_id,CE::PlayerOverrides> player_orders;
-    std::unordered_map<String,object_id,CE::hash_String> path2mesh;
-    std::unordered_map<object_id,String> mesh2path;
     std::unordered_multimap<object_id,std::shared_ptr<const CE::Salvage>> salvaged_items;
     Dictionary weapon_rotations;
     std::unordered_set<object_id> dead_ships;
@@ -100,12 +104,7 @@ namespace godot {
     // Members for the visual thread:
     // // // // // // // // // // // // // // // // // // // // // // // // 
 
-    ResourceLoader *loader;
     VisualServer *visual_server;
-    std::unordered_map<object_id,CE::MeshInfo> v_meshes;
-    typedef std::unordered_map<object_id,CE::MeshInfo>::iterator v_meshes_iter;
-    std::unordered_map<String,object_id,CE::hash_String> v_path2id;
-    std::unordered_set<String,CE::hash_String> v_invalid_paths;
     real_t v_delta;
     Vector3 v_camera_location, v_camera_size;
     int v_frame;
@@ -113,12 +112,11 @@ namespace godot {
     bool reset_scenario;
 
     // For temporary use in some functions:
-    CE::instance_locations_t instance_locations;
-    std::unordered_set<object_id> need_new_meshes, objects_found;
+    std::unordered_set<object_id> objects_found;
     
     // Sending data from physics to visual thread:
-    CE::VisibleContent *volatile new_content;
-    CE::VisibleContent *visible_content;
+    VisibleContent *volatile new_content;
+    VisibleContent *visible_content;
   public:
     
     CombatEngine();
@@ -259,17 +257,6 @@ namespace godot {
 
     void add_content(); // physics thread sends data to visual thread
     
-    void warn_invalid_mesh(CE::MeshInfo &mesh,const String &why);
-    bool allocate_multimesh(CE::MeshInfo &mesh_info,int count);
-    bool update_visual_instance(CE::MeshInfo &mesh_info);
-    bool load_mesh(CE::MeshInfo &mesh_info);
-    void clear_all_multimeshes();
-    void unused_multimesh(CE::MeshInfo &mesh_info);
-    void pack_projectiles(const std::pair<CE::instlocs_iterator,CE::instlocs_iterator> &projectiles,
-                          PoolRealArray &floats,CE::MeshInfo &mesh_info,real_t projectile_scale);
-    void catalog_projectiles(const Vector3 &location,const Vector3 &size,
-                             CE::instance_locations_t &instance_locations,
-                             std::unordered_set<object_id> &need_new_meshes);
     Vector2 place_center(const Vector2 &where,
                          const Vector2 &map_center,float map_radius,
                          const Vector2 &minimap_center,float minimap_radius);
@@ -279,24 +266,24 @@ namespace godot {
     void draw_anulus(const Vector2 &center,float inner_radius,float outer_radius,
                      const Color &color,bool antialiased);
     void draw_crosshairs(const Vector2 &loc, float minimap_radius, const Color &color);
-    void rect_draw_velocity(CE::VisibleObject &ship, const Vector2 &loc,
+    void rect_draw_velocity(VisibleObject &ship, const Vector2 &loc,
                             const Vector2 &map_center,const Vector2 &map_scale,
                             const Vector2 &minimap_center,const Vector2 &minimap_half_size,
                             const Color &color);
-    void rect_draw_heading(CE::VisibleObject &ship, const Vector2 &loc,
+    void rect_draw_heading(VisibleObject &ship, const Vector2 &loc,
                            const Vector2 &map_center,const Vector2 &map_scale,
                            const Vector2 &minimap_center,const Vector2 &minimap_half_size,
                            const Color &color);
 
-    void draw_velocity(CE::VisibleObject &ship, const Vector2 &loc,
+    void draw_velocity(VisibleObject &ship, const Vector2 &loc,
                        const Vector2 &map_center,real_t map_radius,
                        const Vector2 &minimap_center,real_t minimap_radius,
                        const Color &color);
-    void draw_heading(CE::VisibleObject &ship, const Vector2 &loc,
+    void draw_heading(VisibleObject &ship, const Vector2 &loc,
                       const Vector2 &map_center,real_t map_radius,
                       const Vector2 &minimap_center,real_t minimap_radius,
                       const Color &color);
-    const Color &pick_object_color(CE::VisibleObject &object);
+    const Color &pick_object_color(VisibleObject &object);
   };
 
 }

@@ -32,6 +32,7 @@ Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vec
 
 CombatEngine::CombatEngine():
   visual_effects(),
+  multimeshes(),
   search_cylinder(CylinderShape::_new()),
   physics_server(PhysicsServer::get_singleton()),
   space(nullptr),
@@ -41,8 +42,6 @@ CombatEngine::CombatEngine():
   ships(),
   projectiles(),
   player_orders(),
-  path2mesh(),
-  mesh2path(),
   weapon_rotations(),
   dead_ships(),
   idgen(),
@@ -71,51 +70,32 @@ CombatEngine::CombatEngine():
   goal_weight_data(),
   rand(),
   
-  loader(ResourceLoader::get_singleton()),
   visual_server(VisualServer::get_singleton()),
-  v_meshes(),
-  v_path2id(),
-  v_invalid_paths(),
   v_delta(0),
   v_camera_location(FAR,FAR,FAR),
   v_camera_size(BIG,BIG,BIG),
-  v_frame(0),
   scenario(),
   canvas(),
   reset_scenario(false),
 
-  instance_locations(),
-  need_new_meshes(),
   objects_found(),
   
   new_content(nullptr),
   visible_content(nullptr)
 
 {
-  const int max_meshes=50;
-  const int max_ships=700;
-  const int max_planets=300;
-  
   search_cylinder->set_radius(search_cylinder_radius);
   search_cylinder->set_height(30);
 
   update_request_id.reserve(max_ships/10);
-  instance_locations.reserve(max_ships*60);
-  need_new_meshes.reserve(max_meshes);
   objects_found.reserve(max_ships*10);
   rid2id.reserve(max_ships*10+max_planets);
   planets.reserve(max_planets);
   ships.reserve(max_ships);
   projectiles.reserve(max_ships*50);
   player_orders.reserve(50);
-  path2mesh.reserve(max_meshes);
-  mesh2path.reserve(max_meshes);
 
   dead_ships.reserve(max_ships/2);
-
-  v_meshes.reserve(max_meshes);
-  v_path2id.reserve(max_meshes);
-  v_invalid_paths.reserve(max_meshes);
 }
 
 CombatEngine::~CombatEngine() {}
@@ -143,7 +123,7 @@ void CombatEngine::_init() {}
 
 void CombatEngine::clear_visuals() {
   // NOTE: entry point from gdscript
-  clear_all_multimeshes();
+  multimeshes.clear_all_multimeshes();
 }
 
 void CombatEngine::clear_ai() {
@@ -281,7 +261,7 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   //NOTE: entry point from gdscript
 
   // Time has passed:
-  v_frame++;
+  multimeshes.time_passed(delta);
 
   // Location is center of camera view and size is the world-space
   // distance from x=left-right z=top-bottom. Y values are ignored.
@@ -289,14 +269,14 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   if(!new_content) {
     // Nothing to display yet.
     // Godot::print_warning("Null new_content pointer.",__FUNCTION__,__FILE__,__LINE__);
-    clear_all_multimeshes();
+    multimeshes.clear_all_multimeshes();
     return;
   }
 
   if(not scenario.is_valid()) {
     // Nowhere to display anything
     Godot::print_error("Scenario has invalid id",__FUNCTION__,__FILE__,__LINE__);
-    clear_all_multimeshes();
+    multimeshes.clear_all_multimeshes();
     return;
   }
   
@@ -322,47 +302,9 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   }
 
   // Catalog projectiles and make MeshInfos in v_meshes for mesh_ids we don't have yet
-  instance_locations.clear();
-  need_new_meshes.clear();
-  catalog_projectiles(location,size,instance_locations,need_new_meshes);
-  for(auto &mesh_id : need_new_meshes) {
-    v_meshes_iter mesh_it = v_meshes.find(mesh_id);
-    if(mesh_it==v_meshes.end())
-      // Should never get here; catalog_projectiles already added the meshinfo
-      continue;
-    load_mesh(mesh_it->second);
-  }
-
-  // Update on-screen projectiles
-  for(auto &vit : v_meshes) {
-    MeshInfo &mesh_info = vit.second;
-    int count = instance_locations.count(vit.first);
-    
-    if(!count) {
-      unused_multimesh(mesh_info);
-      continue;
-    }
-
-    pair<instlocs_iterator,instlocs_iterator> instances =
-      instance_locations.equal_range(vit.first);
-
-    mesh_info.last_frame_used=v_frame;
-
-    // Make sure we have a multimesh with enough space
-    if(!allocate_multimesh(mesh_info,count))
-      continue;
-
-    // Make sure we have a visual instance
-    if(!update_visual_instance(mesh_info))
-      continue;
-    
-    pack_projectiles(instances,mesh_info.floats,mesh_info,projectile_scale);
-    
-    // Send the instance data.
-    visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
-    mesh_info.visible_instance_count = count;
-    visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,mesh_info.floats);
-  }
+  multimeshes.update_content(*visible_content,location,size);
+  multimeshes.load_meshes();
+  multimeshes.send_meshes_to_visual_server(projectile_scale,scenario,reset_scenario);
 }
 
 
@@ -820,7 +762,7 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     object_id id = idgen.next();
     if(ship.has("initial_target"))
       has_initial_target[static_cast<RID>(ship["initial_target"]).get_id()] = id;
-    Ship new_ship = Ship(ship,id,idgen,mesh2path,path2mesh);
+    Ship new_ship = Ship(ship,id,multimeshes);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
     bool hostile = is_hostile_towards(pp_ship.first->second.faction,player_faction_index);
@@ -2311,7 +2253,7 @@ void CombatEngine::create_flotsam(Ship &ship) {
     Vector3 heading = unit_from_angle(angle);
     v += heading*speed;
     object_id new_id=idgen.next();
-    std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,idgen,flotsam_mass,mesh2path,path2mesh));
+    std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,flotsam_mass,multimeshes));
     real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
     flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
     emplaced.first->second.possible_hit=false;
@@ -2633,210 +2575,11 @@ void CombatEngine::add_content() {
   for(auto &it : projectiles) {
     next->projectiles.emplace_back(it.second);
     if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end())
-      next->mesh_paths.emplace(it.second.mesh_id,mesh2path[it.second.mesh_id]);
+      next->mesh_paths.emplace(it.second.mesh_id,multimeshes.get_mesh_path(it.second.mesh_id));
   }
   // Prepend to linked list:
   next->next=new_content;
   new_content=next;
-}
-
-void CombatEngine::warn_invalid_mesh(MeshInfo &mesh,const String &why) {
-  FAST_PROFILING_FUNCTION;
-  if(!mesh.invalid) {
-    mesh.invalid=true;
-    Godot::print_error(mesh.resource_path+String(": ")+why+String(" Projectile will be invisible."),__FUNCTION__,__FILE__,__LINE__);
-  }
-}
-
-bool CombatEngine::allocate_multimesh(MeshInfo &mesh_info,int count) {
-  FAST_PROFILING_FUNCTION;
-  if(not mesh_info.multimesh_rid.is_valid()) {
-    mesh_info.multimesh_rid = visual_server->multimesh_create();
-    if(not mesh_info.multimesh_rid.is_valid()) {
-      // Could not create a multimesh, so do not display the mesh this frame.
-      Godot::print_error("Visual server returned an invalid rid when asked for a new multimesh.",__FUNCTION__,__FILE__,__LINE__);
-      return false;
-    }
-    visual_server->multimesh_set_mesh(mesh_info.multimesh_rid,mesh_info.mesh_rid);
-    mesh_info.instance_count = max(count,8);
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
-  }
-
-  if(mesh_info.instance_count < count) {
-    mesh_info.instance_count = count*1.3;
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
-  } else if(mesh_info.instance_count > count*2.6) {
-    int new_count = max(static_cast<int>(count*1.3),8);
-    if(new_count<mesh_info.instance_count) {
-      mesh_info.instance_count = new_count;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
-    }
-  }
-
-  return true;
-}
-
-bool CombatEngine::update_visual_instance(MeshInfo &mesh_info) {
-  FAST_PROFILING_FUNCTION;
-  if(not mesh_info.visual_rid.is_valid()) {
-    mesh_info.visual_rid = visual_server->instance_create2(mesh_info.multimesh_rid,scenario);
-    if(not mesh_info.visual_rid.is_valid()) {
-      Godot::print_error("Visual server returned an invalid rid when asked for visual instance for a multimesh.",__FUNCTION__,__FILE__,__LINE__);
-      // Can't display this frame
-      return false;
-    }
-    visual_server->instance_set_layer_mask(mesh_info.visual_rid,EFFECTS_LIGHT_LAYER_MASK);
-    visual_server->instance_set_visible(mesh_info.visual_rid,true);
-    visual_server->instance_geometry_set_cast_shadows_setting(mesh_info.visual_rid,0);
-  } else if(reset_scenario)
-    visual_server->instance_set_scenario(mesh_info.visual_rid,scenario);
-  return true;
-}
-
-bool CombatEngine::load_mesh(MeshInfo &mesh_info) {
-  FAST_PROFILING_FUNCTION;
-  if(mesh_info.invalid)
-    return false;
-  if(loader->exists(mesh_info.resource_path)) {
-    mesh_info.mesh_resource=loader->load(mesh_info.resource_path);
-    Ref<Resource> mesh=mesh_info.mesh_resource;
-    if(mesh_info.mesh_resource.ptr())
-      mesh_info.mesh_rid = mesh_info.mesh_resource->get_rid();
-    else
-      mesh_info.mesh_rid = RID();
-    if(not mesh_info.mesh_rid.is_valid()) {
-      warn_invalid_mesh(mesh_info,"unable to load resource.");
-      return false;
-    } else if(!mesh->is_class("Mesh")) {
-      warn_invalid_mesh(mesh_info,mesh->get_class()+"is not a Mesh.");
-      return false;
-    }
-  } else {
-    warn_invalid_mesh(mesh_info,"no resource at this path.");
-    return false;
-  }
-  return true;
-}
-
-void CombatEngine::clear_all_multimeshes() {
-  for(auto &it : v_meshes)
-    unused_multimesh(it.second);
-}
-
-void CombatEngine::unused_multimesh(MeshInfo &mesh_info) {
-  FAST_PROFILING_FUNCTION;
-  // No instances in this multimesh. Should we delete it?
-  if(!mesh_info.visual_rid.is_valid() and !mesh_info.multimesh_rid.is_valid())
-    return;
-  
-  if(v_frame > mesh_info.last_frame_used+1200) {
-    if(mesh_info.visual_rid.is_valid())
-      visual_server->free_rid(mesh_info.visual_rid);
-    if(mesh_info.multimesh_rid.is_valid())
-      visual_server->free_rid(mesh_info.multimesh_rid);
-    mesh_info.multimesh_rid = RID();
-    mesh_info.visual_rid = RID();
-  }
-  if(mesh_info.multimesh_rid.is_valid()) {
-    // Make sure unused multimeshes aren't too large.
-    if(mesh_info.instance_count>16) {
-      mesh_info.instance_count=8;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
-    }
-    if(mesh_info.visible_instance_count)
-      visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,0);
-  }
-  mesh_info.visible_instance_count=0;
-}
-
-void CombatEngine::pack_projectiles(const pair<instlocs_iterator,instlocs_iterator> &projectiles,
-                                    PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale) {
-  FAST_PROFILING_FUNCTION;
-  // Change the float array so it is exactly as large as we need
-  floats.resize(mesh_info.instance_count*12);
-  int stop = mesh_info.instance_count*12;
-  PoolRealArray::Write writer = floats.write();
-  real_t *dataptr = writer.ptr();
-
-  real_t scale_z = projectile_scale;
-  
-  // Fill in the transformations for the projectiles.
-  int i=0;
-  for(instlocs_iterator p_instance = projectiles.first;
-      p_instance!=projectiles.second && i<stop;  p_instance++, i+=12) {
-    MeshInstanceInfo &info = p_instance->second;
-    real_t scale_x = info.scale_x ? info.scale_x : projectile_scale;
-    float cos_ry=cosf(info.rotation_y);
-    float sin_ry=sinf(info.rotation_y);
-    dataptr[i + 0] = cos_ry*scale_x;
-    dataptr[i + 1] = 0.0;
-    dataptr[i + 2] = sin_ry*scale_z;
-    dataptr[i + 3] = info.x;
-    dataptr[i + 4] = 0.0;
-    dataptr[i + 5] = 1.0;
-    dataptr[i + 6] = 0.0;
-    dataptr[i + 7] = PROJECTILE_HEIGHT;
-    dataptr[i + 8] = -sin_ry*scale_x;
-    dataptr[i + 9] = 0.0;
-    dataptr[i + 10] = cos_ry*scale_z;
-    dataptr[i + 11] = info.z;
-  }
-  
-  // Use identity transforms for unused instances.
-  for(;i<stop;i+=12) {
-    dataptr[i + 0] = 1.0;
-    dataptr[i + 1] = 0.0;
-    dataptr[i + 2] = 0.0;
-    dataptr[i + 3] = 0.0;
-    dataptr[i + 4] = 0.0;
-    dataptr[i + 5] = 1.0;
-    dataptr[i + 6] = 0.0;
-    dataptr[i + 7] = 0.0;
-    dataptr[i + 8] = 0.0;
-    dataptr[i + 9] = 0.0;
-    dataptr[i + 10] = 1.0;
-    dataptr[i + 11] = 0.0;
-  }
-}
-
-void CombatEngine::catalog_projectiles(const Vector3 &location,const Vector3 &size,
-                                       instance_locations_t &instance_locations,
-                                       unordered_set<object_id> &need_new_meshes) {
-  FAST_PROFILING_FUNCTION;
-  real_t loc_min_x = min(location.x-size.x/2,location.x+size.x/2);
-  real_t loc_max_x = max(location.x-size.x/2,location.x+size.x/2);
-  real_t loc_min_y = min(location.z-size.z/2,location.z+size.z/2);
-  real_t loc_max_y = max(location.z-size.z/2,location.z+size.z/2);
-
-  for(auto &projectile : visible_content->projectiles) {
-    object_id mesh_id = projectile.mesh_id;
-
-    if(projectile.center.x-projectile.half_size.x > loc_max_x or
-       projectile.center.x+projectile.half_size.x < loc_min_x or
-       projectile.center.y-projectile.half_size.y > loc_max_y or
-       projectile.center.y+projectile.half_size.y < loc_min_y)
-      continue; // projectile is off-screen
-
-    MeshInstanceInfo instance_info =
-      { projectile.center.x, projectile.center.y, projectile.rotation_y, projectile.scale_x };
-    instance_locations.emplace(mesh_id,instance_info);
-
-    v_meshes_iter mit = v_meshes.find(mesh_id);
-    if(mit==v_meshes.end()) {
-      mesh_paths_iter pit = visible_content->mesh_paths.find(mesh_id);
-      
-      if(pit==visible_content->mesh_paths.end()) {
-        // Should never get here. This means the physics thread
-        // generated a projectile without sending its mesh resource path.
-        pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));
-        warn_invalid_mesh(emplaced.first->second,"internal error: no mesh path sent from physics thread.");
-        continue;
-      }
-
-      v_meshes.emplace(mesh_id,MeshInfo(mesh_id,pit->second));
-      need_new_meshes.insert(mesh_id);
-    }
-  }
 }
 
 
@@ -2846,7 +2589,6 @@ static inline bool origin_intersection(real_t end_x,real_t end_y,real_t bound_x,
   intersection = end_y*bound_x/end_x;
   return intersection>-bound_y and intersection<bound_y;
 }
-
 
 Vector2 CombatEngine::place_in_rect(const Vector2 &map_location,
                                     const Vector2 &map_center,const Vector2 &map_scale,
@@ -2874,7 +2616,6 @@ Vector2 CombatEngine::place_in_rect(const Vector2 &map_location,
   // Object is within the minimap.
   return centered+minimap_center;
 }
-
 
 Vector2 CombatEngine::place_center(const Vector2 &where,
                                    const Vector2 &map_center,real_t map_radius,

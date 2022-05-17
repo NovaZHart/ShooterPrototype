@@ -73,10 +73,16 @@
 
 #include "DVector3.hpp"
 #include "ObjectIdGenerator.hpp"
+#include "hash_String.hpp"
+#include "MultiMeshManager.hpp"
 
 namespace godot {
   namespace CE {
-    
+
+    const int max_meshes=50;
+    const int max_ships=700;
+    const int max_planets=300;
+
     typedef int64_t ticks_t;
     const ticks_t ticks_per_second = 10800;
     const ticks_t ticks_per_minute = 648000;
@@ -197,15 +203,7 @@ namespace godot {
         return std::min(float(i%8388608)/8388608.0f,1.0f);
       }
     };
-
-    struct hash_String {
-      inline int operator() (const String &s) const {
-        return s.hash();
-      }
-    };
   
-    typedef std::unordered_map<String,object_id,hash_String> path2mesh_t;
-    typedef std::unordered_map<object_id,String> mesh2path_t;
     typedef std::unordered_map<int32_t,object_id> rid2id_t;
     typedef std::unordered_map<int32_t,object_id>::iterator rid2id_iter;
     typedef std::unordered_map<int32_t,object_id>::iterator rid2id_const_iter;
@@ -335,18 +333,6 @@ namespace godot {
       ~Salvage();
     };
   
-    struct ProjectileMesh {
-      object_id id;
-      RID mesh_id;
-
-      bool has_multimesh;
-      RID multimesh_id;
-      int instance_count, visible_instance_count;
-
-      ProjectileMesh(RID, object_id);
-      ~ProjectileMesh();
-    };
-    
     struct Projectile {
       const object_id id;
       const object_id target;
@@ -367,7 +353,7 @@ namespace godot {
       }
       Projectile(object_id id,const Ship &ship,const Weapon &weapon);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
-      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,ObjectIdGenerator &idgen,real_t mass,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes);
       ~Projectile();
     };
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;
@@ -402,7 +388,7 @@ namespace godot {
         return ammo and not firing_countdown.ticking();
       }
 
-      Weapon(Dictionary dict,ObjectIdGenerator &idgen,mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      Weapon(Dictionary dict,MultiMeshManager &multimeshes);
       ~Weapon();
       Dictionary make_status_dict() const;
     };
@@ -561,8 +547,7 @@ namespace godot {
       void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
 
       // Generate a Ship from GDScript objects:
-      Ship(Dictionary dict, object_id id, ObjectIdGenerator &idgen,
-           mesh2path_t &mesh2path,path2mesh_t &path2mesh);
+      Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes);
       
       // Ship(const Ship &other); // There are strange crashes without this.
       
@@ -575,7 +560,7 @@ namespace godot {
       std::vector<std::shared_ptr<const Salvage>> get_salvage(Array a);
 
       // Generate the Weapon vector from GDScript datatypes:
-      std::vector<Weapon> get_weapons(Array a, ObjectIdGenerator &idgen, mesh2path_t &mesh2path, path2mesh_t &path2mesh);
+      std::vector<Weapon> get_weapons(Array a, MultiMeshManager &multimeshes);
 
       // All damage, resist, and passthru logic:
       real_t take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction);
@@ -720,63 +705,6 @@ namespace godot {
 
     // FIXME: Implement this:
     const int VISIBLE_OBJECT_GOAL = 32;
-
-    // A planet or ship to be displayed on the screen (minimap or main viewer)
-    struct VisibleObject {
-      const real_t x, z, radius, rotation_y, vx, vz, max_speed;
-      int flags;
-      VisibleObject(const Ship &,bool hostile);
-      VisibleObject(const Planet &);
-    };
-
-    // A projectile to be displayed on-screen (minimap or main viewer)
-    struct VisibleProjectile {
-      const real_t rotation_y, scale_x;
-      const Vector2 center, half_size;
-      const int type;
-      const object_id mesh_id;
-      VisibleProjectile(const Projectile &);
-    };
-    typedef std::vector<VisibleProjectile>::iterator visible_projectiles_iter;
-
-    // Tracks info about all projectiles that may end up as multimesh instances:
-    struct MeshInstanceInfo {
-      const real_t x, z, rotation_y, scale_x;
-    };
-    typedef std::unordered_multimap<object_id,MeshInstanceInfo> instance_locations_t;
-    typedef std::unordered_multimap<object_id,MeshInstanceInfo>::iterator instlocs_iterator;
-
-    typedef std::unordered_map<object_id,VisibleObject> ships_and_planets_t;
-    typedef ships_and_planets_t::iterator ships_and_planets_iter;
-    typedef ships_and_planets_t::const_iterator ships_and_planets_citer;
-    
-    // The output of the physics timestep from CombatEngine, to be
-    // processed in the visual timestep.  This is placed in a
-    // thread-safe linked list.  It is the only means by which the
-    // physics and visual threads communicate in GDNative.
-    struct VisibleContent {
-      ships_and_planets_t ships_and_planets;
-      std::vector<VisibleProjectile> projectiles;
-      std::unordered_map<object_id,String> mesh_paths;
-      VisibleContent *next;
-      VisibleContent();
-      ~VisibleContent();
-    };
-    typedef std::unordered_map<object_id,String>::iterator mesh_paths_iter;
-
-    // Any Mesh from projectiles that may be in a multimesh
-    struct MeshInfo {
-      const object_id id;
-      const String resource_path;
-      Ref<Resource> mesh_resource;
-      RID mesh_rid, multimesh_rid, visual_rid;
-      int instance_count, visible_instance_count, last_frame_used;
-      bool invalid;
-      PoolRealArray floats;
-      MeshInfo(object_id,const String &);
-      ~MeshInfo();
-    };
-
   }
 }
 
