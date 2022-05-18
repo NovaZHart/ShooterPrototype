@@ -32,6 +32,7 @@
 #include "CombatEngineData.hpp"
 #include "VisualEffects.hpp"
 #include "SpaceHash.hpp"
+#include "DVector3.hpp"
 
 namespace godot {
       
@@ -248,7 +249,8 @@ namespace godot {
     bool collide_projectile(CE::Projectile &projectile);
     void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
     void guide_projectile(CE::Projectile &projectile);
-    void integrate_projectile_forces(CE::Projectile &projectile, bool thrust);
+    bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading,DVector3 desired_heading);
+    void integrate_projectile_forces(CE::Projectile &projectile, bool thrust, bool drag);
 
 
     // // // // // // // // // // // // // // // // // // // // // // // // 

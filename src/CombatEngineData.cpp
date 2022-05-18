@@ -158,7 +158,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   alive(true),
   direct_fire(weapon.direct_fire),
   possible_hit(true),
-  integrate_forces(false),
+  integrate_forces(guided),
   salvage()
 {
   rotation.y = ship.rotation.y;
@@ -168,10 +168,11 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
     real_t estimated_range = weapon.projectile_lifetime*weapon.terminal_velocity;
     rotation.y += asin_clamp(weapon.position.z/estimated_range);
   }
-  // if(weapon.guided)
-  //   linear_velocity = ship.linear_velocity; // unit_from_angle(rotation.y)*weapon.terminal_velocity;
-  // else
-    linear_velocity = unit_from_angle(rotation.y)*max_speed + ship.linear_velocity;
+
+  if(guided and not thrust)
+    Godot::print_warning("Guided weapon has no thrust",__FUNCTION__,__FILE__,__LINE__);
+
+  linear_velocity = unit_from_angle(rotation.y)*initial_velocity + ship.linear_velocity;
 }
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
