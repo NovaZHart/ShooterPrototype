@@ -73,7 +73,6 @@
 
 #include "DVector3.hpp"
 #include "ObjectIdGenerator.hpp"
-#include "hash_String.hpp"
 #include "MultiMeshManager.hpp"
 
 namespace godot {
@@ -671,8 +670,8 @@ namespace godot {
     static const int PLAYER_TARGET_SELECTION       = 0x0F00;
     static const int PLAYER_TARGET_ENEMY           = 0x0100;
     static const int PLAYER_TARGET_FRIEND          = 0x0200;
-    static const int PLAYER_TARGET_PLANET          = 0x0300;
-    static const int PLAYER_TARGET_OVERRIDE        = 0x0400;
+    static const int PLAYER_TARGET_PLANET          = 0x0400;
+    static const int PLAYER_TARGET_OVERRIDE        = 0x0800;
     static const int PLAYER_TARGET_NOTHING         = 0x0F00;
 
     struct GoalsArray {

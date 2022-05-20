@@ -7,6 +7,57 @@ using namespace std;
 using namespace godot;
 using namespace godot::CE;
 
+VisualEffect::VisualEffect():
+  lifetime_aabb(), start_time(-9e9),
+  duration(0.0f), time_shift(0.0f), rotation(),
+  velocity(0,0,0), relative_position(), 
+  position(), instance(), ready(false), dead(false),
+  behavior(CONSTANT_VELOCITY), target1(-1)
+{}
+VisualEffect::~VisualEffect()
+{}
+
+////////////////////////////////////////////////////////////////////////
+
+MeshEffect::MeshEffect():
+  VisualEffect(), mesh(), shader_material()
+{}
+MeshEffect::~MeshEffect() {}
+
+void MeshEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death) {
+  if(update_transform) {
+    Transform trans = calculate_transform();
+    visual_server->instance_set_transform(instance->rid,trans);
+  }
+  if(shader_material.is_valid()) {
+    float effect_time=time-start_time+time_shift;
+    if(update_death)
+      shader_material->set_shader_param("death_time",effect_time);
+    shader_material->set_shader_param("time",effect_time);
+  } else {
+    Godot::print_warning("Invalid shader material.",__FUNCTION__,__FILE__,__LINE__);
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+MultiMeshInstanceEffect::MultiMeshInstanceEffect():
+  VisualEffect(), mesh_id(-1), data()
+{}
+MultiMeshInstanceEffect::MultiMeshInstanceEffect(object_id id):
+  VisualEffect(), mesh_id(id), data()
+{}
+MultiMeshInstanceEffect::~MultiMeshInstanceEffect() {}
+
+void MultiMeshInstanceEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death) {
+  float effect_time=time-start_time+time_shift;
+  set_time(effect_time);
+  if(update_death)
+    set_death_time(effect_time);
+}
+
+////////////////////////////////////////////////////////////////////////
+
 VisualEffects::VisualEffects():
   visible_area(Vector3(-100.0f,-50.0f,-100.0f),Vector3(200.0f,100.0f,200.0f)),
   visibility_expansion_rate(Vector3(10.0f,0.0f,10.0f)),
@@ -53,7 +104,11 @@ void VisualEffects::free_unused_effects() {
       it = mesh_effects.erase(it);
     else
       it++;
-    //    it = it->second.dead ? mesh_effects.erase(it) : ++it;
+  for(mmi_effects_iter it=mmi_effects.begin();it!=mmi_effects.end();)
+    if(it->second.dead)
+      it = mmi_effects.erase(it);
+    else
+      it++;
 }
 
 void VisualEffects::set_visible_region(AABB visible_area,Vector3 visibility_expansion_rate) {
@@ -76,184 +131,95 @@ void VisualEffects::step_effects(real_t delta) {
   VisualServer *visual_server = VisualServer::get_singleton();
   this->delta=delta;
   now+=delta;
+
+  // Step all Mesh-based effects
   for(mesh_effects_iter it=mesh_effects.begin();it!=mesh_effects.end();it++) {
-    MeshEffect &effect = it->second;
+    VisualEffect &effect = it->second;
     if(not effect.ready or effect.dead)
       continue;
-    if((now-effect.start_time)>effect.duration)
-      effect.dead=true;
-    else {
-      AABB expanded(visible_area.position - visibility_expansion_rate*effect.duration,
-                    visible_area.size + 2*visibility_expansion_rate*effect.duration);
-      if(not expanded.intersects(effect.lifetime_aabb))
-        effect.dead=true;
-      else
-        step_effect(vc,effect,visual_server);
-    }
+    step_effect(vc,effect,visual_server);
   }
-  // FIXME: move this to another thread:
-  free_unused_effects();
+
+  // Step all effects that are MultiMeshInstances:
+  for(mmi_effects_iter it=mmi_effects.begin();it!=mmi_effects.end();it++) {
+    VisualEffect &effect = it->second;
+    if(not effect.ready or effect.dead)
+      continue;
+    step_effect(vc,effect,visual_server);
+  }
+
+  // Free any dead effects:
+  free_unused_effects(); // FIXME: move this to another thread
 }
 
-VisibleObject * VisualEffects::get_object_or_make_stationary(VisibleContent &vc,object_id target,MeshEffect &effect) {
+VisibleObject * VisualEffects::get_object_or_make_stationary(VisibleContent &vc,object_id target,VisualEffect &effect) {
   ships_and_planets_iter object_iter = vc.ships_and_planets.find(effect.target1);
   if(object_iter!=vc.ships_and_planets.end())
     return &object_iter->second;
-
-  Godot::print("Object "+str(effect.target1)+" no longer exists.");
-  effect.behavior=MeshEffect::STATIONARY;
-  effect.shader_material->set_shader_param("death_time",float(now-effect.start_time+effect.time_shift));
+  effect.behavior=STATIONARY;
   return nullptr;
 }
 
-void VisualEffects::step_effect(VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server) {
+void VisualEffects::step_effect(VisibleContent &vc,VisualEffect &effect,VisualServer *visual_server) {
+  if((now-effect.start_time)>effect.duration) {
+    effect.dead=true;
+    return;
+  }
+
+  AABB expanded(visible_area.position - visibility_expansion_rate*effect.duration,
+                visible_area.size + 2*visibility_expansion_rate*effect.duration);
+  if(not expanded.intersects(effect.lifetime_aabb)) {
+    effect.dead=true;
+    return;
+  }
+      
+  bool update_transform=false, update_death=false;
   switch(effect.behavior) {
-  case(MeshEffect::CENTER_ON_TARGET1): {
+  case(CENTER_ON_TARGET1): {
     VisibleObject *object = get_object_or_make_stationary(vc,effect.target1,effect);
-    if(object and (object->x!=effect.transform.origin.x or object->z!=effect.transform.origin.z)) {
-      effect.transform.origin.x = object->x;
-      effect.transform.origin.z = object->z;
-      visual_server->instance_set_transform(effect.instance->rid,effect.transform);
-    }
+    if(object) {
+      if(object->x!=effect.position.x or object->z!=effect.position.z) {
+        effect.position.x = object->x;
+        effect.position.z = object->z;
+        update_transform=true;
+      }
+    } else
+      update_death=true;
   } break;
-  case(MeshEffect::CONSTANT_VELOCITY): {
+  case(CONSTANT_VELOCITY): {
     if(effect.velocity.length_squared()>1e-10 and effect.instance->rid.get_id()) {
-      effect.transform.origin += delta*effect.velocity;
-      visual_server->instance_set_transform(effect.instance->rid,effect.transform);
+      effect.position += delta*effect.velocity;
+      update_transform=true;
     }
   } break;
-  case(MeshEffect::VELOCITY_RELATIVE_TO_TARGET): {
+  case(VELOCITY_RELATIVE_TO_TARGET): {
     VisibleObject *object = get_object_or_make_stationary(vc,effect.target1,effect);
     if(object) {
       effect.relative_position += delta*effect.velocity;
       real_t x=object->x+effect.relative_position.x;
       real_t z=object->z+effect.relative_position.z;
-      if(effect.transform.origin.x!=x or effect.transform.origin.z!=z) {
-        effect.transform.origin.x = x;
-        effect.transform.origin.z = z;
-        visual_server->instance_set_transform(effect.instance->rid,effect.transform);
+      if(effect.position.x!=x or effect.position.z!=z) {
+        effect.position.x = x;
+        effect.position.z = z;
+        update_transform=true;
       }
-    }
+    } else
+      update_death=true;
   } break;
   };
-  if(effect.shader_material.is_valid())
-    effect.shader_material->set_shader_param("time",float(now-effect.start_time+effect.time_shift));
+  effect.step_effect(visual_server,now,update_transform,update_death);
 }
 
 void VisualEffects::set_visible_content(VisibleContent *visible) {
   visible_content=visible;
 }
 
+//MultiMeshInstanceEffect &VisualEffects::add_MultiMeshInstanceEffect(
+
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
-void VisualEffects::extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,
-                                       real_t extent, real_t radius, int depth) {
-  Vector3 tangent = right-left;
-  real_t width = tangent.length();
-  tangent = tangent.normalized();
-  Vector3 normal = ((right+left)/2 - center).normalized();
-  real_t length = rand.randf();
-  length = (length*2.0 + 1.0)*extent*radius;
-  
-  real_t slide = rand.randf();
-  slide = length * (slide-0.5) / 5;
-  
-  Vector3 next_left = left + normal*length + tangent*(width/3+slide);
-  Vector3 next_right = right + normal*length + tangent*(-width/3+slide);
-  real_t next_dist = sqrtf(3)/2*next_left.distance_to(next_right);
-  Vector3 next_back = (next_left+next_right)/2+normal*next_dist;
-  Vector3 next_center = (next_left+next_right+next_back)/3;
-
-  Vector2 center2 = Vector2(center.x,center.z);
-  Vector2 next_center2 = Vector2(next_center.x,next_center.z);
-
-  vertex_holder.push_back(left);
-  uv2_holder.push_back(center2);
-  vertex_holder.push_back(next_right);
-  uv2_holder.push_back(next_center2);
-  vertex_holder.push_back(next_left);
-  uv2_holder.push_back(next_center2);
-
-  vertex_holder.push_back(next_right);
-  uv2_holder.push_back(next_center2);
-  vertex_holder.push_back(left);
-  uv2_holder.push_back(center2);
-  vertex_holder.push_back(right);
-  uv2_holder.push_back(center2);
-
-  vertex_holder.push_back(next_left);
-  uv2_holder.push_back(next_center2);
-  vertex_holder.push_back(next_right);
-  uv2_holder.push_back(next_center2);
-  vertex_holder.push_back(next_back);
-  uv2_holder.push_back(next_center2);
-
-  if(depth<3 or (depth<5 and width>0.05 and 0.7>=rand.randf()))
-    extend_zap_pattern(next_left,next_back,next_center,extent/2,radius,depth+1);
-  if(depth<3 or (depth<5 and width>0.05 and 0.7>=rand.randf()))
-    extend_zap_pattern(next_back,next_right,next_center,extent/2,radius,depth+1);
-}
-
-void VisualEffects::add_zap_pattern(real_t halflife, Vector3 position, real_t radius, bool reverse) {
-  if(not spatial_rift_shader.is_valid() or not (halflife>0.0f))
-    return;
-
-  vertex_holder.clear();
-  uv2_holder.clear();
-
-  const int sides=5;
-  real_t angle = rand.rand_angle();
-  Vector3 prior = unit_from_angle(angle)*radius/5;
-  for(int i=0;i<5;i++) {
-    Vector3 next = unit_from_angle(angle + 2*PI * real_t(i+1)/sides)*radius/5;
-    vertex_holder.push_back(prior);
-    vertex_holder.push_back(Vector3(0,0,0));
-    vertex_holder.push_back(next);
-    uv2_holder.push_back(Vector2(0,0));
-    uv2_holder.push_back(Vector2(0,0));
-    uv2_holder.push_back(Vector2(0,0));
-    extend_zap_pattern(prior,next,Vector3(0,0,0),0.4f,radius,1);
-    prior=next;
-  }  
-
-  PoolVector3Array pool_vertices;
-  PoolVector2Array pool_uv2, pool_uv;
-  int nvert = vertex_holder.size();
-  {
-    pool_vertices.resize(nvert);
-    pool_uv2.resize(nvert);
-    PoolVector3Array::Write write_vertices = pool_vertices.write();
-    PoolVector2Array::Write write_uv2 = pool_uv2.write();
-    Vector3 *vertices = write_vertices.ptr();
-    Vector2 *uv2 = write_uv2.ptr();
-
-    for(int i=0;i<nvert;i++) {
-      vertices[i] = vertex_holder[i];
-      uv2[i] = uv2_holder[i];
-    }
-  }
-
-  Array data;
-  data.resize(ArrayMesh::ARRAY_MAX);
-  data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
-  data[ArrayMesh::ARRAY_TEX_UV2] = pool_uv2;
-  MeshEffect &effect = add_MeshEffect(data,halflife*2,position,spatial_rift_shader);
-
-  if(not effect.dead) {
-    if(reverse) {
-      effect.time_shift = halflife;
-      effect.shader_material->set_shader_param("time",halflife);
-    } else {
-      effect.shader_material->set_shader_param("time",0.0f);
-    }
-    effect.shader_material->set_shader_param("expansion_time",halflife);
-    effect.ready=true;
-  }
-}
-
-
 MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 position,
-                                          Ref<Shader> shader) {
+                                          real_t rotation,Ref<Shader> shader) {
   Ref<ArrayMesh> mesh = ArrayMesh::_new();
 
   int flags = 0;
@@ -270,26 +236,27 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   Ref<ShaderMaterial> material = ShaderMaterial::_new();
   material->set_shader(shader);
   mesh->surface_set_material(0,material);
-  Transform trans;
-  trans.origin = position;
   
-  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(last_id++,0));
+  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(last_id++,MeshEffect()));
   MeshEffect &effect = it.first->second;
+  effect.rotation = rotation;
+  effect.position = position;
   effect.mesh = mesh;
   effect.shader_material = material;
   effect.start_time = now;
   effect.duration = duration;
   effect.lifetime_aabb = mesh->get_aabb();
-  effect.lifetime_aabb.position += trans.origin;
-  effect.transform = trans;
+  //effect.half_size = Vector2(effect.lifetime_aabb.size.x/2,effect.lifetime_aabb.size.y/2);
+  effect.lifetime_aabb.position += position;
 
   VisualServer *visual_server = VisualServer::get_singleton();
   RID rid = visual_server->instance_create2(mesh->get_rid(),scenario);
-  visual_server->instance_set_transform(rid,trans);
+  visual_server->instance_set_transform(rid,effect.calculate_transform());
   visual_server->instance_set_layer_mask(rid,EFFECTS_LIGHT_LAYER_MASK);
   visual_server->instance_geometry_set_cast_shadows_setting(rid,0);
   if(rid.get_id()) {
     effect.instance = allocate_visual_rid(rid);
+    Godot::print("Made a new effect");
   } else {
     Godot::print_error("Failed to make an instance for new effect",__FUNCTION__,__FILE__,__LINE__);
     effect.dead=true;
@@ -298,8 +265,10 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   return effect;
 }
 
-void VisualEffects::add_cargo_web_puff(object_id ship_id,Vector3 ship_position,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
-  if(not fade_out_texture.is_valid() or ship_id<0 or not cargo_puff.is_valid())
+void VisualEffects::add_cargo_web_puff(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
+  real_t aabb_growth = (ship.max_speed + relative_velocity.length())*duration;
+
+  if(not circle_is_visible(ship.position,length*2+aabb_growth) or cargo_puff.is_null())
     return;
 
   PoolVector3Array pool_vertices;
@@ -329,12 +298,14 @@ void VisualEffects::add_cargo_web_puff(object_id ship_id,Vector3 ship_position,V
   data.resize(ArrayMesh::ARRAY_MAX);
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
-  MeshEffect &effect = add_MeshEffect(data,duration,ship_position+relative_position,fade_out_texture);
+  MeshEffect &effect = add_MeshEffect(data,duration,ship.position+relative_position,0,fade_out_texture);
 
+  effect.lifetime_aabb.grow_by(aabb_growth);
+  
   if(not effect.dead) {
-    effect.behavior = MeshEffect::VELOCITY_RELATIVE_TO_TARGET;
+    effect.behavior = VELOCITY_RELATIVE_TO_TARGET;
     effect.velocity = relative_velocity;
-    effect.target1 = ship_id;
+    effect.target1 = ship.id;
     effect.relative_position = relative_position;
     effect.shader_material->set_shader_param("image_texture",cargo_puff);
     effect.shader_material->set_shader_param("time",0.0f);
@@ -344,13 +315,17 @@ void VisualEffects::add_cargo_web_puff(object_id ship_id,Vector3 ship_position,V
   }
 }
 
-void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, int ship_id) {
-  if(not hyperspacing_polygon_shader.is_valid() or not duration>0.0f or not hyperspacing_texture.is_valid())
-    return;
+bool VisualEffects::circle_is_visible(const Vector3 &position, real_t radius) const {
+  Vector3 start=visible_area.position, end=visible_area.position+visible_area.size;
+  if(position.x-radius>=end.x or position.x+radius<start.x or
+     position.z-radius>end.z  or position.z+radius<start.z)
+    return false;
+  return true;
+}
 
-  Godot::print("Add hyperspacing polygon");
-  if(radius<1e-5)
-    Godot::print_warning("Impossible ship radius!"+str(radius),__FUNCTION__,__FILE__,__LINE__);
+void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id) {
+  if(not circle_is_visible(position,radius) or not duration>0.0f)
+    return;
 
   real_t scaled_radius=radius/0.95;
   PoolVector3Array pool_vertices;
@@ -383,7 +358,7 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
   data.resize(ArrayMesh::ARRAY_MAX);
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
-  MeshEffect &effect = add_MeshEffect(data,duration,position,hyperspacing_polygon_shader);
+  MeshEffect &effect = add_MeshEffect(data,duration,position,0,hyperspacing_polygon_shader);
 
   if(not effect.dead) {
     effect.shader_material->set_shader_param("half_animation",reverse);
@@ -396,55 +371,7 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
     effect.shader_material->set_shader_param("full_alpha",1.0);
     effect.shader_material->set_shader_param("texture_albedo",hyperspacing_texture);
     effect.target1=ship_id;
-    effect.behavior=MeshEffect::CENTER_ON_TARGET1;
-    effect.ready=true;
-  }
-}
-
-void VisualEffects::add_zap_ball(real_t duration, Vector3 position, real_t radius, bool reverse) {
-  if(not zap_ball_shader.is_valid() or not (duration>0.0f))
-    return;
-  int polycount = clamp(int(roundf(PI*radius/0.1)),12,120);
-
-  PoolVector3Array pool_vertices;
-  PoolVector2Array pool_uv;
-  int nvert = polycount*3;
-  pool_vertices.resize(nvert);
-  pool_uv.resize(nvert);
-  PoolVector3Array::Write write_vertices = pool_vertices.write();
-  PoolVector2Array::Write write_uv = pool_uv.write();
-  Vector3 *vertices = write_vertices.ptr();
-  Vector2 *uv = write_uv.ptr();
-
-  Vector3 prior=Vector3(sinf(0),0,cosf(0))*radius;
-  for(int i=0;i<polycount;i++) {
-    real_t next_angle = 2*PI*(i+1.0f)/polycount;
-    Vector3 next = Vector3(sinf(next_angle),0,cosf(next_angle))*radius;
-    
-    vertices[i*3+0] = prior;
-    uv[i*3+0] = Vector2((i+0.0f)/polycount,1.0f);
-    vertices[i*3+1] = Vector3();
-    uv[i*3+1] = Vector2((i+0.5f)/polycount,0.0f);
-    vertices[i*3+2] = next;
-    uv[i*3+2] = Vector2((i+1.0f)/polycount,1.0f);
-
-    prior=next;
-  }
-
-  Array data;
-  data.resize(ArrayMesh::ARRAY_MAX);
-  data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
-  data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
-  MeshEffect &effect = add_MeshEffect(data,duration,position,zap_ball_shader);
-  if(not effect.dead) {
-    if(reverse) {
-      effect.time_shift = duration/2;
-      effect.shader_material->set_shader_param("time",duration/2);
-    } else {
-      effect.shader_material->set_shader_param("time",0.0f);
-    }
-    effect.shader_material->set_shader_param("duration",duration);
-    effect.shader_material->set_shader_param("v_radius",radius);
+    effect.behavior=CENTER_ON_TARGET1;
     effect.ready=true;
   }
 }

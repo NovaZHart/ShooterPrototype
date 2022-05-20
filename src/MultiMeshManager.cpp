@@ -9,6 +9,7 @@
 #include <NodePath.hpp>
 #include <RID.hpp>
 
+#include "VisualEffects.hpp"
 #include "CombatEngineUtils.hpp"
 #include "CombatEngineData.hpp"
 #include "MultiMeshManager.hpp"
@@ -16,6 +17,83 @@
 using namespace godot;
 using namespace godot::CE;
 using namespace std;
+
+VisibleObject::VisibleObject(const godot::CE::Ship &ship,bool hostile):
+  x(ship.position.x),
+  z(ship.position.z),
+  radius((ship.aabb.size.x+ship.aabb.size.z)/2.0),
+  rotation_y(ship.rotation.y),
+  vx(ship.linear_velocity.x),
+  vz(ship.linear_velocity.z),
+  max_speed(ship.max_speed),
+  flags(VISIBLE_OBJECT_SHIP | ( hostile ? VISIBLE_OBJECT_HOSTILE : 0 ))
+{}
+
+VisibleObject::VisibleObject(const Planet &planet):
+  x(planet.position.x),
+  z(planet.position.z),
+  radius(planet.radius),
+  rotation_y(0),
+  vx(0),
+  vz(0),
+  max_speed(0),
+  flags(VISIBLE_OBJECT_PLANET)
+{}
+
+VisibleEffect::VisibleEffect(const Projectile &projectile):
+  rotation_y(projectile.rotation.y),
+  scale_x(projectile.direct_fire ? projectile.scale : 0),
+  scale_z(0),
+  y(PROJECTILE_HEIGHT),
+  center(projectile.position.x,projectile.position.z),
+  half_size(projectile.direct_fire ? Vector2(projectile.scale,projectile.scale) : Vector2(0.1f,0.1f)),
+  mesh_id(projectile.mesh_id),
+  data()
+{}
+
+VisibleEffect::VisibleEffect(const MultiMeshInstanceEffect &effect):
+  rotation_y(effect.rotation),
+  scale_x(1),
+  scale_z(1),
+  y(effect.position.y),
+  center(effect.position.x,effect.position.z),
+  half_size(effect.half_size),
+  mesh_id(effect.mesh_id),
+  data(effect.data)
+{}
+
+MeshInfo::MeshInfo(object_id id, const String &resource_path):
+  id(id),
+  resource_path(resource_path),
+  mesh_resource(),
+  mesh_rid(), multimesh_rid(), visual_rid(),
+  instance_count(0),
+  visible_instance_count(0),
+  last_frame_used(0),
+  invalid(false),
+  floats()
+{}
+
+MeshInfo::~MeshInfo() {
+  bool have_multimesh = not multimesh_rid.is_valid();
+  bool have_visual = not visual_rid.is_valid();
+  if(have_multimesh or have_visual) {
+    VisualServer *server=VisualServer::get_singleton();
+    if(have_visual)
+      server->free_rid(visual_rid);
+    if(have_multimesh)
+      server->free_rid(multimesh_rid);
+  }
+}
+  
+VisibleContent::VisibleContent():
+  ships_and_planets(),
+  effects(),
+  mesh_paths(),
+  next(nullptr)
+{}
+
+VisibleContent::~VisibleContent() {}
 
 MultiMeshManager::MultiMeshManager():
   idgen(),
@@ -43,6 +121,16 @@ MultiMeshManager::~MultiMeshManager() {}
 
 void MultiMeshManager::time_passed(real_t delta) {
   v_frame++;
+}
+
+object_id MultiMeshManager::add_preloaded_mesh(Ref<Mesh> meshref) {
+  std::unordered_map<Ref<Mesh>,object_id>::const_iterator it=v_meshref2id.find(meshref);
+  if(it==v_meshref2id.end()) {
+    object_id id=idgen.next();
+    v_meshref2id.emplace(meshref,id);
+    v_id2meshref.emplace(id,meshref);
+  }  
+  return it->second;
 }
 
 object_id MultiMeshManager::add_mesh(const String &path) {
@@ -80,7 +168,7 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
     if(!update_visual_instance(mesh_info,scenario,reset_scenario))
       continue;
     
-    pack_projectiles(instances,mesh_info.floats,mesh_info,projectile_scale);
+    pack_visuals(instances,mesh_info.floats,mesh_info,projectile_scale);
     
     // Send the instance data.
     visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
@@ -93,7 +181,7 @@ void MultiMeshManager::load_meshes() {
   for(auto &mesh_id : need_new_meshes) {
     v_meshes_iter mesh_it = v_meshes.find(mesh_id);
     if(mesh_it==v_meshes.end())
-      // Should never get here; catalog_projectiles already added the meshinfo
+      // Should never get here; update_content already added the meshinfo
       continue;
     load_mesh(mesh_it->second);
   }
@@ -103,7 +191,7 @@ void MultiMeshManager::warn_invalid_mesh(MeshInfo &mesh,const String &why) {
   FAST_PROFILING_FUNCTION;
   if(!mesh.invalid) {
     mesh.invalid=true;
-    Godot::print_error(mesh.resource_path+String(": ")+why+String(" Projectile will be invisible."),__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_error(mesh.resource_path+String(": ")+why+String(" Effect will be invisible."),__FUNCTION__,__FILE__,__LINE__);
   }
 }
 
@@ -118,17 +206,17 @@ bool MultiMeshManager::allocate_multimesh(MeshInfo &mesh_info,int count) {
     }
     visual_server->multimesh_set_mesh(mesh_info.multimesh_rid,mesh_info.mesh_rid);
     mesh_info.instance_count = max(count,8);
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
+    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
   }
 
   if(mesh_info.instance_count < count) {
     mesh_info.instance_count = count*1.3;
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
+    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
   } else if(mesh_info.instance_count > count*2.6) {
     int new_count = max(static_cast<int>(count*1.3),8);
     if(new_count<mesh_info.instance_count) {
       mesh_info.instance_count = new_count;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
+      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
     }
   }
 
@@ -200,7 +288,7 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info) {
     // Make sure unused multimeshes aren't too large.
     if(mesh_info.instance_count>16) {
       mesh_info.instance_count=8;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,0);
+      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
     }
     if(mesh_info.visible_instance_count)
       visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,0);
@@ -209,23 +297,24 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info) {
 }
 
 
-void MultiMeshManager::pack_projectiles(const pair<instlocs_iterator,instlocs_iterator> &projectiles,
+void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterator> &visuals,
                                     PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
   // Change the float array so it is exactly as large as we need
-  floats.resize(mesh_info.instance_count*12);
-  int stop = mesh_info.instance_count*12;
+  const int nfloat=16;
+  floats.resize(mesh_info.instance_count*nfloat);
+  int stop = mesh_info.instance_count*nfloat;
   PoolRealArray::Write writer = floats.write();
   real_t *dataptr = writer.ptr();
 
-  real_t scale_z = projectile_scale;
-  
-  // Fill in the transformations for the projectiles.
+  // Fill in the transformations:
   int i=0;
-  for(instlocs_iterator p_instance = projectiles.first;
-      p_instance!=projectiles.second && i<stop;  p_instance++, i+=12) {
+  for(instlocs_iterator p_instance = visuals.first;
+      p_instance!=visuals.second && i<stop;  p_instance++, i+=nfloat) {
     MeshInstanceInfo &info = p_instance->second;
     real_t scale_x = info.scale_x ? info.scale_x : projectile_scale;
+    real_t scale_z = info.scale_z ? info.scale_z : projectile_scale;
+
     float cos_ry=cosf(info.rotation_y);
     float sin_ry=sinf(info.rotation_y);
     dataptr[i + 0] = cos_ry*scale_x;
@@ -235,15 +324,19 @@ void MultiMeshManager::pack_projectiles(const pair<instlocs_iterator,instlocs_it
     dataptr[i + 4] = 0.0;
     dataptr[i + 5] = 1.0;
     dataptr[i + 6] = 0.0;
-    dataptr[i + 7] = PROJECTILE_HEIGHT;
+    dataptr[i + 7] = info.y;
     dataptr[i + 8] = -sin_ry*scale_x;
     dataptr[i + 9] = 0.0;
     dataptr[i + 10] = cos_ry*scale_z;
     dataptr[i + 11] = info.z;
+    dataptr[i + 12] = info.data[0];
+    dataptr[i + 13] = info.data[1];
+    dataptr[i + 14] = info.data[2];
+    dataptr[i + 15] = info.data[3];
   }
   
   // Use identity transforms for unused instances.
-  for(;i<stop;i+=12) {
+  for(;i<stop;i+=nfloat) {
     dataptr[i + 0] = 1.0;
     dataptr[i + 1] = 0.0;
     dataptr[i + 2] = 0.0;
@@ -256,6 +349,10 @@ void MultiMeshManager::pack_projectiles(const pair<instlocs_iterator,instlocs_it
     dataptr[i + 9] = 0.0;
     dataptr[i + 10] = 1.0;
     dataptr[i + 11] = 0.0;
+    dataptr[i + 12] = 0.0;
+    dataptr[i + 13] = 0.0;
+    dataptr[i + 14] = 0.0;
+    dataptr[i + 15] = 0.0;
   }
 }
 
@@ -271,17 +368,25 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
   real_t loc_min_y = min(location.z-size.z/2,location.z+size.z/2);
   real_t loc_max_y = max(location.z-size.z/2,location.z+size.z/2);
 
-  for(auto &projectile : visible_content.projectiles) {
-    object_id mesh_id = projectile.mesh_id;
+  for(auto &effect : visible_content.effects) {
+    object_id mesh_id = effect.mesh_id;
 
-    if(projectile.center.x-projectile.half_size.x > loc_max_x or
-       projectile.center.x+projectile.half_size.x < loc_min_x or
-       projectile.center.y-projectile.half_size.y > loc_max_y or
-       projectile.center.y+projectile.half_size.y < loc_min_y)
+    if(effect.center.x-effect.half_size.x > loc_max_x or
+       effect.center.x+effect.half_size.x < loc_min_x or
+       effect.center.y-effect.half_size.y > loc_max_y or
+       effect.center.y+effect.half_size.y < loc_min_y)
       continue; // projectile is off-screen
 
     MeshInstanceInfo instance_info =
-      { projectile.center.x, projectile.center.y, projectile.rotation_y, projectile.scale_x };
+      {
+        effect.center.x,   // instance_info.x
+        effect.y,          // .y
+        effect.center.y,   // .z
+        effect.rotation_y, // .rotation_y
+        effect.scale_x,    // .scale_x
+        effect.scale_z,    // .scale_z
+        effect.data        // .data
+      };
     instance_locations.emplace(mesh_id,instance_info);
 
     v_meshes_iter mit = v_meshes.find(mesh_id);
@@ -290,7 +395,7 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
       
       if(pit==visible_content.mesh_paths.end()) {
         // Should never get here. This means the physics thread
-        // generated a projectile without sending its mesh resource path.
+        // generated an effect without sending its mesh resource path.
         pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));
         warn_invalid_mesh(emplaced.first->second,"internal error: no mesh path sent from physics thread.");
         continue;
@@ -301,5 +406,3 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
     }
   }
 }
-
-

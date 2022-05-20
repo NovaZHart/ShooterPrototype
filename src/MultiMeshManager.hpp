@@ -28,9 +28,10 @@
 #include <AABB.hpp>
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
+#include <Mesh.hpp>
 
-#include "hash_String.hpp"
 #include "ObjectIdGenerator.hpp"
+#include "hash_functions.hpp"
 
 namespace godot {
   namespace CE {
@@ -43,9 +44,10 @@ namespace godot {
   struct MeshInfo;
   struct MeshInstanceInfo;
   struct VisibleObject;
-  struct VisibleProjectile;
+  struct VisibleEffect;
   struct VisibleContent;
-
+  struct MultiMeshInstanceEffect;
+  
   struct ProjectileMesh {
     object_id id;
     RID mesh_id;
@@ -64,6 +66,7 @@ namespace godot {
     const object_id id;
     const String resource_path;
     Ref<Resource> mesh_resource;
+    Ref<Mesh> preloaded_mesh;
     RID mesh_rid, multimesh_rid, visual_rid;
     int instance_count, visible_instance_count, last_frame_used;
     bool invalid;
@@ -75,7 +78,8 @@ namespace godot {
   
   // Tracks info about all projectiles that may end up as multimesh instances:
   struct MeshInstanceInfo {
-    const real_t x, z, rotation_y, scale_x;
+    const real_t x, y, z, rotation_y, scale_x, scale_z;
+    const Color data;
   };
   typedef std::unordered_multimap<object_id,MeshInstanceInfo> instance_locations_t;
   typedef std::unordered_multimap<object_id,MeshInstanceInfo>::iterator instlocs_iterator;
@@ -88,48 +92,57 @@ namespace godot {
     VisibleObject(const CE::Planet &);
   };
 
-  // A projectile to be displayed on-screen (minimap or main viewer)
-  struct VisibleProjectile {
-    const real_t rotation_y, scale_x;
-    const Vector2 center, half_size;
-    const int type;
+  // A projectile or passive visual effect:
+  struct VisibleEffect {
+    const real_t rotation_y, scale_x, scale_z, y;
+    const Vector2 center;
+    const Vector2 half_size;
+    const Color data;
     const object_id mesh_id;
-    VisibleProjectile(const CE::Projectile &);
+    VisibleEffect(const MultiMeshInstanceEffect &);
+    VisibleEffect(const CE::Projectile &);
   };
-  typedef std::vector<VisibleProjectile>::iterator visible_projectiles_iter;
+  
+  typedef std::vector<VisibleEffect>::iterator visible_effects_iter;
+  typedef std::vector<VisibleEffect>::const_iterator visible_effects_citer;
 
   typedef std::unordered_map<object_id,String>::iterator mesh_paths_iter;
   typedef std::unordered_map<object_id,VisibleObject> ships_and_planets_t;
   typedef ships_and_planets_t::iterator ships_and_planets_iter;
   typedef ships_and_planets_t::const_iterator ships_and_planets_citer;
-    
-  // The output of the physics timestep from CombatEngine, to be
-  // processed in the visual timestep.  This is placed in a
-  // thread-safe linked list.  It is the only means by which the
-  // physics and visual threads communicate in GDNative.
+  
   struct VisibleContent {
+    // The output of the physics timestep from CombatEngine, to be
+    // processed in the visual timestep.  This is placed in a
+    // thread-safe linked list.  It is the only means by which the
+    // physics and visual threads communicate in GDNative.
     ships_and_planets_t ships_and_planets;
-    std::vector<VisibleProjectile> projectiles;
+    std::vector<VisibleEffect> effects;
     std::unordered_map<object_id,String> mesh_paths;
     VisibleContent *next;
     VisibleContent();
     ~VisibleContent();
   };
 
-  typedef std::unordered_map<String,object_id,hash_String> path2mesh_t;
+  typedef std::unordered_map<String,object_id> path2mesh_t;
   typedef std::unordered_map<object_id,String> mesh2path_t;
 
   class MultiMeshManager {
   public:
     typedef std::unordered_map<object_id,MeshInfo>::iterator v_meshes_iter;
+    typedef std::unordered_map<object_id,MeshInfo>::iterator v_meshes_citer;
+    typedef std::unordered_map<object_id,String>::iterator mesh2path_iter;
+    typedef std::unordered_map<object_id,String>::const_iterator mesh2path_citer;
   private:
     ObjectIdGenerator idgen;
     int v_frame;
     VisualServer *visual_server;
     std::unordered_map<object_id,MeshInfo> v_meshes;
-    std::unordered_map<String,object_id,hash_String> v_path2id;
-    std::unordered_set<String,hash_String> v_invalid_paths;
-    std::unordered_map<String,object_id,hash_String> path2mesh;
+    std::unordered_map<Ref<Mesh>,object_id> v_meshref2id;
+    std::unordered_map<object_id,Ref<Mesh>> v_id2meshref;
+    std::unordered_map<String,object_id> v_path2id;
+    std::unordered_set<String> v_invalid_paths;
+    std::unordered_map<String,object_id> path2mesh;
     std::unordered_map<object_id,String> mesh2path;
     ResourceLoader *loader;
    
@@ -154,7 +167,22 @@ namespace godot {
     inline const String &get_mesh_path(object_id id) {
       return mesh2path[id];
     }
+    // inline std::unordered_map<object_id,String>::const_iterator find_mesh_name(object_id id) const {
+    //   return mesh2path.find(id);
+    // }
+    // inline std::unordered_map<object_id,String>::const_iterator mesh_name_end(object_id id) const {
+    //   return mesh2path.end();
+    // }
 
+    object_id add_preloaded_mesh(Ref<Mesh> mesh);
+    inline bool has_mesh(Ref<Mesh> mesh) const {
+      return v_meshref2id.find(mesh) != v_meshref2id.end();
+    }
+    inline object_id get_preloaded_mesh_id(Ref<Mesh> mesh) const {
+      std::unordered_map<Ref<Mesh>,object_id>::const_iterator it=v_meshref2id.find(mesh);
+      return (it==v_meshref2id.end()) ? -1 : it->second;
+    }
+    
     // All of these must be called from the visual thread:
     void time_passed(real_t delta);
     void send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario);
@@ -169,8 +197,8 @@ namespace godot {
     bool load_mesh(MeshInfo &mesh_info);
     bool update_visual_instance(MeshInfo &mesh_info,RID scenaro,bool reset_scenario);
     void unused_multimesh(MeshInfo &mesh_info);
-    void pack_projectiles(const std::pair<instlocs_iterator,instlocs_iterator> &projectiles,
-                          PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale);
+    void pack_visuals(const std::pair<instlocs_iterator,instlocs_iterator> &projectiles,
+                      PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale);
   };
 }
 

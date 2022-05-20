@@ -343,7 +343,7 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
   real_t outside=minimap_radius*0.95;
   real_t outside_squared = outside*outside;
   const Color &color = projectile_color;
-  for(auto &projectile : visible_content->projectiles) {
+  for(auto &projectile : visible_content->effects) {
     Vector2 minimap_scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) /
       map_radius*minimap_radius;
     if(minimap_scaled.length_squared() > outside_squared)
@@ -394,7 +394,7 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
   //real_t outside=minimap_radius*0.95;
   //real_t outside_squared = outside*outside;
   const Color &color = projectile_color;
-  for(auto &projectile : visible_content->projectiles) {
+  for(auto &projectile : visible_content->effects) {
     Vector2 scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) *map_scale;
     if(scaled.x>minimap_half_size.x or scaled.x<-minimap_half_size.x or
        scaled.y>minimap_half_size.y or scaled.y<-minimap_half_size.y)
@@ -926,6 +926,9 @@ void CombatEngine::ai_step_ship(Ship &ship) {
       ship.confusion_timer.reset();
     }
   }
+  
+  if(ship.cargo_web_active)
+    use_cargo_web(ship);
 }
 
 bool CombatEngine::init_ship(Ship &ship) {
@@ -988,27 +991,30 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
   bool target_nearest = overrides.change_target&PLAYER_TARGET_NEAREST;
 
   if(target_selection) {
-    object_id target=overrides.target_id;
-    if(target_selection==PLAYER_TARGET_OVERRIDE)
-      ship.new_target(target);
-    else {
-      if(target_selection==PLAYER_TARGET_NOTHING)
+    object_id target=ship.get_target();
+    if(target_selection==PLAYER_TARGET_OVERRIDE) {
+      target=overrides.target_id;
+    } else {
+      if(target_selection==PLAYER_TARGET_NOTHING) {
         target=-1;
-      else if(target_selection==PLAYER_TARGET_PLANET) {
-        if(target_nearest)
+      } else if(target_selection==PLAYER_TARGET_PLANET) {
+        if(target_nearest) {
           target=select_target<false>(target,select_nearest(ship.position),planets);
-        else
+        } else {
           target=select_target<true>(target,[] (const planets_const_iter &p) { return true; },planets);
+        }
       } else if(target_selection==PLAYER_TARGET_ENEMY or target_selection==PLAYER_TARGET_FRIEND) {
         int mask=0x7fffffff;
-        if(target_selection==PLAYER_TARGET_ENEMY)
+        if(target_selection==PLAYER_TARGET_ENEMY) {
           mask=enemy_masks[ship.faction];
-        else if(target_selection==PLAYER_TARGET_FRIEND)
+        } else if(target_selection==PLAYER_TARGET_FRIEND) {
           mask=friend_masks[ship.faction];
-        if(target_nearest)
+        }
+        if(target_nearest) {
           target=select_target<false>(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships);
-        else
+        } else {
           target=select_target<true>(target,select_two(select_mask(mask),select_flying()),ships);
+        }
       }
       
       ship.new_target(target);
@@ -1031,9 +1037,6 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
       deactivate_cargo_web(ship);
     ship.cargo_web_active = !ship.cargo_web_active;
   }
-
-  if(ship.cargo_web_active)
-    use_cargo_web(ship);
   
   if(!rotation and fabsf(overrides.manual_rotation)>1e-5) {
     request_rotation(ship,overrides.manual_rotation);
@@ -1100,7 +1103,7 @@ void CombatEngine::use_cargo_web(Ship &ship) {
         Godot::print("Make cargo web puff");
         Vector3 ship_position(ship.position.x,ship.visual_height,ship.position.z);
         Vector3 random_perturbation((ship.rand.randf()-1)/2,ship.rand.randf()/10,(ship.rand.randf()-1)/2);
-        visual_effects->add_cargo_web_puff(ship.id,ship_position,Vector3(-dp.x,-1,-dp.z)+random_perturbation,-0.7f*dv,1,0.4,ship.cargo_puff_texture);
+        visual_effects->add_cargo_web_puff(ship,Vector3(-dp.x,-1,-dp.z)+random_perturbation,-0.7f*dv,1,0.4,ship.cargo_puff_texture);
       } else
         Godot::print("Not making cargo web puff");
     }
@@ -2592,11 +2595,18 @@ void CombatEngine::add_content() {
     next->ships_and_planets.emplace(it.second.id,visual);
   }
 
-  next->projectiles.reserve(projectiles.size());
+  next->effects.reserve(projectiles.size());
   for(auto &it : projectiles) {
-    next->projectiles.emplace_back(it.second);
+    next->effects.emplace_back(it.second);
     if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end())
       next->mesh_paths.emplace(it.second.mesh_id,multimeshes.get_mesh_path(it.second.mesh_id));
+    // if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end()) {
+    //   MultiMeshManager::mesh2path_iter m2p = next->mesh_paths.find(it.second.mesh_id);
+    //   if(m2p!=next->mesh_paths.end())
+    //     next->mesh_paths.emplace(it.second.mesh_id,m2p->second);
+    //   else
+    //     Godot::print_warning("No mesh path found for id="+str(it.second.mesh_id));
+    // }
   }
   // Prepend to linked list:
   next->next=new_content;

@@ -4,7 +4,7 @@ export var label_font_data: DynamicFontData
 export var min_sun_height: float = 50.0
 export var max_sun_height: float = 1e5
 export var min_camera_size: float = 25
-export var max_camera_size: float = 150
+export var max_camera_size: float = 180
 export var max_new_ships_per_tick: int = 1
 export var max_new_ships_per_early_tick: int = 5
 export var number_of_early_ticks: int = 20

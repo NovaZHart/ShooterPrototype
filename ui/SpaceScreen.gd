@@ -91,16 +91,24 @@ func make_player_orders(_delta: float) -> Dictionary:
 		#game_state.call_deferred('change_scene',preload('res://places/Hyperspace.tscn'))
 	
 	var nearest: int = combat_engine.PLAYER_TARGET_NEAREST
+	#var near_str: String = "NEAREST"
 	if Input.is_key_pressed(KEY_SHIFT):
 		nearest = combat_engine.PLAYER_TARGET_NEXT
+	#	near_str = "NEXT"
 	
 	if Input.is_action_just_pressed('ui_down') and tick-last_back_command<15:
 		double_down_active=true
 	
 	var target_info: int = 0
-	if deselect:                target_info = combat_engine.PLAYER_TARGET_NOTHING
-	elif next_enemy:            target_info = combat_engine.PLAYER_TARGET_ENEMY|nearest
-	elif next_planet:           target_info = combat_engine.PLAYER_TARGET_PLANET|nearest
+	if deselect:
+	#	print("TARGET "+near_str+" NOTHING")
+		target_info = combat_engine.PLAYER_TARGET_NOTHING
+	elif next_enemy:
+	#	print("TARGET "+near_str+" ENEMY")
+		target_info = combat_engine.PLAYER_TARGET_ENEMY|nearest
+	elif next_planet:
+	#	print("TARGET "+near_str+" PLANET")
+		target_info = combat_engine.PLAYER_TARGET_PLANET|nearest
 	# FIXME: elif next_friend
 	
 	var orders: int = 0
@@ -115,9 +123,6 @@ func make_player_orders(_delta: float) -> Dictionary:
 		auto_target_flag = not auto_target_flag
 		if auto_target_flag:
 			orders |= combat_engine.PLAYER_ORDER_AUTO_TARGET
-
-	if toggle_cargo_web:
-		orders |= combat_engine.PLAYER_ORDER_TOGGLE_CARGO_WEB
 	
 	if thrust:              goal=0
 	elif intercept:         goal=combat_engine.PLAYER_GOAL_INTERCEPT
@@ -128,6 +133,9 @@ func make_player_orders(_delta: float) -> Dictionary:
 	if not orders and land and not thrust and not goal:
 		target_info = combat_engine.PLAYER_TARGET_PLANET|nearest
 		goal=combat_engine.PLAYER_GOAL_INTERCEPT
+
+	if toggle_cargo_web:
+		orders |= combat_engine.PLAYER_ORDER_TOGGLE_CARGO_WEB
 	
 	mouse_selection_mutex.lock()
 	var target_rid = mouse_selection
@@ -136,13 +144,16 @@ func make_player_orders(_delta: float) -> Dictionary:
 	if not target_rid.get_id() or target_rid==$View/System.get_player_rid():
 		target_rid = $View/System.get_player_target_rid()
 	else:
+		print('TARGET SPECIFIC OBJECT BY MOUSE')
 		target_info = combat_engine.PLAYER_TARGET_OVERRIDE
 	
 	var result: Dictionary = Dictionary()
 	if thrust:                result['manual_thrust'] = float(thrust)
 	if rotate:                result['manual_rotation'] = float(rotate)
 	if orders:                result['orders'] = orders
-	if target_info:           result['change_target'] = target_info
+	if target_info:
+		result['change_target'] = target_info
+	#	print('TARGET INFO = '+str(target_info))
 	if goal:                  result['goals'] = [goal]
 	if target_rid.get_id():
 		result['target_rid'] = target_rid

@@ -15,44 +15,88 @@
 
 #include "CombatEngineUtils.hpp"
 #include "CombatEngineData.hpp"
-#include "hash_String.hpp"
+#include "hash_functions.hpp"
 
 namespace godot {
   class VisualEffects;
-
-  const int EFFECTS_LIGHT_LAYER_MASK = 2;
+  namespace CE {
+    class Ship;
+  }
   
-  struct MeshEffect {
-    enum mesh_effect_behavior {
-      STATIONARY=0,
-      CONSTANT_VELOCITY=1,
-      CENTER_ON_TARGET1=2,
-      VELOCITY_RELATIVE_TO_TARGET=3
-    };
+  const int EFFECTS_LIGHT_LAYER_MASK = 2;
 
-    Ref<Mesh> mesh;
-    Ref<ShaderMaterial> shader_material;
-    AABB lifetime_aabb;
-    double start_time;
-    real_t duration, time_shift;
-    Vector3 velocity, relative_position;
-    Transform transform;
-    VisualRIDPtr instance;
-    volatile bool ready, dead;
-    mesh_effect_behavior behavior;
-    object_id target1, target2;
-    MeshEffect(int dummy=0):
-      mesh(), shader_material(), lifetime_aabb(), start_time(-9e9),
-      duration(0.0f), time_shift(0.0f), velocity(0,0,0), relative_position(), 
-      transform(), instance(), ready(false), dead(false),
-      behavior(CONSTANT_VELOCITY), target1(-1), target2(-1)
-    {}
-    ~MeshEffect() {}
+  enum mesheffect_behavior {
+    STATIONARY=0,
+    CONSTANT_VELOCITY=1,
+    CENTER_ON_TARGET1=2,
+    VELOCITY_RELATIVE_TO_TARGET=3
   };
 
+  struct VisualEffect {
+    object_id id;
+    AABB lifetime_aabb;
+    double start_time;
+    real_t duration, time_shift, rotation;
+    Vector3 velocity, relative_position, position;
+    VisualRIDPtr instance;
+    volatile bool ready, dead;
+    mesheffect_behavior behavior;
+    object_id target1;
+    
+    virtual void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death) = 0;
+    inline Transform calculate_transform() const {
+      return Transform(Basis(Vector3(0,rotation,0)),position);
+    }
+    
+    VisualEffect();
+    virtual ~VisualEffect();
+  };
+  
+  struct MeshEffect: public VisualEffect {
+    Ref<Mesh> mesh;
+    Ref<ShaderMaterial> shader_material;
+
+    void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death) override;
+
+    MeshEffect();
+    virtual ~MeshEffect();
+  };
+
+  struct MultiMeshInstanceEffect: public VisualEffect {
+    object_id mesh_id;
+    Color data;
+    Vector2 half_size;
+
+    inline void set_time(real_t time) {
+      data[0]=time;
+    }
+    inline real_t get_time() const {
+      return data[0];
+    }
+    inline void set_death_time(real_t time) {
+      data[1]=time;
+    }
+    inline real_t get_death_time() const {
+      return data[1];
+    }
+    inline real_t set_duration(real_t time) {
+      data[2]=duration;
+    }
+    inline real_t get_duration() const {
+      return data[2];
+    }
+
+    void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death) override;
+    
+    explicit MultiMeshInstanceEffect();
+    explicit MultiMeshInstanceEffect(object_id id);
+    virtual ~MultiMeshInstanceEffect();
+  };
+  
   class VisualEffects: public Reference {
     GODOT_CLASS(VisualEffects, Reference)
 
+    MultiMeshManager multimeshes;
     AABB visible_area;
     Vector3 visibility_expansion_rate;
     RID scenario;
@@ -61,6 +105,7 @@ namespace godot {
     CE::CheapRand32 rand;
     object_id last_id;
     std::unordered_map<object_id,MeshEffect> mesh_effects;
+    std::unordered_map<object_id,MultiMeshInstanceEffect> mmi_effects;
     std::vector<Vector3> vertex_holder;
     std::vector<Vector2> uv2_holder, uv_holder;
     Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader, fade_out_texture;
@@ -71,6 +116,10 @@ namespace godot {
     typedef std::unordered_map<object_id,MeshEffect>::iterator mesh_effects_iter;
     typedef std::unordered_map<object_id,MeshEffect>::const_iterator mesh_effects_citer;
     typedef std::unordered_map<object_id,MeshEffect>::value_type mesh_effects_value;
+    
+    typedef std::unordered_map<object_id,MultiMeshInstanceEffect>::iterator mmi_effects_iter;
+    typedef std::unordered_map<object_id,MultiMeshInstanceEffect>::const_iterator mmi_effects_citer;
+    typedef std::unordered_map<object_id,MultiMeshInstanceEffect>::value_type mmi_effects_value;
   public:
 
     VisualEffects();
@@ -88,21 +137,22 @@ namespace godot {
     void step_effects(real_t delta);
 
     // Interface for CombatEngine:
-    void add_zap_pattern(real_t lifetime, Vector3 position, real_t radius, bool reverse);
-    void add_zap_ball(real_t lifetime, Vector3 position, real_t radius, bool reverse);
-    void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id id);
+    void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id);
     void set_visible_content(VisibleContent *visible);
-    void add_cargo_web_puff(object_id ship_id,Vector3 ship_position,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
-  
+    void add_cargo_web_puff(const CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
+
+    // Utilities:
+    bool circle_is_visible(const Vector3 &position, real_t radius) const;
+    
   private:
-    VisibleObject *get_object_or_make_stationary(VisibleContent &vc,object_id target,MeshEffect &effect);
-    void step_effect(VisibleContent &vc,MeshEffect &effect,VisualServer *visual_server);
+    VisibleObject * get_object_or_make_stationary(VisibleContent &vc,object_id target,VisualEffect &effect);
+    void step_effect(VisibleContent &vc,VisualEffect &effect,VisualServer *visual_server);
     void free_unused_effects();
     void extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,
                             real_t extent, real_t radius, int depth);
 
     MeshEffect &add_MeshEffect(Array data, real_t duration, Vector3 position,
-                               Ref<Shader> shader);
+                               real_t rotation, Ref<Shader> shader);
   };
 
 }
