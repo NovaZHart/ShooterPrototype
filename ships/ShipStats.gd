@@ -51,7 +51,7 @@ export var base_power: float = -1
 
 export var ai_type: int = 0 setget set_ai_type
 
-export var cargo_puff: Texture = load('res://textures/magenta-beige-puff.png')
+export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = 900
 
@@ -394,7 +394,7 @@ func update_stats():
 			wep['node_path'] = child.get_path()
 			assert(not wep['node_path'].is_empty())
 	combined_stats['aabb']=get_combined_aabb()
-	combined_stats['cargo_puff_texture']=cargo_puff
+	combined_stats['cargo_puff_mesh']=cargo_puff
 	skipped_runtime_stats=false
 	assert(combined_stats['turning_thrust']>0)
 

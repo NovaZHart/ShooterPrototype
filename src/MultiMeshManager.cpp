@@ -47,8 +47,8 @@ VisibleEffect::VisibleEffect(const Projectile &projectile):
   y(PROJECTILE_HEIGHT),
   center(projectile.position.x,projectile.position.z),
   half_size(projectile.direct_fire ? Vector2(projectile.scale,projectile.scale) : Vector2(0.1f,0.1f)),
-  mesh_id(projectile.mesh_id),
-  data()
+  data(),
+  mesh_id(projectile.mesh_id)
 {}
 
 VisibleEffect::VisibleEffect(const MultiMeshInstanceEffect &effect):
@@ -58,9 +58,54 @@ VisibleEffect::VisibleEffect(const MultiMeshInstanceEffect &effect):
   y(effect.position.y),
   center(effect.position.x,effect.position.z),
   half_size(effect.half_size),
-  mesh_id(effect.mesh_id),
-  data(effect.data)
+  data(effect.data),
+  mesh_id(effect.mesh_id)
 {}
+
+VisibleContentManager::VisibleContentManager():
+  new_content(nullptr), visible_content(nullptr)
+{}
+VisibleContentManager::~VisibleContentManager() {
+  clear();
+}
+void VisibleContentManager::clear() {
+  VisibleContent *content=new_content;
+  new_content=nullptr;
+  visible_content=nullptr;
+  while(content) {
+    VisibleContent *next=content->next;
+    delete content;
+    content=next;
+  }
+}
+VisibleContent *VisibleContentManager::push_content(VisibleContent *next) {
+  next->next=new_content;
+  new_content=next;
+  return next;
+}
+
+std::pair<bool,VisibleContent*> VisibleContentManager::update_visible_content() {
+  if(!new_content)
+    // Nothing to display yet.
+    return std::pair<bool,VisibleContent*>(false,nullptr);
+  if(new_content==visible_content)
+    // Nothing new to display.
+    return std::pair<bool,VisibleContent*>(false,visible_content);
+  visible_content = new_content;
+  
+  // Delete content from prior frames, and any content we skipped:
+  VisibleContent *delete_list = visible_content->next;
+  visible_content->next=nullptr;
+  while(delete_list) {
+    VisibleContent *delete_me=delete_list;
+    delete_list=delete_list->next;
+    delete delete_me;
+  }
+
+  return std::pair<bool,VisibleContent*>(true,visible_content);
+}
+
+
 
 MeshInfo::MeshInfo(object_id id, const String &resource_path):
   id(id),
@@ -129,8 +174,9 @@ object_id MultiMeshManager::add_preloaded_mesh(Ref<Mesh> meshref) {
     object_id id=idgen.next();
     v_meshref2id.emplace(meshref,id);
     v_id2meshref.emplace(id,meshref);
-  }  
-  return it->second;
+    return id;
+  } else
+    return it->second;
 }
 
 object_id MultiMeshManager::add_mesh(const String &path) {
@@ -359,7 +405,7 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
 void MultiMeshManager::update_content(VisibleContent &visible_content,
                                       const Vector3 &location,const Vector3 &size) {
   FAST_PROFILING_FUNCTION;
-
+  assert(&visible_content);
   instance_locations.clear();
   need_new_meshes.clear();
   
@@ -369,6 +415,7 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
   real_t loc_max_y = max(location.z-size.z/2,location.z+size.z/2);
 
   for(auto &effect : visible_content.effects) {
+    assert(&effect);
     object_id mesh_id = effect.mesh_id;
 
     if(effect.center.x-effect.half_size.x > loc_max_x or

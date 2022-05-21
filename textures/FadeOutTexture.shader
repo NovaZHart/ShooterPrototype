@@ -8,8 +8,6 @@ uniform float time=0.5;
 uniform float duration=1.0;
 uniform float death_time=9999.99; // anything much larger than 1.0 is okay here
 
-const float HALF_PI=1.570795;
-
 void fragment() {
 	vec4 sample = texture(image_texture,UV);
 	ALPHA = time/duration*sample.w;

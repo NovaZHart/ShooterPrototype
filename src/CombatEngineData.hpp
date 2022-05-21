@@ -70,6 +70,7 @@
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
 #include <OS.hpp>
+#include <Mesh.hpp>
 
 #include "DVector3.hpp"
 #include "ObjectIdGenerator.hpp"
@@ -107,7 +108,7 @@ namespace godot {
       inline void stop() { now=inactive_ticks; }
       inline ticks_t ticks_left() const { return now; }
     protected:
-      inline ticks_t set_ticks(ticks_t what) { now=what; }
+      inline ticks_t set_ticks(ticks_t what) { now=what; return now; }
       AbstractCountdown(const AbstractCountdown &o): now(o.now) {}
       AbstractCountdown(ticks_t now): now(now) {}
       AbstractCountdown(): now(inactive_ticks) {}
@@ -139,7 +140,7 @@ namespace godot {
       bool operator == (const PresetCountdown<DURATION> &o) const {
         return o.ticks_left()==ticks_left();
       }
-      inline ticks_t reset() { set_ticks(DURATION); }
+      inline ticks_t reset() { return set_ticks(DURATION); }
     };
 
     class Countdown: public AbstractCountdown {
@@ -155,7 +156,7 @@ namespace godot {
       bool operator == (const Countdown &o) const {
         return o.ticks_left()==ticks_left();
       }
-      inline ticks_t reset(ticks_t duration) { set_ticks(duration); }
+      inline ticks_t reset(ticks_t duration) { return set_ticks(duration); }
     };
     
     class CheapRand32 {
@@ -250,7 +251,7 @@ namespace godot {
     struct ShipGoalData {
       float threat; // Ship.threat
       float distsq; // square of distance to target location
-      faction_index_t faction_mask; // Ship.faction_mask
+      faction_mask_t faction_mask; // Ship.faction_mask
       Vector3 position; // Ship.position
     };
 
@@ -457,7 +458,7 @@ namespace godot {
       const real_t forward_thrust_heat, reverse_thrust_heat, turning_thrust_heat;
       const real_t forward_thrust_energy, reverse_thrust_energy, turning_thrust_energy;
       const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_strength;
-      const Ref<Texture> cargo_puff_texture;
+      const Ref<Mesh> cargo_puff_mesh;
       
       real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency, cargo_mass;
       double thrust_loss;
@@ -527,6 +528,13 @@ namespace godot {
       bool should_autotarget; // Player only: disable auto-targeting.
       bool at_first_tick; // true iff this is the frame at which the ship spawned
 
+    private:
+            
+      real_t visual_scale; // Intended to resize ship graphics when rifting
+      object_id target;
+
+    public:
+      
       // Determine how much money is recouped when this ship leaves the system alive:
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
@@ -613,9 +621,6 @@ namespace godot {
 
     private:
       void heal_stat(double &stat,double new_value,real_t heal_energy,real_t heal_heat);
-      
-      real_t visual_scale; // Intended to resize ship graphics when rifting
-      object_id target;
       
       inline real_t make_turn_diameter_squared() const {
         // This is a surprisingly expensive calculation, according to profiling.

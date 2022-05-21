@@ -316,7 +316,6 @@ void Starmap::add_link_visuals(PoolIntArray links, Color link_color, real_t link
 void Starmap::add_connecting_link_visuals(PoolIntArray systems, Color link_color, real_t link_scale) {
   PoolIntArray::Read read_systems = systems.read();
   const int *sys = read_systems.ptr();
-  int size = systems.size();
   unordered_set<pair<int,int>,HashIntPair> links;
   
   for(int i=0,n=systems.size();i<n-1;i++) {
@@ -334,7 +333,6 @@ void Starmap::add_connecting_link_visuals(PoolIntArray systems, Color link_color
 void Starmap::add_adjacent_link_visuals(PoolIntArray systems, Color link_color, real_t link_scale) {
   PoolIntArray::Read read_systems = systems.read();
   const int *sys = read_systems.ptr();
-  int size = systems.size();
   unordered_set<pair<int,int>,HashIntPair> links;
   
   for(int i=0,n=systems.size();i<n;i++) {

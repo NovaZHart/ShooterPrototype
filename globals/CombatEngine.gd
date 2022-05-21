@@ -179,9 +179,13 @@ func set_visible_region(visible_area: AABB,
 		visibility_expansion_rate: Vector3):
 	native_visual_effects.set_visible_region(visible_area,visibility_expansion_rate)
 
-func step_visual_effects(delta: float, world: World):
-	assert(world)
-	native_visual_effects.step_effects(delta,world.scenario)
+func step_visual_effects(delta: float, camera: Camera, viewport: Viewport):
+	var viewport_size: Vector2 = viewport.size
+	var ul: Vector3 = camera.project_position(Vector2(0,0),0)
+	var lr: Vector3 = camera.project_position(viewport_size,0)
+	var size: Vector3 = Vector3(abs(ul.x-lr.x),0,abs(ul.z-lr.z))
+	native_visual_effects.step_effects(delta,camera.translation,size)
+	native_visual_effects.free_unused_effects() # FIXME: move to another thread?
 
 func draw_space(camera: Camera,viewport: Viewport) -> void:
 	# Call in VISUAL THREAD to update on-screen projectiles.

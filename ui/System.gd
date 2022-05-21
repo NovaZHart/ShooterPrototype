@@ -233,7 +233,7 @@ func _process(delta) -> void:
 	
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
-	combat_engine.step_visual_effects(delta,get_world())
+	combat_engine.step_visual_effects(delta,$TopCamera,get_tree().root)
 	
 	if player_ship_stats==null:
 		return

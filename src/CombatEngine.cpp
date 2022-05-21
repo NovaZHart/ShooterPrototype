@@ -79,9 +79,7 @@ CombatEngine::CombatEngine():
   reset_scenario(false),
 
   objects_found(),
-  
-  new_content(nullptr),
-  visible_content(nullptr)
+  content()
 
 {
   search_cylinder->set_radius(search_cylinder_radius);
@@ -151,14 +149,7 @@ void CombatEngine::clear_ai() {
   faction_info.clear();
 
   // Wipe out all visual content.
-  VisibleContent *content=new_content;
-  new_content=nullptr;
-  visible_content=nullptr;
-  while(content) {
-    VisibleContent *next=content->next;
-    delete content;
-    content=next;
-  }
+  content.clear();
 }
 
 void CombatEngine::set_visual_effects(Ref<VisualEffects> visual_effects) {
@@ -227,7 +218,8 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
 
   // Pass the visible objects over to the visual thread for display.
   add_content();
-
+  visual_effects->add_content();
+  
   // Update the faction-level AI:
   faction_ai_step();
   
@@ -266,45 +258,38 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   // Location is center of camera view and size is the world-space
   // distance from x=left-right z=top-bottom. Y values are ignored.
   
-  if(!new_content) {
-    // Nothing to display yet.
-    // Godot::print_warning("Null new_content pointer.",__FUNCTION__,__FILE__,__LINE__);
-    multimeshes.clear_all_multimeshes();
-    return;
-  }
-
   if(not scenario.is_valid()) {
     // Nowhere to display anything
     Godot::print_error("Scenario has invalid id",__FUNCTION__,__FILE__,__LINE__);
     multimeshes.clear_all_multimeshes();
     return;
   }
-  
-  if(new_content==visible_content)
-    // Nothing new to display.
+
+  pair<bool,VisibleContent*> newflag_content = content.update_visible_content();
+
+  if(not newflag_content.first) {
+    // Nothing new to display or nothing to display:
+    if(not newflag_content.second)
+      // Nothing to display
+      multimeshes.clear_all_multimeshes();
     return;
+  }
+
+  VisibleContent *visible_content=newflag_content.second;
 
   visual_server = VisualServer::get_singleton();
   
-  visible_content = new_content;
   v_camera_location = location;
   v_camera_size = size;
 
-  visual_effects->set_visible_content(visible_content);
+  visual_effects->add_content();
   
-  // Delete content from prior frames, and any content we skipped:
-  VisibleContent *delete_list = visible_content->next;
-  visible_content->next=nullptr;
-  while(delete_list) {
-    VisibleContent *delete_me=delete_list;
-    delete_list=delete_list->next;
-    delete delete_me;
-  }
-
   // Catalog projectiles and make MeshInfos in v_meshes for mesh_ids we don't have yet
   multimeshes.update_content(*visible_content,location,size);
   multimeshes.load_meshes();
   multimeshes.send_meshes_to_visual_server(projectile_scale,scenario,reset_scenario);
+
+  visual_effects->set_combat_content(visible_content);
 }
 
 
@@ -315,6 +300,8 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
   //NOTE: entry point from gdscript
   canvas=new_canvas;
 
+  VisibleContent *visible_content=content.get_visible_content();
+  
   if(!visible_content)
     return; // Nothing to display yet.
   
@@ -342,7 +329,6 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
   // Draw only the projectiles within the minimap; skip outsiders.
   real_t outside=minimap_radius*0.95;
   real_t outside_squared = outside*outside;
-  const Color &color = projectile_color;
   for(auto &projectile : visible_content->effects) {
     Vector2 minimap_scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) /
       map_radius*minimap_radius;
@@ -358,6 +344,8 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
   FAST_PROFILING_FUNCTION;
   //NOTE: entry point from gdscript
   canvas=new_canvas;
+
+  VisibleContent *visible_content=content.get_visible_content();
 
   if(!visible_content)
     return; // Nothing to display yet.
@@ -393,7 +381,6 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
   // Draw only the projectiles within the minimap; skip outsiders.
   //real_t outside=minimap_radius*0.95;
   //real_t outside_squared = outside*outside;
-  const Color &color = projectile_color;
   for(auto &projectile : visible_content->effects) {
     Vector2 scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) *map_scale;
     if(scaled.x>minimap_half_size.x or scaled.x<-minimap_half_size.x or
@@ -559,7 +546,7 @@ void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) 
 
   float val = accum * rand.randf();
 
-  int i=0;
+  size_t i=0;
   while(i+1<goal_weight_data.size() and val>goal_weight_data[i])
     i++;
 
@@ -765,7 +752,7 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     Ship new_ship = Ship(ship,id,multimeshes);
     pair<ships_iter,bool> pp_ship = ships.emplace(id,new_ship);
     rid2id[pp_ship.first->second.rid.get_id()] = id;
-    bool hostile = is_hostile_towards(pp_ship.first->second.faction,player_faction_index);
+    //bool hostile = is_hostile_towards(pp_ship.first->second.faction,player_faction_index);
     pp_ship.first->second.collision_layer = pp_ship.first->second.faction_mask;
     physics_server->body_set_collision_layer(pp_ship.first->second.rid,pp_ship.first->second.collision_layer);
   }
@@ -808,7 +795,7 @@ void CombatEngine::negate_drag_force(Ship &ship) {
   // Negate the drag force if the ship is below its max speed. Exceptions:
   // 1. If the ship is immobile due to entering orbit or a spatial rift.
   // 2. In hyperspace, if the ship has no fuel.
-  if(ship.immobile or hyperspace and ship.fuel<=0)
+  if(ship.immobile or (hyperspace and ship.fuel<=0))
     return;
   if(ship.linear_velocity.length_squared()<ship.max_speed*ship.max_speed)
     physics_server->body_add_central_force(ship.rid,-ship.drag_force);
@@ -1091,7 +1078,7 @@ void CombatEngine::use_cargo_web(Ship &ship) {
       if(dp.length()>ship.cargo_web_radius)
         continue;
       proj.possible_hit = dp.length()<ship.radius;
-      real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
+      //real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
 
       Vector3 dv=ship.linear_velocity-proj.linear_velocity;
 
@@ -1103,7 +1090,7 @@ void CombatEngine::use_cargo_web(Ship &ship) {
         Godot::print("Make cargo web puff");
         Vector3 ship_position(ship.position.x,ship.visual_height,ship.position.z);
         Vector3 random_perturbation((ship.rand.randf()-1)/2,ship.rand.randf()/10,(ship.rand.randf()-1)/2);
-        visual_effects->add_cargo_web_puff(ship,Vector3(-dp.x,-1,-dp.z)+random_perturbation,-0.7f*dv,1,0.4,ship.cargo_puff_texture);
+        visual_effects->add_cargo_web_puff_MMIEffect(ship,Vector3(-dp.x,-1,-dp.z)+random_perturbation,-0.7f*dv,1,0.4,ship.cargo_puff_mesh);
       } else
         Godot::print("Not making cargo web puff");
     }
@@ -1355,9 +1342,9 @@ void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,g
 
   if(target!=ship.get_target()) {
     ship.new_target(target);
-    if(target>=0) {
-      ships_const_iter it=ships.find(target);
-    }
+    // if(target>=0) {
+    //   ships_const_iter it=ships.find(target);
+    // }
   }
 
   if(target<0 and ship.goal_target>0) {
@@ -1410,9 +1397,9 @@ void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,g
       target = choice->first;
 
     if(target>=0) {
-      if(target != ship.goal_target) {
-        planets_const_iter it=planets.find(target);
-      }
+      // if(target != ship.goal_target) {
+      //   planets_const_iter it=planets.find(target);
+      // }
       ship.goal_target = target;
     }
   }
@@ -1637,7 +1624,7 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     }
     
     // FIXME: implement weapon.get_opportunistic
-    bool opportunistic = false;
+    //bool opportunistic = false;
     
     Vector3 proj_start = ship_pos + weapon.position.rotated(y_axis,ship_rotation) + confusion;
     Vector3 proj_heading = ship.heading.rotated(y_axis,weapon.rotation.y);
@@ -2499,19 +2486,20 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
     
     DVector3 desired_velocity = unit*max_speed;
     DVector3 adjustment = desired_velocity-projectile.linear_velocity;
-    //double weight = clamp((intercept_time-0.1)/0.5,0.0,1.0);
-    //desired_heading = (1-weight)*desired_heading + weight*desired_acceleration.normalized();
+    // //double weight = clamp((intercept_time-0.1)/0.5,0.0,1.0);
+    // //desired_heading = (1-weight)*desired_heading + weight*desired_acceleration.normalized();
     desired_heading=adjustment.normalized();
+    //desired_heading=unit;
   }
   
   real_t want_angular_velocity = angle2(heading,desired_heading);
   //bool is_facing_target = dot2(heading,unit) > 0; //fabsf(want_angular_velocity)<PI/2;
   bool should_thrust = dot2(heading,desired_heading)>0; //fabsf(want_angular_velocity)<PI/2;
-  // if(should_thrust) {
-  //   real_t time_to_face = fabs(want_angular_velocity)/max_angular_velocity;
-  //   //real_t time_to_reach = d.length()/max_speed;
-  //   should_thrust = time_to_face*1.5<=intercept_time; // time_to_reach;
-  // }
+  if(should_thrust) {
+    real_t time_to_face = fabs(want_angular_velocity)/max_angular_velocity;
+    //real_t time_to_reach = d.length()/max_speed;
+    should_thrust = time_to_face*1.5<=intercept_time; // time_to_reach;
+  }
 
   //should_thrust = is_eta_lower_with_thrust(target.position,target.linear_velocity,projectile,heading,desired_heading);
   
@@ -2609,8 +2597,7 @@ void CombatEngine::add_content() {
     // }
   }
   // Prepend to linked list:
-  next->next=new_content;
-  new_content=next;
+  content.push_content(next);
 }
 
 

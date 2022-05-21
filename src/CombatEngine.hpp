@@ -116,8 +116,7 @@ namespace godot {
     std::unordered_set<object_id> objects_found;
     
     // Sending data from physics to visual thread:
-    VisibleContent *volatile new_content;
-    VisibleContent *visible_content;
+    VisibleContentManager content;
   public:
     
     CombatEngine();

@@ -65,9 +65,9 @@ elif env['platform'] in ('x11', 'linux'):
     env.Append(CCFLAGS=['-fPIC'])
     env.Append(CXXFLAGS=['-std=c++17'])
     if env['target'] in ('debug', 'd'):
-        env.Append(CCFLAGS=['-g3', '-Og'])
+        env.Append(CCFLAGS=['-g3', '-Og', '-Wall', '-W'])
     else:
-        env.Append(CCFLAGS=['-g', '-O3'])
+        env.Append(CCFLAGS=['-g', '-O3', '-Wall', '-W'])
 
 elif env['platform'] == "windows":
     env['target_path'] += 'win64/'

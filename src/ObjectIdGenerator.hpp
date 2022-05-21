@@ -17,6 +17,7 @@ namespace godot {
     inline object_id count() const { return last_id; }
     inline ObjectIdGenerator &operator = (const ObjectIdGenerator &m) {
       last_id=m.last_id;
+      return *this;
     }
     inline bool operator == (const ObjectIdGenerator &m) const {
       return last_id==m.last_id;

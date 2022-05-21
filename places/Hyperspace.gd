@@ -304,7 +304,7 @@ func _process(delta: float) -> void:
 	combat_engine.draw_space($View/System/TopCamera,get_tree().root)
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
-	combat_engine.step_visual_effects(delta,get_viewport().world)
+	combat_engine.step_visual_effects(delta,$View/System/TopCamera,get_tree().root)
 	update_pause(delta)
 	handle_zoom(delta)
 	if not get_tree().paused:

@@ -7,6 +7,16 @@ using namespace std;
 using namespace godot;
 using namespace godot::CE;
 
+VisualEffect::VisualEffect(object_id effect_id,double start_time,real_t duration,real_t time_shift,
+                           const Vector3 &position,real_t rotation,const AABB &lifetime_aabb):
+  id(effect_id), lifetime_aabb(lifetime_aabb), start_time(start_time),
+  duration(duration), time_shift(time_shift), rotation(rotation),
+  velocity(), relative_position(), position(),
+  instance(), ready(false), dead(false), behavior(), target1(-1)
+{
+  this->lifetime_aabb.position += position;
+}
+
 VisualEffect::VisualEffect():
   lifetime_aabb(), start_time(-9e9),
   duration(0.0f), time_shift(0.0f), rotation(),
@@ -44,8 +54,11 @@ void MeshEffect::step_effect(VisualServer *visual_server,double time,bool update
 MultiMeshInstanceEffect::MultiMeshInstanceEffect():
   VisualEffect(), mesh_id(-1), data()
 {}
-MultiMeshInstanceEffect::MultiMeshInstanceEffect(object_id id):
-  VisualEffect(), mesh_id(id), data()
+MultiMeshInstanceEffect::MultiMeshInstanceEffect(object_id effect_id,object_id mesh_id,double start_time,
+                                                 real_t duration,real_t time_shift,
+                                                 const Vector3 &position,real_t rotation,const AABB &lifetime_aabb):
+  VisualEffect(effect_id,start_time,duration,time_shift,position,rotation,lifetime_aabb),
+  mesh_id(mesh_id), data(start_time,duration,duration), half_size(Vector2(lifetime_aabb.size.x/2,lifetime_aabb.size.y/2))
 {}
 MultiMeshInstanceEffect::~MultiMeshInstanceEffect() {}
 
@@ -59,11 +72,14 @@ void MultiMeshInstanceEffect::step_effect(VisualServer *visual_server,double tim
 ////////////////////////////////////////////////////////////////////////
 
 VisualEffects::VisualEffects():
+  multimeshes(),
   visible_area(Vector3(-100.0f,-50.0f,-100.0f),Vector3(200.0f,100.0f,200.0f)),
   visibility_expansion_rate(Vector3(10.0f,0.0f,10.0f)),
-  scenario(), delta(1.0/60), now(0.0), rand(), last_id(0),
-  mesh_effects(), vertex_holder(), uv_holder(), uv2_holder(), spatial_rift_shader(),
-  zap_ball_shader()
+  scenario(), delta(1.0/60), now(0.0), rand(), idgen(),
+  mesh_effects(), mmi_effects(), vertex_holder(), uv2_holder(), uv_holder(),
+  spatial_rift_shader(), zap_ball_shader(), hyperspacing_polygon_shader(),
+  fade_out_texture(), hyperspacing_texture(), cargo_puff_texture(), content(),
+  combat_content(nullptr)
 {
   vertex_holder.reserve(2000);
   uv_holder.reserve(2000);
@@ -81,6 +97,7 @@ void VisualEffects::_register_methods() {
   register_method("set_shaders", &VisualEffects::set_shaders);
   register_method("step_effects", &VisualEffects::step_effects);
   register_method("set_scenario", &VisualEffects::set_scenario);
+  register_method("free_unused_effects", &VisualEffects::free_unused_effects);
 }
 
 void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
@@ -117,17 +134,12 @@ void VisualEffects::set_visible_region(AABB visible_area,Vector3 visibility_expa
                                             fabsf(visibility_expansion_rate.z));
 }
 
-void VisualEffects::set_scenario(RID scenario) {
-  this->scenario=scenario;
+void VisualEffects::set_scenario(RID new_scenario) {
+  scenario=new_scenario;
+  reset_scenario=true;
 }
 
-void VisualEffects::step_effects(real_t delta) {
-  VisibleContent *content_ptr = (VisibleContent*)visible_content;
-  if(!content_ptr) {
-    Godot::print_warning("No visible content from combat engine!",__FUNCTION__,__FILE__,__LINE__);
-    return;
-  }
-  VisibleContent &vc = *content_ptr;
+void VisualEffects::step_effects(real_t delta,Vector3 location,Vector3 size) {
   VisualServer *visual_server = VisualServer::get_singleton();
   this->delta=delta;
   now+=delta;
@@ -137,7 +149,7 @@ void VisualEffects::step_effects(real_t delta) {
     VisualEffect &effect = it->second;
     if(not effect.ready or effect.dead)
       continue;
-    step_effect(vc,effect,visual_server);
+    step_effect(effect,visual_server);
   }
 
   // Step all effects that are MultiMeshInstances:
@@ -145,22 +157,37 @@ void VisualEffects::step_effects(real_t delta) {
     VisualEffect &effect = it->second;
     if(not effect.ready or effect.dead)
       continue;
-    step_effect(vc,effect,visual_server);
+    step_effect(effect,visual_server);
   }
 
-  // Free any dead effects:
-  free_unused_effects(); // FIXME: move this to another thread
+  step_multimeshes(delta,location,size);
 }
 
-VisibleObject * VisualEffects::get_object_or_make_stationary(VisibleContent &vc,object_id target,VisualEffect &effect) {
-  ships_and_planets_iter object_iter = vc.ships_and_planets.find(effect.target1);
-  if(object_iter!=vc.ships_and_planets.end())
+void VisualEffects::step_multimeshes(real_t delta,Vector3 location,Vector3 size) {
+  multimeshes.time_passed(delta);
+  pair<bool,VisibleContent *> newflag_visible = content.update_visible_content();
+  if(!newflag_visible.second) {
+    Godot::print_warning("No visible content in visual effects!",__FUNCTION__,__FILE__,__LINE__);
+    return;
+  }
+  if(!newflag_visible.first)
+    // No new content.
+    return;
+
+  multimeshes.update_content(*newflag_visible.second,location,size);
+  multimeshes.load_meshes();
+  multimeshes.send_meshes_to_visual_server(1,scenario,reset_scenario);
+}
+
+VisibleObject * VisualEffects::get_object_or_make_stationary(object_id target,VisualEffect &effect) {
+  ships_and_planets_iter object_iter = combat_content->ships_and_planets.find(target);
+  if(object_iter!=combat_content->ships_and_planets.end())
     return &object_iter->second;
   effect.behavior=STATIONARY;
   return nullptr;
 }
 
-void VisualEffects::step_effect(VisibleContent &vc,VisualEffect &effect,VisualServer *visual_server) {
+void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server) {
   if((now-effect.start_time)>effect.duration) {
     effect.dead=true;
     return;
@@ -176,7 +203,7 @@ void VisualEffects::step_effect(VisibleContent &vc,VisualEffect &effect,VisualSe
   bool update_transform=false, update_death=false;
   switch(effect.behavior) {
   case(CENTER_ON_TARGET1): {
-    VisibleObject *object = get_object_or_make_stationary(vc,effect.target1,effect);
+    VisibleObject *object = get_object_or_make_stationary(effect.target1,effect);
     if(object) {
       if(object->x!=effect.position.x or object->z!=effect.position.z) {
         effect.position.x = object->x;
@@ -193,7 +220,7 @@ void VisualEffects::step_effect(VisibleContent &vc,VisualEffect &effect,VisualSe
     }
   } break;
   case(VELOCITY_RELATIVE_TO_TARGET): {
-    VisibleObject *object = get_object_or_make_stationary(vc,effect.target1,effect);
+    VisibleObject *object = get_object_or_make_stationary(effect.target1,effect);
     if(object) {
       effect.relative_position += delta*effect.velocity;
       real_t x=object->x+effect.relative_position.x;
@@ -206,15 +233,21 @@ void VisualEffects::step_effect(VisibleContent &vc,VisualEffect &effect,VisualSe
     } else
       update_death=true;
   } break;
+  case STATIONARY: { /* nothing to do */ } break;
   };
   effect.step_effect(visual_server,now,update_transform,update_death);
 }
 
-void VisualEffects::set_visible_content(VisibleContent *visible) {
-  visible_content=visible;
+void VisualEffects::add_content() {
+  VisibleContent *next = new VisibleContent();
+  next->effects.reserve(mmi_effects.size());
+  for(auto &id_effect : mmi_effects) {
+    MultiMeshInstanceEffect &effect=id_effect.second;
+    if(effect.ready and not effect.dead)
+      next->effects.emplace_back(effect);
+  }
+  content.push_content(next);
 }
-
-//MultiMeshInstanceEffect &VisualEffects::add_MultiMeshInstanceEffect(
 
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
@@ -237,7 +270,7 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   material->set_shader(shader);
   mesh->surface_set_material(0,material);
   
-  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(last_id++,MeshEffect()));
+  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(idgen.next(),MeshEffect()));
   MeshEffect &effect = it.first->second;
   effect.rotation = rotation;
   effect.position = position;
@@ -246,7 +279,6 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   effect.start_time = now;
   effect.duration = duration;
   effect.lifetime_aabb = mesh->get_aabb();
-  //effect.half_size = Vector2(effect.lifetime_aabb.size.x/2,effect.lifetime_aabb.size.y/2);
   effect.lifetime_aabb.position += position;
 
   VisualServer *visual_server = VisualServer::get_singleton();
@@ -265,10 +297,26 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   return effect;
 }
 
-void VisualEffects::add_cargo_web_puff(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
+
+MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t duration, Vector3 position,
+                                                      real_t rotation) {
+  object_id mesh_id=multimeshes.get_preloaded_mesh_id(mesh);
+  if(mesh_id<0) {
+    Godot::print("Add preloaded mesh.");
+    mesh_id=multimeshes.add_preloaded_mesh(mesh);
+  }
+
+  object_id effect_id=idgen.next();
+  pair<mmi_effects_iter,bool> it =
+    mmi_effects.emplace(effect_id,MultiMeshInstanceEffect(effect_id,mesh_id,now,duration,0,position,rotation,
+                                                          mesh->get_aabb()));
+  return it.first->second;
+}
+
+void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
   real_t aabb_growth = (ship.max_speed + relative_velocity.length())*duration;
 
-  if(not circle_is_visible(ship.position,length*2+aabb_growth) or cargo_puff.is_null())
+  if(not is_circle_visible(ship.position,length*2+aabb_growth) or cargo_puff.is_null())
     return;
 
   PoolVector3Array pool_vertices;
@@ -315,7 +363,33 @@ void VisualEffects::add_cargo_web_puff(const godot::CE::Ship &ship,Vector3 relat
   }
 }
 
-bool VisualEffects::circle_is_visible(const Vector3 &position, real_t radius) const {
+void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff) {
+  real_t aabb_growth = (ship.max_speed + relative_velocity.length())*duration;
+
+  if(not is_circle_visible(ship.position,length*2+aabb_growth)) {
+    Godot::print("cargo web puff out of view");
+    return;
+  }
+  if(cargo_puff.is_null()) {
+    Godot::print("Null cargo puff.");
+    return;
+  }
+
+  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,ship.position+relative_position,0);
+
+  if(not effect.dead) {
+    effect.lifetime_aabb.grow_by(aabb_growth);
+    effect.behavior = VELOCITY_RELATIVE_TO_TARGET;
+    effect.velocity = relative_velocity;
+    effect.target1 = ship.id;
+    effect.relative_position = relative_position;
+    effect.ready = true;
+    Godot::print("MMI puff ready.");
+  } else
+    Godot::print("MMI puff started dead.");
+}
+
+bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) const {
   Vector3 start=visible_area.position, end=visible_area.position+visible_area.size;
   if(position.x-radius>=end.x or position.x+radius<start.x or
      position.z-radius>end.z  or position.z+radius<start.z)
@@ -324,7 +398,7 @@ bool VisualEffects::circle_is_visible(const Vector3 &position, real_t radius) co
 }
 
 void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id) {
-  if(not circle_is_visible(position,radius) or not duration>0.0f)
+  if(not is_circle_visible(position,radius) or not (duration>0.0f))
     return;
 
   real_t scaled_radius=radius/0.95;

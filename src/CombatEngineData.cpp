@@ -115,17 +115,6 @@ grab_radius(get<real_t>(dict,"grab_radius"))
 {}
 Salvage::~Salvage() {}
 
-ProjectileMesh::ProjectileMesh(RID mesh_rid,object_id id):
-  id(id),
-  mesh_id(mesh_id),
-  has_multimesh(false),
-  multimesh_id(),
-  instance_count(0),
-  visible_instance_count(0)
-{}
-
-ProjectileMesh::~ProjectileMesh() {}
-
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   id(id),
   target(ship.get_target()),
@@ -146,9 +135,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   heat_fraction(weapon.heat_fraction),
   energy_fraction(weapon.energy_fraction),
   thrust_fraction(weapon.thrust_fraction),
-  position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
   faction(ship.faction),
   damage_type(weapon.damage_type),
+  position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
   linear_velocity(),
   rotation(),
   angular_velocity(),
@@ -195,9 +184,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   heat_fraction(weapon.heat_fraction),
   energy_fraction(weapon.energy_fraction),
   thrust_fraction(weapon.thrust_fraction),
-  position(position),
   faction(ship.faction),
   damage_type(weapon.damage_type),
+  position(position),
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
@@ -213,7 +202,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes):
   id(id),
-  target(target),
+  target(-1),
   mesh_id(multimeshes.add_mesh(salvage->flotsam_mesh_path)),
   guided(false),
   guidance_uses_velocity(false),
@@ -231,9 +220,9 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   heat_fraction(0),
   energy_fraction(0),
   thrust_fraction(0),
-  position(position),
   faction(FLOTSAM_FACTION),
   damage_type(DAMAGE_TYPELESS),
+  position(position),
   linear_velocity(velocity),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
@@ -268,25 +257,25 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   thrust_fraction(get<real_t>(dict,"thrust_fraction")),
   firing_energy(get<real_t>(dict,"firing_energy")),
   firing_heat(get<real_t>(dict,"firing_heat")),
+  direct_fire(firing_delay<1e-5),
+  guided(not direct_fire and get<bool>(dict,"guided")),
+  guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
+  mesh_id(multimeshes.add_mesh(get<String>(dict,"projectile_mesh_path"))),
+  terminal_velocity((projectile_drag>0 and projectile_thrust>0 and projectile_drag>0) ? projectile_thrust/(projectile_drag*projectile_mass) : initial_velocity),
+  projectile_range(projectile_lifetime*terminal_velocity),
+  node_path(get<NodePath>(dict,"node_path")),
+  is_turret(turn_rate>1e-5),
   damage_type(clamp(get<int>(dict,"damage_type"),0,NUM_DAMAGE_TYPES-1)),
   reload_delay(max(0.0f,get<real_t>(dict,"reload_delay"))),
   reload_energy(max(0.0f,get<real_t>(dict,"reload_energy"))),
   reload_heat(max(0.0f,get<real_t>(dict,"reload_heat"))),
   ammo_capacity(max(0,get<int>(dict,"ammo_capacity"))),
   ammo(get<int>(dict,"ammo",ammo_capacity)),
-  direct_fire(firing_delay<1e-5),
-  guided(not direct_fire and get<bool>(dict,"guided")),
-  guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
   //  instance_id(get<RID>(dict,"instance_id")),
-  mesh_id(multimeshes.add_mesh(get<String>(dict,"projectile_mesh_path"))),
-  terminal_velocity((projectile_drag>0 and projectile_thrust>0 and projectile_drag>0) ? projectile_thrust/(projectile_drag*projectile_mass) : initial_velocity),
-  projectile_range(projectile_lifetime*terminal_velocity),
-  node_path(get<NodePath>(dict,"node_path")),
-  is_turret(turn_rate>1e-5),
   position(get<Vector3>(dict,"position")),
   rotation(get<Vector3>(dict,"rotation")),
   harmony_angle(asin_clamp(position.z/projectile_range)),
-  firing_countdown(0)
+  firing_countdown(0), reload_countdown(0)
 {
   if(not ammo_capacity)
     ammo=-1;
@@ -464,7 +453,6 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   explosion_radius(max(0.0f,get<real_t>(dict,"explosion_radius",0))),
   explosion_impulse(get<real_t>(dict,"explosion_impulse",0)),
   explosion_delay(max(0,get<int>(dict,"explosion_delay",0))),
-  explosion_timer(),
   explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_HOT_MATTER),0,NUM_DAMAGE_TYPES-1)),
 
   shield_resist(to_damage_array(dict["shield_resist"],MIN_RESIST,MAX_RESIST)),
@@ -494,9 +482,8 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   rifting_damage_multiplier(clamp(get<real_t>(dict,"rifting_damage_multiplier",0.3f),0.0f,1.0f)),
   cargo_web_radius(radius+get<real_t>(dict,"cargo_web_add_radius",0)),
   cargo_web_strength(get<real_t>(dict,"cargo_web_strength",900)),
-  cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
-  cargo_puff_texture(get<Ref<Texture>>(dict,"cargo_puff_texture")),
-  
+  cargo_puff_mesh(get<Ref<Mesh>>(dict,"cargo_puff_mesh")),
+
   energy(max_energy),
   heat(0.0f),
   power(max_power),
@@ -504,10 +491,13 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   thrust(max_thrust),
   reverse_thrust(max_reverse_thrust),
   turning_thrust(max_turning_thrust),
-
+  efficiency(1),
+  cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
   thrust_loss(0.0f),
   
+  explosion_timer(),
   fate(FATED_TO_FLY),
+  
   entry_method(static_cast<entry_t>(get<int>(dict,"entry_method",static_cast<int>(ENTRY_COMPLETE)))),
   //  turn_diameter(max_speed()*2.0/max_angular_velocity),
 
@@ -543,17 +533,19 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   no_target_timer(),
   range_check_timer(),
   shot_at_target_timer(),
+  confusion_timer(),
   tick_at_last_shot(TICKS_LONG_AGO),
   ticks_since_targetting_change(TICKS_LONG_AGO),
   damage_since_targetting_change(0),
-  target(-1),
   threat_vector(),
-  nearby_objects(), nearby_enemies(),
+  nearby_objects(),
+  nearby_enemies(),
   nearby_enemies_tick(TICKS_LONG_AGO),
   nearby_enemies_range(0),
   rand(),
   destination(randomize_destination()),
-
+  collision_layer(0),
+  
   aim_multiplier(1.0),
   confusion_multiplier(0.1),
   confusion(Vector3()),
@@ -562,6 +554,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   max_speed(0),
   max_angular_velocity(0),
   turn_diameter_squared(0),
+  drag_force(),
   updated_mass_stats(false),
   cargo_web_active(false),
   immobile(false),
@@ -569,7 +562,9 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   damage_multiplier(1.0f),
   should_autotarget(true),
   at_first_tick(true),
-  visual_scale(1.0)
+
+  visual_scale(1.0),
+  target()
 {
   if(max_energy<=1e-5)
     Godot::print_warning(name+String(": new ship has invalid max_energy (battery)."),__FUNCTION__,__FILE__,__LINE__);

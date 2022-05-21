@@ -244,8 +244,8 @@ namespace godot {
       const real_t max_range;
     public:
       select_nearest(const Vector3 &to,real_t max_range = std::numeric_limits<real_t>::infinity()):
-        closest(std::numeric_limits<real_t>::infinity()),
         to(to),
+        closest(std::numeric_limits<real_t>::infinity()),
         max_range(max_range)
       {}
       select_nearest(const select_nearest &other):

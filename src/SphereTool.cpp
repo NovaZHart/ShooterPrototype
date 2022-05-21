@@ -118,7 +118,7 @@ void SphereTool::make_cube_sphere_v2(String name,Vector3 center, float float_rad
   const double pi = 3.14159265358979323846;
   const double u_start[6] = { 1/64.0, 1/64.0, 17/64.0, 17/64.0, 33/64.0, 33/64.0 };
   const double v_start[6] = { 1/32.0, 17/32.0, 1/32.0, 17/32.0, 1/32.0, 17/32.0 };
-  const double width = 1.0/sqrt(2.0), widthsq=0.5, u_scale=14/64.0, v_scale=14/32.0;
+  const double width = 1.0/sqrt(2.0), u_scale=14/64.0, v_scale=14/32.0;
   const int i_add[2][6] = { {0,0,1,1,1,0}, {0,0,1,1,0,1} };
   const int j_add[2][6] = { {0,1,1,1,0,0}, {0,1,0,0,1,1} };
 

@@ -40,25 +40,12 @@ namespace godot {
     class Planet;
     class Projectile;
   }
-  struct ProjectileMesh;
   struct MeshInfo;
   struct MeshInstanceInfo;
   struct VisibleObject;
   struct VisibleEffect;
   struct VisibleContent;
   struct MultiMeshInstanceEffect;
-  
-  struct ProjectileMesh {
-    object_id id;
-    RID mesh_id;
-
-    bool has_multimesh;
-    RID multimesh_id;
-    int instance_count, visible_instance_count;
-
-    ProjectileMesh(RID, object_id);
-    ~ProjectileMesh();
-  };
     
 
   // Any Mesh from projectiles that may be in a multimesh
@@ -119,11 +106,39 @@ namespace godot {
     ships_and_planets_t ships_and_planets;
     std::vector<VisibleEffect> effects;
     std::unordered_map<object_id,String> mesh_paths;
+    std::unordered_map<object_id,object_id> preloaded_meshes;
     VisibleContent *next;
     VisibleContent();
     ~VisibleContent();
   };
 
+  class VisibleContentManager {
+    VisibleContent *volatile new_content; // content being prepared by combat engine
+    VisibleContent *visible_content; // content presently on screen
+  public:
+    VisibleContentManager();
+    ~VisibleContentManager();
+    void clear();
+    VisibleContent *push_content(VisibleContent *next);
+
+    std::pair<bool,VisibleContent*> update_visible_content();
+
+    inline VisibleContent * get_new_content() {
+      return new_content;
+    }
+    inline const VisibleContent * get_new_content() const {
+      return new_content;
+    }
+
+    inline VisibleContent * get_visible_content() {
+      return visible_content;
+    }
+    inline const VisibleContent * get_visible_content() const {
+      return visible_content;
+    }
+      
+  };
+  
   typedef std::unordered_map<String,object_id> path2mesh_t;
   typedef std::unordered_map<object_id,String> mesh2path_t;
 
