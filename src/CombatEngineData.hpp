@@ -9,7 +9,6 @@
 #define FAR 9999999 /* farther than any distance that should be considered */
 #define BIG 9999999 /* bigger than any object should be */
 #define PLAYER_COLLISION_LAYER_BITS 1
-#define PROJECTILE_HEIGHT 27 /* Y value of projectile translations */
 #define PI 3.141592653589793
 
 #define THREAT_EPSILON 1.0f /* Threat difference that is considered 0 */
@@ -79,6 +78,14 @@
 namespace godot {
   namespace CE {
 
+    enum visual_layers {
+      below_planets=-39,
+      below_ships=0,
+      below_projectiles=25,
+      projectile_height=27,
+      above_projectiles=29
+    };
+    
     const int max_meshes=50;
     const int max_ships=700;
     const int max_planets=300;
@@ -404,8 +411,7 @@ namespace godot {
       
       Planet(Dictionary dict,object_id id);
       ~Planet();
-      Dictionary update_status(const std::unordered_map<object_id,Ship> &ships,
-                               const std::unordered_map<object_id,Planet> &planets) const;
+      Dictionary update_status() const;
       void update_goal_data(const Planet &other);
       void update_goal_data(const std::unordered_map<object_id,Ship> &ships);
       inline const std::vector<ShipGoalData> &get_goal_data() const { return goal_data; }
@@ -545,7 +551,7 @@ namespace godot {
       bool update_from_physics_server(PhysicsServer *server);
 
       // Update information derived from physics server info:
-      void update_stats(PhysicsServer *state, bool update_server);
+      void update_stats(PhysicsServer *state);
 
       // Pay for rotation or other constant usage:
       void apply_heat_and_energy_costs(real_t delta);

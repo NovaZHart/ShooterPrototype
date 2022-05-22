@@ -59,6 +59,7 @@ namespace godot {
     bool invalid;
     PoolRealArray floats;
     MeshInfo(object_id,const String &);
+    MeshInfo(object_id,Ref<Mesh> mesh_ref);
     ~MeshInfo();
   };
 
@@ -94,6 +95,7 @@ namespace godot {
   typedef std::vector<VisibleEffect>::const_iterator visible_effects_citer;
 
   typedef std::unordered_map<object_id,String>::iterator mesh_paths_iter;
+  typedef std::unordered_map<object_id,object_id>::iterator preloaded_meshes_iter;
   typedef std::unordered_map<object_id,VisibleObject> ships_and_planets_t;
   typedef ships_and_planets_t::iterator ships_and_planets_iter;
   typedef ships_and_planets_t::const_iterator ships_and_planets_citer;
@@ -106,7 +108,7 @@ namespace godot {
     ships_and_planets_t ships_and_planets;
     std::vector<VisibleEffect> effects;
     std::unordered_map<object_id,String> mesh_paths;
-    std::unordered_map<object_id,object_id> preloaded_meshes;
+    //std::unordered_map<object_id,object_id> preloaded_meshes;
     VisibleContent *next;
     VisibleContent();
     ~VisibleContent();
@@ -200,7 +202,7 @@ namespace godot {
     
     // All of these must be called from the visual thread:
     void time_passed(real_t delta);
-    void send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario);
+    void send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario,bool loud=false);
     void load_meshes();
     void clear_all_multimeshes();
     void update_content(VisibleContent &visible_content,const Vector3 &location,const Vector3 &size);

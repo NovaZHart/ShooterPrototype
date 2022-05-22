@@ -44,7 +44,7 @@ VisibleEffect::VisibleEffect(const Projectile &projectile):
   rotation_y(projectile.rotation.y),
   scale_x(projectile.direct_fire ? projectile.scale : 0),
   scale_z(0),
-  y(PROJECTILE_HEIGHT),
+  y(godot::CE::projectile_height),
   center(projectile.position.x,projectile.position.z),
   half_size(projectile.direct_fire ? Vector2(projectile.scale,projectile.scale) : Vector2(0.1f,0.1f)),
   data(),
@@ -112,6 +112,19 @@ MeshInfo::MeshInfo(object_id id, const String &resource_path):
   resource_path(resource_path),
   mesh_resource(),
   mesh_rid(), multimesh_rid(), visual_rid(),
+  instance_count(0),
+  visible_instance_count(0),
+  last_frame_used(0),
+  invalid(false),
+  floats()
+{}
+
+MeshInfo::MeshInfo(object_id id, Ref<Mesh> mesh):
+  id(id),
+  resource_path(mesh->get_path()),
+  mesh_resource(mesh),
+  preloaded_mesh(mesh),
+  mesh_rid(mesh->get_rid()), multimesh_rid(), visual_rid(),
   instance_count(0),
   visible_instance_count(0),
   last_frame_used(0),
@@ -190,13 +203,21 @@ object_id MultiMeshManager::add_mesh(const String &path) {
   return it->second;
 }
 
-void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario) {
+void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario,bool loud) {
   // Update on-screen projectiles
   for(auto &vit : v_meshes) {
+    if(loud)
+      Godot::print("Got a mesh.");
     MeshInfo &mesh_info = vit.second;
     int count = instance_locations.count(vit.first);
     
     if(!count) {
+      if(loud) {
+        if(mesh_info.preloaded_mesh.is_valid())
+          Godot::print("Unused pre-loaded mesh found with resource path \""+mesh_info.preloaded_mesh->get_path()+"\" name=\""+mesh_info.preloaded_mesh->get_name()+"\"");
+        else
+          Godot::print("Unused mesh found with resource path \""+mesh_info.resource_path+"\"");
+      }
       unused_multimesh(mesh_info);
       continue;
     }
@@ -207,18 +228,26 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
     mesh_info.last_frame_used=v_frame;
 
     // Make sure we have a multimesh with enough space
-    if(!allocate_multimesh(mesh_info,count))
+    if(!allocate_multimesh(mesh_info,count)) {
+      if(loud)
+        Godot::print_warning("allocate_multimesh failed",__FUNCTION__,__FILE__,__LINE__);
       continue;
+    }
 
     // Make sure we have a visual instance
-    if(!update_visual_instance(mesh_info,scenario,reset_scenario))
+    if(!update_visual_instance(mesh_info,scenario,reset_scenario)) {
+      if(loud)
+        Godot::print_warning("update_visual_instance failed",__FUNCTION__,__FILE__,__LINE__);
       continue;
+    }
     
     pack_visuals(instances,mesh_info.floats,mesh_info,projectile_scale);
     
     // Send the instance data.
     visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
     mesh_info.visible_instance_count = count;
+    if(loud)
+      Godot::print("          ... mesh count is "+str(count));
     visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,mesh_info.floats);
   }
 }
@@ -237,7 +266,10 @@ void MultiMeshManager::warn_invalid_mesh(MeshInfo &mesh,const String &why) {
   FAST_PROFILING_FUNCTION;
   if(!mesh.invalid) {
     mesh.invalid=true;
-    Godot::print_error(mesh.resource_path+String(": ")+why+String(" Effect will be invisible."),__FUNCTION__,__FILE__,__LINE__);
+    if(mesh.preloaded_mesh.is_valid())
+      Godot::print_error(String("Preloaded mesh ")+mesh.preloaded_mesh->get_path()+String(": ")+why+String(" Effect will be invisible."),__FUNCTION__,__FILE__,__LINE__);
+    else
+      Godot::print_error(mesh.resource_path+String(": ")+why+String(" Effect will be invisible."),__FUNCTION__,__FILE__,__LINE__);
   }
 }
 
@@ -405,7 +437,6 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
 void MultiMeshManager::update_content(VisibleContent &visible_content,
                                       const Vector3 &location,const Vector3 &size) {
   FAST_PROFILING_FUNCTION;
-  assert(&visible_content);
   instance_locations.clear();
   need_new_meshes.clear();
   
@@ -415,7 +446,6 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
   real_t loc_max_y = max(location.z-size.z/2,location.z+size.z/2);
 
   for(auto &effect : visible_content.effects) {
-    assert(&effect);
     object_id mesh_id = effect.mesh_id;
 
     if(effect.center.x-effect.half_size.x > loc_max_x or
@@ -441,15 +471,20 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
       mesh_paths_iter pit = visible_content.mesh_paths.find(mesh_id);
       
       if(pit==visible_content.mesh_paths.end()) {
-        // Should never get here. This means the physics thread
-        // generated an effect without sending its mesh resource path.
-        pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));
-        warn_invalid_mesh(emplaced.first->second,"internal error: no mesh path sent from physics thread.");
-        continue;
+        auto id_meshref=v_id2meshref.find(mesh_id);
+        //preloaded_meshes_iter pmi = visible_content.preloaded_meshes.find(mesh_id);
+        if(id_meshref==v_id2meshref.end()) {
+          // Should never get here. This means the physics thread
+          // generated an effect without sending its mesh resource path.
+          pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));
+          warn_invalid_mesh(emplaced.first->second,"internal error: no mesh path or preloaded mesh sent from physics thread.");
+          continue;
+        }
+        v_meshes.emplace(mesh_id,MeshInfo(mesh_id,id_meshref->second));
+      } else {
+        v_meshes.emplace(mesh_id,MeshInfo(mesh_id,pit->second));
+        need_new_meshes.insert(mesh_id);
       }
-
-      v_meshes.emplace(mesh_id,MeshInfo(mesh_id,pit->second));
-      need_new_meshes.insert(mesh_id);
     }
   }
 }

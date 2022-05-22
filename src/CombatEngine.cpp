@@ -527,7 +527,7 @@ void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) 
     target_advice.push_back(ta);
   }
 
-  for(int i=0;i<goal_weight_data.size();i++) {
+  for(size_t i=0;i<goal_weight_data.size();i++) {
     float &weight = goal_weight_data[i];
     weight -= min_desire;
     if(max_desire>min_desire)
@@ -667,7 +667,7 @@ void CombatEngine::step_all_ships() {
       ship.advance_time(idelta);
       ai_step_ship(ship);
       negate_drag_force(ship);
-      ship.update_stats(physics_server,true);
+      ship.update_stats(physics_server);
       if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
         factions_iter p_faction = factions.find(ship.faction);
         if(p_faction!=factions.end())
@@ -726,7 +726,7 @@ void CombatEngine::update_ship_list(const Array &update_request_rid, Array &resu
   for(auto &p_planet : planets) {
     Planet &planet = p_planet.second;
     if(update_request_id.find(planet.id)!=update_request_id.end())
-      result.append(planet.update_status(ships,planets));
+      result.append(planet.update_status());
   }
 }
 
@@ -988,7 +988,7 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
         if(target_nearest) {
           target=select_target<false>(target,select_nearest(ship.position),planets);
         } else {
-          target=select_target<true>(target,[] (const planets_const_iter &p) { return true; },planets);
+          target=select_target<true>(target,[] (const planets_const_iter &_p) { return true; },planets);
         }
       } else if(target_selection==PLAYER_TARGET_ENEMY or target_selection==PLAYER_TARGET_FRIEND) {
         int mask=0x7fffffff;
@@ -1361,7 +1361,7 @@ void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,g
 
     weighted_planets.reserve(target_advice.size()*2);
 
-    real_t weight_sum;
+    real_t weight_sum=0;
     for(auto &advice : target_advice) {
       if(advice.action != goal_filter)
         continue; // ship does not contribute to this goal
@@ -1543,6 +1543,7 @@ bool CombatEngine::patrol_ai(Ship &ship) {
     }
   }
   move_to_intercept(ship, 5, 1, ship.destination, Vector3(0,0,0), false);
+  return true;
 }
 
 Vector3 CombatEngine::make_threat_vector(Ship &ship, real_t t) {
@@ -1630,7 +1631,7 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     Vector3 proj_heading = ship.heading.rotated(y_axis,weapon.rotation.y);
     real_t turret_angular_velocity=0;
     real_t best_score = numeric_limits<real_t>::infinity();
-    int best_enemy = -1;
+    //int best_enemy = -1;
 
     for(int i=0;i<num_eptrs;i++) {
       Ship &enemy = *eptrs[i];
@@ -1726,7 +1727,7 @@ bool CombatEngine::request_stop(Ship &ship,Vector3 desired_heading,real_t max_sp
   }
 
   double stop_time = speed/(ship.inverse_mass*ship.thrust);
-  double limit = 0.8 + 0.2/(1.0+stop_time*stop_time*stop_time*speed_epsilon);
+  //double limit = 0.8 + 0.2/(1.0+stop_time*stop_time*stop_time*speed_epsilon);
   double turn = acos_clamp_dot(-velocity_norm,ship.heading);
   double forward_turn_time = turn/ship.max_angular_velocity;
 
@@ -2062,7 +2063,7 @@ void CombatEngine::move_to_attack(Ship &ship,Ship &target) {
   real_t dotted = dot2(ship.heading,dp.normalized());
 	
   // Heuristic; needs improvement
-  if(dotted>=0.9 and dot2(ship.linear_velocity,dp)<0 or
+  if((dotted>=0.9 and dot2(ship.linear_velocity,dp)<0) or
      lensq2(dp)>max(100.0f,ship.turn_diameter_squared))
     request_thrust(ship,1.0,0.0);
   else if(dotted<-0.75 and ship.reverse_thrust>0)
@@ -2136,7 +2137,7 @@ void CombatEngine::request_rotation(Ship &ship, real_t rotation_factor) {
 
 void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
   FAST_PROFILING_FUNCTION;
-  if(ship.immobile or hyperspace and ship.fuel<=0)
+  if(ship.immobile or (hyperspace and ship.fuel<=0))
     return;
   real_t ai_thrust = ship.thrust*clamp(forward,0.0f,1.0f) - ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
   ship.energy -= delta*(ship.forward_thrust_energy*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_energy*ship.reverse_thrust*clamp(reverse,0.0f,1.0f));
@@ -2456,7 +2457,7 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   DVector3 unit = d.normalized();
   real_t expected_speed = (max_speed+projectile.linear_velocity.length())/2;
   real_t intercept_time = d.length()/expected_speed;
-  real_t speed=projectile.linear_velocity.length();
+  //real_t speed=projectile.linear_velocity.length();
   DVector3 target_velocity(target.linear_velocity);
 
   DVector3 desired_heading = unit;

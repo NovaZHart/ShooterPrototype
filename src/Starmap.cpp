@@ -444,7 +444,7 @@ void Starmap::_draw() {
   
   Projector proj(*zx_orthographic_camera,*viewport,rect_global_position);
 
-  real_t camera_size = zx_orthographic_camera->get_size();
+  //real_t camera_size = zx_orthographic_camera->get_size();
 
   Rect2 view_rect = Rect2(Vector2(-20,-20),proj.view_size+Vector2(40,40));
   int system_count = system_map.size();

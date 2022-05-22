@@ -167,16 +167,17 @@ void VisualEffects::step_multimeshes(real_t delta,Vector3 location,Vector3 size)
   multimeshes.time_passed(delta);
   pair<bool,VisibleContent *> newflag_visible = content.update_visible_content();
   if(!newflag_visible.second) {
+    // No content yet. This is expected in the first frame.
     Godot::print_warning("No visible content in visual effects!",__FUNCTION__,__FILE__,__LINE__);
     return;
   }
   if(!newflag_visible.first)
-    // No new content.
+    // No new content. This will happen when multiple visual frames occur between two physics frames.
     return;
 
   multimeshes.update_content(*newflag_visible.second,location,size);
   multimeshes.load_meshes();
-  multimeshes.send_meshes_to_visual_server(1,scenario,reset_scenario);
+  multimeshes.send_meshes_to_visual_server(1,scenario,reset_scenario,!(int(now*60)%60));
 }
 
 VisibleObject * VisualEffects::get_object_or_make_stationary(object_id target,VisualEffect &effect) {
@@ -375,7 +376,10 @@ void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vec
     return;
   }
 
-  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,ship.position+relative_position,0);
+  Vector3 effect_position=ship.position+relative_position;
+  effect_position.y=below_projectiles;
+  
+  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,effect_position,0);
 
   if(not effect.dead) {
     effect.lifetime_aabb.grow_by(aabb_growth);

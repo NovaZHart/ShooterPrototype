@@ -202,7 +202,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes):
   id(id),
-  target(-1),
+  target(ship.get_target()),
   mesh_id(multimeshes.add_mesh(salvage->flotsam_mesh_path)),
   guided(false),
   guidance_uses_velocity(false),
@@ -347,8 +347,7 @@ Planet::Planet(Dictionary dict,object_id id):
 Planet::~Planet()
 {}
 
-Dictionary Planet::update_status(const unordered_map<object_id,Ship> &ships,
-                                 const unordered_map<object_id,Planet> &planets) const {
+Dictionary Planet::update_status() const {
   Dictionary s;
   // s["rotation"] = rotation;
   // s["position"] = position;
@@ -629,11 +628,11 @@ bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
   } else
     drag=new_drag;
   
-  update_stats(physics_server,false);
+  update_stats(physics_server);
   return true;
 }
 
-void Ship::update_stats(PhysicsServer *physics_server,bool update_server) {
+void Ship::update_stats(PhysicsServer *physics_server) {
   real_t new_mass = empty_mass+cargo_mass;
   if(max_fuel>=.001)
     new_mass += fuel/fuel_inverse_density;
