@@ -2150,7 +2150,100 @@
           },
           null
       ],
-      
+
+        "test_ship":[
+            "ShipDesign",
+            "Test Ship",
+            [
+                "Resource",
+                "res://ships/SmallCivilian/SpikyTriangle.tscn"
+            ],
+            {
+                "StarboardGun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/BlueLaserGun.tscn"
+                    ]
+                ],
+                "PortGun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/BlueLaserGun.tscn"
+                    ]
+                ],
+                "PortEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "Turret": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/BlueLaserTurret.tscn"
+                    ]
+                ],
+                "StarboardEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "ForwardEquipment": [
+                    "MultiMount",
+                    {
+                        "ForwardEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "ForwardEquipment_at_x0_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                            ],
+                            0,
+                            1
+                        ],
+                        "ForwardEquipment_at_x1_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            1,
+                            1
+                        ]
+                    }
+                ],
+                "AftEquipment": [
+                    "MultiMount",
+                    {
+                        "AftEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield3x3.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ]
+            },
+            null
+        ],
+        
       "raven_rail_missile":[
           "ShipDesign",
           "Rail-Missile Raven",
