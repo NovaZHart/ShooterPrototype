@@ -18,7 +18,7 @@ base_fuel = 19.0
 heal_fuel = 20.0
 base_drag = 1.8
 base_turn_drag = 0.6
-base_max_cargo = 200
+base_max_cargo = 300
 
 [node name="Hull" type="MeshInstance" parent="."]
 mesh = ExtResource( 2 )
