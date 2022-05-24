@@ -7,6 +7,51 @@ This mid-sized military-grade vessel is a standard policing craft, intended to d
 
 @bbcode_from_scene res://ships/GreyBlue/ThreeWingWarship.tscn
 
+@PAGE hulls/monopod-hauler
+@title Monopod Hauler
+@price Price:
+@synopsis Pod hauler for a single cargo pod.
+@content
+Bulk cargo transport throughout Terran space is done with massive cargo pods. This simplest of cargo pod haulers carries only one cargo pod. 
+
+@bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
+
+@PAGE hulls/bipod-hauler
+@title Bipod Hauler
+@price Price:
+@synopsis Pod hauler for two cargo pods.
+@content
+This two-pod cargo hauler has substantial armaments, comparable to mid-sized warships.
+
+@bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
+
+@PAGE hulls/hexapod-hauler
+@title Hexapod Hauler
+@price Price:
+@synopsis Capital-class pod hauler.
+@content
+The only capital-class ship available to civilians, this massive cargo ship carries six cargo pods. It is backed by firepower that can match the largest of raiding vessels. The armor and structure are small for a ship of this vast size, so captains must rely on its massive shields for defense.
+
+@bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
+
+@PAGE hulls/samoyed
+@title Samoyed Freighter Hull
+@price Price:
+@synopsis Small Cargo Ship
+@content
+Though this ship is almost unarmed, its cargo capacity is nonetheless impressive for its size. This vessel is essentially a tiny cargo pod with wings and an engine.
+
+@bbcode_from_scene res://ships/SmallCivilian/SmallBarrelShip.tscn
+
+@PAGE hulls/qimmeq
+@title Qimmeq Freighter Hull
+@price Price:
+@synopsis Fast Cargo Ship
+@content
+This cargo ship is faster than most cargo ships of its weight class. Between speed, and an abundance of equipment space for boosting its shields, it is far more durable. This makes it suited for running valuable cargo through dangerous systems.
+
+@bbcode_from_scene res://ships/SmallCivilian/SpikyTriangle.tscn
+
 @PAGE hulls/bufeo
 @title Popoto Interceptor Hull
 @price Price:
@@ -23,7 +68,7 @@ Though most military-grade ships are built much heavier than their civilian coun
 @content
 This is the standard military warship intended to take on any threats in human space. Individually, they can handle a small fleet of interceptors. In groups, they can take down large probes and hostile lifeforms. These ships can mount any Terran-made weapon except capital ship spinal-mounted cannons.
 
-@bbcode_from_scene res://ships/GreyBlue/GreyBlueInterceptor.tscn
+@bbcode_from_scene res://ships/GreyBlue/FourWingWarship.tscn
 
 @PAGE hulls/ankylorhiza
 @title Ankylorhiza Capital Ship Hull

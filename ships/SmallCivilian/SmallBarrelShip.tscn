@@ -1,0 +1,73 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ships/SmallCivilian/SmallBarrelShip.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=2]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=3]
+
+[sub_resource type="ConvexPolygonShape" id=1]
+points = PoolVector3Array( -0.0137398, -10, -0.711148, -0.163986, 10, -0.711148, -0.0137398, 10, -0.711148, -0.0137398, 10, -0.711148, 0.579471, -10, -0.371848, -0.0137398, -10, -0.711148, 0.579471, 10, 0.371848, 0.679048, 10, -0.294553, 0.579471, 10, -0.371848, 0.579471, 10, 0.371848, -0.0137398, -10, 0.711148, 0.579471, -10, 0.371848, 0.579471, -10, -0.371848, -0.0137398, -10, 0.711148, -0.0137398, -10, -0.711148, -0.0137398, 10, -0.711148, 0.579471, 10, 0.371848, 0.579471, 10, -0.371848, 0.679048, 10, -0.294553, 0.679048, -10, 0.294553, 0.679048, -10, -0.294553, 0.579471, 10, -0.371848, 0.679048, -10, -0.294553, 0.579471, -10, -0.371848, 0.579471, -10, 0.371848, 0.679048, 10, 0.294553, 0.579471, 10, 0.371848, 0.579471, -10, -0.371848, 0.679048, -10, 0.294553, 0.579471, -10, 0.371848, -0.163986, 10, 0.711148, -0.163986, -10, -0.711148, -0.163986, -10, 0.711148, -0.0137398, 10, 0.711148, -0.163986, -10, 0.711148, -0.0137398, -10, 0.711148, -0.0137398, 10, -0.711148, -0.163986, 10, 0.711148, -0.0137398, 10, 0.711148, -0.0137398, -10, 0.711148, -0.163986, -10, -0.711148, -0.0137398, -10, -0.711148, -0.163986, -10, -0.711148, 0.579471, 10, -0.371848, 0.579471, 10, 0.371848, 0.679048, 10, 0.294553, 0.679048, 10, -0.294553, -0.0137398, 10, 0.711148, 0.579471, -10, -0.371848, 0.579471, -10, 0.371848, -0.0137398, -10, 0.711148, -0.0137398, 10, -0.711148, -0.0137398, 10, 0.711148, 0.579471, 10, 0.371848, 0.679048, 10, 0.294553, 0.579471, 10, -0.371848, 0.679048, 10, -0.294553, 0.679048, -10, -0.294553, 0.579471, -10, 0.371848, 0.679048, -10, 0.294553, 0.679048, 10, 0.294553, 0.579471, -10, -0.371848, 0.679048, -10, -0.294553, 0.679048, -10, 0.294553, -0.163986, 10, -0.711148, -0.163986, 10, 0.711148, -0.163986, 10, -0.711148, -0.163986, -10, 0.711148 )
+
+[sub_resource type="ConvexPolygonShape" id=2]
+points = PoolVector3Array( -0.706489, 10, 1.09292, -0.706489, 10, -1.09292, -0.706489, -10, -1.09292, -0.706489, -10, -1.09292, 0.864335, -10, 0, -0.706489, -10, 1.09292, -0.706489, 10, -1.09292, 0.864335, -10, 0, -0.706489, -10, -1.09292, 0.864335, 10, 0, -0.706489, -10, 1.09292, 0.864335, -10, 0, -0.706489, -10, 1.09292, -0.706489, 10, 1.09292, 0.864335, 10, 0, -0.706489, 10, -1.09292, -0.706489, 10, -1.09292, 0.864335, 10, 0, 0.864335, -10, 0, 0.864335, 10, 0, -0.706489, 10, 1.09292, -0.706489, -10, 1.09292 )
+
+[node name="RigidBody" type="RigidBody"]
+script = ExtResource( 3 )
+help_page = "hulls/samoyed"
+base_mass = 65.0
+base_shields = 1200.0
+base_armor = 400.0
+base_structure = 700.0
+base_fuel = 18.0
+base_drag = 1.2
+base_turn_drag = 0.4
+base_max_cargo = 35
+cargo_web_add_radius = 4.0
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+
+[node name="CollisionFront" type="CollisionShape" parent="."]
+shape = SubResource( 1 )
+
+[node name="CollisionBack" type="CollisionShape" parent="."]
+shape = SubResource( 2 )
+
+[node name="MainEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0907088, 0, 0 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="PortEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.203894, 0, -0.53146 )
+script = ExtResource( 2 )
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="StarboardEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.204, 0, 0.571 )
+script = ExtResource( 2 )
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="Turret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.59013, 0.487824, 0 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="Engine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.686158, 0.029, 0 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"

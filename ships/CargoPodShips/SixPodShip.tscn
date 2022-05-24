@@ -11,6 +11,7 @@ points = PoolVector3Array( 0, 1.5, 10, 0, 1.5, -10, 0, 1.5, 10, 0, 1.5, -10, -2.
 
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 1 )
+help_page = "hulls/hexapod-hauler"
 base_mass = 754.0
 base_shields = 6800.0
 base_armor = 400.0

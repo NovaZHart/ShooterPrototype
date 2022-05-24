@@ -10,6 +10,7 @@ height = 20.0
 
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 4 )
+help_page = "hulls/bipod-hauler"
 base_mass = 442.0
 base_shields = 4200.0
 base_armor = 3400.0

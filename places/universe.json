@@ -2151,9 +2151,101 @@
           null
       ],
 
-        "test_ship":[
+        "samoyed_lasers":[
             "ShipDesign",
-            "Test Ship",
+            "Samoyed",
+            [
+                "Resource",
+                "res://ships/SmallCivilian/SmallBarrelShip.tscn"
+            ],
+            {
+                "Turret": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/BlueLaserTurret.tscn"
+                    ]
+                ],
+                "Engine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "StarboardEquipment": [
+                    "MultiMount",
+                    {
+                        "StarboardEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ],
+                "PortEquipment": [
+                    "MultiMount",
+                    {
+                        "PortEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ],
+                "MainEquipment": [
+                    "MultiMount",
+                    {
+                        "MainEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x2.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "MainEquipment_at_x0_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x1.tscn"
+                            ],
+                            0,
+                            2
+                        ]
+                    }
+                ]
+            },
+            {
+                "0": [
+                    "Array",
+                    "diamonds",
+                    2,
+                    350000,
+                    0,
+                    1,
+                    "raw_materials/gems",
+                    "luxury/terran",
+                    "raw_materials",
+                    "raw_materials/gems",
+                    "luxury",
+                    "luxury/terran"
+                ]
+            }
+        ],
+        
+        "laser_qimmeq":[
+            "ShipDesign",
+            "Qimmeq",
             [
                 "Resource",
                 "res://ships/SmallCivilian/SpikyTriangle.tscn"

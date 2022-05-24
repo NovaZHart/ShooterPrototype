@@ -15,15 +15,17 @@ points = PoolVector3Array( -1.22134, 10, 1.31953, -1.22134, -10, -1.31953, -1.22
 
 [node name="RigidBody" type="RigidBody"]
 script = ExtResource( 1 )
-base_mass = 130.0
-base_shields = 2800.0
-base_armor = 800.0
-base_structure = 1600.0
-base_fuel = 15.0
+help_page = "hulls/qimmeq"
+base_mass = 100.0
+base_shields = 2500.0
+base_armor = 1600.0
+base_structure = 900.0
+base_fuel = 18.0
 heal_fuel = 15.0
-base_drag = 1.7
-base_turn_drag = 0.45
-base_max_cargo = 100
+base_drag = 1.45
+base_turn_drag = 0.4
+base_max_cargo = 90
+cargo_web_add_radius = 4.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 2 )
