@@ -18,9 +18,10 @@ base_shields = 1200.0
 base_armor = 400.0
 base_structure = 700.0
 base_fuel = 18.0
-base_drag = 1.2
-base_turn_drag = 0.4
+base_drag = 1.3
+base_turn_drag = 0.45
 base_max_cargo = 35
+override_size = Vector3( 1.5, 0, 2.1 )
 cargo_web_add_radius = 4.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]

@@ -25,6 +25,7 @@ heal_fuel = 15.0
 base_drag = 1.45
 base_turn_drag = 0.4
 base_max_cargo = 90
+override_size = Vector3( 2.4, 0, 3.1 )
 cargo_web_add_radius = 4.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
@@ -78,6 +79,14 @@ mount_type_display = "gun"
 
 [node name="PortEngine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.40881, 0.029, -0.548161 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="CenterEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.409, 0.029, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
