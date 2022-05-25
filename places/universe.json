@@ -2251,13 +2251,6 @@
                 "res://ships/SmallCivilian/SpikyTriangle.tscn"
             ],
             {
-                "StarboardGun": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://weapons/BlueLaserGun.tscn"
-                    ]
-                ],
                 "PortGun": [
                     "Mounted",
                     [
@@ -2279,7 +2272,21 @@
                         "res://weapons/BlueLaserTurret.tscn"
                     ]
                 ],
+                "StarboardGun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/BlueLaserGun.tscn"
+                    ]
+                ],
                 "StarboardEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "CenterEngine": [
                     "Mounted",
                     [
                         "Resource",
@@ -2329,6 +2336,143 @@
                             ],
                             0,
                             0
+                        ]
+                    }
+                ]
+            },
+        ],
+
+        "husky_laser":[
+            "ShipDesign",
+            "Husky (Laser)",
+            [
+                "Resource",
+                "res://ships/SmallCivilian/SmallFastShip.tscn"
+            ],
+            {
+                "PortEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "Gun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/GreenLaserGun.tscn"
+                    ]
+                ],
+                "StarboardEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "MainEquipment": [
+                    "MultiMount",
+                    {
+                        "MainEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x2.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "MainEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "MainEquipment_at_x2_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/LargeOpticalCooler.tscn"
+                            ],
+                            2,
+                            1
+                        ]
+                    }
+                ]
+            },
+        ],
+
+        "husky_particle":[
+            "ShipDesign",
+            "Husky (Particle)",
+            [
+                "Resource",
+                "res://ships/SmallCivilian/SmallFastShip.tscn"
+            ],
+            {
+                "PortEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "Gun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/OrangeSpikeGun.tscn"
+                    ]
+                ],
+                "StarboardEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "MainEquipment": [
+                    "MultiMount",
+                    {
+                        "MainEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x2.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "MainEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x1.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "MainEquipment_at_x2_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                            ],
+                            2,
+                            1
+                        ],
+                        "MainEquipment_at_x3_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            3,
+                            1
                         ]
                     }
                 ]

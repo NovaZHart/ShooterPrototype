@@ -34,6 +34,15 @@ The only capital-class ship available to civilians, this massive cargo ship carr
 
 @bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
 
+@PAGE hulls/husky
+@title Husky Freighter Hull
+@price Price:
+@synopsis Freighter adaptation of a racing vessel.
+@content
+This popular hull is based off of a famous racing vessel, with an enlarged hold and extra fuel. It retains enough of its predecessor to outrun nearly anything.
+
+@bbcode_from_scene res://ships/SmallCivilian/SmallFastShip.tscn
+
 @PAGE hulls/samoyed
 @title Samoyed Freighter Hull
 @price Price:

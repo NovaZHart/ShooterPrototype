@@ -983,6 +983,7 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://ships/PurpleShips/InterceptorHull.tscn', 12, 75000, 75000, 0, 'hull/combat/interceptor', 'terran' ],
 		[ 'res://ships/PurpleShips/WarshipHull.tscn', 3, 141000, 141000, 0, 'hull/combat/warship', 'terran' ],
 		[ 'res://ships/SmallCivilian/SpikyTriangle.tscn', 2, 69000, 69000, 0, 'hull/cargo/cargo', 'terran' ],
+		[ 'res://ships/SmallCivilian/SmallFastShip.tscn', 2, 45000, 45000, 0, 'hull/cargo/cargo', 'terran' ],
 		[ 'res://ships/SmallCivilian/SmallBarrelShip.tscn', 2, 31000, 31000, 0, 'hull/cargo/cargo', 'terran' ],
 		[ 'res://ships/CargoPodShips/OnePodShip.tscn', 2, 133000, 133000, 0, 'hull/cargo/container', 'terran' ],
 		[ 'res://ships/CargoPodShips/TwoPodShip.tscn', 2, 252000, 252000, 0, 'hull/cargo/container', 'terran', 'large' ],

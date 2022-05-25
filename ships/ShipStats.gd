@@ -53,7 +53,7 @@ export var ai_type: int = 0 setget set_ai_type
 
 export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
-export var cargo_web_strength: float = 900
+export var cargo_web_strength: float = -1
 
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
@@ -314,7 +314,10 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	stats['max_fuel']=base_fuel
 	stats['max_cargo']=base_max_cargo
 	stats['cargo_web_add_radius']=cargo_web_add_radius
-	stats['cargo_web_strength']=cargo_web_strength
+	if cargo_web_strength>=0:
+		stats['cargo_web_strength']=cargo_web_strength
+	else:
+		stats['cargo_web_strength']=300*cargo_web_add_radius
 	if heal_shields>=0:
 		stats['heal_shields']=heal_shields
 	else:
