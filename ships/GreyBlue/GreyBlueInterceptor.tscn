@@ -60,22 +60,17 @@ mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
-[node name="ExternalEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.149777, 0, 0.772759 )
+[node name="StarboardAuxEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.201394, 0, 0.555126 )
 script = ExtResource( 2 )
-mount_size_x = 2
-mount_type = "external equipment"
-mount_type_display = "external equipment"
-
-[node name="PortAuxEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.299251, 0, -0.604012 )
-script = ExtResource( 2 )
+mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
-[node name="PortAuxEquipment2" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.299, 0, 0.604 )
+[node name="PortAuxEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.201, 0, -0.555 )
 script = ExtResource( 2 )
+mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
