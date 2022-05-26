@@ -86,12 +86,20 @@ mount_size_y = 3
 mount_type = "external turret"
 mount_type_display = "turret"
 
-[node name="AftTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.56245, 1.09528, 0 )
+[node name="AftEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.42372, 1.09528, 1.84218 )
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 2
-mount_type = "external turret"
+mount_type = "external equipment"
+mount_type_display = "external equipment"
+
+[node name="AftTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.49231, 1.09528, 0 )
+script = ExtResource( 2 )
+mount_size_x = 3
+mount_size_y = 3
+mount_type = "turret"
 mount_type_display = "turret"
 
 [node name="SpinalEquipment" type="Position3D" parent="."]

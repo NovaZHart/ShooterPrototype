@@ -55,7 +55,7 @@ This device accelerates plasma near to the speed of light, allowing it to push a
 @price Price:
 @synopsis Nuclear fission engine that produces thrust, power, and extreme heat.
 @content
-This fission-based power generator accelerates propellant to relativistic velocities. Because it contains its own power generator, it produces power instead of consuming it. The heat generation is so large that you'll need a lot of cooling to offset it. Unfortunately, the propellant cannot be directed, so the engine provides only forward thrust.
+This fission-based power generator accelerates propellant to relativistic velocities. Because it contains its own power generator, it produces power instead of consuming it. The heat generation is so large that you'll need a lot of cooling to offset it. Unfortunately, the propellant cannot be directed, so the engine provides only forward thrust. The power generation is the same as a [ref=equipment/fission_reactor_small]Small Fission Reactor[/ref].
 
 @bbcode_from_scene res://equipment/engines/FissionEngine.tscn
 
@@ -64,7 +64,7 @@ This fission-based power generator accelerates propellant to relativistic veloci
 @price Price:
 @synopsis Nuclear fusion engine that produces thrust, power, and extreme heat.
 @content
-This fusion-based power generator is the most advanced generator, and engine, available to Terran civilians. It accelerates propellant to relativistic velocities, while producing vast amounts of power. You may need multiple cooling systems to offset the extreme heat. Unfortunately, the propellant cannot be directed, so the engine provides only forward thrust.
+This fusion-based power generator is the most advanced generator, and engine, available to Terran civilians. It accelerates propellant to relativistic velocities, while producing vast amounts of power. You may need multiple cooling systems to offset the extreme heat. Unfortunately, the propellant cannot be directed, so the engine provides only forward thrust. The power generation is the same as a [ref=equipment/fission_reactor_medium]Medium Fission Reactor[/ref].
 
 @bbcode_from_scene res://equipment/engines/FissionEngine.tscn
 

@@ -2167,7 +2167,7 @@
 
         "samoyed_lasers":[
             "ShipDesign",
-            "Samoyed",
+            "Laser Samoyed",
             [
                 "Resource",
                 "res://ships/SmallCivilian/SmallBarrelShip.tscn"
@@ -2177,7 +2177,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Hyperdrive.tscn"
+                        "res://weapons/BlueLaserTurret.tscn"
                     ]
                 ],
                 "Engine": [
@@ -2187,14 +2187,14 @@
                         "res://equipment/engines/Engine2x2.tscn"
                     ]
                 ],
-                "StarboardEquipment": [
+                "ExternalEquipment": [
                     "MultiMount",
                     {
-                        "StarboardEquipment_at_x0_y0": [
+                        "ExternalEquipment_at_x0_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                                "res://equipment/engines/SmallHyperdrive.tscn"
                             ],
                             0,
                             0
@@ -2235,6 +2235,20 @@
                             ],
                             0,
                             2
+                        ]
+                    }
+                ],
+                "StarboardEquipment": [
+                    "MultiMount",
+                    {
+                        "StarboardEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                            ],
+                            0,
+                            0
                         ]
                     }
                 ]
@@ -3360,7 +3374,7 @@
               
       "hexapod_particles_missiles": [
           "ShipDesign",
-          "Hexapod (Particles+Missiles)",
+          "Hexapod (Lasers+Missiles)",
           [
               "Resource",
               "res://ships/CargoPodShips/SixPodShip.tscn"
@@ -3570,28 +3584,42 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Hyperdrive.tscn"
+                      "res://weapons/OrangeSpikeTurret.tscn"
                   ]
+              ],
+              "AftEquipment": [
+                  "MultiMount",
+                  {
+                      "AftEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/Hyperdrive.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
               ],
               "StarboardTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "PortTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "PortTurret2": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "PortEngine": [
@@ -3612,7 +3640,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -3623,6 +3651,7 @@
                   ]
               ]
           },
+          null
       ],
 
       "hexapod_lasers_missiles": [
@@ -3837,8 +3866,22 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Hyperdrive.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
+              ],
+              "AftEquipment": [
+                  "MultiMount",
+                  {
+                      "AftEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/Hyperdrive.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
               ],
               "StarboardTurret1": [
                   "Mounted",
@@ -3890,6 +3933,7 @@
                   ]
               ]
           },
+          null
       ],
 
         "eagle_particles": [

@@ -15,5 +15,6 @@ add_hyperthrust = 6700.0
 add_structure = 45.0
 item_size_x = 2
 item_size_y = 1
-mount_type_display = "external"
+mount_type_display = "external equipment"
+mount_type_all = "external equipment"
 help_page = "engine/hyperdrive_small"

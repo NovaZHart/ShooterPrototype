@@ -51,6 +51,13 @@ script = ExtResource( 2 )
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
+[node name="ExternalEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.370345, 0, 0.561813 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_type = "external equipment"
+mount_type_display = "external equipment"
+
 [node name="StarboardEquipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.204, 0, 0.571 )
 script = ExtResource( 2 )
