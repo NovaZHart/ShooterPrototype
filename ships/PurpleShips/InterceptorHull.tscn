@@ -70,6 +70,13 @@ mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
+[node name="ExternalEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.146353, 0, 0.55596 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_type = "external equipment"
+mount_type_display = "external equipment"
+
 [node name="Node" parent="." instance=ExtResource( 4 )]
 flotsam_mesh_path = "weapons/meshes/MassDriver.mesh"
 flotsam_scale = 0.3

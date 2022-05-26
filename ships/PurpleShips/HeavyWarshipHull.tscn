@@ -23,7 +23,7 @@ base_structure = 2600.0
 heal_fuel = 40.0
 base_drag = 1.9
 base_turn_drag = 0.5
-base_max_cargo = 45
+base_max_cargo = 100
 armor_inverse_density = 250.0
 override_size = Vector3( 5.5, 0, 4 )
 
@@ -56,17 +56,27 @@ mount_size_y = 3
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
+[node name="ExternalEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.04333, 0, 0 )
+script = ExtResource( 3 )
+mount_size_x = 4
+mount_size_y = 4
+mount_type = "external equipment"
+mount_type_display = "external equipment"
+
 [node name="PortEquipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.784108, 0, -1.15182 )
 script = ExtResource( 3 )
-mount_size_y = 2
+mount_size_x = 2
+mount_size_y = 3
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="StarboardEquipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.784, 0, 1.152 )
 script = ExtResource( 3 )
-mount_size_y = 2
+mount_size_x = 2
+mount_size_y = 3
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 

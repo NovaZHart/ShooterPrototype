@@ -1,13 +1,87 @@
-@PAGE equipment/defensive-scatterer
+@PAGE equipment/adiabatic_demagnetization_cooler
+@title Adiabatic Demagnetization Cooler
+@price Price:
+@synopsis Huge, power-hungry, cooler based on Adiabatic Demagnetization Refrigeration.
+@content
+Terrans have used adiabatic demagnetization cooling since before the era of interplanetary colonization, but this modern version is the best cooling system available in Terran space. Ship heat is channeled into a "salt pill" of paramagnetic material. When the "salt pill's" entropy is too high, the ship cools it by emitting directional, low-frequency, electromagnetic, radiation. This system takes a substantial amount of energy, but it is 2.5 times more effective per unit space than the next best cooler.
+
+An added advantage of this cooler is its resistance-boosting effect. The cooling system can be used in reverse, absorbing electromagnetic pulses from hostile weapons into the "salt pill," and emitting them harmlessly.
+
+@bbcode_from_scene res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn
+
+@PAGE equipment/fission_reactor_small
+@title Small Fission Reactor
+@price Price:
+@synopsis Space-based fission reactor.
+@content
+Modern fission reactors are far safer and more efficient than their ancient predecessors, but they still generate an enormous amount of heat. You will probably need an auxiliary cooling system to support each fission reactor.
+
+@bbcode_from_scene res://equipment/power/SmallReactor.tscn
+
+@PAGE equipment/fission_reactor_medium
+@title Medium Fission Reactor
+@price Price:
+@synopsis Space-based fission reactor.
+@content
+Modern fission reactors are far safer and more efficient than their ancient predecessors, but they still generate an enormous amount of heat. You will probably need an auxiliary cooling system to support each fission reactor. This reactor is powerful enough to support all outfits on a mid-sized ship.
+
+@bbcode_from_scene res://equipment/power/MediumReactor.tscn
+
+@PAGE equipment/fission_reactor_large
+@title Large Fission Reactor
+@price Price:
+@synopsis Space-based fission reactor.
+@content
+Modern fission reactors are far safer and more efficient than their ancient predecessors, but they still generate an enormous amount of heat. You will probably need an auxiliary cooling system to support each fission reactor. This vast reactor is powerful enough for all but the largest of ships.
+
+@bbcode_from_scene res://equipment/power/LargeReactor.tscn
+
+@PAGE equipment/bioelectric_tiny
+@title Small Bioelectric Generator
+@price Price:
+@synopsis Bioengineered algae that can generate and store power.
+@content
+Bioelectric generators were one of the earliest applications of bioengineering to shipbuilding. They generate a moderate amount of power, store a substantial energy reserve, and emit low levels of heat. This is the smallest bioelectric generator available on modern ships, intended to reduce slight power deficits in ship designs.
+
+@bbcode_from_scene res://equipment/power/TinyBioelectricGenerator.tscn
+
+@PAGE equipment/bioelectric_small
+@title Medium Bioelectric Generator
+@price Price:
+@synopsis Bioengineered algae that can generate and store power.
+@content
+Bioelectric generators were one of the earliest applications of bioengineering to shipbuilding. They generate a moderate amount of power, store a substantial energy reserve, and emit low levels of heat. This small generator is designed to be the main power generator of the smallest ships.
+
+@bbcode_from_scene res://equipment/power/SmallBioelectricGenerator.tscn
+
+@PAGE equipment/bioelectric_medium
+@title Medium Bioelectric Generator
+@price Price:
+@synopsis Bioengineered algae that can generate and store power.
+@content
+Bioelectric generators were one of the earliest applications of bioengineering to shipbuilding. They generate a moderate amount of power, store a substantial energy reserve, and emit low levels of heat. This mid-sized generator can power most of the outfits of a small ship, but is unsuitable for warships.
+
+@bbcode_from_scene res://equipment/power/MediumBioelectricGenerator.tscn
+
+@PAGE equipment/bioelectric_large
+@title Large Bioelectric Generator
+@price Price:
+@synopsis Bioengineered algae that can generate and store power.
+@content
+Bioelectric generators were one of the earliest applications of bioengineering to shipbuilding. They generate a moderate amount of power, store a substantial energy reserve, and emit low levels of heat. Designers of energy-hungry ships would choose a smaller fusion generator over this massive vat. However, this generator stores a lot more energy and generates far less heat than a similar fusion reactor.
+
+@bbcode_from_scene res://equipment/power/LargeBioelectricGenerator.tscn
+
+@PAGE equipment/defensive_scatterer
 @title Defensive Scatterer
 @price Price:
 @synopsis Boosts resistance to light-based weapons.
 @content
-Lasers are an age-old weapon; cheap to build, low power usage, and cool-running, but they have one major flaw. It is easy to scatter, refract, or reflect light. This device sprays a mist of light-scattering particles in the direction of any incoming intense light. Light is either refracted away from the ship, or spread across the ship's whole surface, reducing the effect of the weapon. If a ship has one of these devices installed, it has a strong resistance to lasers. 
+Lasers are an age-old weapon; cheap to build, low power usage, and cool-running, but they have one major flaw. It is easy to scatter, refract, or reflect light. This device sprays a mist of particles in the direction of any incoming intense light. Light is either refracted away from the ship, or spread across the ship's whole surface, reducing the effect of the weapon. If a ship has one of these devices installed, it has a strong resistance to lasers. 
 
 @bbcode_from_scene res://equipment/defense/DefensiveScatterer.tscn
 
-@PAGE equipment/structural-reinforcement
+@PAGE equipment/structural_reinforcement
 @title Structural Reinforcement
 @price Price:
 @synopsis Boosts ship structure and structure repair rate; weighs a lot.
@@ -34,7 +108,7 @@ Makes you nearly invincible, to test the equipment functionality.
 
 @bbcode_from_scene res://equipment/BigEquipmentTest.tscn
 
-@PAGE equipment/energy-shield-small
+@PAGE equipment/energy_shield_small
 @title Small Shield Recharger
 @price Price:
 @synopsis Shield recharger built for interceptors.
@@ -43,7 +117,7 @@ Built for small interceptors, this device will recharge the ship's shields slowl
 
 @bbcode_from_scene res://equipment/repair/Shield2x1.tscn
 
-@PAGE equipment/energy-shield-medium
+@PAGE equipment/energy_shield_medium
 @title Medium Shield Recharger
 @price Price:
 @synopsis Standard shield recharger for most ships.
@@ -52,7 +126,7 @@ This warship-class shield recharger is strong enough to fully repair a warship's
 
 @bbcode_from_scene res://equipment/repair/Shield2x2.tscn
 
-@PAGE equipment/energy-shield-large
+@PAGE equipment/energy_shield_large
 @title Large Shield Recharger
 @price Price:
 @synopsis Battleship-class shield recharger.
@@ -87,4 +161,33 @@ This cargo bay takes a significant amount of space, but increases the cargo capa
 This huge bay adds large amounts of storage space to ships with enormous excess of equipment capacity.
 
 @bbcode_from_scene res://equipment/cargo/CargoBay3x4.tscn
+
+@PAGE equipment/optical_cooler_large
+@title Large Optical Cooler
+@price Price:
+@synopsis A large anti-Stokes fluorescent cooling system.
+@content
+This optical cooler illuminates an array of specially-designed crystals with a coherent laser. The crystal annihilates the photons from the laser, producing anti-Stokes fluorescence, and thus cooling the crystal. There is a small energy drain to support the laser and ventilation system, offset by a substantial amount of cooling.
+
+@bbcode_from_scene res://equipment/cooling/LargeOpticalCooler.tscn
+
+@PAGE equipment/optical_cooler_small
+@title Small Optical Cooler
+@price Price:
+@synopsis A tiny anti-Stokes fluorescent cooling system.
+@content
+This optical cooler illuminates an array of specially-designed crystals with a coherent laser. The crystal annihilates the photons from the laser, producing anti-Stokes fluorescence, and thus cooling the crystal. There is a small energy drain to support the laser and ventilation system, offset by a substantial amount of cooling.
+
+@bbcode_from_scene res://equipment/cooling/SmallOpticalCooler.tscn
+
+@PAGE equipment/organic_nanofluid_coolant
+@title Cooling and Food Production System
+@price Price:
+@synopsis Recycles organic waste into food and cools the ship.
+@content
+This augments a ship's sewage system, converting organic waste back into high-quality food and cold water. The water contains organic particles that turn it into a nanofluid, which is connected to a refrigeration system. Some of the water pipes are directed through hot parts of the ship, allowing this food processor to double as an efficient ship-wide cooling system. The organic nanoparticles are non-toxic, but foul-tasting, so all faucets must have built-in filters. The food, however, is delicious.
+
+Cities on uninhabitable planets use vast arrays of these devices to provide clean water, fertilizer, organic construction components, a vast cooling system, and most of their food. Although people enjoy this processed food, a skilled chef with fresh ingredients can do better. All ships contain minimal waste recycling capabilities to feed crew and passengers, but this device produces city-quality food. Passengers on large starliners expect this luxury.
+
+@bbcode_from_scene res://equipment/cooling/OrganicNanofluidCoolant.tscn
 

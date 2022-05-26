@@ -21,6 +21,7 @@ projectile_turn_rate = 400.0
 firing_delay = 0.25
 guided = true
 projectile_mesh_path = "res://weapons/meshes/BlueMissile.mesh"
+help_page = "weapons/misanthrope_missile"
 ammo_capacity = 200
 reload_delay = 0.6
 firing_heat = 0.1

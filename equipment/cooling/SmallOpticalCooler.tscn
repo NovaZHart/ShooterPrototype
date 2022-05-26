@@ -13,5 +13,6 @@ add_mass = 2.0
 add_structure = 30.0
 item_size_y = 1
 mount_type_all = "internal equipment"
+help_page = "equipment/optical_cooler_small"
 add_cooling = 2.7
 add_power = -0.135

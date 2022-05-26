@@ -14,7 +14,7 @@ This mid-sized military-grade vessel is a standard policing craft, intended to d
 @content
 Bulk cargo transport throughout Terran space is done with massive cargo pods. This simplest of cargo pod haulers carries only one cargo pod. 
 
-@bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
+@bbcode_from_scene res://ships/CargoPodShips/OnePodShip.tscn
 
 @PAGE hulls/bipod-hauler
 @title Bipod Hauler
@@ -23,23 +23,25 @@ Bulk cargo transport throughout Terran space is done with massive cargo pods. Th
 @content
 This two-pod cargo hauler has substantial armaments, comparable to mid-sized warships.
 
-@bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
+@bbcode_from_scene res://ships/CargoPodShips/TwoPodShip.tscn
 
 @PAGE hulls/hexapod-hauler
 @title Hexapod Hauler
 @price Price:
 @synopsis Capital-class pod hauler.
 @content
-The only capital-class ship available to civilians, this massive cargo ship carries six cargo pods. It is backed by firepower that can match the largest of raiding vessels. The armor and structure are small for a ship of this vast size, so captains must rely on its massive shields for defense.
+The only capital-class ship available to civilians, this massive cargo ship carries six cargo pods. It is backed by firepower that can match the largest of raiding vessels. The ship has practically no armor, so captains must rely on its massive shields and structure for defense.
 
-@bbcode_from_scene res://ships/GreyBlue/OnePodShip.tscn
+@bbcode_from_scene res://ships/CargoPodShips/SixPodShip.tscn
 
 @PAGE hulls/husky
-@title Husky Freighter Hull
+@title Husky Racing Yacht
 @price Price:
-@synopsis Freighter adaptation of a racing vessel.
+@synopsis Luxury racing yacht with extra cargo space.
 @content
-This popular hull is based off of a famous racing vessel, with an enlarged hold and extra fuel. It retains enough of its predecessor to outrun nearly anything.
+This hull is based on the famous racing vessel, Hellborne Husky. Hellborne Husky's owners leased the design rights to a shipyard who turned it into a durable pleasure yacht. It has luxury quarters for passengers, ample fuel, and plenty of cargo space.  The Husky hull retains enough of its namesake to be the fastest ship in the sky, able to outrun even some missiles.
+
+One of the remarkable technological achievements of this yacht rebuild is its patented, thick, lightweight, armor and hull. Although the armor and structure are less resilient to some damage types, the ship can have far more armor at the same weight. This makes it more durable (and more expensive) than combat ships of its size class, despite its civilian cargo ship classification.
 
 @bbcode_from_scene res://ships/SmallCivilian/SmallFastShip.tscn
 

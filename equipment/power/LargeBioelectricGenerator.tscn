@@ -15,3 +15,5 @@ mount_type_all = "internal equipment"
 add_cooling = -5.175
 add_battery = 1550.0
 add_power = 51.75
+help_page = "equipment/bioelectric_large"
+add_mass = 18.0

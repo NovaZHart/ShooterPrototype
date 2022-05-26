@@ -14,6 +14,7 @@ add_mass = 8.0
 item_size_x = 2
 item_size_y = 2
 mount_type_all = "internal equipment"
+help_page = "equipment/fission_reactor_medium"
 add_cooling = -8.6
 add_battery = 172.0
 add_power = 86.0

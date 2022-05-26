@@ -1,3 +1,11 @@
+@PAGE weapons/magnetic_rail_gun
+@title Magnetic Rail Gun
+@price Price:
+@synopsis Magnetic fields launch metal objects at extreme velocities.
+@content
+This cannon uses magnetic fields to accelerate diamagnetic objects near to the speed of light. Most ships carry a reservoir of bullets for this purpose, but nearly any metal object will do.
+
+@bbcode_from_scene res://weapons/MagneticRailGun.tscn
 
 @PAGE weapons/mass_driver
 @title Mass Driver
@@ -7,6 +15,15 @@
 This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even garbage. A dumpster may not sound like much of a threat, until it smashes through your ship's hull at half the speed of light.
 
 @bbcode_from_scene res://weapons/MassDriver.tscn
+
+@PAGE weapons/misanthrope_missile
+@title Misanthrope Anti-Ship Missile
+@price Price:
+@synopsis Military-grade ship-to-ship missile intended for medium-sized targets.
+@content
+This civilian-grade missile is not as smart as most homing weapons, but packs decent damage for a low price.
+
+@bbcode_from_scene res://weapons/BlueMissileLauncher.tscn
 
 @PAGE weapons/harpoon_missile
 @title Harpoon Anti-Ship Missile

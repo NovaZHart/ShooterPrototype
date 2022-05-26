@@ -667,7 +667,7 @@ void CombatEngine::step_all_ships() {
       ship.advance_time(idelta);
       ai_step_ship(ship);
       negate_drag_force(ship);
-      ship.update_stats(physics_server);
+      ship.update_stats(physics_server,hyperspace);
       if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
         factions_iter p_faction = factions.find(ship.faction);
         if(p_faction!=factions.end())
@@ -687,7 +687,7 @@ void CombatEngine::update_ship_body_state() {
     Ship &ship = p_ship.second;
     if(ship.fate==FATED_TO_DIE)
       continue;
-    if(not ship.update_from_physics_server(physics_server))
+    if(not ship.update_from_physics_server(physics_server,hyperspace))
       ship.fate=FATED_TO_DIE; // Ship was removed, so treat it as dead.
   }
 }

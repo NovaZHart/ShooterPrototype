@@ -427,6 +427,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   max_thrust(max(0.0f,get<real_t>(dict,"thrust"))),
   max_reverse_thrust(max(0.0f,get<real_t>(dict,"reverse_thrust",0))),
   max_turning_thrust(max(0.0f,get<real_t>(dict,"turning_thrust",0))),
+  max_hyperthrust(max(0.0f,get<real_t>(dict,"hyperthrust",0))),
   max_cargo_mass(max(0.0f,get<real_t>(dict,"max_cargo",0))),
   threat(max(0.0f,get<real_t>(dict,"threat"))),
   visual_height(get<real_t>(dict,"visual_height",5.0f)),
@@ -471,12 +472,14 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   shield_repair_energy(max(0.0f,get<real_t>(dict,"shield_repair_energy"))),
   armor_repair_energy(max(0.0f,get<real_t>(dict,"armor_repair_energy"))),
   structure_repair_energy(max(0.0f,get<real_t>(dict,"structure_repair_energy"))),
-  forward_thrust_heat(max(0.0f,get<real_t>(dict,"forward_thrust_heat"))/1000.0f),
-  reverse_thrust_heat(max(0.0f,get<real_t>(dict,"reverse_thrust_heat"))/1000.0f),
+  only_forward_thrust_heat(max(0.0f,get<real_t>(dict,"forward_thrust_heat"))/1000.0f),
+  only_reverse_thrust_heat(max(0.0f,get<real_t>(dict,"reverse_thrust_heat"))/1000.0f),
   turning_thrust_heat(max(0.0f,get<real_t>(dict,"turning_thrust_heat"))/1000.0f),
-  forward_thrust_energy(max(0.0f,get<real_t>(dict,"forward_thrust_energy"))/1000.0f),
-  reverse_thrust_energy(max(0.0f,get<real_t>(dict,"reverse_thrust_energy"))/1000.0f),
+  hyperthrust_heat(max(0.0f,get<real_t>(dict,"hyperthrust_heat"))/1000.0f),
+  only_forward_thrust_energy(max(0.0f,get<real_t>(dict,"forward_thrust_energy"))/1000.0f),
+  only_reverse_thrust_energy(max(0.0f,get<real_t>(dict,"reverse_thrust_energy"))/1000.0f),
   turning_thrust_energy(max(0.0f,get<real_t>(dict,"turning_thrust_energy"))/1000.0f),
+  hyperthrust_energy(max(0.0f,get<real_t>(dict,"hyperthrust_energy"))/1000.0f),
 
   rifting_damage_multiplier(clamp(get<real_t>(dict,"rifting_damage_multiplier",0.3f),0.0f,1.0f)),
   cargo_web_radius(radius+get<real_t>(dict,"cargo_web_add_radius",0)),
@@ -490,8 +493,13 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   thrust(max_thrust),
   reverse_thrust(max_reverse_thrust),
   turning_thrust(max_turning_thrust),
+  hyperthrust(max_hyperthrust),
   efficiency(1),
   cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
+  forward_thrust_heat(only_forward_thrust_heat),
+  reverse_thrust_heat(only_reverse_thrust_heat),
+  forward_thrust_energy(only_forward_thrust_energy),
+  reverse_thrust_energy(only_reverse_thrust_energy),
   thrust_loss(0.0f),
   
   explosion_timer(),
@@ -597,7 +605,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
 Ship::~Ship()
 {}
 
-bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
+bool Ship::update_from_physics_server(PhysicsServer *physics_server,bool hyperspace) {
   PhysicsDirectBodyState *state = physics_server->body_get_direct_state(rid);
   if(not state)
     return false;
@@ -628,11 +636,11 @@ bool Ship::update_from_physics_server(PhysicsServer *physics_server) {
   } else
     drag=new_drag;
   
-  update_stats(physics_server);
+  update_stats(physics_server,hyperspace);
   return true;
 }
 
-void Ship::update_stats(PhysicsServer *physics_server) {
+void Ship::update_stats(PhysicsServer *physics_server, bool hyperspace) {
   real_t new_mass = empty_mass+cargo_mass;
   if(max_fuel>=.001)
     new_mass += fuel/fuel_inverse_density;
@@ -665,14 +673,33 @@ void Ship::update_stats(PhysicsServer *physics_server) {
           clamp(efficiency * (max_turning_thrust - thrust_loss*max_turning_thrust/max_thrust)/max_turning_thrust, 0.4, 1.6);
       else
         Godot::print(name+": ship has no max_turning_thrust!");
+      if(max_hyperthrust)
+        hyperthrust = hyperthrust * clamp(efficiency * (max_hyperthrust - thrust_loss*max_hyperthrust/max_thrust)/max_hyperthrust, 0.4, 1.6);
     } else
       Godot::print(name+": ship has no max_thrust!");
   } else {
     thrust = max_thrust;
     turning_thrust = max_turning_thrust;
     reverse_thrust = max_reverse_thrust;
+    hyperthrust = max_hyperthrust;
   }
-    
+
+  if(hyperspace) {
+    forward_thrust_energy = (thrust*only_forward_thrust_energy + hyperthrust*hyperthrust_energy)/max(1e-5f,thrust+hyperthrust);
+    forward_thrust_heat = (thrust*only_forward_thrust_heat + hyperthrust*hyperthrust_heat)/max(1e-5f,thrust+hyperthrust);
+    thrust += hyperthrust;
+    if(max_reverse_thrust) {
+      reverse_thrust_energy = (thrust*only_reverse_thrust_energy + hyperthrust*hyperthrust_energy)/max(1e-5f,reverse_thrust+hyperthrust);
+      reverse_thrust_heat = (thrust*only_reverse_thrust_heat + hyperthrust*hyperthrust_heat)/max(1e-5f,reverse_thrust+hyperthrust);
+      reverse_thrust += hyperthrust;
+    }
+  } else {
+    forward_thrust_energy = only_forward_thrust_energy;
+    reverse_thrust_energy = only_reverse_thrust_energy;
+    forward_thrust_heat = only_forward_thrust_heat;
+    reverse_thrust_heat = only_reverse_thrust_heat;
+  }
+  
   inverse_mass = 1.0f/new_mass;
   drag_force = -linear_velocity*drag/inverse_mass;
   max_speed = max(thrust,reverse_thrust)/drag*inverse_mass;

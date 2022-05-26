@@ -266,6 +266,11 @@ func title_for_scene_path(resource_path) -> String:
 		cached_page_titles[resource_path] = title
 	return title
 
+func any_true(array: Array) -> bool:
+	for element in array:
+		if element:
+			return true
+	return false
 
 func make_resist_row(index: int,stats: Dictionary,stat_keys: Array,cutoffs: Array) -> String:
 	var data: Array = []
@@ -274,7 +279,7 @@ func make_resist_row(index: int,stats: Dictionary,stat_keys: Array,cutoffs: Arra
 			data.append(0)
 		else:
 			data.append(stats[key][index]*100.0)
-	if data.max():
+	if any_true(data):
 		var row: String = '[cell]'+DAMAGE_DISPLAY_NAMES[index]+'[/cell]'
 		for datum in data:
 			for cut in cutoffs:
@@ -403,6 +408,10 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 		bbcode += make_cell('Reverse:',s['reverse_thrust'])
 	else:
 		bbcode += '[cell][/cell][cell][/cell]'
+	if s['hyperthrust']>0:
+		bbcode += make_cell('Hyperspace:',s['hyperthrust'])
+	else:
+		bbcode += '[cell][/cell][cell][/cell]'
 	bbcode += '[cell] [/cell]'
 	bbcode += make_cell('Hit Force:',s['explosion_impulse'])
 	
@@ -427,7 +436,7 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	# Resistance and passthru tables:
 
-	var resistance_colors: Array = [ [ -40, '#ff7788' ], [ -10, '#bbbb44' ],
+	var resistance_colors: Array = [ [ -INF, '#ff3333' ], [ -40, '#ff7788' ], [ -10, '#bbbb44' ],
 		[ 10, '#777777' ], [ 40, '#7788ff' ], [ INF, '#ffaaff' ] ]
 	bbcode += make_resist_table(s,['shield_resist','armor_resist','structure_resist'], \
 		['Shld','Armr','Struct'], '\n[b]Resistances:[/b]\n','',resistance_colors)
@@ -445,8 +454,8 @@ func make_add_amount(num: float,round_to: float,what: String,end: String = '\n')
 	return s+' '+str(round(num*round_to)/round_to)+' '+what+end
 
 func make_add_percent(num: float,round_to: float,what: String, end: String = '\n') -> String:
-	var s = '+' if num>1.0 else '-'
-	return what+' '+s+' '+str(round(num*round_to*100.0)/round_to)+'%'+end
+	var s = '+' if num>1.0 else ''
+	return what+' '+s+str(round(num*round_to*100.0)/round_to)+'%'+end
 
 func make_add_resist(index: int,stat: String,stats: Dictionary,prefix: String,what: String) -> String:
 	if stats[stat].size()<=index:

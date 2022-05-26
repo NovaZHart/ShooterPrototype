@@ -7,6 +7,7 @@ export var add_max_cargo: float = 0
 export var add_thrust: float = 0
 export var add_reverse_thrust: float = 0
 export var add_turning_thrust: float = 0
+export var add_hyperthrust: float = 0
 export var add_fuel: float = 0
 export var add_heal_fuel: float = 0
 export var add_drag: float = 0
@@ -52,9 +53,11 @@ export var structure_repair_energy: float = .2
 export var forward_thrust_heat: float = .12
 export var reverse_thrust_heat: float = .12
 export var turning_thrust_heat: float = .36
+export var hyperthrust_heat: float = 0.03
 export var forward_thrust_energy: float = 1.2
 export var reverse_thrust_energy: float = 1.2
 export var turning_thrust_energy: float = 3.6
+export var hyperthrust_energy: float = 0.005
 export var add_battery: float = 0.0
 export var add_power: float = 0.0
 
@@ -134,6 +137,7 @@ func pack_stats() -> Dictionary:
 			'add_thrust':add_thrust,
 			'add_reverse_thrust':add_reverse_thrust,
 			'add_turning_thrust':add_turning_thrust,
+			'add_hyperthrust':add_hyperthrust,
 			'add_fuel':add_fuel,
 			'add_heal_fuel':add_heal_fuel,
 			'add_drag':add_drag,
@@ -226,6 +230,10 @@ func add_stats(stats: Dictionary,_skip_runtime_stats=false,_ship_node=null) -> v
 		utils.weighted_add(turning_thrust_heat,add_turning_thrust,stats,'turning_thrust_heat','turning_thrust')
 		utils.weighted_add(turning_thrust_energy,add_turning_thrust,stats,'turning_thrust_energy','turning_thrust')
 		stats['turning_thrust'] = max(0,stats['turning_thrust']+add_turning_thrust)
+	if add_hyperthrust > 0:
+		utils.weighted_add(hyperthrust_heat,add_hyperthrust,stats,'hyperthrust_heat','hyperthrust')
+		utils.weighted_add(hyperthrust_energy,add_hyperthrust,stats,'hyperthrust_energy','hyperthrust')
+		stats['hyperthrust'] = max(0,stats['hyperthrust']+add_hyperthrust)
 	if add_shields>0:
 		stats['max_shields'] = max(0,stats['max_shields']+add_shields)
 	if add_armor>0:

@@ -7,6 +7,7 @@ export var base_mass: float = 0
 export var base_thrust: float = -1
 export var base_reverse_thrust: float = -1
 export var base_turning_thrust: float = -1
+export var base_hyperthrust: float = 0
 export var base_shields: float = 1600
 export var base_armor: float = 1000
 export var base_structure: float = 600
@@ -43,9 +44,11 @@ export var base_structure_repair_energy: float = .2
 export var base_forward_thrust_heat: float = 0.3
 export var base_reverse_thrust_heat: float = 0.3
 export var base_turning_thrust_heat: float = 0.9
+export var base_hyperthrust_heat: float = 0.03
 export var base_forward_thrust_energy: float = 0.05
 export var base_reverse_thrust_energy: float = 0.05
 export var base_turning_thrust_energy: float = 0.15
+export var base_hyperthrust_energy: float = 0.005
 export var base_battery: float = -1
 export var base_power: float = -1
 
@@ -54,13 +57,13 @@ export var ai_type: int = 0 setget set_ai_type
 export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
-
+                                                               #  0    1    2    3    4    5    6    7    8
+                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  HOT
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.0, 0.2, 0.1, 0.1, 0.0,-0.2, 0.1, 0.2])
-export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.1, 0.1, 0.0, 0.1, 0.0, 0.0, 0.0])
-export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.1,-0.2,-0.1,-0.1])
-														 #       Tyl, Lgt, HEP, Prc, Imp, EMF, Grv, Atm, Hot
+export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.3, 0.3, 0.1, 0.1,-0.7, 0.3])
+export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0])
+export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.4,-0.1])
 
 var ship_display_name: String = 'Unnamed'
 var item_slots: int = -1 setget set_item_slots,get_item_slots
@@ -250,6 +253,7 @@ func set_power_and_cooling(stats: Dictionary):
 		power += max(stats['thrust']*stats['forward_thrust_energy'], \
 			stats['reverse_thrust']*stats['reverse_thrust_energy'])/1000.0 + \
 			stats['turning_thrust']*stats['turning_thrust_energy']/1000.0 + \
+			stats['hyperthrust']*stats['hyperthrust_energy']/1000.0 + \
 			stats['heal_shields']*stats['shield_repair_energy'] + \
 			stats['heal_armor']*stats['armor_repair_energy'] + \
 			stats['heal_structure']*stats['structure_repair_energy']
@@ -259,6 +263,7 @@ func set_power_and_cooling(stats: Dictionary):
 		heat += max(stats['thrust']*stats['forward_thrust_heat'], \
 			stats['reverse_thrust']*stats['reverse_thrust_heat'])/1000.0 + \
 			stats['turning_thrust']*stats['turning_thrust_heat']/1000.0 + \
+			stats['hyperthrust']*stats['hyperthrust_heat']/1000.0 + \
 			stats['heal_shields']*stats['shield_repair_heat'] + \
 			stats['heal_armor']*stats['armor_repair_heat'] + \
 			stats['heal_structure']*stats['structure_repair_heat']
@@ -303,6 +308,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	else:
 		stats['turning_thrust']=base_mass*15
 	assert(stats['turning_thrust']>0)
+	stats['hyperthrust']=max(base_hyperthrust,0)
 	if base_threat<0:
 		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
 			heal_shields+heal_armor+heal_structure
@@ -362,10 +368,12 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	stats['forward_thrust_heat']=base_forward_thrust_heat
 	stats['reverse_thrust_heat']=base_reverse_thrust_heat
 	stats['turning_thrust_heat']=base_turning_thrust_heat
+	stats['hyperthrust_heat']=base_hyperthrust_heat
 	stats['forward_thrust_energy']=base_forward_thrust_energy
 	stats['reverse_thrust_energy']=base_reverse_thrust_energy
 	stats['turning_thrust_energy']=base_turning_thrust_energy
-
+	stats['hyperthrust_energy']=base_hyperthrust_energy
+	
 	set_power_and_cooling(stats)
 
 	if base_battery>=0:

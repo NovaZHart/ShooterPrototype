@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
-[ext_resource path="res://equipment/cooling/LargeOpticalCooler.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://equipment/engines/Hyperdrive.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
 mesh = ExtResource( 2 )
@@ -9,11 +9,11 @@ material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 1 )
-add_mass = 4.0
-add_structure = 60.0
+add_mass = 8.0
+add_hyperthrust = 12700.0
+add_structure = 90.0
 item_size_x = 2
-item_size_y = 1
-mount_type_all = "internal equipment"
-help_page = "equipment/optical_cooler_large"
-add_cooling = 6.0
-add_power = -0.3
+item_size_y = 2
+mount_type_display = "external"
+mount_type_all = "external"
+help_page = "engine/hyperdrive"
