@@ -449,7 +449,7 @@ namespace godot {
       const real_t fuel_efficiency;
       const AABB aabb; // of ship, either guessed or from GDScript ShipSpecs
       const real_t turn_drag;
-      const real_t radius; // effective radius of ship from aabb
+      const real_t radius, radiussq; // effective radius of ship from aabb (and squared)
       const real_t empty_mass, fuel_inverse_density, armor_inverse_density;
       const faction_index_t faction; // faction number
       const faction_mask_t faction_mask; // 2<<faction
@@ -463,7 +463,7 @@ namespace godot {
       const real_t shield_repair_energy, armor_repair_energy, structure_repair_energy;
       const real_t only_forward_thrust_heat, only_reverse_thrust_heat, turning_thrust_heat, hyperthrust_heat;
       const real_t only_forward_thrust_energy, only_reverse_thrust_energy, turning_thrust_energy, hyperthrust_energy;
-      const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_strength;
+      const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_radiussq, cargo_web_strength;
       const Ref<Mesh> cargo_puff_mesh;
       
       real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, hyperthrust, efficiency, cargo_mass;

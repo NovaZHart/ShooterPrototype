@@ -11,11 +11,11 @@ void vertex() {
 	float duration = INSTANCE_CUSTOM[2];
 	if(death_time<duration)
 		duration += (death_time-duration)*0.6667;
-	COLOR.w = clamp(time/duration,0.0,1.0);
+	COLOR.r = clamp(time/duration,0.0,1.0);
 }
 
 void fragment() {
 	vec4 sample = texture(image_texture,UV);
-	ALPHA = COLOR.w*sample.w;
+	ALPHA = COLOR.r*sample.w;
 	ALBEDO = sample.rgb;
 }

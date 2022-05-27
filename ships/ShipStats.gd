@@ -323,7 +323,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	if cargo_web_strength>=0:
 		stats['cargo_web_strength']=cargo_web_strength
 	else:
-		stats['cargo_web_strength']=300*cargo_web_add_radius
+		stats['cargo_web_strength']=250*cargo_web_add_radius+300
 	if heal_shields>=0:
 		stats['heal_shields']=heal_shields
 	else:

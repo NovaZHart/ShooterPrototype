@@ -168,7 +168,7 @@ void VisualEffects::step_multimeshes(real_t delta,Vector3 location,Vector3 size)
   pair<bool,VisibleContent *> newflag_visible = content.update_visible_content();
   if(!newflag_visible.second) {
     // No content yet. This is expected in the first frame.
-    Godot::print_warning("No visible content in visual effects!",__FUNCTION__,__FILE__,__LINE__);
+    //Godot::print_warning("No visible content in visual effects!",__FUNCTION__,__FILE__,__LINE__);
     return;
   }
   if(!newflag_visible.first)
@@ -215,10 +215,8 @@ void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server
       update_death=true;
   } break;
   case(CONSTANT_VELOCITY): {
-    if(effect.velocity.length_squared()>1e-10 and effect.instance->rid.get_id()) {
-      effect.position += delta*effect.velocity;
-      update_transform=true;
-    }
+    effect.position += delta*effect.velocity;
+    update_transform=true;
   } break;
   case(VELOCITY_RELATIVE_TO_TARGET): {
     VisibleObject *object = get_object_or_make_stationary(effect.target1,effect);
@@ -289,7 +287,6 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   visual_server->instance_geometry_set_cast_shadows_setting(rid,0);
   if(rid.get_id()) {
     effect.instance = allocate_visual_rid(rid);
-    Godot::print("Made a new effect");
   } else {
     Godot::print_error("Failed to make an instance for new effect",__FUNCTION__,__FILE__,__LINE__);
     effect.dead=true;
@@ -303,7 +300,6 @@ MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t dur
                                                       real_t rotation) {
   object_id mesh_id=multimeshes.get_preloaded_mesh_id(mesh);
   if(mesh_id<0) {
-    Godot::print("Add preloaded mesh.");
     mesh_id=multimeshes.add_preloaded_mesh(mesh);
   }
 
@@ -352,7 +348,7 @@ void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Ve
   effect.lifetime_aabb.grow_by(aabb_growth);
   
   if(not effect.dead) {
-    effect.behavior = VELOCITY_RELATIVE_TO_TARGET;
+    effect.behavior = CONSTANT_VELOCITY; // VELOCITY_RELATIVE_TO_TARGET;
     effect.velocity = relative_velocity;
     effect.target1 = ship.id;
     effect.relative_position = relative_position;
@@ -364,33 +360,26 @@ void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Ve
   }
 }
 
-void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff) {
-  real_t aabb_growth = (ship.max_speed + relative_velocity.length())*duration;
+void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 position,Vector3 velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff) {
+  real_t aabb_growth = (velocity.length())*duration;
 
   if(not is_circle_visible(ship.position,length*2+aabb_growth)) {
-    Godot::print("cargo web puff out of view");
     return;
   }
   if(cargo_puff.is_null()) {
-    Godot::print("Null cargo puff.");
     return;
   }
-
-  Vector3 effect_position=ship.position+relative_position;
-  effect_position.y=below_projectiles;
   
-  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,effect_position,0);
+  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,position,0);
 
   if(not effect.dead) {
     effect.lifetime_aabb.grow_by(aabb_growth);
-    effect.behavior = VELOCITY_RELATIVE_TO_TARGET;
-    effect.velocity = relative_velocity;
+    effect.behavior = CONSTANT_VELOCITY;
+    effect.velocity = velocity;
     effect.target1 = ship.id;
-    effect.relative_position = relative_position;
+    effect.position = position;
     effect.ready = true;
-    Godot::print("MMI puff ready.");
-  } else
-    Godot::print("MMI puff started dead.");
+  }
 }
 
 bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) const {

@@ -443,6 +443,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   aabb(get<AABB>(dict,"aabb")),
   turn_drag(max(1e-5f,get<real_t>(dict,"turn_drag"))),
   radius(max(1e-5f,(aabb.size.x+aabb.size.z)/2.0f)),
+  radiussq(radius*radius),
   empty_mass(max(0.0f,get<real_t>(dict,"empty_mass",0))),
   fuel_inverse_density(max(0.0f,get<real_t>(dict,"fuel_inverse_density",10.0f))),
   armor_inverse_density(max(0.0f,get<real_t>(dict,"armor_inverse_density",200.0f))),
@@ -483,6 +484,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
 
   rifting_damage_multiplier(clamp(get<real_t>(dict,"rifting_damage_multiplier",0.3f),0.0f,1.0f)),
   cargo_web_radius(radius+get<real_t>(dict,"cargo_web_add_radius",0)),
+  cargo_web_radiussq(cargo_web_radius*cargo_web_radius),
   cargo_web_strength(get<real_t>(dict,"cargo_web_strength",900)),
   cargo_puff_mesh(get<Ref<Mesh>>(dict,"cargo_puff_mesh")),
 

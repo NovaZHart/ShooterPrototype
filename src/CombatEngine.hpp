@@ -221,6 +221,7 @@ namespace godot {
     bool fire_direct_weapon(CE::Ship &ship,CE::Weapon &weapon,bool allow_untargeted);
     void auto_fire(CE::Ship &ship, CE::ships_iter &target);
     void move_to_attack(CE::Ship &ship,CE::Ship &target);
+    std::pair<DVector3,double> plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed);
     bool move_to_intercept(CE::Ship &ship,double close, double slow,
                            DVector3 tgt_pos, DVector3 tgt_vel,
                            bool force_final_state);

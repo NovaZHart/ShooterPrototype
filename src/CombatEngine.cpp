@@ -1022,7 +1022,6 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
       activate_cargo_web(ship);
     else
       deactivate_cargo_web(ship);
-    ship.cargo_web_active = !ship.cargo_web_active;
   }
   
   if(!rotation and fabsf(overrides.manual_rotation)>1e-5) {
@@ -1055,12 +1054,30 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
 }
 
 void CombatEngine::activate_cargo_web(Ship &ship) {
-  Rect2 cargo_web_rect = rect_for_circle(ship.position,ship.cargo_web_radius);
-  Godot::print(ship.name+" is activating its cargo web at "+str(cargo_web_rect));
-  flotsam_locations.dump();
+  ship.cargo_web_active = true;
 }
 void CombatEngine::deactivate_cargo_web(Ship &ship) {
-  Godot::print(ship.name+" has turned off its cargo web.");
+  ship.cargo_web_active = false;
+}
+
+pair<DVector3,double> CombatEngine::plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed) {
+  // Returns desired velocity vector and time to collision.
+  double target_speed = target_velocity.length();
+  DVector3 relative_heading = relative_position.normalized();     // VrHat
+
+  if(target_speed>max_speed)
+    // Special case: cannot catch up to target. Instead, fly towards it.
+    return pair<DVector3,double>(relative_heading*max_speed,NAN);
+  
+  double sina = cross2(relative_heading,target_velocity)/max_speed; // (VrHat x V0Hat) * v0Hat/vg
+  double relative_angle = asin_clamp(sina);
+  double distance = relative_position.length();
+  double start_angle = angle_from_unit(relative_heading);         // angle of VrHat
+  DVector3 course = unit_from_angle_d(start_angle+relative_angle)*max_speed;
+  DVector3 relative_course = course-target_velocity;
+  double relative_speed = max(0.01,relative_course.length());
+  
+  return pair<DVector3,double>(course,distance/relative_speed);
 }
 
 void CombatEngine::use_cargo_web(Ship &ship) {
@@ -1075,24 +1092,29 @@ void CombatEngine::use_cargo_web(Ship &ship) {
       
       Vector3 dp = ship.position-proj.position;
 
-      if(dp.length()>ship.cargo_web_radius)
+      real_t distsq = lensq2(dp);
+      
+      if(distsq>ship.cargo_web_radiussq)
         continue;
-      proj.possible_hit = dp.length()<ship.radius;
-      //real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
+      if(!proj.possible_hit)
+        proj.possible_hit = distsq<ship.radiussq;
 
-      Vector3 dv=ship.linear_velocity-proj.linear_velocity;
+      real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
+      pair<DVector3,double> collision_course = plot_collision_course(dp,ship.linear_velocity,terminal_velocity);
+      //Vector3 velocity_correction = collision_course.first-proj.linear_velocity;
+      //proj.forces += velocity_correction.normalized()*thrust;
 
-      Vector3 vdelta = dv+dp*dv.length()/dp.length();
-      Vector3 force = vdelta.normalized()*thrust;
-      proj.forces += force;
+      proj.forces += collision_course.first.normalized()*thrust;
 
-      if(ship.rand.randf()<.5) {
-        Godot::print("Make cargo web puff");
+      if(ship.rand.randf()<30*delta) {
         Vector3 ship_position(ship.position.x,ship.visual_height,ship.position.z);
-        Vector3 random_perturbation((ship.rand.randf()-1)/2,ship.rand.randf()/10,(ship.rand.randf()-1)/2);
-        visual_effects->add_cargo_web_puff_MMIEffect(ship,Vector3(-dp.x,-1,-dp.z)+random_perturbation,-0.7f*dv,1,0.4,ship.cargo_puff_mesh);
-      } else
-        Godot::print("Not making cargo web puff");
+        Vector3 puff_velocity = (ship.rand.randf()*0.1 + 0.3)*(collision_course.first);
+        Vector3 random_perturbation = Vector3((ship.rand.randf()-1)/2,ship.rand.randf()/10,(ship.rand.randf()-1)/2);
+        Vector3 puff_location = Vector3(proj.position.x,-1,proj.position.z)+random_perturbation;
+        real_t duration = isnan(collision_course.second) ? .4f : collision_course.second;
+        duration*=3.5;
+        visual_effects->add_cargo_web_puff_MMIEffect(ship,puff_location,puff_velocity,1,duration,ship.cargo_puff_mesh);
+      }
     }
   }
 }
@@ -1778,9 +1800,9 @@ void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
 double CombatEngine::rendezvous_time(Vector3 target_location,Vector3 target_velocity,
                                      double interception_speed) {
   FAST_PROFILING_FUNCTION;
-  double a = double_dot(target_velocity,target_velocity) - interception_speed*interception_speed;
-  double b = 2.0 * double_dot(target_location,target_velocity);
-  double c = double_dot(target_location,target_location);
+  double a = dot2(target_velocity,target_velocity) - interception_speed*interception_speed;
+  double b = 2.0 * dot2(target_location,target_velocity);
+  double c = dot2(target_location,target_location);
   double descriminant = b*b - 4*a*c;
 
   if(fabs(a)<1e-5)
@@ -2188,8 +2210,6 @@ void CombatEngine::integrate_projectiles() {
       continue;
     }
     
-    projectile.age += delta;
-    
     if(projectile.guided)
       guide_projectile(projectile);
     else {
@@ -2363,7 +2383,7 @@ bool CombatEngine::collide_point_projectile(Projectile &projectile) {
       physics_server->body_apply_central_impulse(p_ship->second.rid,impulse);
   }
 
-  if(p_ship->second.fate==FATED_TO_FLY and projectile.salvage)
+  if(p_ship->second.fate==FATED_TO_FLY and projectile.salvage and p_ship->second.cargo_web_active)
     salvage_projectile(p_ship->second,projectile);
   return true;
 }
@@ -2424,7 +2444,7 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
         if(impulse.length_squared())
           physics_server->body_apply_central_impulse(ship.rid,impulse);
       }
-      if(ship.fate==FATED_TO_FLY and projectile.salvage)
+      if(ship.fate==FATED_TO_FLY and projectile.salvage and ship.cargo_web_active)
         salvage_projectile(ship,projectile);
     }
     return true;
@@ -2533,10 +2553,13 @@ bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 ta
 void CombatEngine::integrate_projectile_forces(Projectile &projectile,bool thrust,bool drag) {
   FAST_PROFILING_FUNCTION;
 
+  if(drag)
+    projectile.age += delta;
+
   if(projectile.integrate_forces) {
     real_t mass=max(projectile.mass,1e-5f);
     if(drag)
-      projectile.linear_velocity -= projectile.linear_velocity*projectile.drag*delta;
+      projectile.linear_velocity -= projectile.linear_velocity*projectile.drag*projectile.mass*delta;
     if(thrust and projectile.thrust)
       projectile.forces += projectile.thrust*get_heading(projectile);
     projectile.linear_velocity += projectile.forces*delta/mass;
@@ -2647,7 +2670,6 @@ Vector2 CombatEngine::place_center(const Vector2 &where,
     minimap_scaled = minimap_scaled.normalized()*outside;
   return minimap_scaled + minimap_center;
 }
-
 
 void CombatEngine::draw_anulus(const Vector2 &center,real_t inner_radius,real_t outer_radius,
                                const Color &color,bool antialiased) {

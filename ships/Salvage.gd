@@ -8,7 +8,7 @@ export var armor_repair: int = 0
 export var structure_repair: int = 0
 export var spawn_probability: float = 0.0
 export var spawn_priority: int = 50
-export var spawn_duration: float = 5.0
+export var spawn_duration: float = 90.0
 export var grab_radius: float = 0.25
 
 var product=null setget ,get_product

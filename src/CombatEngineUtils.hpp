@@ -101,18 +101,6 @@ namespace godot {
       auto it = rid2id.find(rid_id);
       return (it==rid2id.end()) ? default_id : it->second;
     }
-
-    inline double double_dot(const Vector3 &a,const Vector3 &b) {
-      return double(a.x)*double(b.x)+double(a.y)*double(b.y)+double(a.z)*double(b.z);
-    }
-
-    inline double acos_clamp_dot(const Vector3 &a,const Vector3 &b) {
-      return acos(std::clamp(double_dot(a,b),-1.0,1.0));
-    }
-
-    inline double asin_clamp_dot(const Vector3 &a,const Vector3 &b) {
-      return asin(std::clamp(double_dot(a,b),-1.0,1.0));
-    }
     
     template<class T>
     double acos_clamp(T value) {
@@ -143,9 +131,26 @@ namespace godot {
       return Vector3(cosf(angle),0,-sinf(angle));
     }
 
+    inline DVector3 unit_from_angle(double angle) {
+      // x_axis.rotated(y_axis,angle)
+      return DVector3(cos(angle),0,-sin(angle));
+    }
+
     inline DVector3 unit_from_angle_d(double angle) {
       // x_axis.rotated(y_axis,angle)
       return DVector3(cos(angle),0,-sin(angle));
+    }
+
+    inline real_t angle_from_unit(Vector3 angle) {
+      return atan2f(-angle.z,angle.x);
+    }
+
+    inline double angle_from_unit(DVector3 angle) {
+      return atan2(-angle.z,angle.x);
+    }
+
+    inline double angle_from_unit_d(DVector3 angle) {
+      return atan2(-angle.z,angle.x);
     }
     
     template<class T>
@@ -192,6 +197,22 @@ namespace godot {
 
     inline real_t distsq(const Vector3 &a,const Vector3 &b) {
       return (a.x-b.x)*(a.x-b.x) + (a.z-b.z)*(a.z-b.z);
+    }
+
+    inline real_t acos_clamp_dot(const Vector3 &a,const Vector3 &b) {
+      return acosf(std::clamp(dot2(a,b),-1.0f,1.0f));
+    }
+
+    inline real_t asin_clamp_dot(const Vector3 &a,const Vector3 &b) {
+      return asinf(std::clamp(dot2(a,b),-1.0f,1.0f));
+    }
+
+    inline double acos_clamp_dot(const DVector3 &a,const DVector3 &b) {
+      return acosf(std::clamp(dot2(a,b),-1.0,1.0));
+    }
+
+    inline double asin_clamp_dot(const DVector3 &a,const DVector3 &b) {
+      return asinf(std::clamp(dot2(a,b),-1.0,1.0));
     }
     
     inline uint32_t state_for_name(const String &name) {
