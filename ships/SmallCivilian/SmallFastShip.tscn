@@ -20,6 +20,7 @@ base_turn_drag = 0.4
 armor_inverse_density = 140.0
 override_size = Vector3( 1.7, 0, 1.95 )
 cargo_web_add_radius = 5.0
+cargo_web_strength = 2400.0
 base_armor_passthru = PoolRealArray( 0, 0, 0.2, 0.2, 0.2, 0, 0.2, 0, 0 )
 base_structure_resist = PoolRealArray( 0, 0, 0, 0.1, -0.2, -0.2, 0, -1.4, -0.1 )
 
