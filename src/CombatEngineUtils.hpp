@@ -160,7 +160,7 @@ namespace godot {
     
     template<class T>
     DVector3 get_heading_d(T &object) {
-      return unit_from_angle(object.rotation[1]);
+      return unit_from_angle_d(object.rotation[1]);
     }
 
     inline real_t lensq2(const Vector3 &a) {

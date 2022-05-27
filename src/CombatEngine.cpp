@@ -2456,75 +2456,56 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
   ships_iter target_iter = ships.find(projectile.target);
   if(target_iter == ships.end()) {
+    projectile.angular_velocity.y = 0;
     integrate_projectile_forces(projectile,true,true);
     return; // Nothing to track.
   }
 
   Ship &target = target_iter->second;
   if(target.fate==FATED_TO_DIE) {
+    projectile.angular_velocity.y = 0;
     integrate_projectile_forces(projectile,true,true);
     return; // Target is dead.
   }
   real_t max_speed = projectile.max_speed; // linear_velocity.length();
   if(max_speed<1e-5) {
+    projectile.angular_velocity.y = 0;
     integrate_projectile_forces(projectile,true,true);
     return; // Cannot track until we have a speed.
   }
 
-  real_t max_angular_velocity = projectile.turn_rate;
-  DVector3 d = target.position - projectile.position;
-  d.y=0;
-  DVector3 unit = d.normalized();
-  real_t expected_speed = (max_speed+projectile.linear_velocity.length())/2;
-  real_t intercept_time = d.length()/expected_speed;
-  //real_t speed=projectile.linear_velocity.length();
-  DVector3 target_velocity(target.linear_velocity);
-
-  DVector3 desired_heading = unit;
-  DVector3 heading = get_heading(projectile);
-
-  if(intercept_time>0) {
-    if(projectile.guidance_uses_velocity) {
-      // Turn towards interception point based on target velocity.
-      if(dot2(unit,target_velocity)<0) {
-        // Target is moving towards projectile.  Intercept course is
-        // where the target and projectile have the same velocity normal
-        // to the distance between them.
-        DVector3 normal(unit.z,0,-unit.x);
-        double vN = normal.dot(target_velocity);
-        double vT = sqrt(max(0.0,expected_speed*expected_speed-vN*vN));
-        d = vT*unit + vN*normal;
-      } else {
-        // Target is moving away from projectile.
-        d += intercept_time*target_velocity;
-        intercept_time = d.length()/max_speed;
-      }
-      unit=d.normalized();
-    }
-    //    want_angular_velocity = (angle_to_intercept(projectile,target.position,target.linear_velocity).y-projectile.rotation.y)/delta;
-    //  }
-    //bool should_thrust = dot2(heading,desired_heading)>0;
-    
-    DVector3 desired_velocity = unit*max_speed;
-    DVector3 adjustment = desired_velocity-projectile.linear_velocity;
-    // //double weight = clamp((intercept_time-0.1)/0.5,0.0,1.0);
-    // //desired_heading = (1-weight)*desired_heading + weight*desired_acceleration.normalized();
-    desired_heading=adjustment.normalized();
-    //desired_heading=unit;
-  }
+  DVector3 relative_position = target.position - projectile.position;
+  DVector3 course_velocity;
+  double intercept_time;
   
-  real_t want_angular_velocity = angle2(heading,desired_heading);
-  //bool is_facing_target = dot2(heading,unit) > 0; //fabsf(want_angular_velocity)<PI/2;
-  bool should_thrust = dot2(heading,desired_heading)>0; //fabsf(want_angular_velocity)<PI/2;
-  if(should_thrust) {
-    real_t time_to_face = fabs(want_angular_velocity)/max_angular_velocity;
-    //real_t time_to_reach = d.length()/max_speed;
-    should_thrust = time_to_face*1.5<=intercept_time; // time_to_reach;
+  if(projectile.guidance_uses_velocity) {
+    pair<DVector3,double> course = plot_collision_course(relative_position,target.linear_velocity,max_speed);
+    intercept_time = course.second;
+    course_velocity = course.first;
+
+    if(!(intercept_time>1e-5)) // !(>) detects NaN
+      intercept_time=1e-5;
+  } else {
+    course_velocity = relative_position.normalized()*max_speed;
+    intercept_time = relative_position.length()/max_speed;
   }
 
-  //should_thrust = is_eta_lower_with_thrust(target.position,target.linear_velocity,projectile,heading,desired_heading);
+  DVector3 velocity_correction = course_velocity-projectile.linear_velocity;
+  DVector3 heading = get_heading_d(projectile);
+  DVector3 desired_heading = velocity_correction.normalized();
+  double desired_heading_angle = angle_from_unit(desired_heading);
+  double heading_angle = angle_from_unit(heading);
+  double angle_correction = desired_heading_angle-heading_angle;
+  double turn_rate = projectile.turn_rate;
   
-  projectile.angular_velocity.y = clamp(want_angular_velocity,-max_angular_velocity,max_angular_velocity);
+  bool should_thrust = dot2(heading,desired_heading)>.95; // Don't thrust away from desired heading
+  // if(should_thrust) {
+  //   // Don't thrust if we're too far from the target to turn to the desired heading
+  //   double turning_time = fabs(angle_correction)/turn_rate;
+  //   should_thrust = turning_time*1.5<=intercept_time;
+  // }
+  
+  projectile.angular_velocity.y = clamp(angle_correction/delta,-turn_rate,turn_rate);
   integrate_projectile_forces(projectile,should_thrust,should_thrust);
 }
 
