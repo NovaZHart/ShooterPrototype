@@ -932,6 +932,7 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://weapons/BlueLaserTurret.tscn', 25, 16000, 16000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/BlueMissileLauncher.tscn', 40, 13000, 13000, 0, 'explosive', 'homing', 'weapon', 'terran' ],
 		[ 'res://weapons/GreenLaserGun.tscn', 40, 22000, 22000, 0, 'laser', 'weapon', 'terran' ],
+		[ 'res://weapons/GreenMissileLauncher.tscn', 40, 26000, 26000, 0, 'explosive', 'homing', 'weapon', 'terran' ],
 		[ 'res://weapons/GreenLaserTurret.tscn', 40, 39000, 39000, 0, 'laser', 'weapon', 'terran' ],
 		[ 'res://weapons/OrangeSpikeGun.tscn', 40, 11000, 11000, 0, 'particle', 'weapon', 'terran' ],
 		[ 'res://weapons/LargeOrangeSpikeGun.tscn', 40, 27000, 27000, 0, 'particle', 'weapon', 'terran' ],

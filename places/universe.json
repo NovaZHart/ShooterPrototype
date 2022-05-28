@@ -2369,6 +2369,121 @@
             },
         ],
 
+        "husky_haruspex":[
+            "ShipDesign",
+            "Husky (Haruspex)",
+            [
+                "Resource",
+                "res://ships/SmallCivilian/SmallFastShip.tscn"
+            ],
+            {
+                "StarboardEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "ExternalEquipment": [
+                    "MultiMount",
+                    {
+                        "ExternalEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ],
+                "PortEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "Gun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/GreenMissileLauncher.tscn"
+                    ]
+                ],
+                "PortEquipment": [
+                    "MultiMount",
+                    {
+                        "PortEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "PortEquipment_at_x0_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            1
+                        ]
+                    }
+                ],
+                "MainEquipment": [
+                    "MultiMount",
+                    {
+                        "MainEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x2.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "MainEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x2.tscn"
+                            ],
+                            2,
+                            0
+                        ]
+                    }
+                ],
+                "StarboardEquipment": [
+                    "MultiMount",
+                    {
+                        "StarboardEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "StarboardEquipment_at_x0_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                            ],
+                            0,
+                            1
+                        ]
+                    }
+                ]
+            },
+        ],
+        
         "husky_laser":[
             "ShipDesign",
             "Husky (Laser)",
@@ -3374,7 +3489,7 @@
               
       "hexapod_particles_missiles": [
           "ShipDesign",
-          "Hexapod (Lasers+Missiles)",
+          "Hexapod (Particles+Missiles)",
           [
               "Resource",
               "res://ships/CargoPodShips/SixPodShip.tscn"
@@ -3384,7 +3499,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/GreenMissileLauncher.tscn"
                   ]
               ],
               "PortAuxGun": [
@@ -3398,7 +3513,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/GreenMissileLauncher.tscn"
                   ]
               ],
               "StarboardAuxGun": [
@@ -3605,21 +3720,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenLaserTurret.tscn"
+                      "res://weapons/OrangeSpikeTurret.tscn"
                   ]
               ],
               "PortTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenLaserTurret.tscn"
+                      "res://weapons/OrangeSpikeTurret.tscn"
                   ]
               ],
               "PortTurret2": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenLaserTurret.tscn"
+                      "res://weapons/OrangeSpikeTurret.tscn"
                   ]
               ],
               "PortEngine": [
@@ -3640,7 +3755,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenLaserTurret.tscn"
+                      "res://weapons/OrangeSpikeTurret.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -3666,7 +3781,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/GreenMissileLauncher.tscn"
                   ]
               ],
               "PortAuxGun": [
@@ -3680,7 +3795,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/GreenMissileLauncher.tscn"
                   ]
               ],
               "StarboardAuxGun": [
@@ -5872,14 +5987,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser.tscn"
+                        "res://weapons/GreyMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser.tscn"
+                        "res://weapons/GreyMissileLauncher.tscn"
                     ]
                 ]
             },
@@ -6077,17 +6192,18 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BigParticleGun.tscn"
+                        "res://weapons/GreyMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BigParticleGun.tscn"
+                        "res://weapons/GreyMissileLauncher.tscn"
                     ]
                 ]
             },
+            null
         ],
         
 
@@ -7080,14 +7196,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueMissileLauncher.tscn"
+                      "res://weapons/GreenMissileLauncher.tscn"
                   ]
               ],
               "StarboardSmallGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueMissileLauncher.tscn"
+                      "res://weapons/GreenMissileLauncher.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7136,6 +7252,20 @@
                       ]
                   }
               ],
+              "AftEquipment": [
+                  "MultiMount",
+                  {
+                      "AftEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/Shield3x3.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -7174,20 +7304,6 @@
                           ],
                           2,
                           2
-                      ]
-                  }
-              ],
-              "AftEquipment": [
-                  "MultiMount",
-                  {
-                      "AftEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
-                          ],
-                          0,
-                          0
                       ]
                   }
               ],
@@ -7311,14 +7427,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/GreenMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardSmallGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/GreenMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardEquipment": [
@@ -7367,6 +7483,20 @@
                         ]
                     }
                 ],
+                "AftEquipment": [
+                    "MultiMount",
+                    {
+                        "AftEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield3x3.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ],
                 "ExternalEquipment": [
                     "MultiMount",
                     {
@@ -7405,20 +7535,6 @@
                             ],
                             2,
                             2
-                        ]
-                    }
-                ],
-                "AftEquipment": [
-                    "MultiMount",
-                    {
-                        "AftEquipment_at_x0_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
-                            ],
-                            0,
-                            0
                         ]
                     }
                 ],
@@ -7473,10 +7589,10 @@
                 ]
             },
             null
-        ],
-
+        ]
+        
     } 
-],
+  ],
   "fleets": [
     "SimpleNode",
     {
