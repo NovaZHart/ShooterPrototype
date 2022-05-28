@@ -18,6 +18,7 @@ export var blast_radius: float = 0
 export var threat: float = -1
 export var guided: bool = false
 export var guidance_uses_velocity: bool = false
+export var auto_retarget: bool = false
 export var projectile_mesh_path: String
 export var item_size_x: int = 1
 export var item_size_y: int = 3
@@ -149,6 +150,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'threat':th,
 			'guided':guided,
 			'guidance_uses_velocity':guidance_uses_velocity,
+			'auto_retarget':auto_retarget,
 			'projectile_mesh_path':projectile_mesh_path,
 			'item_size_x':item_size_x,
 			'item_size_y':item_size_y,

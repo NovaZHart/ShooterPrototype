@@ -39,7 +39,7 @@ This small missile is designed to destroy medium-sized ships. The damage and bla
 @price Price:
 @synopsis High-damage homing missile with a wide blast radius.
 @content
-This weapon of mass destruction is intended to target large ships or tight groups of small ships. The damage radius is about the size of a capital ship, and it does enough damage to destroy some fighters in one hit. Though it does home in on its target, the missile turns slowly, so it has trouble tracking small ships.
+This weapon of mass destruction is intended to target large ships or tight groups of small ships. The damage radius is about the size of a capital ship, and it does enough damage to destroy some fighters in one hit. Though it does home in on its target, the missile turns slowly, so it has trouble tracking small ships. In addition to advanced homing abilities, this weapon will contact its ship for a new target if its target is gone.
 
 @bbcode_from_scene res://weapons/BigRedMissileLauncher.tscn
 

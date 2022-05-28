@@ -2453,8 +2453,11 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
 }
 
 ships_iter CombatEngine::get_projectile_target(Projectile &projectile) {
+  FAST_PROFILING_FUNCTION;
+
   ships_iter target_iter = ships.find(projectile.target);
-  if(target_iter != ships.end())
+  
+  if(target_iter != ships.end() or not projectile.auto_retarget)
     return target_iter;
 
   // Target is gone. Is the attacker still alive?

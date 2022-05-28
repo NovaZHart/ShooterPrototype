@@ -345,7 +345,7 @@ namespace godot {
       const object_id source;
       object_id target;
       const object_id mesh_id;
-      const bool guided, guidance_uses_velocity;
+      const bool guided, guidance_uses_velocity, auto_retarget;
       const real_t damage, impulse, blast_radius, detonation_range, turn_rate;
       const real_t mass, drag, thrust, lifetime, initial_velocity, max_speed;
       const real_t heat_fraction, energy_fraction, thrust_fraction;
@@ -372,7 +372,7 @@ namespace godot {
       const real_t projectile_turn_rate;
       const real_t firing_delay, turn_rate, blast_radius, detonation_range, threat;
       const real_t heat_fraction, energy_fraction, thrust_fraction, firing_energy, firing_heat;
-      const bool direct_fire, guided, guidance_uses_velocity;
+      const bool direct_fire, guided, guidance_uses_velocity, auto_retarget;
       const object_id mesh_id;
       const real_t terminal_velocity, projectile_range;
       const NodePath node_path;
