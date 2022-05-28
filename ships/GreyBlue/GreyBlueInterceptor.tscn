@@ -23,7 +23,8 @@ base_drag = 0.9
 base_turn_drag = 0.28
 base_max_cargo = 3
 armor_inverse_density = 250.0
-override_size = Vector3( 1.9, 1.6, 0 )
+override_size = Vector3( 1.5, 0, 2.1 )
+cargo_web_add_radius = 4.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
@@ -60,6 +61,12 @@ mount_size_x = 2
 mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
+
+[node name="ExternalEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.004, 0, 0 )
+script = ExtResource( 2 )
+mount_type = "external equipment"
+mount_type_display = "external equipment"
 
 [node name="StarboardAuxEquipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.201394, 0, 0.555126 )

@@ -5528,6 +5528,20 @@
                       ]
                   }
               ],
+              "ExternalEquipment": [
+                  "MultiMount",
+                  {
+                      "ExternalEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/EscapePodEngine.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ],
               "StarboardAuxEquipment": [
                   "MultiMount",
                   {
@@ -5615,6 +5629,20 @@
                           [
                               "Resource",
                               "res://equipment/repair/Shield2x2.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ],
+              "ExternalEquipment": [
+                  "MultiMount",
+                  {
+                      "ExternalEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/EscapePodEngine.tscn"
                           ],
                           0,
                           0

@@ -952,6 +952,7 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://equipment/engines/FissionEngine.tscn', 40, 36000, 36000, 0, 'engine', 'terran', 'large' ],
 		[ 'res://equipment/engines/FusionEngine.tscn', 40, 73000, 73000, 0, 'engine', 'terran', 'large' ],
 		[ 'res://equipment/engines/Hyperdrive.tscn', 40, 25000, 25000, 0, 'engine', 'terran' ],
+		[ 'res://equipment/engines/EscapePodEngine.tscn', 40, 7000, 7000, 0, 'engine', 'terran' ],
 		[ 'res://equipment/engines/SmallHyperdrive.tscn', 40, 14000, 14000, 0, 'engine', 'terran' ],
 		[ 'res://equipment/engines/SmallMultisystem.tscn', 40, 19000, 19000, 0, 'engine', 'terran' ],
 		[ 'res://equipment/engines/LargeMultisystem.tscn', 40, 41000, 41000, 0, 'engine', 'terran' ],
