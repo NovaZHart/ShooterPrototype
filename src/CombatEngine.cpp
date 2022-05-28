@@ -1609,7 +1609,6 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
   if(ship.inactive)
     return;
   Vector3 ship_pos = ship.position;
-  Vector3 ship_vel = ship.linear_velocity;
   real_t ship_rotation = ship.rotation[1];
   Vector3 confusion = ship.confusion;
   real_t max_distsq = ship.range.turrets*1.5*ship.range.turrets*1.5;
@@ -1650,43 +1649,48 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     //bool opportunistic = false;
     
     Vector3 proj_start = ship_pos + weapon.position.rotated(y_axis,ship_rotation) + confusion;
-    Vector3 proj_heading = ship.heading.rotated(y_axis,weapon.rotation.y);
     real_t turret_angular_velocity=0;
     real_t best_score = numeric_limits<real_t>::infinity();
     //int best_enemy = -1;
-
-    for(int i=0;i<num_eptrs;i++) {
+    real_t lifetime = weapon.projectile_lifetime;
+    bool is_target = have_a_target;
+    double turn_rate = weapon.turn_rate;
+    real_t proj_rotation = ship_rotation + weapon.rotation.y;
+    
+    for(int i=0;i<num_eptrs;i++,is_target=false) {
       Ship &enemy = *eptrs[i];
       if(distsq(enemy.position,ship.position)>max_distsq)
         break;
-      Vector3 dp = enemy.position - proj_start;
-      Vector3 dv = enemy.linear_velocity;
-      if(!weapon.guided)
-        dv -= ship_vel;
-      real_t t = rendezvous_time(dp, dv, weapon.terminal_velocity);
-      if(isnan(t) or t>weapon.projectile_lifetime)  {
-        t = max(dp.length()/weapon.terminal_velocity, 2*weapon.projectile_lifetime);
-      } else
-        dp += dv*t;
-      double angle_to_target = angle_diff(dp.normalized(),proj_heading);
-      //if(angle_to_target>PI)
-      //  angle_to_target-=2*PI;
-      real_t desired_angular_velocity = angle_to_target/delta;
-      real_t turn_time = fabsf(angle_to_target/weapon.turn_rate);
+      DVector3 dp = enemy.position - proj_start;
+      pair<DVector3,double> course = plot_collision_course(dp,enemy.linear_velocity,weapon.terminal_velocity);
+      double intercept_time = course.second;
+      if(isnan(intercept_time))
+        intercept_time = lifetime*2;
+      DVector3 course_velocity = course.first-ship.linear_velocity;
       
-      // Score is adjusted to favor ships that the projectile will strike.
-      real_t score = turn_time + (PI/weapon.turn_rate)*t;
+      double course_angle = angle_from_unit(course_velocity.normalized());
+      double angle_correction = course_angle-proj_rotation;
+      double turn_time = fabsf(angle_correction/turn_rate);
+      
+      if(is_target) { // && PI/weapon.turn_rate+intercept_time>=.75*lifetime) {
+        // We don't have time to hit a non-target, so focus on the target.
+        turret_angular_velocity = clamp(angle_correction/delta,-turn_rate,turn_rate);
+        best_score = 0;
+        break;
+      }
+      
+      double score = turn_time+intercept_time;
 
-      if(i==0 and have_a_target)
-        score*=1.5; // prefer ship's target
-      
       if(score<best_score) {
         best_score=score;
-        turret_angular_velocity = clamp(desired_angular_velocity, -weapon.turn_rate, weapon.turn_rate);
+        turret_angular_velocity = clamp(angle_correction/delta,-turn_rate,turn_rate);
       }
     }
-    
-    if(fabsf(turret_angular_velocity)<=1e-9) {
+
+    if(isfinite(best_score)) {
+      weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
+      weapon_rotations[weapon.node_path] = weapon.rotation.y;
+    } else {
       // This turret has nothing to target.
       // if(opportunistic) {
       //   //FIXME: INSERT CODE HERE
@@ -1698,10 +1702,6 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
         to_center-=2*PI;
       turret_angular_velocity = clamp(to_center/delta, -weapon.turn_rate, weapon.turn_rate);
       // }
-    }
-    if(fabsf(turret_angular_velocity)>1e-9) {
-      weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
-      weapon_rotations[weapon.node_path] = weapon.rotation.y;
     }
   }
 }

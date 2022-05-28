@@ -157,6 +157,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
     real_t estimated_range = weapon.projectile_lifetime*weapon.terminal_velocity;
     rotation.y += asin_clamp(weapon.position.z/estimated_range);
   }
+  rotation.y = fmodf(rotation.y,2*PI);
 
   if(guided and not thrust)
     Godot::print_warning("Guided weapon has no thrust",__FUNCTION__,__FILE__,__LINE__);
