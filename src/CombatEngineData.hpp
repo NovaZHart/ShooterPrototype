@@ -342,7 +342,8 @@ namespace godot {
   
     struct Projectile {
       const object_id id;
-      const object_id target;
+      const object_id source;
+      object_id target;
       const object_id mesh_id;
       const bool guided, guidance_uses_velocity;
       const real_t damage, impulse, blast_radius, detonation_range, turn_rate;

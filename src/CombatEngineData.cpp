@@ -117,6 +117,7 @@ Salvage::~Salvage() {}
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   id(id),
+  source(ship.id),
   target(ship.get_target()),
   mesh_id(weapon.mesh_id),
   guided(weapon.guided),
@@ -167,6 +168,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
   id(id),
+  source(ship.id),
   target(target),
   mesh_id(weapon.mesh_id),
   guided(weapon.guided),
@@ -203,6 +205,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes):
   id(id),
+  source(ship.id),
   target(ship.get_target()),
   mesh_id(multimeshes.add_mesh(salvage->flotsam_mesh_path)),
   guided(false),

@@ -248,6 +248,7 @@ namespace godot {
     CE::ships_iter space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
     bool collide_projectile(CE::Projectile &projectile);
     void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
+    CE::ships_iter get_projectile_target(CE::Projectile &projectile);
     void guide_projectile(CE::Projectile &projectile);
     bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading,DVector3 desired_heading);
     void integrate_projectile_forces(CE::Projectile &projectile, bool thrust, bool drag);

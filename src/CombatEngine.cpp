@@ -2452,9 +2452,29 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
     return false;
 }
 
+ships_iter CombatEngine::get_projectile_target(Projectile &projectile) {
+  ships_iter target_iter = ships.find(projectile.target);
+  if(target_iter != ships.end())
+    return target_iter;
+
+  // Target is gone. Is the attacker still alive?
+  
+  ships_iter source_iter = ships.find(projectile.source);
+  if(source_iter == ships.end())
+    return target_iter;
+
+  // Projectile target is now the new target of the attacker.
+  projectile.target = source_iter->second.get_target();
+
+  // Use the new target, if it exists.
+  target_iter = ships.find(projectile.target);
+  return target_iter;
+}
+
 void CombatEngine::guide_projectile(Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
-  ships_iter target_iter = ships.find(projectile.target);
+
+  ships_iter target_iter = get_projectile_target(projectile);
   if(target_iter == ships.end()) {
     projectile.angular_velocity.y = 0;
     integrate_projectile_forces(projectile,true,true);
