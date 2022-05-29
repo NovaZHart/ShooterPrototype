@@ -68,7 +68,7 @@ Bioelectric generators were one of the earliest applications of bioengineering t
 @price Price:
 @synopsis Bioengineered algae that can generate and store power.
 @content
-Bioelectric generators were one of the earliest applications of bioengineering to shipbuilding. They generate a moderate amount of power, store a substantial energy reserve, and emit low levels of heat. Designers of energy-hungry ships would choose a smaller fusion generator over this massive vat. However, this generator stores a lot more energy and generates far less heat than a similar fusion reactor.
+Bioelectric generators were one of the earliest applications of bioengineering to shipbuilding. They generate a moderate amount of power, store a substantial energy reserve, and emit low levels of heat. Designers of power-hungry battleships would choose a smaller fusion generator over this massive vat. However, this generator stores a lot more energy and generates far less heat than a similar fusion reactor.
 
 @bbcode_from_scene res://equipment/power/LargeBioelectricGenerator.tscn
 

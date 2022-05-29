@@ -351,7 +351,8 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 		0 ]
 	heat_data[5] = heat_data[0]+heat_data[1]+heat_data[2]+heat_data[3]+heat_data[4]
 	
-	var mass = utils.ship_mass(s)
+	var mass = utils.ship_mass(s,false)
+	var mass_when_full = utils.ship_mass(s,true)
 	var max_thrust = max(max(s['reverse_thrust'],s['thrust']),0)
 	var bbcode = '[b]Ship Design:[/b] [i]'+s['display_name']+'[/i]'+annotation+'\n'
 	if show_id:
@@ -375,18 +376,24 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Max Speed:',round(10*max_thrust/max(1e-9,s['drag']*mass))/10)
+	var max_speed = round(10*max_thrust/max(1e-9,s['drag']*mass))/10
+	var max_speed_when_full = round(10*max_thrust/max(1e-9,s['drag']*mass_when_full))/10
+	bbcode += make_cell('Max Speed: ',str(max_speed)+' ('+str(max_speed_when_full)+' with max cargo)')
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Hyperspace Speed:',round(10*max_thrust*(1+s['hyperthrust'])/max(1e-9,s['drag']*mass))/10)
+	var hyperspace_speed = round(10*max_thrust*(1+s['hyperthrust'])/max(1e-9,s['drag']*mass))/10
+	var hyperspace_speed_when_full = round(10*max_thrust*(1+s['hyperthrust'])/max(1e-9,s['drag']*mass_when_full))/10
+	bbcode += make_cell('Hyperspace Speed:',str(hyperspace_speed)+' ('+str(hyperspace_speed_when_full)+' with max cargo)')
 
 #	var k = s['max_fuel']*s['fuel_inverse_density']/s['empty_mass']
 #	var d = s['max_fuel']*s['fuel_efficiency']/s['empty_mass']
 #	var travel_distance = d * 1.0/k * log(1.0/(1.0+k))
 	bbcode += max_and_repair('Fuel:',s['max_fuel'],round(s['heal_fuel']*10)/10)
 	bbcode += '[cell][/cell]'
-	bbcode += make_cell('Turn RPM:',round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
+	var turn_rpm = round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100
+	var turn_rpm_when_full = round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass_when_full)*100)/100
+	bbcode += make_cell('Turn RPM:',str(turn_rpm)+' ('+str(turn_rpm_when_full)+' with max cargo)')
 #	bbcode += make_cell('Hyper.Travel:',str(round(travel_distance*10)/10)+'pc')
 
 	bbcode += make_cell('Cargo: ',str(round(s.get('cargo_mass',0)))+'/'+str(round(s.get('max_cargo',0))))

@@ -150,6 +150,7 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 	item.transform = Transform()
 	if item.is_gun():
 		item.translation.x = (item.mount_size_y-1.0)*item_scale
+	item.translation.y += 0.1
 	add_child(item)
 	
 	if with_box:

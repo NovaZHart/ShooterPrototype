@@ -97,7 +97,7 @@ mount_type_display = "engine"
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.409, 0.029, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 2
+mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"
 

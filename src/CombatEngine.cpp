@@ -1995,18 +1995,23 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
   bool ships_in_range=false;
   
   for(auto &weapon : ship.weapons) {
+    
     if(not weapon.can_fire())
       continue;
-    
-    if(weapon.guided and have_a_target) {
-      real_t travel = target->second.position.distance_to(ship.position);
-      real_t max_travel = weapon.projectile_range;
-      if(travel<max_travel)
-        create_projectile(ship,weapon);
-      continue;
-    }
-    if(hit_detected and not weapon.is_turret) {
-      // If one non-turret fires, all fire.
+
+    real_t max_travel_squared = weapon.projectile_range;
+    max_travel_squared *= max_travel_squared;
+
+    if(weapon.guided) {
+      if(have_a_target) {
+        real_t travel_squared = target->second.position.distance_squared_to(ship.position);
+        if(travel_squared<max_travel_squared) {
+          create_projectile(ship,weapon,target->second.id);
+          continue;
+        }
+      }
+    } else if(hit_detected and not weapon.is_turret) {
+      // If one non-turret non-guided weapon fires, all fire.
       if(weapon.direct_fire)
         fire_direct_weapon(ship,weapon,false);
       else
@@ -2047,8 +2052,13 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
     for(int i=0;i<num_eptrs;i++) {
       const AABB &bound = eptrs[i]->aabb;
       Vector3 p_enemy = eptrs[i]->position+ship.confusion;
-      Vector3 projectile_velocity = ship.heading.rotated(y_axis,weapon_rotation.y)*projectile_speed;
       Vector3 another1 = p_weapon+p_ship-p_enemy;
+
+      if(weapon.guided and another1.length_squared()>max_travel_squared)
+        break; // Enemies are out of range of this guided weapon.
+      
+      Vector3 projectile_velocity = ship.heading.rotated(y_axis,weapon_rotation.y)*projectile_speed;
+      
       Vector3 v_enemy = eptrs[i]->linear_velocity;
       Vector3 another2 = another1 + projectile_lifetime*(projectile_velocity-v_enemy);
       another1[1]=0;
@@ -2056,7 +2066,7 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
       if(bound.intersects_segment(another1,another2)) {
         if(not weapon.direct_fire) {
           hit_detected=true;
-          create_projectile(ship,weapon);
+          create_projectile(ship,weapon,eptrs[i]->id);
           break;
         } else if(fire_direct_weapon(ship,weapon,false)) {
           hit_detected=true;
@@ -2270,14 +2280,14 @@ void CombatEngine::create_flotsam(Ship &ship) {
   }
 }
 
-void CombatEngine::create_projectile(Ship &ship,Weapon &weapon) {
+void CombatEngine::create_projectile(Ship &ship,Weapon &weapon,object_id target) {
   FAST_PROFILING_FUNCTION;
   if(not weapon.can_fire())
     return;
   weapon.fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=idgen.next();
-  projectiles.emplace(new_id,Projectile(new_id,ship,weapon));
+  projectiles.emplace(new_id,Projectile(new_id,ship,weapon,target));
   ship.heat += weapon.firing_heat;
   ship.energy -= weapon.firing_energy;
 }

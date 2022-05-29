@@ -115,10 +115,10 @@ grab_radius(get<real_t>(dict,"grab_radius"))
 {}
 Salvage::~Salvage() {}
 
-Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
+Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object_id alternative_target):
   id(id),
   source(ship.id),
-  target(ship.get_target()),
+  target(alternative_target>=0 ? alternative_target : ship.get_target()),
   mesh_id(weapon.mesh_id),
   guided(weapon.guided),
   guidance_uses_velocity(weapon.guidance_uses_velocity),
@@ -152,6 +152,10 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon):
   integrate_forces(guided),
   salvage()
 {
+  if(guided and direct_fire)
+    Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
+  if(guided and target<0)
+    Godot::print_warning(ship.name+" fired a guided projectile with no target (1)",__FUNCTION__,__FILE__,__LINE__);
   rotation.y = ship.rotation.y;
   if(weapon.turn_rate>0)
     rotation.y += weapon.rotation.y;
@@ -203,7 +207,12 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   possible_hit(true),
   integrate_forces(false),
   salvage()
-{}
+{
+  if(guided and direct_fire)
+    Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
+  if(guided and target<0)
+    Godot::print_warning(ship.name+" fired a guided projectile with no target (2)",__FUNCTION__,__FILE__,__LINE__);
+}
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes):
   id(id),

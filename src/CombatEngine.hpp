@@ -240,7 +240,7 @@ namespace godot {
     void integrate_projectiles();
     void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
     void create_flotsam(CE::Ship &ship);
-    void create_projectile(CE::Ship &ship,CE::Weapon &weapon);
+    void create_projectile(CE::Ship &ship,CE::Weapon &weapon,object_id target=-1);
     CE::ships_iter ship_for_rid(const RID &rid);
     CE::ships_iter ship_for_rid(int rid_id);
     CE::projectile_hit_list_t find_projectile_collisions(CE::Projectile &projectile,real_t radius,int max_results=32);

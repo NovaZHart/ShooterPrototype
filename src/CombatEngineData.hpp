@@ -359,7 +359,7 @@ namespace godot {
       inline real_t radius() const {
         return std::max(1e-5f,detonation_range);
       }
-      Projectile(object_id id,const Ship &ship,const Weapon &weapon);
+      Projectile(object_id id,const Ship &ship,const Weapon &weapon,object_id alternative_target=-1);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes);
       ~Projectile();

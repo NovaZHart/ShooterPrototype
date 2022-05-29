@@ -240,8 +240,13 @@ func ship_max_speed(ship_stats,mass=null) -> float:
 	var max_thrust = max(max(ship_stats['reverse_thrust'],ship_stats['thrust']),0)
 	return max_thrust/max(1e-9,ship_stats['drag']*mass)
 
-func ship_mass(ship_stats):
-	return ship_stats['empty_mass']+ship_stats.get('cargo_mass',0)+ \
+func ship_mass(ship_stats,when_full = false):
+	var cargo_mass
+	if when_full:
+		cargo_mass = ship_stats.get('max_cargo',0)
+	else:
+		cargo_mass = ship_stats.get('cargo_mass',0)
+	return ship_stats['empty_mass']+cargo_mass+ \
 		ship_stats['max_fuel']/ship_stats['fuel_inverse_density']+ \
 		ship_stats['max_armor']/ship_stats['armor_inverse_density']
 

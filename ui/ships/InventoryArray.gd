@@ -249,7 +249,7 @@ func insert_at_grid_range(content,use_item_offset: bool) -> Array:
 	if not item is Spatial:
 		push_warning('multimount: scene "'+scene.resource_path+'" is not a Spatial.')
 		return []
-	item.translation = Vector3(-(xy1.y+(content.ny-1)/2.0),0,(xy1.x+(content.nx-1)/2.0))*grid_cell_size+first
+	item.translation = Vector3(-(xy1.y+(content.ny-1)/2.0),0.1,(xy1.x+(content.nx-1)/2.0))*grid_cell_size+first
 	item.item_offset_x = x1
 	item.item_offset_y = y1
 	if item is CollisionObject:

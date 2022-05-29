@@ -59,7 +59,7 @@ Though this ship is almost unarmed, its cargo capacity is nonetheless impressive
 @price Price:
 @synopsis Fast Cargo Ship
 @content
-This cargo ship is faster than most cargo ships of its weight class. Between speed, and an abundance of equipment space for boosting its shields, it is far more durable. This makes it suited for running valuable cargo through dangerous systems.
+This cargo ship is faster than most cargo ships of its weight class. Between speed, and an abundance of equipment space for boosting its shields, it is far more durable. This makes it suitable for running valuable cargo through dangerous systems.
 
 @bbcode_from_scene res://ships/SmallCivilian/SpikyTriangle.tscn
 
