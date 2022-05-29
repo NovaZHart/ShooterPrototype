@@ -251,7 +251,7 @@ namespace godot {
     CE::ships_iter get_projectile_target(CE::Projectile &projectile);
     void guide_projectile(CE::Projectile &projectile);
     bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading,DVector3 desired_heading);
-    void integrate_projectile_forces(CE::Projectile &projectile, bool thrust, bool drag);
+    void integrate_projectile_forces(CE::Projectile &projectile, real_t thrust_fraction, bool drag);
 
 
     // // // // // // // // // // // // // // // // // // // // // // // // 

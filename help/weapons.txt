@@ -43,7 +43,7 @@ This weapon of mass destruction is intended to target large ships or tight group
 
 @bbcode_from_scene res://weapons/BigRedMissileLauncher.tscn
 
-@PAGE weapons/haruspex
+@PAGE weapons/haruspex_missile
 @title Haruspex Missile
 @price Price:
 @synopsis Homing missile with a wide blast radius.

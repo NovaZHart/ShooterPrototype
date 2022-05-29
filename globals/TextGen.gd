@@ -375,18 +375,19 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Max Speed:',round(max_thrust/max(1e-9,s['drag']*mass)))
+	bbcode += make_cell('Max Speed:',round(10*max_thrust/max(1e-9,s['drag']*mass))/10)
 
 	bbcode += max_and_repair('Structure:',s['max_structure'],s['heal_structure'])
 	bbcode += '[cell] [/cell]'
-	bbcode += make_cell('Turn RPM:',round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
+	bbcode += make_cell('Hyperspace Speed:',round(10*max_thrust*(1+s['hyperthrust'])/max(1e-9,s['drag']*mass))/10)
 
-	var k = s['max_fuel']*s['fuel_inverse_density']/s['empty_mass']
-	var d = s['max_fuel']*s['fuel_efficiency']/s['empty_mass']
-	var travel_distance = d * 1.0/k * log(1.0/(1.0+k))
-	bbcode += max_and_repair('Fuel:',s['max_fuel'],s['heal_fuel'])
+#	var k = s['max_fuel']*s['fuel_inverse_density']/s['empty_mass']
+#	var d = s['max_fuel']*s['fuel_efficiency']/s['empty_mass']
+#	var travel_distance = d * 1.0/k * log(1.0/(1.0+k))
+	bbcode += max_and_repair('Fuel:',s['max_fuel'],round(s['heal_fuel']*10)/10)
 	bbcode += '[cell][/cell]'
-	bbcode += make_cell('Hyper.Travel:',str(round(travel_distance*10)/10)+'pc')
+	bbcode += make_cell('Turn RPM:',round(s['turning_thrust']/max(1e-9,s['turn_drag']*mass)*100)/100)
+#	bbcode += make_cell('Hyper.Travel:',str(round(travel_distance*10)/10)+'pc')
 
 	bbcode += make_cell('Cargo: ',str(round(s.get('cargo_mass',0)))+'/'+str(round(s.get('max_cargo',0))))
 	bbcode += '[cell] [/cell]'
@@ -408,20 +409,21 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 		bbcode += make_cell('Reverse:',s['reverse_thrust'])
 	else:
 		bbcode += '[cell][/cell][cell][/cell]'
-	if s['hyperthrust']>0:
-		bbcode += make_cell('Hyperspace:',s['hyperthrust'])
-	else:
-		bbcode += '[cell][/cell][cell][/cell]'
 	bbcode += '[cell] [/cell]'
 	bbcode += make_cell('Hit Force:',s['explosion_impulse'])
 	
-	bbcode += max_and_repair('Energy:',s['battery'],s['power'])
+	if s['hyperthrust']>0:
+		bbcode += make_cell('Hyperspace:','+'+str(round(s['hyperthrust']*1000)/10)+'%')
+	else:
+		bbcode += '[cell][/cell][cell][/cell]'
 	bbcode += '[cell] [/cell]'
 	bbcode += make_cell('Item Slots:',s['item_slots'])
 	
-	bbcode += max_and_repair('Heat:',s['empty_mass']*s['heat_capacity'],-s['cooling'])
+	bbcode += max_and_repair('Energy:',s['battery'],s['power'])
 	bbcode += '[cell] [/cell]'
 	
+	bbcode += max_and_repair('Heat:',s['empty_mass']*s['heat_capacity'],-s['cooling'])
+	bbcode += '[cell] [/cell][cell][/cell][cell][/cell]'
 	bbcode += '[/table]\n'
 
 	# Heat and energy budget tables:

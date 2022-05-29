@@ -1,20 +1,21 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://equipment/engines/SmallHyperdrive.mesh" type="ArrayMesh" id=1]
-[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=2]
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/engines/SmallHyperdrive.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
-mesh = ExtResource( 1 )
+mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
 material/3 = null
-script = ExtResource( 2 )
+script = ExtResource( 1 )
 add_mass = 4.0
-add_hyperthrust = 5400.0
+add_hyperthrust = 0.5
 add_structure = 45.0
 item_size_x = 2
 item_size_y = 1
-mount_type_display = "external equipment"
-mount_type_all = "external equipment"
+mount_type_display = "external equipment/engine"
+mount_type_all = "external"
+mount_type_any = "equipment engine"
 help_page = "engine/hyperdrive_small"

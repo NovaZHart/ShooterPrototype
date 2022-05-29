@@ -254,6 +254,7 @@ mount_type_display = "equipment"
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.326851, 0.479, 1.34872 )
 script = ExtResource( 9 )
 mount_size_x = 2
+mount_size_y = 6
 mount_type = "external equipment"
 mount_type_display = "external equipment"
 

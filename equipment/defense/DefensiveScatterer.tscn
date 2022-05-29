@@ -1,13 +1,13 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://equipment/defense/DefensiveScatterer.mesh" type="ArrayMesh" id=1]
-[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=2]
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/defense/DefensiveScatterer.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
-mesh = ExtResource( 1 )
+mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
-script = ExtResource( 2 )
+script = ExtResource( 1 )
 add_mass = 8.0
 item_size_x = 2
 item_size_y = 2

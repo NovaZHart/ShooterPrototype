@@ -44,11 +44,9 @@ export var base_structure_repair_energy: float = .2
 export var base_forward_thrust_heat: float = 0.3
 export var base_reverse_thrust_heat: float = 0.3
 export var base_turning_thrust_heat: float = 0.9
-export var base_hyperthrust_heat: float = 0.03
 export var base_forward_thrust_energy: float = 0.05
 export var base_reverse_thrust_energy: float = 0.05
 export var base_turning_thrust_energy: float = 0.15
-export var base_hyperthrust_energy: float = 0.005
 export var base_battery: float = -1
 export var base_power: float = -1
 
@@ -253,7 +251,6 @@ func set_power_and_cooling(stats: Dictionary):
 		power += max(stats['thrust']*stats['forward_thrust_energy'], \
 			stats['reverse_thrust']*stats['reverse_thrust_energy'])/1000.0 + \
 			stats['turning_thrust']*stats['turning_thrust_energy']/1000.0 + \
-			stats['hyperthrust']*stats['hyperthrust_energy']/1000.0 + \
 			stats['heal_shields']*stats['shield_repair_energy'] + \
 			stats['heal_armor']*stats['armor_repair_energy'] + \
 			stats['heal_structure']*stats['structure_repair_energy']
@@ -263,7 +260,6 @@ func set_power_and_cooling(stats: Dictionary):
 		heat += max(stats['thrust']*stats['forward_thrust_heat'], \
 			stats['reverse_thrust']*stats['reverse_thrust_heat'])/1000.0 + \
 			stats['turning_thrust']*stats['turning_thrust_heat']/1000.0 + \
-			stats['hyperthrust']*stats['hyperthrust_heat']/1000.0 + \
 			stats['heal_shields']*stats['shield_repair_heat'] + \
 			stats['heal_armor']*stats['armor_repair_heat'] + \
 			stats['heal_structure']*stats['structure_repair_heat']
@@ -368,11 +364,9 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	stats['forward_thrust_heat']=base_forward_thrust_heat
 	stats['reverse_thrust_heat']=base_reverse_thrust_heat
 	stats['turning_thrust_heat']=base_turning_thrust_heat
-	stats['hyperthrust_heat']=base_hyperthrust_heat
 	stats['forward_thrust_energy']=base_forward_thrust_energy
 	stats['reverse_thrust_energy']=base_reverse_thrust_energy
 	stats['turning_thrust_energy']=base_turning_thrust_energy
-	stats['hyperthrust_energy']=base_hyperthrust_energy
 	
 	set_power_and_cooling(stats)
 

@@ -2217,7 +2217,7 @@ void CombatEngine::integrate_projectiles() {
         if(projectile.salvage)
           flotsam_locations.set_rect(projectile.id,rect_for_circle(projectile.position,projectile.radius()));
       }
-      integrate_projectile_forces(projectile,true,true);
+      integrate_projectile_forces(projectile,1,true);
     }
     
     bool collided=false;
@@ -2480,26 +2480,27 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   ships_iter target_iter = get_projectile_target(projectile);
   if(target_iter == ships.end()) {
     projectile.angular_velocity.y = 0;
-    integrate_projectile_forces(projectile,true,true);
+    integrate_projectile_forces(projectile,1,true);
     return; // Nothing to track.
   }
 
   Ship &target = target_iter->second;
   if(target.fate==FATED_TO_DIE) {
     projectile.angular_velocity.y = 0;
-    integrate_projectile_forces(projectile,true,true);
+    integrate_projectile_forces(projectile,1,true);
     return; // Target is dead.
   }
   real_t max_speed = projectile.max_speed; // linear_velocity.length();
   if(max_speed<1e-5) {
     projectile.angular_velocity.y = 0;
-    integrate_projectile_forces(projectile,true,true);
+    integrate_projectile_forces(projectile,1,true);
     return; // Cannot track until we have a speed.
   }
 
   DVector3 relative_position = target.position - projectile.position;
   DVector3 course_velocity;
   double intercept_time;
+  double lifetime_remaining = projectile.lifetime-projectile.age;
   
   if(projectile.guidance_uses_velocity) {
     pair<DVector3,double> course = plot_collision_course(relative_position,target.linear_velocity,max_speed);
@@ -2513,23 +2514,25 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
     intercept_time = relative_position.length()/max_speed;
   }
 
+  double intercept_time_ratio = intercept_time/max(1e-5,lifetime_remaining);
+
+  double weight = 0.0;
+  if(intercept_time_ratio>0.5)
+    weight = min(1.0,2*(intercept_time_ratio-0.5));
+  
   DVector3 velocity_correction = course_velocity-projectile.linear_velocity;
   DVector3 heading = get_heading_d(projectile);
-  DVector3 desired_heading = velocity_correction.normalized();
+  DVector3 desired_heading = velocity_correction.normalized()*(1-weight) + course_velocity.normalized()*weight;
   double desired_heading_angle = angle_from_unit(desired_heading);
   double heading_angle = angle_from_unit(heading);
   double angle_correction = desired_heading_angle-heading_angle;
   double turn_rate = projectile.turn_rate;
-  
-  bool should_thrust = dot2(heading,desired_heading)>.95; // Don't thrust away from desired heading
-  // if(should_thrust) {
-  //   // Don't thrust if we're too far from the target to turn to the desired heading
-  //   double turning_time = fabs(angle_correction)/turn_rate;
-  //   should_thrust = turning_time*1.5<=intercept_time;
-  // }
-  
+
+  bool should_thrust = dot2(heading,desired_heading)>0.95; // Don't thrust away from desired heading
+
   projectile.angular_velocity.y = clamp(angle_correction/delta,-turn_rate,turn_rate);
-  integrate_projectile_forces(projectile,should_thrust,should_thrust);
+
+  integrate_projectile_forces(projectile,should_thrust,true);
 }
 
 bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const Projectile &proj,DVector3 heading,DVector3 desired_heading) {
@@ -2554,18 +2557,17 @@ bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 ta
   return eta_with_thrust<eta_without_thrust;
 }
 
-void CombatEngine::integrate_projectile_forces(Projectile &projectile,bool thrust,bool drag) {
+void CombatEngine::integrate_projectile_forces(Projectile &projectile,real_t thrust_fraction,bool drag) {
   FAST_PROFILING_FUNCTION;
 
-  if(drag)
-    projectile.age += delta;
+  projectile.age += delta;
 
   if(projectile.integrate_forces) {
     real_t mass=max(projectile.mass,1e-5f);
-    if(drag)
+    if(drag and projectile.linear_velocity.length_squared()>projectile.max_speed*projectile.max_speed)
       projectile.linear_velocity -= projectile.linear_velocity*projectile.drag*projectile.mass*delta;
-    if(thrust and projectile.thrust)
-      projectile.forces += projectile.thrust*get_heading(projectile);
+    if(projectile.thrust and thrust_fraction>0)
+      projectile.forces += projectile.thrust*thrust_fraction*get_heading(projectile);
     projectile.linear_velocity += projectile.forces*delta/mass;
     projectile.forces = Vector3(0,0,0);
   }

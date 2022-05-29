@@ -443,7 +443,7 @@ namespace godot {
       const String name; // last element of node path
       const RID rid; // of rigid body
       const real_t cost;
-      const real_t max_thrust, max_reverse_thrust, max_turning_thrust, max_hyperthrust, max_cargo_mass;
+      const real_t max_thrust, max_reverse_thrust, max_turning_thrust, hyperthrust_ratio, max_cargo_mass;
       const real_t threat, visual_height;
       const real_t max_shields, max_armor, max_structure, max_fuel;
       const real_t heal_shields, heal_armor, heal_structure, heal_fuel;
@@ -462,12 +462,12 @@ namespace godot {
       const real_t max_cooling, max_energy, max_power, max_heat;
       const real_t shield_repair_heat, armor_repair_heat, structure_repair_heat;
       const real_t shield_repair_energy, armor_repair_energy, structure_repair_energy;
-      const real_t only_forward_thrust_heat, only_reverse_thrust_heat, turning_thrust_heat, hyperthrust_heat;
-      const real_t only_forward_thrust_energy, only_reverse_thrust_energy, turning_thrust_energy, hyperthrust_energy;
+      const real_t only_forward_thrust_heat, only_reverse_thrust_heat, turning_thrust_heat;
+      const real_t only_forward_thrust_energy, only_reverse_thrust_energy, turning_thrust_energy;
       const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_radiussq, cargo_web_strength;
       const Ref<Mesh> cargo_puff_mesh;
       
-      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, hyperthrust, efficiency, cargo_mass;
+      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency, cargo_mass;
       real_t forward_thrust_heat, reverse_thrust_heat, forward_thrust_energy, reverse_thrust_energy;
       double thrust_loss;
 

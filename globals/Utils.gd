@@ -251,6 +251,14 @@ func event_position(event: InputEvent) -> Vector2:
 		return event.position
 	return get_viewport().get_mouse_position()
 
+func sum_of_squares_scalar(accum: float, add: float) -> float:
+	if not add:
+		return accum
+	var result: float
+	result = add*abs(add) + accum*abs(accum)
+	result = sign(result)*sqrt(abs(result))
+	return result
+
 func sum_of_squares(accum: PoolRealArray,add: PoolRealArray) -> PoolRealArray:
 	if not add:
 		return accum

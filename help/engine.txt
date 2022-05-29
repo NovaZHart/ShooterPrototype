@@ -8,18 +8,18 @@
 @PAGE engine/hyperdrive
 @title Hyperdrive
 @price Price:
-@synopsis Generates enormous thrust in hyperspace.
+@synopsis Magnifies thrust in hyperspace.
 @content
-This hyperdrive collects exotic hypermatter into a reservoir, and sends it into a thruster that ignites it as if it were chemical fuel. Because hypermatter only exists in hyperspace, the drive system is useless in normal space. The boost to your forward and reverse thrust is the same as a [ref=engine/nuclear_fusion]Fusion Engine[/ref], but with almost no heat or energy costs.
+This hyperdrive collects exotic hypermatter into a reservoir, and sends it into a thruster that ignites it as if it were chemical fuel. Due to the nature of hypermatter, this will not accelerate the ship on its own, but it will increase the acceleration from normal thrusters by 150%. Because hypermatter only exists in hyperspace, this device is useless in normal space.
 
 @bbcode_from_scene res://equipment/engines/Hyperdrive.tscn
 
 @PAGE engine/hyperdrive_small
 @title Small Hyperdrive
 @price Price:
-@synopsis Generates enormous thrust in hyperspace.
+@synopsis Magnifies thrust in hyperspace.
 @content
-This hyperdrive collects exotic hypermatter into a reservoir, and sends it into a thruster that ignites it as if it were chemical fuel. Because hypermatter only exists in hyperspace, the drive system is useless in normal space. The boost to your forward and reverse thrust is the same as a [ref=engine/nuclear_fission]Fission Engine[/ref], but with almost no heat or energy costs.
+This hyperdrive collects exotic hypermatter into a reservoir, and sends it into a thruster that ignites it as if it were chemical fuel. Due to the nature of hypermatter, this will not accelerate the ship on its own, but it will increase the acceleration from normal thrusters by 50%. Because hypermatter only exists in hyperspace, this device is useless in normal space.
 
 @bbcode_from_scene res://equipment/engines/SmallHyperdrive.tscn
 
@@ -28,7 +28,7 @@ This hyperdrive collects exotic hypermatter into a reservoir, and sends it into 
 @price Price:
 @synopsis Tiny thruster and hyperdrive with fuel storage.
 @content
-This is a standard engine used in most escape pods. It uses a modified hyperdrive that ignites standard chemical propellants in normal space and exotic hypermatter in hyperspace. The thrust in real space is enough for an escape pod, but not much else. In hyperspace, the thrust is substantial, allowing escape pods to reach a safe system quickly. It also stores a small amount of fuel. Larger ships will sometimes use this to boost their speed in hyperspace by a small amount.
+This is a standard engine used in most escape pods. It uses a modified hyperdrive that ignites standard chemical propellants in normal space and exotic hypermatter in hyperspace. The thrust in real space is enough for an escape pod, but not much else. In hyperspace, it will increase the thrust of forward and reverse thrusters by 20%. It also stores a small amount of fuel. Although this drive is designed for escape pods, small ships will sometimes use this to boost their hyperspace speed and fuel reserve.
 
 @bbcode_from_scene res://equipment/engines/EscapePodEngine.tscn
 
