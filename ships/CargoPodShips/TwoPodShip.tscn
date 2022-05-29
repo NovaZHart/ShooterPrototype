@@ -47,8 +47,8 @@ mount_type_display = "turret"
 [node name="ExternalEquipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0159965, 0.354813, -1.02382 )
 script = ExtResource( 1 )
-mount_size_x = 2
-mount_size_y = 6
+mount_size_x = 4
+mount_size_y = 4
 mount_type = "external equipment"
 mount_type_display = "external equipment"
 

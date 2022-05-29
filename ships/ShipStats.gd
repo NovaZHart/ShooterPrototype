@@ -59,7 +59,7 @@ export var cargo_web_strength: float = -1
                                                                # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  HOT
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.3, 0.3, 0.1, 0.1,-0.7, 0.3])
+export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2])
 export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0])
 export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.4,-0.1])
 

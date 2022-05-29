@@ -72,8 +72,8 @@ mount_type_display = "equipment"
 [node name="External Equipment" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.464994, 0, 2.05415 )
 script = ExtResource( 5 )
-mount_size_x = 2
-mount_size_y = 6
+mount_size_x = 4
+mount_size_y = 4
 mount_type = "external equipment"
 mount_type_display = "external equipment"
 

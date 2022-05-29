@@ -75,11 +75,29 @@ Bioelectric generators were one of the earliest applications of bioengineering t
 @PAGE equipment/defensive_scatterer
 @title Defensive Scatterer
 @price Price:
-@synopsis Boosts resistance to light-based weapons.
+@synopsis Armor and structure resistances: light-based weapons.
 @content
 Lasers are an age-old weapon; cheap to build, low power usage, and cool-running, but they have one major flaw. It is easy to scatter, refract, or reflect light. This device sprays a mist of particles in the direction of any incoming intense light. Light is either refracted away from the ship, or spread across the ship's whole surface, reducing the effect of the weapon. If a ship has one of these devices installed, it has a strong resistance to lasers. 
 
 @bbcode_from_scene res://equipment/defense/DefensiveScatterer.tscn
+
+@PAGE equipment/ablative_biogel_excreter
+@title Ablative Biogel Excreter
+@price Price:
+@synopsis Armor resistances: hot matter, high-energy particles, light.
+@content
+This relic of the lost art of city ship building is a piece of a city ship's living hull. It has been genetically programmed to defend against attacks by eating its way across your armor, turning the armor into a heat-resistant paste. The process will destroy some of your armor, but much less than you would have lost without this upgrade. This is most effective against high-energy particles and hot matter such as plasma or explosions. It will reduce damage from light-based weapons to a lesser extent.
+
+@bbcode_from_scene res://equipment/defense/AblativeBiogelExcreter.tscn
+
+@PAGE equipment/reactive_armor
+@title Reactive Armor
+@price Price:
+@synopsis Armor resistances: impact, pierce, antimatter, hot matter
+@content
+This installs ejection mechanisms behind your armor panels. When a projectile is incoming, this system will throw armor panels at it, deflecting it or causing it to activate before it hits your ship. You will still lose armor, but you'll lose much less than without this upgrade. This is extremely effective against antimatter, which will mutually annihilate with the ejected armor plate that hits it.
+
+@bbcode_from_scene res://equipment/defense/ReactiveArmor.tscn
 
 @PAGE equipment/structural_reinforcement
 @title Structural Reinforcement

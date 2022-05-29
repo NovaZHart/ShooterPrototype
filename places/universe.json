@@ -2050,7 +2050,8 @@
   ],
   "ship_designs": [
     "SimpleNode",
-    {
+      {
+          
       "raven_laser_wave": [
           "ShipDesign",
           "Laser-Wave Raven",
@@ -2059,6 +2060,13 @@
               "res://ships/PurpleShips/WarshipHull.tscn"
           ],
           {
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x2.tscn"
+                  ]
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -2070,6 +2078,15 @@
                           ],
                           0,
                           0
+                      ],
+                      "ExternalEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          2
                       ]
                   }
               ],
@@ -2152,13 +2169,6 @@
                   [
                       "Resource",
                       "res://weapons/PurpleHomingGun.tscn"
-                  ]
-              ],
-              "AuxEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
                   ]
               ]
           },
@@ -2265,9 +2275,9 @@
             null
         ],
         
-        "laser_qimmeq":[
+        "missile_qimmeq":[
             "ShipDesign",
-            "Qimmeq",
+            "Missile Qimmeq",
             [
                 "Resource",
                 "res://ships/SmallCivilian/SpikyTriangle.tscn"
@@ -2277,7 +2287,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueLaserGun.tscn"
+                        "res://weapons/BlueMissileLauncher.tscn"
                     ]
                 ],
                 "PortEngine": [
@@ -2298,7 +2308,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueLaserGun.tscn"
+                        "res://weapons/BlueMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardEngine": [
@@ -2312,8 +2322,22 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
+                        "res://equipment/engines/FissionEngine.tscn"
                     ]
+                ],
+                "ForwardEquipment": [
+                    "MultiMount",
+                    {
+                        "ForwardEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
                 ],
                 "ExternalEquipment": [
                     "MultiMount",
@@ -2326,38 +2350,15 @@
                             ],
                             0,
                             0
-                        ]
-                    }
-                ],
-                "ForwardEquipment": [
-                    "MultiMount",
-                    {
-                        "ForwardEquipment_at_x0_y0": [
+                        ],
+                        "ExternalEquipment_at_x2_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                                "res://equipment/defense/ReactiveArmor.tscn"
                             ],
-                            0,
+                            2,
                             0
-                        ],
-                        "ForwardEquipment_at_x0_y1": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/cooling/SmallOpticalCooler.tscn"
-                            ],
-                            0,
-                            1
-                        ],
-                        "ForwardEquipment_at_x1_y1": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/power/TinyBioelectricGenerator.tscn"
-                            ],
-                            1,
-                            1
                         ]
                     }
                 ],
@@ -2376,6 +2377,7 @@
                     }
                 ]
             },
+            null
         ],
 
         "husky_haruspex":[
@@ -2744,6 +2746,15 @@
                           ],
                           0,
                           0
+                      ],
+                      "ExternalEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          2
                       ]
                   }
               ],
@@ -2859,6 +2870,15 @@
                           ],
                           0,
                           0
+                      ],
+                      "ExternalEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          2
                       ]
                   }
               ],
@@ -3079,7 +3099,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/ReactiveArmor.tscn"
                           ],
                           2,
                           0
@@ -3186,6 +3206,15 @@
                           0,
                           0
                       ],
+                      "ExternalEquipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                          ],
+                          2,
+                          0
+                      ],
                       "ExternalEquipment_at_x0_y2": [
                           "MultiMounted",
                           [
@@ -3195,14 +3224,14 @@
                           0,
                           2
                       ],
-                      "ExternalEquipment_at_x0_y4": [
+                      "ExternalEquipment_at_x2_y2": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/ReactiveArmor.tscn"
                           ],
-                          0,
-                          4
+                          2,
+                          2
                       ]
                   }
               ],
@@ -3370,6 +3399,41 @@
                       ]
                   }
               ],
+              "PortGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/PurpleHomingGun.tscn"
+                  ]
+              ],
+              "MainGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/GreenLaserGun.tscn"
+                  ]
+              ],
+              "AftStarboardTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/BlueLaserTurret.tscn"
+                  ]
+              ],
+              "AftPortTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/BlueLaserTurret.tscn"
+                  ]
+              ],
+              "AftMainTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/GreenLaserTurret.tscn"
+                  ]
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -3382,6 +3446,15 @@
                           0,
                           0
                       ],
+                      "ExternalEquipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                          ],
+                          2,
+                          0
+                      ],
                       "ExternalEquipment_at_x0_y2": [
                           "MultiMounted",
                           [
@@ -3391,14 +3464,14 @@
                           0,
                           2
                       ],
-                      "ExternalEquipment_at_x0_y4": [
+                      "ExternalEquipment_at_x2_y2": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/ReactiveArmor.tscn"
                           ],
-                          0,
-                          4
+                          2,
+                          2
                       ]
                   }
               ],
@@ -3443,34 +3516,6 @@
                       ]
                   }
               ],
-              "PortGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
-                  ]
-              ],
-              "MainGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenLaserGun.tscn"
-                  ]
-              ],
-              "AftStarboardTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/BlueLaserTurret.tscn"
-                  ]
-              ],
-              "AftPortTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/BlueLaserTurret.tscn"
-                  ]
-              ],
               "ForwardMainTurret": [
                   "Mounted",
                   [
@@ -3484,13 +3529,6 @@
                       "Resource",
                       "res://weapons/PurpleHomingGun.tscn"
                   ]
-              ],
-              "AftMainTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenLaserTurret.tscn"
-                  ]
               ]
           },
           null
@@ -3498,7 +3536,7 @@
               
       "hexapod_particles_missiles": [
           "ShipDesign",
-          "Hexapod (Particles+Missiles)",
+          "Hexapod (Lasers+Missiles)",
           [
               "Resource",
               "res://ships/CargoPodShips/SixPodShip.tscn"
@@ -3701,6 +3739,24 @@
                           ],
                           2,
                           2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
+                      ],
+                      "ExternalEquipment_at_x2_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          2,
+                          4
                       ]
                   }
               ],
@@ -3708,42 +3764,28 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
-              ],
-              "AftEquipment": [
-                  "MultiMount",
-                  {
-                      "AftEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
               ],
               "StarboardTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "PortTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "PortTurret2": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "PortEngine": [
@@ -3764,7 +3806,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -3983,6 +4025,24 @@
                           ],
                           2,
                           2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
+                      ],
+                      "ExternalEquipment_at_x2_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          2,
+                          4
                       ]
                   }
               ],
@@ -3992,20 +4052,6 @@
                       "Resource",
                       "res://weapons/GreenLaserTurret.tscn"
                   ]
-              ],
-              "AftEquipment": [
-                  "MultiMount",
-                  {
-                      "AftEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
               ],
               "StarboardTurret1": [
                   "Mounted",
@@ -4068,25 +4114,48 @@
                 "res://ships/PurpleShips/CurvyWarshipHull.tscn"
             ],
             {
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
-              ],
+                "AuxEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
+                    ]
+                ],
+                "ExternalEquipment": [
+                    "MultiMount",
+                    {
+                        "ExternalEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "ExternalEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            0
+                        ]
+                    }
+                ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
                         "res://weapons/OrangeSpikeGun.tscn"
+                    ]
+                ],
+                "Engine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/Engine2x2.tscn"
                     ]
                 ],
                 "StarboardGun": [
@@ -4096,25 +4165,11 @@
                         "res://weapons/OrangeSpikeGun.tscn"
                     ]
                 ],
-                "AuxEngine": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
-                    ]
-                ],
                 "Turret": [
                     "Mounted",
                     [
                         "Resource",
                         "res://weapons/OrangeSpikeTurret.tscn"
-                    ]
-                ],
-                "Engine": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
                     ]
                 ],
                 "ForwardEquipment": [
@@ -4189,20 +4244,29 @@
           "res://ships/PurpleShips/CurvyWarshipHull.tscn"
         ],
         {
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
-              ],
+                "ExternalEquipment": [
+                    "MultiMount",
+                    {
+                        "ExternalEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "ExternalEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            0
+                        ]
+                    }
+                ],
           "PortGun": [
             "Mounted",
             [
@@ -4419,6 +4483,47 @@
                         ]
                     }
                 ],
+                "External Equipment": [
+                    "MultiMount",
+                    {
+                        "External Equipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "External Equipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "External Equipment_at_x0_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                            ],
+                            0,
+                            2
+                        ],
+                        "External Equipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            2
+                        ]
+                    }
+                ],
                 "WheelEquipment": [
                     "MultiMount",
                     {
@@ -4466,38 +4571,6 @@
                             ],
                             4,
                             3
-                        ]
-                    }
-                ],
-                "External Equipment": [
-                    "MultiMount",
-                    {
-                        "External Equipment_at_x0_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
-                            ],
-                            0,
-                            0
-                        ],
-                        "External Equipment_at_x0_y2": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
-                            ],
-                            0,
-                            2
-                        ],
-                        "External Equipment_at_x0_y4": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
-                            ],
-                            0,
-                            4
                         ]
                     }
                 ]
@@ -4622,6 +4695,47 @@
                       ]
                   }
               ],
+              "External Equipment": [
+                  "MultiMount",
+                  {
+                      "External Equipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/Hyperdrive.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "External Equipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          2,
+                          0
+                      ],
+                      "External Equipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          2
+                      ],
+                      "External Equipment_at_x2_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                          ],
+                          2,
+                          2
+                      ]
+                  }
+              ],
               "WheelEquipment": [
                   "MultiMount",
                   {
@@ -4669,38 +4783,6 @@
                           ],
                           4,
                           3
-                      ]
-                  }
-              ],
-              "External Equipment": [
-                  "MultiMount",
-                  {
-                      "External Equipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "External Equipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "External Equipment_at_x0_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          4
                       ]
                   }
               ]
@@ -4813,10 +4895,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
                           ],
                           0,
                           2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
                       ]
                   }
               ],
@@ -4970,10 +5061,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
                           ],
                           0,
                           2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
                       ]
                   }
               ],
@@ -5118,10 +5218,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
                           ],
                           0,
                           2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
                       ]
                   }
               ],
@@ -5266,10 +5375,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
                           ],
                           0,
                           2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
                       ]
                   }
               ],
@@ -5326,20 +5444,29 @@
                 "res://ships/GreyBlue/ThreeWingWarship.tscn"
             ],
             {
-                "ExternalEquipment": [
-                    "MultiMount",
-                    {
-                        "ExternalEquipment_at_x0_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
-                            ],
-                            0,
-                            0
-                        ]
-                    }
-                ],
+              "ExternalEquipment": [
+                  "MultiMount",
+                  {
+                      "ExternalEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/SmallHyperdrive.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "ExternalEquipment_at_x0_y1": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          1
+                      ]
+                  }
+              ],
                 "AuxEngine": [
                     "Mounted",
                     [
@@ -5474,10 +5601,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/engines/SmallHyperdrive.tscn"
                           ],
                           0,
                           0
+                      ],
+                      "ExternalEquipment_at_x0_y1": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          1
                       ]
                   }
               ],
@@ -5902,7 +6038,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
                             ],
                             0,
                             2
@@ -5911,10 +6047,19 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/ReactiveArmor.tscn"
                             ],
                             0,
                             4
+                        ],
+                        "ExternalEquipment_at_x0_y6": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            0,
+                            6
                         ]
                     }
                 ],
@@ -6125,7 +6270,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
                             ],
                             0,
                             2
@@ -6134,10 +6279,19 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/ReactiveArmor.tscn"
                             ],
                             0,
                             4
+                        ],
+                        "ExternalEquipment_at_x0_y6": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            0,
+                            6
                         ]
                     }
                 ],
@@ -6966,6 +7120,20 @@
                         ]
                     }
                 ],
+                "AftEquipment": [
+                    "MultiMount",
+                    {
+                        "AftEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield3x3.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ],
                 "ExternalEquipment": [
                     "MultiMount",
                     {
@@ -6991,7 +7159,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
                             ],
                             0,
                             2
@@ -7000,24 +7168,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
                             ],
                             2,
                             2
-                        ]
-                    }
-                ],
-                "AftEquipment": [
-                    "MultiMount",
-                    {
-                        "AftEquipment_at_x0_y0": [
+                        ],
+                        "ExternalEquipment_at_x0_y4": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/defense/ReactiveArmor.tscn"
                             ],
                             0,
-                            0
+                            4
+                        ],
+                        "ExternalEquipment_at_x2_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            4
                         ]
                     }
                 ],
@@ -7197,47 +7369,65 @@
                       ]
                   }
               ],
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "ExternalEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "ExternalEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "ExternalEquipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          2,
-                          2
-                      ]
-                  }
-              ],
+                "ExternalEquipment": [
+                    "MultiMount",
+                    {
+                        "ExternalEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "ExternalEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "ExternalEquipment_at_x0_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                            ],
+                            0,
+                            2
+                        ],
+                        "ExternalEquipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                            ],
+                            2,
+                            2
+                        ],
+                        "ExternalEquipment_at_x0_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            0,
+                            4
+                        ],
+                        "ExternalEquipment_at_x2_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            4
+                        ]
+                    }
+                ],
               "AftEquipment": [
                   "MultiMount",
                   {
@@ -7442,47 +7632,65 @@
                       ]
                   }
               ],
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "ExternalEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "ExternalEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "ExternalEquipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          2,
-                          2
-                      ]
-                  }
-              ],
+                "ExternalEquipment": [
+                    "MultiMount",
+                    {
+                        "ExternalEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "ExternalEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/engines/Hyperdrive.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "ExternalEquipment_at_x0_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                            ],
+                            0,
+                            2
+                        ],
+                        "ExternalEquipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                            ],
+                            2,
+                            2
+                        ],
+                        "ExternalEquipment_at_x0_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            0,
+                            4
+                        ],
+                        "ExternalEquipment_at_x2_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            4
+                        ]
+                    }
+                ],
               "PortLargeGun": [
                   "Mounted",
                   [
@@ -7698,7 +7906,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
                             ],
                             0,
                             2
@@ -7707,10 +7915,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
                             ],
                             2,
                             2
+                        ],
+                        "ExternalEquipment_at_x0_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            0,
+                            4
+                        ],
+                        "ExternalEquipment_at_x2_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/ReactiveArmor.tscn"
+                            ],
+                            2,
+                            4
                         ]
                     }
                 ],
