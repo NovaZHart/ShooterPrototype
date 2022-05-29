@@ -95,7 +95,7 @@ namespace godot {
     const ticks_t ticks_per_minute = 648000;
     const ticks_t zero_ticks = 0;
     const ticks_t inactive_ticks = -1;
-    const double thrust_loss_heal = 0.7;
+    const double thrust_loss_heal = 0.5;
 
     class AbstractCountdown {
       // Timer that counts down to zero.

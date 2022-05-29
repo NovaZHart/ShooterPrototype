@@ -154,8 +154,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object
 {
   if(guided and direct_fire)
     Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
-  if(guided and target<0)
-    Godot::print_warning(ship.name+" fired a guided projectile with no target (1)",__FUNCTION__,__FILE__,__LINE__);
+  // if(guided and target<0)
+  //   // This can happen if the player fires with no target. The AI should never do this.
+  //   Godot::print_warning(ship.name+" fired a guided projectile with no target (1)",__FUNCTION__,__FILE__,__LINE__);
   rotation.y = ship.rotation.y;
   if(weapon.turn_rate>0)
     rotation.y += weapon.rotation.y;
@@ -210,8 +211,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
 {
   if(guided and direct_fire)
     Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
-  if(guided and target<0)
-    Godot::print_warning(ship.name+" fired a guided projectile with no target (2)",__FUNCTION__,__FILE__,__LINE__);
+  // if(guided and target<0)
+  //   // This can happen if the player fires with no target. The AI should never do this.
+  //   Godot::print_warning(ship.name+" fired a guided projectile with no target (2)",__FUNCTION__,__FILE__,__LINE__);
 }
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes):
@@ -677,26 +679,15 @@ void Ship::update_stats(PhysicsServer *physics_server, bool hyperspace) {
       efficiency -= -energy/max_energy;
   }
 
-  if(thrust_loss) {
-    if(max_thrust) {
-      thrust = max_thrust * thrust_multiplier *
-        clamp(efficiency*(max_thrust-thrust_loss)/max_thrust, 0.4, 1.6);
-      if(max_reverse_thrust)
-        reverse_thrust = max_reverse_thrust * thrust_multiplier *
-          clamp(efficiency * (max_reverse_thrust - thrust_loss*max_reverse_thrust/max_thrust)/max_reverse_thrust, 0.4, 1.6);
-      else
-        Godot::print(name+": ship has no max_reverse_thrust!");
-      if(max_turning_thrust)
-        turning_thrust = max_turning_thrust *
-          clamp(efficiency * (max_turning_thrust - thrust_loss*max_turning_thrust/max_thrust)/max_turning_thrust, 0.4, 1.6);
-      else
-        Godot::print(name+": ship has no max_turning_thrust!");
-    } else
-      Godot::print(name+": ship has no max_thrust!");
-  } else {
-    thrust = max_thrust * thrust_multiplier;
-    turning_thrust = max_turning_thrust;
-    reverse_thrust = max_reverse_thrust * thrust_multiplier;
+  if(max_thrust) {
+    thrust = max_thrust * thrust_multiplier *
+      clamp(efficiency*(max_thrust-thrust_loss)/max_thrust, 0.4, 1.6);
+    if(max_reverse_thrust)
+      reverse_thrust = max_reverse_thrust * thrust_multiplier *
+        clamp(efficiency * (max_reverse_thrust - thrust_loss*max_reverse_thrust/max_thrust)/max_reverse_thrust, 0.4, 1.6);
+    if(max_turning_thrust)
+      turning_thrust = max_turning_thrust *
+        clamp(efficiency * (max_turning_thrust - thrust_loss*max_turning_thrust/max_thrust)/max_turning_thrust, 0.4, 1.6);
   }
 
   inverse_mass = 1.0f/new_mass;
