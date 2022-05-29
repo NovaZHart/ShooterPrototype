@@ -23,7 +23,7 @@
 #define FLOTSAM_FACTION 1
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
 
-#define NUM_DAMAGE_TYPES 9
+#define NUM_DAMAGE_TYPES 10
 #define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (do not use) */
 #define DAMAGE_LIGHT 1       /* Non-standing electromagnetic fields (ie. lasers) */
 #define DAMAGE_HE_PARTICLE 2 /* Non-zero mass particles with high energy (particle beam) */
@@ -33,6 +33,7 @@
 #define DAMAGE_GRAVITY 6     /* Strong gravity or gravity waves */
 #define DAMAGE_ANTIMATTER 7  /* Antimatter particles */
 #define DAMAGE_HOT_MATTER 8  /* Explosion or beam of hot gas or plasma */
+#define DAMAGE_PSIONIC 9     /* Mind over matter */
 
 #define MAX_RESIST 0.75
 #define MIN_RESIST -1.0
@@ -347,6 +348,7 @@ namespace godot {
       const object_id mesh_id;
       const bool guided, guidance_uses_velocity, auto_retarget;
       const real_t damage, impulse, blast_radius, detonation_range, turn_rate;
+      const bool always_drag;
       const real_t mass, drag, thrust, lifetime, initial_velocity, max_speed;
       const real_t heat_fraction, energy_fraction, thrust_fraction;
       //const int collision_mask;

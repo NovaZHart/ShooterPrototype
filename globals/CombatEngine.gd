@@ -60,6 +60,7 @@ const DAMAGE_EM_FIELD: int = 5    # Standing or low-frequency EM fields (ie. EMP
 const DAMAGE_GRAVITY: int = 6     # Strong gravity or gravity waves
 const DAMAGE_ANTIMATTER: int = 7  # Antimatter particles
 const DAMAGE_HOT_MATTER: int = 8  # Explosion or beam of hot gas or plasma
+const DAMAGE_PSIONIC: int = 9     # Power of mind over matter
 
 const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
 	"rules/damage/typeless", # Typeless damage should never show up

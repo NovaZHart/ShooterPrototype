@@ -14,4 +14,6 @@ item_size_y = 2
 mount_type_display = "external equipment"
 mount_type_all = "external equipment"
 help_page = "equipment/ablative_biogel_excreter"
-add_armor_resist = PoolRealArray( 0, 0.2, 0.3, 0, 0, 0, 0, 0, 0.3 )
+add_armor_resist = PoolRealArray( 0, 0.2, 0.3, 0, 0, 0, 0, 0, 0.4 )
+add_cooling = 5.0
+add_power = -1.0

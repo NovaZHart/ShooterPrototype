@@ -72,12 +72,52 @@ Bioelectric generators were one of the earliest applications of bioengineering t
 
 @bbcode_from_scene res://equipment/power/LargeBioelectricGenerator.tscn
 
+@PAGE equipment/electromagnetic_dampener
+@title Electromagnetic Field Dampener
+@price Price:
+@synopsis Armor and structure resistances: EM Field, Psionic, Light
+@content
+This device manipulates the conductive properties of your ship's armor to deflect or redistribute incoming electromagnetic fields. This is most effective against large, low-frequency, EM waves (EM Field Damage) but will also dampen Psionic attacks, and reduce light-based damage.
+
+Due to the internal functions of the dampener, it also acts as a battery, albeit less effective than purpose-built energy storage devices. This effect continues even after the armor is gone since the energy is stored in the dampener elements, not the armor itself.
+
+@bbcode_from_scene res://equipment/defense/ElectroMagneticDampener.tscn
+
+@PAGE equipment/gravity_control_system
+@title Gravity Control System
+@price Price:
+@synopsis Luxury gravity control and gravity resistance.
+@content
+A Gravity Control System lets passengers control gravity as easily as controlling a thermostat. They won't feel any ship movements, they can have zero-gravity and high-gravity gyms, and they can adjust gravity to match the planet of their choice. As an added benefit, this will boost armor and structure resistance to gravity-based damage. All ships have built-in artificial gravity, but not nearly as precise or strong as what this system provides.
+
+@bbcode_from_scene res://equipment/defense/GravityControlSystem.tscn
+
+@PAGE equipment/entertainment_computer_core
+@title Entertainment Computer Core
+@price Price:
+@synopsis Augmented reality, virtual reality, communication, and psionic defense.
+@content
+The Entertainment Computer Core is eight tons of advanced biological and electronic computers, plus some communication systems. It provides crew and passengers with augmented reality, virtual reality, instant communication, and telepathic connections. Due to the telepathic aspect of the device, it can provide significant resistance to psionic attacks during combat.
+
+@bbcode_from_scene res://equipment/defense/EntertainmentNetwork.tscn
+
+@PAGE equipment/environmental_control_system
+@title Environmental Control System
+@price Price:
+@synopsis Controls temperature, pressure, humidity, and provides defense against hot matter damage.
+@content
+This Environmental Control System efficiently processes air and pumps it through the ship ventilation system. It controls pressure, temperature, humidity, and the smell and taste of the air. In combat, it will adjust the heat to compensate for any damage from hot matter. It also provides a small amount of cooling.
+
+@bbcode_from_scene res://equipment/defense/EnvironmentalControlSystem.tscn
+
 @PAGE equipment/defensive_scatterer
 @title Defensive Scatterer
 @price Price:
-@synopsis Armor and structure resistances: light-based weapons.
+@synopsis Armor and structure resistances: light, hot matter, psionic.
 @content
-Lasers are an age-old weapon; cheap to build, low power usage, and cool-running, but they have one major flaw. It is easy to scatter, refract, or reflect light. This device sprays a mist of particles in the direction of any incoming intense light. Light is either refracted away from the ship, or spread across the ship's whole surface, reducing the effect of the weapon. If a ship has one of these devices installed, it has a strong resistance to lasers. 
+Lasers are an age-old weapon; cheap to build, low power usage, and cool-running, but they have one major flaw. It is easy to scatter, refract, or reflect light. This device sprays a mist of particles in the direction of any incoming intense light. Light is either refracted away from the ship, or spread across the ship's whole surface, reducing the effect of the weapon. If a ship has one of these devices installed, it has a strong resistance to lasers.
+
+The mist will help against other damage types, to a lesser extent. Hot matter attacks, such as explosions and plasma, will spread out across the mist. The particles in the mist are designed to dampen incoming psionic attacks as well.
 
 @bbcode_from_scene res://equipment/defense/DefensiveScatterer.tscn
 
@@ -86,16 +126,20 @@ Lasers are an age-old weapon; cheap to build, low power usage, and cool-running,
 @price Price:
 @synopsis Armor resistances: hot matter, high-energy particles, light.
 @content
-This relic of the lost art of city ship building is a piece of a city ship's living hull. It has been genetically programmed to defend against attacks by eating its way across your armor, turning the armor into a heat-resistant paste. The process will destroy some of your armor, but much less than you would have lost without this upgrade. This is most effective against high-energy particles and hot matter such as plasma or explosions. It will reduce damage from light-based weapons to a lesser extent.
+This relic of the lost art of City Ship construction is a piece of a City Ship's living hull. It has been genetically programmed to defend against attacks by eating its way across your armor, turning the armor into a heat-resistant paste. The process will destroy some of your armor, but much less than you would have lost without this upgrade. This is most effective against high-energy particles and hot matter such as plasma or explosions. It will reduce damage from light-based weapons to a lesser extent.
+
+The living component of this armor upgrade needs a constant power supply to keep it alive, but it also cools the ship. This effect continues after the armor is gone.
 
 @bbcode_from_scene res://equipment/defense/AblativeBiogelExcreter.tscn
 
 @PAGE equipment/reactive_armor
 @title Reactive Armor
 @price Price:
-@synopsis Armor resistances: impact, pierce, antimatter, hot matter
+@synopsis Armor resistances: antimatter, pierce, impact
 @content
-This installs ejection mechanisms behind your armor panels. When a projectile is incoming, this system will throw armor panels at it, deflecting it or causing it to activate before it hits your ship. You will still lose armor, but you'll lose much less than without this upgrade. This is extremely effective against antimatter, which will mutually annihilate with the ejected armor plate that hits it.
+This installs ejection mechanisms behind your armor panels. When a projectile is incoming, this system will throw armor panels at it, deflecting it or causing it to activate before it hits your ship. You will still lose armor, but you'll lose much less than without this upgrade. This is extremely effective against antimatter, which will mutually annihilate with the ejected armor plate that hits it. It can deflect matter-based kinetic projectiles less effectively.
+
+The reactive armor upgrade takes no power and generates no heat because it is a passive system. It is entirely mechanical, controlled by the ship's computer and sensors.
 
 @bbcode_from_scene res://equipment/defense/ReactiveArmor.tscn
 
@@ -198,12 +242,12 @@ This optical cooler illuminates an array of specially-designed crystals with a c
 
 @bbcode_from_scene res://equipment/cooling/SmallOpticalCooler.tscn
 
-@PAGE equipment/organic_nanofluid_coolant
+@PAGE equipment/organic_matter_reprocessor
 @title Cooling and Food Production System
 @price Price:
 @synopsis Recycles organic waste into food and cools the ship.
 @content
-This augments a ship's sewage system, converting organic waste back into high-quality food and cold water. The water contains organic particles that turn it into a nanofluid, which is connected to a refrigeration system. Some of the water pipes are directed through hot parts of the ship, allowing this food processor to double as an efficient ship-wide cooling system. The organic nanoparticles are non-toxic, but foul-tasting, so all faucets must have built-in filters. The food, however, is delicious.
+This augments a ship's sewage system, converting organic waste back into high-quality food and cold water. The water contains organic particles that turn it into a nanofluid, which is connected to a refrigeration system. Some of the water pipes are directed through hot parts of the ship, allowing this food processor to double as an efficient ship-wide cooling system. The organic nanoparticles are non-toxic, but foul-tasting, so all faucets should have built-in filters. The food, however, is delicious.
 
 Cities on uninhabitable planets use vast arrays of these devices to provide clean water, fertilizer, organic construction components, a vast cooling system, and most of their food. Although people enjoy this processed food, a skilled chef with fresh ingredients can do better. All ships contain minimal waste recycling capabilities to feed crew and passengers, but this device produces city-quality food. Passengers on large starliners expect this luxury.
 

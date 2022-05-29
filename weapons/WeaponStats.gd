@@ -127,7 +127,10 @@ func get_mount_size_y() -> int:
 
 func pack_stats(skip_runtime_stats=false) -> Dictionary:
 	if not cached_stats:
-		cached_structure = weapon_structure if weapon_structure>=0 else weapon_mass*25
+		if weapon_structure>=0:
+			cached_structure = weapon_structure
+		else:
+			cached_structure = mount_size_x*mount_size_y*45*-weapon_structure
 		var th = threat
 		if th<0:
 			th = 1.0/max(firing_delay,1.0/60) * damage

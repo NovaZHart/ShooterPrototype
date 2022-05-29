@@ -2574,7 +2574,8 @@ void CombatEngine::integrate_projectile_forces(Projectile &projectile,real_t thr
 
   if(projectile.integrate_forces) {
     real_t mass=max(projectile.mass,1e-5f);
-    if(drag and projectile.linear_velocity.length_squared()>projectile.max_speed*projectile.max_speed)
+    if(drag and (projectile.always_drag ||
+                 projectile.linear_velocity.length_squared()>projectile.max_speed*projectile.max_speed) )
       projectile.linear_velocity -= projectile.linear_velocity*projectile.drag*projectile.mass*delta;
     if(projectile.thrust and thrust_fraction>0)
       projectile.forces += projectile.thrust*thrust_fraction*get_heading(projectile);

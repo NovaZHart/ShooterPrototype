@@ -236,6 +236,8 @@ func add_stats(stats: Dictionary,_skip_runtime_stats=false,_ship_node=null) -> v
 		stats['max_armor'] = max(0,stats['max_armor']+add_armor)
 	if add_structure>0:
 		stats['max_structure'] = max(0,stats['max_structure']+add_structure)
+	else:
+		stats['max_structure'] = max(0,stats['max_structure']+(mount_size_x*mount_size_y)*40*-add_structure)
 	if add_fuel>0:
 		stats['max_fuel'] = max(0,stats['max_fuel']+add_fuel)
 	if add_heal_shields>0:

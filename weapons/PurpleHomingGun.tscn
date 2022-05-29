@@ -12,7 +12,6 @@ damage = 100.0
 damage_type = 8
 impulse = 40.0
 weapon_mass = 12.0
-weapon_structure = 180.0
 initial_velocity = 0.0
 projectile_mass = 0.45
 projectile_thrust = 12.0

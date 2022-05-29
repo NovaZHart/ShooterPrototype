@@ -3,7 +3,7 @@ extends Node
 
 const DAMAGE_DISPLAY_NAMES: PoolStringArray = PoolStringArray([
 	"Typeless", "Light", "H.E.Particle", "Piercing", "Impact", "EM.Field", \
-	"Gravity", "Antimatter", "Hot Matter",
+	"Gravity", "Antimatter", "Hot Matter", 'Psionic'
 ])
 
 var price_callbacks: Array = []
@@ -272,7 +272,7 @@ func any_true(array: Array) -> bool:
 			return true
 	return false
 
-func make_resist_row(index: int,stats: Dictionary,stat_keys: Array,cutoffs: Array) -> String:
+func make_resist_row(index: int,stats: Dictionary,stat_keys: Array,cutoffs: Array,minval: float, maxval: float) -> String:
 	var data: Array = []
 	for key in stat_keys:
 		if stats[key].size()<=index or not stats[key][index]:
@@ -284,16 +284,16 @@ func make_resist_row(index: int,stats: Dictionary,stat_keys: Array,cutoffs: Arra
 		for datum in data:
 			for cut in cutoffs:
 				if datum<=cut[0]:
-					row += '[cell][color='+cut[1]+']'+str(round(datum))+'[/color][/cell]'
+					row += '[cell][color='+cut[1]+']'+str(clamp(round(datum),minval,maxval))+'[/color][/cell]'
 					break
 		return row
 	return ''
 
 func make_resist_table(stats: Dictionary,stat_keys: Array,headings: Array,
-		title: String,footer: String,colors: Array) -> String:
+		title: String,footer: String,colors: Array,minval: float,maxval: float) -> String:
 	var rows: String = ''
 	for i in range(len(DAMAGE_DISPLAY_NAMES)):
-		rows+=make_resist_row(i,stats,stat_keys,colors)
+		rows+=make_resist_row(i,stats,stat_keys,colors,minval,maxval)
 	if rows:
 		var text = title+'[table='+str(len(stat_keys)+1)+'][cell]Damage[/cell]'
 		for heading in headings:
@@ -448,11 +448,11 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 	var resistance_colors: Array = [ [ -INF, '#ff3333' ], [ -40, '#ff7788' ], [ -10, '#bbbb44' ],
 		[ 10, '#777777' ], [ 40, '#7788ff' ], [ INF, '#ffaaff' ] ]
 	bbcode += make_resist_table(s,['shield_resist','armor_resist','structure_resist'], \
-		['Shld','Armr','Struct'], '\n[b]Resistances:[/b]\n','',resistance_colors)
+		['Shld','Armr','Struct'], '\n[b]Resistances:[/b]\n','',resistance_colors,-200,75)
 
 	var passthru_colors: Array = [ [ 0, '#777777' ], [ 15, '#bbbb44' ], [ INF, '#ff7788' ] ]
 	bbcode += make_resist_table(s,['shield_passthru','armor_passthru'], \
-		['Shld','Armr'], '\n[b]Damage Passthrough:[/b]\n','',passthru_colors)
+		['Shld','Armr'], '\n[b]Damage Passthrough:[/b]\n','',passthru_colors,0,100)
 
 	if with_contents:
 		bbcode += contents

@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
-[ext_resource path="res://equipment/defense/ReactiveArmor.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://equipment/defense/ElectroMagneticDampener.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
 mesh = ExtResource( 2 )
@@ -14,5 +14,8 @@ item_size_x = 2
 item_size_y = 2
 mount_type_display = "external equipment"
 mount_type_all = "external equipment"
-help_page = "equipment/reactive_armor"
-add_armor_resist = PoolRealArray( 0, 0, 0, 0.3, 0.2, 0, 0, 0.65, 0 )
+help_page = "equipment/electromagnetic_dampener"
+add_armor_resist = PoolRealArray( 0, 0.2, 0, 0, 0, 0.4, 0, 0, 0, 0.3 )
+add_cooling = -0.15
+add_battery = 100.0
+add_power = -1.5

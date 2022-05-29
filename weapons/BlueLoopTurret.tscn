@@ -11,7 +11,6 @@ script = ExtResource( 1 )
 damage = 28.08
 damage_type = 2
 impulse = 25.0
-weapon_mass = 32
 weapon_structure = 640.0
 initial_velocity = 55.0
 projectile_lifetime = 0.45

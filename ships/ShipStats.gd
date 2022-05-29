@@ -55,13 +55,13 @@ export var ai_type: int = 0 setget set_ai_type
 export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
-                                                               #  0    1    2    3    4    5    6    7    8
-                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  HOT
-export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
-export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2])
-export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0])
-export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.4,-0.1])
+                                                               #  0    1    2    3    4    5    6    7    8    9
+                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  HOT  PSI
+export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5])
+export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5])
+export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0])
+export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.2])
+export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.4,-0.1, 0.0])
 
 var ship_display_name: String = 'Unnamed'
 var item_slots: int = -1 setget set_item_slots,get_item_slots
@@ -292,22 +292,22 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	if base_thrust>=0:
 		stats['thrust']=base_thrust
 	else:
-		stats['thrust']=base_mass*16
+		stats['thrust']=base_mass*16*-base_reverse_thrust
 	assert(stats['thrust']>0)
 	if base_reverse_thrust>=0:
 		stats['reverse_thrust']=base_reverse_thrust
 	else:
-		stats['reverse_thrust']=base_mass*12
+		stats['reverse_thrust']=base_mass*12*-base_reverse_thrust
 	assert(stats['reverse_thrust']>0)
 	if base_turning_thrust>=0:
 		stats['turning_thrust']=base_turning_thrust
 	else:
-		stats['turning_thrust']=base_mass*15
+		stats['turning_thrust']=base_mass*15*-base_turning_thrust
 	assert(stats['turning_thrust']>0)
 	stats['hyperthrust']=max(base_hyperthrust,0)
 	if base_threat<0:
-		stats['threat'] = (base_shields+base_armor+base_structure)/60 + \
-			heal_shields+heal_armor+heal_structure
+		stats['threat'] = ((base_shields+base_armor+base_structure)/60 + \
+			heal_shields+heal_armor+heal_structure)*-base_threat
 	else:
 		stats['threat'] = base_threat
 	stats['max_shields']=base_shields
@@ -319,16 +319,16 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	if cargo_web_strength>=0:
 		stats['cargo_web_strength']=cargo_web_strength
 	else:
-		stats['cargo_web_strength']=250*cargo_web_add_radius+300
+		stats['cargo_web_strength']=(250*cargo_web_add_radius+300)*-cargo_web_strength
 	if heal_shields>=0:
 		stats['heal_shields']=heal_shields
 	else:
-		stats['heal_shields']=base_shields/180.0
+		stats['heal_shields']=base_shields/180.0*-heal_shields
 	stats['heal_armor']=heal_armor
 	if heal_structure>=0:
 		stats['heal_structure']=heal_structure
 	else:
-		stats['heal_structure']=base_structure/120.0
+		stats['heal_structure']=base_structure/120.0*-heal_structure
 	stats['heal_fuel']=heal_fuel
 	stats['fuel_efficiency']=fuel_efficiency
 	stats['aabb']=get_combined_aabb()
@@ -373,7 +373,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	if base_battery>=0:
 		stats['battery']=base_battery
 	else:
-		stats['battery']=stats['power']*15
+		stats['battery']=stats['power']*15*-base_battery
 
 	# Used for text generation, not CombatEngine:
 	stats['display_name']=ship_display_name

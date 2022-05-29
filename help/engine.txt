@@ -73,9 +73,9 @@ This fission-based power generator accelerates propellant to relativistic veloci
 @price Price:
 @synopsis Nuclear fusion engine that produces thrust, power, and extreme heat.
 @content
-This fusion-based power generator is the most advanced generator, and engine, available to Terran civilians. It accelerates propellant to relativistic velocities, while producing vast amounts of power. You may need multiple cooling systems to offset the extreme heat. Unfortunately, the propellant cannot be directed, so the engine provides only forward thrust. The power generation is the same as a [ref=equipment/fission_reactor_medium]Medium Fission Reactor[/ref].
+This fusion-based power generator is the most engine available to Terran civilians. It accelerates propellant to relativistic velocities, while producing vast amounts of power. You may need multiple cooling systems to offset the extreme heat. Unfortunately, the propellant cannot be directed, so the engine provides only forward thrust. The power generation is the same as a [ref=equipment/fission_reactor_medium]Medium-Sized Fission Reactor[/ref].
 
-@bbcode_from_scene res://equipment/engines/FissionEngine.tscn
+@bbcode_from_scene res://equipment/engines/FusionEngine.tscn
 
 @PAGE engine/multisystem_small
 @title Small maneuvering thrusters.

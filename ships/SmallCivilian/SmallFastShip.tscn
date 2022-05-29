@@ -23,7 +23,7 @@ cargo_web_add_radius = 5.0
 cargo_web_strength = 2400.0
 base_armor_resist = PoolRealArray( 0, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, -0.7, 0.1 )
 base_armor_passthru = PoolRealArray( 0, 0, 0, 0.2, 0.2, 0, 0.2, 0, 0 )
-base_structure_resist = PoolRealArray( 0, 0, 0, 0.1, -0.2, -0.2, 0, -1.4, -0.1 )
+base_structure_resist = PoolRealArray( 0, 0, 0, 0.1, -0.2, -0.2, 0.4, -1.4, 0.3, 0.2 )
 
 [node name="Mesh" type="MeshInstance" parent="."]
 mesh = ExtResource( 3 )
