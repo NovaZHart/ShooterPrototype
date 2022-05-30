@@ -51,12 +51,12 @@
             },
 
             {
-              "frequency": 70,
+              "frequency": 30,
               "fleet": "orca_particles_missiles_escorted",
               "type": "heavy_military"
             },
             {
-              "frequency": 70,
+              "frequency": 30,
               "fleet": "orca_lasers_missiles_escorted",
               "type": "heavy_military"
             },
@@ -76,13 +76,33 @@
               "type": "heavy_military"
             },
             {
-              "frequency": 30,
-              "fleet": "ankylorhiza_missiles_particles_escorted",
+              "frequency": 50,
+              "fleet": "orca_four_types",
               "type": "heavy_military"
             },
             {
               "frequency": 30,
-              "fleet": "ankylorhiza_driver_lasers_escorted",
+              "fleet": "ankylorhiza_missiles_lasers_escorted2",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 20,
+              "fleet": "ankylorhiza_duo",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_driver_particles_escorted2",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_missiles_lasers_escorted",
+              "type": "heavy_military"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_driver_particles_escorted",
               "type": "heavy_military"
             }
           ], 3e5, {
@@ -4362,9 +4382,9 @@
         null
       ],
         
-        "ankylorhiza_driver_lasers": [
+        "ankylorhiza_driver_particles": [
             "ShipDesign",
-            "Driver-Laser Ankylorhiza",
+            "Driver-Particle Ankylorhiza",
             [
                 "Resource",
                 "res://ships/GreyBlue/CommandShip.tscn"
@@ -4388,35 +4408,35 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser.tscn"
+                        "res://weapons/BigParticleGun.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser.tscn"
+                        "res://weapons/BigParticleGun.tscn"
                     ]
                 ],
                 "AftPortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenLaserTurret.tscn"
+                        "res://weapons/OrangeSpikeTurret.tscn"
                     ]
                 ],
                 "MainTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret.tscn"
+                        "res://weapons/BlueLoopTurret.tscn"
                     ]
                 ],
                 "ForePortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenLaserTurret.tscn"
+                        "res://weapons/OrangeSpikeTurret.tscn"
                     ]
                 ],
                 "Engine": [
@@ -4430,14 +4450,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenLaserTurret.tscn"
+                        "res://weapons/OrangeSpikeTurret.tscn"
                     ]
                 ],
                 "ForeStarboardTurret2": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenLaserTurret.tscn"
+                        "res://weapons/OrangeSpikeTurret.tscn"
                     ]
                 ],
                 "StarboardAuxEngine": [
@@ -4454,7 +4474,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                                "res://equipment/power/SmallReactor.tscn"
                             ],
                             0,
                             0
@@ -4574,9 +4594,9 @@
             null
         ],
           
-      "ankylorhiza_missiles_particles": [
+      "ankylorhiza_missiles_lasers": [
           "ShipDesign",
-          "Missile+Particle Ankylorhiza",
+          "Missile-Particle Ankylorhiza",
           [
               "Resource",
               "res://ships/GreyBlue/CommandShip.tscn"
@@ -4600,35 +4620,35 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/NuclearPumpedLaser.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/NuclearPumpedLaser.tscn"
                   ]
               ],
               "AftPortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "MainTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueLoopTurret.tscn"
+                      "res://weapons/NuclearPumpedLaserTurret.tscn"
                   ]
               ],
               "ForePortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "Engine": [
@@ -4642,14 +4662,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "ForeStarboardTurret2": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/GreenLaserTurret.tscn"
                   ]
               ],
               "StarboardAuxEngine": [
@@ -4666,7 +4686,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
                           ],
                           0,
                           0
@@ -4757,7 +4777,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/defense/GravityControlSystem.tscn"
                           ],
                           0,
                           3
@@ -4775,7 +4795,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/GravityControlSystem.tscn"
+                              "res://equipment/defense/DefensiveScatterer.tscn"
                           ],
                           4,
                           3
@@ -8026,22 +8046,56 @@
   "fleets": [
     "SimpleNode",
     {
-      "ankylorhiza_driver_lasers_escorted": [
+      "ankylorhiza_duo": [
         "Fleet",
-        "Driver+Laser Ankylorhiza with Escorts",
+        "Driver+Particle and Missile-Laser Ankylorhiza",
         {
-          "ankylorhiza_driver_lasers": 1,
+            "ankylorhiza_driver_particles": 1,
+            "ankylorhiza_missiles_lasers": 1
+        }
+      ],
+      "ankylorhiza_driver_particles_escorted": [
+        "Fleet",
+        "Driver+Particle Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_driver_particles": 1,
           "bufeo_particles": 1,
           "popoto_lasers": 2
         }
       ],
-      "ankylorhiza_missiles_particles_escorted": [
+      "ankylorhiza_driver_particles_escorted2": [
         "Fleet",
-        "Missile+Particle Ankylorhiza with Escorts",
+        "Driver+Particle Ankylorhiza with Escorts",
         {
-          "ankylorhiza_missiles_particles": 1,
+          "ankylorhiza_driver_particles": 1,
+          "popoto_lasers": 4
+        }
+      ],
+      "ankylorhiza_missiles_lasers_escorted": [
+        "Fleet",
+        "Missile+Laser Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_missiles_lasers": 1,
           "bufeo_lasers": 1,
           "popoto_lasers": 2
+        }
+      ],
+      "ankylorhiza_missiles_lasers_escorted": [
+        "Fleet",
+        "Missile+Laser Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_missiles_lasers": 1,
+          "popoto_particles": 4
+        }
+      ],
+      "orca_four_types": [
+        "Fleet",
+        "3xOrcas (M+P, 2xP)",
+        {
+          "orca_missiles_particles": 1,
+            "orca_particles": 1,
+          "orca_missiles_lasers": 1,
+          "orca_lasers": 1
         }
       ],
       "orca_particle_missile_mix": [
@@ -8072,16 +8126,16 @@
         "Fleet",
         "Orcas (ML) plus Popotos",
         {
-          "orca_missiles_lasers": 1,
-          "popoto_lasers": 3
+          "orca_missiles_lasers": 2,
+          "popoto_lasers": 2
         }
       ],
       "orca_particles_missiles_escorted": [
         "Fleet",
         "Orcas (PL) plus Popotos",
         {
-          "orca_missiles_particles": 1,
-          "popoto_lasers": 3
+          "orca_missiles_particles": 2,
+          "popoto_lasers": 2
         }
       ],
       "bufeo_particles_trio": [
