@@ -469,7 +469,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   fuel_efficiency(max(0.0f,get<real_t>(dict,"fuel_efficiency",1.0))),
   aabb(get<AABB>(dict,"aabb")),
   turn_drag(max(1e-5f,get<real_t>(dict,"turn_drag"))),
-  radius(max(0.01f,sqrt(aabb.size.x*aabb.size.x+aabb.size.z*aabb.size.z))*1.2f),
+  radius(max(0.01f,sqrt(aabb.size.x*aabb.size.x+aabb.size.z*aabb.size.z))*0.6f),
   radiussq(radius*radius),
   empty_mass(max(0.0f,get<real_t>(dict,"empty_mass",0))),
   fuel_inverse_density(max(0.0f,get<real_t>(dict,"fuel_inverse_density",10.0f))),
