@@ -1040,7 +1040,6 @@ std::vector<std::shared_ptr<const Salvage>> Ship::get_salvage(Array a) {
   int s=a.size();
   for(int i=0;i<s;i++) {
     result.emplace_back(make_shared<const Salvage>(static_cast<Dictionary>(a[i])));
-    Godot::print("Salvage found: "+result.back()->flotsam_mesh_path);
   }
   return result;
 }

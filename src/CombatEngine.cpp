@@ -663,7 +663,6 @@ void CombatEngine::setup_ai_step(const Array &new_player_orders, const Array &ne
 
 void CombatEngine::step_all_ships() {
   FAST_PROFILING_FUNCTION;
-  bool changed=false;
   for(ships_iter p_ship=ships.begin();p_ship!=ships.end();p_ship++) {
     Ship &ship = p_ship->second;
     if(ship.fate) {
@@ -671,14 +670,12 @@ void CombatEngine::step_all_ships() {
         explode_ship(ship);
       else {
         ship_locations.remove(ship.id);
-        changed=true;
       }
     } else {
       ship.advance_time(idelta);
       ai_step_ship(ship);
       negate_drag_force(ship);
       ship.update_stats(physics_server,hyperspace);
-      changed = changed or not ship_locations.contains(ship.id);
       ship_locations.set_rect(ship.id,ship.get_location_rect_now());
       if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
         factions_iter p_faction = factions.find(ship.faction);
@@ -686,10 +683,6 @@ void CombatEngine::step_all_ships() {
           p_faction->second.recoup_resources(ship.recouped_resources());
       }
     }
-  }
-  if(changed) {
-    Godot::print("Ship locations updated.");
-    ship_locations.dump();
   }
 }
 
@@ -849,10 +842,8 @@ void CombatEngine::rift_ai(Ship &ship) {
 void CombatEngine::explode_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.explosion_timer.alarmed()) {
-    Godot::print("Explosion timer is armed.");
     ship.fate=FATED_TO_DIE;
     if(ship.explosion_radius>0 and (ship.explosion_damage>0 or ship.explosion_impulse!=0)) {
-      Godot::print("Calculate damage from ship blast.");
       Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
       query->set_shape(search_cylinder);
       Transform trans;
