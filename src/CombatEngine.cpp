@@ -1617,9 +1617,13 @@ bool CombatEngine::pull_back_to_standoff_range(Ship &ship,Ship &target,Vector3 &
     // Cannot pull back to standoff range for an unarmed ship.
     return false;
 
-  if(dot2(ship.heading,aim)>0.95 && \
-     (target.position-ship.position).length()<standoff_range*0.75)
+  if(dot2(ship.heading,aim)>0.95) {
+    real_t distance = (target.position-ship.position).length();
+    if(distance<standoff_range*0.75)
       request_thrust(ship,0,1);
+    else if(distance>standoff_range*.95)
+      request_thrust(ship,1,0);
+  }
     
   return false;
 }
