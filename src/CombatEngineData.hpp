@@ -502,6 +502,7 @@ namespace godot {
       PresetCountdown<ticks_per_second*3> rift_timer, no_target_timer;
       PresetCountdown<ticks_per_second*25> range_check_timer;
       PresetCountdown<ticks_per_second*15> shot_at_target_timer;
+      PresetCountdown<ticks_per_second*15> standoff_range_timer;
       PresetCountdown<ticks_per_second/60> confusion_timer;
       ticks_t tick_at_last_shot, ticks_since_targetting_change;
       real_t damage_since_targetting_change;
@@ -542,8 +543,11 @@ namespace godot {
             
       real_t visual_scale; // Intended to resize ship graphics when rifting
       object_id target;
+      real_t cached_standoff_range;
 
     public:
+
+      real_t get_standoff_range(const Ship &target,ticks_t idelta);
       
       // Determine how much money is recouped when this ship leaves the system alive:
       inline float recouped_resources() const {
@@ -600,6 +604,8 @@ namespace godot {
           ticks_since_targetting_change = 0;
           damage_since_targetting_change = 0;
           shot_at_target_timer.reset();
+          standoff_range_timer.reset();
+          cached_standoff_range=0;
           no_target_timer.reset();
           range_check_timer.reset();
           target = t;
@@ -610,6 +616,8 @@ namespace godot {
           ticks_since_targetting_change = 0;
           damage_since_targetting_change = 0;
           shot_at_target_timer.reset();
+          standoff_range_timer.reset();
+          cached_standoff_range=0;
           no_target_timer.reset();
           range_check_timer.reset();
           target = -1;

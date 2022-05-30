@@ -561,6 +561,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   no_target_timer(),
   range_check_timer(),
   shot_at_target_timer(),
+  standoff_range_timer(),
   confusion_timer(),
   tick_at_last_shot(TICKS_LONG_AGO),
   ticks_since_targetting_change(TICKS_LONG_AGO),
@@ -592,7 +593,8 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   at_first_tick(true),
 
   visual_scale(1.0),
-  target()
+  target(),
+  cached_standoff_range(0)
 {
   if(max_energy<=1e-5)
     Godot::print_warning(name+String(": new ship has invalid max_energy (battery)."),__FUNCTION__,__FILE__,__LINE__);
@@ -702,6 +704,51 @@ void Ship::update_stats(PhysicsServer *physics_server, bool hyperspace) {
   if(fabsf(new_mass-old_mass)>0.01f)
     physics_server->body_set_param(rid,PhysicsServer::BODY_PARAM_MASS,new_mass);
   updated_mass_stats = true;
+}
+
+real_t Ship::get_standoff_range(const Ship &target,ticks_t idelta) {
+  FAST_PROFILING_FUNCTION;
+
+  if(cached_standoff_range>1e-5 and not standoff_range_timer.alarmed()) {
+    // Don't calculate until we need to.
+    standoff_range_timer.advance(idelta);
+    return cached_standoff_range;
+  }
+  
+  standoff_range_timer.reset();
+  
+  real_t standoff_range = numeric_limits<real_t>::infinity();
+  
+  if(not weapons.size()) {
+    // No weapons means no standoff range
+    Godot::print("Unarmed ship "+name+" cannot have a standoff range.");
+    return cached_standoff_range = standoff_range;
+  }
+  
+  Vector3 dp_ships = get_position(target) - get_position(*this);
+  real_t distance = dp_ships.length();
+  
+  for(auto &weapon : weapons) {
+    Vector3 dp_weapon = dp_ships - get_position(weapon).rotated(y_axis,rotation.y);
+
+    // The weapon may be closer to the target than the ship. Consider
+    // this when deciding the standoff range.
+    real_t untraveled_distance = dp_weapon.length() - distance;
+
+    if(weapon.guided) {
+      // Guided weapon range depends on turn time.
+      if(weapon.ammo or weapon.reload_delay) {
+        real_t turn_time = weapon.is_turret ? 0 : PI/weapon.projectile_turn_rate;
+        real_t travel = max(0.0f,weapon.projectile_range-weapon.terminal_velocity*turn_time);
+        standoff_range = min(standoff_range,travel+untraveled_distance);
+      }
+    } else
+      standoff_range = min(standoff_range,weapon.projectile_range-untraveled_distance);
+  }
+  
+  Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
+  
+  return cached_standoff_range = max(0.0f,standoff_range);
 }
 
 void Ship::heal_stat(double &stat,double new_value,real_t heal_energy,real_t heal_heat) {

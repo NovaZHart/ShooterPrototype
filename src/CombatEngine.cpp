@@ -1604,6 +1604,26 @@ void CombatEngine::evade(Ship &ship) {
   request_heading(ship,reaction_vector);
 }
 
+bool CombatEngine::pull_back_to_standoff_range(Ship &ship,Ship &target,Vector3 &aim) {
+  FAST_PROFILING_FUNCTION;
+
+  if(not ship.reverse_thrust)
+    // Cannot pull back without reverse thrusters.
+    return false;
+
+  real_t standoff_range=ship.get_standoff_range(target,idelta);
+
+  if(not isfinite(standoff_range))
+    // Cannot pull back to standoff range for an unarmed ship.
+    return false;
+
+  if(dot2(ship.heading,aim)>0.95 && \
+     (target.position-ship.position).length()<standoff_range*0.75)
+      request_thrust(ship,0,1);
+    
+  return false;
+}
+
 void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
@@ -2084,9 +2104,10 @@ void CombatEngine::move_to_attack(Ship &ship,Ship &target) {
 
   bool in_range=false;
   Vector3 aim=aim_forward(ship,target,in_range);
-  if(in_range)
+  if(in_range) {
+    pull_back_to_standoff_range(ship,target,aim);
     request_heading(ship,aim);
-  else {
+  } else {
     move_to_intercept(ship,0,0,target.position,target.linear_velocity,false);
     return;
   }

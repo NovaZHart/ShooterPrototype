@@ -152,6 +152,16 @@ namespace godot {
     inline double angle_from_unit_d(DVector3 angle) {
       return atan2(-angle.z,angle.x);
     }
+
+    template<class T>
+    Vector3 get_position(T &object) {
+      return Vector3(object.position.x,0,object.position.y);
+    }
+
+    template<class T>
+    DVector3 get_position_d(T &object) {
+      return DVector3(object.position.x,0,object.position.y);
+    }
     
     template<class T>
     Vector3 get_heading(T &object) {

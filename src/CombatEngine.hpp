@@ -189,6 +189,7 @@ namespace godot {
     void ai_step_ship(CE::Ship &ship);
     bool init_ship(CE::Ship &ship);
 
+    bool pull_back_to_standoff_range(CE::Ship &ship,CE::Ship &target,Vector3 &aim);
     void activate_cargo_web(CE::Ship &ship);
     void deactivate_cargo_web(CE::Ship &ship);
     void use_cargo_web(CE::Ship &ship);
