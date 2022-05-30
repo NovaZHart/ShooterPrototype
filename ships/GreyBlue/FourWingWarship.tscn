@@ -25,7 +25,7 @@ base_drag = 1.75
 base_turn_drag = 0.5
 base_max_cargo = 40
 armor_inverse_density = 300.0
-override_size = Vector3( 4, 0, 3.5 )
+override_size = Vector3( 3.9, 0, 3.8 )
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 mesh = ExtResource( 2 )
@@ -38,11 +38,11 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0741385, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape3" type="CollisionShape" parent="."]
-transform = Transform( -1.62921e-07, 1, -1.62921e-07, 0, -1.62921e-07, -1, -1, -1.62921e-07, 2.65431e-14, -0.756539, 0, 0 )
+transform = Transform( -2.10921e-07, 1.29462, -2.10921e-07, 0, -1.62921e-07, -1, -1.30326, -2.12328e-07, 3.45925e-14, -0.977041, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -1.62921e-07, 1, -1.62921e-07, 0, -1.62921e-07, -1, -1, -1.62921e-07, 2.65431e-14, 1.16022, 0, 0 )
+transform = Transform( -1.95298e-07, 1.19873, -1.95298e-07, 0, -1.62921e-07, -1, -1.26731, -2.06472e-07, 3.36384e-14, 1.50659, 0, 0 )
 shape = SubResource( 3 )
 
 [node name="AftEquipment" type="Position3D" parent="."]

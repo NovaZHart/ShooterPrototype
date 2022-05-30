@@ -5,6 +5,8 @@
 @content
 This mid-sized military-grade vessel is a standard policing craft, intended to destroy civilian-grade ships at or below its class.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/GreyBlue/ThreeWingWarship.tscn
 
 @PAGE hulls/monopod-hauler
@@ -13,6 +15,8 @@ This mid-sized military-grade vessel is a standard policing craft, intended to d
 @synopsis Pod hauler for a single cargo pod.
 @content
 Bulk cargo transport throughout Terran space is done with massive cargo pods. This simplest of cargo pod haulers carries only one cargo pod. 
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/CargoPodShips/OnePodShip.tscn
 
@@ -23,6 +27,8 @@ Bulk cargo transport throughout Terran space is done with massive cargo pods. Th
 @content
 This two-pod cargo hauler has substantial armaments, comparable to mid-sized warships.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/CargoPodShips/TwoPodShip.tscn
 
 @PAGE hulls/hexapod-hauler
@@ -31,6 +37,8 @@ This two-pod cargo hauler has substantial armaments, comparable to mid-sized war
 @synopsis Capital-class pod hauler.
 @content
 The only capital-class ship available to civilians, this massive cargo ship carries six cargo pods. It is backed by firepower that can match the largest of raiding vessels. The ship has practically no armor, so captains must rely on its massive shields and structure for defense.
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/CargoPodShips/SixPodShip.tscn
 
@@ -43,7 +51,22 @@ This hull is based on the famous racing vessel, Hellborne Husky. Hellborne Husky
 
 One of the remarkable technological achievements of this yacht rebuild is its patented, thick, lightweight, armor and hull. Although the armor and structure are less resilient to some damage types, the ship can have far more armor at the same weight. This makes it more durable (and more expensive) than combat ships of its size class, despite its civilian cargo ship classification.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/SmallCivilian/SmallFastShip.tscn
+
+@PAGE hulls/thoroughbred
+@title Thoroughbred Starliner
+@price Price:
+@synopsis Cruiser-sized luxury starliner.
+@content
+This is a scaled-up version of the [ref=hulls/husky]Husky Racing Yacht[/ref] designed to carry a larger number of passengers. The Husky was a variation on a famous racing vessel, the Hellborne Husky. Thoroughbred is a total redesign with the same design principles. It sacrifices the built-in luxury accomodations for more equipment space to give flexibility in ship outfitting.
+
+The Thoroughbred retains the Husky's patented, thick, lightweight, armor, but has standard hull material. Although the armor is less resilient to some damage types, the ship can have far more armor at the same weight. This makes it more durable (and more expensive) than combat ships of its size class, despite its civilian starliner classification.
+
+Stats with empty hull:
+
+@bbcode_from_scene res://ships/Starliner/Thoroughbred.tscn
 
 @PAGE hulls/samoyed
 @title Samoyed Freighter Hull
@@ -51,6 +74,8 @@ One of the remarkable technological achievements of this yacht rebuild is its pa
 @synopsis Small Cargo Ship
 @content
 Though this ship is almost unarmed, its cargo capacity is nonetheless impressive for its size. This vessel is essentially a tiny cargo pod with wings and an engine.
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/SmallCivilian/SmallBarrelShip.tscn
 
@@ -61,6 +86,8 @@ Though this ship is almost unarmed, its cargo capacity is nonetheless impressive
 @content
 This cargo ship is faster than most cargo ships of its weight class. Between speed, and an abundance of equipment space for boosting its shields, it is far more durable. This makes it suitable for running valuable cargo through dangerous systems.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/SmallCivilian/SpikyTriangle.tscn
 
 @PAGE hulls/bufeo
@@ -69,6 +96,8 @@ This cargo ship is faster than most cargo ships of its weight class. Between spe
 @synopsis Fast military interceptor.
 @content
 Though most military-grade ships are built much heavier than their civilian counterpart, this design focuses on speed. It is intended to chase down criminal interceptors before they can reach vulnerable civilian craft. The Popoto fuel tank and cargo bay are especially small, so they mainly stay within one system.
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/GreyBlue/GreyBlueInterceptor.tscn
 
@@ -79,6 +108,8 @@ Though most military-grade ships are built much heavier than their civilian coun
 @content
 This is the standard military warship intended to take on any threats in human space. Individually, they can handle a small fleet of interceptors. In groups, they can take down large probes and hostile lifeforms. These ships can mount any Terran-made weapon except capital ship spinal-mounted cannons.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/GreyBlue/FourWingWarship.tscn
 
 @PAGE hulls/ankylorhiza
@@ -87,6 +118,8 @@ This is the standard military warship intended to take on any threats in human s
 @synopsis General-purpose, military-grade, capital ship.
 @content
 Though these massive ships carry a deadly arsenal, they're most often used for peaceful purposes. Navies leverage the Ankylorhiza's huge cargo and personnel capacity for emergency supply transport, mobile hospitals, portable command centers, and transport of high-value cargo. Regardless, any large-scale military campaign will use Ankyloriza's massive spinal-mount cannon against distant targets to deadly effect.
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/GreyBlue/CommandShip.tscn
 
@@ -97,6 +130,8 @@ Though these massive ships carry a deadly arsenal, they're most often used for p
 @content
 This civilian-grade ship is built mostly for speed, to hunt down enemies using swarm tactics. It relies on shields for its survival, fleeing from fights to recharge, leaving threats far behind.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/PurpleShips/InterceptorHull.tscn
 
 @PAGE hulls/raven
@@ -106,15 +141,18 @@ This civilian-grade ship is built mostly for speed, to hunt down enemies using s
 @content
 A civilian-grade warship with a good mix of shields and armor, with a decent armament that focuses on forward firepower. With two weapon slot sizes, this ship is highly configurable.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/PurpleShips/WarshipHull.tscn
 
 @PAGE hulls/eagle
-
 @title Eagle Warship Hull
 @price Price:
 @synopsis Anti-fighter support ship.
 @content
 The civilian-grade Eagle is a support ship, designed to fight in small groups, or escort convoys. It is equipped to destroy fleets of smaller ships.
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/PurpleShips/CurvyWarshipHull.tscn
 
@@ -125,6 +163,8 @@ The civilian-grade Eagle is a support ship, designed to fight in small groups, o
 @content
 This massive ship is durable by every measure, and focuses on all-round firepower, with five turrets. The forward gun ports are large enough to support all but the largest Terran weapons. Though this hull is classified as civilian-grade, it can outclass most military vessels due to the shear number of weapon mounts.
 
+Stats with empty hull:
+
 @bbcode_from_scene res://ships/PurpleShips/HeavyWarshipHull.tscn
 
 @PAGE hulls/banner_ship
@@ -133,5 +173,7 @@ This massive ship is durable by every measure, and focuses on all-round firepowe
 @synopsis Advertisement ship
 @content
 The Banner Ships are iconic features of large commercial planets. They display rotating banners of advertisements for services available nearby. These ships double as a first line of defense against small attacks, holding off enemies long enough for warships to launch.
+
+Stats with empty hull:
 
 @bbcode_from_scene res://ships/BannerShip/BannerShipHull.tscn
