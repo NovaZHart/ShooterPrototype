@@ -1,0 +1,47 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/divinity/DivinityOrb.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+script = ExtResource( 1 )
+add_max_cargo = 1000.0
+add_fuel = 1000.0
+add_heal_fuel = 50.0
+add_shields = 100000.0
+add_armor = 100000.0
+add_structure = 100000.0
+add_heal_shields = 10000.0
+add_heal_armor = 10000.0
+add_heal_structure = 10000.0
+add_explosion_damage = 100000.0
+add_explosion_radius = 30.0
+add_explosion_impulse = 10000.0
+item_size_x = 2
+item_size_y = 2
+mount_type_display = "generic"
+mount_type_any = "internal external"
+help_page = "engine/divinity_orb"
+add_shield_resist = PoolRealArray( 0, 5, 5, 5, 5, 5, 5, 5, 5, 5 )
+add_armor_resist = PoolRealArray( 0, 5, 5, 5, 5, 5, 5, 5, 5, 5 )
+add_structure_resist = PoolRealArray( 0, 5, 5, 5, 5, 5, 5, 5, 5, 5 )
+add_cooling = 1000.0
+shield_repair_heat = 0.0
+armor_repair_heat = 0.0
+structure_repair_heat = 0.0
+shield_repair_energy = 0.0
+armor_repair_energy = 0.0
+structure_repair_energy = 0.0
+forward_thrust_heat = 0.0
+reverse_thrust_heat = 0.0
+turning_thrust_heat = 0.0
+forward_thrust_energy = 0.0
+reverse_thrust_energy = 0.0
+turning_thrust_energy = 0.0
+add_battery = 100000.0
+add_power = 10000.0

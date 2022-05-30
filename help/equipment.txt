@@ -1,3 +1,12 @@
+@PAGE engine/divinity_orb
+@title Divinity Orb
+@price Price:
+@synopsis God mode defenses, power, and cooling.
+@content
+Wildly powerful defenses, power, and cooling for testing the game.
+
+@bbcode_from_scene res://equipment/divinity/DivinityOrb.tscn
+
 @PAGE equipment/adiabatic_demagnetization_cooler
 @title Adiabatic Demagnetization Cooler
 @price Price:

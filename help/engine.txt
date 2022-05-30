@@ -1,9 +1,11 @@
-@PAGE engines/test
-@title Engine Placeholder Test
+@PAGE engine/divinity_drive
+@title Divinity Drive
 @price Price:
-@synopsis A cylinder for testing whether the engine functionality is working.
+@synopsis God mode drive system.
+@content
+Wildly powerful drive system for testing the game.
 
-@bbcode_from_scene res://equipment/BigEngineTest.tscn
+@bbcode_from_scene res://equipment/divinity/DivinityDrive.tscn
 
 @PAGE engine/hyperdrive
 @title Hyperdrive

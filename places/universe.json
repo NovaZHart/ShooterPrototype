@@ -6403,9 +6403,9 @@
           
 
 
-      "ankylorhiza_godship": [
+      "divine_ankylorhiza": [
           "ShipDesign",
-          "Ocean Goddess",
+          "Divine Dolphin",
           [
               "Resource",
               "res://ships/GreyBlue/CommandShip.tscn"
@@ -6415,7 +6415,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/SmallMultisystem.tscn"
+                      "res://equipment/divinity/DivinityDrive.tscn"
                   ]
               ],
               "SpinalCannon": [
@@ -6464,7 +6464,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FusionEngine.tscn"
+                      "res://equipment/divinity/DivinityDrive.tscn"
                   ]
               ],
               "ForeStarboardTurret": [
@@ -6485,7 +6485,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/SmallMultisystem.tscn"
+                      "res://equipment/divinity/DivinityDrive.tscn"
                   ]
               ],
               "ForwardEquipment": [
@@ -6495,7 +6495,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/EquipmentTest.tscn"
+                              "res://equipment/divinity/DivinityOrb.tscn"
                           ],
                           0,
                           0
@@ -6505,74 +6505,11 @@
               "External Equipment": [
                   "MultiMount",
                   {
-                      "External Equipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "External Equipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "External Equipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ElectroMagneticDampener.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "External Equipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
-                          ],
-                          2,
-                          2
-                      ]
                   }
               ],
               "WheelEquipment": [
                   "MultiMount",
                   {
-                      "WheelEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "WheelEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/EquipmentTest.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "WheelEquipment_at_x4_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/EquipmentTest.tscn"
-                          ],
-                          4,
-                          0
-                      ],
                       "WheelEquipment_at_x0_y1": [
                           "MultiMounted",
                           [
@@ -6580,6 +6517,15 @@
                               "res://equipment/defense/EnvironmentalControlSystem.tscn"
                           ],
                           0,
+                          1
+                      ],
+                      "WheelEquipment_at_x2_y1": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
+                          ],
+                          2,
                           1
                       ],
                       "WheelEquipment_at_x0_y3": [
@@ -6595,18 +6541,9 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          2,
-                          3
-                      ],
-                      "WheelEquipment_at_x4_y3": [
-                          "MultiMounted",
-                          [
-                              "Resource",
                               "res://equipment/defense/EntertainmentNetwork.tscn"
                           ],
-                          4,
+                          2,
                           3
                       ]
                   }
@@ -6615,9 +6552,9 @@
           null
       ],
 
-      "condor_godship": [
+      "divine_condor": [
           "ShipDesign",
-          "Avian Goddess",
+          "Divine_Condor",
           [
               "Resource",
               "res://ships/PurpleShips/HeavyWarshipHull.tscn"
@@ -6695,119 +6632,29 @@
               "StarboardEquipment": [
                   "MultiMount",
                   {
-                      "StarboardEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "StarboardEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                          ],
-                          0,
-                          2
-                      ]
                   }
               ],
               "PortEquipment": [
                   "MultiMount",
                   {
-                      "PortEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "PortEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                          ],
-                          0,
-                          2
-                      ]
                   }
               ],
               "AftEquipment": [
                   "MultiMount",
                   {
-                      "AftEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/BigEquipmentTest.tscn"
-                          ],
-                          0,
-                          0
-                      ]
                   }
               ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
-                      "ExternalEquipment_at_x0_y0": [
+                      "ExternalEquipment_at_x1_y2": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
+                              "res://equipment/divinity/DivinityOrb.tscn"
                           ],
-                          0,
-                          0
-                      ],
-                      "ExternalEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "ExternalEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ElectroMagneticDampener.tscn"
-                          ],
-                          0,
+                          1,
                           2
-                      ],
-                      "ExternalEquipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ElectroMagneticDampener.tscn"
-                          ],
-                          2,
-                          2
-                      ],
-                      "ExternalEquipment_at_x0_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
-                          ],
-                          0,
-                          4
-                      ],
-                      "ExternalEquipment_at_x2_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          2,
-                          4
                       ]
                   }
               ],
@@ -6829,7 +6676,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FissionEngine.tscn"
+                      "res://equipment/divinity/DivinityDrive.tscn"
                   ]
               ],
               "StarboardLargeGun": [
@@ -6857,7 +6704,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FissionEngine.tscn"
+                      "res://equipment/divinity/DivinityDrive.tscn"
                   ]
               ]
           },
