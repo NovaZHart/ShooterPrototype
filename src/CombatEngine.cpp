@@ -24,8 +24,10 @@ const Color neutral_color(0.7,0.7,0.7);
 const Color projectile_color = neutral_color;
 const Color planet_color = neutral_color;
 
-Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask) {
+Dictionary CombatEngine::space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask) {
   FAST_PROFILING_FUNCTION;
+  if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),Vector2(point2.x,point2.z)))
+    return Dictionary();
   static Array empty = Array();
   return space->intersect_ray(point1,point2,empty,mask);
 }
@@ -64,6 +66,7 @@ CombatEngine::CombatEngine():
 
   encoded_salvaged_items(),
   flotsam_locations(position_box_size),
+  ship_locations(position_box_size),
 
   update_request_id(),
   planet_goal_data(),
@@ -94,6 +97,8 @@ CombatEngine::CombatEngine():
   player_orders.reserve(50);
 
   dead_ships.reserve(max_ships/2);
+
+  ship_locations.reserve(max_ships*1.5,max_ships*5*1.5);
 }
 
 CombatEngine::~CombatEngine() {}
@@ -658,22 +663,33 @@ void CombatEngine::setup_ai_step(const Array &new_player_orders, const Array &ne
 
 void CombatEngine::step_all_ships() {
   FAST_PROFILING_FUNCTION;
+  bool changed=false;
   for(ships_iter p_ship=ships.begin();p_ship!=ships.end();p_ship++) {
     Ship &ship = p_ship->second;
     if(ship.fate) {
       if(ship.fate==FATED_TO_EXPLODE)
         explode_ship(ship);
+      else {
+        ship_locations.remove(ship.id);
+        changed=true;
+      }
     } else {
       ship.advance_time(idelta);
       ai_step_ship(ship);
       negate_drag_force(ship);
       ship.update_stats(physics_server,hyperspace);
+      changed = changed or not ship_locations.contains(ship.id);
+      ship_locations.set_rect(ship.id,ship.get_location_rect_now());
       if(not hyperspace and (ship.fate==FATED_TO_RIFT or ship.fate==FATED_TO_LAND)) {
         factions_iter p_faction = factions.find(ship.faction);
         if(p_faction!=factions.end())
           p_faction->second.recoup_resources(ship.recouped_resources());
       }
     }
+  }
+  if(changed) {
+    Godot::print("Ship locations updated.");
+    ship_locations.dump();
   }
 }
 
@@ -841,6 +857,8 @@ void CombatEngine::explode_ship(Ship &ship) {
       query->set_shape(search_cylinder);
       Transform trans;
       real_t scale = ship.explosion_radius / search_cylinder_radius;
+      if(not ship_locations.circle_is_nonempty(Vector2(ship.position.x,ship.position.z),ship.explosion_radius))
+        return;
       trans.scale(Vector3(scale,1,scale));
       trans.origin = Vector3(ship.position.x,5,ship.position.z);
       //query->set_transform(Transform(scale,0,0, 0,1,0, 0,0,scale, trans_x,5,trans_z));
@@ -1083,7 +1101,7 @@ pair<DVector3,double> CombatEngine::plot_collision_course(DVector3 relative_posi
 void CombatEngine::use_cargo_web(Ship &ship) {
   Rect2 cargo_web_rect = rect_for_circle(ship.position,ship.cargo_web_radius);
   objects_found.clear();
-  flotsam_locations.within_region(cargo_web_rect,objects_found);
+  flotsam_locations.overlapping_rect(cargo_web_rect,objects_found);
   real_t thrust=ship.cargo_web_strength;
   for(auto &id : objects_found) {
     projectiles_iter proj_ptr = projectiles.find(id);
@@ -1158,6 +1176,9 @@ void CombatEngine::update_near_objects(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   //FIXME: UPDATE THIS TO FIND ENEMY PROJECTILES
   ship.nearby_objects.clear();
+  if(not ship_locations.circle_is_nonempty(Vector2(ship.position.x,ship.position.z),search_cylinder_radius))
+    // No possibility of hits
+    return;
   Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
   query->set_collision_mask(enemy_masks[ship.faction]);
   query->set_shape(search_cylinder);
@@ -1879,6 +1900,8 @@ void CombatEngine::player_auto_target(Ship &ship) {
 
 Dictionary CombatEngine::check_target_lock(Ship &target, Vector3 point1, Vector3 point2) {
   FAST_PROFILING_FUNCTION;
+  if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),Vector2(point2.x,point2.z)))
+    return Dictionary(); // no possibility of collisions
   int mask = physics_server->body_get_collision_mask(target.rid);
   physics_server->body_set_collision_mask(target.rid, mask | (1<<30));
   Dictionary result = space->intersect_ray(point1, point2, Array());
@@ -1961,7 +1984,6 @@ bool CombatEngine::fire_direct_weapon(Ship &ship,Weapon &weapon,bool allow_untar
   point1.y=5;
   point2.y=5;
   Dictionary result = space_intersect_ray(space,point1,point2,enemy_masks[ship.faction]);
-  //  Dictionary result = space->intersect_ray(point1, point2, Array(), ship.enemy_mask, true, false);
 
   Vector3 hit_position=Vector3(0,0,0);
   object_id hit_target=-1;
@@ -2338,6 +2360,12 @@ ships_iter CombatEngine::ship_for_rid(int rid_id) {
 projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &projectile,real_t radius,int max_results) {
   FAST_PROFILING_FUNCTION;
   projectile_hit_list_t result;
+
+  if(not ship_locations.circle_is_nonempty(Vector2(projectile.position.x,projectile.position.z),radius)) {
+    // No possibility of any hits.
+    return result;
+  }
+  
   // FIXME: first pass with a boost r*tree
   if(radius>1e-5) {
     real_t trans_x(projectile.position.x), trans_z(projectile.position.z);
@@ -2345,6 +2373,8 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
     Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
     query->set_collision_mask(enemy_masks[projectile.faction]);
     query->set_shape(search_cylinder);
+    if(not ship_locations.circle_is_nonempty(Vector2(trans_x,trans_z),radius))
+      return result; // No possibility of collision
     Transform trans;
     trans.scale(Vector3(scale,1,scale));
     trans.origin = Vector3(trans_x,5,trans_z);
@@ -2360,6 +2390,8 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
       }
     }
   } else {
+    if(not ship_locations.point_is_nonempty(Vector2(projectile.position.x,projectile.position.z)))
+      return result; // no possibility of collision
     Vector3 point1(projectile.position.x,500,projectile.position.z);
     Vector3 point2(projectile.position.x,-500,projectile.position.z);
     Dictionary hit = space->intersect_ray(point1, point2, Array(), enemy_masks[projectile.faction]);
@@ -2374,6 +2406,12 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
 
 CE::ships_iter CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask) {
   FAST_PROFILING_FUNCTION;
+
+  if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),
+                                        Vector2(point2.x,point2.z)))
+    // No possibility of any matches.
+    return ships.end();
+  
   static Array empty;
   Dictionary d=space->intersect_ray(point1,point2,empty,mask);
   rid2id_iter there=rid2id.find(static_cast<RID>(d["rid"]).get_id());

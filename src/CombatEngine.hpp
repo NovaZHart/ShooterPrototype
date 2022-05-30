@@ -94,6 +94,7 @@ namespace godot {
     Array encoded_salvaged_items;
 
     SpaceHash<object_id> flotsam_locations;
+    SpaceHash<object_id> ship_locations;
     
     // For temporary use in some functions:
     std::unordered_set<object_id> update_request_id;
@@ -253,7 +254,7 @@ namespace godot {
     void guide_projectile(CE::Projectile &projectile);
     bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading,DVector3 desired_heading);
     void integrate_projectile_forces(CE::Projectile &projectile, real_t thrust_fraction, bool drag);
-
+    Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
 
     // // // // // // // // // // // // // // // // // // // // // // // // 
     // Visual methods:

@@ -441,6 +441,11 @@ static inline damage_array to_damage_array(Variant var,real_t clamp_min,real_t c
   return d;
 }
 
+Rect2 location_rect_for_aabb(const AABB &aabb,real_t expand) {
+  real_t xsize=aabb.size.x*expand, zsize=aabb.size.z*expand;
+  return Rect2(Vector2(-xsize/2,-zsize/2),Vector2(xsize,zsize));
+}
+
 Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   id(id),
   name(get<String>(dict,"name")),
@@ -464,7 +469,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   fuel_efficiency(max(0.0f,get<real_t>(dict,"fuel_efficiency",1.0))),
   aabb(get<AABB>(dict,"aabb")),
   turn_drag(max(1e-5f,get<real_t>(dict,"turn_drag"))),
-  radius(max(1e-5f,(aabb.size.x+aabb.size.z)/2.0f)),
+  radius(max(0.01f,sqrt(aabb.size.x*aabb.size.x+aabb.size.z*aabb.size.z))*1.2f),
   radiussq(radius*radius),
   empty_mass(max(0.0f,get<real_t>(dict,"empty_mass",0))),
   fuel_inverse_density(max(0.0f,get<real_t>(dict,"fuel_inverse_density",10.0f))),
@@ -594,7 +599,8 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
 
   visual_scale(1.0),
   target(),
-  cached_standoff_range(0)
+  cached_standoff_range(0),
+  location_rect(location_rect_for_aabb(aabb,radius/6))
 {
   if(max_energy<=1e-5)
     Godot::print_warning(name+String(": new ship has invalid max_energy (battery)."),__FUNCTION__,__FILE__,__LINE__);
@@ -746,7 +752,7 @@ real_t Ship::get_standoff_range(const Ship &target,ticks_t idelta) {
       standoff_range = min(standoff_range,weapon.projectile_range-untraveled_distance);
   }
   
-  Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
+  //Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
   
   return cached_standoff_range = max(0.0f,standoff_range);
 }

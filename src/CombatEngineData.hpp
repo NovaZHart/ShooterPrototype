@@ -544,9 +544,19 @@ namespace godot {
       real_t visual_scale; // Intended to resize ship graphics when rifting
       object_id target;
       real_t cached_standoff_range;
+      const Rect2 location_rect; // for SpaceHashes
 
     public:
 
+      inline Rect2 get_location_rect_now() const {
+        return Rect2(location_rect.position+Vector2(position.x,position.z),
+                     location_rect.size);
+      }
+
+      inline Rect2 get_location_rect_at_0() const {
+        return location_rect;
+      }
+      
       real_t get_standoff_range(const Ship &target,ticks_t idelta);
       
       // Determine how much money is recouped when this ship leaves the system alive:

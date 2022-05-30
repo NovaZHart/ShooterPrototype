@@ -20,7 +20,7 @@
 #include "DVector3.hpp"
 #include "CombatEngineData.hpp"
 
-#undef ENABLE_PROFILING
+#define ENABLE_PROFILING
 
 namespace godot {
 
