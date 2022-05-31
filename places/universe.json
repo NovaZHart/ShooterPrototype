@@ -7315,7 +7315,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenLaserGun.tscn"
+                        "res://weapons/NuclearPumpedLaser.tscn"
                     ]
                 ],
                 "AftPortTurret": [
@@ -7343,7 +7343,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenLaserGun.tscn"
+                        "res://weapons/NuclearPumpedLaser.tscn"
                     ]
                 ],
                 "MidStarboardTurret": [
@@ -7580,7 +7580,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LargeOrangeSpikeGun.tscn"
+                      "res://weapons/BigParticleGun.tscn"
                   ]
               ],
               "AftPortTurret": [
@@ -7608,7 +7608,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LargeOrangeSpikeGun.tscn"
+                      "res://weapons/BigParticleGun.tscn"
                   ]
               ],
               "MidStarboardTurret": [
@@ -8110,7 +8110,7 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/PurpleHomingGun.tscn"
+                          "res://weapons/GreyMissileLauncher.tscn"
                       ]
                   ],
                   "AftPortTurret": [
@@ -8138,7 +8138,7 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/PurpleHomingGun.tscn"
+                          "res://weapons/GreyMissileLauncher.tscn"
                       ]
                   ],
                   "MidStarboardTurret": [

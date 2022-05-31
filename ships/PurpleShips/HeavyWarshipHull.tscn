@@ -17,15 +17,18 @@ height = 10.0
 script = ExtResource( 2 )
 help_page = "hulls/condor"
 base_mass = 293.0
-base_shields = 11000.0
-base_armor = 4800.0
+base_shields = 12700.0
+base_armor = 5600.0
 base_structure = 2600.0
+base_fuel = 40.0
 heal_fuel = 40.0
 base_drag = 1.9
 base_turn_drag = 0.5
 base_max_cargo = 300
 armor_inverse_density = 250.0
 override_size = Vector3( 6, 0, 4.2 )
+cargo_web_add_radius = 5.0
+cargo_web_strength = 4000.0
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
