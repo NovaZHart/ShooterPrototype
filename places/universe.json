@@ -4,7 +4,8 @@
           "Array"
       ], 0.0, {
               "raiders": -1,
-              "locals": 1,
+              "police": 1,
+              "civilians": 1,
               "flotsam": -1
       }, {} ],
       "flotsam": [ "Faction", "flotsam", [
@@ -12,102 +13,103 @@
       ], 0.0, {
           "initial_player_faction": -1
       }, {} ],
-      "locals": [ "Faction", "Locals", [
+      "police": [ "Faction", "Police", [
             "Array",
             {
               "frequency": 150,
               "fleet": "popoto_lasers_trio",
-              "type": "light_military"
+              "type": "light_police"
             },
             {
               "frequency": 110,
               "fleet": "bufeo_particles_escorted",
-              "type": "light_military"
+              "type": "light_police"
             },
             {
               "frequency": 110,
               "fleet": "bufeo_lasers_escorted",
-              "type": "light_military"
+              "type": "light_police"
             },
             {
               "frequency": 70,
               "fleet": "bufeo_particles_trio",
-              "type": "light_military"
+              "type": "light_police"
             },
             {
               "frequency": 70,
               "fleet": "bufeo_lasers_trio",
-              "type": "light_military"
+              "type": "light_police"
             },
             {
               "frequency": 40,
               "fleet": "orca_particles_missiles_escorted",
-              "type": "light_military"
+              "type": "light_police"
             },
             {
               "frequency": 40,
               "fleet": "orca_lasers_missiles_escorted",
-              "type": "light_military"
+              "type": "light_police"
             },
 
             {
               "frequency": 30,
               "fleet": "orca_particles_missiles_escorted",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 30,
               "fleet": "orca_lasers_missiles_escorted",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 50,
               "fleet": "orca_mix_no_missiles",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 50,
               "fleet": "orca_laser_missile_mix",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 50,
               "fleet": "orca_particle_missile_mix",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 50,
               "fleet": "orca_four_types",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 30,
               "fleet": "ankylorhiza_missiles_lasers_escorted2",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 20,
               "fleet": "ankylorhiza_duo",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 30,
               "fleet": "ankylorhiza_driver_particles_escorted2",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 30,
               "fleet": "ankylorhiza_missiles_lasers_escorted",
-              "type": "heavy_military"
+              "type": "large_police"
             },
             {
               "frequency": 30,
               "fleet": "ankylorhiza_driver_particles_escorted",
-              "type": "heavy_military"
+              "type": "large_police"
             }
           ], 3e5, {
               "raiders": -3,
               "initial_player_faction": 0.5,
+              "civilians": 3,
               "flotsam": -1
           }, {} ],
       "raiders": [ "Faction", "Raiders", [
@@ -189,8 +191,67 @@
               "type": "small_raid"
             }
           ], 3e5, {
-              "locals": -1,
+              "police": -1,
+              "civilians": -2,
               "initial_player_faction": -0.5,
+              "flotsam": -1
+          }, {} ],
+      "civilians": [ "Faction", "Civilians", [
+            "Array",
+            {
+              "frequency": 300,
+              "fleet": "samoyed_lasers_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 200,
+              "fleet": "missile_qimmeq_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 100,
+              "fleet": "husky_haruspex_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 200,
+              "fleet": "one_pod_laser_missiles_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 150,
+              "fleet": "thoroughbred_haruspex_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 80,
+              "fleet": "thoroughbred_haruspex_duo",
+              "type": "large_merchant"
+            },
+            {
+              "frequency": 80,
+              "fleet": "one_bipod_particles_missiles_solo",
+              "type": "large_merchant"
+            },
+            {
+              "frequency": 80,
+              "fleet": "one_bipod_lasers_missiles_solo",
+              "type": "large_merchant"
+            },
+            {
+              "frequency": 60,
+              "fleet": "one_hexapod_particles_missiles_solo",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "one_hexapod_lasers_missiles_solo",
+              "type": "large_raid"
+            },
+          ], 3e5, {
+              "police": 1,
+              "raiders": -3,
+              "initial_player_faction": 1,
               "flotsam": -1
           }, {} ]
   }],
@@ -8046,6 +8107,77 @@
   "fleets": [
     "SimpleNode",
     {
+        "samoyed_lasers_solo": [
+            "Fleet",
+            "One Samoyed (Lasers)",
+            {
+                "samoyed_lasers": 1
+            }
+        ],
+        "missile_qimmeq_solo": [
+            "Fleet",
+            "One Qimmeq (Missiles)",
+            {
+                "missile_qimmeq": 1
+            }
+        ],
+        "thoroughbred_haruspex_solo": [
+            "Fleet",
+            "One Thoroughbred (Haruspex)",
+            {
+                "thoroughbred_haruspex": 1
+            }
+        ],
+        "thoroughbred_haruspex_duo": [
+            "Fleet",
+            "Two Thoroughbred (Haruspex)",
+            {
+                "thoroughbred_haruspex": 2
+            }
+        ],
+        "husky_haruspex_solo": [
+            "Fleet",
+            "One Husky (Haruspex)",
+            {
+                "husky_haruspex": 1
+            }
+        ],
+        "one_pod_laser_missiles_solo": [
+            "Fleet",
+            "One Monopod (Lasers+Missiles)",
+            {
+                "one_pod_laser_missile": 1
+            }
+        ],
+        "one_bipod_particles_missiles_solo": [
+            "Fleet",
+            "One Bipod (Particles+Missiles)",
+            {
+                "bipod_particles_missiles": 1
+            }
+        ],
+        "one_bipod_lasers_missiles_solo": [
+            "Fleet",
+            "One Bipod (Particles+Missiles)",
+            {
+                "bipod_lasers_missiles": 1
+            }
+        ],
+        "one_hexapod_particles_missiles_solo": [
+            "Fleet",
+            "One Hexapod (Particles+Missiles)",
+            {
+                "hexapod_particles_missiles": 1
+            }
+        ],
+        "one_hexapod_lasers_missiles_solo": [
+            "Fleet",
+            "One Hexapod (Lasers+Missiles)",
+            {
+                "hexapod_lasers_missiles": 1
+            }
+        ],
+        
       "ankylorhiza_duo": [
         "Fleet",
         "Driver+Particle and Missile-Laser Ankylorhiza",

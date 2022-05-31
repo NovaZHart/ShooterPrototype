@@ -230,7 +230,9 @@ namespace godot {
     enum goal_action_t {
       goal_patrol = 0,  // equal or surpass enemy threat; kill enemies
       goal_raid = 1,    // control airspace or retreat; kill high-value, low-threat, ships
-      goal_planet = 2   // travel from planet to jump, or from jump to planet
+      goal_planet = 2,  // travel from planet to jump, or from jump to planet
+      goal_avoid_and_land = 3, // pick a planet with few enemies and land there
+      goal_avoid_and_rift = 4 // pick a planet with few enemies, leave from there, exit
     };
     typedef int faction_index_t;
     typedef uint64_t faction_mask_t;
@@ -436,7 +438,7 @@ namespace godot {
     enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
     enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
     enum ship_ai_t { ATTACKER_AI=0, PATROL_SHIP_AI=1, RAIDER_AI=2, ARRIVING_MERCHANT_AI=3, DEPARTING_MERCHANT_AI=4 };
-    enum ai_flags { DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=3 };
+    enum ai_flags { DECIDED_NOTHING=0, DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=3 };
 
     typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
     
@@ -502,9 +504,10 @@ namespace godot {
       PresetCountdown<ticks_per_second*3> rift_timer, no_target_timer;
       PresetCountdown<ticks_per_second*25> range_check_timer;
       PresetCountdown<ticks_per_second*15> shot_at_target_timer;
-      PresetCountdown<ticks_per_second*15> standoff_range_timer;
+      PresetCountdown<ticks_per_second/12> standoff_range_timer;
+      PresetCountdown<ticks_per_second/4> nearby_hostiles_timer;
       PresetCountdown<ticks_per_second/60> confusion_timer;
-      ticks_t tick_at_last_shot, ticks_since_targetting_change;
+      ticks_t tick_at_last_shot, ticks_since_targetting_change, ticks_since_ai_change;
       real_t damage_since_targetting_change;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
@@ -638,12 +641,14 @@ namespace godot {
         at_first_tick = not tick;
         tick += idelta;
         ticks_since_targetting_change+=idelta;
+        ticks_since_ai_change+=idelta;
 
         explosion_timer.advance(idelta);
         rift_timer.advance(idelta);
         no_target_timer.advance(idelta);
         range_check_timer.advance(idelta);
         shot_at_target_timer.advance(idelta);
+        nearby_hostiles_timer.advance(idelta);
         confusion_timer.advance(idelta);
       }
 
@@ -684,7 +689,7 @@ namespace godot {
 
     static const int PLAYER_GOAL_ATTACKER_AI = 1;
     static const int PLAYER_GOAL_LANDING_AI = 2;
-    static const int PLAYER_GOAL_COWARD_AI = 3;
+    static const int PLAYER_GOAL_ARRIVING_MERCHANT_AI = 3;
     static const int PLAYER_GOAL_INTERCEPT = 4;
     static const int PLAYER_GOAL_RIFT = 5;
     

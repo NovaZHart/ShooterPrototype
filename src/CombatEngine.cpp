@@ -82,6 +82,8 @@ CombatEngine::CombatEngine():
   reset_scenario(false),
 
   objects_found(),
+  search_results(),
+
   content()
 
 {
@@ -95,7 +97,7 @@ CombatEngine::CombatEngine():
   ships.reserve(max_ships);
   projectiles.reserve(max_ships*50);
   player_orders.reserve(50);
-
+  search_results.reserve(100);
   dead_ships.reserve(max_ships/2);
 
   ship_locations.reserve(max_ships*1.5,max_ships*5*1.5);
@@ -506,8 +508,8 @@ void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) 
   int target_advice_start = target_advice.size();
   
   float accum = 0;
-  float min_desire;
-  float max_desire;
+  float min_desire=0;
+  float max_desire=0;
   for(planets_const_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
     object_id id = p_planet->first;
     if(goal.target_object_id>=0 and goal.target_object_id!=id) {
@@ -562,14 +564,14 @@ void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) 
     return;
   }
 
-  for(int i=target_advice_start,n=target_advice.size();i<n;i++) {
+  for(int j=target_advice_start,n=target_advice.size();j<n;j++) {
     if(max_desire==min_desire)
-      target_advice[i].target_weight = 0.5;
+      target_advice[j].target_weight = 0.5;
     else {
-      target_advice[i].target_weight -= min_desire;
-      target_advice[i].target_weight /= max_desire-min_desire;
+      target_advice[j].target_weight -= min_desire;
+      target_advice[j].target_weight /= max_desire-min_desire;
     }
-    target_advice[i].target_weight *= goal.weight;
+    target_advice[j].target_weight *= goal.weight;
   }
   
   const Planet &planet = p_planet->second;
@@ -912,7 +914,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
       switch(ship.ai_type) {
       case PATROL_SHIP_AI: patrol_ship_ai(ship); return;
       case RAIDER_AI: raider_ai(ship); return;
-      case ARRIVING_MERCHANT_AI: landing_ai(ship); return;
+      case ARRIVING_MERCHANT_AI: arriving_merchant_ai(ship); return;
       case DEPARTING_MERCHANT_AI: rift_ai(ship); return;
       default: attacker_ai(ship); return;
       }
@@ -1143,8 +1145,8 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
       landing_ai(ship);
       return true;
     }
-    case PLAYER_GOAL_COWARD_AI: {
-      coward_ai(ship);
+    case PLAYER_GOAL_ARRIVING_MERCHANT_AI: {
+      arriving_merchant_ai(ship);
       return true;
     }
     case PLAYER_GOAL_INTERCEPT: {
@@ -1163,7 +1165,7 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
   return false;
 }
 
-void CombatEngine::update_near_objects(Ship &ship) {
+void CombatEngine::update_near_objects_using_godot_physics(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   //FIXME: UPDATE THIS TO FIND ENEMY PROJECTILES
   ship.nearby_objects.clear();
@@ -1185,6 +1187,52 @@ void CombatEngine::update_near_objects(Ship &ship) {
     ship.nearby_objects.emplace_back(rid,it->second);
     happy++;
   }
+}
+
+static bool compare_distance(const pair<real_t,pair<RID,object_id>> &a,const pair<real_t,pair<RID,object_id>> &b) {
+  return a.first<b.first;
+}
+
+void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,vector<pair<real_t,pair<RID,object_id>>> &results) {
+  FAST_PROFILING_FUNCTION;
+  results.clear();
+  objects_found.clear();
+  if(!ship_locations.overlapping_circle(Vector2(position.x,position.z),radius,objects_found)) {
+    Godot::print("No ships found in radius="+str(radius)+" of "+str(position));
+    return;
+  }
+
+  for(auto &id : objects_found) {
+    ships_iter ship_ptr = ships.find(id);
+    if(ship_ptr!=ships.end()) {
+      Ship &target = ship_ptr->second;
+      if( (target.faction_mask&faction_mask) ) {
+        real_t distance = (get_position(target)-position).length()-target.radius*0.707;
+        if(distance<radius) {
+          pair<RID,object_id> rid_id(target.rid,target.id);
+          pair<real_t,pair<RID,object_id>> dist_rid_id(distance,rid_id);
+          results.push_back(dist_rid_id);
+        }
+      }
+    }
+  }
+  sort(results.begin(),results.end(),compare_distance);
+}
+
+
+void CombatEngine::update_near_objects_using_ship_locations(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+
+  if(!ship.nearby_hostiles_timer.alarmed())
+    return;
+
+  ship.nearby_hostiles_timer.reset();
+
+  search_results.clear();
+  find_ships_in_radius(get_position(ship),100,enemy_masks[ship.faction],search_results);
+  ship.nearby_objects.clear();
+  for(auto & r : search_results)
+    ship.nearby_objects.push_back(r.second);
 }
 
 bool CombatEngine::should_update_targetting(Ship &ship,ships_iter &other) {
@@ -1295,7 +1343,7 @@ void CombatEngine::raider_ai(Ship &ship) {
   }
 }
 
-void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const {
+void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance,bool avoid_targets) const {
 
   // Minimum and maximum distances to target for calculations:
   real_t min_move = clamp(max(3.0f*ship.max_speed,ship.range.all),10.0f,30.0f);
@@ -1485,7 +1533,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       find_new_target = should_update_targetting(ship,target_ptr);
   }
   if(find_new_target) {
-    choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f);
+    choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f,false);
     target_ptr = ships.find(ship.get_target());
   }
 
@@ -1544,24 +1592,55 @@ void CombatEngine::landing_ai(Ship &ship) {
   }
 }
 
-void CombatEngine::coward_ai(Ship &ship) {
+void CombatEngine::arriving_merchant_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.immobile)
     return;
-  update_near_objects(ship);
-  make_threat_vector(ship,0.5);
-  real_t threat_threshold = (ship.armor+ship.shields+ship.structure)*30; // FIXME: improve this
-  if(ship.threat_vector.length_squared() > threat_threshold*threat_threshold)
+
+  bool should_evade;
+
+  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_change>ticks_per_second/4) {
+    bool low_health = ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3;
+    if(low_health)
+      ship.ai_flags = DECIDED_TO_RIFT;
+    else {
+      ship.ticks_since_ai_change=0;
+      update_near_objects_using_ship_locations(ship);
+      make_threat_vector(ship,0.5);
+      real_t threat_threshold = ship.threat/10;
+      should_evade = (ship.threat_vector.length_squared() > threat_threshold*threat_threshold);
+      if(should_evade) {
+        ship.ai_flags = DECIDED_TO_FLEE;
+      } else {
+        ship.ai_flags = DECIDED_TO_LAND;
+        //choose_target_by_goal(ship,false,goal_avoid_and_land,0.0f,30.0f,true);
+        planets_iter target_ptr = planets.find(ship.goal_target);
+        if(target_ptr==planets.end())
+          ship.new_target(select_target<false>(ship.get_target(),select_nearest(ship.position),planets));
+      else
+        ship.new_target(ship.goal_target);
+      }
+    }
+  }
+
+  if(ship.ai_flags==DECIDED_TO_FLEE)
     evade(ship);
   else {
-    // When there are no threats, fly away from system center
-    Vector3 pos = ship.position;
-    Vector3 pos_norm = pos.normalized();
-    if(pos_norm.length()<0.99)
-      pos_norm = Vector3(1,0,0);
-    move_to_intercept(ship, 1, FAR, pos_norm * max(real_t(100.0),pos.length()*2+10),
-                      ship.max_speed * pos_norm, false);
+    planets_iter target_ptr = planets.find(ship.get_target());
+    if(target_ptr!=planets.end()) {
+      Planet &target = target_ptr->second;
+      if(move_to_intercept(ship, target.radius, 5.0, target.position, Vector3(0,0,0), true))
+        // Reached planet.
+        ship.fate = FATED_TO_LAND;
+    } else
+      // Nowhere to go
+      patrol_ai(ship);
   }
+
+  // Opportunistic firing:
+  ships_iter nowhere = ships.end();
+  aim_turrets(ship,nowhere);
+  auto_fire(ship,nowhere);
 }
 
 bool CombatEngine::patrol_ai(Ship &ship) {
@@ -1629,11 +1708,11 @@ bool CombatEngine::pull_back_to_standoff_range(Ship &ship,Ship &target,Vector3 &
     // Cannot pull back to standoff range for an unarmed ship.
     return false;
 
-  if(dot2(ship.heading,aim)>0.95) {
+  if(dot2(ship.heading,aim)>0) {
     real_t distance = (target.position-ship.position).length();
-    if(distance<standoff_range*0.75)
+    if(distance<standoff_range*0.7)
       request_thrust(ship,0,1);
-    else if(distance>standoff_range*.95)
+    else if(distance>standoff_range*.9)
       request_thrust(ship,1,0);
   }
     
@@ -2121,6 +2200,12 @@ void CombatEngine::move_to_attack(Ship &ship,Ship &target) {
 
   bool in_range=false;
   Vector3 aim=aim_forward(ship,target,in_range);
+  // if(not in_range) {
+  //   Vector3 dp = get_position(ship)-get_position(target);
+  //   if(dp.length_squared()<max(ship.radiussq,target.radiussq))
+  //     in_range=true;
+  // }
+
   if(in_range) {
     pull_back_to_standoff_range(ship,target,aim);
     request_heading(ship,aim);

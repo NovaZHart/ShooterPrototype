@@ -539,7 +539,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   structure(max(0.0f,get<real_t>(dict,"structure",max_structure))),
   fuel(max(0.0f,get<real_t>(dict,"fuel",max_fuel))),
   ai_type(static_cast<ship_ai_t>(get<int>(dict,"ai_type",ATTACKER_AI))),
-  ai_flags(0),
+  ai_flags(DECIDED_NOTHING),
   goal_action(goal_patrol),
   goal_target(-1),
   
@@ -567,9 +567,11 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   range_check_timer(),
   shot_at_target_timer(),
   standoff_range_timer(),
+  nearby_hostiles_timer(),
   confusion_timer(),
   tick_at_last_shot(TICKS_LONG_AGO),
   ticks_since_targetting_change(TICKS_LONG_AGO),
+  ticks_since_ai_change(TICKS_LONG_AGO),
   damage_since_targetting_change(0),
   threat_vector(),
   nearby_objects(),
@@ -629,6 +631,8 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
     Godot::print(name+": power="+str(power)+" Cooling="+str(cooling));
     Godot::print(name+": max_energy="+str(max_energy)+" max_heat="+str(max_heat));
   }
+
+  nearby_hostiles_timer.reset();
 }
 
 Ship::~Ship()
@@ -750,6 +754,11 @@ real_t Ship::get_standoff_range(const Ship &target,ticks_t idelta) {
       }
     } else
       standoff_range = min(standoff_range,weapon.projectile_range-untraveled_distance);
+  }
+
+  if(standoff_range<2) {
+    Godot::print_warning(name+" standoff range is implausibly small: "+str(standoff_range),
+                         __FUNCTION__,__FILE__,__LINE__);
   }
   
   //Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));

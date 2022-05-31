@@ -30,3 +30,21 @@ godot::IntRect2 godot::IntRect2::positive_size() {
   }
   return r;
 }
+
+void IntRect2::grow_by(int amount) {
+  if(size.x>0) {
+    size.x+=amount*2;
+    position.x-=amount;
+  } else {
+    size.x-=amount*2;
+    position.x+=amount;
+  }
+
+  if(size.y>0) {
+    size.y+=amount*2;
+    position.y-=amount;
+  } else {
+    size.y-=amount*2;
+    position.y+=amount;
+  }
+}

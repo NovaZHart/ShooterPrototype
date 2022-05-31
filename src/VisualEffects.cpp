@@ -177,7 +177,7 @@ void VisualEffects::step_multimeshes(real_t delta,Vector3 location,Vector3 size)
 
   multimeshes.update_content(*newflag_visible.second,location,size);
   multimeshes.load_meshes();
-  multimeshes.send_meshes_to_visual_server(1,scenario,reset_scenario,!(int(now*60)%60));
+  multimeshes.send_meshes_to_visual_server(1,scenario,reset_scenario,false);
 }
 
 VisibleObject * VisualEffects::get_object_or_make_stationary(object_id target,VisualEffect &effect) {

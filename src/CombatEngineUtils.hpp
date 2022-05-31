@@ -155,12 +155,12 @@ namespace godot {
 
     template<class T>
     Vector3 get_position(T &object) {
-      return Vector3(object.position.x,0,object.position.y);
+      return Vector3(object.position.x,0,object.position.z);
     }
 
     template<class T>
     DVector3 get_position_d(T &object) {
-      return DVector3(object.position.x,0,object.position.y);
+      return DVector3(object.position.x,0,object.position.z);
     }
     
     template<class T>

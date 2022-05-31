@@ -126,7 +126,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 	
 	if thrust:              goal=0
 	elif intercept:         goal=combat_engine.PLAYER_GOAL_INTERCEPT
-	elif evade:             goal=combat_engine.PLAYER_GOAL_COWARD_AI
+	elif evade:             goal=combat_engine.PLAYER_GOAL_ARRIVING_MERCHANT_AI
 	elif land:              goal=combat_engine.PLAYER_GOAL_LANDING_AI
 	elif depart:            goal=combat_engine.PLAYER_GOAL_RIFT
 	

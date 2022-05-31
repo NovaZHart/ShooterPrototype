@@ -274,10 +274,12 @@ class FactionState extends Reference:
 			var goal = choose_random_goal()
 			var entry_method = combat_engine.ENTRY_FROM_RIFT
 			var ai_type = combat_engine.PATROL_SHIP_AI
-			if goal['action'] == 'patrol' and randf()>0.2:
+			if goal['action'] == 'patrol' and randf()>0.7:
 				entry_method = combat_engine.ENTRY_FROM_ORBIT
 			elif goal['action'] == 'raid':
 				ai_type = combat_engine.RAIDER_AI
+			elif goal['action'] == 'arriving_merchant':
+				ai_type = combat_engine.ARRIVING_MERCHANT_AI
 
 			# Success! Remove this fleet from those available:
 			if fleet_index>=0:

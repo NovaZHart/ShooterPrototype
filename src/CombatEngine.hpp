@@ -115,6 +115,7 @@ namespace godot {
 
     // For temporary use in some functions:
     std::unordered_set<object_id> objects_found;
+    std::vector<std::pair<real_t,std::pair<RID,object_id>>> search_results;
     
     // Sending data from physics to visual thread:
     VisibleContentManager content;
@@ -196,16 +197,18 @@ namespace godot {
     void use_cargo_web(CE::Ship &ship);
     bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
     bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
-    void update_near_objects(CE::Ship &ship);
+    void update_near_objects_using_godot_physics(CE::Ship &ship);
+    void find_ships_in_radius(Vector3 position,real_t radius,CE::faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
+    void update_near_objects_using_ship_locations(CE::Ship &ship);
     bool should_update_targetting(CE::Ship &ship,CE::ships_iter &other);
     CE::ships_iter update_targetting(CE::Ship &ship);
     void attacker_ai(CE::Ship &ship);
     void patrol_ship_ai(CE::Ship &ship);
     void raider_ai(CE::Ship &ship);
     void landing_ai(CE::Ship &ship);
-    void coward_ai(CE::Ship &ship);
+    void arriving_merchant_ai(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);
-    void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;
+    void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance,bool avoid_targets) const;
     Vector3 make_threat_vector(CE::Ship &ship, real_t t);
     void evade(CE::Ship &ship);
     void aim_turrets(CE::Ship &ship,CE::ships_iter &target);

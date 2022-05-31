@@ -1,5 +1,6 @@
 extends Node
 
+const PLAYER_START_SHIP_DESIGN: String = 'thoroughbred_haruspex'
 const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/kindra'
 
 var player_ship_design
@@ -455,7 +456,7 @@ func _enter_tree():
 	assert(system)
 	
 	#var start_ship = game_state.ship_designs.get_node_or_null('godship')
-	var start_ship = game_state.ship_designs.get_node_or_null('husky_haruspex')
+	var start_ship = game_state.ship_designs.get_node_or_null(PLAYER_START_SHIP_DESIGN)
 	assert(start_ship)
 	player_ship_design = start_ship
 	

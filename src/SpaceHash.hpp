@@ -46,6 +46,7 @@ namespace godot {
       position(position),
       size(size)
     {}
+    void grow_by(int size);
     IntRect2 positive_size();
     bool operator == (const IntRect2 &o) const { return o.position==position and o.size==size; }
     bool operator != (const IntRect2 &o) const { return o.position!=position or o.size!=size; }
@@ -85,6 +86,8 @@ namespace godot {
     typedef typename int_to_data_map::const_iterator int_to_data_const_iter;
     typedef typename data_to_info_map::iterator data_to_info_iter;
     typedef typename data_to_info_map::const_iterator data_to_info_const_iter;
+    typedef std::unordered_set<IntVector2> touched_type;
+    typedef std::unordered_set<data_type> result_type;
   private:
     int_to_data_map int2data;
     data_to_info_map data2info;
@@ -98,9 +101,9 @@ namespace godot {
     }
     
     // Give me data for all rects that overlap this one.
-    bool overlapping_rect(const Rect2 &region,std::unordered_set<data_type> &results) const;
-    bool overlapping_circle(Vector2 center,real_t radius,std::unordered_set<data_type> &results) const;
-    bool overlapping_point(Vector2 point,std::unordered_set<data_type> &results) const;
+    std::size_t overlapping_rect(const Rect2 &region,std::unordered_set<data_type> &results) const;
+    std::size_t overlapping_circle(Vector2 center,real_t radius,std::unordered_set<data_type> &results) const;
+    std::size_t overlapping_point(Vector2 point,std::unordered_set<data_type> &results) const;
 
     // Do any rects overlap this region?
     data_type first_at_point(Vector2 point) const;
@@ -141,8 +144,8 @@ namespace godot {
   }
   
   template<class T>
-  bool SpaceHash<T>::overlapping_rect(const Rect2 &region,std::unordered_set<T> &result) const {
-    bool matches_found = false;
+  std::size_t SpaceHash<T>::overlapping_rect(const Rect2 &region,std::unordered_set<T> &result) const {
+    std::size_t matches_found = 0;
     IntRect2 rect = IntRect2(region,position_box_size).positive_size();
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
       for(int ix=0,x=rect.position.x;ix<rect.size.x;ix++,x++) {
@@ -154,14 +157,14 @@ namespace godot {
             data_to_info_const_iter d2r_it = data2info.find(what);
             if(d2r_it!=data2info.end() and d2r_it->second.rect.intersects(region)) {
               result.insert(what);
-              matches_found = true;
+              matches_found++;
             }
           }
         }
       }
     return matches_found;
   }
-  
+
   template<class T>
   bool SpaceHash<T>::rect_is_nonempty(const Rect2 &region) const {
     IntRect2 rect = IntRect2(region,position_box_size).positive_size();
@@ -180,8 +183,8 @@ namespace godot {
   }
 
   template<class T>
-  bool SpaceHash<T>::overlapping_circle(Vector2 center,real_t radius,std::unordered_set<T> &result) const {
-    bool matches_found = false;
+  std::size_t SpaceHash<T>::overlapping_circle(Vector2 center,real_t radius,std::unordered_set<T> &result) const {
+    std::size_t matches_found = 0;
     IntRect2 rect = IntRect2(rect_for_circle(center,radius),position_box_size);
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
       for(int ix=0,x=rect.position.x;ix<rect.size.x;ix++,x++) {
@@ -191,9 +194,9 @@ namespace godot {
           const T &what = it->second;
           if(result.find(what)==result.end()) {
             data_to_info_const_iter d2r_it = data2info.find(what);
-            if(d2r_it!=data2info.end() and circle_overlaps_rect(center,radius,d2r_it->second)) {
+            if(d2r_it!=data2info.end() and circle_overlaps_rect(center,radius,d2r_it->second.rect)) {
               result.insert(what);
-              matches_found = true;
+              matches_found++;
             }
           }
         }
@@ -239,8 +242,8 @@ namespace godot {
   
 
   template<class T>
-  bool SpaceHash<T>::overlapping_point(Vector2 point,std::unordered_set<T> &result) const {
-    bool matches_found = false;
+  std::size_t SpaceHash<T>::overlapping_point(Vector2 point,std::unordered_set<T> &result) const {
+    std::size_t matches_found = 0;
     IntVector2 here = IntVector2(point,position_box_size);
     std::pair<int_to_data_const_iter,int_to_data_const_iter> range=int2data.equal_range(here);
     for(int_to_data_const_iter it=range.first;it!=range.second;it++) {
@@ -249,7 +252,7 @@ namespace godot {
         data_to_info_const_iter d2r_it = data2info.find(what);
         if(d2r_it!=data2info.end() and d2r_it->second.rect.has_point(point)) {
           result.insert(what);
-          matches_found = true;
+          matches_found++;
         }
       }
     }

@@ -161,24 +161,6 @@ This package of reinforcement beams, insulation, repair tools, and other equipme
 
 @bbcode_from_scene res://equipment/repair/Structure2x2.tscn
 
-@PAGE equipment/test
-@title Equipment Placeholder Test
-@price Price:
-@synopsis A prism for testing the equipment functionality.
-@content
-Makes you nearly invincible, to test the equipment functionality.
-
-@bbcode_from_scene res://equipment/EquipmentTest.tscn
-
-@PAGE equipment/bigtest
-@title Big Equipment Placeholder Test
-@price Price:
-@synopsis A prism for testing the equipment functionality.
-@content
-Makes you nearly invincible, to test the equipment functionality.
-
-@bbcode_from_scene res://equipment/BigEquipmentTest.tscn
-
 @PAGE equipment/energy_shield_small
 @title Small Shield Recharger
 @price Price:
