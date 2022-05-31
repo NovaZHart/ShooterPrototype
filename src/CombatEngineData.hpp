@@ -40,6 +40,8 @@
 #define MIN_PASSTHRU 0.0
 #define MAX_PASSTHRU 1.0
 
+#define SALVAGE_TIME_LIMIT 60
+
 #include <cstdint>
 #include <unordered_set>
 #include <unordered_map>
@@ -438,7 +440,7 @@ namespace godot {
     enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
     enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
     enum ship_ai_t { ATTACKER_AI=0, PATROL_SHIP_AI=1, RAIDER_AI=2, ARRIVING_MERCHANT_AI=3, DEPARTING_MERCHANT_AI=4 };
-    enum ai_flags { DECIDED_NOTHING=0, DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=3 };
+    enum ai_flags { DECIDED_NOTHING=0, DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=4, DECIDED_TO_SALVAGE=8 };
 
     typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
     
@@ -485,7 +487,8 @@ namespace godot {
       int ai_flags;
       goal_action_t goal_action;
       object_id goal_target;
-
+      object_id salvage_target;
+      
       // Physics server state; do not change:
       Vector3 rotation, position, linear_velocity, angular_velocity, heading;
       real_t drag, inverse_mass;
@@ -506,6 +509,7 @@ namespace godot {
       PresetCountdown<ticks_per_second*15> shot_at_target_timer;
       PresetCountdown<ticks_per_second/12> standoff_range_timer;
       PresetCountdown<ticks_per_second/4> nearby_hostiles_timer;
+      PresetCountdown<ticks_per_second/4> salvage_timer;
       PresetCountdown<ticks_per_second/60> confusion_timer;
       ticks_t tick_at_last_shot, ticks_since_targetting_change, ticks_since_ai_change;
       real_t damage_since_targetting_change;
@@ -649,6 +653,7 @@ namespace godot {
         range_check_timer.advance(idelta);
         shot_at_target_timer.advance(idelta);
         nearby_hostiles_timer.advance(idelta);
+        salvage_timer.advance(idelta);
         confusion_timer.advance(idelta);
       }
 

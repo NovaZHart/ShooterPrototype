@@ -205,6 +205,8 @@ namespace godot {
     void attacker_ai(CE::Ship &ship);
     void patrol_ship_ai(CE::Ship &ship);
     void raider_ai(CE::Ship &ship);
+    void salvage_ai(CE::Ship &ship);
+    bool should_salvage(CE::Ship &ship);
     void landing_ai(CE::Ship &ship);
     void arriving_merchant_ai(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);

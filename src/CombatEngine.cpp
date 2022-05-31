@@ -1315,12 +1315,25 @@ void CombatEngine::raider_ai(Ship &ship) {
     ship.ai_flags=DECIDED_TO_RIFT;
     return;
   }
-  
-  bool have_target = target_ptr!=ships.end();
-  bool close_to_target = have_target and target_ptr->second.position.distance_to(ship.position)<100;
 
-  if(close_to_target) {
-    ship.ai_flags=0;
+  bool have_target = target_ptr!=ships.end();
+  bool close_to_target = have_target and target_ptr->second.position.distance_squared_to(ship.position)<100*100;
+
+  projectiles_iter salvage_ptr;
+  bool have_salvage = should_salvage(ship);
+  if(have_salvage)
+    salvage_ptr = projectiles.find(ship.salvage_target);
+  else
+    salvage_ptr = projectiles.end();
+  
+  bool close_to_salvage = have_salvage and salvage_ptr->second.position.distance_squared_to(ship.position)<ship.cargo_web_radiussq;
+
+  if(close_to_salvage) {
+    salvage_ai(ship);
+  } else if(close_to_target) {
+    if(ship.cargo_web_active)
+      deactivate_cargo_web(ship);
+    ship.ai_flags=DECIDED_NOTHING;
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
@@ -1334,13 +1347,90 @@ void CombatEngine::raider_ai(Ship &ship) {
       if(randf<scale)
         ship.ai_flags=DECIDED_TO_RIFT;
     }
+    if(ship.cargo_web_active)
+      deactivate_cargo_web(ship);
     if(ship.ai_flags&DECIDED_TO_RIFT)
       rift_ai(ship);
+    else if(have_salvage)
+      salvage_ai(ship);
     else if(have_target)
       move_to_attack(ship,target_ptr->second);
     else
       patrol_ai(ship);
   }
+}
+
+void CombatEngine::salvage_ai(Ship &ship) {
+  projectiles_iter it = projectiles.find(ship.salvage_target);
+  if(it==projectiles.end()) {
+    ship.salvage_target=-1;
+    patrol_ai(ship);
+  } else {
+    Vector3 ship_position=get_position(ship);
+    Vector3 proj_position=get_position(it->second);
+    move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
+    if((proj_position-ship_position).length_squared()<ship.cargo_web_radius*ship.cargo_web_radius)
+      activate_cargo_web(ship);
+    else if(ship.cargo_web_active)
+      deactivate_cargo_web(ship);
+    use_cargo_web(ship);
+  }
+
+  // Opportunistic firing
+  ships_iter nowhere = ships.end();
+  aim_turrets(ship,nowhere);
+  auto_fire(ship,nowhere);
+}
+
+bool CombatEngine::should_salvage(Ship &ship) {
+  projectiles_iter it = projectiles.find(ship.salvage_target);
+  if(it!=projectiles.end())
+    return true;
+
+  if(ship.salvage_timer.active() and !ship.salvage_timer.alarmed())
+    return false; 
+
+  ship.salvage_timer.reset();
+
+  real_t max_move = ship.max_speed*(SALVAGE_TIME_LIMIT-PI/ship.max_angular_velocity);
+  if(max_move<0)
+    return false;
+
+  objects_found.clear();
+  size_t count = flotsam_locations.overlapping_circle(Vector2(ship.position.x,ship.position.z),
+                                                      max_move,objects_found);
+  if(!count) {
+    return false;
+  }
+
+  DVector3 ship_position = get_position_d(ship);
+  object_id best_id=-1;
+  real_t best_time=numeric_limits<real_t>::infinity();
+  
+  for(auto &id : objects_found) {
+    it = projectiles.find(id);
+    if(it==projectiles.end()) {
+      //Godot::print(ship.name+": projectile "+str(id)+" does not exist.");
+      continue;
+    }
+    Projectile &proj = it->second;
+    DVector3 dp = get_position(proj)-ship_position;
+    pair<DVector3,double> course = plot_collision_course(dp,proj.linear_velocity,ship.max_speed);
+    real_t life_remaining = proj.lifetime-proj.age;
+    if(course.second>life_remaining) {
+      //Godot::print(ship.name+": projectile "+str(proj.id)+" is too far: course_time="+str(course.second)+" life_remaining="+str(life_remaining));
+      continue;
+    }
+    if(course.second<best_time) {
+      best_time=course.second;
+      best_id=id;
+    }
+  }
+  if(isfinite(best_time)) {
+    ship.salvage_target=best_id;
+    return true;
+  }
+  return false;
 }
 
 void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance,bool avoid_targets) const {
@@ -2508,9 +2598,12 @@ void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
       float unit_mass = salvage.cargo_unit_mass/1000; // Convert kg->tons
       float old_mass = ship.cargo_mass;
       float original_max_mass = max(ship.cargo_mass,ship.max_cargo_mass);
-      ship.cargo_mass = min(original_max_mass,ship.cargo_mass+unit_mass*salvage.cargo_count);
+      int pickup = floorf((original_max_mass-old_mass)/unit_mass);
+      if(pickup>salvage.cargo_count)
+        pickup=salvage.cargo_count;
+      ship.cargo_mass = min(original_max_mass,old_mass+pickup*unit_mass);
       if(ship.cargo_mass != old_mass)
-        Godot::print("Ship cargo mass increased from "+str(old_mass)+" to "+str(ship.cargo_mass));
+        Godot::print(ship.name+" cargo mass increased from "+str(old_mass)+" to "+str(ship.cargo_mass)+" by picking up "+str(pickup)+" units of "+str(salvage.cargo_name));
     }
   }
 }

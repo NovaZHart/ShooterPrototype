@@ -1063,11 +1063,11 @@ func commodity_data_tables() -> ManyProducts:
 		# Mass includes protective and security packaging.
 		# Price: max(200,real-world $/carat * 5)
 		
-		[ 'diamonds', 1, 350000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'rubies', 3, 150000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'alexandrite gems', 5, 85000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'emeralds', 5, 70000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
-		[ 'sapphires', 5, 50000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'diamonds', 1, 100000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'rubies', 3, 60000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'alexandrite gems', 5, 35000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'emeralds', 5, 24000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
+		[ 'sapphires', 5, 20000, 300, 1, 'raw_materials/gems', 'luxury/terran' ],
 		
 		[ 'tourmaline_gems', 12, 25000, 300, 1, 'raw_materials/gems' ],
 		[ 'spinel_gems', 12, 17500, 300, 1, 'raw_materials/gems' ],

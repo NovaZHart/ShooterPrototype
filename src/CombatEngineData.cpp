@@ -542,6 +542,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   ai_flags(DECIDED_NOTHING),
   goal_action(goal_patrol),
   goal_target(-1),
+  salvage_target(-1),
   
   // These eight will be replaced by the PhysicsDirectBodyState every
   // timestep.  The GDScript code must make sure mass and drag are set
@@ -568,6 +569,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   shot_at_target_timer(),
   standoff_range_timer(),
   nearby_hostiles_timer(),
+  salvage_timer(),
   confusion_timer(),
   tick_at_last_shot(TICKS_LONG_AGO),
   ticks_since_targetting_change(TICKS_LONG_AGO),

@@ -8,7 +8,6 @@ export var armor_repair: int = 0
 export var structure_repair: int = 0
 export var spawn_probability: float = 0.0
 export var spawn_priority: int = 50
-export var spawn_duration: float = 90.0
 export var grab_radius: float = 0.25
 
 var product=null setget ,get_product
@@ -49,7 +48,7 @@ func make_stats(ship_node) -> Dictionary:
 	stats["structure_repair"] = structure_repair
 	stats["spawn_probability"] = spawn_probability
 	stats["spawn_priority"] = spawn_priority
-	stats["spawn_duration"] = spawn_duration
+	stats["spawn_duration"] = combat_engine.SALVAGE_TIME_LIMIT
 	stats["grab_radius"] = grab_radius
 	stats["path"] = ship_node.get_path_to(self)
 	return stats

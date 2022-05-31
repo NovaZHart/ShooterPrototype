@@ -50,6 +50,8 @@ const RAIDER_AI: int = 2
 const ARRIVING_MERCHANT_AI: int = 3
 const DEPARTING_MERCHANT_AI: int = 4
 
+const SALVAGE_TIME_LIMIT: float = 60.0
+
 const NUM_DAMAGE_TYPES: int = 9
 const DAMAGE_TYPELESS: int = 0    # Damage that ignores resist and passthru (do not use)
 const DAMAGE_LIGHT: int = 1       # Non-standing electromagnetic fields (light, photons)

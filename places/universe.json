@@ -3,7 +3,7 @@
       "initial_player_faction": [ "Faction", "initial_player_faction", [
           "Array"
       ], 0.0, {
-              "raiders": -1,
+              "raiders": 1,
               "police": 1,
               "civilians": 1,
               "flotsam": -1
@@ -11,7 +11,8 @@
       "flotsam": [ "Faction", "flotsam", [
           "Array"
       ], 0.0, {
-          "initial_player_faction": -1
+          "initial_player_faction": -1,
+          "raiders": -1
       }, {} ],
       "police": [ "Faction", "Police", [
             "Array",
@@ -193,7 +194,7 @@
           ], 3e5, {
               "police": -1,
               "civilians": -2,
-              "initial_player_faction": -0.5,
+              "initial_player_faction": 0,
               "flotsam": -1
           }, {} ],
       "civilians": [ "Faction", "Civilians", [
