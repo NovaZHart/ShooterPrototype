@@ -17,15 +17,15 @@ height = 10.0
 script = ExtResource( 2 )
 help_page = "hulls/condor"
 base_mass = 293.0
-base_shields = 6400.0
+base_shields = 11000.0
 base_armor = 4800.0
 base_structure = 2600.0
 heal_fuel = 40.0
 base_drag = 1.9
 base_turn_drag = 0.5
-base_max_cargo = 100
+base_max_cargo = 300
 armor_inverse_density = 250.0
-override_size = Vector3( 5.5, 0, 4 )
+override_size = Vector3( 6, 0, 4.2 )
 
 [node name="Body" type="MeshInstance" parent="."]
 mesh = ExtResource( 1 )
@@ -57,7 +57,7 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="ExternalEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.04333, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.752349, 0, 1.38103 )
 script = ExtResource( 3 )
 mount_size_x = 4
 mount_size_y = 6
@@ -105,8 +105,8 @@ mount_type_display = "gun"
 [node name="ForwardTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.23321, 0.0337296, 0 )
 script = ExtResource( 3 )
-mount_size_x = 2
-mount_size_y = 2
+mount_size_x = 3
+mount_size_y = 3
 mount_type = "external turret"
 mount_type_display = "turret"
 
@@ -129,28 +129,28 @@ mount_type_display = "turret"
 [node name="AftPortTurret" type="Position3D" parent="."]
 transform = Transform( -0.729578, 0, 0.683898, 0, 1, 0, -0.683898, 0, -0.729578, -1.46862, 0.0211411, -0.8701 )
 script = ExtResource( 3 )
-mount_size_x = 2
-mount_size_y = 2
+mount_size_x = 3
+mount_size_y = 3
 mount_type = "external turret"
 mount_type_display = "turret"
 
 [node name="AftStarboardTurret" type="Position3D" parent="."]
 transform = Transform( -0.729578, 0, -0.683898, 0, 1, 0, 0.683898, 0, -0.729578, -1.469, 0.021, 0.87 )
 script = ExtResource( 3 )
-mount_size_x = 2
-mount_size_y = 2
+mount_size_x = 3
+mount_size_y = 3
 mount_type = "external turret"
 mount_type_display = "turret"
 
-[node name="Engine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.93357, 0, -0.835636 )
+[node name="PortEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.934, 0, -0.874 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"
 
-[node name="AuxEngine" type="Position3D" parent="."]
+[node name="StarbboardEngine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.93384, 0, 0.873898 )
 script = ExtResource( 3 )
 mount_size_x = 2
@@ -158,11 +158,19 @@ mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"
 
-[node name="NeckEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.209265, 0, 0 )
+[node name="AuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.33747, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 8
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="NeckEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.622276, 0, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 10
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
@@ -174,4 +182,3 @@ product_count = 1
 armor_repair = 40
 structure_repair = 100
 spawn_probability = 0.99
-spawn_duration = 20.0

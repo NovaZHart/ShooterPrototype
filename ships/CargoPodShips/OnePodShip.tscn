@@ -21,6 +21,7 @@ heal_fuel = 20.0
 base_drag = 1.8
 base_turn_drag = 0.6
 base_max_cargo = 300
+override_size = Vector3( 2.8, 0, 3.6 )
 
 [node name="Hull" type="MeshInstance" parent="."]
 mesh = ExtResource( 2 )

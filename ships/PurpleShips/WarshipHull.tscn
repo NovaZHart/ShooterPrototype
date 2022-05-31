@@ -119,4 +119,3 @@ product_count = 1
 armor_repair = 40
 structure_repair = 100
 spawn_probability = 0.99
-spawn_duration = 20.0
