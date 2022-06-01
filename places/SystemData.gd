@@ -17,13 +17,13 @@ var faction_goals: Array
 var active_factions: Dictionary
 
 const default_active_factions: Dictionary = {
-	'police': { 'starting_money':1e6, 'income_per_second':1e5, 'fleet_type_weights':{
+	'police': { 'starting_money':2e6, 'income_per_second':1e5, 'fleet_type_weights':{
 		'large_police':1.0, 'small_police':1.0 }
 	},
-	'raiders': { 'starting_money':2e6, 'income_per_second':3e5, 'fleet_type_weights':{
+	'raiders': { 'starting_money':2e6, 'income_per_second':1.5e5, 'fleet_type_weights':{
 		'large_raid':1.0, 'small_raid':1.0 },
 	},
-	'civilians': { 'starting_money':1e6, 'income_per_second':1e6, 'fleet_type_weights':{
+	'civilians': { 'starting_money':1e6, 'income_per_second':2e5, 'fleet_type_weights':{
 		'small_merchant':1.0, 'large_merchant':1.0 }
 	},
 }

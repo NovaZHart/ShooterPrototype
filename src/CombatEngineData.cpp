@@ -20,6 +20,8 @@ goal_action_t FactionGoal::action_enum_for_string(String string_goal) {
     return goal_raid;
   else if(string_goal=="planet")
     return goal_planet;
+  else if(string_goal=="arriving_merchant")
+    return goal_avoid_and_land;
   else
     return goal_patrol;
 }
@@ -140,6 +142,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object
   thrust_fraction(weapon.thrust_fraction),
   faction(ship.faction),
   damage_type(weapon.damage_type),
+  max_structure(weapon.projectile_structure),
+  structure(max_structure),
   position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
   linear_velocity(),
   rotation(),
@@ -173,6 +177,48 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object
   linear_velocity = unit_from_angle(rotation.y)*initial_velocity + ship.linear_velocity;
 }
 
+// Create an anti-missile projectile
+Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation):
+  id(id),
+  source(ship.id),
+  target(-1),
+  mesh_id(weapon.mesh_id),
+  guided(false),
+  guidance_uses_velocity(false),
+  auto_retarget(false),
+  damage(weapon.damage),
+  impulse(false),
+  blast_radius(0),
+  detonation_range(0),
+  turn_rate(0),
+  always_drag(false),
+  mass(weapon.projectile_mass),
+  drag(weapon.projectile_drag),
+  thrust(0),
+  lifetime(weapon.firing_delay*4),
+  initial_velocity(weapon.initial_velocity),
+  max_speed(weapon.terminal_velocity),
+  heat_fraction(0),
+  energy_fraction(0),
+  thrust_fraction(0),
+  faction(ship.faction),
+  damage_type(DAMAGE_TYPELESS),
+  max_structure(weapon.projectile_structure),
+  structure(max_structure),
+  position(position),
+  linear_velocity(),
+  rotation(Vector3(0,rotation,0)),
+  angular_velocity(),
+  forces(),
+  age(0),
+  scale(scale),
+  alive(true),
+  direct_fire(true),
+  possible_hit(false),
+  integrate_forces(false),
+  salvage()
+{}
+
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
   id(id),
   source(ship.id),
@@ -198,6 +244,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   thrust_fraction(weapon.thrust_fraction),
   faction(ship.faction),
   damage_type(weapon.damage_type),
+  max_structure(weapon.projectile_structure),
+  structure(max_structure),
   position(position),
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
@@ -243,6 +291,8 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   thrust_fraction(0),
   faction(FLOTSAM_FACTION),
   damage_type(DAMAGE_TYPELESS),
+  max_structure(0),
+  structure(max_structure),
   position(position),
   linear_velocity(velocity),
   rotation(Vector3(0,rotation,0)),
@@ -259,6 +309,19 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
 
 Projectile::~Projectile() {}
 
+real_t Projectile::take_damage(real_t amount) {
+  if(not max_structure)
+    return amount;
+  double after = structure-amount;
+  if(after<=0) {
+    structure=0;
+    alive=false;
+    return -after;
+  }
+  structure=after;
+  return 0;
+}
+
 Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   damage(get<real_t>(dict,"damage")),
   impulse(get<real_t>(dict,"impulse")),
@@ -267,6 +330,7 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   projectile_drag(get<real_t>(dict,"projectile_drag")),
   projectile_thrust(get<real_t>(dict,"projectile_thrust")),
   projectile_lifetime(max(1.0f/60.0f,get<real_t>(dict,"projectile_lifetime"))),
+  projectile_structure(get<real_t>(dict,"projectile_structure",0)),
   projectile_turn_rate(get<real_t>(dict,"projectile_turn_rate")),
   firing_delay(get<real_t>(dict,"firing_delay")),
   turn_rate(get<real_t>(dict,"turn_rate")),
@@ -278,7 +342,8 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   thrust_fraction(get<real_t>(dict,"thrust_fraction")),
   firing_energy(get<real_t>(dict,"firing_energy")),
   firing_heat(get<real_t>(dict,"firing_heat")),
-  direct_fire(firing_delay<1e-5),
+  antimissile(get<bool>(dict,"antimissile")),
+  direct_fire(antimissile or firing_delay<1e-5),
   guided(not direct_fire and get<bool>(dict,"guided")),
   guidance_uses_velocity(get<bool>(dict,"guidance_uses_velocity")),
   auto_retarget(get<bool>(dict,"auto_retarget")),
@@ -293,7 +358,6 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   reload_heat(max(0.0f,get<real_t>(dict,"reload_heat"))),
   ammo_capacity(max(0,get<int>(dict,"ammo_capacity"))),
   ammo(get<int>(dict,"ammo",ammo_capacity)),
-  //  instance_id(get<RID>(dict,"instance_id")),
   position(get<Vector3>(dict,"position")),
   rotation(get<Vector3>(dict,"rotation")),
   harmony_angle(asin_clamp(position.z/projectile_range)),
@@ -337,12 +401,15 @@ Dictionary Weapon::make_status_dict() const {
   s["projectile_thrust"]=projectile_thrust;
   s["projectile_lifetime"]=projectile_lifetime;
   s["projectile_turn_rate"]=projectile_turn_rate;
+  s["projectile_structure"]=projectile_structure;
   s["firing_delay"]=firing_delay;
   s["blast_radius"]=blast_radius;
   s["detonation_range"]=detonation_range;
   s["threat"]=threat;
   s["direct_fire"]=direct_fire;
   s["guided"]=guided;
+  s["antimissile"]=guided;
+  s["auto_retarget"]=auto_retarget;
   s["guidance_uses_velocity"]=guidance_uses_velocity;
   s["position"]=position;
   s["rotation"]=rotation;
@@ -411,18 +478,22 @@ void Planet::update_goal_data(const std::unordered_map<object_id,Ship> &ships) {
 }
 
 WeaponRanges make_ranges(const vector<Weapon> &weapons) {
-  WeaponRanges r = {0,0,0,0,0};
+  WeaponRanges r = {0,0,0,0,0,0};
   
   for(auto &weapon : weapons) {
     real_t range = weapon.projectile_lifetime*weapon.terminal_velocity;
-    if(weapon.turn_rate>0)
-      r.turrets = max(r.turrets,range);
-    else
-      r.guns = max(r.guns,range);
-    if(weapon.guided)
-      r.guided = max(r.guided,range);
-    else
-      r.unguided = max(r.unguided,range);
+    if(weapon.antimissile)
+      r.antimissile = max(r.antimissile,range);
+    else {
+      if(weapon.turn_rate>0)
+        r.turrets = max(r.turrets,range);
+      else
+        r.guns = max(r.guns,range);
+      if(weapon.guided)
+        r.guided = max(r.guided,range);
+      else
+        r.unguided = max(r.unguided,range);
+    }
   }
   r.all = max(r.guns,r.turrets);
   

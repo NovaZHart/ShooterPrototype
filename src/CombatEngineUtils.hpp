@@ -20,7 +20,7 @@
 #include "DVector3.hpp"
 #include "CombatEngineData.hpp"
 
-#define ENABLE_PROFILING
+#undef ENABLE_PROFILING
 
 namespace godot {
 
@@ -207,6 +207,10 @@ namespace godot {
 
     inline real_t distsq(const Vector3 &a,const Vector3 &b) {
       return (a.x-b.x)*(a.x-b.x) + (a.z-b.z)*(a.z-b.z);
+    }
+
+    inline real_t distance2(const Vector3 &a,const Vector3 &b) {
+      return sqrtf(distsq(a,b));
     }
 
     inline real_t acos_clamp_dot(const Vector3 &a,const Vector3 &b) {

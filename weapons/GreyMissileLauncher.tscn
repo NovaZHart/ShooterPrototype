@@ -33,3 +33,4 @@ reload_delay = 0.75
 firing_heat = 0.075
 firing_energy = 0.75
 heat_fraction = 0.07
+projectile_structure = 12.0

@@ -1060,7 +1060,7 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     aim_turrets(ship,target_ptr);
     fire_primary_weapons(ship);
   }
-
+  fire_antimissile_turrets(ship);
   return thrust or rotation;
 }
 
@@ -1337,6 +1337,7 @@ void CombatEngine::raider_ai(Ship &ship) {
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
+    fire_antimissile_turrets(ship);
   } else {
     if(not have_target)
       ship.clear_target();
@@ -1380,6 +1381,7 @@ void CombatEngine::salvage_ai(Ship &ship) {
   ships_iter nowhere = ships.end();
   aim_turrets(ship,nowhere);
   auto_fire(ship,nowhere);
+  fire_antimissile_turrets(ship);
 }
 
 bool CombatEngine::should_salvage(Ship &ship) {
@@ -1635,6 +1637,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
+    fire_antimissile_turrets(ship);
   } else {
     if(not have_target)
       ship.clear_target();
@@ -1731,6 +1734,7 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
   ships_iter nowhere = ships.end();
   aim_turrets(ship,nowhere);
   auto_fire(ship,nowhere);
+  fire_antimissile_turrets(ship);
 }
 
 bool CombatEngine::patrol_ai(Ship &ship) {
@@ -1809,6 +1813,140 @@ bool CombatEngine::pull_back_to_standoff_range(Ship &ship,Ship &target,Vector3 &
   return false;
 }
 
+real_t CombatEngine::time_of_closest_approach(Vector3 dp,Vector3 dv) {
+  real_t dv2 = dot2(dv,dv);
+  if(dv2<1e-9)
+    return 0;
+  return max(dot2(dp,dv)/dv2,0.0f);
+}
+
+void CombatEngine::fire_antimissile_turrets(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+  if(not ship.range.antimissile) {
+    if(ship.id == player_ship_id)
+      Godot::print_warning(ship.name+": has no anti-missile systems",__FUNCTION__,__FILE__,__LINE__);
+    return; // Ship has no anti-missile systems.
+  }
+
+  faction_mask_t enemy_mask = enemy_masks[ship.faction];
+  if(!enemy_mask) {
+    if(ship.id == player_ship_id)
+      Godot::print_warning(ship.name+": has no enemy factions",__FUNCTION__,__FILE__,__LINE__);
+    return; // Ship has no enemy factions, so no possible projectile matches.
+  }
+  
+  real_t antimissile_range=0;  
+  for(auto &weapon : ship.weapons)
+    if(weapon.antimissile and weapon.damage>0 and weapon.can_fire())
+      antimissile_range = max(antimissile_range,weapon.projectile_range);
+
+  if(antimissile_range<=0) {
+    // if(ship.id == player_ship_id)
+    //   Godot::print_warning(ship.name+": anti-missile systems are not ready to fire",__FUNCTION__,__FILE__,__LINE__);
+    return; // No anti-missile weapons are ready to fire.
+  }
+  
+  real_t range = ship.radius + antimissile_range;
+  Vector2 center = Vector2(ship.position.x,ship.position.z);
+  objects_found.clear();
+  if(not missile_locations.overlapping_circle(center,range,objects_found)) {
+    // if(ship.id == player_ship_id)
+    //   Godot::print(ship.name+": no projectiles are in range "+range+" of anti-missile systems at "+str(center));
+    return; // No projectiles in range
+  }
+
+  // if(ship.id == player_ship_id)
+  //   Godot::print(ship.name+": found "+str(objects_found.size())+" potential targets for anti-missile systems.");
+
+  // Delete any projectiles that are not viable targets.
+  for(auto iter=objects_found.begin();iter!=objects_found.end();) {
+    object_id id = *iter;
+    projectiles_iter proj_it = projectiles.find(id);
+    if(proj_it==projectiles.end()) {
+      iter = objects_found.erase(iter);
+      Godot::print("Found projectile in missile_locations that is not in projectiles hash");
+      continue; // Projectile does not exist.
+    }
+    Projectile &proj = proj_it->second;
+    if(proj.direct_fire or not proj.max_structure or not proj.alive) {
+      iter = objects_found.erase(iter);
+      Godot::print("Found invalid projectile in missile_locations");
+      continue; // Projectile is not a valid target.
+    }
+    if( not ( (1<<proj.faction) & enemy_mask )) {
+      iter = objects_found.erase(iter);
+      continue; // Projectile is not an enemy.
+    }
+    if(proj.structure<=0) {
+      iter = objects_found.erase(iter);
+      Godot::print("Found dead projectile in missile_locations");
+      continue; // Projectile is already dead.
+    }
+    iter++;
+  }
+
+  //Godot::print(ship.name+": retained "+str(objects_found.size())+" potential targets for anti-missile systems.");
+  
+  // Have each weapon try to fire at a projectile.
+  for(auto &weapon : ship.weapons) {
+    size_t remaining = objects_found.size();
+    size_t within_range = 0;
+    if(weapon.antimissile and weapon.damage>0 and weapon.can_fire()) {
+      Vector3 start = ship.position + weapon.position.rotated(y_axis,ship.rotation.y);
+      projectiles_iter best = projectiles.end();
+      real_t best_score = -numeric_limits<real_t>::infinity();
+      for(auto &id : objects_found) {
+        projectiles_iter proj_it = projectiles.find(id);
+        Projectile &proj = proj_it->second;
+        real_t distance = distance2(proj.position,start);
+        if(distance<=weapon.projectile_range) {
+          within_range++;
+          real_t hits_to_kill = ceilf(proj.structure/weapon.damage);
+          real_t arrival_time = distance/proj.max_speed;// FIXME: This is not an ideal solution.
+          real_t hits_available = ceilf(arrival_time/weapon.reload_delay);
+          real_t score = proj.damage;
+          if(hits_available>hits_to_kill)
+            score/=2;
+          if(proj.target!=ship.id)
+            score/=2;
+          if(score>best_score) {
+            best = proj_it;
+            best_score = score;
+          }
+        } // end if distance<=weapon.projectile_range
+      } // End objects loop
+      
+      if(best!=projectiles.end()) {
+        // if(ship.id == player_ship_id)
+        //   Godot::print(ship.name+": firing at projectile "+str(best->first)+" with "+str(weapon.node_path)+" damage "+str(weapon.damage)+" to structure "+str(best->second.structure));
+        Vector3 dp = best->second.position-start;
+        real_t dp_angle = angle_from_unit(dp);
+        real_t rotation = dp_angle-ship.rotation.y;
+
+        weapon_rotations[weapon.node_path] = weapon.rotation.y = fmodf(rotation,2*PI);
+
+        Vector3 hit_position = best->second.position;
+        Vector3 point1 = start;
+        Vector3 projectile_position = (point1+hit_position)*0.5;
+        real_t projectile_length = (hit_position-point1).length();
+        real_t projectile_rotation = weapon.rotation.y+ship.rotation.y;
+        
+        create_antimissile_projectile(ship,weapon,best->second,projectile_position,projectile_length,projectile_rotation);
+        best->second.take_damage(weapon.damage);
+        if(not best->second.alive) {
+          // if(ship.id == player_ship_id)
+          //   Godot::print(ship.name+": projectile has died.");
+          objects_found.erase(best->first);
+        }
+        // else if(ship.id == player_ship_id)
+        //   Godot::print(ship.name+": projectile survived.");
+      }
+      // else
+      //   Godot::print(ship.name+": anti-missile system "+str(weapon.node_path)+" has no targets. Available targets: "+str(remaining)+" within range: "+str(within_range));
+    }
+  } // end weapons loop
+}
+
 void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
@@ -1829,6 +1967,9 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
     real_t travel = weapon.projectile_range;
     if(travel<1e-5)
       continue; // Avoid divide by zero for turrets with no range.
+
+    if(weapon.antimissile) // handled by another function
+      continue;
 
     if(!got_enemies) {
       const ship_hit_list_t &enemies = get_ships_within_turret_range(ship, 1.5);
@@ -2037,6 +2178,8 @@ void CombatEngine::fire_primary_weapons(Ship &ship) {
   // FIXME: UPDATE ONCE SECONDARY WEAPONS EXIST
   for(auto &weapon : ship.weapons) {
     if(not weapon.can_fire())
+      continue;
+    if(weapon.antimissile)
       continue;
     if(weapon.direct_fire)
       fire_direct_weapon(ship,weapon,true);
@@ -2426,13 +2569,13 @@ void CombatEngine::integrate_projectiles() {
   for(projectiles_iter it=projectiles.begin();it!=projectiles.end();) {
     Projectile &projectile = it->second;
 
-    if(projectile.direct_fire) {
-      // Direct fire projectiles do damage when launched and last only one frame.
+    // Direct fire projectiles do damage when launched and last only one frame.
+    // The exception is anti-missile projectiles which have to stay around for a few frames.
+    if(projectile.direct_fire and not projectile.max_structure) {
       it=projectiles.erase(it);
-      //deleteme.push_back(it->first);
       continue;
     }
-    
+
     if(projectile.guided)
       guide_projectile(projectile);
     else {
@@ -2453,16 +2596,21 @@ void CombatEngine::integrate_projectiles() {
         projectile.possible_hit=false;
     }
     
-    if(collided or projectile.age > projectile.lifetime) {
+    if(collided or projectile.age > projectile.lifetime or (projectile.max_structure and not projectile.structure)) {
       if(projectile.salvage)
         flotsam_locations.remove(projectile.id);
+      if(projectile.max_structure)
+        missile_locations.remove(projectile.id);
       it=projectiles.erase(it);
-    } else
+    } else {
+      if(projectile.max_structure) {
+        Rect2 there(Vector2(projectile.position.x,projectile.position.z)-Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
+                    Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
+        missile_locations.set_rect(projectile.id,there);
+      }
       it++;
-    //      deleteme.push_back(it->first);
+    }
   }
-  //  for(auto &it : deleteme)
-  //  projectiles.erase(it);
 }
 
 void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {
@@ -2493,6 +2641,18 @@ void CombatEngine::create_flotsam(Ship &ship) {
   }
 }
 
+void CombatEngine::create_antimissile_projectile(Ship &ship,Weapon &weapon,Projectile &target,Vector3 position,real_t rotation,real_t length) {
+  FAST_PROFILING_FUNCTION;
+  if(not weapon.can_fire())
+    return;
+  weapon.fire(ship,idelta);
+  // Do not update tick_at_last_shot since we're not shooting weapons at a ship target.
+  object_id next = idgen.next();
+  projectiles.emplace(next,Projectile(next,ship,weapon,target,position,rotation,length));
+  ship.heat += weapon.firing_heat;
+  ship.energy -= weapon.firing_energy;
+}
+
 void CombatEngine::create_projectile(Ship &ship,Weapon &weapon,object_id target) {
   FAST_PROFILING_FUNCTION;
   if(not weapon.can_fire())
@@ -2500,7 +2660,13 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon,object_id target)
   weapon.fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=idgen.next();
-  projectiles.emplace(new_id,Projectile(new_id,ship,weapon,target));
+  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,weapon,target));
+  if(weapon.projectile_structure and emplaced.first!=projectiles.end()) {
+    Projectile &proj = emplaced.first->second;
+    Rect2 there(Vector2(proj.position.x,proj.position.z)-Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
+                Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
+    missile_locations.set_rect(proj.id,there);
+  }
   ship.heat += weapon.firing_heat;
   ship.energy -= weapon.firing_energy;
 }
@@ -2804,6 +2970,11 @@ void CombatEngine::integrate_projectile_forces(Projectile &projectile,real_t thr
 
   projectile.age += delta;
 
+  // Projectiles with direct fire are always at their destination.
+  if(projectile.direct_fire)
+    return;
+
+  // Integrate forces if requested.
   if(projectile.integrate_forces) {
     real_t mass=max(projectile.mass,1e-5f);
     if(drag and (projectile.always_drag ||
@@ -2814,7 +2985,8 @@ void CombatEngine::integrate_projectile_forces(Projectile &projectile,real_t thr
     projectile.linear_velocity += projectile.forces*delta/mass;
     projectile.forces = Vector3(0,0,0);
   }
-  
+
+  // Advance state by time delta
   projectile.rotation.y += projectile.angular_velocity.y*delta;
   projectile.position += projectile.linear_velocity*delta;
 }

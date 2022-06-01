@@ -62,32 +62,16 @@ mount_size_y = 2
 mount_type = "external equipment"
 mount_type_display = "external equipment"
 
-[node name="PortForwardTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961312, 0.443365, -0.746793 )
+[node name="StarboardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.075, 0.619, 0.948 )
 script = ExtResource( 4 )
 mount_size_x = 2
 mount_size_y = 2
 mount_type = "external turret"
 mount_type_display = "turret"
 
-[node name="StarboardForwardTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.961, 0.443, 0.747 )
-script = ExtResource( 4 )
-mount_size_x = 2
-mount_size_y = 2
-mount_type = "external turret"
-mount_type_display = "turret"
-
-[node name="StarboardAftTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.761013, 0.619312, 0.961765 )
-script = ExtResource( 4 )
-mount_size_x = 2
-mount_size_y = 2
-mount_type = "external turret"
-mount_type_display = "turret"
-
-[node name="PortAftTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.761, 0.619, -0.962 )
+[node name="PortTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0747703, 0.619, -0.947993 )
 script = ExtResource( 4 )
 mount_size_x = 2
 mount_size_y = 2
@@ -95,7 +79,7 @@ mount_type = "external turret"
 mount_type_display = "turret"
 
 [node name="StarboardGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.632, -0.142, 0.562 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.61019, -0.142, 0.644464 )
 script = ExtResource( 4 )
 mount_size_x = 2
 mount_size_y = 3
@@ -103,7 +87,7 @@ mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.63172, -0.142, -0.562 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.61, -0.142, -0.644 )
 script = ExtResource( 4 )
 mount_size_x = 2
 mount_size_y = 3

@@ -1,0 +1,29 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
+[ext_resource path="res://weapons/meshes/AntiMissile2x2.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+damage = 10.0
+damage_type = 1
+weapon_mass = 8.0
+weapon_structure = 100.0
+initial_velocity = 360.0
+projectile_lifetime = 0.0
+projectile_turn_rate = 0.0
+firing_delay = 0.25
+turn_rate = 400.0
+antimissile = true
+projectile_mesh_path = "res://weapons/meshes/dark_purple_line.mesh"
+item_size_x = 2
+item_size_y = 2
+mount_type_all = "turret"
+mount_type_display = "turret"
+help_page = "weapons/basic_anti_missile_system"
+firing_heat = 0.1
+firing_energy = 0.1

@@ -317,13 +317,11 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 		var this_weapon_dps = weapon['damage']
 		var this_weapon_heat = weapon['firing_heat']
 		var this_weapon_energy = weapon['firing_energy']
-		assert(this_weapon_dps<1000)
 		if weapon['firing_delay']:
 			var delay = max(1.0/60.0,weapon['firing_delay'])
 			this_weapon_dps /= delay
 			this_weapon_heat /= delay
 			this_weapon_energy /= delay
-		assert(dps<5000)
 		dps += this_weapon_dps
 		weapon_heat += this_weapon_heat
 		weapon_energy += this_weapon_energy
@@ -371,7 +369,6 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 
 	bbcode += max_and_repair('Shields:',s['max_shields'],s['heal_shields'])
 	bbcode += '[cell] [/cell]'
-	assert(dps<5000)
 	bbcode += make_cell('Damage:',str(round(dps))+'/s')
 
 	bbcode += max_and_repair('Armor:',s['max_armor'],s['heal_armor'])

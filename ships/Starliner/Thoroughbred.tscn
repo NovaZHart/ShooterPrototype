@@ -61,11 +61,27 @@ mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"
 
-[node name="AftMainTurret" type="Position3D" parent="."]
+[node name="MainTurret" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.12185, 0.500973, 0 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="StarboardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.385057, 0.368317, 0.419445 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="PortTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.385, 0.368, -0.419 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
 mount_type = "external turret"
 mount_type_display = "turret"
 
@@ -86,7 +102,7 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="ExternalEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.166203, 0.331974, 1.14969 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.60664, 0.332, 0 )
 script = ExtResource( 3 )
 mount_size_x = 4
 mount_size_y = 4
@@ -100,28 +116,12 @@ mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
 
-[node name="MainGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.11222, -0.390644, 0 )
-script = ExtResource( 3 )
-mount_size_x = 2
-mount_size_y = 3
-mount_type = "external gun"
-mount_type_display = "gun"
-
 [node name="PortGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.253, -0.477, -0.717 )
 script = ExtResource( 3 )
 mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
-
-[node name="AuxTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.71867, 0.246006, 0 )
-script = ExtResource( 3 )
-mount_size_x = 2
-mount_size_y = 2
-mount_type = "external turret"
-mount_type_display = "turret"
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
 shape = SubResource( 1 )

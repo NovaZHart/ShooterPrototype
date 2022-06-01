@@ -11,6 +11,7 @@ export var projectile_drag: float = 1
 export var projectile_thrust: float = 0
 export var projectile_lifetime: float = 0.7
 export var projectile_turn_rate: float = 8
+export var projectile_structure: float = 0
 export var firing_delay: float = 0.1
 export var turn_rate: float = 0
 export var detonation_range: float = 0
@@ -19,6 +20,7 @@ export var threat: float = -1
 export var guided: bool = false
 export var guidance_uses_velocity: bool = false
 export var auto_retarget: bool = false
+export var antimissile: bool = false
 export var projectile_mesh_path: String
 export var item_size_x: int = 1
 export var item_size_y: int = 3
@@ -39,8 +41,8 @@ export var add_cooling: float = 0.0
 export var add_battery: float = 0.0
 export var add_power: float = 0.0
 
-export var firing_heat: float = 30.0
-export var firing_energy: float = 30.0
+export var firing_heat: float = 0.03
+export var firing_energy: float = 0.03
 
 export var heat_fraction: float = 0
 export var energy_fraction: float = 0
@@ -146,6 +148,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'projectile_thrust':projectile_thrust,
 			'projectile_lifetime':projectile_lifetime,
 			'projectile_turn_rate':projectile_turn_rate,
+			'projectile_structure':projectile_structure,
 			'firing_delay':firing_delay,
 			'turn_rate':turn_rate,
 			'detonation_range':detonation_range,
@@ -154,6 +157,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'guided':guided,
 			'guidance_uses_velocity':guidance_uses_velocity,
 			'auto_retarget':auto_retarget,
+			'antimissile':antimissile,
 			'projectile_mesh_path':projectile_mesh_path,
 			'item_size_x':item_size_x,
 			'item_size_y':item_size_y,

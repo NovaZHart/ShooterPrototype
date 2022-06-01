@@ -24,7 +24,7 @@
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
 
 #define NUM_DAMAGE_TYPES 10
-#define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (do not use) */
+#define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (only for anti-missile) */
 #define DAMAGE_LIGHT 1       /* Non-standing electromagnetic fields (ie. lasers) */
 #define DAMAGE_HE_PARTICLE 2 /* Non-zero mass particles with high energy (particle beam) */
 #define DAMAGE_PIERCING 3    /* Small macroscopic things moving quickly (ie. bullets) */
@@ -39,6 +39,8 @@
 #define MIN_RESIST -1.0
 #define MIN_PASSTHRU 0.0
 #define MAX_PASSTHRU 1.0
+
+#define PROJECTILE_POINT_WIDTH 0.001
 
 #define SALVAGE_TIME_LIMIT 60
 
@@ -358,6 +360,8 @@ namespace godot {
       //const int collision_mask;
       const faction_index_t faction;
       const int damage_type;
+      const double max_structure;
+      double structure;
       Vector3 position, linear_velocity, rotation, angular_velocity, forces;
       real_t age, scale;
       bool alive, direct_fire, possible_hit, integrate_forces;
@@ -365,6 +369,8 @@ namespace godot {
       inline real_t radius() const {
         return std::max(1e-5f,detonation_range);
       }
+      real_t take_damage(real_t amount);
+      Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,object_id alternative_target=-1);
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes);
@@ -374,11 +380,11 @@ namespace godot {
     
     struct Weapon {
       const real_t damage, impulse, initial_velocity;
-      const real_t projectile_mass, projectile_drag, projectile_thrust, projectile_lifetime;
+      const real_t projectile_mass, projectile_drag, projectile_thrust, projectile_lifetime, projectile_structure;
       const real_t projectile_turn_rate;
       const real_t firing_delay, turn_rate, blast_radius, detonation_range, threat;
       const real_t heat_fraction, energy_fraction, thrust_fraction, firing_energy, firing_heat;
-      const bool direct_fire, guided, guidance_uses_velocity, auto_retarget;
+      const bool antimissile, direct_fire, guided, guidance_uses_velocity, auto_retarget;
       const object_id mesh_id;
       const real_t terminal_velocity, projectile_range;
       const NodePath node_path;
@@ -433,7 +439,7 @@ namespace godot {
     typedef std::vector<std::pair<RID,object_id>>::const_iterator ship_hit_list_const_iter;
 
     struct WeaponRanges {
-      real_t guns, turrets, guided, unguided, all;
+      real_t guns, turrets, guided, unguided, antimissile, all;
     };
 
     // These enums MUST match globals/CombatEngine.gd.

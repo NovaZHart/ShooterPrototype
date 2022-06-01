@@ -1,3 +1,21 @@
+@PAGE weapons/basic_anti_missile_system
+@title Basic Anti-Missile System
+@price Price:
+@synopsis Destroys some missiles before they hit your ship.
+@content
+An anti-missile point-defense system automatically targets incoming missiles, destroying them before they hit your ship. Its firepower is limited, so don't fly into a storm of missiles expecting to survive.
+
+@bbcode_from_scene res://weapons/AntiMissile2x2.tscn
+
+@PAGE weapons/standard_anti_missile_system
+@title Standard Anti-Missile System
+@price Price:
+@synopsis Destroys up to six missiles per second.
+@content
+Most large vessels carry one or more of these. They can destroy most missiles in one or two hits, and the range is long enough to cover the entire area surrounding a large ship.
+
+@bbcode_from_scene res://weapons/AntiMissile3x3.tscn
+
 @PAGE weapons/magnetic_rail_gun
 @title Magnetic Rail Gun
 @price Price:

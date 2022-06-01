@@ -95,6 +95,7 @@ namespace godot {
 
     SpaceHash<object_id> flotsam_locations;
     SpaceHash<object_id> ship_locations;
+    SpaceHash<object_id> missile_locations;
     
     // For temporary use in some functions:
     std::unordered_set<object_id> update_request_id;
@@ -192,6 +193,8 @@ namespace godot {
     bool init_ship(CE::Ship &ship);
 
     bool pull_back_to_standoff_range(CE::Ship &ship,CE::Ship &target,Vector3 &aim);
+    real_t time_of_closest_approach(Vector3 dp,Vector3 dv);
+    void fire_antimissile_turrets(CE::Ship &ship);
     void activate_cargo_web(CE::Ship &ship);
     void deactivate_cargo_web(CE::Ship &ship);
     void use_cargo_web(CE::Ship &ship);
@@ -247,6 +250,7 @@ namespace godot {
     void integrate_projectiles();
     void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
     void create_flotsam(CE::Ship &ship);
+    void create_antimissile_projectile(CE::Ship &ship,CE::Weapon &weapon,CE::Projectile &target,Vector3 position,real_t rotation,real_t length);
     void create_projectile(CE::Ship &ship,CE::Weapon &weapon,object_id target=-1);
     CE::ships_iter ship_for_rid(const RID &rid);
     CE::ships_iter ship_for_rid(int rid_id);
