@@ -1,0 +1,14 @@
+[gd_scene load_steps=2 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+
+[node name="Spatial" type="Spatial"]
+script = ExtResource( 1 )
+help_page = "equipment/hidden"
+item_size_x = 0
+item_size_y = 0
+hidden = true
+mount_type_display = "hidden"
+mount_type_all = "hidden"
+add_armor_resist = PoolRealArray( 0, 0, -0.173, -0.173, -0.173, 0, 0, 0, -0.173, 0 )
+add_armor_passthru = PoolRealArray( 0, 0, 0, 0.2, 0, 0.173, 0.173, 0, 0, 0 )

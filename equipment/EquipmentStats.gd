@@ -1,4 +1,12 @@
-extends MeshInstance
+extends Spatial
+
+export var help_page: String = 'equipment'
+export var item_size_x: int = 1
+export var item_size_y: int = 3
+export var hidden: bool = false
+export var mount_type_display: String = 'equipment'
+export var mount_type_all: String = ''
+export var mount_type_any: String = ''
 
 export var add_mass: float = 0
 export var add_threat: float = 0
@@ -27,14 +35,8 @@ export var add_explosion_radius: float = 0
 export var add_explosion_impulse: float = 0
 export var add_explosion_delay: int = 0
 
-export var item_size_x: int = 1
-export var item_size_y: int = 3
 export var mount_size_x: int = 0 setget ,get_mount_size_x
 export var mount_size_y: int = 0 setget ,get_mount_size_y
-export var mount_type_display: String = 'equipment'
-export var mount_type_all: String = ''
-export var mount_type_any: String = ''
-export var help_page: String = 'equipment'
 
 export var add_shield_resist: PoolRealArray = PoolRealArray()
 export var add_shield_passthru: PoolRealArray = PoolRealArray()
@@ -127,7 +129,7 @@ func pack_stats() -> Dictionary:
 		cached_structure = add_structure if add_structure>=0 else add_mass*25
 		cached_stats = {
 			'name':name,
-
+			'hidden': hidden,
 			'add_mass':add_mass,
 			'add_threat':add_threat,
 			'add_max_cargo':add_max_cargo,

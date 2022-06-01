@@ -327,6 +327,8 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 		weapon_energy += this_weapon_energy
 	if with_contents:
 		for equip in ship_stats['equipment']:
+			if equip.hidden:
+				continue
 			contents += '\n[b]'+equip['name'].capitalize() + \
 				':[/b] {ref '+equip['help_page']+'}\n' + \
 				make_equipment_bbcode(equip)
