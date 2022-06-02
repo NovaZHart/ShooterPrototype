@@ -44,7 +44,7 @@ transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.5964
 shape = SubResource( 2 )
 
 [node name="PortLargeGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.394, -0.341, -0.698 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.28129, -0.341, -0.871569 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4
@@ -83,22 +83,16 @@ mount_size_y = 3
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
-[node name="PortSmallGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.61247, -0.12788, -0.340595 )
+[node name="SpinalMountGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.612, -0.61495, 0 )
 script = ExtResource( 3 )
+mount_size_x = 3
 mount_size_y = 4
-mount_type = "external gun"
-mount_type_display = "gun"
-
-[node name="StarboardSmallGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.612, -0.128, 0.341 )
-script = ExtResource( 3 )
-mount_size_y = 4
-mount_type = "external gun"
-mount_type_display = "gun"
+mount_type = "internal gun"
+mount_type_display = "spinal mount"
 
 [node name="StarboardLargeGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.39443, -0.341, 0.698308 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.281, -0.341, 0.872 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4

@@ -52,17 +52,19 @@ const DEPARTING_MERCHANT_AI: int = 4
 
 const SALVAGE_TIME_LIMIT: float = 60.0
 
-const NUM_DAMAGE_TYPES: int = 9
+const NUM_DAMAGE_TYPES: int = 12
 const DAMAGE_TYPELESS: int = 0    # Damage that ignores resist and passthru (do not use)
 const DAMAGE_LIGHT: int = 1       # Non-standing electromagnetic fields (light, photons)
-const DAMAGE_HE_PARTICLE: int = 2 # Non-zero mass particles with high energy (particle beam)
+const DAMAGE_HE_PARTICLE: int = 2 # Particles of matter with high kinetic energy (particle beam)
 const DAMAGE_PIERCING: int = 3    # Small macroscopic things moving quickly (bullets)
-const DAMAGE_IMPACT: int = 4      # Larger (nominally >1m) things moving quickly (asteroids)
+const DAMAGE_IMPACT: int = 4      # Larger non-pointy things moving quickly (asteroids)
 const DAMAGE_EM_FIELD: int = 5    # Standing or low-frequency EM fields (ie. EMP or big magnet)
 const DAMAGE_GRAVITY: int = 6     # Strong gravity or gravity waves
 const DAMAGE_ANTIMATTER: int = 7  # Antimatter particles
-const DAMAGE_HOT_MATTER: int = 8  # Explosion or beam of hot gas or plasma
+const DAMAGE_EXPLOSION: int = 8   # Ka-boom!
 const DAMAGE_PSIONIC: int = 9     # Power of mind over matter
+const DAMAGE_PLASMA: int = 10     # Super-heated matter
+const DAMAGE_CHARGE: int = 11     # Electric charge
 
 const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
 	"rules/damage/typeless", # Typeless damage should never show up

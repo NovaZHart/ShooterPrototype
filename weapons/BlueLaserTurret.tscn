@@ -7,6 +7,7 @@
 mesh = ExtResource( 1 )
 material/0 = null
 material/1 = null
+material/2 = null
 script = ExtResource( 2 )
 damage_type = 8
 weapon_mass = 8.0

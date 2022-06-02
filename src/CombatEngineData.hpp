@@ -23,17 +23,19 @@
 #define FLOTSAM_FACTION 1
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
 
-#define NUM_DAMAGE_TYPES 10
+#define NUM_DAMAGE_TYPES 12
 #define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (only for anti-missile) */
 #define DAMAGE_LIGHT 1       /* Non-standing electromagnetic fields (ie. lasers) */
-#define DAMAGE_HE_PARTICLE 2 /* Non-zero mass particles with high energy (particle beam) */
+#define DAMAGE_HE_PARTICLE 2 /* Particles of matter with high kinetic energy (particle beam) */
 #define DAMAGE_PIERCING 3    /* Small macroscopic things moving quickly (ie. bullets) */
-#define DAMAGE_IMPACT 4      /* Larger things with high momentum (ie. asteroids) */
+#define DAMAGE_IMPACT 4      /* Larger non-pointy things with high momentum (ie. asteroids) */
 #define DAMAGE_EM_FIELD 5    /* Standing or low-frequency EM fields (ie. EMP or big magnet) */
 #define DAMAGE_GRAVITY 6     /* Strong gravity or gravity waves */
 #define DAMAGE_ANTIMATTER 7  /* Antimatter particles */
-#define DAMAGE_HOT_MATTER 8  /* Explosion or beam of hot gas or plasma */
+#define DAMAGE_EXPLOSION 8   /* Ka-boom! */
 #define DAMAGE_PSIONIC 9     /* Mind over matter */
+#define DAMAGE_PLASMA 10     /* Super-heated matter */
+#define DAMAGE_CHARGE 11     /* Electric charge */
 
 #define MAX_RESIST 0.75
 #define MIN_RESIST -1.0

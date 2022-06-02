@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
+[ext_resource path="res://weapons/meshes/PlasmaTurret3x3.mesh" type="ArrayMesh" id=2]
+
+[node name="PlasmaTurret" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+script = ExtResource( 1 )
+help_page = "weapons/plasma-turret"
+mount_type_all = "turret"
+mount_type_display = "turret"
+item_size_x = 3
+damage = 20.0
+damage_type = 10
+weapon_mass = 18.0
+initial_velocity = 50.0
+projectile_lifetime = 0.45
+firing_delay = 0.125
+turn_rate = 2.0
+projectile_mesh_path = "res://weapons/meshes/PlasmaBall.mesh"
+firing_heat = 0.6
+firing_energy = 0.6
+heat_fraction = 0.013

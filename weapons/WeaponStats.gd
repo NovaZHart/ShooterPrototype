@@ -1,5 +1,12 @@
 extends MeshInstance
 
+export var help_page: String = 'weapons'
+export var mount_type_all: String = 'gun'
+export var mount_type_any: String = ''
+export var mount_type_display: String = 'gun'
+export var item_size_x: int = 1
+export var item_size_y: int = 3
+
 export var damage: float = 30
 export var damage_type: int = 0 # Make sure you override this!
 export var impulse: float = 0
@@ -22,14 +29,8 @@ export var guidance_uses_velocity: bool = false
 export var auto_retarget: bool = false
 export var antimissile: bool = false
 export var projectile_mesh_path: String
-export var item_size_x: int = 1
-export var item_size_y: int = 3
 export var mount_size_x: int = 0 setget ,get_mount_size_x
 export var mount_size_y: int = 0 setget ,get_mount_size_y
-export var mount_type_all: String = 'gun'
-export var mount_type_any: String = ''
-export var mount_type_display: String = 'gun'
-export var help_page: String = 'weapons'
 
 export var ammo_capacity: int = 0
 export var reload_delay: float = 0.0
