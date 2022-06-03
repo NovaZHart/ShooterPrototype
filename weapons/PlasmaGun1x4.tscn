@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
-[ext_resource path="res://weapons/meshes/PlasmaGun2x4.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://weapons/meshes/PlasmaGun1x4.mesh" type="ArrayMesh" id=2]
 
 [node name="PlasmaTurret" type="MeshInstance"]
 mesh = ExtResource( 2 )
@@ -9,13 +9,13 @@ material/0 = null
 material/1 = null
 script = ExtResource( 1 )
 help_page = "weapons/large-plasma-gun"
-item_size_x = 2
+item_size_y = 4
 damage = 30.0
 damage_type = 10
 weapon_mass = 18.0
-initial_velocity = 50.0
+initial_velocity = 60.0
 projectile_lifetime = 0.45
-firing_delay = 0.167
+firing_delay = 0.25
 turn_rate = 2.0
 projectile_mesh_path = "res://weapons/meshes/PlasmaBall.mesh"
 firing_heat = 0.6

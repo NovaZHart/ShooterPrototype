@@ -13,6 +13,7 @@ mount_type_all = "turret"
 mount_type_display = "turret"
 item_size_x = 4
 item_size_y = 4
+damage = 360.0
 damage_type = 1
 weapon_mass = 32.0
 weapon_structure = 640.0

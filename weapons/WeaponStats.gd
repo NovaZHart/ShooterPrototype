@@ -7,7 +7,7 @@ export var mount_type_display: String = 'gun'
 export var item_size_x: int = 1
 export var item_size_y: int = 3
 
-export var damage: float = 30
+export var damage: float = 0
 export var damage_type: int = 0 # Make sure you override this!
 export var impulse: float = 0
 export var weapon_mass: float = 0

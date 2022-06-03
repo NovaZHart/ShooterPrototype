@@ -314,6 +314,8 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 			contents += '\n[b]'+weapon['name'].capitalize() + \
 				':[/b] {ref '+weapon['help_page']+'}\n' + \
 				make_weapon_bbcode(weapon)
+		if weapon.antimissile:
+			continue
 		var this_weapon_dps = weapon['damage']
 		var this_weapon_heat = weapon['firing_heat']
 		var this_weapon_energy = weapon['firing_energy']

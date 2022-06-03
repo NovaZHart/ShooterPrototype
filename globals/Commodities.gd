@@ -940,6 +940,7 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://weapons/OrangeSpikeTurret.tscn', 40, 31000, 31000, 0, 'particle', 'weapon', 'terran' ],
 		[ 'res://weapons/PlasmaTurret.tscn', 40, 36000, 36000, 0, 'plasma', 'weapon', 'terran' ],
 		[ 'res://weapons/PlasmaGun2x3.tscn', 40, 31000, 31000, 0, 'plasma', 'weapon', 'terran' ],
+		[ 'res://weapons/PlasmaGun1x4.tscn', 40, 26000, 26000, 0, 'plasma', 'weapon', 'terran' ],
 		[ 'res://weapons/PurpleHomingGun.tscn', 40, 54000, 54000, 0, 'explosive', 'homing', 'weapon', 'terran' ],
 		[ 'res://weapons/MagneticRailGun.tscn', 40, 51000, 51000, 0, 'kinetic', 'weapon', 'terran', 'large' ],
 		[ 'res://weapons/GreyMissileLauncher.tscn', 40, 79000, 79000, 0, 'explosive', 'homing', 'weapon', 'terran', 'large' ],

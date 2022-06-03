@@ -12,6 +12,7 @@ help_page = "weapons/nuclear_pumped_laser"
 item_size_x = 2
 item_size_y = 4
 damage_type = 1
+damage = 240.0
 weapon_mass = 16.0
 weapon_structure = 320.0
 initial_velocity = 1380.0
