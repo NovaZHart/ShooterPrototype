@@ -84,9 +84,9 @@ Bioelectric generators were one of the earliest applications of bioengineering t
 @PAGE equipment/electromagnetic_dampener
 @title Electromagnetic Field Dampener
 @price Price:
-@synopsis Armor and structure resistances: EM Field, Psionic, Light
+@synopsis Armor and structure resistances: EM Field, Psionic, Charge
 @content
-This device manipulates the conductive properties of your ship's armor to deflect or redistribute incoming electromagnetic fields. This is most effective against large, low-frequency, EM waves (EM Field Damage) but will also dampen Psionic attacks, and reduce light-based damage.
+This device manipulates the conductive properties of your ship's armor to deflect or redistribute incoming electromagnetic fields. This is most effective against large, low-frequency, EM waves (EM Field Damage) but will also reduce damage from electrical charge and dampen Psionic attacks.
 
 Due to the internal functions of the dampener, it also acts as a battery, albeit less effective than purpose-built energy storage devices. This effect continues even after the armor is gone since the energy is stored in the dampener elements, not the armor itself.
 
@@ -113,9 +113,9 @@ The Entertainment Computer Core is eight tons of advanced biological and electro
 @PAGE equipment/environmental_control_system
 @title Environmental Control System
 @price Price:
-@synopsis Controls temperature, pressure, humidity, and provides defense against hot matter damage.
+@synopsis Controls temperature, pressure, humidity, and provides defense against explosive and plasma damage.
 @content
-This Environmental Control System efficiently processes air and pumps it through the ship ventilation system. It controls pressure, temperature, humidity, and the smell and taste of the air. In combat, it will adjust the heat to compensate for any damage from hot matter. It also provides a small amount of cooling.
+This Environmental Control System efficiently processes air and pumps it through the ship ventilation system. It controls pressure, temperature, humidity, and the smell and taste of the air. In combat, it will adjust the heat to compensate for any damage from hot matter such as explosions and plasma. It also provides a small amount of cooling.
 
 @bbcode_from_scene res://equipment/defense/EnvironmentalControlSystem.tscn
 
@@ -135,9 +135,9 @@ The mist will help against other damage types, to a lesser extent. Hot matter at
 @price Price:
 @synopsis Armor resistances: hot matter, high-energy particles, light.
 @content
-This relic of the lost art of City Ship construction is a piece of a City Ship's living hull. It has been genetically programmed to defend against attacks by eating its way across your armor, turning the armor into a heat-resistant paste. The process will destroy some of your armor, but much less than you would have lost without this upgrade. This is most effective against high-energy particles and hot matter such as plasma or explosions. It will reduce damage from light-based weapons to a lesser extent.
+This relic of the lost art of City Ship construction is a piece of a City Ship's living hull. It has been genetically programmed to defend against attacks by eating its way across your armor, turning the armor into a heat-resistant paste. The process will destroy some of your armor, but much less than you would have lost without this upgrade. This is most effective against plasma and explosions. It will reduce damage from high energy particles to a lesser extent.
 
-The living component of this armor upgrade needs a constant power supply to keep it alive, but it also cools the ship. This effect continues after the armor is gone.
+The living component of this armor upgrade needs a constant power supply to keep it alive, but it also cools the ship. This effect continues after the armor is gone because it originates from the biogel excreters, not the armor.
 
 @bbcode_from_scene res://equipment/defense/AblativeBiogelExcreter.tscn
 

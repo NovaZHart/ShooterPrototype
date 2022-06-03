@@ -1,3 +1,31 @@
+@PAGE weapons/plasma_turret
+@title Plasma Turret
+@price Price:
+@synopsis Throws super-heated matter at your enemies, overheating their ships.
+@content
+Beyond the Interstellar Alliance, there are many frontier planets protected by well-armed militias. When the planets lack basic needs, such as food or medicine, militias will raid civilian ships in Interstellar Alliance space. Civilians of the Interstellar Alliance answered this problem with plasma turrets and plasma missiles. A civilian ship can fly away while shooting plasma at the approaching militia ship. Eventually the militia ship will give up, and the civilian can escape.
+
+@bbcode_from_scene res://weapons/PlasmaTurret.tscn
+
+@PAGE weapons/rapid_fire_plasma_gun
+@title Rapid-Fire Plasma Gun
+@price Price:
+@synopsis Throws super-heated matter at your enemies, overheating their ships.
+@content
+This adaptation of the [ref=weapons/plasma_turret]Plasma Turret[/ref] has a lower firing rate, but a longer range. It is intended for hunting wildlife that may be vulnerable to heat.
+
+@bbcode_from_scene res://weapons/PlasmaTurret.tscn
+
+@PAGE weapons/long_range_plasma_gun
+@title Long-Range Plasma Gun
+@price Price:
+@synopsis Throws super-heated matter at your enemies, overheating their ships.
+@content
+This long-range plasma gun can overheat enemy ships from a long distance away. It sacrifices damage for extreme range and hotter, faster-moving, particles. If you're fighting something big, slow, powerful, and hot, this may win the battle.
+
+@bbcode_from_scene res://weapons/PlasmaGun1x4.tscn
+
+
 @PAGE weapons/basic_anti_missile_system
 @title Basic Anti-Missile System
 @price Price:

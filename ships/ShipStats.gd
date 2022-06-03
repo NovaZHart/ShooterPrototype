@@ -25,7 +25,7 @@ export var base_explosion_damage: float = -1
 export var base_explosion_radius: float = -1
 export var base_explosion_impulse: float = -1
 export var base_explosion_delay: int = 10
-export var explosion_type: int = 8 # combat_engine.DAMAGE_EXPLOSION
+export var explosion_type: int = 8 # combat_engine.DAMAGE_EXPLOSIVE
 export var base_max_cargo: int = 20
 export var armor_inverse_density: float = 200.0
 export var fuel_inverse_density: float = 10.0
@@ -56,12 +56,12 @@ export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
                                                                #  0    1    2    3    4    5    6    7    8    9    10   11
-                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  HOT  PSI  PLS  CRG
+                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  EPL  PSI  PLS  CRG
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0])
 export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0])
-export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0, 0.2, 0.0])
+export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0, 0.2, 0.1])
 export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.2, 0.0, 0.0])
-export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.4,-0.1, 0.0, 0.0,-0.1])
+export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.0,-0.1, 0.0, 0.0,-0.1])
 
 var ship_display_name: String = 'Unnamed'
 var item_slots: int = -1 setget set_item_slots,get_item_slots

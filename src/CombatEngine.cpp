@@ -997,9 +997,9 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
         target=-1;
       } else if(target_selection==PLAYER_TARGET_PLANET) {
         if(target_nearest) {
-          target=select_target<false>(target,select_nearest(ship.position),planets);
+          target=select_target(target,select_nearest(ship.position),planets,false);
         } else {
-          target=select_target<true>(target,[] (const planets_const_iter &_p) { return true; },planets);
+          target=select_target(target,[] (const planets_const_iter &_p) { return true; },planets,true);
         }
       } else if(target_selection==PLAYER_TARGET_ENEMY or target_selection==PLAYER_TARGET_FRIEND) {
         int mask=0x7fffffff;
@@ -1009,9 +1009,9 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
           mask=friend_masks[ship.faction];
         }
         if(target_nearest) {
-          target=select_target<false>(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships);
+          target=select_target(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships,false);
         } else {
-          target=select_target<true>(target,select_two(select_mask(mask),select_flying()),ships);
+          target=select_target(target,select_two(select_mask(mask),select_flying()),ships,true);
         }
       }
       
@@ -1260,7 +1260,7 @@ ships_iter CombatEngine::update_targetting(Ship &ship) {
   
   if(pick_new_target or target_ptr==ships.end()) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    object_id found=select_target<false>(-1,select_three(select_mask(enemy_masks[ship.faction]),select_flying(),select_nearest(ship.position,200.0f)),ships);
+    object_id found=select_target(-1,select_three(select_mask(enemy_masks[ship.faction]),select_flying(),select_nearest(ship.position,200.0f)),ships,false);
     target_ptr = ships.find(found);
   }
   return target_ptr;
@@ -1296,7 +1296,7 @@ void CombatEngine::raider_ai(Ship &ship) {
     return;
 
   if(ship.goal_target<0 and planets.size()>0) {
-    ship.goal_target = select_target<false>(-1,select_nearest(ship.position),planets);
+    ship.goal_target = select_target(-1,select_nearest(ship.position),planets,false);
     planets_iter p_planet = planets.find(ship.goal_target);
     if(p_planet!=planets.end())
       ship.destination = p_planet->second.position;
@@ -1528,7 +1528,7 @@ void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,g
     target = -1;
     target_weight = -1.0f;
 
-    object_id closest_planet = select_target<false>(-1,select_nearest(ship.position),planets);
+    object_id closest_planet = select_target(-1,select_nearest(ship.position),planets,false);
 
     const vector<TargetAdvice> &target_advice = faction_it->second.get_target_advice();
     unordered_map<object_id,float> weighted_planets;
@@ -1586,7 +1586,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
 
   if(ship.goal_target<0 and planets.size()>0) {
     // Initial goal target is the nearest planet.
-    ship.goal_target = select_target<false>(-1,select_nearest(ship.position),planets);
+    ship.goal_target = select_target(-1,select_nearest(ship.position),planets,false);
     planets_iter p_planet = planets.find(ship.goal_target);
     if(p_planet!=planets.end()) {
       ship.destination = p_planet->second.position;
@@ -1669,7 +1669,7 @@ void CombatEngine::landing_ai(Ship &ship) {
 
   planets_iter target = planets.find(ship.get_target());
   if(target == planets.end()) {
-    object_id target_id = select_target<false>(-1,select_nearest(ship.position),planets);
+    object_id target_id = select_target(-1,select_nearest(ship.position),planets,false);
     target = planets.find(target_id);
     ship.new_target(target_id);
   }
@@ -1685,52 +1685,112 @@ void CombatEngine::landing_ai(Ship &ship) {
   }
 }
 
+planets_iter CombatEngine::choose_arriving_merchant_goal_target(Ship &ship) {
+  // Get our target planet if there isn't one already.
+  planets_iter target_ptr = planets.find(ship.goal_target);
+  if(target_ptr==planets.end()) {
+    target_ptr = planets.find(ship.get_target());
+    if(target_ptr==planets.end()) {
+      ship.new_target(select_target<>(ship.get_target(),select_nearest(ship.position),planets,false));
+      ship.goal_target = ship.get_target();
+      Godot::print(ship.name+": arriving merchant is using the nearest planet "+str(ship.goal_target));
+    } else {
+      Godot::print(ship.name+": arriving merchant is using its target as its goal target");
+      ship.goal_target = ship.get_target();
+    }
+    target_ptr = planets.find(ship.goal_target);
+    Godot::print(ship.name+": arriving merchant chose "+target_ptr->second.name+" as its goal target");
+  } else if(ship.get_target()!=ship.goal_target)
+    ship.new_target(ship.goal_target);
+  return target_ptr;
+}
+
+planets_iter CombatEngine::choose_arriving_merchant_action(Ship &ship) {
+  ship.ticks_since_ai_change=0;
+  planets_iter target_ptr = choose_arriving_merchant_goal_target(ship);
+  if(target_ptr==planets.end()) {
+    // Nowhere to go and nothing to do. Time to leave.
+    ship.ai_flags = DECIDED_TO_RIFT;
+    return target_ptr;
+  }
+
+  // If we're close to the destination, land regardless of hostiles.
+  // If we're far away, rift. Otherwise, land or evade based on threat vector.
+  
+  ship.ai_flags = DECIDED_NOTHING;
+  Vector3 destination = target_ptr->second.position;
+  real_t dist2 = distance2(destination,ship.position)-target_ptr->second.radius;
+  real_t too_far = 30*ship.max_speed, too_close = 2*ship.max_speed;
+
+  // If we're far from the destination, rift away.
+  if(dist2>too_far) {
+    ship.ai_flags = DECIDED_TO_RIFT;
+    return target_ptr;
+  }
+
+  // If we're close to the destination, land regardless of risks.
+  if(dist2<too_close) {
+    ship.ai_flags = DECIDED_TO_LAND;
+    return target_ptr;
+  }
+  
+  // If we're dying, leave.
+  if(ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3) {
+    ship.ai_flags = DECIDED_TO_RIFT;
+    return target_ptr;
+  }
+  
+  // Evade or move to land, based on threat vector.
+  update_near_objects_using_ship_locations(ship);
+  make_threat_vector(ship,0.5);
+  real_t threat_threshold = ship.threat/10;
+  bool should_evade = (ship.threat_vector.length_squared() > threat_threshold*threat_threshold);
+  ship.ai_flags = should_evade ? DECIDED_TO_FLEE : DECIDED_TO_LAND;
+  return target_ptr;
+}
+
 void CombatEngine::arriving_merchant_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.immobile)
     return;
 
-  bool should_evade;
+  planets_iter target_ptr = planets.end();
+  bool found_target=false;
+ 
+  // If it is time to decide on our next action, ponder it.
+  if(ship.ai_flags-=DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
+    choose_arriving_merchant_action(ship);
 
-  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_change>ticks_per_second/4) {
-    bool low_health = ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3;
-    if(low_health)
-      ship.ai_flags = DECIDED_TO_RIFT;
-    else {
-      ship.ticks_since_ai_change=0;
-      update_near_objects_using_ship_locations(ship);
-      make_threat_vector(ship,0.5);
-      real_t threat_threshold = ship.threat/10;
-      should_evade = (ship.threat_vector.length_squared() > threat_threshold*threat_threshold);
-      if(should_evade) {
-        ship.ai_flags = DECIDED_TO_FLEE;
-      } else {
-        ship.ai_flags = DECIDED_TO_LAND;
-        //choose_target_by_goal(ship,false,goal_avoid_and_land,0.0f,30.0f,true);
-        planets_iter target_ptr = planets.find(ship.goal_target);
-        if(target_ptr==planets.end())
-          ship.new_target(select_target<false>(ship.get_target(),select_nearest(ship.position),planets));
-      else
-        ship.new_target(ship.goal_target);
-      }
-    }
+  if(ship.ai_flags==DECIDED_TO_RIFT) {
+    rift_ai(ship);
+    return;
   }
-
-  if(ship.ai_flags==DECIDED_TO_FLEE)
+  
+  if(ship.ai_flags==DECIDED_TO_FLEE) {
     evade(ship);
-  else {
-    planets_iter target_ptr = planets.find(ship.get_target());
-    if(target_ptr!=planets.end()) {
-      Planet &target = target_ptr->second;
-      if(move_to_intercept(ship, target.radius, 5.0, target.position, Vector3(0,0,0), true))
-        // Reached planet.
-        ship.fate = FATED_TO_LAND;
-    } else
-      // Nowhere to go
-      patrol_ai(ship);
+    opportunistic_firing(ship);
+    return;
   }
 
-  // Opportunistic firing:
+  if(target_ptr==planets.end())
+    target_ptr = CombatEngine::choose_arriving_merchant_goal_target(ship);
+  if(target_ptr!=planets.end()) {
+    Planet &target = target_ptr->second;
+    if(move_to_intercept(ship, target.radius, 5.0, target.position, Vector3(0,0,0), true))
+      // Reached planet.
+      ship.fate = FATED_TO_LAND;
+    opportunistic_firing(ship);
+    return;
+  }
+
+  Godot::print_warning(ship.name+": arriving merchant has nothing to do",__FUNCTION__,__FILE__,__LINE__);
+  // Nowhere to go and nothing to do, so we may as well leave.
+  rift_ai(ship);
+}
+
+
+void CombatEngine::opportunistic_firing(Ship &ship) {
+  // Take shots when you can, without turning the ship to aim.
   ships_iter nowhere = ships.end();
   aim_turrets(ship,nowhere);
   auto_fire(ship,nowhere);
@@ -1823,15 +1883,15 @@ real_t CombatEngine::time_of_closest_approach(Vector3 dp,Vector3 dv) {
 void CombatEngine::fire_antimissile_turrets(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(not ship.range.antimissile) {
-    if(ship.id == player_ship_id)
-      Godot::print_warning(ship.name+": has no anti-missile systems",__FUNCTION__,__FILE__,__LINE__);
+    // if(ship.id == player_ship_id)
+    //   Godot::print_warning(ship.name+": has no anti-missile systems",__FUNCTION__,__FILE__,__LINE__);
     return; // Ship has no anti-missile systems.
   }
 
   faction_mask_t enemy_mask = enemy_masks[ship.faction];
   if(!enemy_mask) {
-    if(ship.id == player_ship_id)
-      Godot::print_warning(ship.name+": has no enemy factions",__FUNCTION__,__FILE__,__LINE__);
+    // if(ship.id == player_ship_id)
+    //   Godot::print_warning(ship.name+": has no enemy factions",__FUNCTION__,__FILE__,__LINE__);
     return; // Ship has no enemy factions, so no possible projectile matches.
   }
   
@@ -1889,7 +1949,6 @@ void CombatEngine::fire_antimissile_turrets(Ship &ship) {
   
   // Have each weapon try to fire at a projectile.
   for(auto &weapon : ship.weapons) {
-    size_t remaining = objects_found.size();
     size_t within_range = 0;
     if(weapon.antimissile and weapon.damage>0 and weapon.can_fire()) {
       Vector3 start = ship.position + weapon.position.rotated(y_axis,ship.rotation.y);
@@ -2439,11 +2498,13 @@ void CombatEngine::move_to_attack(Ship &ship,Ship &target) {
   //     in_range=true;
   // }
 
+  real_t standoff_range=ship.get_standoff_range(target,idelta);
+  
   if(in_range) {
     pull_back_to_standoff_range(ship,target,aim);
     request_heading(ship,aim);
   } else {
-    move_to_intercept(ship,0,0,target.position,target.linear_velocity,false);
+    move_to_intercept(ship,standoff_range*0.7,0,target.position,target.linear_velocity,false);
     return;
   }
 

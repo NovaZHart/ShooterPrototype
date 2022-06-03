@@ -3,7 +3,7 @@ extends Node
 
 const DAMAGE_DISPLAY_NAMES: PoolStringArray = PoolStringArray([
 	"Typeless", "Light", "H.E.Particle", "Piercing", "Impact", "EM.Field", \
-	"Gravity", "Antimatter", "Hot Matter", 'Psionic'
+	"Gravity", "Antimatter", "Explosive", 'Psionic', 'Plasma', 'Charge'
 ])
 
 var price_callbacks: Array = []
@@ -198,7 +198,8 @@ func make_weapon_bbcode(stats: Dictionary) -> String:
 		var shots_per_second = 1.0/max(1.0/60,stats['firing_delay'])
 		
 		if dps:
-			bbcode += make_cell('damage per second',round(dps*10.0)/10.0)
+			bbcode += make_cell('damage per second',
+				str(round(dps*10.0)/10.0)+" ("+DAMAGE_DISPLAY_NAMES[stats['damage_type']]+")")
 		
 		if stats['firing_delay']:
 			bbcode += make_cell('shots per second',ceil(shots_per_second))

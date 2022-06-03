@@ -233,33 +233,38 @@ namespace godot {
       return name.hash();
     }
     
-    template<bool FIRST,class F,class C>
+    template<class F,class C>
     object_id select_target(const typename C::key_type &start,const F &selection_function,
-                                const C&container) {
+                            const C&container, bool first) {
       typename C::const_iterator start_p = container.find(start);
-      object_id selection = (start_p==container.end()) ? -1 : start_p->second.id;
-      typename C::const_iterator next = start_p;
+      typename C::const_iterator best = start_p;
+      typename C::const_iterator next = best;
+      
       if(start_p==container.end()) {
         next=container.begin();
       } else {
         next++;
       }
 
-      for(typename C::const_iterator it=next;it!=container.end();it++)
-        if(selection_function(it)) {
-          selection=it->first;
-          if(FIRST) {
-            return selection;
+      real_t best_score = 0;
+
+      typename C::const_iterator it=next;
+      do {
+        if(it==container.end())
+          it=container.begin();
+        else {
+          real_t result = selection_function(it);
+          if(result>best_score) {
+            best_score=result;
+            best=it;
+            if(first)
+              break;
           }
+          it++;
         }
-      for(typename C::const_iterator it=container.begin();it!=next;it++)
-        if(selection_function(it)) {
-          selection=it->first;
-          if(FIRST) {
-            return selection;
-          }
-        }
-      return selection;
+      } while(it!=next);
+
+      return best==container.end() ? -1 : best->first;
     }
 
     class select_mask {
@@ -268,7 +273,7 @@ namespace godot {
       select_mask(int mask): mask(mask) {}
       select_mask(const select_mask &other): mask(other.mask) {}
       template<class I>
-      inline bool operator () (I iter) const {
+      inline real_t operator () (I iter) const {
         return iter->second.collision_layer & mask;
       }
     };
@@ -276,26 +281,24 @@ namespace godot {
     class select_nearest {
       const Vector3 to;
       mutable real_t closest;
-      const real_t max_range;
+      const real_t max_range_squared;
     public:
       select_nearest(const Vector3 &to,real_t max_range = std::numeric_limits<real_t>::infinity()):
         to(to),
         closest(std::numeric_limits<real_t>::infinity()),
-        max_range(max_range)
+        max_range_squared(max_range*max_range)
       {}
       select_nearest(const select_nearest &other):
-        to(other.to), closest(other.closest), max_range(other.max_range)
+        to(other.to), closest(other.closest),
+        max_range_squared(other.max_range_squared)
       {}
       template<class I>
-      bool operator () (I iter) const {
-        real_t distance = to.distance_to(iter->second.position);
-        if(distance>max_range)
-          return false;
-        if(distance<closest) {
-          closest=distance;
-          return true;
-        }
-        return false;
+      real_t operator () (I iter) const {
+        real_t distance_squared = distsq(to,iter->second.position);
+        if(distance_squared>max_range_squared)
+          return 0;
+        else
+          return 1/(1+distance_squared);
       }
     };
 
@@ -311,8 +314,14 @@ namespace godot {
         one(other.one), two(other.two)
       {}
       template<class I>
-      bool operator () (I iter) const {
-        return one(iter) && two(iter);
+      real_t operator () (I iter) const {
+        real_t result_one=one(iter);
+        if(result_one) {
+          real_t result_two=two(iter);
+          if(result_two)
+            return result_one+result_two;
+        }
+        return 0;
       }
     };
     
@@ -329,21 +338,19 @@ namespace godot {
         one(other.one), two(other.two), three(other.three)
       {}
       template<class I>
-      bool operator () (I iter) const {
-        return one(iter) && two(iter) && three(iter);
+      real_t operator () (I iter) const {
+        real_t result_one=one(iter);
+        if(result_one) {
+          real_t result_two=two(iter);
+          if(result_two) {
+            real_t result_three=three(iter);
+            if(result_three)
+              return result_one+result_two+result_three;
+          }
+        }
+        return 0;
       }
     };
-    
-    // class select_nearest_mask {
-    //   select_nearest nearest;
-    //   select_mask mask;
-    // public:
-    //   select_nearest_mask(const Vector3 &to,int mask);
-    //   template<class I>
-    //   inline bool operator () (I iter) const {
-    //     return mask(iter) && nearest(iter);
-    //   }
-    // };
   }
 }
 

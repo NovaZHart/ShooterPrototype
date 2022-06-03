@@ -552,7 +552,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   explosion_radius(max(0.0f,get<real_t>(dict,"explosion_radius",0))),
   explosion_impulse(get<real_t>(dict,"explosion_impulse",0)),
   explosion_delay(max(0,get<int>(dict,"explosion_delay",0))),
-  explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_EXPLOSION),0,NUM_DAMAGE_TYPES-1)),
+  explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_EXPLOSIVE),0,NUM_DAMAGE_TYPES-1)),
 
   shield_resist(to_damage_array(dict["shield_resist"],MIN_RESIST,MAX_RESIST)),
   shield_passthru(to_damage_array(dict["shield_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
@@ -673,7 +673,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   at_first_tick(true),
 
   visual_scale(1.0),
-  target(),
+  target(-1),
   cached_standoff_range(0),
   location_rect(location_rect_for_aabb(aabb,radius/6))
 {
@@ -794,7 +794,6 @@ real_t Ship::get_standoff_range(const Ship &target,ticks_t idelta) {
 
   if(cached_standoff_range>1e-5 and not standoff_range_timer.alarmed()) {
     // Don't calculate until we need to.
-    standoff_range_timer.advance(idelta);
     return cached_standoff_range;
   }
   

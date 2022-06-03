@@ -24,7 +24,7 @@
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
 
 #define NUM_DAMAGE_TYPES 12
-#define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (only for anti-missile) */
+#define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (only for story scripts) */
 #define DAMAGE_LIGHT 1       /* Non-standing electromagnetic fields (ie. lasers) */
 #define DAMAGE_HE_PARTICLE 2 /* Particles of matter with high kinetic energy (particle beam) */
 #define DAMAGE_PIERCING 3    /* Small macroscopic things moving quickly (ie. bullets) */
@@ -32,13 +32,13 @@
 #define DAMAGE_EM_FIELD 5    /* Standing or low-frequency EM fields (ie. EMP or big magnet) */
 #define DAMAGE_GRAVITY 6     /* Strong gravity or gravity waves */
 #define DAMAGE_ANTIMATTER 7  /* Antimatter particles */
-#define DAMAGE_EXPLOSION 8   /* Ka-boom! */
+#define DAMAGE_EXPLOSIVE 8   /* Ka-boom! */
 #define DAMAGE_PSIONIC 9     /* Mind over matter */
 #define DAMAGE_PLASMA 10     /* Super-heated matter */
 #define DAMAGE_CHARGE 11     /* Electric charge */
 
 #define MAX_RESIST 0.75
-#define MIN_RESIST -1.0
+#define MIN_RESIST -2.0
 #define MIN_PASSTHRU 0.0
 #define MAX_PASSTHRU 1.0
 
@@ -663,6 +663,7 @@ namespace godot {
         nearby_hostiles_timer.advance(idelta);
         salvage_timer.advance(idelta);
         confusion_timer.advance(idelta);
+        standoff_range_timer.advance(idelta);
       }
 
     private:
@@ -682,7 +683,7 @@ namespace godot {
     public:
       select_flying() {};
       template<class I>
-      bool operator () (I iter) const {
+      real_t operator () (I iter) const {
         return not iter->second.fate;
       }
     };
