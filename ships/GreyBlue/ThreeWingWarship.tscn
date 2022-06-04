@@ -40,7 +40,7 @@ transform = Transform( -1.71067e-07, 0.94, -4.37114e-08, 0, -4.10887e-08, -1, -1
 shape = SubResource( 2 )
 
 [node name="SmallEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.100758, 0, -0.494997 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.186223, 0, -0.494997 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 3
@@ -56,24 +56,32 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="StarboardGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517656, -0.736991, 0.974354 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.702743, -0.953798, 0.891 )
 script = ExtResource( 3 )
 mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.517542, -0.736943, -0.974 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.702285, -0.953741, -0.890809 )
 script = ExtResource( 3 )
 mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="Turret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.497014, -0.278597, -0.773574 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573084, -0.278597, -0.773574 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="AntiMissileTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.668631, -0.368045, 1.09699 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
 mount_type = "external turret"
 mount_type_display = "turret"
 

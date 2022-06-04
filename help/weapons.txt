@@ -23,7 +23,7 @@ Beyond the Interstellar Alliance, there are many frontier planets protected by w
 @content
 This adaptation of the [ref=weapons/plasma_turret]Plasma Turret[/ref] has a lower firing rate, but a longer range. It is intended for hunting wildlife that may be vulnerable to heat.
 
-@bbcode_from_scene res://weapons/PlasmaTurret.tscn
+@bbcode_from_scene res://weapons/PlasmaGun2x3.tscn
 
 @PAGE weapons/long_range_plasma_gun
 @title Long-Range Plasma Gun
@@ -107,32 +107,68 @@ This smaller cousin of the [ref=weapons/anthropomancer]Anthropomancer Missile[/r
 
 @bbcode_from_scene res://weapons/GreenMissileLauncher.tscn
 
-@PAGE weapons/nuclear_pumped_laser
-@title Nuclear-Pumped Laser
+@PAGE weapons/nuclear_pumped_laser_small
+@title Small Nuclear-Pumped Laser
 @price Price:
 @synopsis Military-grade X-ray laser
 @content
-This weaponized laser uses fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. Because it contains its own power source, the power draw of this weapon is minimal, but it generates immense amounts of heat.
+Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaser.tscn
+@bbcode_from_scene res://weapons/NuclearPumpedLaser1x4.tscn
+
+@PAGE weapons/nuclear_pumped_laser_medium
+@title Large Nuclear-Pumped Laser
+@price Price:
+@synopsis Military-grade X-ray laser
+@content
+Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaser2x4.tscn
+
+@PAGE weapons/nuclear_pumped_laser_large
+@title Large Nuclear-Pumped Laser
+@price Price:
+@synopsis Military-grade X-ray laser
+@content
+Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaser3x4.tscn
 
 @PAGE weapons/nuclear_pumped_laser_turret
 @title Nuclear-Pumped Laser Turret
 @price Price:
 @synopsis Military-grade X-ray laser turret
 @content
-This weaponized laser uses fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. Because it contains its own power source, the power draw of this weapon is minimal, but it generates immense amounts of heat.
+Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret.tscn
+@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret4x4.tscn
+
+@PAGE weapons/nuclear_pumped_laser_turret_small
+@title Nuclear-Pumped Laser Turret
+@price Price:
+@synopsis Military-grade X-ray laser turret
+@content
+Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
+
+@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret3x3.tscn
 
 @PAGE weapons/he_cyclotron
 @title High-Energy Cyclotron Turret
 @price Price:
 @synopsis Military-grade, high-energy, cyclotron, in a turret mount.
 @content
-This cyclotron uses advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. It fires slower than civilian-grade [ref=weapons/linear_accelerator_turret]Linear Accelerator Turret[/ref], but does far more damage per shot.
+Weaponized cyclotrons use advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. This does a large amount of damage, and also pushes the target away slowly.
 
-@bbcode_from_scene res://weapons/BlueLoopTurret.tscn
+@bbcode_from_scene res://weapons/CyclotronTurret4x4.tscn
+
+@PAGE weapons/he_cyclotron_small
+@title High-Energy Cyclotron Turret
+@price Price:
+@synopsis Military-grade, high-energy, cyclotron, in a turret mount.
+@content
+Weaponized cyclotrons use advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. This does a large amount of damage, and also pushes the target away slowly.
+
+@bbcode_from_scene res://weapons/CyclotronTurret3x3.tscn
 
 @PAGE weapons/he_linear
 @title High-Energy Linear Accelerator
@@ -141,7 +177,7 @@ This cyclotron uses advanced, military-grade, superconducting, magnets to accele
 @content
 This linear accelerator uses fine-scale anti-gravity fields and powerful magnetic fields to accelerate particles to extreme velocity over a short distance. It does far more damage than civilian-grade weaponry, but with much higher heat and power.
 
-@bbcode_from_scene res://weapons/BigParticleGun.tscn
+@bbcode_from_scene res://weapons/LinearAccelerator2x4.tscn
 
 @PAGE weapons/df_laser
 @title Deuterium-Fluoride Laser
@@ -150,7 +186,7 @@ This linear accelerator uses fine-scale anti-gravity fields and powerful magneti
 @content
 Although this technology is primitive by modern standards, it still sees widespread use because it is cheap to build and maintain.
 
-@bbcode_from_scene res://weapons/BlueLaserGun.tscn
+@bbcode_from_scene res://weapons/DuteriumFluorideLaser.tscn
 
 @PAGE weapons/df_laser_turret
 @title Deuterium-Fluoride Laser Turret
@@ -159,7 +195,7 @@ Although this technology is primitive by modern standards, it still sees widespr
 @content
 This turret is one of the most common anti-fighter weapons due to its low power requirements and low cost of ownership.
 
-@bbcode_from_scene res://weapons/BlueLaserTurret.tscn
+@bbcode_from_scene res://weapons/DuteriumFluorideLaserTurret.tscn
 
 @PAGE weapons/gamma_ray_laser
 @title Gamma Ray Laser
@@ -168,7 +204,7 @@ This turret is one of the most common anti-fighter weapons due to its low power 
 @content
 Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
 
-@bbcode_from_scene res://weapons/GreenLaserGun.tscn
+@bbcode_from_scene res://weapons/GammaRayLaser.tscn
 
 @PAGE weapons/gamma_ray_laser_turret
 @title Gamma Ray Laser Turret
@@ -177,7 +213,7 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 @content
 Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
 
-@bbcode_from_scene res://weapons/GreenLaserTurret.tscn
+@bbcode_from_scene res://weapons/GammaRayLaserTurret.tscn
 
 @PAGE weapons/shockwave_torpedo
 @title Shockwave Torpedo
