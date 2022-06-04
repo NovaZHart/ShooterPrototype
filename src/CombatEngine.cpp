@@ -1369,8 +1369,16 @@ void CombatEngine::salvage_ai(Ship &ship) {
   } else {
     Vector3 ship_position=get_position(ship);
     Vector3 proj_position=get_position(it->second);
-    move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
-    if((proj_position-ship_position).length_squared()<ship.cargo_web_radius*ship.cargo_web_radius)
+    Vector3 dp = proj_position-ship_position;
+    pair<DVector3,double> course=plot_collision_course(dp,it->second.linear_velocity,ship.max_speed);
+    Vector3 desired_heading=course.first.normalized(), heading=ship.heading;
+    
+    //move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
+    request_heading(ship,desired_heading);
+    real_t dot = dot2(ship.heading,desired_heading);
+    request_thrust(ship,dot>0.95,dot<-0.95);
+    
+    if(dp.length_squared()<ship.cargo_web_radius*ship.cargo_web_radius)
       activate_cargo_web(ship);
     else if(ship.cargo_web_active)
       deactivate_cargo_web(ship);
@@ -2092,10 +2100,7 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       }
     }
 
-    if(isfinite(best_score)) {
-      weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
-      weapon_rotations[weapon.node_path] = weapon.rotation.y;
-    } else {
+    if(!isfinite(best_score)) {
       // This turret has nothing to target.
       // if(opportunistic) {
       //   //FIXME: INSERT CODE HERE
@@ -2108,6 +2113,9 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
       turret_angular_velocity = clamp(to_center/delta, -weapon.turn_rate, weapon.turn_rate);
       // }
     }
+
+    weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
+    weapon_rotations[weapon.node_path] = weapon.rotation.y;
   }
 }
 

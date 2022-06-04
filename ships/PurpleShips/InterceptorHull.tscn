@@ -41,7 +41,7 @@ mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="MiddleGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.600573, -0.143, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.600542, -0.284977, 0.00121784 )
 script = ExtResource( 2 )
 mount_size_y = 3
 mount_type = "external gun"

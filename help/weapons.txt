@@ -1,3 +1,12 @@
+@PAGE weapons/plasma_ball_launcher
+@title Plasma Ball Launcher
+@price Price:
+@synopsis Super-heated matter that homes in on your enemies.
+@content
+Plasma is too hot to contain in any space for more than a few seconds, so this device encases a ball of plasma in an energy shield, connected to some thrusters. The projectiles are unwieldy, but do considerable damage when they hit a target. The heat-to-damage ratio is better than the other Terran plasma weapons, making this a deadly threat to ships that run hot.
+
+@bbcode_from_scene res://weapons/PlasmaBallLauncher.tscn
+
 @PAGE weapons/plasma_turret
 @title Plasma Turret
 @price Price:

@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://weapons/meshes/BigParticleGun.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/meshes/ParticleGun3x4.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
@@ -9,17 +9,19 @@ material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 2 )
-help_page = "weapons/he_linear_large"
-item_size_x = 2
+help_page = "weapons/he_linear_spinal"
+mount_type_all = "internal gun"
+mount_type_display = "spinal mount gun"
+item_size_x = 3
 item_size_y = 4
 damage = 60.0
 damage_type = 2
 impulse = 25.0
 weapon_mass = 16.0
 weapon_structure = 320.0
-initial_velocity = 55.0
-projectile_lifetime = 0.45
-firing_delay = 0.167
+initial_velocity = 60.0
+projectile_lifetime = 0.5
+firing_delay = 0.111
 projectile_mesh_path = "res://weapons/meshes/BlueBlob.mesh"
-firing_heat = 0.195
-firing_energy = 1.95
+firing_heat = 0.286
+firing_energy = 2.86

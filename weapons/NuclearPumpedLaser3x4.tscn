@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://weapons/meshes/NuclearPumpedLaserTurret.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/meshes/NuclearPumpedLaser3x4.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
@@ -9,21 +9,20 @@ material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 2 )
-help_page = "weapons/nuclear_pumped_laser_turret"
-mount_type_all = "turret"
-mount_type_display = "turret"
-item_size_x = 4
+help_page = "weapons/nuclear_pumped_laser_spinal"
+mount_type_all = "internal gun"
+mount_type_display = "spinal mount gun"
+item_size_x = 3
 item_size_y = 4
-damage = 585.0
+damage = 540.0
 damage_type = 1
-weapon_mass = 32.0
-weapon_structure = 640.0
-initial_velocity = 1380.0
+weapon_mass = 16.0
+weapon_structure = 320.0
+initial_velocity = 1440.0
 projectile_lifetime = 0.0
 firing_delay = 0.0
-turn_rate = 2.0
 projectile_mesh_path = "res://weapons/meshes/purple_line.mesh"
-add_cooling = -5.0
-add_power = 10.0
-firing_heat = 4.3
-firing_energy = 4.3
+add_cooling = -4.0
+add_power = 8.0
+firing_heat = 4.0
+firing_energy = 4.0
