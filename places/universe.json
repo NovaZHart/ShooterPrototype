@@ -84,27 +84,27 @@
             },
             {
               "frequency": 30,
-              "fleet": "ankylorhiza_retribution_lasers_escorted2",
+              "fleet": "ankylorhiza_missiles_lasers_escorted",
+              "type": "large_police"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_missiles_particles_escorted",
               "type": "large_police"
             },
             {
               "frequency": 20,
-              "fleet": "ankylorhiza_duo",
+              "fleet": "ankylorhiza_missile_duo",
               "type": "large_police"
             },
             {
               "frequency": 30,
-              "fleet": "ankylorhiza_driver_particles_escorted2",
+              "fleet": "ankylorhiza_particles_escorted",
               "type": "large_police"
             },
             {
               "frequency": 30,
-              "fleet": "ankylorhiza_retribution_lasers_escorted",
-              "type": "large_police"
-            },
-            {
-              "frequency": 30,
-              "fleet": "ankylorhiza_driver_particles_escorted",
+              "fleet": "ankylorhiza_lasers_escorted",
               "type": "large_police"
             }
           ], 3e5, {
@@ -215,8 +215,13 @@
               "type": "small_merchant"
             },
             {
-              "frequency": 200,
-              "fleet": "one_pod_laser_missiles_solo",
+              "frequency": 140,
+              "fleet": "one_pod_plasma_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 140,
+              "fleet": "one_pod_missiles_solo",
               "type": "small_merchant"
             },
             {
@@ -3077,14 +3082,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/PlasmaBallLauncher.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/PlasmaBallLauncher.tscn"
                   ]
               ],
               "PortTurret": [
@@ -3213,14 +3218,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/BlueRapidMissileLauncher.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/BlueRapidMissileLauncher.tscn"
                   ]
               ],
               "PortTurret": [
@@ -4015,7 +4020,7 @@
         
         "ankylorhiza_missiles_particles": [
             "ShipDesign",
-            "Missile-Particle Ankylorhiza",
+            "Ankylorhiza (Missiles+Particles)",
             [
                 "Resource",
                 "res://ships/GreyBlue/CommandShip.tscn"
@@ -4234,7 +4239,7 @@
 
           "ankylorhiza_lasers":[
               "ShipDesign",
-              "Driver-Particle Ankylorhiza",
+              "Ankylorhiza (Lasers)",
               [
                   "Resource",
                   "res://ships/GreyBlue/CommandShip.tscn"
@@ -4462,7 +4467,7 @@
           
           "ankylorhiza_particles":[
               "ShipDesign",
-              "Driver-Particle Ankylorhiza",
+              "Ankylorhiza (Particles)",
               [
                   "Resource",
                   "res://ships/GreyBlue/CommandShip.tscn"
@@ -4681,7 +4686,7 @@
           
       "ankylorhiza_missiles_lasers": [
           "ShipDesign",
-          "Missile-Laser Ankylorhiza",
+          "Ankylorhiza (Missiles+Lasers)",
           [
               "Resource",
               "res://ships/GreyBlue/CommandShip.tscn"
@@ -8325,46 +8330,46 @@
             }
         ],
         
-      "ankylorhiza_duo": [
+      "ankylorhiza_missile_duo": [
         "Fleet",
-        "Driver+Particle and Missile-Laser Ankylorhiza",
+        "Missile-Particle and Missile-Laser Ankylorhiza",
         {
-            "ankylorhiza_driver_particles": 1,
-            "ankylorhiza_retribution_lasers": 1
+            "ankylorhiza_missiles_particles": 1,
+            "ankylorhiza_missiles_lasers": 1
         }
       ],
-      "ankylorhiza_driver_particles_escorted": [
+      "ankylorhiza_missiles_particles_escorted": [
         "Fleet",
-        "Driver+Particle Ankylorhiza with Escorts",
+        "Missile+Particle Ankylorhiza with Escorts",
         {
-          "ankylorhiza_driver_particles": 1,
+          "ankylorhiza_missiles_particles": 1,
           "bufeo_particles": 1,
-          "popoto_lasers": 2
+          "popoto_particles": 3
         }
       ],
-      "ankylorhiza_driver_particles_escorted2": [
-        "Fleet",
-        "Driver+Particle Ankylorhiza with Escorts",
-        {
-          "ankylorhiza_driver_particles": 1,
-          "popoto_lasers": 4
-        }
-      ],
-      "ankylorhiza_retribution_lasers_escorted": [
+      "ankylorhiza_missiles_lasers_escorted": [
         "Fleet",
         "Missile+Laser Ankylorhiza with Escorts",
         {
-          "ankylorhiza_retribution_lasers": 1,
+          "ankylorhiza_missiles_lasers": 1,
           "bufeo_lasers": 1,
-          "popoto_lasers": 2
+          "popoto_lasers": 3
         }
       ],
-      "ankylorhiza_retribution_lasers_escorted": [
+      "ankylorhiza_particles_escorted": [
+        "Fleet",
+        "Missile+Particle Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_particles": 1,
+          "bufeo_particles": 3
+        }
+      ],
+      "ankylorhiza_lasers_escorted": [
         "Fleet",
         "Missile+Laser Ankylorhiza with Escorts",
         {
-          "ankylorhiza_retributiond_lasers": 1,
-          "popoto_particles": 4
+          "ankylorhiza_lasers": 1,
+          "bufeo_lasers": 3
         }
       ],
       "orca_four_types": [
@@ -8372,7 +8377,7 @@
         "3xOrcas (M+P, 2xP)",
         {
           "orca_missiles_particles": 1,
-            "orca_particles": 1,
+          "orca_particles": 1,
           "orca_missiles_lasers": 1,
           "orca_lasers": 1
         }
