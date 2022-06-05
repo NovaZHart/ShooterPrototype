@@ -52,7 +52,7 @@ const DEPARTING_MERCHANT_AI: int = 4
 
 const SALVAGE_TIME_LIMIT: float = 60.0
 
-const NUM_DAMAGE_TYPES: int = 12
+const NUM_DAMAGE_TYPES: int = 13
 const DAMAGE_TYPELESS: int = 0    # Damage that ignores resist and passthru (do not use)
 const DAMAGE_LIGHT: int = 1       # Non-standing electromagnetic fields (light, photons)
 const DAMAGE_HE_PARTICLE: int = 2 # Particles of matter with high kinetic energy (particle beam)
@@ -65,6 +65,7 @@ const DAMAGE_EXPLOSIVE: int = 8   # Ka-boom!
 const DAMAGE_PSIONIC: int = 9     # Power of mind over matter
 const DAMAGE_PLASMA: int = 10     # Super-heated matter
 const DAMAGE_CHARGE: int = 11     # Electric charge
+const DAMAGE_SPACETIME: int = 12  # Tear open rifts in the fabric of spacetime
 
 const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
 	"rules/damage/typeless", # Typeless damage should never show up

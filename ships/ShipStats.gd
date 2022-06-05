@@ -55,13 +55,13 @@ export var ai_type: int = 0 setget set_ai_type
 export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
-                                                               #  0    1    2    3    4    5    6    7    8    9    10   11
-                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  EPL  PSI  PLS  CRG
-export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0])
-export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0])
-export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0, 0.2, 0.1])
-export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.2, 0.0, 0.0])
-export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.0,-0.1, 0.0, 0.0,-0.1])
+                                                               #  0    1    2    3    4    5    6    7    8    9    10   11   12
+                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  EPL  PSI  PLS  CRG  SPT
+export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
+export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
+export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0, 0.2, 0.1, 0.0])
+export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0])
+export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.0,-0.1, 0.0, 0.0,-0.1,-0.1])
 
 var ship_display_name: String = 'Unnamed'
 var item_slots: int = -1 setget set_item_slots,get_item_slots

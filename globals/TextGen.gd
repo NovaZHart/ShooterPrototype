@@ -3,7 +3,8 @@ extends Node
 
 const DAMAGE_DISPLAY_NAMES: PoolStringArray = PoolStringArray([
 	"Typeless", "Light", "H.E.Particle", "Piercing", "Impact", "EM.Field", \
-	"Gravity", "Antimatter", "Explosive", 'Psionic', 'Plasma', 'Charge'
+	"Gravity", "Antimatter", "Explosive", 'Psionic', 'Plasma', 'Charge', \
+	"Spacetime"
 ])
 
 var price_callbacks: Array = []

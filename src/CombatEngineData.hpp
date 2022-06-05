@@ -23,7 +23,7 @@
 #define FLOTSAM_FACTION 1
 #define DEFAULT_AFFINITY 0.0f /* For factions pairs with no affinity */
 
-#define NUM_DAMAGE_TYPES 12
+#define NUM_DAMAGE_TYPES 13
 #define DAMAGE_TYPELESS 0    /* Damage that ignores resist and passthru (only for story scripts) */
 #define DAMAGE_LIGHT 1       /* Non-standing electromagnetic fields (ie. lasers) */
 #define DAMAGE_HE_PARTICLE 2 /* Particles of matter with high kinetic energy (particle beam) */
@@ -36,6 +36,7 @@
 #define DAMAGE_PSIONIC 9     /* Mind over matter */
 #define DAMAGE_PLASMA 10     /* Super-heated matter */
 #define DAMAGE_CHARGE 11     /* Electric charge */
+#define DAMAGE_SPACETIME 12  /* Tear open rifts in the fabric of spacetimeo */
 
 #define MAX_RESIST 0.75
 #define MIN_RESIST -2.0
