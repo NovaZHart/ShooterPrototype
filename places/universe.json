@@ -2220,32 +2220,32 @@
                       ]
                   }
               ],
-              "PortMiddleGun": [
+              "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaser.tscn"
+                      "res://weapons/NuclearPumpedLaser1x4.tscn"
                   ]
               ],
-              "PortOuterGun": [
+              "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
-              "StarboardMiddleGun": [
+              "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaser.tscn"
+                      "res://weapons/AntiMissile2x2.tscn"
                   ]
               ],
-              "StarboardOuterGun": [
+              "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PurpleHomingGun.tscn"
+                      "res://weapons/NuclearPumpedLaser1x4.tscn"
                   ]
               ]
           },
@@ -2772,6 +2772,13 @@
               "res://ships/PurpleShips/WarshipHull.tscn"
           ],
           {
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x2.tscn"
+                  ]
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -2848,45 +2855,38 @@
                       ]
                   }
               ],
-              "PortMiddleGun": [
+              "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueMissileLauncher.tscn"
+                      "res://weapons/JusticeMissileLauncher.tscn"
                   ]
               ],
-              "PortOuterGun": [
+              "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun.tscn"
+                      "res://weapons/MagneticRailGun2x4.tscn"
                   ]
               ],
-              "StarboardMiddleGun": [
+              "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueMissileLauncher.tscn"
+                      "res://weapons/AntiMissile2x2.tscn"
                   ]
               ],
-              "StarboardOuterGun": [
+              "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun.tscn"
-                  ]
-              ],
-              "AuxEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://weapons/JusticeMissileLauncher.tscn"
                   ]
               ]
           },
           null
       ],
-      
+          
 
       "raven_particles":[
           "ShipDesign",
@@ -2896,6 +2896,13 @@
               "res://ships/PurpleShips/WarshipHull.tscn"
           ],
           {
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x2.tscn"
+                  ]
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -2972,39 +2979,32 @@
                       ]
                   }
               ],
-              "PortMiddleGun": [
+              "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
+                      "res://weapons/LinearAccelerator1x4.tscn"
                   ]
               ],
-              "PortOuterGun": [
+              "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LargeOrangeSpikeGun.tscn"
+                      "res://weapons/LinearAccelerator2x4.tscn"
                   ]
               ],
-              "StarboardMiddleGun": [
+              "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
+                      "res://weapons/AntiMissile2x2.tscn"
                   ]
               ],
-              "StarboardOuterGun": [
+              "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LargeOrangeSpikeGun.tscn"
-                  ]
-              ],
-              "AuxEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://weapons/LinearAccelerator1x4.tscn"
                   ]
               ]
           },
@@ -3800,7 +3800,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/OrangeSpikeGun.tscn"
+                        "res://weapons/JusticeMissileLauncher.tscn"
                     ]
                 ],
                 "Engine": [
@@ -3810,18 +3810,25 @@
                         "res://equipment/engines/Engine2x2.tscn"
                     ]
                 ],
-                "StarboardGun": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://weapons/OrangeSpikeGun.tscn"
-                    ]
-                ],
                 "Turret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/OrangeSpikeTurret.tscn"
+                        "res://weapons/CyclotronTurret3x3.tscn"
+                    ]
+                ],
+                "StarboardGun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/JusticeMissileLauncher.tscn"
+                    ]
+                ],
+                "AuxTurret": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/AntiMissile2x2.tscn"
                     ]
                 ],
                 "ForwardEquipment": [
@@ -3887,137 +3894,144 @@
             },
             null
         ],
-        
+          
       "eagle_lasers": [
-        "ShipDesign",
-        "Laser Eagle",
-        [
-          "Resource",
-          "res://ships/PurpleShips/CurvyWarshipHull.tscn"
-        ],
-        {
-                "ExternalEquipment": [
-                    "MultiMount",
-                    {
-                        "ExternalEquipment_at_x0_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
-                            ],
-                            0,
-                            0
-                        ],
-                        "ExternalEquipment_at_x2_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/defense/ReactiveArmor.tscn"
-                            ],
-                            2,
-                            0
-                        ]
-                    }
-                ],
-          "PortGun": [
-            "Mounted",
-            [
+          "ShipDesign",
+          "Laser Eagle",
+          [
               "Resource",
-              "res://weapons/GammaRayLaser.tscn"
-            ]
+              "res://ships/PurpleShips/CurvyWarshipHull.tscn"
           ],
-          "StarboardGun": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GammaRayLaser.tscn"
-            ]
-          ],
-          "AuxEngine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
-            ]
-          ],
-          "Turret": [
-            "Mounted",
-            [
-              "Resource",
-              "res://weapons/GammaRayLaserTurret.tscn"
-            ]
-          ],
-          "Engine": [
-            "Mounted",
-            [
-              "Resource",
-              "res://equipment/engines/Engine2x2.tscn"
-            ]
-          ],
-          "ForwardEquipment": [
-            "MultiMount",
-            {
-              "ForwardEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/power/SmallBioelectricGenerator.tscn"
-                ],
-                0,
-                0
-              ]
-            }
-          ],
-          "PortEquipment": [
-            "MultiMount",
-            {
-              "PortEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/repair/Shield2x2.tscn"
-                ],
-                0,
-                0
+          {
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x2.tscn"
+                  ]
               ],
-              "PortEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/power/SmallBioelectricGenerator.tscn"
-                ],
-                0,
-                2
-              ]
-            }
-          ],
-          "StarboardEquipment": [
-            "MultiMount",
-            {
-              "StarboardEquipment_at_x0_y0": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/defense/DefensiveScatterer.tscn"
-                ],
-                0,
-                0
+              "ExternalEquipment": [
+                  "MultiMount",
+                  {
+                      "ExternalEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/Hyperdrive.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "ExternalEquipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          2,
+                          0
+                      ]
+                  }
               ],
-              "StarboardEquipment_at_x0_y2": [
-                "MultiMounted",
-                [
-                  "Resource",
-                  "res://equipment/cooling/LargeOpticalCooler.tscn"
-                ],
-                0,
-                2
+              "PortGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/JusticeMissileLauncher.tscn"
+                  ]
+              ],
+              "Engine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x2.tscn"
+                  ]
+              ],
+              "Turret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                  ]
+              ],
+              "StarboardGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/JusticeMissileLauncher.tscn"
+                  ]
+              ],
+              "AuxTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/AntiMissile2x2.tscn"
+                  ]
+              ],
+              "ForwardEquipment": [
+                  "MultiMount",
+                  {
+                      "ForwardEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ],
+              "PortEquipment": [
+                  "MultiMount",
+                  {
+                      "PortEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/Shield2x2.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "PortEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          2
+                      ]
+                  }
+              ],
+              "StarboardEquipment": [
+                  "MultiMount",
+                  {
+                      "StarboardEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/DefensiveScatterer.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "StarboardEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                          ],
+                          0,
+                          2
+                      ]
+                  }
               ]
-            }
-          ]
-        },
-        null
+          },
+          null
       ],
-        
+          
         "ankylorhiza_missiles_particles": [
             "ShipDesign",
             "Ankylorhiza (Missiles+Particles)",
@@ -7209,13 +7223,6 @@
                 "res://ships/PurpleShips/HeavyWarshipHull.tscn"
             ],
             {
-                "MidPortTurret": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://weapons/GammaRayLaserTurret.tscn"
-                    ]
-                ],
                 "NeckEquipment": [
                     "MultiMount",
                     {
@@ -7250,10 +7257,19 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/MediumBioelectricGenerator.tscn"
+                                "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
                             ],
                             0,
                             6
+                        ],
+                        "NeckEquipment_at_x0_y7": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            7
                         ],
                         "NeckEquipment_at_x0_y8": [
                             "MultiMounted",
@@ -7266,25 +7282,25 @@
                         ]
                     }
                 ],
+                "MidPortTurret": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/AntiMissile3x3.tscn"
+                    ]
+                ],
+                "SpinalMountGun": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://weapons/NuclearPumpedLaser3x4.tscn"
+                    ]
+                ],
                 "ForwardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GammaRayLaserTurret.tscn"
-                    ]
-                ],
-                "PortSmallGun": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://weapons/GammaRayLaser.tscn"
-                    ]
-                ],
-                "StarboardSmallGun": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://weapons/GammaRayLaser.tscn"
+                        "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
                     ]
                 ],
                 "StarboardEquipment": [
@@ -7417,7 +7433,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GammaRayLaserTurret.tscn"
+                        "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
                     ]
                 ],
                 "PortEngine": [
@@ -7445,14 +7461,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GammaRayLaserTurret.tscn"
+                        "res://weapons/AntiMissile3x3.tscn"
                     ]
                 ],
                 "AftStarboardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GammaRayLaserTurret.tscn"
+                        "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
                     ]
                 ],
                 "StarbboardEngine": [
@@ -7474,13 +7490,6 @@
               "res://ships/PurpleShips/HeavyWarshipHull.tscn"
           ],
           {
-              "MidPortTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
-                  ]
-              ],
               "NeckEquipment": [
                   "MultiMount",
                   {
@@ -7515,10 +7524,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumBioelectricGenerator.tscn"
+                              "res://equipment/power/SmallReactor.tscn"
                           ],
                           0,
                           6
+                      ],
+                      "NeckEquipment_at_x0_y7": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          7
                       ],
                       "NeckEquipment_at_x0_y8": [
                           "MultiMounted",
@@ -7531,25 +7549,25 @@
                       ]
                   }
               ],
+              "MidPortTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/AntiMissile3x3.tscn"
+                  ]
+              ],
+              "SpinalMountGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/ParticleGun3x4.tscn"
+                  ]
+              ],
               "ForwardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
-                  ]
-              ],
-              "PortSmallGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
-                  ]
-              ],
-              "StarboardSmallGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
+                      "res://weapons/CyclotronTurret3x3.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7682,7 +7700,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/CyclotronTurret3x3.tscn"
                   ]
               ],
               "PortEngine": [
@@ -7710,14 +7728,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/AntiMissile3x3.tscn"
                   ]
               ],
               "AftStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeTurret.tscn"
+                      "res://weapons/CyclotronTurret3x3.tscn"
                   ]
               ],
               "StarbboardEngine": [
@@ -7739,13 +7757,6 @@
               "res://ships/PurpleShips/HeavyWarshipHull.tscn"
           ],
           {
-              "MidPortTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GammaRayLaserTurret.tscn"
-                  ]
-              ],
               "NeckEquipment": [
                   "MultiMount",
                   {
@@ -7789,32 +7800,41 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumBioelectricGenerator.tscn"
+                              "res://equipment/power/SmallReactor.tscn"
                           ],
                           0,
                           8
+                      ],
+                      "NeckEquipment_at_x0_y9": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          9
                       ]
                   }
+              ],
+              "MidPortTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/AntiMissile3x3.tscn"
+                  ]
+              ],
+              "SpinalMountGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/MassDriver.tscn"
+                  ]
               ],
               "ForwardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaserTurret.tscn"
-                  ]
-              ],
-              "PortSmallGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenMissileLauncher.tscn"
-                  ]
-              ],
-              "StarboardSmallGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/GreenMissileLauncher.tscn"
+                      "res://weapons/CyclotronTurret3x3.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7940,14 +7960,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun.tscn"
+                      "res://weapons/MagneticRailGun2x4.tscn"
                   ]
               ],
               "AftPortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaserTurret.tscn"
+                      "res://weapons/CyclotronTurret3x3.tscn"
                   ]
               ],
               "PortEngine": [
@@ -7968,21 +7988,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun.tscn"
+                      "res://weapons/MagneticRailGun2x4.tscn"
                   ]
               ],
               "MidStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaserTurret.tscn"
+                      "res://weapons/AntiMissile3x3.tscn"
                   ]
               ],
               "AftStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaserTurret.tscn"
+                      "res://weapons/CyclotronTurret3x3.tscn"
                   ]
               ],
               "StarbboardEngine": [
@@ -8004,13 +8024,6 @@
                   "res://ships/PurpleShips/HeavyWarshipHull.tscn"
               ],
               {
-                  "MidPortTurret": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/OrangeSpikeTurret.tscn"
-                      ]
-                  ],
                   "NeckEquipment": [
                       "MultiMount",
                       {
@@ -8061,25 +8074,25 @@
                           ]
                       }
                   ],
+                  "MidPortTurret": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/AntiMissile3x3.tscn"
+                      ]
+                  ],
+                  "SpinalMountGun": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/BigRedMissileLauncher.tscn"
+                      ]
+                  ],
                   "ForwardTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/OrangeSpikeTurret.tscn"
-                      ]
-                  ],
-                  "PortSmallGun": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/GreenMissileLauncher.tscn"
-                      ]
-                  ],
-                  "StarboardSmallGun": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/GreenMissileLauncher.tscn"
+                          "res://weapons/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "StarboardEquipment": [
@@ -8212,7 +8225,7 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/OrangeSpikeTurret.tscn"
+                          "res://weapons/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "PortEngine": [
@@ -8240,14 +8253,14 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/OrangeSpikeTurret.tscn"
+                          "res://weapons/AntiMissile3x3.tscn"
                       ]
                   ],
                   "AftStarboardTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/OrangeSpikeTurret.tscn"
+                          "res://weapons/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "StarbboardEngine": [
@@ -8260,7 +8273,7 @@
               },
               null
           ]
-            
+          
     } 
   ],
   "fleets": [

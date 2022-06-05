@@ -1,0 +1,26 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
+[ext_resource path="res://weapons/meshes/MagneticRailGun1x4.mesh" type="ArrayMesh" id=2]
+
+[node name="MeshInstance" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+help_page = "weapons/magnetic_rail_gun_medium"
+item_size_y = 4
+damage = 36.0
+damage_type = 3
+impulse = 200.0
+weapon_mass = 8.0
+weapon_structure = 270.0
+initial_velocity = 60.0
+projectile_lifetime = 0.4
+firing_delay = 0.2
+projectile_mesh_path = "res://weapons/meshes/MagneticRailGun1x4Ball.mesh"
+ammo_capacity = 140
+reload_delay = 0.33
+firing_heat = 0.063
+firing_energy = 1.35

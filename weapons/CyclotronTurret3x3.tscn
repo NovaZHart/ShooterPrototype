@@ -16,6 +16,7 @@ item_size_x = 3
 damage = 63.0
 damage_type = 2
 impulse = 25.0
+weapon_mass = 18.0
 weapon_structure = 640.0
 initial_velocity = 55.0
 projectile_lifetime = 0.45
