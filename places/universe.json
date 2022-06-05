@@ -7834,7 +7834,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret3x3.tscn"
+                      "res://weapons/MagneticRailTurret.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7967,7 +7967,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret3x3.tscn"
+                      "res://weapons/MagneticRailTurret.tscn"
                   ]
               ],
               "PortEngine": [
@@ -8002,7 +8002,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret3x3.tscn"
+                      "res://weapons/MagneticRailTurret.tscn"
                   ]
               ],
               "StarbboardEngine": [
