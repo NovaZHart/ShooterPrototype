@@ -1,29 +1,25 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
-[ext_resource path="res://weapons/meshes/ElectronTurret.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://weapons/meshes/ElectronGun2x4.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
-material/3 = null
-material/4 = null
 script = ExtResource( 1 )
-help_page = "weapons/electron_turret"
-mount_type_all = "turret"
-mount_type_display = "turret"
-item_size_x = 3
-damage = 280.0
+help_page = "weapons/electron_gun_small"
+item_size_x = 2
+item_size_y = 4
+damage = 320.0
 damage_type = 11
-weapon_mass = 18.0
-weapon_structure = 270.0
-initial_velocity = 1200.0
+weapon_mass = 8.0
+weapon_structure = 320.0
+initial_velocity = 1260.0
 projectile_lifetime = 0.0
 firing_delay = 0.0
-turn_rate = 2.5
 projectile_mesh_path = "res://weapons/meshes/electron_beam.mesh"
-firing_heat = 0.7
-firing_energy = 7.0
+firing_heat = 0.8
+firing_energy = 8.0
 energy_fraction = 0.2
