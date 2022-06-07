@@ -2224,28 +2224,28 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser1x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser1x4.tscn"
                   ]
               ],
               "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser2x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
               "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser1x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser1x4.tscn"
                   ]
               ]
           },
@@ -2264,7 +2264,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
                     ]
                 ],
                 "Engine": [
@@ -2364,7 +2364,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
                     ]
                 ],
                 "PortEngine": [
@@ -2378,14 +2378,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardEngine": [
@@ -2469,14 +2469,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenMissileLauncher.tscn"
+                        "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenMissileLauncher.tscn"
+                        "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                     ]
                 ],
                 "ForeEquipment": [
@@ -2606,21 +2606,21 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
                     ]
                 ],
                 "StarboardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
                     ]
                 ],
                 "MainTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/PlasmaTurret.tscn"
+                        "res://weapons/IACivilian/PlasmaTurret.tscn"
                     ]
                 ],
                 "StarboardAuxEngine": [
@@ -2688,7 +2688,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreenMissileLauncher.tscn"
+                        "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                     ]
                 ],
                 "PortEquipment": [
@@ -2859,28 +2859,28 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/JusticeMissileLauncher.tscn"
+                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ],
               "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun2x4.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn"
                   ]
               ],
               "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/JusticeMissileLauncher.tscn"
+                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ]
           },
@@ -2983,28 +2983,28 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator1x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator1x4.tscn"
                   ]
               ],
               "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator2x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                   ]
               ],
               "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator1x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator1x4.tscn"
                   ]
               ]
           },
@@ -3082,28 +3082,28 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaBallLauncher.tscn"
+                      "res://weapons/IACivilian/PlasmaBallLauncher.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaBallLauncher.tscn"
+                      "res://weapons/IACivilian/PlasmaBallLauncher.tscn"
                   ]
               ],
               "PortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "StarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "ExternalEquipment": [
@@ -3218,28 +3218,28 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueRapidMissileLauncher.tscn"
+                      "res://weapons/IACivilian/BlueRapidMissileLauncher.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueRapidMissileLauncher.tscn"
+                      "res://weapons/IACivilian/BlueRapidMissileLauncher.tscn"
                   ]
               ],
               "PortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "StarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "ExternalEquipment": [
@@ -3357,21 +3357,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueRapidMissileLauncher.tscn"
+                      "res://weapons/IACivilian/BlueRapidMissileLauncher.tscn"
                   ]
               ],
               "MainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueRapidMissileLauncher.tscn"
+                      "res://weapons/IACivilian/BlueRapidMissileLauncher.tscn"
                   ]
               ],
               "AftMainTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GammaRayLaserTurret.tscn"
+                      "res://weapons/IACivilian/GammaRayLaserTurret.tscn"
                   ]
               ],
               "ExternalEquipment": [
@@ -3424,14 +3424,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/BlueRapidMissileLauncher.tscn"
+                      "res://weapons/IACivilian/BlueRapidMissileLauncher.tscn"
                   ]
               ]
           },
@@ -3450,21 +3450,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaBallLauncher.tscn"
+                      "res://weapons/IACivilian/PlasmaBallLauncher.tscn"
                   ]
               ],
               "StarboardMainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenMissileLauncher.tscn"
+                      "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                   ]
               ],
               "PortMainGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenMissileLauncher.tscn"
+                      "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                   ]
               ],
               "SpinalEquipment": [
@@ -3688,42 +3688,42 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "StarboardAuxGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaBallLauncher.tscn"
+                      "res://weapons/IACivilian/PlasmaBallLauncher.tscn"
                   ]
               ],
               "AftTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "StarboardTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "PortTurret1": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "PortTurret2": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "PortEngine": [
@@ -3744,7 +3744,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -3800,7 +3800,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/JusticeMissileLauncher.tscn"
+                        "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                     ]
                 ],
                 "Engine": [
@@ -3814,21 +3814,21 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret3x3.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/JusticeMissileLauncher.tscn"
+                        "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                     ]
                 ],
                 "AuxTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
                     ]
                 ],
                 "ForwardEquipment": [
@@ -3937,7 +3937,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/JusticeMissileLauncher.tscn"
+                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ],
               "Engine": [
@@ -3951,21 +3951,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/JusticeMissileLauncher.tscn"
+                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ],
               "AuxTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "ForwardEquipment": [
@@ -4051,49 +4051,49 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/RetributionMissileLauncher.tscn"
+                        "res://weapons/IAPolice/RetributionMissileLauncher.tscn"
                     ]
                 ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreyMissileLauncher.tscn"
+                        "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreyMissileLauncher.tscn"
+                        "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                     ]
                 ],
                 "AftPortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret3x3.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                     ]
                 ],
                 "MainTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret4x4.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                     ]
                 ],
                 "ForePortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile3x3.tscn"
+                        "res://weapons/IACivilian/AntiMissile3x3.tscn"
                     ]
                 ],
                 "AftCenterTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile3x3.tscn"
+                        "res://weapons/IACivilian/AntiMissile3x3.tscn"
                     ]
                 ],
                 "Engine": [
@@ -4107,14 +4107,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret3x3.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                     ]
                 ],
                 "ForeStarboardTurret2": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret3x3.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                     ]
                 ],
                 "StarboardAuxEngine": [
@@ -4270,49 +4270,49 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaser3x4.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaser3x4.tscn"
                       ]
                   ],
                   "PortGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaser2x4.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                       ]
                   ],
                   "StarboardGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaser2x4.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                       ]
                   ],
                   "AftPortTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                       ]
                   ],
                   "MainTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                       ]
                   ],
                   "ForePortTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/AntiMissile3x3.tscn"
+                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
                       ]
                   ],
                   "AftCenterTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/AntiMissile3x3.tscn"
+                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
                       ]
                   ],
                   "Engine": [
@@ -4326,14 +4326,14 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                       ]
                   ],
                   "ForeStarboardTurret2": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                          "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                       ]
                   ],
                   "StarboardAuxEngine": [
@@ -4498,49 +4498,49 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/ParticleGun3x4.tscn"
+                          "res://weapons/IAPolice/LinearAccelerator3x4.tscn"
                       ]
                   ],
                   "PortGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/LinearAccelerator2x4.tscn"
+                          "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                       ]
                   ],
                   "StarboardGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/LinearAccelerator2x4.tscn"
+                          "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                       ]
                   ],
                   "AftPortTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret3x3.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "MainTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret4x4.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                       ]
                   ],
                   "ForePortTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/AntiMissile3x3.tscn"
+                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
                       ]
                   ],
                   "AftCenterTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/AntiMissile3x3.tscn"
+                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
                       ]
                   ],
                   "Engine": [
@@ -4554,14 +4554,14 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret3x3.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "ForeStarboardTurret2": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret3x3.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "StarboardAuxEngine": [
@@ -4717,49 +4717,49 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/RetributionMissileLauncher.tscn"
+                      "res://weapons/IAPolice/RetributionMissileLauncher.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "AftPortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                   ]
               ],
               "MainTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                   ]
               ],
               "ForePortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "AftCenterTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "Engine": [
@@ -4773,14 +4773,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                   ]
               ],
               "ForeStarboardTurret2": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                   ]
               ],
               "StarboardAuxEngine": [
@@ -4929,14 +4929,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -4957,21 +4957,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret4x4.tscn"
+                      "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "CenterTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -5095,14 +5095,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator2x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator2x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -5123,21 +5123,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret4x4.tscn"
+                      "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator2x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                   ]
               ],
               "CenterTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -5261,14 +5261,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -5289,21 +5289,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "CenterTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -5427,14 +5427,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser2x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser2x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -5455,21 +5455,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser2x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
               "CenterTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -5630,35 +5630,35 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/LinearAccelerator2x4.tscn"
+                        "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                     ]
                 ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/JusticeMissileLauncher.tscn"
+                        "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                     ]
                 ],
                 "Turret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret3x3.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/JusticeMissileLauncher.tscn"
+                        "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                     ]
                 ],
-                "AntiMissileTurret": [
+                "IACivilian/AntiMissileTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
                     ]
                 ],
                 "SmallEquipment": [
@@ -5787,35 +5787,35 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser2x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/JusticeMissileLauncher.tscn"
+                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ],
               "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/JusticeMissileLauncher.tscn"
+                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ],
-              "AntiMissileTurret": [
+              "IACivilian/AntiMissileTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "SmallEquipment": [
@@ -5988,14 +5988,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser1x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser1x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/NuclearPumpedLaser1x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser1x4.tscn"
                   ]
               ]
           },
@@ -6095,14 +6095,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator1x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator1x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator1x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator1x4.tscn"
                   ]
               ]
           },
@@ -6306,35 +6306,35 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                     ]
                 ],
                 "AftPortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                     ]
                 ],
                 "ForwardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret4x4.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
                     ]
                 ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreyMissileLauncher.tscn"
+                        "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreyMissileLauncher.tscn"
+                        "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                     ]
                 ]
             },
@@ -6529,35 +6529,35 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret4x4.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                     ]
                 ],
                 "AftPortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret4x4.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                     ]
                 ],
                 "ForwardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/CyclotronTurret4x4.tscn"
+                        "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
                     ]
                 ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreyMissileLauncher.tscn"
+                        "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/GreyMissileLauncher.tscn"
+                        "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                     ]
                 ]
             },
@@ -6578,14 +6578,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenMissileLauncher.tscn"
+                      "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreenMissileLauncher.tscn"
+                      "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -6715,21 +6715,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "StarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
               "MainTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "StarboardAuxEngine": [
@@ -6810,21 +6810,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "SpinalMountGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/RetributionMissileLauncher.tscn"
+                      "res://weapons/IAPolice/RetributionMissileLauncher.tscn"
                   ]
               ],
               "ForwardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -6860,14 +6860,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "AftPortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ],
               "AuxEngine": [
@@ -6881,21 +6881,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
               "MidStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "AftStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/PlasmaTurret.tscn"
+                      "res://weapons/IACivilian/PlasmaTurret.tscn"
                   ]
               ]
           },
@@ -6978,14 +6978,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
+                      "res://weapons/Old/OrangeSpikeGun.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
+                      "res://weapons/Old/OrangeSpikeGun.tscn"
                   ]
               ],
               "Engine": [
@@ -6999,7 +6999,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/OrangeSpikeGun.tscn"
+                      "res://weapons/Old/OrangeSpikeGun.tscn"
                   ]
               ]
           },
@@ -7082,14 +7082,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
                     ]
                 ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
                     ]
                 ],
                 "Engine": [
@@ -7103,7 +7103,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/BlueMissileLauncher.tscn"
+                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
                     ]
                 ]
             },
@@ -7193,21 +7193,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/DuteriumFluorideLaser.tscn"
+                      "res://weapons/IACivilian/DuteriumFluorideLaser.tscn"
                   ]
               ],
               "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/DuteriumFluorideLaser.tscn"
+                      "res://weapons/IACivilian/DuteriumFluorideLaser.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/DuteriumFluorideLaser.tscn"
+                      "res://weapons/IACivilian/DuteriumFluorideLaser.tscn"
                   ]
               ]
           },
@@ -7286,21 +7286,21 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile3x3.tscn"
+                        "res://weapons/IACivilian/AntiMissile3x3.tscn"
                     ]
                 ],
                 "SpinalMountGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser3x4.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaser3x4.tscn"
                     ]
                 ],
                 "ForwardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                     ]
                 ],
                 "StarboardEquipment": [
@@ -7426,14 +7426,14 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser2x4.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                     ]
                 ],
                 "AftPortTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                     ]
                 ],
                 "PortEngine": [
@@ -7454,21 +7454,21 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaser2x4.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                     ]
                 ],
                 "MidStarboardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/AntiMissile3x3.tscn"
+                        "res://weapons/IACivilian/AntiMissile3x3.tscn"
                     ]
                 ],
                 "AftStarboardTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/NuclearPumpedLaserTurret3x3.tscn"
+                        "res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn"
                     ]
                 ],
                 "StarbboardEngine": [
@@ -7553,21 +7553,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "SpinalMountGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/ParticleGun3x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator3x4.tscn"
                   ]
               ],
               "ForwardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret3x3.tscn"
+                      "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7693,14 +7693,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator2x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                   ]
               ],
               "AftPortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret3x3.tscn"
+                      "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                   ]
               ],
               "PortEngine": [
@@ -7721,21 +7721,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/LinearAccelerator2x4.tscn"
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
                   ]
               ],
               "MidStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "AftStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/CyclotronTurret3x3.tscn"
+                      "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                   ]
               ],
               "StarbboardEngine": [
@@ -7820,21 +7820,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "SpinalMountGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MassDriver.tscn"
+                      "res://weapons/FrontierMilitia/MassDriver.tscn"
                   ]
               ],
               "ForwardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailTurret.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7960,14 +7960,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun2x4.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn"
                   ]
               ],
               "AftPortTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailTurret.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
                   ]
               ],
               "PortEngine": [
@@ -7988,21 +7988,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailGun2x4.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn"
                   ]
               ],
               "MidStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/AntiMissile3x3.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
               ],
               "AftStarboardTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/MagneticRailTurret.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
                   ]
               ],
               "StarbboardEngine": [
@@ -8078,21 +8078,21 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/AntiMissile3x3.tscn"
+                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
                       ]
                   ],
                   "SpinalMountGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/BigRedMissileLauncher.tscn"
+                          "res://weapons/Old/BigRedMissileLauncher.tscn"
                       ]
                   ],
                   "ForwardTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret3x3.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "StarboardEquipment": [
@@ -8218,14 +8218,14 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/GreyMissileLauncher.tscn"
+                          "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                       ]
                   ],
                   "AftPortTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret3x3.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "PortEngine": [
@@ -8246,21 +8246,21 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/GreyMissileLauncher.tscn"
+                          "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                       ]
                   ],
                   "MidStarboardTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/AntiMissile3x3.tscn"
+                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
                       ]
                   ],
                   "AftStarboardTurret": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/CyclotronTurret3x3.tscn"
+                          "res://weapons/IAPolice/CyclotronTurret3x3.tscn"
                       ]
                   ],
                   "StarbboardEngine": [

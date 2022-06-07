@@ -5,7 +5,7 @@
 @content
 Plasma is too hot to contain in any space for more than a few seconds, so this device encases a ball of plasma in an energy shield, connected to some thrusters. The projectiles are unwieldy, but do considerable damage when they hit a target. The heat-to-damage ratio is better than the other Terran plasma weapons, making this a deadly threat to ships that run hot.
 
-@bbcode_from_scene res://weapons/PlasmaBallLauncher.tscn
+@bbcode_from_scene res://weapons/IACivilian/PlasmaBallLauncher.tscn
 
 @PAGE weapons/plasma_turret
 @title Plasma Turret
@@ -14,7 +14,7 @@ Plasma is too hot to contain in any space for more than a few seconds, so this d
 @content
 Beyond the Interstellar Alliance, there are many frontier planets protected by well-armed militias. When the planets lack basic needs, such as food or medicine, militias will raid civilian ships in Interstellar Alliance space. Civilians of the Interstellar Alliance answered this problem with plasma turrets and plasma missiles. A civilian ship can fly away while shooting plasma at the approaching militia ship. Eventually the militia ship will give up, and the civilian can escape.
 
-@bbcode_from_scene res://weapons/PlasmaTurret.tscn
+@bbcode_from_scene res://weapons/IACivilian/PlasmaTurret.tscn
 
 @PAGE weapons/rapid_fire_plasma_gun
 @title Rapid-Fire Plasma Gun
@@ -23,7 +23,7 @@ Beyond the Interstellar Alliance, there are many frontier planets protected by w
 @content
 This adaptation of the [ref=weapons/plasma_turret]Plasma Turret[/ref] has a lower firing rate, but a longer range. It is intended for hunting wildlife that may be vulnerable to heat.
 
-@bbcode_from_scene res://weapons/PlasmaGun2x3.tscn
+@bbcode_from_scene res://weapons/IACivilian/PlasmaGun2x3.tscn
 
 @PAGE weapons/long_range_plasma_gun
 @title Long-Range Plasma Gun
@@ -32,7 +32,7 @@ This adaptation of the [ref=weapons/plasma_turret]Plasma Turret[/ref] has a lowe
 @content
 This long-range plasma gun can overheat enemy ships from a long distance away. It sacrifices damage for extreme range and hotter, faster-moving, particles. If you're fighting something big, slow, powerful, and hot, this may win the battle.
 
-@bbcode_from_scene res://weapons/PlasmaGun1x4.tscn
+@bbcode_from_scene res://weapons/IACivilian/PlasmaGun1x4.tscn
 
 
 @PAGE weapons/basic_anti_missile_system
@@ -42,7 +42,7 @@ This long-range plasma gun can overheat enemy ships from a long distance away. I
 @content
 An anti-missile point-defense system automatically targets incoming missiles, destroying them before they hit your ship. Its firepower is limited, so don't fly into a storm of missiles expecting to survive.
 
-@bbcode_from_scene res://weapons/AntiMissile2x2.tscn
+@bbcode_from_scene res://weapons/IACivilian/AntiMissile2x2.tscn
 
 @PAGE weapons/standard_anti_missile_system
 @title Standard Anti-Missile System
@@ -51,7 +51,7 @@ An anti-missile point-defense system automatically targets incoming missiles, de
 @content
 Most large vessels carry one or more of these. They can destroy most missiles in one or two hits, and the range is long enough to cover the entire area surrounding a large ship.
 
-@bbcode_from_scene res://weapons/AntiMissile3x3.tscn
+@bbcode_from_scene res://weapons/IACivilian/AntiMissile3x3.tscn
 
 @PAGE weapons/magnetic_rail_gun_large
 @title Magnetic Rail Gun
@@ -60,7 +60,7 @@ Most large vessels carry one or more of these. They can destroy most missiles in
 @content
 A magnetic rail gun uses magnetic fields to accelerate diamagnetic objects near to the speed of light. Most ships carry a reservoir of bullets for this purpose, but nearly any metal object will do. This huge rail gun fires large pieces of metal a long range, making it a dangerous weapon.
 
-@bbcode_from_scene res://weapons/MagneticRailGun2x4.tscn
+@bbcode_from_scene res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn
 
 @PAGE weapons/magnetic_rail_gun_medium
 @title Magnetic Rail Gun
@@ -69,7 +69,7 @@ A magnetic rail gun uses magnetic fields to accelerate diamagnetic objects near 
 @content
 A magnetic rail gun uses magnetic fields to accelerate diamagnetic objects near to the speed of light. Most ships carry a reservoir of bullets for this purpose, but nearly any metal object will do. A mid-sized rail gun like this has the same range as the largest ones, but does less damage per shot.
 
-@bbcode_from_scene res://weapons/MagneticRailGun1x4.tscn
+@bbcode_from_scene res://weapons/FrontierMilitia/MagneticRailGun1x4.tscn
 
 @PAGE weapons/magnetic_rail_gun_small
 @title Magnetic Rail Gun
@@ -78,7 +78,7 @@ A magnetic rail gun uses magnetic fields to accelerate diamagnetic objects near 
 @content
 A magnetic rail gun uses magnetic fields to accelerate diamagnetic objects near to the speed of light. Most ships carry a reservoir of bullets for this purpose, but nearly any metal object will do. This small rail gun will fit in nearly any ship.
 
-@bbcode_from_scene res://weapons/MagneticRailGun1x3.tscn
+@bbcode_from_scene res://weapons/FrontierMilitia/MagneticRailGun1x3.tscn
 
 @PAGE weapons/mass_driver
 @title Mass Driver
@@ -87,7 +87,7 @@ A magnetic rail gun uses magnetic fields to accelerate diamagnetic objects near 
 @content
 This enormous gun contains a series of oscillating gravity fields which launch a projectile at extreme velocities. The projectile may be a small asteroid, scrap metal, or even garbage. A dumpster may not sound like much of a threat, until it smashes through your ship's hull at half the speed of light.
 
-@bbcode_from_scene res://weapons/MassDriver.tscn
+@bbcode_from_scene res://weapons/FrontierMilitia/MassDriver.tscn
 
 @PAGE weapons/misanthrope_missile
 @title Misanthrope Anti-Ship Missile
@@ -96,7 +96,7 @@ This enormous gun contains a series of oscillating gravity fields which launch a
 @content
 This civilian-grade missile is not as smart as most homing weapons, but packs decent damage for a low price.
 
-@bbcode_from_scene res://weapons/BlueMissileLauncher.tscn
+@bbcode_from_scene res://weapons/IACivilian/BlueMissileLauncher.tscn
 
 @PAGE weapons/harpoon_missile
 @title Harpoon Anti-Ship Missile
@@ -105,7 +105,7 @@ This civilian-grade missile is not as smart as most homing weapons, but packs de
 @content
 This small missile is designed to destroy medium-sized ships. The damage and blast radius are substantial, but the missile cannot maneuver fast enough to keep up with fighters.
 
-@bbcode_from_scene res://weapons/GreyMissileLauncher.tscn
+@bbcode_from_scene res://weapons/IAPolice/GreyMissileLauncher.tscn
 
 @PAGE weapons/anthropomancer
 @title Anthropomancer Missile
@@ -114,7 +114,7 @@ This small missile is designed to destroy medium-sized ships. The damage and bla
 @content
 This weapon of mass destruction is intended to target large ships or tight groups of small ships. The damage radius is about the size of a capital ship, and it does enough damage to destroy some fighters in one hit. Though it does home in on its target, the missile turns slowly, so it has trouble tracking small ships. In addition to advanced homing abilities, this weapon will contact its ship for a new target if its target is gone.
 
-@bbcode_from_scene res://weapons/BigRedMissileLauncher.tscn
+@bbcode_from_scene res://weapons/Old/BigRedMissileLauncher.tscn
 
 @PAGE weapons/haruspex_missile
 @title Haruspex Missile
@@ -123,7 +123,7 @@ This weapon of mass destruction is intended to target large ships or tight group
 @content
 This smaller cousin of the [ref=weapons/anthropomancer]Anthropomancer Missile[/ref] has the same advanced guidance system in a much smaller package. The blast radius is still quite large, though with less than a third the damage. As with the larger version, it will contact its ship for a new target if the old target is gone.
 
-@bbcode_from_scene res://weapons/GreenMissileLauncher.tscn
+@bbcode_from_scene res://weapons/IACivilian/GreenMissileLauncher.tscn
 
 @PAGE weapons/nuclear_pumped_laser_small
 @title Small Nuclear-Pumped Laser
@@ -132,7 +132,7 @@ This smaller cousin of the [ref=weapons/anthropomancer]Anthropomancer Missile[/r
 @content
 Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaser1x4.tscn
+@bbcode_from_scene res://weapons/IAPolice/NuclearPumpedLaser1x4.tscn
 
 @PAGE weapons/nuclear_pumped_laser_medium
 @title Large Nuclear-Pumped Laser
@@ -141,7 +141,7 @@ Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to c
 @content
 Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaser2x4.tscn
+@bbcode_from_scene res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn
 
 @PAGE weapons/nuclear_pumped_laser_large
 @title Large Nuclear-Pumped Laser
@@ -150,7 +150,7 @@ Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to c
 @content
 Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaser3x4.tscn
+@bbcode_from_scene res://weapons/IAPolice/NuclearPumpedLaser3x4.tscn
 
 @PAGE weapons/nuclear_pumped_laser_turret
 @title Nuclear-Pumped Laser Turret
@@ -159,7 +159,7 @@ Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to c
 @content
 Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret4x4.tscn
+@bbcode_from_scene res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn
 
 @PAGE weapons/nuclear_pumped_laser_turret_small
 @title Nuclear-Pumped Laser Turret
@@ -168,7 +168,7 @@ Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to c
 @content
 Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to create a high-energy X-ray laser beam. This laser's is also a power generator, and generates more than it needs. It also generates phenominal amounts of heat.
 
-@bbcode_from_scene res://weapons/NuclearPumpedLaserTurret3x3.tscn
+@bbcode_from_scene res://weapons/IAPolice/NuclearPumpedLaserTurret3x3.tscn
 
 @PAGE weapons/he_cyclotron
 @title High-Energy Cyclotron Turret
@@ -177,7 +177,7 @@ Nuclear-pumped lasers use fission fragments in a small nuclear reactor core to c
 @content
 Weaponized cyclotrons use advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. This does a large amount of damage, and also pushes the target away slowly.
 
-@bbcode_from_scene res://weapons/CyclotronTurret4x4.tscn
+@bbcode_from_scene res://weapons/IAPolice/CyclotronTurret4x4.tscn
 
 @PAGE weapons/he_cyclotron_small
 @title High-Energy Cyclotron Turret
@@ -186,7 +186,7 @@ Weaponized cyclotrons use advanced, military-grade, superconducting, magnets to 
 @content
 Weaponized cyclotrons use advanced, military-grade, superconducting, magnets to accelerate particles to relativistic speeds. This does a large amount of damage, and also pushes the target away slowly.
 
-@bbcode_from_scene res://weapons/CyclotronTurret3x3.tscn
+@bbcode_from_scene res://weapons/IAPolice/CyclotronTurret3x3.tscn
 
 @PAGE weapons/he_linear
 @title High-Energy Linear Accelerator
@@ -195,7 +195,7 @@ Weaponized cyclotrons use advanced, military-grade, superconducting, magnets to 
 @content
 This linear accelerator uses fine-scale anti-gravity fields and powerful magnetic fields to accelerate particles to extreme velocity over a short distance. It does far more damage than civilian-grade weaponry, but with much higher heat and power.
 
-@bbcode_from_scene res://weapons/LinearAccelerator2x4.tscn
+@bbcode_from_scene res://weapons/IAPolice/LinearAccelerator2x4.tscn
 
 @PAGE weapons/df_laser
 @title Deuterium-Fluoride Laser
@@ -204,7 +204,7 @@ This linear accelerator uses fine-scale anti-gravity fields and powerful magneti
 @content
 Although this technology is primitive by modern standards, it still sees widespread use because it is cheap to build and maintain.
 
-@bbcode_from_scene res://weapons/DuteriumFluorideLaser.tscn
+@bbcode_from_scene res://weapons/IACivilian/DuteriumFluorideLaser.tscn
 
 @PAGE weapons/df_laser_turret
 @title Deuterium-Fluoride Laser Turret
@@ -213,7 +213,7 @@ Although this technology is primitive by modern standards, it still sees widespr
 @content
 This turret is one of the most common anti-fighter weapons due to its low power requirements and low cost of ownership.
 
-@bbcode_from_scene res://weapons/DuteriumFluorideLaserTurret.tscn
+@bbcode_from_scene res://weapons/IACivilian/DuteriumFluorideLaserTurret.tscn
 
 @PAGE weapons/gamma_ray_laser
 @title Gamma Ray Laser
@@ -222,7 +222,7 @@ This turret is one of the most common anti-fighter weapons due to its low power 
 @content
 Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
 
-@bbcode_from_scene res://weapons/GammaRayLaser.tscn
+@bbcode_from_scene res://weapons/IACivilian/GammaRayLaser.tscn
 
 @PAGE weapons/gamma_ray_laser_turret
 @title Gamma Ray Laser Turret
@@ -231,7 +231,7 @@ Gamma ray lasers are huge instruments that see widespread use in manufacturing a
 @content
 Gamma ray lasers are huge instruments that see widespread use in manufacturing and research. Miniaturizing one to fit in a weapon mount is difficult, and the result is expensive to maintain. Battleships with plentiful power and cooling can support several of these weapons.
 
-@bbcode_from_scene res://weapons/GammaRayLaserTurret.tscn
+@bbcode_from_scene res://weapons/IACivilian/GammaRayLaserTurret.tscn
 
 @PAGE weapons/shockwave_torpedo
 @title Shockwave Torpedo
@@ -242,7 +242,7 @@ This gun fires small self-propelled torpedoes with simple guidance systems that 
 
 This is the strongest civilian-grade weapon available in human space.
 
-@bbcode_from_scene res://weapons/PurpleHomingGun.tscn
+@bbcode_from_scene res://weapons/Old/PurpleHomingGun.tscn
 
 @PAGE weapons/linear_accelerator_gun
 @title Linear Accelerator
@@ -251,7 +251,7 @@ This is the strongest civilian-grade weapon available in human space.
 @content
 This linear particle accelerator uses powerful superconducting magnets to accelerate particles near the speed of light over a very short distance. It emits the particles in bursts, cooling the gun between shots.
 
-@bbcode_from_scene res://weapons/OrangeSpikeGun.tscn
+@bbcode_from_scene res://weapons/Old/OrangeSpikeGun.tscn
 
 @PAGE weapons/linear_accelerator_turret
 @title Linear Accelerator Turret
@@ -262,4 +262,4 @@ This linear particle accelerator uses powerful superconducting magnets to accele
 
 Though this turret is much larger than the [ref=weapons/linear_accelerator_gun]gun version[/ref], it fires twice as fast, due to a built-in cooling system.
 
-@bbcode_from_scene res://weapons/OrangeSpikeTurret.tscn
+@bbcode_from_scene res://weapons/Old/OrangeSpikeTurret.tscn
