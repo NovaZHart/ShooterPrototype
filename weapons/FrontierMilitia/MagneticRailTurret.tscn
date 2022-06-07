@@ -24,6 +24,6 @@ initial_velocity = 60.0
 projectile_lifetime = 0.4
 firing_delay = 0.167
 turn_rate = 1.9
-projectile_mesh_path = "res://weapons/meshes/MagneticRailGun2x4Ball.mesh"
+projectile_mesh_path = "res://weapons/projectiles/MagneticRailGun2x4Ball.mesh"
 firing_heat = 0.105
 firing_energy = 2.25

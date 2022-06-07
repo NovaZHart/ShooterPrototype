@@ -19,6 +19,6 @@ weapon_structure = 120.0
 initial_velocity = 1260.0
 projectile_lifetime = 0.0
 firing_delay = 0.0
-projectile_mesh_path = "res://weapons/meshes/green_line.mesh"
+projectile_mesh_path = "res://weapons/projectiles/green_line.mesh"
 firing_heat = 0.36
 firing_energy = 3.6

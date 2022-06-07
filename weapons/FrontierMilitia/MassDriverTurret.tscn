@@ -26,6 +26,6 @@ projectile_structure = 80.0
 firing_delay = 0.25
 turn_rate = 1.7
 blast_radius = 1.0
-projectile_mesh_path = "res://weapons/meshes/MassDriverTrashBall.mesh"
+projectile_mesh_path = "res://weapons/projectiles/MassDriverTrashBall.mesh"
 firing_heat = 0.3
 firing_energy = 6.3

@@ -23,6 +23,6 @@ projectile_turn_rate = 0.0
 firing_delay = 0.167
 turn_rate = 400.0
 antimissile = true
-projectile_mesh_path = "res://weapons/meshes/dark_purple_line.mesh"
+projectile_mesh_path = "res://weapons/projectiles/dark_purple_line.mesh"
 firing_heat = 0.12
 firing_energy = 0.12

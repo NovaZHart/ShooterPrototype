@@ -18,6 +18,6 @@ weapon_structure = 270.0
 initial_velocity = 55.0
 projectile_lifetime = 0.4
 firing_delay = 0.2
-projectile_mesh_path = "res://weapons/meshes/MagneticRailGun1x3Ball.mesh"
+projectile_mesh_path = "res://weapons/projectiles/MagneticRailGun1x3Ball.mesh"
 firing_heat = 0.047
 firing_energy = 1.012

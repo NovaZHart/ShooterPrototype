@@ -23,6 +23,6 @@ initial_velocity = 55.0
 projectile_lifetime = 0.45
 firing_delay = 0.117
 turn_rate = 1.8
-projectile_mesh_path = "res://weapons/meshes/BlueBlob.mesh"
+projectile_mesh_path = "res://weapons/projectiles/BlueBlob.mesh"
 firing_heat = 0.221
 firing_energy = 2.21

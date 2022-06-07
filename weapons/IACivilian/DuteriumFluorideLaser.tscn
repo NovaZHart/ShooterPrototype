@@ -16,6 +16,6 @@ weapon_structure = 150.0
 initial_velocity = 1200.0
 projectile_lifetime = 0.0
 firing_delay = 0.0
-projectile_mesh_path = "res://weapons/meshes/dark_blue_line.mesh"
+projectile_mesh_path = "res://weapons/projectiles/dark_blue_line.mesh"
 firing_heat = 0.24
 firing_energy = 2.4
