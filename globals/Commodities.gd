@@ -957,6 +957,7 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://weapons/RetributionMissileLauncher.tscn', 25, 124000, 124000, 0, 'explosive', 'homing', 'weapon', 'terran', 'capital' ],
 		[ 'res://weapons/JusticeMissileLauncher.tscn', 25, 47000, 47000, 0, 'explosive', 'homing', 'weapon', 'terran' ],
 		[ 'res://weapons/MassDriver.tscn', 40, 135000, 135000, 0, 'kinetic', 'weapon', 'terran', 'capital' ],
+		[ 'res://weapons/MassDriverTurret.tscn', 40, 154000, 154000, 0, 'kinetic', 'weapon', 'terran', 'capital' ],
 		[ 'res://weapons/CyclotronTurret4x4.tscn', 40, 97000, 97000, 0, 'particle', 'weapon', 'terran', 'capital' ],
 		[ 'res://weapons/CyclotronTurret3x3.tscn', 40, 55000, 55000, 0, 'particle', 'weapon', 'terran', 'large' ],
 		[ 'res://weapons/ParticleGun3x4.tscn', 40, 135000, 135000, 0, 'particle', 'weapon', 'terran', 'capital' ],

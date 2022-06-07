@@ -22,4 +22,4 @@ firing_delay = 0.0
 projectile_mesh_path = "res://weapons/meshes/electron_beam.mesh"
 firing_heat = 0.8
 firing_energy = 8.0
-energy_fraction = 0.2
+energy_fraction = 0.35

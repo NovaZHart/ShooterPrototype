@@ -26,4 +26,4 @@ turn_rate = 2.5
 projectile_mesh_path = "res://weapons/meshes/electron_beam.mesh"
 firing_heat = 0.7
 firing_energy = 7.0
-energy_fraction = 0.2
+energy_fraction = 0.35
