@@ -1,0 +1,121 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=1]
+[ext_resource path="res://ships/CargoPodShips/PodSpawnPoint.gd" type="Script" id=2]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=3]
+[ext_resource path="res://ships/Salvage.tscn" type="PackedScene" id=4]
+[ext_resource path="res://ships/CargoPodShips/Monopod.mesh" type="ArrayMesh" id=5]
+
+[sub_resource type="ConvexPolygonShape" id=1]
+points = PoolVector3Array( 0, 1, 10, 0, 1, -10, 0, 1, 10, 0, 1, -10, -1, -1, 10, 1, -1, -10, 1, -1, 10, -1, -1, -10, 0, 1, 10, 0, 1, -10, 0, 1, -10, 0, 1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10, -1, -1, 10, -1, -1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10 )
+
+[node name="OnePodShip" type="RigidBody"]
+script = ExtResource( 3 )
+help_page = "hulls/monopod-hauler"
+base_mass = 284.0
+base_shields = 2400.0
+base_armor = 2200.0
+base_structure = 800.0
+base_fuel = 19.0
+heal_fuel = 20.0
+base_drag = 1.8
+base_turn_drag = 0.6
+base_max_cargo = 300
+override_size = Vector3( 2.8, 0, 3.6 )
+
+[node name="Hull" type="MeshInstance" parent="."]
+mesh = ExtResource( 5 )
+material/0 = null
+material/1 = null
+material/2 = null
+material/3 = null
+
+[node name="PodSpawnPoint" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.042, 0.72, 0 )
+script = ExtResource( 2 )
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( -8.62665e-08, 1.49483, -4.37114e-08, 0, -6.53411e-08, -1, -1.97355, -6.53411e-08, 1.91069e-15, 0.398085, -1.74008e-08, -1.74008e-08 )
+shape = SubResource( 1 )
+
+[node name="PortEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.37716, 0, -0.949121 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="StarboardEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.377, 0, 0.949 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="ExternalEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.328, 0, 0 )
+script = ExtResource( 1 )
+mount_size_x = 4
+mount_size_y = 2
+mount_type = "external equipment"
+mount_type_display = "external equipment"
+
+[node name="StarboardTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.075, 0.619, 0.948 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="PortTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0747703, 0.619, -0.947993 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="StarboardGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.61019, -0.142, 0.644464 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="PortGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.61, -0.142, -0.644 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="Equipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.390945, 0 )
+script = ExtResource( 1 )
+mount_size_x = 3
+mount_size_y = 6
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="Salvage" parent="." instance=ExtResource( 4 )]
+flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
+flotsam_scale = 0.3
+product_name = "diamonds"
+product_count = 1
+armor_repair = 40
+structure_repair = 100
+spawn_probability = 0.99
+
+[node name="Salvage2" parent="." instance=ExtResource( 4 )]
+flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
+flotsam_scale = 0.3
+product_name = "diamonds"
+product_count = 1
+armor_repair = 40
+structure_repair = 100
+spawn_probability = 0.99

@@ -7,7 +7,7 @@ This mid-sized military-grade vessel is a standard policing craft, intended to d
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/GreyBlue/ThreeWingWarship.tscn
+@bbcode_from_scene res://ships/Police/Bufeo.tscn
 
 @PAGE hulls/monopod-hauler
 @title Monopod Hauler
@@ -18,7 +18,7 @@ Bulk cargo transport throughout Terran space is done with massive cargo pods. Th
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/CargoPodShips/OnePodShip.tscn
+@bbcode_from_scene res://ships/CargoPodShips/Monopod.tscn
 
 @PAGE hulls/bipod-hauler
 @title Bipod Hauler
@@ -29,7 +29,7 @@ This two-pod cargo hauler has substantial armaments, comparable to mid-sized war
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/CargoPodShips/TwoPodShip.tscn
+@bbcode_from_scene res://ships/CargoPodShips/Bipod.tscn
 
 @PAGE hulls/hexapod-hauler
 @title Hexapod Hauler
@@ -40,7 +40,7 @@ The only capital-class ship available to civilians, this massive cargo ship carr
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/CargoPodShips/SixPodShip.tscn
+@bbcode_from_scene res://ships/CargoPodShips/Hexapod.tscn
 
 @PAGE hulls/husky
 @title Husky Racing Yacht
@@ -53,7 +53,7 @@ One of the remarkable technological achievements of this yacht rebuild is its pa
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/SmallCivilian/SmallFastShip.tscn
+@bbcode_from_scene res://ships/SmallCivilian/Husky.tscn
 
 @PAGE hulls/thoroughbred
 @title Thoroughbred Starliner
@@ -77,7 +77,7 @@ Though this ship is almost unarmed, its cargo capacity is nonetheless impressive
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/SmallCivilian/SmallBarrelShip.tscn
+@bbcode_from_scene res://ships/SmallCivilian/Samoyed.tscn
 
 @PAGE hulls/qimmeq
 @title Qimmeq Freighter Hull
@@ -88,9 +88,9 @@ This cargo ship is faster than most cargo ships of its weight class. Between spe
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/SmallCivilian/SpikyTriangle.tscn
+@bbcode_from_scene res://ships/SmallCivilian/Qimmeq.tscn
 
-@PAGE hulls/bufeo
+@PAGE hulls/popoto
 @title Popoto Interceptor Hull
 @price Price:
 @synopsis Fast military interceptor.
@@ -99,7 +99,7 @@ Though most military-grade ships are built much heavier than their civilian coun
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/GreyBlue/GreyBlueInterceptor.tscn
+@bbcode_from_scene res://ships/Police/Popoto.tscn
 
 @PAGE hulls/orca
 @title Orca Warship Hull
@@ -110,7 +110,7 @@ This is the standard military warship intended to take on any threats in human s
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/GreyBlue/FourWingWarship.tscn
+@bbcode_from_scene res://ships/Police/Orca.tscn
 
 @PAGE hulls/ankylorhiza
 @title Ankylorhiza Capital Ship Hull
@@ -121,7 +121,7 @@ Though these massive ships carry a deadly arsenal, they're most often used for p
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/GreyBlue/CommandShip.tscn
+@bbcode_from_scene res://ships/Police/Ankylorhiza.tscn
 
 @PAGE hulls/peregrine
 @title Peregrine Interceptor Hull
@@ -132,7 +132,7 @@ This civilian-grade ship is built mostly for speed, to hunt down enemies using s
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/PurpleShips/InterceptorHull.tscn
+@bbcode_from_scene res://ships/FrontierMilitia/Peregrine.tscn
 
 @PAGE hulls/raven
 @title Raven Warship Hull
@@ -143,7 +143,7 @@ A civilian-grade warship with a good mix of shields and armor, with a decent arm
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/PurpleShips/WarshipHull.tscn
+@bbcode_from_scene res://ships/FrontierMilitia/Raven.tscn
 
 @PAGE hulls/eagle
 @title Eagle Warship Hull
@@ -154,7 +154,7 @@ The civilian-grade Eagle is a support ship, designed to fight in small groups, o
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/PurpleShips/CurvyWarshipHull.tscn
+@bbcode_from_scene res://ships/FrontierMilitia/Eagle.tscn
 
 @PAGE hulls/condor
 @title Condor Capital Ship Hull
@@ -165,7 +165,7 @@ This massive ship is durable by every measure, and focuses on all-round firepowe
 
 Stats with empty hull:
 
-@bbcode_from_scene res://ships/PurpleShips/HeavyWarshipHull.tscn
+@bbcode_from_scene res://ships/FrontierMilitia/Condor.tscn
 
 @PAGE hulls/banner_ship
 @title Banner Ship Hull

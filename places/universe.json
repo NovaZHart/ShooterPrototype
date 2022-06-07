@@ -2134,7 +2134,7 @@
           "Laser-Wave Raven",
           [
               "Resource",
-              "res://ships/PurpleShips/WarshipHull.tscn"
+              "res://ships/FrontierMilitia/Raven.tscn"
           ],
           {
               "AuxEngine": [
@@ -2257,7 +2257,7 @@
             "Laser Samoyed",
             [
                 "Resource",
-                "res://ships/SmallCivilian/SmallBarrelShip.tscn"
+                "res://ships/SmallCivilian/Samoyed.tscn"
             ],
             {
                 "Turret": [
@@ -2357,7 +2357,7 @@
             "Missile Qimmeq",
             [
                 "Resource",
-                "res://ships/SmallCivilian/SpikyTriangle.tscn"
+                "res://ships/SmallCivilian/Qimmeq.tscn"
             ],
             {
                 "PortGun": [
@@ -2653,7 +2653,7 @@
             "Husky",
             [
                 "Resource",
-                "res://ships/SmallCivilian/SmallFastShip.tscn"
+                "res://ships/SmallCivilian/Husky.tscn"
             ],
             {
                 "StarboardEngine": [
@@ -2769,7 +2769,7 @@
           "Rail-Missile Raven",
           [
               "Resource",
-              "res://ships/PurpleShips/WarshipHull.tscn"
+              "res://ships/FrontierMilitia/Raven.tscn"
           ],
           {
               "AuxEngine": [
@@ -2893,7 +2893,7 @@
           "Particle Raven",
           [
               "Resource",
-              "res://ships/PurpleShips/WarshipHull.tscn"
+              "res://ships/FrontierMilitia/Raven.tscn"
           ],
           {
               "AuxEngine": [
@@ -3016,7 +3016,7 @@
           "Monopod Hauler (Plasma)",
           [
               "Resource",
-              "res://ships/CargoPodShips/OnePodShip.tscn"
+              "res://ships/CargoPodShips/Monopod.tscn"
           ],
           {
               "Equipment": [
@@ -3152,7 +3152,7 @@
           "Monopod Hauler (Missiles)",
           [
               "Resource",
-              "res://ships/CargoPodShips/OnePodShip.tscn"
+              "res://ships/CargoPodShips/Monopod.tscn"
           ],
           {
               "Equipment": [
@@ -3288,7 +3288,7 @@
           "Bipod (Lasers+Missiles)",
           [
               "Resource",
-              "res://ships/CargoPodShips/TwoPodShip.tscn"
+              "res://ships/CargoPodShips/Bipod.tscn"
           ],
           {
               "PortEngine": [
@@ -3443,7 +3443,7 @@
           "Hexapod (Plasma+Missiles)",
           [
               "Resource",
-              "res://ships/CargoPodShips/SixPodShip.tscn"
+              "res://ships/CargoPodShips/Hexapod.tscn"
           ],
           {
               "PortAuxGun": [
@@ -3763,7 +3763,7 @@
             "Particle Eagle",
             [
                 "Resource",
-                "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+                "res://ships/FrontierMilitia/Eagle.tscn"
             ],
             {
                 "AuxEngine": [
@@ -3900,7 +3900,7 @@
           "Laser Eagle",
           [
               "Resource",
-              "res://ships/PurpleShips/CurvyWarshipHull.tscn"
+              "res://ships/FrontierMilitia/Eagle.tscn"
           ],
           {
               "AuxEngine": [
@@ -4037,7 +4037,7 @@
             "Ankylorhiza (Missiles+Particles)",
             [
                 "Resource",
-                "res://ships/GreyBlue/CommandShip.tscn"
+                "res://ships/Police/Ankylorhiza.tscn"
             ],
             {
                 "PortAuxEngine": [
@@ -4256,7 +4256,7 @@
               "Ankylorhiza (Lasers)",
               [
                   "Resource",
-                  "res://ships/GreyBlue/CommandShip.tscn"
+                  "res://ships/Police/Ankylorhiza.tscn"
               ],
               {
                   "PortAuxEngine": [
@@ -4484,7 +4484,7 @@
               "Ankylorhiza (Particles)",
               [
                   "Resource",
-                  "res://ships/GreyBlue/CommandShip.tscn"
+                  "res://ships/Police/Ankylorhiza.tscn"
               ],
               {
                   "PortAuxEngine": [
@@ -4703,7 +4703,7 @@
           "Ankylorhiza (Missiles+Lasers)",
           [
               "Resource",
-              "res://ships/GreyBlue/CommandShip.tscn"
+              "res://ships/Police/Ankylorhiza.tscn"
           ],
           {
               "PortAuxEngine": [
@@ -4922,7 +4922,7 @@
           "Missile+Particle Orca",
           [
               "Resource",
-              "res://ships/GreyBlue/FourWingWarship.tscn"
+              "res://ships/Police/Orca.tscn"
           ],
           {
               "CenterGun": [
@@ -5088,7 +5088,7 @@
           "Particle Orca",
           [
               "Resource",
-              "res://ships/GreyBlue/FourWingWarship.tscn"
+              "res://ships/Police/Orca.tscn"
           ],
           {
               "CenterGun": [
@@ -5254,7 +5254,7 @@
           "Missile+Laser Orca",
           [
               "Resource",
-              "res://ships/GreyBlue/FourWingWarship.tscn"
+              "res://ships/Police/Orca.tscn"
           ],
           {
               "CenterGun": [
@@ -5420,7 +5420,7 @@
           "Laser Orca",
           [
               "Resource",
-              "res://ships/GreyBlue/FourWingWarship.tscn"
+              "res://ships/Police/Orca.tscn"
           ],
           {
               "CenterGun": [
@@ -5586,7 +5586,7 @@
             "Particle Bufeo",
             [
                 "Resource",
-                "res://ships/GreyBlue/ThreeWingWarship.tscn"
+                "res://ships/Police/Bufeo.tscn"
             ],
             {
                 "ExternalEquipment": [
@@ -5743,7 +5743,7 @@
           "Laser Bufeo",
           [
               "Resource",
-              "res://ships/GreyBlue/ThreeWingWarship.tscn"
+              "res://ships/Police/Bufeo.tscn"
           ],
           {
               "ExternalEquipment": [
@@ -5900,7 +5900,7 @@
           "Laser Popoto",
           [
               "Resource",
-              "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
+              "res://ships/Police/Popoto.tscn"
           ],
           {
               "Engine": [
@@ -6007,7 +6007,7 @@
           "Particle Popoto",
           [
               "Resource",
-              "res://ships/GreyBlue/GreyBlueInterceptor.tscn"
+              "res://ships/Police/Popoto.tscn"
           ],
           {
               "Engine": [
@@ -6762,7 +6762,7 @@
           "Divine Raptor",
           [
               "Resource",
-              "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+              "res://ships/FrontierMilitia/Condor.tscn"
           ],
           {
               "NeckEquipment": [
@@ -6907,7 +6907,7 @@
           "Particle Peregrine",
           [
               "Resource",
-              "res://ships/PurpleShips/InterceptorHull.tscn"
+              "res://ships/FrontierMilitia/Peregrine.tscn"
           ],
           {
               "ExternalEquipment": [
@@ -7011,7 +7011,7 @@
             "Missile Peregrine",
             [
                 "Resource",
-                "res://ships/PurpleShips/InterceptorHull.tscn"
+                "res://ships/FrontierMilitia/Peregrine.tscn"
             ],
             {
                 "ExternalEquipment": [
@@ -7115,7 +7115,7 @@
           "Laser Peregrine",
           [
               "Resource",
-              "res://ships/PurpleShips/InterceptorHull.tscn"
+              "res://ships/FrontierMilitia/Peregrine.tscn"
           ],
           {
               "ExternalEquipment": [
@@ -7220,7 +7220,7 @@
             "Laser Condor",
             [
                 "Resource",
-                "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+                "res://ships/FrontierMilitia/Condor.tscn"
             ],
             {
                 "NeckEquipment": [
@@ -7487,7 +7487,7 @@
           "Particle Condor",
           [
               "Resource",
-              "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+              "res://ships/FrontierMilitia/Condor.tscn"
           ],
           {
               "NeckEquipment": [
@@ -7754,7 +7754,7 @@
           "Rail Gun Condor",
           [
               "Resource",
-              "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+              "res://ships/FrontierMilitia/Condor.tscn"
           ],
           {
               "NeckEquipment": [
@@ -8021,7 +8021,7 @@
               "Missile Condor",
               [
                   "Resource",
-                  "res://ships/PurpleShips/HeavyWarshipHull.tscn"
+                  "res://ships/FrontierMilitia/Condor.tscn"
               ],
               {
                   "NeckEquipment": [

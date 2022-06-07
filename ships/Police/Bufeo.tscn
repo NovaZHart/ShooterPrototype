@@ -1,0 +1,127 @@
+[gd_scene load_steps=7 format=2]
+
+[ext_resource path="res://ships/Police/Bufeo.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://ships/ShipStats.gd" type="Script" id=2]
+[ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
+[ext_resource path="res://ships/Salvage.tscn" type="PackedScene" id=4]
+
+[sub_resource type="BoxShape" id=1]
+extents = Vector3( 0.760902, 20, 1.13659 )
+
+[sub_resource type="ConvexPolygonShape" id=2]
+points = PoolVector3Array( 0, 1.3, 10, 0, 1.3, -10, 0, 1.3, 10, 0, 1.3, -10, -1.5, -1.3, 10, 1.5, -1.3, -10, 1.5, -1.3, 10, -1.5, -1.3, -10, 0, 1.3, 10, 0, 1.3, -10, 0, 1.3, -10, 0, 1.3, 10, 1.5, -1.3, 10, -1.5, -1.3, -10, 1.5, -1.3, -10, -1.5, -1.3, 10, -1.5, -1.3, 10, 1.5, -1.3, 10, -1.5, -1.3, -10, 1.5, -1.3, -10 )
+
+[node name="RigidBody" type="RigidBody"]
+script = ExtResource( 2 )
+help_page = "hulls/bufeo"
+base_mass = 110.0
+base_shields = 2900.0
+base_armor = 3800.0
+base_structure = 1200.0
+base_fuel = 13.0
+heal_fuel = 25.0
+base_turn_drag = 0.4
+base_max_cargo = 17
+armor_inverse_density = 300.0
+override_size = Vector3( 2.3, 0, 3.4 )
+
+[node name="MeshInstance" type="MeshInstance" parent="."]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+
+[node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.404909, 0, 0 )
+shape = SubResource( 1 )
+
+[node name="CollisionShape2" type="CollisionShape" parent="."]
+transform = Transform( -1.71067e-07, 0.94, -4.37114e-08, 0, -4.10887e-08, -1, -1.05, -1.53145e-07, 7.12149e-15, 0.0949303, 0, 0 )
+shape = SubResource( 2 )
+
+[node name="SmallEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.186223, 0, -0.494997 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="LargeEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.342137, 0, 0.497438 )
+script = ExtResource( 3 )
+mount_size_x = 3
+mount_size_y = 3
+mount_type = "internal equipment"
+mount_type_display = "equipment"
+
+[node name="StarboardGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.702743, -0.953798, 0.891 )
+script = ExtResource( 3 )
+mount_size_y = 4
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="PortGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.702285, -0.953741, -0.890809 )
+script = ExtResource( 3 )
+mount_size_y = 4
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="Turret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.573084, -0.278597, -0.773574 )
+script = ExtResource( 3 )
+mount_size_x = 3
+mount_size_y = 3
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="AntiMissileTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.668631, -0.368045, 1.09699 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external turret"
+mount_type_display = "turret"
+
+[node name="MainCannon" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.533019, 0.181, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="MainEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.02383, 0, -0.923807 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="AuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.024, -0.653, 0.924 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
+[node name="ExternalEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.024, -0.653, 0 )
+script = ExtResource( 3 )
+mount_size_x = 2
+mount_size_y = 3
+mount_type = "external equipment"
+mount_type_display = "external equipment"
+
+[node name="Salvage" parent="." instance=ExtResource( 4 )]
+flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
+flotsam_scale = 0.3
+product_name = "diamonds"
+product_count = 1
+armor_repair = 40
+structure_repair = 100
+spawn_probability = 0.99
