@@ -30,8 +30,8 @@ const AVG_PRICE: int = 2
 const MAX_PRICE: int = 3
 export var mode: int = NAVIGATIONAL
 
-const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
-const StarmapSystemShader: Shader = preload('res://ui/StarmapSystem.shader')
+const MapItemShader: Shader = preload('res://shaders/MapItem.shader')
+const StarmapSystemShader: Shader = preload('res://shaders/StarmapSystem.shader')
 const StarmapLibrary = preload('res://bin/Starmap.gdns')
 const SELECT_EPSILON: float = 0.007
 const fake_system_name: String = '\t'

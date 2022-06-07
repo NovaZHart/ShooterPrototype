@@ -2,14 +2,14 @@ extends Node
 
 var GDNativeVisualEffects = preload("res://bin/VisualEffects.gdns")
 var GDNativeCombatEngine = preload("res://bin/CombatEngine.gdns")
-var RiftShader = preload('res://places/Rift.shader')
-var ZapBallShader = preload('res://places/ZapBall.shader')
-var HyperspacingPolygonShader = preload('res://places/HyperspacingPolygon.shader')
+var RiftShader = preload('res://shaders/Rift.shader')
+var ZapBallShader = preload('res://shaders/ZapBall.shader')
+var HyperspacingPolygonShader = preload('res://shaders/HyperspacingPolygon.shader')
 var native_combat_engine
 var native_visual_effects
 var hyperspacing_texture = preload('res://textures/blue-squiggles.jpeg')
 var cargo_puff_texture = preload('res://textures/magenta-beige-puff.png')
-var fade_out_texture = preload('res://textures/FadeOutTexture.shader')
+var fade_out_texture = preload('res://shaders/FadeOutTexture.shader')
 
 # All constants MUST match src/CombatEngineData.hpp
 

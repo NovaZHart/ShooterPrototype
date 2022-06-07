@@ -16,7 +16,7 @@ var messages = [
 var message_index: int = -1
 	
 var have_sent_texture: bool = false
-var shader = preload('res://ships/BannerShip/Advertisment.shader')
+var shader = preload('res://shaders/Advertisment.shader')
 var left_shader: ShaderMaterial = ShaderMaterial.new()
 var right_shader: ShaderMaterial = ShaderMaterial.new()
 var counter: float = 0

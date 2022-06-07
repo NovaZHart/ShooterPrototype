@@ -1,7 +1,7 @@
 extends Spatial
 
-const MapAnnotationShader: Shader = preload('res://ui/edit/MapAnnotation.shader')
-const AnnulusShader: Shader = preload('res://ui/Annulus.shader')
+const MapAnnotationShader: Shader = preload('res://shaders/MapAnnotation.shader')
+const AnnulusShader: Shader = preload('res://shaders/Annulus.shader')
 const annotation3d_thickness: float = 2.0
 
 var object_path: NodePath = NodePath()

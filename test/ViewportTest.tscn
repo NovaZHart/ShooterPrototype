@@ -1,6 +1,6 @@
 [gd_scene load_steps=7 format=2]
 
-[ext_resource path="res://places/CubePlanetTilesV2.shader" type="Shader" id=1]
+[ext_resource path="res://shaders/CubePlanetTilesV2.shader" type="Shader" id=1]
 
 [sub_resource type="ShaderMaterial" id=1]
 resource_local_to_scene = true

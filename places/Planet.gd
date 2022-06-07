@@ -5,10 +5,10 @@ const allowed_texture_sizes = [ 128, 256, 512, 1024] #, 2048 ]
 
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
-#var CubePlanetTiles = preload("CubePlanetTilesNoNormal.shader")
-var CubePlanetTiles = preload("CubePlanetTilesV2.shader")
-var simple_planet_shader = preload('SimplePlanetV2.shader')
-var simple_sun_shader = preload('SimpleSunV2.shader')
+#var CubePlanetTiles = preload("res://shaders/CubePlanetTilesNoNormal.shader")
+var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV2.shader")
+var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
+var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
 var u_size: int
 var v_size: int

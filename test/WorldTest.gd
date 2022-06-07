@@ -8,10 +8,10 @@ var tick: int = 0
 var noise_texture: ViewportTexture
 
 onready var SphereTool = preload('res://bin/spheretool.gdns')
-onready var simple_planet_shader = preload('res://places/SimplePlanetV2.shader')
-onready var simple_sun_shader = preload('res://places/SimpleSunV2.shader')
-onready var sphere_test_shader = preload('res://test/sphere_test.shader')
-onready var cube_tile_shader = preload("res://places/CubePlanetTilesV2.shader")
+onready var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
+onready var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
+onready var sphere_test_shader = preload('res://shaders/sphere_test.shader')
+onready var cube_tile_shader = preload("res://shaders/CubePlanetTilesV2.shader")
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
 	var view=Viewport.new()

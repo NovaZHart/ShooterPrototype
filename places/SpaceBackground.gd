@@ -21,10 +21,10 @@ const background_size: float = 512.0
 const background_uv2: float = 8.0
 var have_sent_texture: Dictionary = {}
 
-onready var SpaceBackgroundShader = preload("res://places/SpaceBackground.shader")
-onready var TiledImageShader = preload("res://places/TiledImage.shader")
-onready var HyperspaceShader = preload("res://places/Hyperspace.shader")
-onready var StarFieldGenerator = preload("res://places/StarFieldGenerator.shader")
+onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
+onready var TiledImageShader = preload("res://shaders/TiledImage.shader")
+onready var HyperspaceShader = preload("res://shaders/Hyperspace.shader")
+onready var StarFieldGenerator = preload("res://shaders/StarFieldGenerator.shader")
 
 func send_viewport_texture(cached, viewport: Viewport, shader_param: String,
 		tex: ViewportTexture, object: MeshInstance, flags: int = -1) -> ViewportTexture:

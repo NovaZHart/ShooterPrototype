@@ -6,7 +6,7 @@ const FONT_SIZE = MIN_WIDTH-2*PIXEL_MARGIN
 const MAX_WIDTH = 4096
 const DUMMY_TEXT = 'MMMM'
 
-const ImageLabelShader = preload('res://ui/ImageLabel.shader')
+const ImageLabelShader = preload('res://shaders/ImageLabel.shader')
 
 # Inputs:
 var text: String

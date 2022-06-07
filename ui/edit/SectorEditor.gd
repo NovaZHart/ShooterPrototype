@@ -13,7 +13,7 @@ export var max_camera_size: float = 150
 export var label_font: Font
 export var highlighted_font: Font
 
-const MapItemShader: Shader = preload('res://ui/edit/MapItem.shader')
+const MapItemShader: Shader = preload('res://shaders/MapItem.shader')
 const RESULT_NONE: int = 0
 const RESULT_CANCEL: int = 1
 const RESULT_ACTION: int = 02
