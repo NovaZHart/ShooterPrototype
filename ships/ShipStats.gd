@@ -52,7 +52,7 @@ export var base_power: float = -1
 
 export var ai_type: int = 0 setget set_ai_type
 
-export var cargo_puff: Mesh = preload('res://meshes/cargo-puff.mesh');
+export var cargo_puff: Mesh = preload('res://effects/meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
                                                                #  0    1    2    3    4    5    6    7    8    9    10   11   12
