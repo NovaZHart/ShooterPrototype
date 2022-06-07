@@ -1,6 +1,6 @@
 [gd_scene load_steps=3 format=2]
 
-[ext_resource path="res://weapons/meshes/NuclearPumpedLaser1x1.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://weapons/IAPolice/NuclearPumpedLaser1x1.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
