@@ -34,6 +34,7 @@ Player="*res://globals/Player.gd"
 mesh_loader="*res://globals/MeshLoaderNode.gd"
 builtin_commands="*res://globals/Commands.gd"
 input_state="*res://globals/InputState.gd"
+PreloadResources="*res://globals/PreloadResources.gd"
 
 [display]
 

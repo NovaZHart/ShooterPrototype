@@ -1,3 +1,4 @@
+#include "PreloadResources.hpp"
 #include "CombatEngine.hpp"
 #include "Starmap.hpp"
 #include "SphereTool.hpp"
@@ -16,6 +17,7 @@ extern "C" void GDN_EXPORT godot_nativescript_init(void *handle) {
 
     godot::register_class<godot::CombatEngine>();
     godot::register_class<godot::VisualEffects>();
+    godot::register_class<godot::PreloadResources>();
     godot::register_class<godot::SphereTool>();
     godot::register_class<godot::Starmap>();
 }

@@ -1,5 +1,5 @@
 #ifndef COMBATENGINE_H
-#define COMBATENTINE_H
+#define COMBATENGINE_H
 
 #include <unordered_set>
 #include <unordered_map>
