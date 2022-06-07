@@ -129,7 +129,7 @@ shape = SubResource( 1 )
 shape = SubResource( 2 )
 
 [node name="Salvage" parent="." instance=ExtResource( 4 )]
-flotsam_mesh_path = "weapons/meshes/MassDriver.mesh"
+flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1
