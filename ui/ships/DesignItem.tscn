@@ -20,9 +20,6 @@ mouse_filter = 1
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 small_code = ExtResource( 8 )
 
 [node name="View" type="ViewportContainer" parent="."]

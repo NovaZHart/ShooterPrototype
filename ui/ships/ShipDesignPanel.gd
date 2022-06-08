@@ -303,7 +303,6 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 			designs_to_show[design_paths[first_design_shown+i]]=1
 	
 	pass # FIXME: implement fill_missing=false?
-	
 	for i in range(count_designs_to_show):
 		var allow_add = len(designs_shown)<$All/Buttons/Zoom.value
 		if len(design_paths)>first_design_shown+i:
