@@ -5,6 +5,8 @@ var help_loader = LoadHelp.new()
 var help_pages: Dictionary = {}
 var made_help_tree = null
 
+var rendered_images: Dictionary = Dictionary()
+
 func _init():
 	help_pages = help_loader.load_help_pages()
 
@@ -79,6 +81,10 @@ func combined_aabb(node: Node):
 	return result
 
 func load_page_scene(scene_name: String, id: String, stats_mode: bool = false) -> Array:
+	var have = rendered_images.get(id,[null,null,null])
+	if have[2]!=null:
+		return [have[0],have[1]]
+	
 	var scene = null
 	if not scene_name:
 		return [null,null]
@@ -127,6 +133,7 @@ func load_page_scene(scene_name: String, id: String, stats_mode: bool = false) -
 	itex.create_from_image(image)
 	res='res://help/rendered/'+id+'/scene_image'
 	itex.take_over_path(res)
+	rendered_images[id]=[bbcode,res,itex]
 	
 	$Viewport/Content.remove_child(scene)
 	scene.queue_free()
