@@ -4,21 +4,18 @@ export var resource_path_list="res://data/resources_to_preload.json"
 var GDNativePreloadResources = preload("res://bin/PreloadResources.gdns")
 
 var preloader
-var preloader_thread
 var die: bool = false
 
 func _ready():
 	preloader=GDNativePreloadResources.new()
-	preloader_thread=Thread.new()
-	var result = preloader_thread.start(self,'thread_main',null,Thread.PRIORITY_LOW)
-	if result!=OK:
-		printerr('PreloadResources: Could not start thread for self.thread_main(). Error #',result)
 
-func _exit_tree():
-	print("Killing preloader thread.")
-	die=true
-	preloader_thread.wait_to_finish()
-	print("Preloader thread has finished.")
+func _process(_delta):
+	var resource_list: Array = get_resource_path_list()
+	preloader.add_resources(resource_list)
+	# fixme: split this across multiple frames.
+	var loaded = preloader.load_resources()
+	print("Preloaded "+str(loaded)+" resources.")
+	set_process(false)
 
 func get_resource_path_list() -> Array:
 	var file: File = File.new()
@@ -36,25 +33,3 @@ func get_resource_path_list() -> Array:
 		return []
 	return parsed.result
 
-# Called when the node enters the scene tree for the first time.
-func thread_main(_userdata):
-	if preloader == null:
-		printerr("No preloader available to PreloadResources.thread_main. Will not preload any resources.")
-		return
-	var resource_list: Array = get_resource_path_list()
-	if not resource_list:
-		printerr("PreloadResources resource list is empty. Will not preload any resources.")
-		return
-	preloader.add_resources(resource_list)
-	while not die:
-		var count = preloader.load_resources()
-		if count:
-			print("Loaded "+str(count)+" resources in the background.")
-		yield(get_tree().create_timer(1/60.0),"timeout")
-
-func timeout():
-	pass
-
-# Called every frame. 'delta' is the elapsed time since the previous frame.
-#func _process(delta):
-#	pass
