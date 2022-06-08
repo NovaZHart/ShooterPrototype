@@ -178,8 +178,6 @@
     "res://weapons/Old/BigRedMissileLauncher.tscn",
     "res://weapons/FrontierMilitia/MagneticRailGun1x3.mesh",
     "res://weapons/FrontierMilitia/ElectronGun3x4.tscn",
-    "res://weapons/FrontierMilitia/ElectronTurret.tscn",
-    "res://weapons/FrontierMilitia/ElectronTurret.mesh",
     "res://weapons/FrontierMilitia/MagneticRailGun1x4.tscn",
     "res://weapons/FrontierMilitia/ElectronGun3x4.mesh",
     "res://weapons/FrontierMilitia/MagneticRailGun1x3.tscn",
@@ -188,13 +186,17 @@
     "res://weapons/FrontierMilitia/MagneticRailTurret.mesh",
     "res://weapons/FrontierMilitia/MagneticRailTurret.tscn",
     "res://weapons/FrontierMilitia/ElectronGun2x4.mesh",
+    "res://weapons/FrontierMilitia/ElectronTurret3x3.tscn",
     "res://weapons/FrontierMilitia/ElectronGun1x3.tscn",
     "res://weapons/FrontierMilitia/MassDriver.tscn",
     "res://weapons/FrontierMilitia/MassDriverTurret.tscn",
     "res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn",
     "res://weapons/FrontierMilitia/ElectronGun1x4.tscn",
+    "res://weapons/FrontierMilitia/ElectronTurret4x4.mesh",
     "res://weapons/FrontierMilitia/ElectronGun1x4.mesh",
+    "res://weapons/FrontierMilitia/ElectronTurret3x3.mesh",
     "res://weapons/FrontierMilitia/ElectronGun2x4.tscn",
+    "res://weapons/FrontierMilitia/ElectronTurret4x4.tscn",
     "res://weapons/FrontierMilitia/MassDriver.mesh",
     "res://weapons/FrontierMilitia/MagneticRailGun2x4.mesh",
     "res://weapons/FrontierMilitia/MagneticRailGun1x4.mesh",
@@ -303,4 +305,3 @@
     "res://ships/SmallCivilian/Samoyed.mesh",
     "res://effects/meshes/cargo-puff.mesh"
 ]
-

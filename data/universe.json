@@ -3951,7 +3951,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/FrontierMilitia/ElectronTurret.tscn"
+                      "res://weapons/FrontierMilitia/ElectronTurret3x3.tscn"
                   ]
               ],
               "StarboardGun": [
