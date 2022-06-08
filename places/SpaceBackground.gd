@@ -136,13 +136,13 @@ func get_textures_from_cache():
 	if bg_cache and bg_cache.bg_color==plasma_color and bg_cache.bg_seed==plasma_seed \
 			and bg_cache.hyperspace==hyperspace and bg_cache.bg_texture:
 		bg_okay = true
-	elif bg_cache and bg_cache.bg_texture:
-		print('background mismatch:')
-		print('bg_color '+str(plasma_color)+' vs. '+str(bg_cache.bg_color))
-		print('bg_seed '+str(plasma_seed)+' vs. '+str(bg_cache.bg_seed))
-		print('hyperspace '+str(hyperspace)+' vs. '+str(bg_cache.hyperspace))
-	else:
-		print('no background cached')
+#	elif bg_cache and bg_cache.bg_texture:
+#		print('background mismatch:')
+#		print('bg_color '+str(plasma_color)+' vs. '+str(bg_cache.bg_color))
+#		print('bg_seed '+str(plasma_seed)+' vs. '+str(bg_cache.bg_seed))
+#		print('hyperspace '+str(hyperspace)+' vs. '+str(bg_cache.hyperspace))
+#	else:
+#		print('no background cached')
 
 	if not hyperspace:
 		var sf_cache = game_state.get_starfield_cache()
@@ -150,27 +150,27 @@ func get_textures_from_cache():
 		if sf_cache and sf_cache.bg_seed==starfield_seed and sf_cache.hyperspace==hyperspace \
 				and sf_cache.bg_texture:
 			sf_okay = true
-		elif sf_cache:
-			print('starfield mismatch:')
-			print('bg_seed '+str(starfield_seed)+' vs. '+str(sf_cache.bg_seed))
-			print('hyperspace '+str(hyperspace)+' vs. '+str(sf_cache.hyperspace))
-		else:
-			print('no starfield cached')
+#		elif sf_cache:
+#			print('starfield mismatch:')
+#			print('bg_seed '+str(starfield_seed)+' vs. '+str(sf_cache.bg_seed))
+#			print('hyperspace '+str(hyperspace)+' vs. '+str(sf_cache.hyperspace))
+#		else:
+#			print('no starfield cached')
 		if sf_okay and bg_okay:
-			print('get starfield from cache')
+#			print('get starfield from cache')
 			cached_starfield_texture = sf_cache.bg_texture
 	
 	if bg_okay and sf_okay:
-		print('get background from cache')
+#		print('get background from cache')
 		cached_background_texture = bg_cache.bg_texture
 
 func _ready():
 	get_textures_from_cache()
 	if not cached_background_texture:
-		print('make background viewport')
+#		print('make background viewport')
 		make_background_viewport()
 	if not cached_starfield_texture:
-		print('make starfield viewport')
+#		print('make starfield viewport')
 		make_starfield_viewport()
 	make_background()
 	
@@ -244,21 +244,21 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	view_mat.set_shader_param('uv2_range',uv2_range)
 
 func send_cached_textures():
-	print('Maybe send cached textures?')
+#	print('Maybe send cached textures?')
 	if background_texture and not cached_background_texture:
-		print('send background')
+#		print('send background')
 		game_state.set_background_cache(game_state.CachedImage.new(
 			plasma_seed, plasma_color, texture_from_viewport(background_texture),
 			hyperspace))
 		if starfield and not cached_starfield_texture:
-			print('send starfield')
+#			print('send starfield')
 			game_state.set_starfield_cache(game_state.CachedImage.new(
 				starfield_seed, Color(), texture_from_viewport(starfield),
 				hyperspace))
-		else:
-			print('no new starfield to send')
-	else:
-		print('no new background to send')
+#		else:
+#			print('no new starfield to send')
+#	else:
+#		print('no new background to send')
 
 func texture_from_viewport(viewport_texture: ViewportTexture):
 	var img = viewport_texture.get_data()
@@ -284,11 +284,11 @@ func _process(var _delta):
 	var done = have_background and (hyperspace or have_starfield)
 	if done:
 		if ticks<0:
-			print('start ticking')
+#			print('start ticking')
 			ticks=0
 		else:
 			ticks += 1
 			if ticks==10:
-				print('defer call and stop processing')
+#				print('defer call and stop processing')
 				call_deferred('send_cached_textures')
 				set_process(not done)

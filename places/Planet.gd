@@ -109,9 +109,9 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	var xyz: ImageTexture
 	if not sphere:
 		var subs: int = clamp(subdivisions/4.0,6,28) # choose_subdivisions(subdivisions)
-		print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
+		#print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
 		u_size = choose_texture_size(texture_size,texture_size)
-		print('Requested texture size ',texture_size,'; using ',u_size)
+		#print('Requested texture size ',texture_size,'; using ',u_size)
 # warning-ignore:integer_division
 		v_size = u_size/2
 	
