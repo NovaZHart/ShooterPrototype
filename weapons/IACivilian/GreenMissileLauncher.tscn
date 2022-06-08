@@ -32,4 +32,4 @@ ammo_capacity = 6
 reload_delay = 4.5
 firing_heat = 0.25
 firing_energy = 12.0
-heat_fraction = 0.1
+heat_fraction = 0.002
