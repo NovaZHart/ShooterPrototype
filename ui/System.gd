@@ -16,6 +16,9 @@ export var TargetDisplay: PackedScene = preload('res://ui/TargetDisplay.tscn')
 
 const ImageLabelMaker = preload('res://ui/ImageLabelMaker.gd')
 
+var timing: Dictionary = Dictionary()
+var time_start: Array = Array()
+
 var label_maker
 var label_being_made: String
 var finished_making_labels: bool = true
@@ -117,6 +120,10 @@ func _enter_tree():
 	Engine.target_fps = Engine.iterations_per_second
 
 func _exit_tree():
+	print('TIMINGS:')
+	for tm in timing:
+		print(str(tm)+" = "+str(timing[tm]))
+	
 	if old_target_fps != null:
 		Engine.target_fps = old_target_fps
 
@@ -217,40 +224,72 @@ func visible_region_expansion_rate() -> Vector3:
 		ship_stats.get('mass',null))
 	return Vector3(rate,0,rate)
 
+func start_timing():
+	time_start.push_back(OS.get_ticks_usec())
+	
+func end_timing(what):
+	var before = timing.get(what,0)
+	timing[what] = before + OS.get_ticks_usec()-time_start.pop_back()
+
 func _process(delta) -> void:
 	visual_tick += 1
 	assert($TopCamera!=null)
+	
+	start_timing()
+	
+	start_timing()
 	combat_engine.draw_space($TopCamera,get_tree().root)
+	end_timing('combat_engine.draw_space')
 	
 	if ship_stats==null:
+		end_timing('_process')
 		return
 	
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
-
-	if player_ship_stats!=null:
-		emit_signal('player_ship_stats_updated',player_ship_stats)
-		center_view()
 	
+	if player_ship_stats!=null:
+		start_timing()
+		emit_signal('player_ship_stats_updated',player_ship_stats)
+		end_timing('player_ship_stats_updated')
+		start_timing()
+		center_view()
+		end_timing('center_view')
+	
+	start_timing()
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
+	end_timing('set_visible_region')
+	
+	start_timing()
 	combat_engine.step_visual_effects(delta,$TopCamera,get_tree().root)
+	end_timing('step_visual_effects')
 	
 	if player_ship_stats==null:
+		end_timing('_process')
 		return
 	
 	var target_ship_stats = ship_stats.get(player_ship_stats.get('target_name',''),null)
 	if target_ship_stats != null:
+		start_timing()
 		emit_signal('player_target_stats_updated',target_ship_stats)
+		end_timing('player_target_stats_updated')
 
+	start_timing()
 	sync_Ships_with_stat_requests()
+	end_timing('sync_Ships_with_stat_requests')
 
 	var target_info: Dictionary = latest_target_info.duplicate(true)
 	if target_info.get('old','') != target_info.get('new',''):
 		# The target has changed, so we need a new TargetDisplay.
+		start_timing()
 		update_target_display(target_info['old'],target_info['new'])
+		end_timing('update_target_display')
 	
 	if make_labels and not finished_making_labels:
+		start_timing()
 		make_more_labels()
+		end_timing('make_more_labels')
+	end_timing('_process')
 
 func update_target_display(old_target_name: String,new_target_name: String) -> void:
 	assert(old_target_name!=new_target_name)
@@ -395,9 +434,9 @@ func _physics_process(delta):
 			if not item:
 				continue
 			if item['ship_name'] == player_ship_name:
-				print('Player salvaged ',item['count'], \
-					' units of ',item['product_name'],' with unit mass ', \
-					item['unit_mass'])
+#				print('Player salvaged ',item['count'], \
+#					' units of ',item['product_name'],' with unit mass ', \
+#					item['unit_mass'])
 				if item['count']>0:
 					added_items = Player.add_cargo_to_hold(item['product_name'],item['count'])>0 \
 						or added_items
@@ -466,7 +505,7 @@ func land_player() -> int:
 
 func add_spawned_ship(ship: RigidBody,is_player: bool):
 	if is_player:
-		print('restore combat stats ',Player.ship_combat_stats)
+#		print('restore combat stats ',Player.ship_combat_stats)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 	$Ships.add_child(ship)
 	new_ships_mutex.lock()
@@ -485,13 +524,14 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	ship.ai_type=initial_ai
 	ship.set_faction_index(faction_index)
 	if is_player:
-		print('spawn_ship receiving player ship')
+#		print('spawn_ship receiving player ship')
 		ship.name = player_ship_name
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
-		assert(ship.faction_index==0)
-		print('add player ship of design ',str(ship_design))
+		if ship.faction_index!=0:
+			push_warning('Player ship faction index should be 0 but is '+str(ship.faction_index))
+#		print('add player ship of design ',str(ship_design))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 		call_deferred('add_spawned_ship',ship,false)
