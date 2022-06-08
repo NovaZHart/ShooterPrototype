@@ -17,6 +17,8 @@ var last_click: int = -9999999
 var regular_bbcode: String
 var highlight_bbcode: String
 
+var old_path: NodePath = NodePath()
+
 signal activate
 signal hover_start
 signal hover_end
@@ -54,6 +56,8 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	}
 
 func set_design(new_path: NodePath) -> bool:
+	if old_path==new_path:
+		return true
 	var design = game_state.ship_designs.get_node_or_null(new_path)
 	if not design:
 		return false
@@ -95,6 +99,7 @@ func set_design(new_path: NodePath) -> bool:
 #	set_layers(ship,layers)
 	sync_sizes()
 	$View/Port/Annotation.update()
+	old_path=new_path
 	return true
 
 func _on_list_deselect(path):
