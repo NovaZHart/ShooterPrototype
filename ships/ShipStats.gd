@@ -217,7 +217,7 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, q
 			print('restored '+str(varname)+' to '+str(combined_stats[varname]))
 
 func set_stats(stats: Dictionary) -> void:
-	combined_stats = stats.duplicate(true)
+	combined_stats = stats.duplicate(false) # (true)
 
 func set_item_slots(_ignored):
 	var _discard = get_item_slots()
