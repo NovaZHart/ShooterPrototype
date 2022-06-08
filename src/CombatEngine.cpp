@@ -375,9 +375,9 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
       real_t rad = object.radius*radius_scale;
       if(object.flags&VISIBLE_OBJECT_PLAYER_TARGET)
         draw_crosshairs(loc,rad,color);
-      draw_anulus(loc,rad*3-0.75,rad*3+0.75,color,false);
+      draw_anulus(loc,rad,rad+0.75,color,false);
     } else { // ship
-      visual_server->canvas_item_add_circle(canvas,loc,min(2.5f,object.radius/2.0f),color);
+      visual_server->canvas_item_add_circle(canvas,loc,min(2.5f,object.radius),color);
       if(object.flags&(VISIBLE_OBJECT_PLAYER_TARGET|VISIBLE_OBJECT_PLAYER)) {
         rect_draw_heading(object,loc,map_center,map_scale,minimap_center,minimap_half_size,color);
         rect_draw_velocity(object,loc,map_center,map_scale,minimap_center,minimap_half_size,color);
@@ -388,7 +388,10 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
   // Draw only the projectiles within the minimap; skip outsiders.
   //real_t outside=minimap_radius*0.95;
   //real_t outside_squared = outside*outside;
+  int proj=0;
   for(auto &projectile : visible_content->effects) {
+    if(++proj>200)
+      break;
     Vector2 scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) *map_scale;
     if(scaled.x>minimap_half_size.x or scaled.x<-minimap_half_size.x or
        scaled.y>minimap_half_size.y or scaled.y<-minimap_half_size.y)
@@ -751,9 +754,9 @@ void CombatEngine::add_ships_and_planets(const Array &new_ships,const Array &new
     pair<planets_iter,bool> pp_planet = planets.emplace(id, Planet(planet,id));
     rid2id[pp_planet.first->second.rid.get_id()] = id;
   }
-
+  
   rid2id_t has_initial_target;
-
+  
   // Add new ships
   for(int i=0,size=new_ships.size();i<size;i++) {
     Dictionary ship = static_cast<Dictionary>(new_ships[i]);
@@ -812,33 +815,37 @@ void CombatEngine::negate_drag_force(Ship &ship) {
     physics_server->body_add_central_force(ship.rid,-ship.drag_force);
 }
 
-void CombatEngine::rift_ai(Ship &ship) {
+bool CombatEngine::rift_ai(Ship &ship) {
   if(ship.rift_timer.alarmed()) {
     // If the ship has already opened the rift, and survived the minimum duration,
     // it can vanish into the rift.
     ship.fate = FATED_TO_RIFT;
-  } else if(not ship.rift_timer.active() and request_stop(ship,Vector3(0,0,0),3.0f)) {
-    // Once the ship is stopped, paralyze it and open a rift.
-    ship.immobile = true;
-    ship.inactive = true;
-    ship.damage_multiplier = ship.rifting_damage_multiplier;
-    ship.rift_timer.reset();
-    if(visual_effects.is_valid()) {
-      Vector3 rift_position = ship.position;
-      rift_position.y = ship.visual_height+1.1f;
-      // if(rift_position.y<ship.position.y)
-      //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
-      // else
-      //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y)+" radius "+str(ship.radius*1.5f));
-      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false,ship.id);
-      // visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
-      // visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
-    }
+  } else if(not ship.rift_timer.active()) {
+    if(request_stop(ship,Vector3(0,0,0),3.0f)) {
+      // Once the ship is stopped, paralyze it and open a rift.
+      ship.immobile = true;
+      ship.inactive = true;
+      ship.damage_multiplier = ship.rifting_damage_multiplier;
+      ship.rift_timer.reset();
+      if(visual_effects.is_valid()) {
+        Vector3 rift_position = ship.position;
+        rift_position.y = ship.visual_height+1.1f;
+        // if(rift_position.y<ship.position.y)
+        //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
+        // else
+        //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y)+" radius "+str(ship.radius*1.5f));
+        visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false,ship.id);
+        // visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
+        // visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS*2,rift_position,ship.radius*1.5f,false);
+      }
+    } else
+      return false;
   } else {
     // During the rift animation, shrink the ship.
     real_t rift_fraction = ship.rift_timer.ticks_left()/real_t(SPATIAL_RIFT_LIFETIME_TICKS*2);
     ship.set_scale(rift_fraction);
   }
+  return true;
 }
 
 void CombatEngine::explode_ship(Ship &ship) {
@@ -915,7 +922,11 @@ void CombatEngine::ai_step_ship(Ship &ship) {
       case PATROL_SHIP_AI: patrol_ship_ai(ship); return;
       case RAIDER_AI: raider_ai(ship); return;
       case ARRIVING_MERCHANT_AI: arriving_merchant_ai(ship); return;
-      case DEPARTING_MERCHANT_AI: rift_ai(ship); return;
+      case DEPARTING_MERCHANT_AI: {
+        if(!rift_ai(ship))
+          opportunistic_firing(ship);
+        return;
+      }
       default: attacker_ai(ship); return;
       }
 
@@ -1143,6 +1154,7 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
       if(planet_p!=planets.end())
         ship.new_target(planet_p->first);
       landing_ai(ship);
+      fire_antimissile_turrets(ship);
       return true;
     }
     case PLAYER_GOAL_ARRIVING_MERCHANT_AI: {
@@ -1158,7 +1170,8 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
       return true;
     }
     case PLAYER_GOAL_RIFT: {
-      rift_ai(ship);
+      if(!rift_ai(ship))
+        fire_antimissile_turrets(ship);
       return true;
     }
     }
@@ -1198,7 +1211,7 @@ void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_m
   results.clear();
   objects_found.clear();
   if(!ship_locations.overlapping_circle(Vector2(position.x,position.z),radius,objects_found)) {
-    Godot::print("No ships found in radius="+str(radius)+" of "+str(position));
+    //Godot::print("No ships found in radius="+str(radius)+" of "+str(position));
     return;
   }
 
@@ -1283,10 +1296,11 @@ void CombatEngine::attacker_ai(Ship &ship) {
     if(not have_target)
       ship.clear_target();
     // FIXME: replace this with faction-level ai:
-    if(ship.faction==player_faction_index)
+    if(ship.faction==player_faction_index) {
       landing_ai(ship);
-    else
-      rift_ai(ship);
+      opportunistic_firing(ship);
+    } else if(!rift_ai(ship))
+      opportunistic_firing(ship);
   }
 }
 
@@ -1303,7 +1317,8 @@ void CombatEngine::raider_ai(Ship &ship) {
   }
 
   if(ship.ai_flags&DECIDED_TO_RIFT) {
-    rift_ai(ship);
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
     return;
   }
   
@@ -1311,7 +1326,8 @@ void CombatEngine::raider_ai(Ship &ship) {
   bool low_health = ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3;
 
   if(low_health) {
-    rift_ai(ship);
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
     ship.ai_flags=DECIDED_TO_RIFT;
     return;
   }
@@ -1350,14 +1366,18 @@ void CombatEngine::raider_ai(Ship &ship) {
     }
     if(ship.cargo_web_active)
       deactivate_cargo_web(ship);
-    if(ship.ai_flags&DECIDED_TO_RIFT)
-      rift_ai(ship);
-    else if(have_salvage)
+    if(ship.ai_flags&DECIDED_TO_RIFT) {
+      if(!rift_ai(ship))
+        opportunistic_firing(ship);
+    } else if(have_salvage)
       salvage_ai(ship);
-    else if(have_target)
+    else if(have_target) {
       move_to_attack(ship,target_ptr->second);
-    else
+      opportunistic_firing(ship);
+    } else {
       patrol_ai(ship);
+      opportunistic_firing(ship);
+    }
   }
 }
 
@@ -1386,10 +1406,7 @@ void CombatEngine::salvage_ai(Ship &ship) {
   }
 
   // Opportunistic firing
-  ships_iter nowhere = ships.end();
-  aim_turrets(ship,nowhere);
-  auto_fire(ship,nowhere);
-  fire_antimissile_turrets(ship);
+  opportunistic_firing(ship);
 }
 
 bool CombatEngine::should_salvage(Ship &ship) {
@@ -1606,16 +1623,19 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
 
   if(ship.ai_flags&DECIDED_TO_LAND) {
     landing_ai(ship);
+    opportunistic_firing(ship);
     return;
   } else if(ship.ai_flags&DECIDED_TO_RIFT) {
-    rift_ai(ship);
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
     return;
   }
 
   bool low_health = ship.armor<ship.max_armor/5 and ship.shields<ship.max_shields/3 and ship.structure<ship.max_structure/2;
 
   if(low_health) {
-    rift_ai(ship);
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
     ship.ai_flags=DECIDED_TO_RIFT;
     return;
   }
@@ -1658,13 +1678,16 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       else if(randf<2*scale)
         ship.ai_flags=DECIDED_TO_LAND;
     }
-    if(ship.ai_flags&DECIDED_TO_LAND)
+    if(ship.ai_flags&DECIDED_TO_LAND) {
       landing_ai(ship);
-    else if(ship.ai_flags&DECIDED_TO_RIFT)
-      rift_ai(ship);
-    else if(have_target)
+      opportunistic_firing(ship);
+    } else if(ship.ai_flags&DECIDED_TO_RIFT) {
+      if(!rift_ai(ship))
+        opportunistic_firing(ship);
+    } else if(have_target) {
       move_to_attack(ship,target_ptr->second);
-    else
+      opportunistic_firing(ship);
+    } else
       patrol_ai(ship);
   }
 }
@@ -1701,13 +1724,13 @@ planets_iter CombatEngine::choose_arriving_merchant_goal_target(Ship &ship) {
     if(target_ptr==planets.end()) {
       ship.new_target(select_target<>(ship.get_target(),select_nearest(ship.position),planets,false));
       ship.goal_target = ship.get_target();
-      Godot::print(ship.name+": arriving merchant is using the nearest planet "+str(ship.goal_target));
+      //Godot::print(ship.name+": arriving merchant is using the nearest planet "+str(ship.goal_target));
     } else {
-      Godot::print(ship.name+": arriving merchant is using its target as its goal target");
+      //Godot::print(ship.name+": arriving merchant is using its target as its goal target");
       ship.goal_target = ship.get_target();
     }
     target_ptr = planets.find(ship.goal_target);
-    Godot::print(ship.name+": arriving merchant chose "+target_ptr->second.name+" as its goal target");
+    //Godot::print(ship.name+": arriving merchant chose "+target_ptr->second.name+" as its goal target");
   } else if(ship.get_target()!=ship.goal_target)
     ship.new_target(ship.goal_target);
   return target_ptr;
@@ -1770,7 +1793,8 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
     choose_arriving_merchant_action(ship);
 
   if(ship.ai_flags==DECIDED_TO_RIFT) {
-    rift_ai(ship);
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
     return;
   }
   
@@ -1793,7 +1817,8 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
 
   Godot::print_warning(ship.name+": arriving merchant has nothing to do",__FUNCTION__,__FILE__,__LINE__);
   // Nowhere to go and nothing to do, so we may as well leave.
-  rift_ai(ship);
+  if(!rift_ai(ship))
+    opportunistic_firing(ship);
 }
 
 
@@ -1932,13 +1957,14 @@ void CombatEngine::fire_antimissile_turrets(Ship &ship) {
     projectiles_iter proj_it = projectiles.find(id);
     if(proj_it==projectiles.end()) {
       iter = objects_found.erase(iter);
-      Godot::print("Found projectile in missile_locations that is not in projectiles hash");
+      Godot::print_warning("Found projectile "+str(id)+" in missile_locations that is not in projectiles hash",
+                           __FUNCTION__,__FILE__,__LINE__);
       continue; // Projectile does not exist.
     }
     Projectile &proj = proj_it->second;
     if(proj.direct_fire or not proj.max_structure or not proj.alive) {
       iter = objects_found.erase(iter);
-      Godot::print("Found invalid projectile in missile_locations");
+      Godot::print("Found invalid projectile in missile_locations: direct_fire="+str(proj.direct_fire)+" max_structure="+str(proj.max_structure)+" alive="+str(proj.alive));
       continue; // Projectile is not a valid target.
     }
     if( not ( (1<<proj.faction) & enemy_mask )) {
@@ -2641,6 +2667,8 @@ void CombatEngine::integrate_projectiles() {
     // Direct fire projectiles do damage when launched and last only one frame.
     // The exception is anti-missile projectiles which have to stay around for a few frames.
     if(projectile.direct_fire and not projectile.max_structure) {
+      if(projectile.max_structure)
+        missile_locations.remove(projectile.id);
       it=projectiles.erase(it);
       continue;
     }
@@ -2730,7 +2758,7 @@ void CombatEngine::create_projectile(Ship &ship,Weapon &weapon,object_id target)
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=idgen.next();
   std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,weapon,target));
-  if(weapon.projectile_structure and emplaced.first!=projectiles.end()) {
+  if(emplaced.first!=projectiles.end() and emplaced.first->second.max_structure) {
     Projectile &proj = emplaced.first->second;
     Rect2 there(Vector2(proj.position.x,proj.position.z)-Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
                 Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
@@ -2837,8 +2865,8 @@ void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
       if(pickup>salvage.cargo_count)
         pickup=salvage.cargo_count;
       ship.cargo_mass = min(original_max_mass,old_mass+pickup*unit_mass);
-      if(ship.cargo_mass != old_mass)
-        Godot::print(ship.name+" cargo mass increased from "+str(old_mass)+" to "+str(ship.cargo_mass)+" by picking up "+str(pickup)+" units of "+str(salvage.cargo_name));
+      // if(ship.cargo_mass != old_mass)
+      //   Godot::print(ship.name+" cargo mass increased from "+str(old_mass)+" to "+str(ship.cargo_mass)+" by picking up "+str(pickup)+" units of "+str(salvage.cargo_name));
     }
   }
 }
@@ -2904,10 +2932,11 @@ bool CombatEngine::collide_projectile(Projectile &projectile) {
             ship.take_damage(projectile.damage*dropoff,projectile.damage_type,
                              projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
           if(have_impulse and not ship.immobile) {
-            Vector3 impulse = projectile.impulse*dropoff*
-              (ship.position-projectile.position).normalized();
-            if(impulse.length_squared())
-              physics_server->body_apply_central_impulse(ship.rid,impulse);
+            Vector3 impulse1 = projectile.linear_velocity.normalized();
+            Vector3 impulse2 = (ship.position-projectile.position).normalized();
+            Vector3 combined = projectile.impulse*(impulse1+impulse2)*dropoff/2;
+            if(combined.length_squared())
+              physics_server->body_apply_central_impulse(ship.rid,combined);
           }
         }
       }

@@ -805,7 +805,7 @@ real_t Ship::get_standoff_range(const Ship &target,ticks_t idelta) {
   
   if(not weapons.size()) {
     // No weapons means no standoff range
-    Godot::print("Unarmed ship "+name+" cannot have a standoff range.");
+    //Godot::print("Unarmed ship "+name+" cannot have a standoff range.");
     return cached_standoff_range = standoff_range;
   }
   
