@@ -67,7 +67,7 @@ elif env['platform'] in ('x11', 'linux'):
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS=['-g3', '-Og', '-Wall', '-W', '-Wno-unused-parameter'])
     else:
-        env.Append(CCFLAGS=['-g', '-O3', '-Wall', '-W'])
+        env.Append(CCFLAGS=['-g3', '-O3', '-Wall', '-W'])
 
 elif env['platform'] == "windows":
     env['target_path'] += 'win64/'
