@@ -1,7 +1,7 @@
 [gd_scene load_steps=3 format=2]
 
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
-[ext_resource path="res://weapons/FrontierMilitia/ElectronTurret.mesh" type="ArrayMesh" id=2]
+[ext_resource path="res://weapons/FrontierMilitia/ElectronTurret4x4.mesh" type="ArrayMesh" id=2]
 
 [node name="MeshInstance" type="MeshInstance"]
 mesh = ExtResource( 2 )
@@ -10,20 +10,23 @@ material/1 = null
 material/2 = null
 material/3 = null
 material/4 = null
+material/5 = null
 script = ExtResource( 1 )
-help_page = "weapons/electron_turret"
+help_page = "weapons/electron_turret_large"
 mount_type_all = "turret"
 mount_type_display = "turret"
-item_size_x = 3
-damage = 280.0
+item_size_x = 4
+item_size_y = 4
+damage = 520.0
 damage_type = 11
-weapon_mass = 18.0
-weapon_structure = 270.0
-initial_velocity = 1200.0
+weapon_mass = 32.0
+weapon_structure = 480.0
+initial_velocity = 1380.0
 projectile_lifetime = 0.0
 firing_delay = 0.0
-turn_rate = 2.5
+turn_rate = 2.1
 projectile_mesh_path = "res://weapons/projectiles/electron_beam.mesh"
-firing_heat = 0.7
-firing_energy = 7.0
+firing_heat = 1.3
+firing_energy = 13.0
 energy_fraction = 0.35
+add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.25 )

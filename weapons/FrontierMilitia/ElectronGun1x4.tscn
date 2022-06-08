@@ -22,3 +22,4 @@ projectile_mesh_path = "res://weapons/projectiles/electron_beam.mesh"
 firing_heat = 0.4
 firing_energy = 4.0
 energy_fraction = 0.35
+add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15 )
