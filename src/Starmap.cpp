@@ -126,7 +126,7 @@ void Starmap::_init() {
   
   circle_mesh = make_circle_mesh(1.0f,32,Vector3(0.0f,0.0f,0.0f));
   if(not circle_mesh.is_valid())
-    Godot::print("could not make circle mesh");
+    Godot::print_warning("could not make circle mesh",__FUNCTION__,__FILE__,__LINE__);
   circle_multimesh = Ref<MultiMesh>(MultiMesh::_new());
   circle_multimesh->set_mesh(circle_mesh);
   circle_multimesh->set_transform_format(MultiMesh::TRANSFORM_3D);
@@ -134,7 +134,7 @@ void Starmap::_init() {
 
   line_mesh = make_box_mesh(Vector3(-0.5f,-0.5f,-0.5f),0.5f,0.5f,2,2);
   if(not line_mesh.is_valid())
-    Godot::print("could not make line mesh");
+    Godot::print_warning("could not make line mesh",__FUNCTION__,__FILE__,__LINE__);
   line_multimesh = Ref<MultiMesh>(MultiMesh::_new());
   line_multimesh->set_mesh(line_mesh);
   line_multimesh->set_transform_format(MultiMesh::TRANSFORM_3D);
@@ -194,13 +194,13 @@ void Starmap::set_camera_path(NodePath path) {
 
 void Starmap::set_line_material(Ref<Material> material) {
   if(not material.is_valid())
-    Godot::print("received null line material");
+    Godot::print_warning("received null line material",__FUNCTION__,__FILE__,__LINE__);
   line_mesh->surface_set_material(0,material);
 }
 
 void Starmap::set_circle_material(Ref<Material> material) {
   if(not material.is_valid())
-    Godot::print("received null circle material");
+    Godot::print_warning("received null circle material",__FUNCTION__,__FILE__,__LINE__);
   circle_mesh->surface_set_material(0,material);
 }
 
@@ -428,16 +428,16 @@ real_t Starmap::get_viewport_scale() {
 void Starmap::_draw() {
   Viewport *viewport = get_viewport();
   if(not viewport) {
-    Godot::print("no viewport");
+    Godot::print_warning("no viewport",__FUNCTION__,__FILE__,__LINE__);
     return;
   }
 
   Node *camera_node = get_node_or_null(camera_path);
   if(not camera_node) {
-    Godot::print("No camera found in Starmap::_draw()");
+    Godot::print_warning("No camera found in Starmap::_draw()",__FUNCTION__,__FILE__,__LINE__);
     return;
   } else if(not camera_node->is_class("Camera")) {
-    Godot::print("Camera is not Camera class in Starmap::_draw()");
+    Godot::print_warning("Camera is not Camera class in Starmap::_draw()",__FUNCTION__,__FILE__,__LINE__);
     return;
   }
   Camera *zx_orthographic_camera = static_cast<Camera*>(camera_node);
@@ -587,16 +587,16 @@ void Starmap::_draw() {
       } else {
         int sys1_index = link_list_ptr[n*2+0];
         if(sys1_index<0 or sys1_index>=system_count) {
-          Godot::print(String("Link with out-of-bounds system index ")+
-                       static_cast<String>(Variant(sys1_index)));
+          Godot::print_warning(String("Link with out-of-bounds system index ")+
+                       static_cast<String>(Variant(sys1_index)),__FUNCTION__,__FILE__,__LINE__);
           continue;
         }
         sys1_pos = system_locations_ptr[sys1_index];
         
         int sys2_index = link_list_ptr[n*2+1];
         if(sys2_index<0 or sys2_index>=system_count) {
-          Godot::print(String("Link with out-of-bounds system index ")+
-                       static_cast<String>(Variant(sys2_index)));
+          Godot::print_warning(String("Link with out-of-bounds system index ")+
+                       static_cast<String>(Variant(sys2_index)),__FUNCTION__,__FILE__,__LINE__);
           continue;
         }
         sys2_pos = system_locations_ptr[sys2_index];
