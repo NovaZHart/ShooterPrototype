@@ -103,7 +103,7 @@ mount_type = "external turret"
 mount_type_display = "turret"
 
 [node name="AftPortTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.71715, -0.231413, -0.932158 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -2.71715, -1.9908e-05, -0.932158 )
 script = ExtResource( 5 )
 mount_size_x = 3
 mount_size_y = 3
