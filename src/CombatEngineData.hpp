@@ -78,6 +78,7 @@
 #include <PoolArrays.hpp>
 #include <OS.hpp>
 #include <Mesh.hpp>
+#include <Color.hpp>
 
 #include "DVector3.hpp"
 #include "ObjectIdGenerator.hpp"
@@ -288,6 +289,7 @@ namespace godot {
     struct Faction {
       const faction_index_t faction_index;
       const float threat_per_second;
+      const Color faction_color;
       static inline int affinity_key(const faction_index_t from_faction,
                                      const faction_index_t to_faction) {
         return to_faction | (from_faction<<FACTION_BIT_SHIFT);

@@ -8,11 +8,13 @@ using namespace godot;
 using namespace godot::CE;
 
 VisualEffect::VisualEffect(object_id effect_id,double start_time,real_t duration,real_t time_shift,
-                           const Vector3 &position,real_t rotation,const AABB &lifetime_aabb):
+                           const Vector3 &position,real_t rotation,const AABB &lifetime_aabb,
+                           bool expire_out_of_view):
   id(effect_id), lifetime_aabb(lifetime_aabb), start_time(start_time),
   duration(duration), time_shift(time_shift), rotation(rotation),
   velocity(), relative_position(), position(),
-  instance(), ready(false), dead(false), behavior(), target1(-1)
+  instance(), ready(false), dead(false), expire_out_of_view(expire_out_of_view),
+  behavior(), target1(-1)
 {
   this->lifetime_aabb.position += position;
 }
@@ -56,8 +58,9 @@ MultiMeshInstanceEffect::MultiMeshInstanceEffect():
 {}
 MultiMeshInstanceEffect::MultiMeshInstanceEffect(object_id effect_id,object_id mesh_id,double start_time,
                                                  real_t duration,real_t time_shift,
-                                                 const Vector3 &position,real_t rotation,const AABB &lifetime_aabb):
-  VisualEffect(effect_id,start_time,duration,time_shift,position,rotation,lifetime_aabb),
+                                                 const Vector3 &position,real_t rotation,const AABB &lifetime_aabb,
+                                                 bool expire_out_of_view):
+  VisualEffect(effect_id,start_time,duration,time_shift,position,rotation,lifetime_aabb,expire_out_of_view),
   mesh_id(mesh_id), data(start_time,duration,duration), half_size(Vector2(lifetime_aabb.size.x/2,lifetime_aabb.size.y/2))
 {}
 MultiMeshInstanceEffect::~MultiMeshInstanceEffect() {}
@@ -78,8 +81,8 @@ VisualEffects::VisualEffects():
   scenario(), delta(1.0/60), now(0.0), rand(), idgen(),
   mesh_effects(), mmi_effects(), vertex_holder(), uv2_holder(), uv_holder(),
   spatial_rift_shader(), zap_ball_shader(), hyperspacing_polygon_shader(),
-  fade_out_texture(), hyperspacing_texture(), cargo_puff_texture(), content(),
-  combat_content(nullptr)
+  fade_out_texture(), hyperspacing_texture(), cargo_puff_texture(),
+  shield_ellipse_shader(), content(), combat_content(nullptr)
 {
   vertex_holder.reserve(2000);
   uv_holder.reserve(2000);
@@ -102,13 +105,15 @@ void VisualEffects::_register_methods() {
 
 void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
                                 Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture,
-                                Ref<Shader> fade_out_texture, Ref<Texture> cargo_puff_texture) {
+                                Ref<Shader> fade_out_texture, Ref<Texture> cargo_puff_texture,
+                                Ref<Shader> shield_ellipse_shader) {
   this->spatial_rift_shader = spatial_rift_shader;
   this->zap_ball_shader = zap_ball_shader;
   this->hyperspacing_polygon_shader = hyperspacing_polygon_shader;
   this->hyperspacing_texture = hyperspacing_texture;
   this->fade_out_texture = fade_out_texture;
   this->cargo_puff_texture = cargo_puff_texture;
+  this->shield_ellipse_shader = shield_ellipse_shader;
 }
 
 void VisualEffects::clear_all_effects() {
@@ -189,16 +194,18 @@ VisibleObject * VisualEffects::get_object_or_make_stationary(object_id target,Vi
 }
 
 void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server) {
-  if((now-effect.start_time)>effect.duration) {
+  if(effect.duration and (now-effect.start_time)>effect.duration) {
     effect.dead=true;
     return;
   }
 
-  AABB expanded(visible_area.position - visibility_expansion_rate*effect.duration,
-                visible_area.size + 2*visibility_expansion_rate*effect.duration);
-  if(not expanded.intersects(effect.lifetime_aabb)) {
-    effect.dead=true;
-    return;
+  if(effect.expire_out_of_view) {
+    AABB expanded(visible_area.position - visibility_expansion_rate*effect.duration,
+                  visible_area.size + 2*visibility_expansion_rate*effect.duration);
+    if(not expanded.intersects(effect.lifetime_aabb)) {
+      effect.dead=true;
+      return;
+    }
   }
       
   bool update_transform=false, update_death=false;
@@ -211,8 +218,27 @@ void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server
         effect.position.z = object->z;
         update_transform=true;
       }
-    } else
+    } else {
+      if(not effect.duration)
+        effect.dead=true;
       update_death=true;
+    }
+  } break;
+  case(CENTER_AND_ROTATE_ON_TARGET1): {
+    VisibleObject *object = get_object_or_make_stationary(effect.target1,effect);
+    if(object) {
+      if(object->x!=effect.position.x or object->z!=effect.position.z
+         or object->rotation_y!=effect.rotation) {
+        effect.position.x = object->x;
+        effect.position.z = object->z;
+        effect.rotation = object->rotation_y;
+        update_transform=true;
+      }
+    } else {
+      if(not effect.duration)
+        effect.dead=true;
+      update_death=true;
+    }
   } break;
   case(CONSTANT_VELOCITY): {
     effect.position += delta*effect.velocity;
@@ -229,8 +255,11 @@ void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server
         effect.position.z = z;
         update_transform=true;
       }
-    } else
+    } else {
+      if(not effect.duration)
+        effect.dead=true;
       update_death=true;
+    }
   } break;
   case STATIONARY: { /* nothing to do */ } break;
   };
@@ -251,7 +280,8 @@ void VisualEffects::add_content() {
 /* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 
 MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 position,
-                                          real_t rotation,Ref<Shader> shader) {
+                                          real_t rotation,Ref<Shader> shader,
+                                          bool expire_out_of_view) {
   Ref<ArrayMesh> mesh = ArrayMesh::_new();
 
   int flags = 0;
@@ -277,8 +307,10 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   effect.shader_material = material;
   effect.start_time = now;
   effect.duration = duration;
-  effect.lifetime_aabb = mesh->get_aabb();
-  effect.lifetime_aabb.position += position;
+  if(expire_out_of_view) {
+    effect.lifetime_aabb = mesh->get_aabb();
+    effect.lifetime_aabb.position += position;
+  }
 
   VisualServer *visual_server = VisualServer::get_singleton();
   RID rid = visual_server->instance_create2(mesh->get_rid(),scenario);
@@ -297,16 +329,18 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
 
 
 MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t duration, Vector3 position,
-                                                      real_t rotation) {
+                                                      real_t rotation,bool expire_out_of_view) {
   object_id mesh_id=multimeshes.get_preloaded_mesh_id(mesh);
   if(mesh_id<0) {
     mesh_id=multimeshes.add_preloaded_mesh(mesh);
   }
 
   object_id effect_id=idgen.next();
+  AABB aabb = expire_out_of_view ? mesh->get_aabb() : AABB();
   pair<mmi_effects_iter,bool> it =
     mmi_effects.emplace(effect_id,MultiMeshInstanceEffect(effect_id,mesh_id,now,duration,0,position,rotation,
-                                                          mesh->get_aabb()));
+                                                          aabb,expire_out_of_view));
+
   return it.first->second;
 }
 
@@ -343,7 +377,7 @@ void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Ve
   data.resize(ArrayMesh::ARRAY_MAX);
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
-  MeshEffect &effect = add_MeshEffect(data,duration,ship.position+relative_position,0,fade_out_texture);
+  MeshEffect &effect = add_MeshEffect(data,duration,ship.position+relative_position,0,fade_out_texture,true);
 
   effect.lifetime_aabb.grow_by(aabb_growth);
   
@@ -370,7 +404,7 @@ void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vec
     return;
   }
   
-  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,position,0);
+  MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,position,0,false);
 
   if(not effect.dead) {
     effect.lifetime_aabb.grow_by(aabb_growth);
@@ -425,7 +459,7 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
   data.resize(ArrayMesh::ARRAY_MAX);
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
-  MeshEffect &effect = add_MeshEffect(data,duration,position,0,hyperspacing_polygon_shader);
+  MeshEffect &effect = add_MeshEffect(data,duration,position,0,hyperspacing_polygon_shader,false);
 
   if(not effect.dead) {
     effect.shader_material->set_shader_param("half_animation",reverse);
@@ -439,6 +473,147 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
     effect.shader_material->set_shader_param("texture_albedo",hyperspacing_texture);
     effect.target1=ship_id;
     effect.behavior=CENTER_ON_TARGET1;
+    effect.ready=true;
+  }
+}
+
+////////////////////////////////////////////////////////////////////////
+
+void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t requested_spacing,Color faction_color) {
+  static const real_t sqrt2 = sqrtf(2);
+  real_t rect_width=fabsf(aabb.size.x);
+  real_t ellipse_width=rect_width/sqrt2;
+  real_t rect_height=fabsf(aabb.size.z);
+  real_t ellipse_height=rect_height/sqrt2;
+  
+  real_t max_radius=max(ellipse_width,ellipse_height);
+  real_t min_radius=min(ellipse_width,ellipse_height);
+  real_t high_ratio = max_radius/min_radius;
+
+  // Expand the ellipse a little bit so the innermost part of each
+  // outer edge is outside the ellipse. This formula is approximate,
+  // based on squishing a circle.
+  real_t effective_radius=(max_radius+min_radius)/2;
+  real_t spacing = clamp(requested_spacing,4.0f,effective_radius/2);
+  real_t expand_radius = (effective_radius-spacing)*high_ratio;
+  ellipse_width += expand_radius;
+  ellipse_height += expand_radius;
+  max_radius = max(ellipse_width,ellipse_height);
+  min_radius = min(ellipse_width,ellipse_height);
+  high_ratio = max_radius/min_radius;
+
+  // There must be a multiple of four edges along the circumference of the ellipse.
+  // This approximation comes from Srinivasa Ramanujan
+  real_t rama_h = (ellipse_width-ellipse_height)*(ellipse_width-ellipse_height) /
+    (ellipse_width+ellipse_height)*(ellipse_width+ellipse_height);
+  real_t approximate_circumference = PI*(ellipse_width+ellipse_height)*(1+3*rama_h/(10+sqrtf(4-3*rama_h)));
+  real_t outer_edges_f = ceilf(approximate_circumference/(spacing*4))*4;
+  int outer_edges=outer_edges_f;
+  spacing = approximate_circumference/outer_edges;
+
+  PoolColorArray pool_colors;
+  PoolVector3Array pool_vertices;
+  PoolVector2Array pool_uv;
+  
+  {
+    int nvert = outer_edges*3;
+    pool_vertices.resize(nvert);
+    pool_uv.resize(nvert);
+    pool_colors.resize(nvert);
+    PoolVector3Array::Write write_vertices = pool_vertices.write();
+    PoolVector2Array::Write write_uv = pool_uv.write();
+    PoolColorArray::Write write_color = pool_colors.write();
+    Vector3 *vertices = write_vertices.ptr();
+    Vector2 *uv = write_uv.ptr();
+    Color *colors = write_color.ptr();
+
+    for(int j=0;j<outer_edges*3;j++)
+      colors[j]=faction_color;
+
+    Vector3 prior=Vector3(ellipse_height*sinf(0),0,ellipse_width*cosf(0));
+    int i=0;
+  
+    for(int end_i=outer_edges/4;i<end_i;i++) {
+      real_t t=(i+1)/outer_edges_f;
+      real_t next_angle = (PI*t/4)/(ellipse_width+ellipse_height);
+      next_angle *= (ellipse_height + t/4*(ellipse_width-ellipse_height)/2);
+
+      Vector3 next=Vector3(ellipse_height*sinf(next_angle),0,ellipse_width*cosf(next_angle));
+
+      vertices[i*3+0] = prior;
+      uv[i*3+0] = Vector2((t-1),1);
+      vertices[i*3+1] = Vector3();
+      uv[i*3+1] = Vector2((t-0.5),0);
+      vertices[i*3+2] = next;
+      uv[i*3+2] = Vector2(t/4,1);
+
+      prior=next;
+    }
+
+    // Second quadrant is the same as the first, but reversed order and -X 
+    for(int j=outer_edges/4-1;j>=0;i++,j--) {
+      real_t t=(i+1)/outer_edges_f;
+      Vector3 next=vertices[j*3+0];
+      next.x=-next.x;
+
+      vertices[i*3+0] = prior;
+      uv[i*3+0] = Vector2((t-1),1);
+      vertices[i*3+1] = Vector3();
+      uv[i*3+1] = Vector2((t-0.5),0);
+      vertices[i*3+2] = next;
+      uv[i*3+2] = Vector2(t/4,1);
+
+      prior=next;
+    }
+
+    // Third quadrant is the same as the first, but with -X and -Y
+    for(int j=0;j<outer_edges/4;i++,j++) {
+      real_t t=(i+1)/outer_edges_f;
+      Vector3 next=vertices[j*3+2];
+      next.x=-next.x;
+      next.y=-next.y;
+
+      vertices[i*3+0] = prior;
+      uv[i*3+0] = Vector2((t-1),1);
+      vertices[i*3+1] = Vector3();
+      uv[i*3+1] = Vector2((t-0.5),0);
+      vertices[i*3+2] = next;
+      uv[i*3+2] = Vector2(t/4,1);
+
+      prior=next;
+    }
+
+    // Fourth quadrant is the same as the first, but reversed order and -Y
+    for(int j=outer_edges/4-1;j>=0;i++,j--) {
+      real_t t=(i+1)/outer_edges_f;
+      Vector3 next=vertices[j*3+0];
+      next.y=-next.y;
+
+      vertices[i*3+0] = prior;
+      uv[i*3+0] = Vector2((t-1),1);
+      vertices[i*3+1] = Vector3();
+      uv[i*3+1] = Vector2((t-0.5),0);
+      vertices[i*3+2] = next;
+      uv[i*3+2] = Vector2(t/4,1);
+
+      prior=next;
+    }
+  
+    assert(i==outer_edges);
+  }
+  
+  Array data;
+  data.resize(ArrayMesh::ARRAY_MAX);
+  data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
+  data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
+  data[ArrayMesh::ARRAY_COLOR] = pool_colors;
+  Vector3 position=ship.position;
+  position.y=ship.visual_height+1;
+  MeshEffect &effect = add_MeshEffect(data,0,position,0,shield_ellipse_shader,false);
+
+  if(not effect.dead) {
+    effect.target1=ship.id;
+    effect.behavior=CENTER_AND_ROTATE_ON_TARGET1;
     effect.ready=true;
   }
 }

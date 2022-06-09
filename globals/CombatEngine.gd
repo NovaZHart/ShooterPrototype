@@ -92,7 +92,8 @@ func _enter_tree():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
-	native_visual_effects.set_shaders(RiftShader,ZapBallShader,HyperspacingPolygonShader,hyperspacing_texture,fade_out_texture,cargo_puff_texture)
+	native_visual_effects.set_shaders(RiftShader,ZapBallShader,HyperspacingPolygonShader,hyperspacing_texture,fade_out_texture,cargo_puff_texture,RiftShader)
+	# FIXME: pass the ShieldEllipseShader
 
 func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	# Call in _ready to create the CombatState for a System or Hyperspace

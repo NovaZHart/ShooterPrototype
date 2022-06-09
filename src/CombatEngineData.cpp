@@ -93,6 +93,7 @@ Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
                  const rid2id_t &rid2id):
   faction_index(get<faction_index_t>(dict,"faction")),
   threat_per_second(get<float>(dict,"threat_per_second")),
+  faction_color(get<Color>(dict,"faction_color",Color(0.7,0.7,0.2))),
   recouped_resources(0),
   goals(), target_advice(), enemy_mask(0), friend_mask(0)
 {

@@ -29,7 +29,8 @@ namespace godot {
     STATIONARY=0,
     CONSTANT_VELOCITY=1,
     CENTER_ON_TARGET1=2,
-    VELOCITY_RELATIVE_TO_TARGET=3
+    VELOCITY_RELATIVE_TO_TARGET=3,
+    CENTER_AND_ROTATE_ON_TARGET1=4
   };
 
   struct VisualEffect {
@@ -40,6 +41,7 @@ namespace godot {
     Vector3 velocity, relative_position, position;
     VisualRIDPtr instance;
     volatile bool ready, dead;
+    bool expire_out_of_view;
     mesheffect_behavior behavior;
     object_id target1;
     
@@ -49,7 +51,8 @@ namespace godot {
     }
 
     VisualEffect(object_id effect_id,double start_time,real_t duration,real_t time_shift,
-                 const Vector3 &position,real_t rotation,const AABB &lifetime_aabb);
+                 const Vector3 &position,real_t rotation,const AABB &lifetime_aabb,
+                 bool expire_out_of_view);
     VisualEffect();
     virtual ~VisualEffect();
   };
@@ -93,7 +96,8 @@ namespace godot {
     explicit MultiMeshInstanceEffect();
     MultiMeshInstanceEffect(object_id effect_id,object_id mesh_id,double start_time,
                             real_t duration,real_t time_shift,
-                            const Vector3 &position,real_t rotation,const AABB &lifetime_aabb);
+                            const Vector3 &position,real_t rotation,const AABB &lifetime_aabb,
+                            bool expire_out_of_view);
     virtual ~MultiMeshInstanceEffect();
   };
   
@@ -114,6 +118,7 @@ namespace godot {
     std::vector<Vector2> uv2_holder, uv_holder;
     Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader, fade_out_texture;
     Ref<Texture> hyperspacing_texture, cargo_puff_texture;
+    Ref<Shader> shield_ellipse_shader;
     VisibleContentManager content;
     VisibleContent *combat_content;
     
@@ -137,7 +142,8 @@ namespace godot {
     void clear_all_effects();
     void set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
                      Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture,
-                     Ref<Shader> fade_out_texture,Ref<Texture> cargo_puff_texture);
+                     Ref<Shader> fade_out_texture,Ref<Texture> cargo_puff_texture,
+                     Ref<Shader> shield_ellipse_shader);
     void set_visible_region(AABB visible_area, Vector3 expansion_rate);
     void set_scenario(RID scenario);
     void step_effects(real_t delta,Vector3 location,Vector3 size);
@@ -150,11 +156,14 @@ namespace godot {
     void set_visible_content(VisibleContent *visible);
     void add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
     void add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff);
+    void add_shield_ellipse(const godot::CE::Ship &ship,const AABB &aabb,real_t requested_spacing,Color faction_color);
+
+    // Send new content to visual thread.
     void add_content();
     
     // Utilities:
     bool is_circle_visible(const Vector3 &position, real_t radius) const;
-    
+
   private:
     void step_multimeshes(real_t delta,Vector3 location,Vector3 size);
     VisibleObject * get_object_or_make_stationary(object_id target,VisualEffect &effect);
@@ -164,10 +173,10 @@ namespace godot {
                             real_t extent, real_t radius, int depth);
 
     MultiMeshInstanceEffect &add_MMIEffect(Ref<Mesh> mesh, real_t duration, Vector3 position,
-                                           real_t rotation);
+                                           real_t rotation,bool expire_out_of_view);
     
     MeshEffect &add_MeshEffect(Array data, real_t duration, Vector3 position,
-                               real_t rotation, Ref<Shader> shader);
+                               real_t rotation, Ref<Shader> shader,bool expire_out_of_view);
   };
 
 }
