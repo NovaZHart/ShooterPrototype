@@ -166,12 +166,20 @@ func receive_player_orders(new_orders: Dictionary) -> void:
 		new_orders['rid_id'] = id
 	else:
 		new_orders['rid_id'] = 0
+	var start: float = OS.get_ticks_msec()
 	player_orders_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for player orders mutex lock in receive_player_orders")
 	player_orders = [new_orders]
 	player_orders_mutex.unlock()
 
 func ship_stats_by_team():
+	var start: float = OS.get_ticks_msec()
 	team_stats_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for team stats mutex lock in ship_stats_by_team")
 	var result = team_stats.duplicate(true)
 	team_stats_mutex.unlock()
 	return result
@@ -184,26 +192,42 @@ func ship_stats_by_team():
 #	return results
 
 func add_ship_stat_request(ship_name: String) -> void:
+	var start: float = OS.get_ticks_msec()
 	ship_stats_requests_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for ship stats requests mutex lock in add_ship_stat_request")
 	ship_stats_requests[ship_name]=1
 	ship_stats_requests_mutex.unlock()
 	
 func remove_ship_stat_request(ship_name: String) -> void:
+	var start: float = OS.get_ticks_msec()
 	ship_stats_requests_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for ship stats requests mutex lock in remove_ship_stat_request")
 	var _discard = ship_stats_requests.erase(ship_name)
 	ship_stats_requests_mutex.unlock()
 
 func sync_Ships_with_stat_requests() -> void:
 	# Remove non-existent ships from the ship stats requests:
 	var new_requests: Dictionary = Dictionary()
+	var start: float = OS.get_ticks_msec()
 	ship_stats_requests_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for ship stats request mutex lock in sync_Ships_with_stat_requests (1)")
 	var keys=ship_stats_requests.keys()
 	ship_stats_requests_mutex.unlock()
 	for ship_name in keys:
 		if $Ships.get_node_or_null(ship_name)!=null or \
 				$Planets.get_node_or_null(ship_name)!=null:
 			new_requests[ship_name]=1
+	start = OS.get_ticks_msec()
 	ship_stats_requests_mutex.lock()
+	duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for ship stats requests mutex lock in sync_Ships_with_stat_requests (2)")
 	ship_stats_requests=new_requests
 	ship_stats_requests_mutex.unlock()
 
@@ -309,14 +333,22 @@ func update_target_display(old_target_name: String,new_target_name: String) -> v
 	new_target.call_deferred('add_child',display)
 
 func pack_ship_stats() -> Array:
+	var start: float = OS.get_ticks_msec()
 	new_ships_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for new ships mutex lock in pack_ship_stats")
 	var my_new_ships = new_ships.duplicate(true)
 	new_ships.clear()
 	new_ships_mutex.unlock()
 
 	var new_ships_packed: Array = []
 	var threats: Dictionary = {}
+	start = OS.get_ticks_msec()
 	team_stats_mutex.lock()
+	duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for team stats mutex lock in pack_ship_stats")
 	for ship in my_new_ships:
 		if ship!=null and ship is RigidBody:
 			new_ships_packed.append(ship.pack_stats())
@@ -365,8 +397,12 @@ func process_space(delta):
 	combat_engine.combat_state.immediate_entry = physics_tick<30
 	Player.system.process_space(self,delta)
 	var make_me: Array = combat_engine.combat_state.process_space(delta)
-	
+
+	var start: float = OS.get_ticks_msec()
 	team_stats_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for team stats mutex lock in process_space")
 	for ship in make_me:
 		var faction_index: int = ship[4] # "team" argument to spawn_ship
 		if faction_index<0 :
@@ -383,7 +419,11 @@ func process_space(delta):
 	ship_count = new_ship_count
 	team_stats_mutex.unlock()
 	
+	start = OS.get_ticks_msec()
 	ship_maker_mutex.lock()
+	duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for ship maker mutex lock in process_space")
 	ships_to_spawn = ships_to_spawn + make_me
 	var max_ships_to_spawn = max_new_ships_per_tick
 	if physics_tick<number_of_early_ticks:
@@ -400,7 +440,11 @@ func _physics_process(delta):
 	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
 	physics_tick += 1
 	
+	var start: float = OS.get_ticks_msec()
 	combat_engine_mutex.lock() # ensure clear() does not run during _physics_process()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for combat engine mutex lock in _physics_process")
 	
 	var new_ships_packed: Array = pack_ship_stats().duplicate(true)
 	var new_planets_packed: Array = pack_planet_stats_if_not_sent().duplicate(true)
@@ -411,7 +455,11 @@ func _physics_process(delta):
 	if ship_stats.has(player_ship_name):
 		old_player_target_name = ship_stats[player_ship_name].get('target_name','')
 	
+	start = OS.get_ticks_msec()
 	player_orders_mutex.lock()
+	duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for player orders mutex lock in _physics_process")
 	var orders_copy: Array = player_orders.duplicate(true)
 	player_orders_mutex.unlock()
 	
@@ -480,7 +528,11 @@ func _physics_process(delta):
 			elif fate==combat_engine.FATED_TO_RIFT:
 				store_player_ship_stats()
 				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
+		start = OS.get_ticks_msec()
 		team_stats_mutex.lock()
+		duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("Waited "+str(duration)+" ms for team stats mutex lock in _physics_process")
 		if team_stats.has(ship_node.faction_index):
 			team_stats[ship_node.faction_index]['count'] -= 1
 			team_stats[ship_node.faction_index]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
@@ -508,7 +560,11 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 #		print('restore combat stats ',Player.ship_combat_stats)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 	$Ships.add_child(ship)
+	var start: float = OS.get_ticks_msec()
 	new_ships_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for new ships mutex lock in add_spawned_ship")
 	new_ships.append(ship)
 	new_ships_mutex.unlock()
 	if is_player:
@@ -583,7 +639,11 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	combat_engine.init_combat_state(Player.system,self,true)
 	Player.system.fill_system(self,planet_time,ship_time,detail)
 	var make_me: Array = combat_engine.combat_state.fill_system(planet_time,ship_time,detail)
+	var start: float = OS.get_ticks_msec()
 	team_stats_mutex.lock()
+	var duration: float = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for team stats mutex lock in init_system")
 	for ship in make_me:
 		var faction_index: int = ship[4] # "faction" argument to spawn_ship
 		if faction_index<0:
@@ -595,7 +655,11 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 			team_stats[faction_index]['count'] += 1
 	team_stats_mutex.unlock()
 	
+	start = OS.get_ticks_msec()
 	ship_maker_mutex.lock()
+	duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print("Waited "+str(duration)+" ms for ship maker mutex lock in init_system")
 	var front = make_me.pop_front()
 	if front:
 		# Player ship (if any) is always the first.
