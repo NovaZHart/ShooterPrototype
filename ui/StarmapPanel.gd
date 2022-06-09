@@ -532,7 +532,7 @@ func in_top_dialog(node,top) -> bool:
 
 func _process(_delta):
 	var top = get_viewport().get_modal_stack_top()
-	if top and not in_top_dialog(self,top):
+	if not top or not is_visible_in_tree() or not in_top_dialog(self,top):
 		return
 	
 	var ui_zoom: int = 0
