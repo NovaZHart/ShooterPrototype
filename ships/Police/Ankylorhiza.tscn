@@ -15,7 +15,7 @@ points = PoolVector3Array( 0, 1, 1, 0, 1, -1, 0, 1, 1, 0, 1, -1, -1, -1, 1, 1, -
 [sub_resource type="BoxShape" id=3]
 extents = Vector3( 1.1, 20, 1.6 )
 
-[node name="RigidBody" type="RigidBody"]
+[node name="Ankylorhiza" type="RigidBody"]
 script = ExtResource( 1 )
 help_page = "hulls/ankylorhiza"
 base_mass = 377.0

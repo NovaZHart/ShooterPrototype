@@ -3,7 +3,7 @@
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=1]
 [ext_resource path="res://weapons/IACivilian/BlueMissileLauncher.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="BlueMissileLauncher" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null

@@ -11,7 +11,7 @@ points = PoolVector3Array( -0.0137398, -10, -0.711148, -0.163986, 10, -0.711148,
 [sub_resource type="ConvexPolygonShape" id=2]
 points = PoolVector3Array( -0.706489, 10, 1.09292, -0.706489, 10, -1.09292, -0.706489, -10, -1.09292, -0.706489, -10, -1.09292, 0.864335, -10, 0, -0.706489, -10, 1.09292, -0.706489, 10, -1.09292, 0.864335, -10, 0, -0.706489, -10, -1.09292, 0.864335, 10, 0, -0.706489, -10, 1.09292, 0.864335, -10, 0, -0.706489, -10, 1.09292, -0.706489, 10, 1.09292, 0.864335, 10, 0, -0.706489, 10, -1.09292, -0.706489, 10, -1.09292, 0.864335, 10, 0, 0.864335, -10, 0, 0.864335, 10, 0, -0.706489, 10, 1.09292, -0.706489, -10, 1.09292 )
 
-[node name="RigidBody" type="RigidBody"]
+[node name="Samoyed" type="RigidBody"]
 script = ExtResource( 2 )
 help_page = "hulls/samoyed"
 base_mass = 65.0
@@ -25,7 +25,7 @@ base_max_cargo = 40
 override_size = Vector3( 1.5, 0, 2.1 )
 cargo_web_add_radius = 4.0
 
-[node name="MeshInstance" type="MeshInstance" parent="."]
+[node name="Hull" type="MeshInstance" parent="."]
 mesh = ExtResource( 3 )
 material/0 = null
 material/1 = null

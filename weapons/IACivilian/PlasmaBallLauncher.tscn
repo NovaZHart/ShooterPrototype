@@ -3,7 +3,7 @@
 [ext_resource path="res://weapons/IACivilian/PlasmaBallLauncher.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
 
-[node name="Emitter" type="MeshInstance"]
+[node name="PlasmaBallLauncher" type="MeshInstance"]
 mesh = ExtResource( 1 )
 material/0 = null
 material/1 = null

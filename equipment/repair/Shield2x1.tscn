@@ -3,18 +3,18 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/repair/shield-2x1.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="Shield2x1" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 script = ExtResource( 1 )
+help_page = "equipment/energy_shield_small"
+item_size_x = 2
+item_size_y = 1
+mount_type_display = "generic"
+mount_type_any = "internal external"
 add_mass = 4.0
 add_structure = 60.0
 add_heal_shields = 10.5
 add_explosion_damage = 15.0
 add_explosion_impulse = 30.0
-item_size_x = 2
-item_size_y = 1
-mount_type_display = "generic"
-mount_type_any = "internal external"
-help_page = "equipment/energy_shield_small"

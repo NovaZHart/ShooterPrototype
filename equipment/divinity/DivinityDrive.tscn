@@ -3,23 +3,23 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/divinity/DivinityDrive.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="DivinityDrive" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 1 )
-add_thrust = 40000.0
-add_reverse_thrust = 40000.0
-add_turning_thrust = 8000.0
-add_fuel = 100.0
-add_structure = 10000.0
+help_page = "engine/divinity_drive"
 item_size_x = 2
 item_size_y = 2
 mount_type_display = "external engine/equipment"
 mount_type_all = "external"
 mount_type_any = "engine equipment"
-help_page = "engine/divinity_drive"
+add_thrust = 40000.0
+add_reverse_thrust = 40000.0
+add_turning_thrust = 8000.0
+add_fuel = 100.0
+add_structure = 10000.0
 armor_repair_heat = 0.0
 structure_repair_heat = 0.0
 shield_repair_energy = 0.0

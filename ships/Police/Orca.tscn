@@ -14,7 +14,7 @@ points = PoolVector3Array( 0, 0.475, 10, 0, 0.475, -10, 0, 0.475, 10, 0, 0.475, 
 [sub_resource type="ConvexPolygonShape" id=3]
 points = PoolVector3Array( 0, 0.36, 10, 0, 0.36, -10, 0, 0.36, 10, 0, 0.36, -10, -0.8, -0.36, 10, 0.8, -0.36, -10, 0.8, -0.36, 10, -0.8, -0.36, -10, 0, 0.36, 10, 0, 0.36, -10, 0, 0.36, -10, 0, 0.36, 10, 0.8, -0.36, 10, -0.8, -0.36, -10, 0.8, -0.36, -10, -0.8, -0.36, 10, -0.8, -0.36, 10, 0.8, -0.36, 10, -0.8, -0.36, -10, 0.8, -0.36, -10 )
 
-[node name="RigidBody" type="RigidBody"]
+[node name="Orca" type="RigidBody"]
 script = ExtResource( 3 )
 help_page = "hulls/orca"
 base_mass = 182.0

@@ -3,18 +3,18 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/engines/FusionEngine.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="FusionEngine" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
 material/3 = null
 script = ExtResource( 1 )
-add_mass = 32.0
-add_thrust = 12700.0
+help_page = "engine/nuclear_fusion"
 item_size_x = 4
 item_size_y = 4
 mount_type_all = "engine"
-help_page = "engine/nuclear_fusion"
+add_mass = 32.0
+add_thrust = 12700.0
 add_cooling = -19.548
 add_power = 86.0

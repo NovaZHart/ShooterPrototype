@@ -13,7 +13,7 @@ height = 10.0
 radius = 1.9
 height = 10.0
 
-[node name="PurpleHeavyWarshipHull" type="RigidBody"]
+[node name="Condor" type="RigidBody"]
 script = ExtResource( 2 )
 help_page = "hulls/condor"
 base_mass = 293.0

@@ -3,20 +3,20 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/engines/EscapePodEngine.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="EscapePodEngine" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 1 )
+help_page = "engine/escape_pod_engine"
+item_size_y = 1
+mount_type_display = "external equipment/engine"
+mount_type_all = "external"
+mount_type_any = "equipment engine"
 add_thrust = 50.0
 add_reverse_thrust = 50.0
 add_turning_thrust = 30.0
 add_hyperthrust = 0.2
 add_fuel = 0.3
 add_structure = 20.0
-item_size_y = 1
-mount_type_display = "external equipment/engine"
-mount_type_all = "external"
-mount_type_any = "equipment engine"
-help_page = "engine/escape_pod_engine"

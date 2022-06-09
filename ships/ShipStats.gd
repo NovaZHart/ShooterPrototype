@@ -193,6 +193,15 @@ func set_cost(cost: float, quiet: bool = false, skip_runtime_stats=false) -> Dic
 	combined_stats['cost']=cost
 	return combined_stats
 
+func clear_cargo(quiet: bool = false,skip_runtime_stats: bool = false):
+	cargo = null
+	if not combined_stats.has('empty_mass'):
+		if not quiet:
+			push_warning('No stats in set_cargo! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
+	pack_cargo_stats(combined_stats)
+	return combined_stats
+
 func set_cargo(products: Commodities.Products, quiet: bool = false,
 		skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):

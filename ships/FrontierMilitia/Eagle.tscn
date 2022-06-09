@@ -11,7 +11,7 @@ extents = Vector3( 0.9, 10, 0.9 )
 [sub_resource type="BoxShape" id=2]
 extents = Vector3( 0.5, 10, 1.4 )
 
-[node name="RigidBody" type="RigidBody"]
+[node name="Eagle" type="RigidBody"]
 script = ExtResource( 1 )
 help_page = "hulls/eagle"
 base_mass = 98.0

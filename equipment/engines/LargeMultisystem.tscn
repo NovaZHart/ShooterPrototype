@@ -3,22 +3,22 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/engines/LargeMultisystem.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="LargeMultisystem" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
 material/3 = null
 script = ExtResource( 1 )
+help_page = "engine/multisystem_large"
+item_size_x = 2
+item_size_y = 4
+mount_type_all = "engine"
 add_mass = 14.0
 add_thrust = 1050.0
 add_reverse_thrust = 2525.0
 add_turning_thrust = 2315.0
 add_structure = 210.0
-item_size_x = 2
-item_size_y = 4
-mount_type_all = "engine"
-help_page = "engine/multisystem_large"
 forward_thrust_heat = 0.15
 turning_thrust_heat = 0.2
 forward_thrust_energy = 1.5

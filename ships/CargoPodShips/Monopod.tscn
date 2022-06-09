@@ -9,7 +9,7 @@
 [sub_resource type="ConvexPolygonShape" id=1]
 points = PoolVector3Array( 0, 1, 10, 0, 1, -10, 0, 1, 10, 0, 1, -10, -1, -1, 10, 1, -1, -10, 1, -1, 10, -1, -1, -10, 0, 1, 10, 0, 1, -10, 0, 1, -10, 0, 1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10, -1, -1, 10, -1, -1, 10, 1, -1, 10, -1, -1, -10, 1, -1, -10 )
 
-[node name="OnePodShip" type="RigidBody"]
+[node name="Monopod" type="RigidBody"]
 script = ExtResource( 3 )
 help_page = "hulls/monopod-hauler"
 base_mass = 284.0

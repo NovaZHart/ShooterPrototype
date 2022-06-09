@@ -3,12 +3,17 @@
 [ext_resource path="res://weapons/Old/BigMissileLauncher.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://weapons/WeaponStats.gd" type="Script" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="BigMissileLauncher" type="MeshInstance"]
 mesh = ExtResource( 1 )
 material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 2 )
+help_page = "weapons/anthropomancer"
+mount_type_all = "internal gun"
+mount_type_display = "spinal mount"
+item_size_x = 3
+item_size_y = 4
 damage = 540.0
 damage_type = 8
 impulse = 2500.0
@@ -20,6 +25,7 @@ projectile_drag = 1.5
 projectile_thrust = 20.0
 projectile_lifetime = 6.0
 projectile_turn_rate = 5.0
+projectile_structure = 50.0
 firing_delay = 1.5
 detonation_range = 0.5
 blast_radius = 5.0
@@ -27,13 +33,7 @@ guided = true
 guidance_uses_velocity = true
 auto_retarget = true
 projectile_mesh_path = "res://weapons/projectiles/BigMissile.mesh"
-item_size_x = 3
-item_size_y = 4
-mount_type_all = "internal gun"
-mount_type_display = "spinal mount"
-help_page = "weapons/anthropomancer"
 ammo_capacity = 7
 reload_delay = 2.0
 firing_heat = 0.4
 heat_fraction = 0.1
-projectile_structure = 50.0

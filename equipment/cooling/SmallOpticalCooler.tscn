@@ -3,16 +3,16 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/cooling/SmallOpticalCooler.mesh" type="ArrayMesh" id=2]
 
-[node name="MeshInstance" type="MeshInstance"]
+[node name="SmallOpticalCooler" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
 material/2 = null
 script = ExtResource( 1 )
-add_mass = 2.0
-add_structure = 30.0
+help_page = "equipment/optical_cooler_small"
 item_size_y = 1
 mount_type_all = "internal equipment"
-help_page = "equipment/optical_cooler_small"
+add_mass = 2.0
+add_structure = 30.0
 add_cooling = 2.7
 add_power = -0.135

@@ -11,7 +11,7 @@ points = PoolVector3Array( 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, 10, 0, 0.35, -10,
 [sub_resource type="ConvexPolygonShape" id=2]
 points = PoolVector3Array( 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, 10, 0, 0.35, -10, -0.9, -0.35, 10, 0.9, -0.35, -10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0, 0.35, 10, 0, 0.35, -10, 0, 0.35, -10, 0, 0.35, 10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0.9, -0.35, -10, -0.9, -0.35, 10, -0.9, -0.35, 10, 0.9, -0.35, 10, -0.9, -0.35, -10, 0.9, -0.35, -10 )
 
-[node name="RigidBody" type="RigidBody"]
+[node name="Popoto" type="RigidBody"]
 script = ExtResource( 3 )
 help_page = "hulls/popoto"
 base_mass = 40.0
