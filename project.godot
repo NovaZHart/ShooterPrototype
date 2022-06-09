@@ -16,6 +16,7 @@ _global_script_class_icons={
 
 config/name="ShooterPrototype"
 run/main_scene="res://ui/TopScene.tscn"
+run/delta_sync_after_draw=true
 config/icon="res://icon.png"
 
 [autoload]
@@ -197,6 +198,7 @@ common/enable_object_picking=false
 [rendering]
 
 threads/thread_model=2
+threads/thread_safe_bvh=true
 quality/directional_shadow/size=1024
 quality/directional_shadow/size.mobile=1024
 quality/shadow_atlas/size=1024
