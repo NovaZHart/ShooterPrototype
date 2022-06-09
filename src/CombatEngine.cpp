@@ -1926,41 +1926,26 @@ real_t CombatEngine::time_of_closest_approach(Vector3 dp,Vector3 dv) {
 
 void CombatEngine::fire_antimissile_turrets(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  if(not ship.range.antimissile) {
-    // if(ship.id == player_ship_id)
-    //   Godot::print_warning(ship.name+": has no anti-missile systems",__FUNCTION__,__FILE__,__LINE__);
+  if(not ship.range.antimissile)
     return; // Ship has no anti-missile systems.
-  }
 
   faction_mask_t enemy_mask = enemy_masks[ship.faction];
-  if(!enemy_mask) {
-    // if(ship.id == player_ship_id)
-    //   Godot::print_warning(ship.name+": has no enemy factions",__FUNCTION__,__FILE__,__LINE__);
+  if(!enemy_mask)
     return; // Ship has no enemy factions, so no possible projectile matches.
-  }
   
   real_t antimissile_range=0;  
   for(auto &weapon : ship.weapons)
     if(weapon.antimissile and weapon.damage>0 and weapon.can_fire())
       antimissile_range = max(antimissile_range,weapon.projectile_range);
 
-  if(antimissile_range<=0) {
-    // if(ship.id == player_ship_id)
-    //   Godot::print_warning(ship.name+": anti-missile systems are not ready to fire",__FUNCTION__,__FILE__,__LINE__);
+  if(antimissile_range<=0)
     return; // No anti-missile weapons are ready to fire.
-  }
   
   real_t range = ship.radius + antimissile_range;
   Vector2 center = Vector2(ship.position.x,ship.position.z);
   objects_found.clear();
-  if(not missile_locations.overlapping_circle(center,range,objects_found)) {
-    // if(ship.id == player_ship_id)
-    //   Godot::print(ship.name+": no projectiles are in range "+range+" of anti-missile systems at "+str(center));
+  if(not missile_locations.overlapping_circle(center,range,objects_found))
     return; // No projectiles in range
-  }
-
-  // if(ship.id == player_ship_id)
-  //   Godot::print(ship.name+": found "+str(objects_found.size())+" potential targets for anti-missile systems.");
 
   // Delete any projectiles that are not viable targets.
   for(auto iter=objects_found.begin();iter!=objects_found.end();) {
@@ -1975,7 +1960,6 @@ void CombatEngine::fire_antimissile_turrets(Ship &ship) {
     Projectile &proj = proj_it->second;
     if(proj.direct_fire or not proj.max_structure or not proj.alive) {
       iter = objects_found.erase(iter);
-      Godot::print("Found invalid projectile in missile_locations: direct_fire="+str(proj.direct_fire)+" max_structure="+str(proj.max_structure)+" alive="+str(proj.alive));
       continue; // Projectile is not a valid target.
     }
     if( not ( (1<<proj.faction) & enemy_mask )) {
@@ -1984,7 +1968,6 @@ void CombatEngine::fire_antimissile_turrets(Ship &ship) {
     }
     if(proj.structure<=0) {
       iter = objects_found.erase(iter);
-      Godot::print("Found dead projectile in missile_locations");
       continue; // Projectile is already dead.
     }
     iter++;

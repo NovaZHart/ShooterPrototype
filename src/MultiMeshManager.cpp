@@ -254,7 +254,7 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
       Godot::print("          ... mesh count is "+str(count));
     visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,mesh_info.floats);
   }
-  if(!(v_frame%600)) {
+  if(loud && !(v_frame%600)) {
     int instances=0, meshes=0, multimeshes=0, visuals=0;
     for(auto &id_info : v_meshes) {
       MeshInfo &info = id_info.second;
@@ -372,7 +372,7 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info) {
     return;
   
   if(v_frame > mesh_info.last_frame_used+1200) {
-    Godot::print("Freeing a multimesh");
+    //Godot::print("Freeing a multimesh");
     if(mesh_info.visual_rid.is_valid())
       visual_server->free_rid(mesh_info.visual_rid);
     if(mesh_info.multimesh_rid.is_valid())
