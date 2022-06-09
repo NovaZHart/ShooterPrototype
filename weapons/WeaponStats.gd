@@ -67,6 +67,9 @@ var item_offset_y: int = -1
 
 func is_WeaponStats(): pass # Never called; must only exist
 
+func keep_mount_in_space():
+	return true
+
 func is_mountable(): # Never called; must only exist
 	# Defining this ensures the weapon can be placed in a mount
 	pass

@@ -556,6 +556,7 @@ func land_player() -> int:
 	return get_tree().change_scene('res://ui/OrbitalScreen.tscn')
 
 func add_spawned_ship(ship: RigidBody,is_player: bool):
+	var top_start: float = OS.get_ticks_msec()
 	if is_player:
 #		print('restore combat stats ',Player.ship_combat_stats)
 		ship.restore_combat_stats(Player.ship_combat_stats)
@@ -569,10 +570,14 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 	new_ships_mutex.unlock()
 	if is_player:
 		receive_player_orders({})
+	duration=OS.get_ticks_msec()-top_start
+	if duration>1:
+		print('Spawn_ship took '+str(duration)+'ms')
 
-func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
+func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
-		initial_ai: int) -> void:
+		initial_ai: int) -> Spatial:
+	var start: float = OS.get_ticks_msec()
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
@@ -580,18 +585,32 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	ship.ai_type=initial_ai
 	ship.set_faction_index(faction_index)
 	if is_player:
-#		print('spawn_ship receiving player ship')
 		ship.name = player_ship_name
+	else:
+		ship.name = game_state.make_unique_ship_node_name()
+	ship.set_entry_method(entry_method)
+	var duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print('assemble_ship_to_spawn took '+str(duration)+'ms')
+	return ship
+
+func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
+		faction_index: int, is_player: bool, entry_method: int,
+		initial_ai: int) -> void:
+	var start: float = OS.get_ticks_msec()
+	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai)
+	if is_player:
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
 		add_spawned_ship(ship,true)
 		if ship.faction_index!=0:
 			push_warning('Player ship faction index should be 0 but is '+str(ship.faction_index))
-#		print('add player ship of design ',str(ship_design))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 		call_deferred('add_spawned_ship',ship,false)
-	ship.set_entry_method(entry_method)
+	var duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print('Spawn_ship took '+str(duration)+'ms')
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)

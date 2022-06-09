@@ -8,6 +8,9 @@ const mesh_list: Array = [
 	preload('res://ships/CargoPodShips/PodPedistal.mesh'),
 ]
 
+func keep_mount_in_space():
+	return true
+
 # Called when the node enters the scene tree for the first time.
 func _ready():
 	assert(get_parent())

@@ -154,7 +154,8 @@ func make_stats(node: Node, stats: Dictionary,skip_runtime_stats=false) -> Dicti
 	var children: Array = node.get_children()
 	for child in children:
 		var _discard = make_stats(child,stats,skip_runtime_stats)
-	stats["salvage"].sort_custom(SortByPriority,"by_priority")
+	if node.get_instance_id()==self.get_instance_id():
+		combined_stats["salvage"].sort_custom(SortByPriority,"by_priority")
 	return stats
 
 func repack_stats(skip_runtime_stats=false) -> Dictionary:
@@ -213,6 +214,7 @@ func set_cargo(products: Commodities.Products, quiet: bool = false,
 	pack_cargo_stats(combined_stats)
 	return combined_stats
 
+
 func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
 	#if not stats:
 	#	push_error('no combat stats to restore in restore_combat_stats')
@@ -226,7 +228,7 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, q
 			print('restored '+str(varname)+' to '+str(combined_stats[varname]))
 
 func set_stats(stats: Dictionary) -> void:
-	combined_stats = stats.duplicate(false) # (true)
+	combined_stats = stats.duplicate(true)
 
 func set_item_slots(_ignored):
 	var _discard = get_item_slots()

@@ -244,6 +244,7 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	view_mat.set_shader_param('uv2_range',uv2_range)
 
 func send_cached_textures():
+	var start: float = OS.get_ticks_msec()
 #	print('Maybe send cached textures?')
 	if background_texture and not cached_background_texture:
 #		print('send background')
@@ -259,6 +260,9 @@ func send_cached_textures():
 #			print('no new starfield to send')
 #	else:
 #		print('no new background to send')
+	var duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print("send_cached_textures took "+str(duration)+"ms")
 
 func texture_from_viewport(viewport_texture: ViewportTexture):
 	var img = viewport_texture.get_data()

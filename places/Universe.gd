@@ -11,6 +11,7 @@ var factions: Factions.FactionList
 var ui: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
+var cached_parts: Dictionary
 
 signal reset_system
 signal added_system
@@ -205,6 +206,21 @@ static func encode_MultiMount(m: MultiMount):
 	return [ 'MultiMount', encode_children(m) ]
 
 
+func get_part(scene: PackedScene):
+	var start = OS.get_ticks_msec()
+	var part = cached_parts.get(scene,null)
+	var instanced = false
+	if not part:
+		instanced = true
+		print('Instancing scene '+str(scene.resource_path)+' in get_part')
+		part = scene.instance()
+		cached_parts[scene]=part
+	var result = part.duplicate(4)
+	var duration = OS.get_ticks_msec()-start
+	if duration>1:
+		print('get_part took '+str(duration)+'ms instance='+str(instanced)+' scene='+str(scene.resource_path))
+	return result
+
 
 class ShipDesign extends simple_tree.SimpleNode:
 	var display_name: String
@@ -299,18 +315,25 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return float(product[Commodities.Products.VALUE_INDEX] if product else 0.0)
 	
 	func assemble_part(body: Node, child: Node, skip_hidden: bool) -> bool:
+		var start = OS.get_ticks_msec()
 		var part = get_child_with_name(child.name)
 		if not part:
+			var duration = OS.get_ticks_msec()-start
+			if duration>1:
+				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to do nothing (1)")
 			return false
 		elif part is MultiMount:
+			if skip_hidden:
+				var duration = OS.get_ticks_msec()-start
+				if duration>1:
+					print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to skip a multimount")
+				return false # multimount contents should never be shown
 			var found = false
 			for part_name in part.get_child_names():
 				var content = part.get_child_with_name(part_name)
 				assert(content is MultiMounted)
 				var new_child_name = child.name+'_at_'+str(content.x)+'_'+str(content.y)
-				if skip_hidden and not_visible.has(new_child_name):
-					continue # this part should not be shown, so don't instance it
-				var new_child: Node = content.scene.instance()
+				var new_child: Node = game_state.universe.get_part(content.scene)
 				if new_child!=null:
 					new_child.item_offset_x = content.x
 					new_child.item_offset_y = content.y
@@ -322,27 +345,43 @@ class ShipDesign extends simple_tree.SimpleNode:
 						old_child.queue_free()
 					body.add_child(new_child)
 					found = true
+			var duration = OS.get_ticks_msec()-start
+			if duration>1:
+				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to fill multimount "+str(child.name))
 			return found
 		elif part is Mounted:
 			if skip_hidden and not_visible.has(child.name):
 				return false # this part should not be shown, so don't instance it
-			var new_child = part.scene.instance()
+			var new_child = game_state.universe.get_part(part.scene)
 			new_child.transform = child.transform
 			new_child.name = child.name
 			body.remove_child(child)
 			child.queue_free()
 			body.add_child(new_child)
+			var duration = OS.get_ticks_msec()-start
+			if duration>1:
+				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to create part "+str(part.scene.resource_path))
 			return true
+		var duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to do nothing (2)")
 		return false
 
 	func assemble_body(): # -> Node or null
+		var start = OS.get_ticks_msec()
 		var body = hull.instance()
 		body.ship_display_name = display_name
 		var _discard = body.get_item_slots()
 		if body == null:
 			push_error('assemble_ship: cannot instance scene: '+body)
+			var duration = OS.get_ticks_msec()-start
+			if duration>1:
+				print("ShipDesign.assemble_body took "+str(duration)+"ms to fail")
 			return null
 		body.save_transforms()
+		var duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("ShipDesign.assemble_body took "+str(duration)+"ms")
 		return body
 
 	func assemble_stats(body: Node, reassemble: bool):
@@ -358,16 +397,29 @@ class ShipDesign extends simple_tree.SimpleNode:
 		cached_stats = stats.duplicate(true)
 		cache_remove_instance_info()
 
-	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
-		var body = assemble_body()
-		if not body:
-			push_warning("No body to assemble. Returning an empty Node")
-			return Node.new()
-		var reassemble = cached_stats!=null # true=already assembled design once
+	func assemble_parts(body: Node, reassemble: bool,retain_hidden_mounts: bool) -> void:
+		var start = OS.get_ticks_msec()
+		var skip_hidden: bool = reassemble and not retain_hidden_mounts
 		for child in body.get_children():
-			if child is CollisionShape and child.scale.y<10:
-				child.scale.y=10
-			var _discard = assemble_part(body,child,reassemble and not retain_hidden_mounts)
+			assemble_part(body,child,skip_hidden)
+			#if not assemble_part(body,child,skip_hidden) and not retain_hidden_mounts:
+#				var skip: bool = not_visible.has(child.name)
+#				if not skip:
+#					skip = not child is VisualInstance and not child is CollisionShape and \
+#						not (child.has_method("keep_mount_in_space") and \
+#						child.keep_mount_in_space() )
+#				if skip:
+#					not_visible[child.name]=1
+#					body.remove_child(child)
+#					child.queue_free()
+#			elif child is CollisionShape and child.scale.y<10:
+#				child.scale.y=10
+		var duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("ShipDesign.assemble_parts(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms")
+
+	func assemble_ship_setup_cargo_and_stats(body,reassemble):
+		var start = OS.get_ticks_msec()
 		var stats = null
 		if reassemble:
 			body.set_stats(cached_stats)
@@ -376,17 +428,46 @@ class ShipDesign extends simple_tree.SimpleNode:
 		var _discard = body.set_cost(get_cost())
 		if cargo:
 			body.set_cargo(cargo)
+		var duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("ShipDesign.assemble_parts took "+str(duration)+"ms")
+		return stats
+	
+	func assemble_ship_remove_hidden_mounts(body):
+		var start = OS.get_ticks_msec()
+		for child in body.get_children():
+			if not child is VisualInstance and not child is CollisionShape and \
+					not (child.has_method("keep_mount_in_space") and \
+					child.keep_mount_in_space() ):
+				# This is not visible in space, so remove it from the scene tree.
+				not_visible[child.name]=1
+				body.remove_child(child)
+				child.queue_free()
+		var duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("ShipDesign.assemble_ship took "+str(duration)+"ms")
+	
+	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
+		var start = OS.get_ticks_msec()
+		var body = assemble_body()
+		if not body:
+			push_warning("No body to assemble. Returning an empty Node")
+			var duration = OS.get_ticks_msec()-start
+			if duration>1:
+				print("ShipDesign.assemble_ship took "+str(duration)+"ms to fail")
+			return Node.new()
+		var reassemble = cached_stats!=null # true=already assembled design once
+		assemble_parts(body,reassemble,retain_hidden_mounts)
+		var stats = assemble_ship_setup_cargo_and_stats(body,reassemble)
 		if not retain_hidden_mounts:
-			for child in body.get_children():
-				if child.has_method('is_EquipmentStats') or child.has_method('is_MountStats'):
-					# This is not visible in space, so remove it from the scene tree.
-					not_visible[child.name]=1
-					body.remove_child(child)
-					child.queue_free()
+			assemble_ship_remove_hidden_mounts(body)
 		if not reassemble and not retain_hidden_mounts:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
 		body.select_salvage()
+		var duration = OS.get_ticks_msec()-start
+		if duration>1:
+			print("ShipDesign.assemble_ship took "+str(duration)+"ms")
 		return body
 
 static func encode_ShipDesign(d: ShipDesign):
