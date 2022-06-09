@@ -1,7 +1,7 @@
 #ifndef FASTPROFILIER_HPP
 #define FASTPROFILIER_HPP
 
-#define ENABLE_PROFILING
+#undef ENABLE_PROFILING
 
 namespace godot {
   class FastProfiling {
