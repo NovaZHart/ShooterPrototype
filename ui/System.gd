@@ -654,18 +654,6 @@ func center_view(center=null) -> void:
 	var size=$TopCamera.size
 	$TopCamera.translation = Vector3(center.x, 50, center.z)
 	$SpaceBackground.center_view(center.x,center.z,0,size,30)
-	var distance: float = sqrt(center.x*center.x+center.z*center.z)
-	var nadir_angle: float = clamp(atan(distance/300),0,PI*45/180)
-	var azimuth_angle: float = atan2(-center.z,-center.x)
-	if randf()<.02:
-		print("Setting directional ship light to nadir="+str(nadir_angle)+" azimuth="+str(azimuth_angle)+
-			" for distance "+str(distance)+" center "+str(center))
-	var dsltrans: Transform = Transform(Basis(),Vector3(0,50,0))
-	dsltrans = dsltrans.rotated(Vector3(1,0,0),-PI/2)
-	dsltrans = dsltrans.rotated(Vector3(0,0,-1),nadir_angle)
-	dsltrans = dsltrans.rotated(Vector3(0,-1,0),azimuth_angle)
-	$DirectionalShipLight.transform = dsltrans
-	
 	# Maintain 30 degree sun angle unless were're very close to the sun.
 	$ShipLight.translation.y = min(max_sun_height,max(min_sun_height,
 		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))

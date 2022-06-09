@@ -7,33 +7,22 @@
 [sub_resource type="Environment" id=1]
 background_energy = 0.0
 ambient_light_color = Color( 0.666667, 0.666667, 1, 1 )
-ambient_light_energy = 0.1
+ambient_light_energy = 0.05
 ambient_light_sky_contribution = 0.0
 
 [node name="System" type="Viewport"]
 size = Vector2( 1600, 900 )
 own_world = true
-usage = 3
 script = ExtResource( 2 )
 label_font_data = ExtResource( 3 )
 
-[node name="DirectionalShipLight" type="DirectionalLight" parent="."]
-transform = Transform( 1, 0, 0, 0, 0.965926, 0.258819, 0, -0.258819, 0.965926, 0, 3.50369, 0 )
-light_indirect_energy = 0.1
-light_specular = 0.25
-light_cull_mask = 4293918721
-shadow_enabled = true
-shadow_color = Color( 0.027451, 0.00392157, 0.0862745, 1 )
-shadow_bias = 0.0
-directional_shadow_mode = 0
-directional_shadow_blend_splits = true
-directional_shadow_depth_range = 1
-
 [node name="ShipLight" type="OmniLight" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 10, 0 )
-visible = false
+light_indirect_energy = 0.0
+light_specular = 0.0
 light_cull_mask = 4293918721
-shadow_enabled = true
+shadow_bias = 2.0
+shadow_contact = 10.0
 omni_range = 999999.0
 omni_attenuation = 0.0228763
 

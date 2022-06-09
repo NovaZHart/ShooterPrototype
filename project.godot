@@ -196,6 +196,11 @@ common/enable_object_picking=false
 [rendering]
 
 threads/thread_model=2
+quality/directional_shadow/size=1024
+quality/directional_shadow/size.mobile=1024
+quality/shadow_atlas/size=1024
+quality/shadow_atlas/size.mobile=1024
+quality/shadow_atlas/cubemap_size=256
 quality/shadows/filter_mode=0
 quality/reflections/texture_array_reflections=false
 quality/reflections/high_quality_ggx=false
