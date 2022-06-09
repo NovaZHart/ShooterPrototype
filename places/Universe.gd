@@ -355,9 +355,10 @@ class ShipDesign extends simple_tree.SimpleNode:
 			var new_child = game_state.universe.get_part(part.scene)
 			new_child.transform = child.transform
 			new_child.name = child.name
-			body.remove_child(child)
+			child.replace_by(new_child)
+			#body.remove_child(child)
 			child.queue_free()
-			body.add_child(new_child)
+			#body.add_child(new_child)
 			var duration = OS.get_ticks_msec()-start
 			if duration>1:
 				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to create part "+str(part.scene.resource_path))
@@ -401,7 +402,9 @@ class ShipDesign extends simple_tree.SimpleNode:
 		var start = OS.get_ticks_msec()
 		var skip_hidden: bool = reassemble and not retain_hidden_mounts
 		for child in body.get_children():
-			assemble_part(body,child,skip_hidden)
+			if assemble_part(body,child,skip_hidden) and skip_hidden and not_visible.has(child.name):
+				body.remove_child(child)
+				child.queue_free()
 			#if not assemble_part(body,child,skip_hidden) and not retain_hidden_mounts:
 #				var skip: bool = not_visible.has(child.name)
 #				if not skip:
@@ -467,7 +470,12 @@ class ShipDesign extends simple_tree.SimpleNode:
 		body.select_salvage()
 		var duration = OS.get_ticks_msec()-start
 		if duration>1:
-			print("ShipDesign.assemble_ship took "+str(duration)+"ms")
+			if not reassemble:
+				print("ShipDesign.assemble_ship "+str(display_name)+" took "+str(duration)+
+					"ms to assemble a ship the first time (retain_hidden_mounts="+str(retain_hidden_mounts)+")")
+			else:
+				print("ShipDesign.assemble_ship "+str(display_name)+" took "+str(duration)+
+					"ms (retain_hidden_mounts="+str(retain_hidden_mounts)+")")
 		return body
 
 static func encode_ShipDesign(d: ShipDesign):
