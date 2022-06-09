@@ -218,7 +218,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
 		cargo = new_cargo
 		clear_cached_stats()
-	
+
 	func get_cost(from=null):
 		if cached_cost<0:
 			var parts = Commodities.ManyProducts.new()
@@ -276,7 +276,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 	
 	func get_stats() -> Dictionary:
 		if not cached_stats:
-			var _discard = assemble_ship()
+			assemble_ship().queue_free()
 		return cached_stats
 	
 	func clear_cached_stats():
@@ -316,6 +316,10 @@ class ShipDesign extends simple_tree.SimpleNode:
 					new_child.item_offset_y = content.y
 					new_child.transform = child.transform
 					new_child.name = new_child_name
+					var old_child = body.get_node_or_null(new_child_name)
+					if old_child:
+						body.remove_child(old_child)
+						old_child.queue_free()
 					body.add_child(new_child)
 					found = true
 			return found
@@ -357,6 +361,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
 		var body = assemble_body()
 		if not body:
+			push_warning("No body to assemble. Returning an empty Node")
 			return Node.new()
 		var reassemble = cached_stats!=null # true=already assembled design once
 		for child in body.get_children():

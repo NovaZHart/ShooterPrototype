@@ -57,6 +57,13 @@ const outfit_borders = [	       # U D L R
 const box_scale: float = 0.135
 const item_scale: float = 0.125
 
+# func _exit_tree():
+# 	print(str(get_path())+": InventorySlot is leaving tree, freeing all items")
+# 	var children = get_children();
+# 	for child in children:
+# 		remove_child(child)
+# 		child.queue_free()
+
 func get_mount_name() -> String:
 	return mount_name if mount_name else name
 
@@ -66,12 +73,12 @@ func is_inventory_slot(): # never called; must only exist. FIXME: DELETE THIS
 	pass
 
 func has_item() -> bool:
-	return get_node_or_null('item')!=null
+	return get_node_or_null('InventorySlotItem')!=null
 
 func color(mask: int):
 	for j in range(ny):
 		for i in range(nx):
-			var child = get_node_or_null('cell_'+str(i)+'_'+str(j))
+			var child = get_node_or_null("InventorySlotBox_x"+str(i)+"_y"+str(j))
 			assert(child)
 			if child!=null:
 				child.layers = child.layers&~LIGHT_LAYER_MASK | mask
@@ -114,7 +121,11 @@ func create_only_box(nx_: int,ny_: int,mount_flags_: int):
 	var shape: CollisionShape = CollisionShape.new()
 	shape.shape = BoxShape.new()
 	shape.shape.extents = Vector3(ny*box_scale,10,nx*box_scale)
-	shape.name='shape'
+	shape.name='InventorySlotShape'
+	var old = get_node_or_null(shape.name)
+	if old:
+		remove_child(old)
+		old.queue_free()
 	add_child(shape)
 	make_box()
 	assert(mount_flags)
@@ -137,20 +148,29 @@ func create_item(scene_: PackedScene,with_box: bool,position = null,item = null)
 		assert(position is Vector2)
 		my_x = int(round(position.x))
 		my_y = int(round(position.y))
+
 	
 	var shape: BoxShape = BoxShape.new()
 	shape.extents = Vector3(ny*item_scale,100,nx*item_scale)
 	var cshape: CollisionShape = CollisionShape.new()
 	cshape.shape = shape
-	cshape.name = 'collision'
+	cshape.name = 'InventorySlotCollision'
+	var old_collision=get_node_or_null(cshape.name)
+	if old_collision:
+		remove_child(old_collision)
+		old_collision.queue_free()
 	add_child(cshape)
 	#collision_layer = mask
 	collision_mask = 0
-	item.name='item'
+	item.name='InventorySlotItem'
 	item.transform = Transform()
 	if item.is_gun():
 		item.translation.x = (item.mount_size_y-1.0)*item_scale
 	item.translation.y += 0.1
+	var old_item=get_node_or_null(item.name)
+	if old_collision:
+		remove_child(old_item)
+		old_item.queue_free()
 	add_child(item)
 	
 	if with_box:
@@ -182,7 +202,7 @@ func place_near(mount: Vector3,space: PhysicsDirectSpaceState,_mask: int):
 		angles.append(i/10.0)
 		angles.append(-i/10.0)
 	var radii: Array = [ .1, .2, .3, .5, .8, 1.3, 2.1, 3.4, 5.5, 8.9 ]
-	var shape: Shape = get_node('shape').shape
+	var shape: Shape = get_node('InventorySlotShape').shape
 	var query: PhysicsShapeQueryParameters = PhysicsShapeQueryParameters.new()
 
 	query.margin=0.25
@@ -222,8 +242,12 @@ func make_box():
 			instance.mesh = outfit_borders[border][1]
 			instance.translation = Vector3(
 				- 2*(j-float(ny)/2+0.5)*box_scale, 0, 2*(i-float(nx)/2+0.5)*box_scale)
-			instance.name = 'cell_'+str(i)+'_'+str(j)
+			instance.name = "InventorySlotBox_x"+str(i)+"_y"+str(j)
 			instance.scale = Vector3(box_scale,box_scale,box_scale)
 			instance.layers = 2
+			var old=get_node_or_null(instance.name)
+			if old:
+				remove_child(old)
+				old.queue_free()
 			add_child(instance)
 

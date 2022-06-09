@@ -119,6 +119,8 @@ class SimpleNode extends Reference:
 		var parent_node = parent_.get_ref()
 		if parent_node:
 			parent_node.remove_child(self)
+		for child in children_.values():
+			child.queue_free()
 
 	func remove_all_children() -> bool:
 		var names = children_.keys()
@@ -285,3 +287,5 @@ class SimpleTree extends Reference:
 		if a.is_empty() and b.is_empty():
 			return true
 		return make_absolute(a) == make_absolute(b)
+	func queue_free():
+		root.queue_free()

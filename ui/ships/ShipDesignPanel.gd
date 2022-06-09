@@ -74,6 +74,7 @@ func forbid_edits():
 		var button = $All/Buttons.get_node_or_null(button_name)
 		if button:
 			$All/Buttons.remove_child(button)
+			button.queue_free()
 	$All/Buttons.columns = $All/Buttons.get_child_count()
 	update_buttons()
 
@@ -151,6 +152,12 @@ func update_buttons():
 		Add.disabled = disable_Add
 	$All/Buttons.columns = $All/Buttons.get_child_count()
 
+func remove_button(name):
+	var node = $All/Buttons.get_node_or_null(name)
+	if node:
+		$All/Buttons.remove_child(node)
+		node.queue_free()
+
 func _ready():
 # warning-ignore:narrowing_conversion
 	min_listed_designs = min(min_listed_designs,max_listed_designs)
@@ -160,15 +167,15 @@ func _ready():
 	$All/Buttons/Zoom.max_value = max_listed_designs
 	
 	if not show_Add:
-		$All/Buttons.remove_child($All/Buttons/Add)
+		remove_button('Add')
 	if not show_Change:
-		$All/Buttons.remove_child($All/Buttons/Change)
+		remove_button('Add')
 	if not show_Remove:
-		$All/Buttons.remove_child($All/Buttons/Remove)
+		remove_button('Add')
 	if not show_Open:
-		$All/Buttons.remove_child($All/Buttons/Open)
+		remove_button('Add')
 	if not show_Cancel:
-		$All/Buttons.remove_child($All/Buttons/Cancel)
+		remove_button('Add')
 	update_buttons()
 
 func _input(event):
@@ -273,10 +280,6 @@ func refresh():
 		child.refresh()
 	design_mutex.unlock()
 
-class NodePathSorter extends Reference:
-	func sort(a,b):
-		return str(a)<str(b)
-
 func update_designs(fill_missing: bool,lock_mutex: bool = true):
 	if lock_mutex:
 		design_mutex.lock()
@@ -287,7 +290,6 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 	spath.sort()
 	for i in range(len(spath)):
 		design_paths[i]=NodePath(spath[i])
-	#design_paths.sort_custom(NodePathSorter.new(),'sort')
 	
 	var count_designs_visible: int = $All/Top/List.get_child_count()
 	var first_design_shown: int = $All/Top/Scroll.value
@@ -325,6 +327,7 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 		var node = $All/Top/List.get_node_or_null(designs_shown[i][0])
 		if node:
 			$All/Top/List.remove_child(node)
+			node.queue_free()
 	
 	if fill_missing:
 		last_update_tick = OS.get_ticks_msec()

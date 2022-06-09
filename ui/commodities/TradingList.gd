@@ -113,6 +113,7 @@ func populate_list(all_known_products,products_here,ship_design):
 	max_cargo = int(round(ship.combined_stats['max_cargo']))*1000
 	mine = ship_design.cargo
 	var now_cargo = int(round(mine.get_mass()))
+	ship.queue_free()
 	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
 	show_fruit('populate_list after cargo_mass_changed')
 	

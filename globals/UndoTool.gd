@@ -31,7 +31,13 @@ class UndoStack extends Reference:
 		return null
 	func clear():
 		if verbose: print('clear stack')
+		for c in undo_stack:
+			if c is Object and c.has_method("exit_stack"):
+				c.exit_stack()
 		undo_stack.clear()
+		for c in redo_stack:
+			if c is Object and c.has_method("exit_stack"):
+				c.exit_stack()
 		redo_stack.clear()
 		emit_signal('undo_stack_changed')
 		emit_signal('redo_stack_changed')
@@ -63,6 +69,9 @@ class UndoStack extends Reference:
 		if action.run():
 			if verbose: print('UndoStack.push: push successful for ',action.as_string())
 			undo_stack.append(action)
+			for c in redo_stack:
+				if c is Object and c.has_method("exit_stack"):
+					c.exit_stack()
 			redo_stack.clear()
 			if verbose: dump()
 			emit_signal('undo_stack_changed')
@@ -95,6 +104,9 @@ class UndoStack extends Reference:
 			else:
 				push_error('UndoStack.undo: action.undo() failed for '+
 					action.as_string()+'. Undo/redo stack is now corrupted')
+				for c in redo_stack:
+					if c is Object and c.has_method("exit_stack"):
+						c.exit_stack()
 				redo_stack.clear()
 				emit_signal('undo_failed')
 				emit_signal('undo_stack_changed')
@@ -128,6 +140,8 @@ class UndoStack extends Reference:
 					action.as_string()+'. Discarding redo stack.')
 				emit_signal('redo_failed')
 				emit_signal('redo_stack_changed')
+				if action is Object and action.has_method('exit_stack'):
+					action.exit_stack()
 				if redo_stack.empty():
 					emit_signal('redo_stack_empty')
 		elif verbose:

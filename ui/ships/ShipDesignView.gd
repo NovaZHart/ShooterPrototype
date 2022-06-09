@@ -254,11 +254,15 @@ func _init():
 	mounts.set_name('MountPoints')
 	var _discard = root.add_child(mounts)
 
+func _exit_tree():
+	tree.queue_free()
+
 func clear_ship():
 	var _discard = mounts.remove_all_children()
 	var ship_node = root.get_child_with_name('Ship')
 	if ship_node:
 		_discard = root.remove_child(ship_node)
+		ship_node.queue_free()
 	
 	for child_name in [ 'Ship', 'Hull' ]:
 		var ship = get_node_or_null(child_name)
@@ -288,6 +292,10 @@ func multimount_point(width: int,height: int,loc: Vector3,mount_flags: int,box_n
 		box.translation = Vector3(loc.x,0,loc.z)
 	box.name=box_name
 	var _discard=connect('update_coloring',box,'update_coloring')
+	var old=get_node_or_null(box_name)
+	if old:
+		remove_child(old)
+		old.queue_free()
 	$Viewport/MountPoints.add_child(box)
 	return box
 
@@ -302,6 +310,10 @@ func mount_point(width: int,height: int,loc: Vector3,box_name: String,mount_flag
 	box.name=box_name
 	box.collision_layer = MOUNT_POINT_LAYER_MASK
 	var _discard=connect('update_coloring',box,'update_coloring')
+	var old=get_node_or_null(box_name)
+	if old:
+		remove_child(old)
+		old.queue_free()
 	$Viewport/MountPoints.add_child(box)
 	return box
 
@@ -360,10 +372,12 @@ func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount or not mount is MountData:
 		push_error('tried to mount on a non-existent mount "'+mount_name+'"')
+		item.queue_free()
 		return false
 	var content = InventoryContent.new()
 	content.create(mount.transform.origin,item.item_size_x,item.item_size_y,item.mount_flags_all,item.mount_flags_any,scene,x,y)
-	return try_to_mount(content, mount_name, true)
+	item.queue_free()
+	return try_to_mount(content, mount_name, true) # try_to_mount manages content freeing
 
 func remove_item(_scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 	return unmount(mount_name,x,y)
@@ -409,6 +423,7 @@ func unmount(mount_name: String,x: int,y: int) -> bool:
 func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bool:
 	# Install a component (area) in the multimount.
 	# The location is based on the area location and item size.
+	# Must not add content to tree.
 	var inventory_array = $Viewport.get_node_or_null(mount.box)
 	if inventory_array==null:
 		print('no inventory array for '+mount.get_name()+' at path '+str(mount.box))
@@ -432,6 +447,10 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 	if install is CollisionObject:
 		install.collision_mask=0
 		install.collision_layer=0
+	var old=get_node_or_null(cell_name)
+	if old:
+		remove_child(old)
+		old.queue_free()
 	ship_mount.add_child(install)
 	set_layer_recursively(install,ITEM_LIGHT_CULL_LAYER)
 	if install.name!=cell_name:
@@ -441,6 +460,7 @@ func place_in_multimount(content, mount: MountData, use_item_offset: bool) -> bo
 
 func place_in_single_mount(content, mount: MountData) -> bool:
 	# Install a component (content) in the mount in mounts[mount_name]
+	# Must not add content to tree.
 	if content.nx>mount.nx or content.ny>mount.ny:
 		return false
 	var mount_content = get_node_or_null(mount.content)
@@ -537,7 +557,6 @@ func make_ship(design):
 	decoded.set_name('Ship')
 	var _discard = root.add_child(decoded)
 
-	#var ship = $Viewport.assemble_ship(decoded)
 	var ship = design.hull.instance()
 	ship.name='Ship'
 	ship.collision_layer = SHIP_LAYER_MASK
@@ -567,10 +586,10 @@ func make_ship(design):
 				add_multimount_contents(mount_name,decoded)
 				continue
 			var area: Area = Area.new()
+			area.name="make_ship_Area_"+mount_name
 			area.set_script(InventorySlot)
 			area.create_item(mount.scene,false)
-			if not try_to_mount(area,mount_name,true):
-				area.queue_free()
+			try_to_mount(area,mount_name,true) # try_to_mount manages freeing area
 		elif mount_name!='hull':
 			printerr('ShipEditor: mount "',mount_name,'" does not exist.')
 	ship_aabb = combined_aabb(ship)
@@ -618,8 +637,7 @@ func add_multimount_contents(mount_name: String,design: simple_tree.SimpleNode):
 		area.create_item(scene,false,Vector2(item.x, item.y))
 		area.my_x = item.x
 		area.my_y = item.y
-		if not try_to_mount(area,mount_name,true):
-			area.queue_free()
+		try_to_mount(area,mount_name,true) # try_to_mount manages freeing area
 
 func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	# Install the item (area) in the specified mount, which may be a single
@@ -627,18 +645,29 @@ func try_to_mount(content, mount_name: String, use_item_offset: bool):
 	var mount = mounts.get_node_or_null(mount_name)
 	if not mount:
 		push_warning('no mounts for '+mount_name)
+		if content.has_method('queue_free'):
+			content.queue_free()
 		return false
 	if not utils.can_mount(mount.mount_flags,content):
 		push_error('Mount type mismatch: item="'+utils.mountable_string_for(content)+ \
 			'" mount="'+utils.mount_string_for(mount)+'"')
+		if content.has_method('queue_free'):
+			content.queue_free()
 		return false
 	if not content.scene:
 		push_warning('content has no scene '+mount_name)
+		if content.has_method('queue_free'):
+			content.queue_free()
 		return false
 	
+	var result
 	if mount.multimount:
-		return place_in_multimount(content,mount,use_item_offset)
-	return place_in_single_mount(content,mount)
+		result = place_in_multimount(content,mount,use_item_offset)
+	else:
+		result = place_in_single_mount(content,mount)
+	if content.has_method('queue_free'):
+		content.queue_free()
+	return result
 
 class CompareMountLocations:
 	static func cmp(a: Spatial,b: Spatial) -> bool:

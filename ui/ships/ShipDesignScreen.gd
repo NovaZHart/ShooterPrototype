@@ -78,6 +78,7 @@ func sync_drag_view(release: bool):
 			drag_scene = null
 			$Drag.visible = false
 			$Drag/View.remove_child(item)
+			item.queue_free()
 		else:
 			$All/Show/Grid/Ship.dragging_item(item)
 			$Drag.visible = true
@@ -130,7 +131,9 @@ func _input(event):
 	elif event is InputEventKey and event.scancode==KEY_F12:
 		print('copy design to clipboard')
 		var design = make_edited_ship_design()
+		design.set_cargo(null)
 		var encoded = game_state.universe.encode_helper(design)
+		design.queue_free()
 		var json = JSON.print(encoded,'  ')
 		OS.set_clipboard(json)
 
@@ -138,7 +141,7 @@ func make_edited_ship_design() -> simple_tree.SimpleNode:
 	return $All/Show/Grid/Ship.make_design(design_id,design_display_name)
 
 func exit_to_orbit():
-	var updated = update_cargo_and_money()
+	var updated = update_cargo_and_money(true)
 	var design = updated['ship_design']
 	design.name = 'player_ship_design'
 	var node = game_state.ship_designs.get_node_or_null('player_ship_design')
@@ -168,6 +171,7 @@ func exit_to_orbit():
 			Player.money = updated['money']
 			game_state.call_deferred('change_scene',result)
 		else:
+			design.queue_free()
 			return # do not change scene
 	game_state.ship_designs.add_child(design)
 	Player.player_ship_design=design
@@ -226,12 +230,19 @@ func _ready():
 		text_gen.add_price_callback(self)
 	reset_parts_and_designs()
 	if game_state.game_editor_mode:
-		remove_child($MainDialogTrigger)
+		var trigger = get_node_or_null('MainDialogTrigger')
+		if trigger:
+			remove_child(trigger)
+			trigger.queue_free()
+		$MainDialogTrigger.queue_free()
 		$All/Left/Buttons/Depart.text='Fleet'
 		$All/Show/Text.remove_child($All/Show/Text/LocationLabel)
 		$All/Show/Text/CargoMass.visible=false
 	elif not game_state.game_editor_mode:
-		remove_child($Autosave)
+		var autosave = get_node_or_null('Autosave')
+		if autosave:
+			remove_child(autosave)
+			autosave.queue_free()
 		$All/Left/Shop/Tabs/Designs.forbid_edits()
 		var _ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Designs,
 			'_on_available_count_updated')
@@ -242,11 +253,20 @@ func _ready():
 		_ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Equipment,
 			'_on_available_count_updated')
 		$All/Show/Grid/Top.visible=false
-		$All/Left/Buttons.remove_child($All/Left/Buttons/Save)
-		$All/Left/Buttons.remove_child($All/Left/Buttons/Load)
+		var node = $All/Left/Buttons.get_node_or_null('Save')
+		if node:
+			$All/Left/Buttons.remove_child(node)
+			node.queue_free()
+		node = $All/Left/Buttons.get_node_or_null('Load')
+		if node:
+			$All/Left/Buttons.remove_child(node)
+			node.queue_free()
 		$All/Show/Text/LocationLabel.set_location_label()
 		update_cargo_and_money()
 		emit_signal('available_ship_parts_updated',shop_parts,money,ship_value)
+	call_deferred("after_ready")
+
+func after_ready():
 	show_edited_design_info()
 	update_buttons()
 
@@ -260,7 +280,7 @@ func price_ship_design(design_path: NodePath) -> int:
 	parts = price_ship_parts(parts)
 	return parts.get_value()
 
-func update_cargo_and_money():
+func update_cargo_and_money(provide_ship_design: bool = false):
 	var edited_ship_parts = price_ship_parts(get_edited_ship_parts())
 	ship_value = edited_ship_parts.get_value()
 	money = wealth - ship_value
@@ -271,7 +291,11 @@ func update_cargo_and_money():
 	if ship_design.cargo:
 		cargo_mass = int(round(ship_design.cargo.get_mass()))
 	$All/Show/Text/CargoMass.text = 'Cargo '+str(cargo_mass)+'/'+str(max_cargo_mass)+' kg  Money: '+str(money)
-	return { 'ship_design':ship_design, 'cargo_mass':cargo_mass, 'max_cargo_mass':max_cargo_mass, 'money':money }
+	if provide_ship_design:
+		return { 'ship_design':ship_design, 'cargo_mass':cargo_mass, 'max_cargo_mass':max_cargo_mass, 'money':money }
+	else:
+		ship_design.queue_free()
+		return { 'cargo_mass':cargo_mass, 'max_cargo_mass':max_cargo_mass, 'money':money }
 
 func _exit_tree():
 	universe_edits.state.disconnect('undo_stack_changed',self,'update_buttons')
@@ -280,6 +304,7 @@ func _exit_tree():
 	if not game_state.game_editor_mode:
 		universe_edits.state.clear()
 		text_gen.remove_price_callback(self)
+	get_tree().root.call_deferred('print_stray_nodes')
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 	var result = $All/Show/Grid/Ship.add_item(scene,mount_name,x,y)
@@ -348,6 +373,7 @@ func show_design_info_at(path: NodePath):
 		var ship = $All/Left/Shop/Tabs/Designs.assemble_design(path)
 		if ship:
 			_impl_show_design_info(ship,price_ship_design(path))
+			ship.queue_free()
 			return true
 	return false
 

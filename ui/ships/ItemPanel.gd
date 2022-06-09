@@ -57,6 +57,12 @@ var regular_layer: int = 0
 var disabled_layer: int = 0
 var highlight_layer: int = 0
 
+# func _exit_tree():
+# 	print(str(get_path())+": ItemPanel is leaving tree, freeing all items")
+# 	items.queue_free()
+# 	camera.queue_free()
+# 	scrollbar.queue_free()
+
 func update_hover(what):
 	var what_path = what.get_path() if what else NodePath()
 	if what_path!=last_hover:
@@ -163,6 +169,7 @@ func add_ship_design(design) -> bool:
 	var ship = design.assemble_ship()
 	if not ship is RigidBody:
 		push_error('Ship design "'+design.get_name()+'" is not a RigidBody.')
+		ship.queue_free()
 		return false
 	ship.name = design.get_name()
 	var old = items.get_node_or_null(design.get_name())

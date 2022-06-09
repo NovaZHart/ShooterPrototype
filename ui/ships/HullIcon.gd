@@ -27,7 +27,7 @@ func combined_aabb(node: Node):
 
 func set_collision_layer(layer: int):
 	item_collision_layer = layer
-	var item = get_node_or_null('item')
+	var item = get_node_or_null('HullIconItem')
 	if item!=null:
 		item.collision_layer = item_collision_layer
 
@@ -40,9 +40,13 @@ func create_item(design: simple_tree.SimpleNode):
 	item_aabb=combined_aabb(item)
 	item.collision_mask = 0
 	item.collision_layer = item_collision_layer
-	item.name='item'
+	item.name='HullIconItem'
 	item.transform = Transform()
 	var scale: float = 1.0/clamp(item_aabb.size.x,1.0,15.0)
 	item.scale = Vector3(scale,scale,scale)
 	width = item_aabb.size.z*scale
+	var old = get_node_or_null(item.name)
+	if old:
+		remove_child(old)
+		old.queue_free()
 	add_child(item)
