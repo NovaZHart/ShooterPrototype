@@ -290,18 +290,12 @@ func arrange_mountable_items():
 	var next_child = 0
 	var row_max_zspan = max(6,cells_across-1)
 	var row_x_start: float = x_start
-	var infinity_guard: int = 0
-	var infinite_loop: int = 100000
 	while next_child<len(child_names):
-		infinity_guard+=1
-		assert(infinity_guard < infinite_loop)
 		# First pass: collect items that fit in this row:
 		var row: Array = []
 		var row_zspan: int = 0
 		var row_height: int = 0
 		while next_child<len(child_names) and row_zspan<row_max_zspan:
-			infinity_guard+=1
-			assert(infinity_guard < infinite_loop)
 			var child_name = child_names[next_child]
 			var item = items.get_node_or_null(child_name)
 			if not item:
@@ -325,8 +319,6 @@ func arrange_mountable_items():
 		var row_xspan: float = row_height*cell_span
 		var col_z: float = z_start
 		for item in row:
-			infinity_guard+=1
-			assert(infinity_guard < infinite_loop)
 			var item_zspan: float = int(ceil(item.nx))*cell_span+2*cell_pad
 			item.translation = Vector3(row_x_start-row_xspan/2, 0.0, col_z + item_zspan/2.0)
 			item_xspan[item.get_path()] = row_xspan

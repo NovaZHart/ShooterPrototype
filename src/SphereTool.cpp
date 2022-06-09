@@ -13,6 +13,7 @@
 #include <vector>
 
 #include "DVector3.hpp"
+#include "FastProfilier.hpp"
 
 using namespace godot;
 using namespace std;
@@ -53,6 +54,7 @@ void add_tri_pair(Ref<SurfaceTool> &tool,
 }
 
 void SphereTool::make_icosphere(String name, Vector3 center, float radius, int subs) {
+  FAST_PROFILING_FUNCTION;
   const float ICX=.525731112119133606;
   const float ICZ=.850650808352039932;
   const float ICO_VERTS[12][3]={
@@ -115,6 +117,7 @@ inline void swap32(uint32_t *data, int n) {
 }
 
 void SphereTool::make_cube_sphere_v2(String name,Vector3 center, float float_radius, int subs) {
+  FAST_PROFILING_FUNCTION;
   const double pi = 3.14159265358979323846;
   const double u_start[6] = { 1/64.0, 1/64.0, 17/64.0, 17/64.0, 33/64.0, 33/64.0 };
   const double v_start[6] = { 1/32.0, 17/32.0, 1/32.0, 17/32.0, 1/32.0, 17/32.0 };
@@ -212,6 +215,7 @@ void SphereTool::make_cube_sphere_v2(String name,Vector3 center, float float_rad
 
 template<int tile_size, int pad_size>
 Ref<Image> make_lookup_tiles() {
+  FAST_PROFILING_FUNCTION;
   const float cube_width = 1.0/sqrt(2.0);
   const int j_height = (tile_size+2*pad_size)*2;
   const int i_width = (tile_size+2*pad_size)*4;
@@ -417,9 +421,11 @@ Ref<Image> make_lookup_tiles() {
 }
 
 Ref<Image> SphereTool::make_lookup_tiles_c224() const {
+  FAST_PROFILING_FUNCTION;
   return make_lookup_tiles<224,16>();
 }
 
 Ref<Image> SphereTool::make_lookup_tiles_c112() const {
+  FAST_PROFILING_FUNCTION;
   return make_lookup_tiles<112,8>();
 }

@@ -2,6 +2,7 @@
 
 #include <ResourceLoader.hpp>
 #include <GodotGlobal.hpp>
+#include "FastProfilier.hpp"
 
 using namespace std;
 using namespace godot;
@@ -20,6 +21,7 @@ void PreloadResources::_register_methods() {
 void PreloadResources::_init() {}
 
 int PreloadResources::load_resources() {
+  FAST_PROFILING_FUNCTION;
   ResourceLoader *loader = ResourceLoader::get_singleton();
   int count=0;
   for(auto &request : requests)
@@ -31,6 +33,7 @@ int PreloadResources::load_resources() {
 }
         
 void PreloadResources::add_resources(Array these) {
+  FAST_PROFILING_FUNCTION;
   ResourceLoader *loader=ResourceLoader::get_singleton();
   for(int i=0,n=these.size();i<n;i++) {
     String path=these[i];

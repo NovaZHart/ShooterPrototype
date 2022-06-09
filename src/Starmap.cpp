@@ -5,6 +5,7 @@
 #include "SceneTree.hpp"
 #include "Viewport.hpp"
 #include "ProjectSettings.hpp"
+#include "FastProfilier.hpp"
 
 using namespace godot;
 using namespace std;
@@ -119,6 +120,7 @@ Starmap::Starmap() {}
 Starmap::~Starmap() {}
 
 void Starmap::_init() {
+  FAST_PROFILING_FUNCTION;
   max_system_scale = default_system_scale;
   max_link_scale = default_link_scale;
   show_links = true;
@@ -213,6 +215,7 @@ void Starmap::set_max_scale(real_t new_system_scale, real_t new_link_scale,
 }
 void Starmap::set_systems(PoolStringArray new_system_names, PoolVector3Array new_system_locations,
                           PoolIntArray new_links, PoolIntArray new_astral_gates) {
+  FAST_PROFILING_FUNCTION;
 
   routes.clear();
   system_links.clear();
@@ -314,6 +317,7 @@ void Starmap::add_link_visuals(PoolIntArray links, Color link_color, real_t link
 }
 
 void Starmap::add_connecting_link_visuals(PoolIntArray systems, Color link_color, real_t link_scale) {
+  FAST_PROFILING_FUNCTION;
   PoolIntArray::Read read_systems = systems.read();
   const int *sys = read_systems.ptr();
   unordered_set<pair<int,int>,HashIntPair> links;
@@ -331,6 +335,7 @@ void Starmap::add_connecting_link_visuals(PoolIntArray systems, Color link_color
 }
 
 void Starmap::add_adjacent_link_visuals(PoolIntArray systems, Color link_color, real_t link_scale) {
+  FAST_PROFILING_FUNCTION;
   PoolIntArray::Read read_systems = systems.read();
   const int *sys = read_systems.ptr();
   unordered_set<pair<int,int>,HashIntPair> links;
@@ -353,6 +358,7 @@ void Starmap::clear_visuals() {
 }
 
 int Starmap::system_at_location(Vector3 wherein, real_t epsilon) const {
+  FAST_PROFILING_FUNCTION;
   Vector3 where(wherein.x,0,wherein.z);
   real_t span = epsilon + pixel_size*max(system_diameter_pixels,link_width_pixels);
   real_t spansq = span*span;
@@ -412,6 +418,7 @@ void Starmap::set_reference_size(real_t system_diameter, real_t link_width) {
 }
 
 real_t Starmap::get_viewport_scale() {
+  FAST_PROFILING_FUNCTION;
   SceneTree *tree = get_tree();
   if(!tree)
     return 1;
@@ -671,6 +678,7 @@ void Starmap::_draw() {
 
 Ref<ArrayMesh> Starmap::tri_to_mesh(const PoolVector3Array &vertices,
                                     const PoolVector2Array &uv) {
+  FAST_PROFILING_FUNCTION;
   Ref<ArrayMesh> mesh = Ref<ArrayMesh>(ArrayMesh::_new());
   Array arrays = Array();
   arrays.resize(ArrayMesh::ARRAY_MAX);
@@ -682,6 +690,7 @@ Ref<ArrayMesh> Starmap::tri_to_mesh(const PoolVector3Array &vertices,
 
 Ref<ArrayMesh> Starmap::make_box_mesh(const Vector3 &from, real_t x_step,
                                       real_t z_step, int nx, int nz) {
+  FAST_PROFILING_FUNCTION;
   PoolVector3Array vertex_data;
   PoolVector2Array uv_data;
   vertex_data.resize(nx*nz*6);
@@ -723,6 +732,7 @@ Ref<ArrayMesh> Starmap::make_box_mesh(const Vector3 &from, real_t x_step,
 }
 
 Ref<ArrayMesh> Starmap::make_circle_mesh(real_t radius,int count,Vector3 center) {
+  FAST_PROFILING_FUNCTION;
   PoolVector3Array vertex_data;
   PoolVector2Array uv_data;
   vertex_data.resize(count*3);

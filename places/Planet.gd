@@ -173,13 +173,32 @@ func _init():
 	collision_layer = 1<<28
 	pause_mode = PAUSE_MODE_PROCESS
 
+func copy_data_to_image(data) -> ImageTexture:
+	var copy = Image.new()
+	copy.copy_from(data)
+	var newtex = ImageTexture.new()
+	newtex.create_from_image(copy)
+	return newtex
+
+func get_tex_data(tex):
+	return tex.get_data()
+
+func get_planet_texture():
+	var tex = view.get_texture()
+	return tex
+
+func remove_view():
+	remove_child(view)
+	view.queue_free()
+
 func _process(var _delta) -> void:
 	tick += 1
 	
 	if sphere==null or view==null:
 		push_error("Planet's child no longer exists!?")
 		return # child no longer exists?
-	var tex = view.get_texture()
+
+	var tex = get_planet_texture()
 	if tex == null:
 		printerr('Planet texture is null!?')
 		return # should never get here in _process()
@@ -189,19 +208,14 @@ func _process(var _delta) -> void:
 			sphere.material_override.set_shader_param('precalculated',tex)
 		return
 	
-	var data = tex.get_data()
+	var data = get_tex_data(tex)
 	if data == null:
 		printerr('Planet texture data is null!?')
 		return # should never here here either
 	
-	var copy = Image.new()
-	copy.copy_from(data)
-	var newtex = ImageTexture.new()
-	newtex.create_from_image(copy)
+	var newtex = copy_data_to_image(data)
 	sphere.material_override.set_shader_param('precalculated',newtex)
 	#tex.flags = Texture.FLAG_FILTER
-	remove_child(view)
-	view.queue_free()
 	have_valid_texture = true
 	
 	view=null

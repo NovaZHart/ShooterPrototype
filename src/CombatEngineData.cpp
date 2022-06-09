@@ -713,6 +713,7 @@ Ship::~Ship()
 {}
 
 bool Ship::update_from_physics_server(PhysicsServer *physics_server,bool hyperspace) {
+  FAST_PROFILING_FUNCTION;
   PhysicsDirectBodyState *state = physics_server->body_get_direct_state(rid);
   if(not state)
     return false;
@@ -748,6 +749,7 @@ bool Ship::update_from_physics_server(PhysicsServer *physics_server,bool hypersp
 }
 
 void Ship::update_stats(PhysicsServer *physics_server, bool hyperspace) {
+  FAST_PROFILING_FUNCTION;
   real_t new_mass = empty_mass+cargo_mass;
   real_t thrust_multiplier = hyperspace ? hyperthrust_ratio : 1.0f;
   if(max_fuel>=.001)
@@ -862,6 +864,7 @@ void Ship::apply_heat_and_energy_costs(real_t delta) {
 }
 
 void Ship::heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta) {
+  FAST_PROFILING_FUNCTION;
   energy = clamp(energy+power*delta,-max_energy,max_energy);
   heat = clamp(heat-cooling*delta,0.0f,2.0f*max_heat);
   if(thrust_loss) {
@@ -962,6 +965,7 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
   // amount of damage not applied. Ships that are not FATED_TO_FLY
   // will not apply any damage or change their fate.  Assumes
   // 0<=type<NUM_DAMAGE_TYPES
+  FAST_PROFILING_FUNCTION;
 
   // Returns the overkill damage (damage remaining after ship died from it).
   

@@ -281,7 +281,13 @@ func update_designs(fill_missing: bool,lock_mutex: bool = true):
 	if lock_mutex:
 		design_mutex.lock()
 	
-	design_paths.sort_custom(NodePathSorter.new(),'sort')
+	var spath = []
+	for path in design_paths:
+		spath.append(str(path))
+	spath.sort()
+	for i in range(len(spath)):
+		design_paths[i]=NodePath(spath[i])
+	#design_paths.sort_custom(NodePathSorter.new(),'sort')
 	
 	var count_designs_visible: int = $All/Top/List.get_child_count()
 	var first_design_shown: int = $All/Top/Scroll.value

@@ -314,8 +314,9 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 	for weapon in ship_stats['weapons']:
 		if with_contents:
 			contents += '\n[b]'+weapon['name'].capitalize() + \
-				':[/b] {ref '+weapon['help_page']+'}\n' + \
-				make_weapon_bbcode(weapon)
+				':[/b] {ref '+weapon['help_page']+'}\n' 
+				#+ \
+				#make_weapon_bbcode(weapon)
 		if weapon.antimissile:
 			continue
 		var this_weapon_dps = weapon['damage']
@@ -334,8 +335,9 @@ func make_ship_bbcode(ship_stats,with_contents=true,annotation='',show_id=null) 
 			if equip.hidden:
 				continue
 			contents += '\n[b]'+equip['name'].capitalize() + \
-				':[/b] {ref '+equip['help_page']+'}\n' + \
-				make_equipment_bbcode(equip)
+				':[/b] {ref '+equip['help_page']+'}\n'
+				# + \
+				#make_equipment_bbcode(equip)
 
 	var energy_data: Array = [ s['power'], 
 		-max(s['thrust']*s['forward_thrust_energy'],s['reverse_thrust']*s['reverse_thrust_energy'])/1000, \
@@ -470,12 +472,14 @@ func make_add_percent(num: float,round_to: float,what: String, end: String = '\n
 	return what+' '+s+str(round(num*round_to*100.0)/round_to)+'%'+end
 
 func make_add_resist(index: int,stat: String,stats: Dictionary,prefix: String,what: String) -> String:
-	if stats[stat].size()<=index:
+	var statstat = stats[stat]
+	if statstat.size()<=index:
 		return ''
-	var value: float = stats[stat][index]
-	if abs(value)<1e-6:
+	var value: float = statstat[index]
+	if value>0:
+		return prefix + make_add_percent(value,1,DAMAGE_DISPLAY_NAMES[index]+' '+what)
+	else:
 		return ''
-	return prefix + make_add_percent(value,1,DAMAGE_DISPLAY_NAMES[index]+' '+what)
 
 func make_equipment_bbcode(stats) -> String:
 	var bbcode: String = 'size '+str(stats['item_size_x'])+'x'+str(stats['item_size_y'])+'\n'

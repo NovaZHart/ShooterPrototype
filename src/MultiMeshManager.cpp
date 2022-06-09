@@ -85,6 +85,7 @@ VisibleContent *VisibleContentManager::push_content(VisibleContent *next) {
 }
 
 std::pair<bool,VisibleContent*> VisibleContentManager::update_visible_content() {
+  FAST_PROFILING_FUNCTION;
   if(!new_content)
     // Nothing to display yet.
     return std::pair<bool,VisibleContent*>(false,nullptr);
@@ -182,6 +183,7 @@ void MultiMeshManager::time_passed(real_t delta) {
 }
 
 object_id MultiMeshManager::add_preloaded_mesh(Ref<Mesh> meshref) {
+  FAST_PROFILING_FUNCTION;
   std::unordered_map<Ref<Mesh>,object_id>::const_iterator it=v_meshref2id.find(meshref);
   if(it==v_meshref2id.end()) {
     object_id id=idgen.next();
@@ -193,6 +195,7 @@ object_id MultiMeshManager::add_preloaded_mesh(Ref<Mesh> meshref) {
 }
 
 object_id MultiMeshManager::add_mesh(const String &path) {
+  FAST_PROFILING_FUNCTION;
   path2mesh_t::iterator it = path2mesh.find(path);
   if(it == path2mesh.end()) {
     object_id id = idgen.next();
@@ -204,6 +207,7 @@ object_id MultiMeshManager::add_mesh(const String &path) {
 }
 
 void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario,bool loud) {
+  FAST_PROFILING_FUNCTION;
   // Update on-screen projectiles
   for(auto &vit : v_meshes) {
     if(loud)
@@ -250,9 +254,21 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
       Godot::print("          ... mesh count is "+str(count));
     visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,mesh_info.floats);
   }
+  if(!(v_frame%600)) {
+    int instances=0, meshes=0, multimeshes=0, visuals=0;
+    for(auto &id_info : v_meshes) {
+      MeshInfo &info = id_info.second;
+      instances += info.instance_count;
+      meshes += info.mesh_rid.is_valid();
+      multimeshes += info.multimesh_rid.is_valid();
+      visuals += info.visual_rid.is_valid();
+    }
+    Godot::print("MultiMeshManager counts: instances="+str(instances)+" meshes="+str(meshes)+" multimeshes="+str(multimeshes)+" visuals="+str(visuals));
+  }
 }
 
 void MultiMeshManager::load_meshes() {
+  FAST_PROFILING_FUNCTION;
   for(auto &mesh_id : need_new_meshes) {
     v_meshes_iter mesh_it = v_meshes.find(mesh_id);
     if(mesh_it==v_meshes.end())
@@ -344,6 +360,7 @@ bool MultiMeshManager::load_mesh(MeshInfo &mesh_info) {
 }
 
 void MultiMeshManager::clear_all_multimeshes() {
+  FAST_PROFILING_FUNCTION;
   for(auto &it : v_meshes)
     unused_multimesh(it.second);
 }
@@ -355,6 +372,7 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info) {
     return;
   
   if(v_frame > mesh_info.last_frame_used+1200) {
+    Godot::print("Freeing a multimesh");
     if(mesh_info.visual_rid.is_valid())
       visual_server->free_rid(mesh_info.visual_rid);
     if(mesh_info.multimesh_rid.is_valid())

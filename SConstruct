@@ -111,6 +111,7 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/SphereTool.cpp",
     "src/Starmap.cpp",
     "src/VisualEffects.cpp",
+    "src/OSTools.cpp",
     "src/ShooterNativeLibrary.cpp"
 ])
 

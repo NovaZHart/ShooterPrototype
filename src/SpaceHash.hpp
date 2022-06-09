@@ -32,7 +32,7 @@ namespace godot {
     return Rect2(c.x-r,c.y-r,2*r,2*r);
   }
   inline Rect2 rect_for_circle(Vector3 c,real_t r) {
-    return Rect2(c.z-r,-c.x-r,2*r,2*r);
+    return Rect2(c.x-r,c.z-r,2*r,2*r);
   }
   
   struct IntRect2 {
@@ -145,6 +145,7 @@ namespace godot {
   
   template<class T>
   std::size_t SpaceHash<T>::overlapping_rect(const Rect2 &region,std::unordered_set<T> &result) const {
+  FAST_PROFILING_FUNCTION;
     std::size_t matches_found = 0;
     IntRect2 rect = IntRect2(region,position_box_size).positive_size();
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
@@ -167,6 +168,7 @@ namespace godot {
 
   template<class T>
   bool SpaceHash<T>::rect_is_nonempty(const Rect2 &region) const {
+  FAST_PROFILING_FUNCTION;
     IntRect2 rect = IntRect2(region,position_box_size).positive_size();
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
       for(int ix=0,x=rect.position.x;ix<rect.size.x;ix++,x++) {
@@ -184,6 +186,7 @@ namespace godot {
 
   template<class T>
   std::size_t SpaceHash<T>::overlapping_circle(Vector2 center,real_t radius,std::unordered_set<T> &result) const {
+  FAST_PROFILING_FUNCTION;
     std::size_t matches_found = 0;
     IntRect2 rect = IntRect2(rect_for_circle(center,radius),position_box_size);
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
@@ -206,6 +209,7 @@ namespace godot {
 
   template<class T>
   bool SpaceHash<T>::circle_is_nonempty(Vector2 center,real_t radius) const {
+  FAST_PROFILING_FUNCTION;
     IntRect2 rect = IntRect2(rect_for_circle(center,radius),position_box_size);
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
       for(int ix=0,x=rect.position.x;ix<rect.size.x;ix++,x++) {
@@ -223,6 +227,7 @@ namespace godot {
 
   template<class T>
   bool SpaceHash<T>::ray_is_nonempty(Vector2 p1,Vector2 p2) const {
+  FAST_PROFILING_FUNCTION;
     // FIXME: This should use a line drawing algorithm instead of searching the rect with p1..p2 as the diagonal.
     Rect2 real_rect = rect_positive_size(Rect2(p1,Vector2(p2.x-p1.x,p2.y-p1.y)));
     IntRect2 rect = IntRect2(real_rect,position_box_size);
@@ -243,6 +248,7 @@ namespace godot {
 
   template<class T>
   std::size_t SpaceHash<T>::overlapping_point(Vector2 point,std::unordered_set<T> &result) const {
+  FAST_PROFILING_FUNCTION;
     std::size_t matches_found = 0;
     IntVector2 here = IntVector2(point,position_box_size);
     std::pair<int_to_data_const_iter,int_to_data_const_iter> range=int2data.equal_range(here);
@@ -261,6 +267,7 @@ namespace godot {
   
   template<class T>
   bool SpaceHash<T>::point_is_nonempty(Vector2 point) const {
+  FAST_PROFILING_FUNCTION;
     IntVector2 here = IntVector2(point,position_box_size);
     std::pair<int_to_data_const_iter,int_to_data_const_iter> range=int2data.equal_range(here);
     for(int_to_data_const_iter it=range.first;it!=range.second;it++) {
@@ -274,6 +281,7 @@ namespace godot {
   
   template<class T>
   void SpaceHash<T>::set_rect(const data_type &what,const Rect2 &real_rect) {
+  FAST_PROFILING_FUNCTION;
     Rect2 positive_rect = rect_positive_size(real_rect);
     IntRect2 new_rect = IntRect2(positive_rect,position_box_size);
     
@@ -305,6 +313,7 @@ namespace godot {
   
   template<class T>
   void SpaceHash<T>::remove(const data_type &what) {
+  FAST_PROFILING_FUNCTION;
     data_to_info_iter there=data2info.find(what);
     if(there==data2info.end())
       return;

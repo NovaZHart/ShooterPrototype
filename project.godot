@@ -20,6 +20,8 @@ config/icon="res://icon.png"
 
 [autoload]
 
+OSTools="*res://globals/OSTools.gd"
+PreloadResources="*res://globals/PreloadResources.gd"
 utils="*res://globals/Utils.gd"
 simple_tree="*res://globals/SimpleTree.gd"
 text_gen="*res://globals/TextGen.gd"
@@ -34,7 +36,6 @@ Player="*res://globals/Player.gd"
 mesh_loader="*res://globals/MeshLoaderNode.gd"
 builtin_commands="*res://globals/Commands.gd"
 input_state="*res://globals/InputState.gd"
-PreloadResources="*res://globals/PreloadResources.gd"
 
 [display]
 

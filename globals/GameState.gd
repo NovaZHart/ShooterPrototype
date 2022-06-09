@@ -361,6 +361,11 @@ func make_services():
 		'Service Button',preload('res://ui/AltTestService.tscn'))
 
 func _enter_tree():
+	var errno: int = OSTools.make_process_high_priority()
+	if errno!=0:
+		push_error("make_process_high_priority failed with errno="+str(errno))
+	else:
+		print('Raised process to high priority.')
 	load_universe()
 	make_services()
 	if not OS.has_feature('standalone'):

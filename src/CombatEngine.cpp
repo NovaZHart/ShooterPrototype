@@ -164,6 +164,7 @@ void CombatEngine::set_visual_effects(Ref<VisualEffects> visual_effects) {
 }
 
 void CombatEngine::init_factions(Dictionary data) {
+  FAST_PROFILING_FUNCTION;
   Dictionary affinity_data = data["affinities"];
   Array affinity_keys = affinity_data.keys();
   for(int i=0,s=affinity_keys.size();i<s;i++) {
@@ -816,6 +817,7 @@ void CombatEngine::negate_drag_force(Ship &ship) {
 }
 
 bool CombatEngine::rift_ai(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   if(ship.rift_timer.alarmed()) {
     // If the ship has already opened the rift, and survived the minimum duration,
     // it can vanish into the rift.
@@ -941,6 +943,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
 }
 
 bool CombatEngine::init_ship(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   // return false = ship does nothing else this timestep
   if(ship.entry_method == ENTRY_FROM_ORBIT) {
     // Ships entering from orbit start at maximum speed.
@@ -1083,6 +1086,7 @@ void CombatEngine::deactivate_cargo_web(Ship &ship) {
 }
 
 pair<DVector3,double> CombatEngine::plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed) {
+  FAST_PROFILING_FUNCTION;
   // Returns desired velocity vector and time to collision.
   double target_speed = target_velocity.length();
   DVector3 relative_heading = relative_position.normalized();     // VrHat
@@ -1103,6 +1107,7 @@ pair<DVector3,double> CombatEngine::plot_collision_course(DVector3 relative_posi
 }
 
 void CombatEngine::use_cargo_web(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   Rect2 cargo_web_rect = rect_for_circle(ship.position,ship.cargo_web_radius);
   objects_found.clear();
   flotsam_locations.overlapping_rect(cargo_web_rect,objects_found);
@@ -1382,6 +1387,7 @@ void CombatEngine::raider_ai(Ship &ship) {
 }
 
 void CombatEngine::salvage_ai(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   projectiles_iter it = projectiles.find(ship.salvage_target);
   if(it==projectiles.end()) {
     ship.salvage_target=-1;
@@ -1410,6 +1416,7 @@ void CombatEngine::salvage_ai(Ship &ship) {
 }
 
 bool CombatEngine::should_salvage(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   projectiles_iter it = projectiles.find(ship.salvage_target);
   if(it!=projectiles.end())
     return true;
@@ -1425,7 +1432,7 @@ bool CombatEngine::should_salvage(Ship &ship) {
 
   objects_found.clear();
   size_t count = flotsam_locations.overlapping_circle(Vector2(ship.position.x,ship.position.z),
-                                                      max_move,objects_found);
+                                                      min(50.0f,max_move),objects_found);
   if(!count) {
     return false;
   }
@@ -1461,6 +1468,7 @@ bool CombatEngine::should_salvage(Ship &ship) {
 }
 
 void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance,bool avoid_targets) const {
+  FAST_PROFILING_FUNCTION;
 
   // Minimum and maximum distances to target for calculations:
   real_t min_move = clamp(max(3.0f*ship.max_speed,ship.range.all),10.0f,30.0f);
@@ -1717,6 +1725,7 @@ void CombatEngine::landing_ai(Ship &ship) {
 }
 
 planets_iter CombatEngine::choose_arriving_merchant_goal_target(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   // Get our target planet if there isn't one already.
   planets_iter target_ptr = planets.find(ship.goal_target);
   if(target_ptr==planets.end()) {
@@ -1737,6 +1746,7 @@ planets_iter CombatEngine::choose_arriving_merchant_goal_target(Ship &ship) {
 }
 
 planets_iter CombatEngine::choose_arriving_merchant_action(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   ship.ticks_since_ai_change=0;
   planets_iter target_ptr = choose_arriving_merchant_goal_target(ship);
   if(target_ptr==planets.end()) {
@@ -1823,6 +1833,7 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
 
 
 void CombatEngine::opportunistic_firing(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
   // Take shots when you can, without turning the ship to aim.
   ships_iter nowhere = ships.end();
   aim_turrets(ship,nowhere);
@@ -2216,6 +2227,7 @@ bool CombatEngine::request_stop(Ship &ship,Vector3 desired_heading,real_t max_sp
 }
 
 void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
+  FAST_PROFILING_FUNCTION;
   result.clear();
   result.resize(salvaged_items.size());
   int next_index=0;
@@ -2850,6 +2862,7 @@ CE::ships_iter CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 p
 }
 
 void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
+  FAST_PROFILING_FUNCTION;
   if(projectile.salvage) {
     const Salvage & salvage = *projectile.salvage;
     salvaged_items.emplace(ship.id,projectile.salvage);
@@ -3042,6 +3055,7 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
 }
 
 bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const Projectile &proj,DVector3 heading,DVector3 desired_heading) {
+  FAST_PROFILING_FUNCTION;
   DVector3 next_target_position = target_position+target_velocity*delta;
   next_target_position.y=0;
   DVector3 next_heading = heading+proj.angular_velocity*delta;

@@ -216,12 +216,16 @@ func _ready():
 	disabled_layer = 8 # this should work but doesn't => $View/Port/Red.layers
 	$View/Port.transparent_bg = true
 	info_min_fraction = clamp(info_min_fraction,0.2,0.8)
-	sync_sizes()
+	#sync_sizes()
 
 func sync_sizes():
+	set_process(true)
+
+func _process(_delta):
 	if not visible or rect_size.x<=0 or rect_size.y<=0:
 		$View.visible=false
 		$Info.visible=false
+		set_process(false)
 		return
 	$View.visible=true
 	$Info.visible=true
@@ -246,6 +250,8 @@ func sync_sizes():
 	$View/Port/Annotation.update()
 	update_hovering()
 	# FIXME: set font size.
+	
+	set_process(false)
 
 func _on_DesignItem_resized():
 	sync_sizes()

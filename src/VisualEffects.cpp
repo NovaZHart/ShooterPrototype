@@ -37,6 +37,7 @@ MeshEffect::MeshEffect():
 MeshEffect::~MeshEffect() {}
 
 void MeshEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death) {
+  FAST_PROFILING_FUNCTION;
   if(update_transform) {
     Transform trans = calculate_transform();
     visual_server->instance_set_transform(instance->rid,trans);
@@ -121,6 +122,7 @@ void VisualEffects::clear_all_effects() {
 }
 
 void VisualEffects::free_unused_effects() {
+  FAST_PROFILING_FUNCTION;
   for(mesh_effects_iter it=mesh_effects.begin();it!=mesh_effects.end();)
     if(it->second.dead)
       it = mesh_effects.erase(it);
@@ -145,6 +147,7 @@ void VisualEffects::set_scenario(RID new_scenario) {
 }
 
 void VisualEffects::step_effects(real_t delta,Vector3 location,Vector3 size) {
+  FAST_PROFILING_FUNCTION;
   VisualServer *visual_server = VisualServer::get_singleton();
   this->delta=delta;
   now+=delta;
@@ -169,6 +172,7 @@ void VisualEffects::step_effects(real_t delta,Vector3 location,Vector3 size) {
 }
 
 void VisualEffects::step_multimeshes(real_t delta,Vector3 location,Vector3 size) {
+  FAST_PROFILING_FUNCTION;
   multimeshes.time_passed(delta);
   pair<bool,VisibleContent *> newflag_visible = content.update_visible_content();
   if(!newflag_visible.second) {
@@ -194,6 +198,7 @@ VisibleObject * VisualEffects::get_object_or_make_stationary(object_id target,Vi
 }
 
 void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server) {
+  FAST_PROFILING_FUNCTION;
   if(effect.duration and (now-effect.start_time)>effect.duration) {
     effect.dead=true;
     return;
@@ -267,6 +272,7 @@ void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server
 }
 
 void VisualEffects::add_content() {
+  FAST_PROFILING_FUNCTION;
   VisibleContent *next = new VisibleContent();
   next->effects.reserve(mmi_effects.size());
   for(auto &id_effect : mmi_effects) {
@@ -282,6 +288,7 @@ void VisualEffects::add_content() {
 MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 position,
                                           real_t rotation,Ref<Shader> shader,
                                           bool expire_out_of_view) {
+  FAST_PROFILING_FUNCTION;
   Ref<ArrayMesh> mesh = ArrayMesh::_new();
 
   int flags = 0;
@@ -330,6 +337,7 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
 
 MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t duration, Vector3 position,
                                                       real_t rotation,bool expire_out_of_view) {
+  FAST_PROFILING_FUNCTION;
   object_id mesh_id=multimeshes.get_preloaded_mesh_id(mesh);
   if(mesh_id<0) {
     mesh_id=multimeshes.add_preloaded_mesh(mesh);
@@ -345,6 +353,7 @@ MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t dur
 }
 
 void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
+  FAST_PROFILING_FUNCTION;
   real_t aabb_growth = (ship.max_speed + relative_velocity.length())*duration;
 
   if(not is_circle_visible(ship.position,length*2+aabb_growth) or cargo_puff.is_null())
@@ -395,6 +404,7 @@ void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Ve
 }
 
 void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 position,Vector3 velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff) {
+  FAST_PROFILING_FUNCTION;
   real_t aabb_growth = (velocity.length())*duration;
 
   if(not is_circle_visible(ship.position,length*2+aabb_growth)) {
@@ -425,6 +435,7 @@ bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) co
 }
 
 void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id) {
+  FAST_PROFILING_FUNCTION;
   if(not is_circle_visible(position,radius) or not (duration>0.0f))
     return;
 
@@ -480,6 +491,7 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
 ////////////////////////////////////////////////////////////////////////
 
 void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t requested_spacing,Color faction_color) {
+  FAST_PROFILING_FUNCTION;
   static const real_t sqrt2 = sqrtf(2);
   real_t rect_width=fabsf(aabb.size.x);
   real_t ellipse_width=rect_width/sqrt2;
