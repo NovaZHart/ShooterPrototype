@@ -194,6 +194,9 @@ func remove_ship_design(design_name: String) -> bool:
 	return success
 
 func add_mountable_part(scene: PackedScene) -> bool:
+	if not scene:
+		push_error('Null scene in ItemPanel.')
+		return false
 	if show_ships:
 		push_error('Cannot load items into this ItemPanel')
 	if scenes.has(scene.resource_path):
