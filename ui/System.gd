@@ -280,10 +280,15 @@ func _process(delta) -> void:
 	combat_engine.step_visual_effects(delta,$TopCamera,get_tree().root)
 	end_timing('step_visual_effects')
 	
-	if player_ship_stats==null:
-		end_timing('_process')
-		return
-	
+#	if player_ship_stats==null:
+#		end_timing('_process')
+#		return
+
+	if make_labels and not finished_making_labels:
+		start_timing()
+		make_more_labels()
+		end_timing('make_more_labels')
+		
 	end_timing('_process')
 
 func update_target_display(old_target_name: String,new_target_name: String) -> void:
@@ -521,11 +526,6 @@ func _physics_process(delta):
 	combat_engine_mutex.unlock()
 
 	report_ship_stats()
-
-	if make_labels and not finished_making_labels:
-		start_timing()
-		make_more_labels()
-		end_timing('make_more_labels')
 	process_space(delta)
 
 func report_ship_stats():
