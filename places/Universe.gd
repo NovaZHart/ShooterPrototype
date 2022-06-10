@@ -231,9 +231,11 @@ class ShipDesign extends simple_tree.SimpleNode:
 	var not_visible: Dictionary = {} # names of children that should not be in scene tree
 	
 	func set_cargo(new_cargo):
+		# Update cargo stats. This MUST match ShipStats.pack_cargo_stats
 		assert(new_cargo==null or new_cargo is Commodities.ManyProducts)
 		cargo = new_cargo
-		clear_cached_stats()
+		if cached_stats:
+			cached_stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
 
 	func get_cost(from=null):
 		if cached_cost<0:
@@ -296,6 +298,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return cached_stats
 	
 	func clear_cached_stats():
+		push_warning("ShipDesign "+str(display_name)+" clear_cached_stats")
 		cached_stats=null
 		cached_cost=-1.0
 		not_visible = {}
@@ -436,14 +439,19 @@ class ShipDesign extends simple_tree.SimpleNode:
 			print("ShipDesign.assemble_parts took "+str(duration)+"ms")
 		return stats
 	
-	func assemble_ship_remove_hidden_mounts(body):
+	func assemble_ship_remove_hidden_mounts(body,retain_hidden_mounts):
 		var start = OS.get_ticks_msec()
 		for child in body.get_children():
-			if not child is VisualInstance and not child is CollisionShape and \
-					not (child.has_method("keep_mount_in_space") and \
-					child.keep_mount_in_space() ):
-				# This is not visible in space, so remove it from the scene tree.
-				not_visible[child.name]=1
+			if child is VisualInstance and not child.get_script():
+				continue # may be part of the ship, so keep it visible
+			if child is CollisionShape:
+				continue # need to collide
+			if child.has_method('keep_mount_in_space') and child.keep_mount_in_space():
+				continue # weapons stay visible if they want to
+			# This is not visible in space, so remove it from the scene tree.
+			not_visible[child.name]=1
+			print("Assemble Ship "+str(display_name)+": will remove "+str(child.name)+" from the scene tree.")
+			if retain_hidden_mounts:
 				body.remove_child(child)
 				child.queue_free()
 		var duration = OS.get_ticks_msec()-start
@@ -462,8 +470,8 @@ class ShipDesign extends simple_tree.SimpleNode:
 		var reassemble = cached_stats!=null # true=already assembled design once
 		assemble_parts(body,reassemble,retain_hidden_mounts)
 		var stats = assemble_ship_setup_cargo_and_stats(body,reassemble)
-		if not retain_hidden_mounts:
-			assemble_ship_remove_hidden_mounts(body)
+		if not reassemble:
+			assemble_ship_remove_hidden_mounts(body,retain_hidden_mounts)
 		if not reassemble and not retain_hidden_mounts:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
