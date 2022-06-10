@@ -271,19 +271,11 @@ func _process(delta) -> void:
 	
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
 	
-	if player_ship_stats!=null:
-		start_timing()
-		emit_signal('player_ship_stats_updated',player_ship_stats)
-		end_timing('player_ship_stats_updated')
-		start_timing()
-		center_view()
-		end_timing('center_view')
-	
 	start_timing()
 	combat_engine.set_visible_region(visible_region(),
 		visible_region_expansion_rate())
 	end_timing('set_visible_region')
-	
+
 	start_timing()
 	combat_engine.step_visual_effects(delta,$TopCamera,get_tree().root)
 	end_timing('step_visual_effects')
@@ -292,27 +284,6 @@ func _process(delta) -> void:
 		end_timing('_process')
 		return
 	
-	var target_ship_stats = ship_stats.get(player_ship_stats.get('target_name',''),null)
-	if target_ship_stats != null:
-		start_timing()
-		emit_signal('player_target_stats_updated',target_ship_stats)
-		end_timing('player_target_stats_updated')
-
-	start_timing()
-	sync_Ships_with_stat_requests()
-	end_timing('sync_Ships_with_stat_requests')
-
-	var target_info: Dictionary = latest_target_info.duplicate(true)
-	if target_info.get('old','') != target_info.get('new',''):
-		# The target has changed, so we need a new TargetDisplay.
-		start_timing()
-		update_target_display(target_info['old'],target_info['new'])
-		end_timing('update_target_display')
-	
-	if make_labels and not finished_making_labels:
-		start_timing()
-		make_more_labels()
-		end_timing('make_more_labels')
 	end_timing('_process')
 
 func update_target_display(old_target_name: String,new_target_name: String) -> void:
@@ -432,7 +403,9 @@ func process_space(delta):
 		var front = ships_to_spawn.pop_front()
 		if not front:
 			break
-		callv('call_deferred',front)
+		var args = front.slice(1,front.size()-1)
+		callv(front[0],args)
+		#callv('call_deferred',front)
 	ship_maker_mutex.unlock()
 
 func _physics_process(delta):
@@ -538,15 +511,51 @@ func _physics_process(delta):
 			team_stats[ship_node.faction_index]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
 		team_stats_mutex.unlock()
 		ship_node.call_deferred("queue_free")
+	var _discard = result.erase('weapon_rotations')
 	if not player_died:
 		# Update target information.
 		var new_player_target_name = result.get(player_ship_name,{}).get('target_name','')
 		latest_target_info = {'old':old_player_target_name, 'new':new_player_target_name}
-	var _discard = result.erase('weapon_rotations')
 	ship_stats = result
 	
 	combat_engine_mutex.unlock()
+
+	report_ship_stats()
+
+	if make_labels and not finished_making_labels:
+		start_timing()
+		make_more_labels()
+		end_timing('make_more_labels')
 	process_space(delta)
+
+func report_ship_stats():
+	if ship_stats!=null:
+		var player_ship_stats = ship_stats.get(player_ship_name,null)
+		
+		if player_ship_stats!=null:
+			start_timing()
+			emit_signal('player_ship_stats_updated',player_ship_stats)
+			end_timing('player_ship_stats_updated')
+			start_timing()
+			center_view()
+			end_timing('center_view')
+			
+			var target_ship_stats = ship_stats.get(player_ship_stats.get('target_name',''),null)
+			if target_ship_stats != null:
+				start_timing()
+				emit_signal('player_target_stats_updated',target_ship_stats)
+				end_timing('player_target_stats_updated')
+
+		start_timing()
+		sync_Ships_with_stat_requests()
+		end_timing('sync_Ships_with_stat_requests')
+
+	var target_info: Dictionary = latest_target_info.duplicate(true)
+	if target_info.get('old','') != target_info.get('new',''):
+		# The target has changed, so we need a new TargetDisplay.
+		start_timing()
+		update_target_display(target_info['old'],target_info['new'])
+		end_timing('update_target_display')
 
 func get_main_camera() -> Node:
 	return $TopCamera
@@ -607,7 +616,8 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 			push_warning('Player ship faction index should be 0 but is '+str(ship.faction_index))
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
-		call_deferred('add_spawned_ship',ship,false)
+		add_spawned_ship(ship,false)
+		#call_deferred('add_spawned_ship',ship,false)
 	var duration = OS.get_ticks_msec()-start
 	if duration>1:
 		print('Spawn_ship took '+str(duration)+'ms')
