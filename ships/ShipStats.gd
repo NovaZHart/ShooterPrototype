@@ -184,6 +184,7 @@ func update_cargo_stats():
 	pack_cargo_stats(combined_stats)
 
 func pack_cargo_stats(stats):
+	# Update cargo stats. This MUST match ShipDesign.set_cargo.
 	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
 
 func set_cost(cost: float, quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
