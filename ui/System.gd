@@ -403,9 +403,9 @@ func process_space(delta):
 		var front = ships_to_spawn.pop_front()
 		if not front:
 			break
-		var args = front.slice(1,front.size()-1)
-		callv(front[0],args)
-		#callv('call_deferred',front)
+		#var args = front.slice(1,front.size()-1)
+		#callv(front[0],args)
+		callv('call_deferred',front)
 	ship_maker_mutex.unlock()
 
 func _physics_process(delta):

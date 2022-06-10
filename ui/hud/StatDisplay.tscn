@@ -1,21 +1,8 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=2 format=2]
 
-[ext_resource path="res://fonts/ShooterPrototypeIcons.ttf" type="DynamicFontData" id=1]
-[ext_resource path="res://ui/hud/StatDisplay.gd" type="Script" id=2]
-
-[sub_resource type="DynamicFont" id=1]
-size = 12
-use_mipmaps = true
-use_filter = true
-font_data = ExtResource( 1 )
+[ext_resource path="res://bin/HUDStatDisplay.gdns" type="Script" id=1]
 
 [node name="Control" type="Control"]
 anchor_right = 1.0
 anchor_bottom = 1.0
-script = ExtResource( 2 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
-icon_font = SubResource( 1 )
-
-[connection signal="resized" from="." to="." method="_on_Control_resized"]
+script = ExtResource( 1 )
