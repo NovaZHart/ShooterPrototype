@@ -272,7 +272,7 @@ func texture_from_viewport(viewport_texture: ViewportTexture):
 	tex.create_from_image(img)
 	return tex
 
-func _process(var _delta):
+func _physics_process(var _delta):
 	background_texture=send_viewport_texture(cached_background_texture,
 		get_node_or_null('CloudViewport'),'texture_albedo',background_texture,background,Texture.FLAG_FILTER)
 	if background_texture and not cached_background_texture:
@@ -294,5 +294,5 @@ func _process(var _delta):
 			ticks += 1
 			if ticks==10:
 #				print('defer call and stop processing')
-				call_deferred('send_cached_textures')
+				#call_deferred('send_cached_textures')
 				set_process(not done)
