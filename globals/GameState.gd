@@ -258,8 +258,9 @@ func push_editors(what):
 	switch_editors(what)
 
 func switch_editors(what):
-	for design in ship_designs.get_children():
-		design.clear_cached_stats()
+	# FIXME: Is this needed?
+	#for design in ship_designs.get_children():
+	#	design.clear_cached_stats()
 	sector_editor = what if(what is SectorEditorStub) else SectorEditorStub.new()
 	system_editor = what if(what is SystemEditorStub) else SystemEditorStub.new()
 	ship_editor = what if(what is ShipEditorStub) else ShipEditorStub.new()

@@ -4,18 +4,31 @@ export var resource_path_list="res://data/resources_to_preload.json"
 var GDNativePreloadResources = preload("res://bin/PreloadResources.gdns")
 
 var preloader
-var die: bool = false
+var got_resources: bool = false
+var designs_to_load: Array = []
 
 func _ready():
 	preloader=GDNativePreloadResources.new()
 
 func _process(_delta):
-	var resource_list: Array = get_resource_path_list()
-	preloader.add_resources(resource_list)
-	# fixme: split this across multiple frames.
-	var loaded = preloader.load_resources()
-	print("Preloaded "+str(loaded)+" resources.")
-	set_process(false)
+	if not got_resources:
+		var resource_list: Array = get_resource_path_list()
+		preloader.add_resources(resource_list)
+		# fixme: split this across multiple frames.
+		var loaded = preloader.load_resources()
+		print("Preloaded "+str(loaded)+" resources.")
+
+		got_resources=true
+	
+		designs_to_load = game_state.ship_designs.get_child_names()
+	elif not designs_to_load:
+		set_process(false)
+	else:
+		var child_name = designs_to_load.pop_back()
+		var design = game_state.ship_designs.get_child_with_name(child_name)
+		if design:
+			var _stats = design.get_stats()
+	
 
 func get_resource_path_list() -> Array:
 	var file: File = File.new()
