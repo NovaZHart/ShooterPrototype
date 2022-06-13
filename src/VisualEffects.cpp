@@ -610,28 +610,24 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       prior_t=t;
     }
 
-    // Second quadrant is the same as the first, but reversed order and -X 
+    // Second Quadrant is the same as the first, but reversed order and -Y
     for(int j=outer_edges/4-1;j>=0;i++,j--) {
       real_t t=(i+1)/outer_edges_f;
-      vertices[i*6+0] = negX(vertices[j*6+5]);
-      vertices[i*6+1] = negX(vertices[j*6+4]);
-      vertices[i*6+2] = negX(vertices[j*6+3]);
-      // uv[i*6+0] = Vector2(prior_t,1);
-      // uv[i*6+1] = Vector2(prior_t,0);
-      // uv[i*6+2] = Vector2(t,0);
-      uv[i*6+0] = Vector2(t,1);
-      uv[i*6+1] = Vector2(t,0);
-      uv[i*6+2] = Vector2(prior_t,0);
+      vertices[i*6+0] = negZ(vertices[j*6+1]);
+      vertices[i*6+1] = negZ(vertices[j*6+0]);
+      vertices[i*6+2] = negZ(vertices[j*6+2]);
 
-      vertices[i*6+3] = negX(vertices[j*6+2]);
-      vertices[i*6+4] = negX(vertices[j*6+1]);
-      vertices[i*6+5] = negX(vertices[j*6+0]);
-      // uv[i*6+3] = Vector2(prior_t,1);
-      // uv[i*6+4] = Vector2(t,0);
-      // uv[i*6+5] = Vector2(t,1);
-      uv[i*6+3] = Vector2(t,1);
-      uv[i*6+4] = Vector2(prior_t,0);
-      uv[i*6+5] = Vector2(prior_t,1);
+      uv[i*6+0] = Vector2(0.5-uv[j*6+1].x,uv[j*6+1].y);
+      uv[i*6+1] = Vector2(0.5-uv[j*6+0].x,uv[j*6+0].y);
+      uv[i*6+2] = Vector2(0.5-uv[j*6+2].x,uv[j*6+2].y);
+
+      vertices[i*6+3] = negZ(vertices[j*6+3]);
+      vertices[i*6+4] = negZ(vertices[j*6+5]);
+      vertices[i*6+5] = negZ(vertices[j*6+4]);
+
+      uv[i*6+3] = Vector2(0.5-uv[j*6+3].x,uv[j*6+3].y);
+      uv[i*6+4] = Vector2(0.5-uv[j*6+5].x,uv[j*6+5].y);
+      uv[i*6+5] = Vector2(0.5-uv[j*6+4].x,uv[j*6+4].y);
 
       prior_t=t;
     }
@@ -642,36 +638,40 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+0] = negXZ(vertices[j*6+0]);
       vertices[i*6+1] = negXZ(vertices[j*6+1]);
       vertices[i*6+2] = negXZ(vertices[j*6+2]);
-      uv[i*6+0] = Vector2(t,1);
-      uv[i*6+1] = Vector2(t,0);
-      uv[i*6+2] = Vector2(prior_t,1);
+
+      uv[i*6+0] = Vector2(0.5+uv[j*6+0].x,uv[j*6+0].y);
+      uv[i*6+1] = Vector2(0.5+uv[j*6+1].x,uv[j*6+1].y);
+      uv[i*6+2] = Vector2(0.5+uv[j*6+2].x,uv[j*6+2].y);
       
       vertices[i*6+3] = negXZ(vertices[j*6+3]);
       vertices[i*6+4] = negXZ(vertices[j*6+4]);
       vertices[i*6+5] = negXZ(vertices[j*6+5]);
-      uv[i*6+3] = Vector2(t,0);
-      uv[i*6+4] = Vector2(prior_t,0);
-      uv[i*6+5] = Vector2(prior_t,1);
+
+      uv[i*6+3] = Vector2(0.5+uv[j*6+3].x,uv[j*6+3].y);
+      uv[i*6+4] = Vector2(0.5+uv[j*6+4].x,uv[j*6+4].y);
+      uv[i*6+5] = Vector2(0.5+uv[j*6+5].x,uv[j*6+5].y);
 
       prior_t=t;
     }
 
-    // Fourth quadrant is the same as the first, but reversed order and -Y
+    // Fourth quadrant is the same as the first, but reversed order and -X 
     for(int j=outer_edges/4-1;j>=0;i++,j--) {
       real_t t=(i+1)/outer_edges_f;
-      vertices[i*6+0] = negZ(vertices[j*6+5]);
-      vertices[i*6+1] = negZ(vertices[j*6+4]);
-      vertices[i*6+2] = negZ(vertices[j*6+3]);
-      uv[i*6+0] = Vector2(t,1);
-      uv[i*6+1] = Vector2(t,0);
-      uv[i*6+2] = Vector2(prior_t,0);
+      vertices[i*6+0] = negX(vertices[j*6+1]);
+      vertices[i*6+1] = negX(vertices[j*6+0]);
+      vertices[i*6+2] = negX(vertices[j*6+2]);
 
-      vertices[i*6+3] = negZ(vertices[j*6+2]);
-      vertices[i*6+4] = negZ(vertices[j*6+1]);
-      vertices[i*6+5] = negZ(vertices[j*6+0]);
-      uv[i*6+3] = Vector2(t,1);
-      uv[i*6+4] = Vector2(prior_t,0);
-      uv[i*6+5] = Vector2(prior_t,1);
+      uv[i*6+0] = Vector2(1-uv[j*6+1].x,uv[j*6+1].y);
+      uv[i*6+1] = Vector2(1-uv[j*6+0].x,uv[j*6+0].y);
+      uv[i*6+2] = Vector2(1-uv[j*6+2].x,uv[j*6+2].y);
+
+      vertices[i*6+3] = negX(vertices[j*6+3]);
+      vertices[i*6+4] = negX(vertices[j*6+5]);
+      vertices[i*6+5] = negX(vertices[j*6+4]);
+
+      uv[i*6+3] = Vector2(1-uv[j*6+3].x,uv[j*6+3].y);
+      uv[i*6+4] = Vector2(1-uv[j*6+5].x,uv[j*6+5].y);
+      uv[i*6+5] = Vector2(1-uv[j*6+4].x,uv[j*6+4].y);
 
       prior_t=t;
     }

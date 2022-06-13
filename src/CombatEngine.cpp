@@ -144,6 +144,9 @@ void CombatEngine::clear_ai() {
   player_orders.clear();
   dead_ships.clear();
   weapon_rotations.clear();
+  missile_locations.clear();
+  flotsam_locations.clear();
+  ship_locations.clear();
   factions.clear();
   affinities.clear();
   for(int i=0;i<FACTION_ARRAY_SIZE;i++)
@@ -908,7 +911,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
     factions_const_iter faction_it = factions.find(ship.faction);
     if(faction_it!=factions.end()) {
       Godot::print(ship.name+" has an ellipse with color "+str(faction_it->second.faction_color));
-      visual_effects->add_shield_ellipse(ship,ship.aabb,0.1,0.4,faction_it->second.faction_color);
+      visual_effects->add_shield_ellipse(ship,ship.aabb,0.1,0.8,faction_it->second.faction_color);
     } else
       Godot::print_warning(ship.name+": has no faction",__FUNCTION__,__FILE__,__LINE__);
   }

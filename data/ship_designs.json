@@ -3575,7 +3575,7 @@
                         "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                     ]
                 ],
-                "IACivilian/AntiMissileTurret": [
+                "AuxTurret": [
                     "Mounted",
                     [
                         "Resource",
@@ -3732,7 +3732,7 @@
                       "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
                   ]
               ],
-              "IACivilian/AntiMissileTurret": [
+              "AuxTurret": [
                   "Mounted",
                   [
                       "Resource",

@@ -115,7 +115,8 @@ namespace godot {
     // Modifiers
     void set_rect(const data_type &object,const Rect2 &rect);
     void remove(const data_type &object);
-
+    void clear();
+    
     // Reserve space
     void reserve(int data,int positions);
 
@@ -309,6 +310,12 @@ namespace godot {
           int2data.emplace(here,what);
       }
     data2info.emplace(what,SpaceHashInfo(positive_rect,new_rect));
+  }
+
+  template<class T>
+  void SpaceHash<T>::clear() {
+    int2data.clear();
+    data2info.clear();
   }
   
   template<class T>

@@ -26,22 +26,22 @@ armor_inverse_density = 300.0
 override_size = Vector3( 2.3, 0, 3.4 )
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.0455066, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0557118, 0, 0 )
 mesh = ExtResource( 1 )
 material/0 = null
 material/1 = null
 material/2 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.450416, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.349198, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -1.71067e-07, 0.94, -4.37114e-08, 0, -4.10887e-08, -1, -1.05, -1.53145e-07, 7.12149e-15, 0.0494237, 0, 0 )
+transform = Transform( -1.71067e-07, 0.94, -4.37114e-08, 0, -4.10887e-08, -1, -1.05, -1.53145e-07, 7.12149e-15, 0.150642, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="SmallEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.23173, 0, -0.494997 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.130512, 0, -0.494997 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 3
@@ -49,7 +49,7 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="LargeEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.387644, 0, 0.497438 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.286426, 0, 0.497438 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
@@ -57,29 +57,29 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="StarboardGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.657236, -0.953798, 0.891 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.758454, -0.953798, 0.891 )
 script = ExtResource( 3 )
 mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.656778, -0.953741, -0.890809 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.757996, -0.953741, -0.890809 )
 script = ExtResource( 3 )
 mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="Turret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.618591, -0.278597, -0.773574 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.517373, -0.278597, -0.773574 )
 script = ExtResource( 3 )
 mount_size_x = 3
 mount_size_y = 3
 mount_type = "external turret"
 mount_type_display = "turret"
 
-[node name="AntiMissileTurret" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.714138, -0.368045, 1.09699 )
+[node name="AuxTurret" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.61292, -0.368045, 1.09699 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
@@ -87,7 +87,7 @@ mount_type = "external turret"
 mount_type_display = "turret"
 
 [node name="MainCannon" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.487512, 0.181, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.58873, 0.181, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 4
@@ -95,7 +95,7 @@ mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="MainEngine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.06934, 0, -0.923807 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.968122, 0, -0.923807 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
@@ -103,7 +103,7 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="AuxEngine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.06951, -0.653, 0.924 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.968292, -0.653, 0.924 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 2
@@ -111,7 +111,7 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="ExternalEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.06951, -0.653, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.968292, -0.653, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
 mount_size_y = 3
