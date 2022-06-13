@@ -1,0 +1,403 @@
+{
+  "fleets": [
+    "SimpleNode",
+    {
+        "samoyed_lasers_solo": [
+            "Fleet",
+            "One Samoyed (Lasers)",
+            {
+                "samoyed_lasers": 1
+            }
+        ],
+        "missile_qimmeq_solo": [
+            "Fleet",
+            "One Qimmeq (Missiles)",
+            {
+                "missile_qimmeq": 1
+            }
+        ],
+        "thoroughbred_haruspex_solo": [
+            "Fleet",
+            "One Thoroughbred (Haruspex)",
+            {
+                "thoroughbred_haruspex": 1
+            }
+        ],
+        "thoroughbred_haruspex_duo": [
+            "Fleet",
+            "Two Thoroughbred (Haruspex)",
+            {
+                "thoroughbred_haruspex": 2
+            }
+        ],
+        "husky_haruspex_solo": [
+            "Fleet",
+            "One Husky (Haruspex)",
+            {
+                "husky_haruspex": 1
+            }
+        ],
+        "one_pod_plasma_solo": [
+            "Fleet",
+            "One Monopod (Plasma)",
+            {
+                "one_pod_plasma": 1
+            }
+        ],
+        "one_pod_missiles_solo": [
+            "Fleet",
+            "One Monopod (Missiles)",
+            {
+                "one_pod_missile": 1
+            }
+        ],
+        "one_bipod_lasers_missiles_solo": [
+            "Fleet",
+            "One Bipod (Lasers+Missiles)",
+            {
+                "bipod_lasers_missiles": 1
+            }
+        ],
+        "one_hexapod_plasma_missiles_solo": [
+            "Fleet",
+            "One Hexapod (Plasma+Missiles)",
+            {
+                "hexapod_plasma_missiles": 1
+            }
+        ],
+        
+      "ankylorhiza_missile_duo": [
+        "Fleet",
+        "Missile-Particle and Missile-Laser Ankylorhiza",
+        {
+            "ankylorhiza_missiles_particles": 1,
+            "ankylorhiza_missiles_lasers": 1
+        }
+      ],
+      "ankylorhiza_missiles_particles_escorted": [
+        "Fleet",
+        "Missile+Particle Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_missiles_particles": 1,
+          "bufeo_particles": 1,
+          "popoto_particles": 3
+        }
+      ],
+      "ankylorhiza_missiles_lasers_escorted": [
+        "Fleet",
+        "Missile+Laser Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_missiles_lasers": 1,
+          "bufeo_lasers": 1,
+          "popoto_lasers": 3
+        }
+      ],
+      "ankylorhiza_particles_escorted": [
+        "Fleet",
+        "Missile+Particle Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_particles": 1,
+          "bufeo_particles": 3
+        }
+      ],
+      "ankylorhiza_lasers_escorted": [
+        "Fleet",
+        "Missile+Laser Ankylorhiza with Escorts",
+        {
+          "ankylorhiza_lasers": 1,
+          "bufeo_lasers": 3
+        }
+      ],
+      "orca_four_types": [
+        "Fleet",
+        "3xOrcas (M+P, 2xP)",
+        {
+          "orca_missiles_particles": 1,
+          "orca_particles": 1,
+          "orca_missiles_lasers": 1,
+          "orca_lasers": 1
+        }
+      ],
+      "orca_particle_missile_mix": [
+        "Fleet",
+        "3xOrcas (M+P, 2xP)",
+        {
+          "orca_missiles_particles": 1,
+          "orca_particles": 2
+        }
+      ],
+      "orca_laser_missile_mix": [
+        "Fleet",
+        "3xOrcas (M+L, 2xL)",
+        {
+          "orca_missiles_lasers": 1,
+          "orca_lasers": 2
+        }
+      ],
+      "orca_mix_no_missiles": [
+        "Fleet",
+        "4xOrcas (2xLasers, 2xParticles)",
+        {
+          "orca_lasers": 2,
+          "orca_particles": 2
+        }
+      ],
+      "orca_lasers_missiles_escorted": [
+        "Fleet",
+        "Orcas (ML) plus Popotos",
+        {
+          "orca_missiles_lasers": 2,
+          "popoto_lasers": 2
+        }
+      ],
+      "orca_particles_missiles_escorted": [
+        "Fleet",
+        "Orcas (PL) plus Popotos",
+        {
+          "orca_missiles_particles": 2,
+          "popoto_lasers": 2
+        }
+      ],
+      "bufeo_particles_trio": [
+        "Fleet",
+        "3xBufeo (Particles)",
+        {
+          "bufeo_particles": 3
+        }
+      ],
+      "bufeo_lasers_trio": [
+        "Fleet",
+        "3xBufeo (Particles)",
+        {
+          "bufeo_particles": 3
+        }
+      ],
+      "bufeo_lasers_escorted": [
+        "Fleet",
+        "Bufeo (Lasers) + 2 Popotos",
+        {
+          "bufeo_lasers": 1,
+          "popoto_lasers": 2
+        }
+      ],
+      "bufeo_particles_escorted": [
+        "Fleet",
+        "Bufeo (Particles) + 2 Popotos",
+        {
+          "bufeo_particles": 1,
+          "popoto_lasers": 2
+        }
+      ],
+      "popoto_particles_trio": [
+        "Fleet",
+        "3xPopotos (Particles)",
+        {
+          "popoto_particles": 3
+        }
+      ],
+      "popoto_lasers_trio": [
+        "Fleet",
+        "3xPopotos (Lasers)",
+        {
+          "popoto_lasers": 3
+        }
+      ],
+
+
+      "condor_lasers_escorted": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_lasers": 1,
+          "raven_rail_missile": 1,
+          "peregrine_lasers": 2
+        }
+      ],
+      "condor_particles_escorted": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_particles": 1,
+          "raven_laser_wave": 2
+        }
+      ],
+      "raven_trio": [
+        "Fleet",
+        "3xRaven: Lasers, Particles, Missiles",
+        {
+          "raven_rail_missile": 1,
+          "raven_laser_wave": 1,
+          "raven_particles": 1
+        }
+      ],
+      "two_eagles_escorted": [
+        "Fleet",
+        "Eagles Mix with Escorts",
+        {
+          "eagle_lasers": 1,
+          "eagle_particles": 1,
+          "peregrine_lasers": 2
+        }
+      ],
+      "two_raven_missiles_escorted": [
+        "Fleet",
+        "2x Raven (Rail/Missiles) + 2 Peregrine (Lasers)",
+        {
+          "raven_rail_missile": 2,
+          "peregrine_lasers": 2
+        }
+      ],
+      "raven_lasers_trio": [
+        "Fleet",
+        "3x Raven (Lasers)",
+        {
+          "raven_laser_wave": 3
+        }
+      ],
+      "raven_particles_trio": [
+        "Fleet",
+        "3x Raven (Particles)",
+        {
+          "raven_particles": 3
+        }
+      ],
+
+      "raven_missiles_escorted": [
+        "Fleet",
+        "Missile Raven + 3 Peregrines",
+        {
+          "raven_laser_wave": 1,
+          "peregrine_lasers": 3
+        }
+      ],
+      "eagle_particles_escorted": [
+        "Fleet",
+        "Missile Raven + 3 Peregrines",
+        {
+          "eagle_particles": 1,
+          "peregrine_lasers": 3
+        }
+      ],
+      "rep_fleet_lasers": [
+        "Fleet",
+        "Raven+Eagle+Peregrine (Lasers)",
+        {
+          "raven_laser_wave": 1,
+          "eagle_lasers": 1,
+          "peregrine_lasers": 1
+        }
+      ],
+      "rep_fleet_particles": [
+        "Fleet",
+        "Raven+Eagle+Peregrine (Particles)",
+        {
+          "raven_particles": 1,
+          "eagle_particles": 1,
+          "peregrine_lasers": 1
+        }
+      ],
+      "five_peregrines_particles": [
+        "Fleet",
+        "Five Peregrines (Particles)",
+        {
+          "peregrine_particles": 5
+        }
+      ],
+      "five_peregrines_lasers": [
+        "Fleet",
+        "Five Peregrines (Lasers)",
+        {
+          "peregrine_lasers": 5
+        }
+      ],
+
+      "raven_duo_particles": [
+        "Fleet",
+        "Raven Duo (Particles)",
+        {
+          "raven_particles": 2
+        }
+      ],
+      "raven_duo_missiles": [
+        "Fleet",
+        "Raven Duo (Missiles)",
+        {
+          "raven_rail_missile": 2
+        }
+      ],
+      "eagle_duo_particles": [
+        "Fleet",
+        "Eagle Duo (Particles)",
+        {
+          "eagle_particles": 2
+        }
+      ],
+      "eagle_duo_lasers": [
+        "Fleet",
+        "Eagle Duo (Lasers)",
+        {
+          "eagle_lasers": 2
+        }
+      ],
+      "eagle_peregrine_lasers": [
+        "Fleet",
+        "Eagle and Peregrine (Lasers)",
+        {
+          "eagle_lasers": 1,
+          "peregrine_lasers": 1
+        }
+      ],
+      "raven_peregrine_particles": [
+        "Fleet",
+        "Raven and Peregrine (Particles)",
+        {
+          "eagle_particles": 1,
+          "peregrine_lasers": 1
+        }
+      ],
+      "peregrine_trio_lasers": [
+        "Fleet",
+        "Peregrine Trio (Lasers)",
+        {
+          "peregrine_lasers": 3
+        }
+      ],
+      "peregrine_trio_particles": [
+        "Fleet",
+        "Peregrine Trio (Particles)",
+        {
+          "peregrine_particles": 3
+        }
+      ],
+      "condor_lasers": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_lasers": 1
+        }
+      ],
+      "condor_duo": [
+        "Fleet",
+        "Condor (Lasers)",
+        {
+          "condor_lasers": 1,
+          "condor_particles": 1
+        }
+      ],
+      "condor_particles": [
+        "Fleet",
+        "Condor (Particles)",
+        {
+          "condor_particles": 1
+        }
+      ],
+      "banner_ship": [
+        "Fleet",
+        "Banner Ship",
+        {
+          "banner_default": 1
+        }
+      ]
+    }
+  ],
+}

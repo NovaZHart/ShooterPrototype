@@ -218,6 +218,7 @@ func add_mountable_part(scene: PackedScene) -> bool:
 	var area: Area = Area.new()
 	area.set_script(InventorySlot)
 	area.create_item(scene,true,null,item)
+	#area.name = scene.resource_path.validate_node_name()
 	items_mutex.lock()
 	items.add_child(area)
 	items_updated = true

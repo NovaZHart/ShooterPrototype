@@ -8,7 +8,7 @@ export var mount_type_display: String = 'equipment'
 export var mount_type_all: String = ''
 export var mount_type_any: String = ''
 
-export var add_mass: float = 0
+export var add_mass: float = -1
 export var add_threat: float = 0
 export var add_max_cargo: float = 0
 
@@ -62,7 +62,7 @@ export var add_battery: float = 0.0
 export var add_power: float = 0.0
 
 var cached_structure
-
+var cached_mass
 var cached_stats
 var cached_bbcode
 
@@ -126,11 +126,12 @@ func get_mount_size() -> int:
 
 func pack_stats() -> Dictionary:
 	if not cached_stats:
-		cached_structure = add_structure if add_structure>=0 else add_mass*25
+		cached_mass = add_mass if add_mass>0 else -add_mass*2
+		cached_structure = add_structure if add_structure>=0 else add_mass*25*-add_structure
 		cached_stats = {
 			'name':name,
 			'hidden': hidden,
-			'add_mass':add_mass,
+			'add_mass':cached_mass,
 			'add_threat':add_threat,
 			'add_max_cargo':add_max_cargo,
 

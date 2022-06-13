@@ -330,7 +330,7 @@ func load_universe():
 	assert(universe.get_path_str()=='/root')
 	
 	# Actually load the universe here:
-	universe.load_places_from_json('res://data/universe.json')
+	universe.load_places_from_json('res://data/')
 	assert(tree.root.children_.has('ship_designs'))
 	assert(tree.root.children_.has('systems'))
 	
@@ -362,7 +362,7 @@ func make_services():
 		'Service Button',preload('res://ui/AltTestService.tscn'))
 
 func _enter_tree():
-	var errno: int = OSTools.make_process_high_priority()
+	var _errno: int = OSTools.make_process_high_priority()
 	load_universe()
 	make_services()
 	if not OS.has_feature('standalone'):

@@ -36,7 +36,7 @@ MeshEffect::MeshEffect():
 {}
 MeshEffect::~MeshEffect() {}
 
-void MeshEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death) {
+void MeshEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
   if(update_transform) {
     Transform trans = calculate_transform();
@@ -47,6 +47,7 @@ void MeshEffect::step_effect(VisualServer *visual_server,double time,bool update
     if(update_death)
       shader_material->set_shader_param("death_time",effect_time);
     shader_material->set_shader_param("time",effect_time);
+    shader_material->set_shader_param("projectile_scale",projectile_scale);
   } else {
     Godot::print_warning("Invalid shader material.",__FUNCTION__,__FILE__,__LINE__);
   }
@@ -66,7 +67,7 @@ MultiMeshInstanceEffect::MultiMeshInstanceEffect(object_id effect_id,object_id m
 {}
 MultiMeshInstanceEffect::~MultiMeshInstanceEffect() {}
 
-void MultiMeshInstanceEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death) {
+void MultiMeshInstanceEffect::step_effect(VisualServer *visual_server,double time,bool update_transform,bool update_death,real_t projectile_scale) {
   float effect_time=time-start_time+time_shift;
   set_time(effect_time);
   if(update_death)
@@ -98,23 +99,18 @@ void VisualEffects::_init() {}
 void VisualEffects::_register_methods() {
   register_method("clear_all_effects", &VisualEffects::clear_all_effects);
   register_method("set_visible_region", &VisualEffects::set_visible_region);
-  register_method("set_shaders", &VisualEffects::set_shaders);
   register_method("step_effects", &VisualEffects::step_effects);
   register_method("set_scenario", &VisualEffects::set_scenario);
   register_method("free_unused_effects", &VisualEffects::free_unused_effects);
-}
 
-void VisualEffects::set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
-                                Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture,
-                                Ref<Shader> fade_out_texture, Ref<Texture> cargo_puff_texture,
-                                Ref<Shader> shield_ellipse_shader) {
-  this->spatial_rift_shader = spatial_rift_shader;
-  this->zap_ball_shader = zap_ball_shader;
-  this->hyperspacing_polygon_shader = hyperspacing_polygon_shader;
-  this->hyperspacing_texture = hyperspacing_texture;
-  this->fade_out_texture = fade_out_texture;
-  this->cargo_puff_texture = cargo_puff_texture;
-  this->shield_ellipse_shader = shield_ellipse_shader;
+  register_property<VisualEffects, Ref<Shader>>("spatial_rift_shader", &VisualEffects::spatial_rift_shader, Ref<Shader>());
+  register_property<VisualEffects, Ref<Shader>>("zap_ball_shader", &VisualEffects::zap_ball_shader, Ref<Shader>());
+  register_property<VisualEffects, Ref<Shader>>("hyperspacing_polygon_shader", &VisualEffects::hyperspacing_polygon_shader, Ref<Shader>());
+  register_property<VisualEffects, Ref<Shader>>("fade_out_texture", &VisualEffects::fade_out_texture, Ref<Shader>());
+  register_property<VisualEffects, Ref<Shader>>("shield_ellipse_shader", &VisualEffects::shield_ellipse_shader, Ref<Shader>());
+  register_property<VisualEffects, Ref<Texture>>("hyperspacing_texture", &VisualEffects::hyperspacing_texture, Ref<Texture>());
+  register_property<VisualEffects, Ref<Texture>>("cargo_puff_texture", &VisualEffects::cargo_puff_texture, Ref<Texture>());
+  register_property<VisualEffects, Ref<Texture>>("shield_texture", &VisualEffects::shield_texture, Ref<Texture>());
 }
 
 void VisualEffects::clear_all_effects() {
@@ -146,18 +142,21 @@ void VisualEffects::set_scenario(RID new_scenario) {
   reset_scenario=true;
 }
 
-void VisualEffects::step_effects(real_t delta,Vector3 location,Vector3 size) {
+void VisualEffects::step_effects(real_t delta,Vector3 location,Vector3 size,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
   VisualServer *visual_server = VisualServer::get_singleton();
   this->delta=delta;
   now+=delta;
+
+  AABB clipping_area(visible_area.position - visibility_expansion_rate*4,
+                     visible_area.size + visibility_expansion_rate*8);
 
   // Step all Mesh-based effects
   for(mesh_effects_iter it=mesh_effects.begin();it!=mesh_effects.end();it++) {
     VisualEffect &effect = it->second;
     if(not effect.ready or effect.dead)
       continue;
-    step_effect(effect,visual_server);
+    step_effect(effect,visual_server,clipping_area,projectile_scale);
   }
 
   // Step all effects that are MultiMeshInstances:
@@ -165,7 +164,7 @@ void VisualEffects::step_effects(real_t delta,Vector3 location,Vector3 size) {
     VisualEffect &effect = it->second;
     if(not effect.ready or effect.dead)
       continue;
-    step_effect(effect,visual_server);
+    step_effect(effect,visual_server,clipping_area,projectile_scale);
   }
 
   step_multimeshes(delta,location,size);
@@ -197,7 +196,7 @@ VisibleObject * VisualEffects::get_object_or_make_stationary(object_id target,Vi
   return nullptr;
 }
 
-void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server) {
+void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server,const AABB &clipping_area,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
   if(effect.duration and (now-effect.start_time)>effect.duration) {
     effect.dead=true;
@@ -205,9 +204,7 @@ void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server
   }
 
   if(effect.expire_out_of_view) {
-    AABB expanded(visible_area.position - visibility_expansion_rate*effect.duration,
-                  visible_area.size + 2*visibility_expansion_rate*effect.duration);
-    if(not expanded.intersects(effect.lifetime_aabb)) {
+    if(not clipping_area.intersects(effect.lifetime_aabb)) {
       effect.dead=true;
       return;
     }
@@ -268,7 +265,7 @@ void VisualEffects::step_effect(VisualEffect &effect,VisualServer *visual_server
   } break;
   case STATIONARY: { /* nothing to do */ } break;
   };
-  effect.step_effect(visual_server,now,update_transform,update_death);
+  effect.step_effect(visual_server,now,update_transform,update_death,projectile_scale);
 }
 
 void VisualEffects::add_content() {
@@ -300,6 +297,8 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
     flags |= ArrayMesh::ARRAY_COMPRESS_TEX_UV2;
   if(data[ArrayMesh::ARRAY_NORMAL].booleanize())
     flags |= ArrayMesh::ARRAY_COMPRESS_NORMAL;
+  if(data[ArrayMesh::ARRAY_COLOR].booleanize())
+    flags |= ArrayMesh::ARRAY_COMPRESS_COLOR;
   
   mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES,data,Array(),flags);
   Ref<ShaderMaterial> material = ShaderMaterial::_new();
@@ -314,7 +313,8 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   effect.shader_material = material;
   effect.start_time = now;
   effect.duration = duration;
-  if(expire_out_of_view) {
+  effect.expire_out_of_view = expire_out_of_view;
+  if(effect.expire_out_of_view) {
     effect.lifetime_aabb = mesh->get_aabb();
     effect.lifetime_aabb.position += position;
   }
@@ -437,7 +437,7 @@ bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) co
 void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id) {
   FAST_PROFILING_FUNCTION;
   if(not is_circle_visible(position,radius) or not (duration>0.0f))
-    return;
+   return;
 
   real_t scaled_radius=radius/0.95;
   PoolVector3Array pool_vertices;
@@ -485,29 +485,54 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
     effect.target1=ship_id;
     effect.behavior=CENTER_ON_TARGET1;
     effect.ready=true;
+  } else {
+    Godot::print_warning("Hyperspacing polygon is dead on arrival.",__FUNCTION__,__FILE__,__LINE__);
   }
+}
+
+inline Vector3 negX(Vector3 v) {
+  return Vector3(-v.x,v.y,v.z);
+}
+
+inline Vector3 negZ(Vector3 v) {
+  return Vector3(v.x,v.y,-v.z);
+}
+
+inline Vector3 negXZ(Vector3 v) {
+  return Vector3(-v.x,v.y,-v.z);
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t requested_spacing,Color faction_color) {
+void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t requested_spacing,real_t thickness,Color faction_color) {
   FAST_PROFILING_FUNCTION;
+  static bool printed=false;
   static const real_t sqrt2 = sqrtf(2);
-  real_t rect_width=fabsf(aabb.size.x);
+  real_t rect_width=fabsf(aabb.size.x/2);
   real_t ellipse_width=rect_width/sqrt2;
-  real_t rect_height=fabsf(aabb.size.z);
+  real_t rect_height=fabsf(aabb.size.z/2);
   real_t ellipse_height=rect_height/sqrt2;
   
-  real_t max_radius=max(ellipse_width,ellipse_height);
-  real_t min_radius=min(ellipse_width,ellipse_height);
+  real_t max_radius=ellipse_width;
+  real_t min_radius=ellipse_width;
+  if(ellipse_height>max_radius)
+    max_radius=ellipse_height;
+  if(ellipse_width<min_radius)
+    min_radius=ellipse_height;
   real_t high_ratio = max_radius/min_radius;
+  assert(high_ratio>0);
+
+  if(ship.name=="player_ship")
+    Godot::print("MAKING ELLIPSE FOR PLAYER SHIP");
 
   // Expand the ellipse a little bit so the innermost part of each
   // outer edge is outside the ellipse. This formula is approximate,
   // based on squishing a circle.
   real_t effective_radius=(max_radius+min_radius)/2;
-  real_t spacing = clamp(requested_spacing,4.0f,effective_radius/2);
+  assert(effective_radius>0.2);
+  real_t spacing = clamp(requested_spacing,0.04f,effective_radius/2);
   real_t expand_radius = (effective_radius-spacing)*high_ratio;
+  assert(expand_radius>0);
   ellipse_width += expand_radius;
   ellipse_height += expand_radius;
   max_radius = max(ellipse_width,ellipse_height);
@@ -516,19 +541,23 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
 
   // There must be a multiple of four edges along the circumference of the ellipse.
   // This approximation comes from Srinivasa Ramanujan
-  real_t rama_h = (ellipse_width-ellipse_height)*(ellipse_width-ellipse_height) /
-    (ellipse_width+ellipse_height)*(ellipse_width+ellipse_height);
+  real_t rama_h = ((ellipse_width-ellipse_height)*(ellipse_width-ellipse_height)) /
+    ((ellipse_width+ellipse_height)*(ellipse_width+ellipse_height));
+  assert(rama_h>=0);
   real_t approximate_circumference = PI*(ellipse_width+ellipse_height)*(1+3*rama_h/(10+sqrtf(4-3*rama_h)));
+  assert(approximate_circumference>0);
   real_t outer_edges_f = ceilf(approximate_circumference/(spacing*4))*4;
   int outer_edges=outer_edges_f;
   spacing = approximate_circumference/outer_edges;
 
+  assert(outer_edges>=8);
+  
   PoolColorArray pool_colors;
   PoolVector3Array pool_vertices;
   PoolVector2Array pool_uv;
   
   {
-    int nvert = outer_edges*3;
+    int nvert = outer_edges*6;
     pool_vertices.resize(nvert);
     pool_uv.resize(nvert);
     pool_colors.resize(nvert);
@@ -539,79 +568,113 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
     Vector2 *uv = write_uv.ptr();
     Color *colors = write_color.ptr();
 
-    for(int j=0;j<outer_edges*3;j++)
+    for(int j=0;j<nvert;j++)
       colors[j]=faction_color;
 
-    Vector3 prior=Vector3(ellipse_height*sinf(0),0,ellipse_width*cosf(0));
+    Vector2 prior_mid=Vector2(ellipse_width*sinf(0),ellipse_height*cosf(0));
+    Vector2 prior_thickness = prior_mid.normalized()*thickness/2;
+    Vector2 prior_inner = prior_mid-prior_thickness;
+    Vector2 prior_outer = prior_mid+prior_thickness;
+    real_t prior_t=0;
     int i=0;
   
     for(int end_i=outer_edges/4;i<end_i;i++) {
       real_t t=(i+1)/outer_edges_f;
-      real_t next_angle = (PI*t/4)/(ellipse_width+ellipse_height);
-      next_angle *= (ellipse_height + t/4*(ellipse_width-ellipse_height)/2);
+      real_t tt=t*4;
+      real_t next_angle = (PI*tt)/(ellipse_width+ellipse_height);
+      next_angle *= (ellipse_height + tt*(ellipse_width-ellipse_height)/2);
 
-      Vector3 next=Vector3(ellipse_height*sinf(next_angle),0,ellipse_width*cosf(next_angle));
+      Vector2 next_mid=Vector2(ellipse_width*sinf(next_angle),ellipse_height*cosf(next_angle));
+      Vector2 next_thickness = next_mid.normalized()*thickness/2;
+      Vector2 next_inner = next_mid-next_thickness;
+      Vector2 next_outer = next_mid+next_thickness;
+      
+      vertices[i*6+0] = Vector3(prior_outer.x,0,prior_outer.y);
+      vertices[i*6+1] = Vector3(prior_inner.x,0,prior_inner.y);
+      vertices[i*6+2] = Vector3(next_outer.x,0,next_outer.y);
 
-      vertices[i*3+0] = prior;
-      uv[i*3+0] = Vector2((t-1),1);
-      vertices[i*3+1] = Vector3();
-      uv[i*3+1] = Vector2((t-0.5),0);
-      vertices[i*3+2] = next;
-      uv[i*3+2] = Vector2(t/4,1);
+      uv[i*6+0] = Vector2(prior_t,1);
+      uv[i*6+1] = Vector2(prior_t,0);
+      uv[i*6+2] = Vector2(t,1);
+      
+      vertices[i*6+3] = Vector3(prior_inner.x,0,prior_inner.y);
+      vertices[i*6+4] = Vector3(next_inner.x,0,next_inner.y);
+      vertices[i*6+5] = Vector3(next_outer.x,0,next_outer.y);
 
-      prior=next;
+      uv[i*6+3] = Vector2(prior_t,0);
+      uv[i*6+4] = Vector2(t,0);
+      uv[i*6+5] = Vector2(t,1);
+
+      prior_outer=next_outer;
+      prior_inner=next_inner;
+      prior_t=t;
     }
 
     // Second quadrant is the same as the first, but reversed order and -X 
     for(int j=outer_edges/4-1;j>=0;i++,j--) {
       real_t t=(i+1)/outer_edges_f;
-      Vector3 next=vertices[j*3+0];
-      next.x=-next.x;
+      vertices[i*6+0] = negX(vertices[j*6+5]);
+      vertices[i*6+1] = negX(vertices[j*6+4]);
+      vertices[i*6+2] = negX(vertices[j*6+3]);
+      // uv[i*6+0] = Vector2(prior_t,1);
+      // uv[i*6+1] = Vector2(prior_t,0);
+      // uv[i*6+2] = Vector2(t,0);
+      uv[i*6+0] = Vector2(t,1);
+      uv[i*6+1] = Vector2(t,0);
+      uv[i*6+2] = Vector2(prior_t,0);
 
-      vertices[i*3+0] = prior;
-      uv[i*3+0] = Vector2((t-1),1);
-      vertices[i*3+1] = Vector3();
-      uv[i*3+1] = Vector2((t-0.5),0);
-      vertices[i*3+2] = next;
-      uv[i*3+2] = Vector2(t/4,1);
+      vertices[i*6+3] = negX(vertices[j*6+2]);
+      vertices[i*6+4] = negX(vertices[j*6+1]);
+      vertices[i*6+5] = negX(vertices[j*6+0]);
+      // uv[i*6+3] = Vector2(prior_t,1);
+      // uv[i*6+4] = Vector2(t,0);
+      // uv[i*6+5] = Vector2(t,1);
+      uv[i*6+3] = Vector2(t,1);
+      uv[i*6+4] = Vector2(prior_t,0);
+      uv[i*6+5] = Vector2(prior_t,1);
 
-      prior=next;
+      prior_t=t;
     }
 
     // Third quadrant is the same as the first, but with -X and -Y
     for(int j=0;j<outer_edges/4;i++,j++) {
       real_t t=(i+1)/outer_edges_f;
-      Vector3 next=vertices[j*3+2];
-      next.x=-next.x;
-      next.y=-next.y;
+      vertices[i*6+0] = negXZ(vertices[j*6+0]);
+      vertices[i*6+1] = negXZ(vertices[j*6+1]);
+      vertices[i*6+2] = negXZ(vertices[j*6+2]);
+      uv[i*6+0] = Vector2(t,1);
+      uv[i*6+1] = Vector2(t,0);
+      uv[i*6+2] = Vector2(prior_t,1);
+      
+      vertices[i*6+3] = negXZ(vertices[j*6+3]);
+      vertices[i*6+4] = negXZ(vertices[j*6+4]);
+      vertices[i*6+5] = negXZ(vertices[j*6+5]);
+      uv[i*6+3] = Vector2(t,0);
+      uv[i*6+4] = Vector2(prior_t,0);
+      uv[i*6+5] = Vector2(prior_t,1);
 
-      vertices[i*3+0] = prior;
-      uv[i*3+0] = Vector2((t-1),1);
-      vertices[i*3+1] = Vector3();
-      uv[i*3+1] = Vector2((t-0.5),0);
-      vertices[i*3+2] = next;
-      uv[i*3+2] = Vector2(t/4,1);
-
-      prior=next;
+      prior_t=t;
     }
 
     // Fourth quadrant is the same as the first, but reversed order and -Y
     for(int j=outer_edges/4-1;j>=0;i++,j--) {
       real_t t=(i+1)/outer_edges_f;
-      Vector3 next=vertices[j*3+0];
-      next.y=-next.y;
+      vertices[i*6+0] = negZ(vertices[j*6+5]);
+      vertices[i*6+1] = negZ(vertices[j*6+4]);
+      vertices[i*6+2] = negZ(vertices[j*6+3]);
+      uv[i*6+0] = Vector2(t,1);
+      uv[i*6+1] = Vector2(t,0);
+      uv[i*6+2] = Vector2(prior_t,0);
 
-      vertices[i*3+0] = prior;
-      uv[i*3+0] = Vector2((t-1),1);
-      vertices[i*3+1] = Vector3();
-      uv[i*3+1] = Vector2((t-0.5),0);
-      vertices[i*3+2] = next;
-      uv[i*3+2] = Vector2(t/4,1);
+      vertices[i*6+3] = negZ(vertices[j*6+2]);
+      vertices[i*6+4] = negZ(vertices[j*6+1]);
+      vertices[i*6+5] = negZ(vertices[j*6+0]);
+      uv[i*6+3] = Vector2(t,1);
+      uv[i*6+4] = Vector2(prior_t,0);
+      uv[i*6+5] = Vector2(prior_t,1);
 
-      prior=next;
+      prior_t=t;
     }
-  
-    assert(i==outer_edges);
   }
   
   Array data;
@@ -620,12 +683,20 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
   data[ArrayMesh::ARRAY_COLOR] = pool_colors;
   Vector3 position=ship.position;
-  position.y=ship.visual_height+1;
-  MeshEffect &effect = add_MeshEffect(data,0,position,0,shield_ellipse_shader,false);
+  position.y=below_ships;
 
+  if(ship.name=="player_ship")
+    Godot::print("PLAYER SHIP VISUAL HEIGHT "+str(position.y));
+
+  MeshEffect &effect = add_MeshEffect(data,0,position,0,shield_ellipse_shader,false);
+  
   if(not effect.dead) {
     effect.target1=ship.id;
     effect.behavior=CENTER_AND_ROTATE_ON_TARGET1;
+    effect.shader_material->set_shader_param("shield_texture",shield_texture);
     effect.ready=true;
-  }
+  } else
+    Godot::print_warning("Shield ellipse is dead on arrival",__FUNCTION__,__FILE__,__LINE__);
+
+  printed=true;
 }

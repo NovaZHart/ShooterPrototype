@@ -904,6 +904,15 @@ void CombatEngine::ai_step_ship(Ship &ship) {
   heal_ship(ship);
   ship.apply_heat_and_energy_costs(delta);
 
+  if(ship.at_first_tick) {
+    factions_const_iter faction_it = factions.find(ship.faction);
+    if(faction_it!=factions.end()) {
+      Godot::print(ship.name+" has an ellipse with color "+str(faction_it->second.faction_color));
+      visual_effects->add_shield_ellipse(ship,ship.aabb,0.1,0.4,faction_it->second.faction_color);
+    } else
+      Godot::print_warning(ship.name+": has no faction",__FUNCTION__,__FILE__,__LINE__);
+  }
+
   if(ship.entry_method!=ENTRY_COMPLETE and not init_ship(ship))
     return; // Ship has not yet fully arrived.
 
@@ -975,7 +984,8 @@ bool CombatEngine::init_ship(Ship &ship) {
       visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true,ship.id);
       //visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
       //visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
-    }
+    } else
+      Godot::print_warning("No visual_effects!!",__FUNCTION__,__FILE__,__LINE__);
     set_angular_velocity(ship,Vector3(0.0,15.0+ship.rand.randf()*15.0,0.0));
     return false;
   } else if(ship.rift_timer.alarmed()) {

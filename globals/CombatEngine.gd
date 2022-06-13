@@ -4,6 +4,7 @@ var GDNativeVisualEffects = preload("res://bin/VisualEffects.gdns")
 var GDNativeCombatEngine = preload("res://bin/CombatEngine.gdns")
 var RiftShader = preload('res://shaders/Rift.shader')
 var ZapBallShader = preload('res://shaders/ZapBall.shader')
+var ShieldEllipseShader = preload('res://shaders/ShieldEllipse.shader')
 var HyperspacingPolygonShader = preload('res://shaders/HyperspacingPolygon.shader')
 var native_combat_engine
 var native_visual_effects
@@ -92,7 +93,14 @@ func _enter_tree():
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
-	native_visual_effects.set_shaders(RiftShader,ZapBallShader,HyperspacingPolygonShader,hyperspacing_texture,fade_out_texture,cargo_puff_texture,RiftShader)
+	native_visual_effects.spatial_rift_shader=RiftShader;
+	native_visual_effects.zap_ball_shader=ZapBallShader
+	native_visual_effects.hyperspacing_polygon_shader=HyperspacingPolygonShader;
+	native_visual_effects.fade_out_texture=fade_out_texture;
+	native_visual_effects.shield_ellipse_shader=ShieldEllipseShader;
+	native_visual_effects.hyperspacing_texture=hyperspacing_texture;
+	native_visual_effects.cargo_puff_texture=cargo_puff_texture;
+	native_visual_effects.shield_texture=hyperspacing_texture;
 	# FIXME: pass the ShieldEllipseShader
 
 func init_combat_state(system_info,system,immediate_entry: bool) -> void:
@@ -191,7 +199,8 @@ func step_visual_effects(delta: float, camera: Camera, viewport: Viewport):
 	var ul: Vector3 = camera.project_position(Vector2(0,0),0)
 	var lr: Vector3 = camera.project_position(viewport_size,0)
 	var size: Vector3 = Vector3(abs(ul.x-lr.x),0,abs(ul.z-lr.z))
-	native_visual_effects.step_effects(delta,camera.translation,size)
+	var projectile_scale: float = pow(camera.size/30.0,0.5)
+	native_visual_effects.step_effects(delta,camera.translation,size,projectile_scale)
 	native_visual_effects.free_unused_effects() # FIXME: move to another thread?
 
 func draw_space(camera: Camera,viewport: Viewport) -> void:

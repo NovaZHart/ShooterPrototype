@@ -206,8 +206,13 @@ func reset_parts_and_designs():
 	$All/Left/Shop/Tabs/Weapons.set_item_counts(shop_parts)
 	$All/Left/Shop/Tabs/Weapons.arrange_items()
 	
+	$All/Left/Shop/Tabs/Engines.clear_items()
+	$All/Left/Shop/Tabs/Engines.add_ship_parts(all_ship_parts,['engine'],[])
+	$All/Left/Shop/Tabs/Engines.set_item_counts(shop_parts)
+	$All/Left/Shop/Tabs/Engines.arrange_items()
+	
 	$All/Left/Shop/Tabs/Equipment.clear_items()
-	$All/Left/Shop/Tabs/Equipment.add_ship_parts(all_ship_parts,['equipment','engine'],[])
+	$All/Left/Shop/Tabs/Equipment.add_ship_parts(all_ship_parts,['equipment'],['engine'])
 	$All/Left/Shop/Tabs/Equipment.set_item_counts(shop_parts)
 	$All/Left/Shop/Tabs/Equipment.arrange_items()
 #	$All/Left/Shop/Tabs/Designs.set_edited_item_id(design_id)
@@ -251,6 +256,9 @@ func _ready():
 			'_on_available_count_updated')
 		$All/Left/Shop/Tabs/Equipment.forbid_edits()
 		_ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Equipment,
+			'_on_available_count_updated')
+		$All/Left/Shop/Tabs/Engines.forbid_edits()
+		_ignore = connect('available_ship_parts_updated',$All/Left/Shop/Tabs/Engines,
 			'_on_available_count_updated')
 		$All/Show/Grid/Top.visible=false
 		var node = $All/Left/Buttons.get_node_or_null('Save')
@@ -304,7 +312,7 @@ func _exit_tree():
 	if not game_state.game_editor_mode:
 		universe_edits.state.clear()
 		text_gen.remove_price_callback(self)
-	get_tree().root.call_deferred('print_stray_nodes')
+	#get_tree().root.call_deferred('print_stray_nodes')
 
 func add_item(scene: PackedScene,mount_name: String,x: int,y: int) -> bool:
 	var result = $All/Show/Grid/Ship.add_item(scene,mount_name,x,y)
@@ -331,6 +339,10 @@ func remove_design(design: simple_tree.SimpleNode) -> bool:
 func show_selected_item():
 	if $All/Left/Shop/Tabs/Equipment.is_visible_in_tree():
 		var selection=$All/Left/Shop/Tabs/Equipment.selection
+		if selection and show_item_help_page(selection):
+			return
+	if $All/Left/Shop/Tabs/Engines.is_visible_in_tree():
+		var selection=$All/Left/Shop/Tabs/Engines.selection
 		if selection and show_item_help_page(selection):
 			return
 	if $All/Left/Shop/Tabs/Weapons.is_visible_in_tree():
@@ -414,12 +426,29 @@ func _impl_show_design_info(ship: RigidBody,cost: int):
 func _on_Weapons_select_item(item):
 	if item.page:
 		show_ship_part_help_page(item.scene.resource_path,item.page)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
 func _on_Weapons_deselect_item(_item_or_null):
 	show_edited_design_info()
+	$All/Left/Shop/Tabs/Engines.deselect(false)
+	$All/Left/Shop/Tabs/Equipment.deselect(false)
+	$All/Left/Shop/Tabs/Designs.deselect(false)
+	$All/Show/Grid/Ship.deselect()
+
+func _on_Engines_select_item(item):
+	if item.page:
+		show_ship_part_help_page(item.scene.resource_path,item.page)
+	$All/Left/Shop/Tabs/Weapons.deselect(false)
+	$All/Left/Shop/Tabs/Equipment.deselect(false)
+	$All/Left/Shop/Tabs/Designs.deselect(false)
+	$All/Show/Grid/Ship.deselect()
+
+func _on_Engines_deselect_item(_item_or_null):
+	show_edited_design_info()
+	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
@@ -427,12 +456,14 @@ func _on_Weapons_deselect_item(_item_or_null):
 func _on_Ship_deselect_item():
 	show_edited_design_info()
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 
 func _on_Equipment_deselect_item(_item_or_null):
 	show_edited_design_info()
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
@@ -440,6 +471,7 @@ func _on_Equipment_select_item(item):
 	if item.page:
 		show_ship_part_help_page(item.scene.resource_path,item.page)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
@@ -449,11 +481,15 @@ func _on_Ship_select_item(item,scene):
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Left/Shop/Tabs/Designs.deselect(false)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 
 func _on_Ship_pixel_height_changed(_size: float):
 	sync_drag_view(false)
 
 func _on_Equipment_drag_selection(scene: PackedScene):
+	set_drag_scene(scene)
+
+func _on_Engines_drag_selection(scene: PackedScene):
 	set_drag_scene(scene)
 
 func _on_Weapons_drag_selection(scene: PackedScene):
@@ -541,6 +577,7 @@ func _on_Designs_select(design_path):
 	if design_path:
 		show_design_info_at(design_path)
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 
@@ -588,6 +625,7 @@ func _on_Designs_open(design_path):
 func _on_Designs_select_nothing():
 	show_edited_design_info()
 	$All/Left/Shop/Tabs/Equipment.deselect(false)
+	$All/Left/Shop/Tabs/Engines.deselect(false)
 	$All/Left/Shop/Tabs/Weapons.deselect(false)
 	$All/Show/Grid/Ship.deselect()
 

@@ -45,9 +45,12 @@ namespace godot {
     mesheffect_behavior behavior;
     object_id target1;
     
-    virtual void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death) = 0;
+    virtual void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death,real_t projectile_scale) = 0;
     inline Transform calculate_transform() const {
-      return Transform(Basis(Vector3(0,rotation,0)),position);
+      Transform t(Basis(),position);
+      t.rotate_basis(Vector3(0,1,0),rotation);
+
+      return t;
     }
 
     VisualEffect(object_id effect_id,double start_time,real_t duration,real_t time_shift,
@@ -61,7 +64,7 @@ namespace godot {
     Ref<Mesh> mesh;
     Ref<ShaderMaterial> shader_material;
 
-    void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death) override;
+    void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death,real_t projectile_scale) override;
 
     MeshEffect();
     virtual ~MeshEffect();
@@ -91,7 +94,7 @@ namespace godot {
       return data[2];
     }
 
-    void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death) override;
+    void step_effect(VisualServer *visual_server,double when,bool update_transform,bool update_death,real_t projectile_scale) override;
     
     explicit MultiMeshInstanceEffect();
     MultiMeshInstanceEffect(object_id effect_id,object_id mesh_id,double start_time,
@@ -117,7 +120,7 @@ namespace godot {
     std::vector<Vector3> vertex_holder;
     std::vector<Vector2> uv2_holder, uv_holder;
     Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader, fade_out_texture;
-    Ref<Texture> hyperspacing_texture, cargo_puff_texture;
+    Ref<Texture> hyperspacing_texture, cargo_puff_texture, shield_texture;
     Ref<Shader> shield_ellipse_shader;
     VisibleContentManager content;
     VisibleContent *combat_content;
@@ -140,13 +143,9 @@ namespace godot {
 
     // Registered methods:
     void clear_all_effects();
-    void set_shaders(Ref<Shader> spatial_rift_shader, Ref<Shader> zap_ball_shader,
-                     Ref<Shader> hyperspacing_polygon_shader, Ref<Texture> hyperspacing_texture,
-                     Ref<Shader> fade_out_texture,Ref<Texture> cargo_puff_texture,
-                     Ref<Shader> shield_ellipse_shader);
     void set_visible_region(AABB visible_area, Vector3 expansion_rate);
     void set_scenario(RID scenario);
-    void step_effects(real_t delta,Vector3 location,Vector3 size);
+    void step_effects(real_t delta,Vector3 location,Vector3 size,real_t projectile_scale);
 
     // Interface for CombatEngine:
     inline void set_combat_content(VisibleContent *v) {
@@ -156,7 +155,7 @@ namespace godot {
     void set_visible_content(VisibleContent *visible);
     void add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
     void add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff);
-    void add_shield_ellipse(const godot::CE::Ship &ship,const AABB &aabb,real_t requested_spacing,Color faction_color);
+    void add_shield_ellipse(const godot::CE::Ship &ship,const AABB &aabb,real_t requested_spacing,real_t thickness,Color faction_color);
 
     // Send new content to visual thread.
     void add_content();
@@ -167,7 +166,7 @@ namespace godot {
   private:
     void step_multimeshes(real_t delta,Vector3 location,Vector3 size);
     VisibleObject * get_object_or_make_stationary(object_id target,VisualEffect &effect);
-    void step_effect(VisualEffect &effect,VisualServer *visual_server);
+    void step_effect(VisualEffect &effect,VisualServer *visual_server,const AABB &clipping_area,real_t projectile_scale);
     void free_unused_effects();
     void extend_zap_pattern(Vector3 left, Vector3 right, Vector3 center,
                             real_t extent, real_t radius, int depth);

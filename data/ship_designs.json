@@ -1,2131 +1,5 @@
 {
-  "factions": [ "FactionList", {
-      "initial_player_faction": [ "Faction", "initial_player_faction", [
-          "Array"
-      ], 0.0, {
-              "raiders": -1,
-              "police": 1,
-              "civilians": 1,
-              "flotsam": -1
-      }, {} ],
-      "flotsam": [ "Faction", "flotsam", [
-          "Array"
-      ], 0.0, {
-          "initial_player_faction": -1,
-          "raiders": -1
-      }, {} ],
-      "police": [ "Faction", "Police", [
-            "Array",
-            {
-              "frequency": 150,
-              "fleet": "popoto_lasers_trio",
-              "type": "light_police"
-            },
-            {
-              "frequency": 110,
-              "fleet": "bufeo_particles_escorted",
-              "type": "light_police"
-            },
-            {
-              "frequency": 110,
-              "fleet": "bufeo_lasers_escorted",
-              "type": "light_police"
-            },
-            {
-              "frequency": 70,
-              "fleet": "bufeo_particles_trio",
-              "type": "light_police"
-            },
-            {
-              "frequency": 70,
-              "fleet": "bufeo_lasers_trio",
-              "type": "light_police"
-            },
-            {
-              "frequency": 40,
-              "fleet": "orca_particles_missiles_escorted",
-              "type": "light_police"
-            },
-            {
-              "frequency": 40,
-              "fleet": "orca_lasers_missiles_escorted",
-              "type": "light_police"
-            },
-
-            {
-              "frequency": 30,
-              "fleet": "orca_particles_missiles_escorted",
-              "type": "large_police"
-            },
-            {
-              "frequency": 30,
-              "fleet": "orca_lasers_missiles_escorted",
-              "type": "large_police"
-            },
-            {
-              "frequency": 50,
-              "fleet": "orca_mix_no_missiles",
-              "type": "large_police"
-            },
-            {
-              "frequency": 50,
-              "fleet": "orca_laser_missile_mix",
-              "type": "large_police"
-            },
-            {
-              "frequency": 50,
-              "fleet": "orca_particle_missile_mix",
-              "type": "large_police"
-            },
-            {
-              "frequency": 50,
-              "fleet": "orca_four_types",
-              "type": "large_police"
-            },
-            {
-              "frequency": 30,
-              "fleet": "ankylorhiza_missiles_lasers_escorted",
-              "type": "large_police"
-            },
-            {
-              "frequency": 30,
-              "fleet": "ankylorhiza_missiles_particles_escorted",
-              "type": "large_police"
-            },
-            {
-              "frequency": 20,
-              "fleet": "ankylorhiza_missile_duo",
-              "type": "large_police"
-            },
-            {
-              "frequency": 30,
-              "fleet": "ankylorhiza_particles_escorted",
-              "type": "large_police"
-            },
-            {
-              "frequency": 30,
-              "fleet": "ankylorhiza_lasers_escorted",
-              "type": "large_police"
-            }
-          ], 3e5, {
-              "raiders": -3,
-              "initial_player_faction": 0.5,
-              "civilians": 3,
-              "flotsam": -1
-          }, {} ],
-      "raiders": [ "Faction", "Raiders", [
-            "Array",
-            {
-              "frequency": 40,
-              "fleet": "condor_lasers_escorted",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 40,
-              "fleet": "condor_duo",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 40,
-              "fleet": "condor_particles_escorted",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 50,
-              "fleet": "raven_trio",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 90,
-              "fleet": "two_eagles_escorted",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 50,
-              "fleet": "two_raven_missiles_escorted",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 90,
-              "fleet": "raven_lasers_trio",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 90,
-              "fleet": "raven_particles_trio",
-              "type": "large_raid"
-            },
-
-            {
-              "frequency": 60,
-              "fleet": "raven_missiles_escorted",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
-              "fleet": "raven_duo_lasers",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
-              "fleet": "raven_duo_particles",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
-              "fleet": "eagle_particles_escorted",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
-              "fleet": "rep_fleet_lasers",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
-              "fleet": "rep_fleet_particles",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 90,
-              "fleet": "five_peregrines_lasers",
-              "type": "small_raid"
-            }
-          ], 3e5, {
-              "police": -1,
-              "civilians": -2,
-              "initial_player_faction": -0.5,
-              "flotsam": -1
-          }, {} ],
-      "civilians": [ "Faction", "Civilians", [
-            "Array",
-            {
-              "frequency": 300,
-              "fleet": "samoyed_lasers_solo",
-              "type": "small_merchant"
-            },
-            {
-              "frequency": 200,
-              "fleet": "missile_qimmeq_solo",
-              "type": "small_merchant"
-            },
-            {
-              "frequency": 100,
-              "fleet": "husky_haruspex_solo",
-              "type": "small_merchant"
-            },
-            {
-              "frequency": 140,
-              "fleet": "one_pod_plasma_solo",
-              "type": "small_merchant"
-            },
-            {
-              "frequency": 140,
-              "fleet": "one_pod_missiles_solo",
-              "type": "small_merchant"
-            },
-            {
-              "frequency": 150,
-              "fleet": "thoroughbred_haruspex_solo",
-              "type": "small_merchant"
-            },
-            {
-              "frequency": 80,
-              "fleet": "thoroughbred_haruspex_duo",
-              "type": "large_merchant"
-            },
-            {
-              "frequency": 120,
-              "fleet": "one_bipod_particles_missiles_solo",
-              "type": "large_merchant"
-            },
-            {
-              "frequency": 100,
-              "fleet": "one_hexapod_plasma_missiles_solo",
-              "type": "large_merchant"
-            },
-          ], 3e5, {
-              "police": 1,
-              "raiders": -3,
-              "initial_player_faction": 1,
-              "flotsam": -1
-          }, {} ]
-  }],
-  "systems": [
-    "SimpleNode",
-    {
-      "seti_alpha": [
-        "SystemData",
-        {
-          "display_name": "Seti-α",
-          "position": [
-            "Vector3",
-            4.825001,
-            0,
-            -0.649999
-          ],
-          "links": {
-            "seti_beta": 1,
-            "seti-gamma": 1
-          },
-          "plasma_seed": 56929,
-          "starfield_seed": 86942,
-          "plasma_color": [
-            "Color",
-            0.07,
-            0.07,
-            0.18,
-            1
-          ],
-          "show_on_map": true,
-          "system_fuel_recharge": 0.5,
-          "center_fuel_recharge": 1.5,
-          "locality_adjustments": {
-            "luxury/terran": [
-              "Array",
-              0.4,
-              1.2,
-              1
-            ],
-            "manufactured/terran": [
-              "Array",
-              1.2,
-              0.75,
-              1
-            ],
-            "consumables/terran": [
-              "Array",
-              1,
-              1.1,
-              1
-            ],
-            "deadly_drug/terran/human": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "live/sentient": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "dead/sentient": [
-              "Array",
-              0,
-              0,
-              1
-            ]
-          },
-          "fleets": [
-            "Array",
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 1
-            }
-          ],
-          "objects": {
-            "sun": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Seti-α",
-                "description": "",
-                "base": "yellow_sun",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "size": 12,
-                "shader_seed": 1231333334,
-                "rotation_period": 0,
-                "orbit_radius": 0,
-                "orbit_period": 0,
-                "orbit_start": 0,
-                "has_astral_gate": false,
-                "objects": {
-                  "storm": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array",
-                        "info"
-                      ],
-                      "shipyard": [
-                        "Array",
-                        "small_laser_terran"
-                      ],
-                      "display_name": "Storm",
-                      "description": "Description of Storm planet.",
-                      "base": "ocean_planet",
-                      "population": {
-                        "suvar": 9100000,
-                        "human": 95000000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_trade",
-                        "terran_government"
-                      ],
-                      "locality_adjustments": {
-
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "size": 5,
-                      "shader_seed": 321321321,
-                      "rotation_period": 0,
-                      "orbit_radius": 200,
-                      "orbit_period": 300,
-                      "orbit_start": 0,
-                      "has_astral_gate": false,
-                      "objects": {
-
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "alef_93": [
-        "SystemData",
-        {
-          "display_name": "א-93",
-          "position": [
-            "Vector3",
-            16.150005,
-            0,
-            -16.374998
-          ],
-          "links": {
-            "alef-85": 1
-          },
-          "plasma_seed": 82597,
-          "starfield_seed": 42878,
-          "plasma_color": [
-            "Color",
-            0.160784,
-            0.047059,
-            0.007843,
-            1
-          ],
-          "show_on_map": true,
-          "system_fuel_recharge": 0.5,
-          "center_fuel_recharge": 1.5,
-          "locality_adjustments": {
-            "deadly_drug/terran/human": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "manufactured/mining": [
-              "Array",
-              1,
-              1.3,
-              1
-            ],
-            "raw_materials/gems": [
-              "Array",
-              1,
-              0.75,
-              1
-            ],
-            "raw_materials/metal": [
-              "Array",
-              1,
-              0.75,
-              1
-            ],
-            "live/sentient": [
-              "Array",
-              0,
-              0,
-              1
-            ],
-            "dead/sentient": [
-              "Array",
-              0,
-              0,
-              1
-            ]
-          },
-          "fleets": [
-            "Array",
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 1
-            }
-          ],
-          "objects": {
-            "astra": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array",
-                  "info"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Astra",
-                "description": "",
-                "base": "blue_sun",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "size": 14,
-                "color_addition": [
-                  "Color",
-                  0.388235,
-                  0.466667,
-                  0.866667,
-                  1
-                ],
-                "shader_seed": 53820,
-                "rotation_period": 13,
-                "orbit_radius": 0,
-                "orbit_period": 0,
-                "orbit_start": 0,
-                "has_astral_gate": false,
-                "objects": {
-                  "hellscape": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array",
-                        "info"
-                      ],
-                      "shipyard": [
-                        "Array",
-                        "small_laser_terran"
-                      ],
-                      "display_name": "Hellscape",
-                      "description": "",
-                      "base": "fiery_rock",
-                      "population": {
-                        "suvar": 6100,
-                        "human": 58000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_mining",
-                        "terran_government"
-                      ],
-                      "locality_adjustments": {
-
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "size": 5.5,
-                      "color_scaling": [
-                        "Color",
-                        0.988235,
-                        0.741176,
-                        0.741176,
-                        1
-                      ],
-                      "color_addition": [
-                        "Color",
-                        -0.05098,
-                        -0.254902,
-                        -0.717647,
-                        1
-                      ],
-                      "shader_seed": 58199,
-                      "rotation_period": 3,
-                      "orbit_radius": 160.636551,
-                      "orbit_period": 91,
-                      "orbit_start": -0.044163,
-                      "has_astral_gate": false,
-                      "objects": {
-
-                      }
-                    }
-                  ],
-                  "pearl": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array",
-                        "info"
-                      ],
-                      "shipyard": [
-                        "Array",
-                        "small_particle_terran"
-                      ],
-                      "display_name": "Pearl",
-                      "description": "Description of Pearl planet.",
-                      "base": "ice_planet",
-                      "population": {
-                        "suvar": 21000,
-                        "human": 191000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_food",
-                        "terran_government"
-                      ],
-                      "locality_adjustments": {
-
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "size": 11,
-                      "color_scaling": [
-                        "Color",
-                        0.909804,
-                        0.980392,
-                        0.980392,
-                        1
-                      ],
-                      "color_addition": [
-                        "Color",
-                        0.207843,
-                        0.631373,
-                        0.662745,
-                        1
-                      ],
-                      "shader_seed": 18492,
-                      "rotation_period": 7,
-                      "orbit_radius": 348.036102,
-                      "orbit_period": 1092,
-                      "orbit_start": -0.006191,
-                      "has_astral_gate": false,
-                      "objects": {
-                        "ironclad": [
-                          "SpaceObjectData",
-                          {
-                            "services": [
-                              "Array",
-                              "info"
-                            ],
-                            "shipyard": [
-                              "Array"
-                            ],
-                            "display_name": "Ironclad",
-                            "description": "Description of Pearl planet.",
-                            "base": "ice_planet",
-                            "population": {
-                              "suvar": 11000,
-                              "human": 85000
-                            },
-                            "trading": [
-                              "Array",
-                              "suvar",
-                              "human",
-                              "terran_mining",
-                              "terran_government"
-                            ],
-                            "locality_adjustments": {
-
-                            },
-                            "shipyard_locality_adjustments": {
-
-                            },
-                            "size": 3,
-                            "color_scaling": [
-                              "Color",
-                              0.74902,
-                              0.964706,
-                              0.74902,
-                              1
-                            ],
-                            "color_addition": [
-                              "Color",
-                              -0.011765,
-                              0.003922,
-                              0.011765,
-                              1
-                            ],
-                            "shader_seed": 28185,
-                            "rotation_period": 5,
-                            "orbit_radius": 23.943014,
-                            "orbit_period": 13,
-                            "orbit_start": -1.561566,
-                            "has_astral_gate": false,
-                            "objects": {
-
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "seti_beta": [
-        "SystemData",
-        {
-          "display_name": "Seti-β",
-          "position": [
-            "Vector3",
-            2.250004,
-            0,
-            -4.2
-          ],
-          "links": {
-            "seti_alpha": 1,
-            "seti-gamma": 1,
-            "alef-85": 1
-          },
-          "plasma_seed": 320918,
-          "starfield_seed": 987686,
-          "plasma_color": [
-            "Color",
-            0.135742,
-            0.111328,
-            0.140625,
-            1
-          ],
-          "show_on_map": true,
-          "system_fuel_recharge": 0.5,
-          "center_fuel_recharge": 1.5,
-          "locality_adjustments": {
-            "consumables/terran/food": [
-              "Array",
-              2.5,
-              0.8,
-              1
-            ],
-            "raw_materials/gems": [
-              "Array",
-              1.3,
-              0.85,
-              1
-            ],
-            "raw_materials/metal": [
-              "Array",
-              1.2,
-              0.75,
-              1
-            ],
-            "deadly_drug/terran/human": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "live/sentient": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "dead/sentient": [
-              "Array",
-              0,
-              0,
-              1
-            ]
-          },
-          "fleets": [
-            "Array",
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 1
-            }
-          ],
-          "objects": {
-            "sun": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Sun",
-                "description": "",
-                "base": "",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 1,
-                "size": 13,
-                "color_scaling": [
-                  "Color",
-                  0.870588,
-                  0.803922,
-                  0.533333,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  0.239216,
-                  -0.223529,
-                  -0.176471,
-                  1
-                ],
-                "shader_seed": 56574,
-                "rotation_period": 5,
-                "orbit_radius": 0,
-                "orbit_period": 0,
-                "orbit_start": 0,
-                "has_astral_gate": false,
-                "objects": {
-                  "new_kano": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array",
-                        "info"
-                      ],
-                      "shipyard": [
-                        "Array"
-                      ],
-                      "display_name": "New Kano",
-                      "description": "",
-                      "base": "",
-                      "population": {
-                        "suvar": 11000,
-                        "human": 135000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_mining",
-                        "terran_government"
-                      ],
-                      "locality_adjustments": {
-
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "object_type": 0,
-                      "size": 6,
-                      "color_scaling": [
-                        "Color",
-                        0.913725,
-                        0.772549,
-                        0.203922,
-                        1
-                      ],
-                      "color_addition": [
-                        "Color",
-                        0.043137,
-                        -0.419608,
-                        -0.537255,
-                        1
-                      ],
-                      "shader_seed": 5547,
-                      "rotation_period": 7,
-                      "orbit_radius": 123.676346,
-                      "orbit_period": 31,
-                      "orbit_start": 0,
-                      "has_astral_gate": false,
-                      "objects": {
-
-                      }
-                    }
-                  ],
-                  "new_lagos": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array",
-                        "info"
-                      ],
-                      "shipyard": [
-                        "Array",
-                        "small_particle_terran"
-                      ],
-                      "display_name": "New Lagos",
-                      "description": "",
-                      "base": "",
-                      "population": {
-                        "suvar": 51000,
-                        "human": 485000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_food",
-                        "terran_government"
-                      ],
-                      "locality_adjustments": {
-
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "object_type": 0,
-                      "size": 7,
-                      "color_scaling": [
-                        "Color",
-                        0.14902,
-                        0.145098,
-                        0.65098,
-                        1
-                      ],
-                      "color_addition": [
-                        "Color",
-                        -0.043137,
-                        -0.058824,
-                        0.372549,
-                        1
-                      ],
-                      "shader_seed": 67924,
-                      "rotation_period": 8,
-                      "orbit_radius": 369.066223,
-                      "orbit_period": 31,
-                      "orbit_start": 3,
-                      "has_astral_gate": false,
-                      "objects": {
-                        "new_ife": [
-                          "SpaceObjectData",
-                          {
-                            "services": [
-                              "Array",
-                              "info"
-                            ],
-                            "shipyard": [
-                              "Array",
-                              "small_particle_terran"
-                            ],
-                            "display_name": "New Ife",
-                            "description": "",
-                            "base": "",
-                            "population": {
-                              "suvar": 10300,
-                              "human": 111500
-                            },
-                            "trading": [
-                              "Array",
-                              "suvar",
-                              "human",
-                              "terran_trade",
-                              "terran_government"
-                            ],
-                            "locality_adjustments": {
-
-                            },
-                            "shipyard_locality_adjustments": {
-
-                            },
-                            "object_type": 0,
-                            "size": 4,
-                            "color_scaling": [
-                              "Color",
-                              0.172549,
-                              0.65098,
-                              0.145098,
-                              1
-                            ],
-                            "color_addition": [
-                              "Color",
-                              -0.043137,
-                              -0.058824,
-                              0.372549,
-                              1
-                            ],
-                            "shader_seed": 18492,
-                            "rotation_period": 8,
-                            "orbit_radius": 56.704685,
-                            "orbit_period": 31,
-                            "orbit_start": -0.600958,
-                            "has_astral_gate": false,
-                            "objects": {
-
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "seti-gamma": [
-        "SystemData",
-        {
-          "display_name": "Seti-ɣ",
-          "position": [
-            "Vector3",
-            7.650002,
-            0,
-            -3.599999
-          ],
-          "links": {
-            "seti_beta": 1,
-            "seti_alpha": 1
-          },
-          "plasma_seed": 320918,
-          "starfield_seed": 987686,
-          "plasma_color": [
-            "Color",
-            0.07,
-            0.07,
-            0.18,
-            1
-          ],
-          "show_on_map": true,
-          "system_fuel_recharge": 0.5,
-          "center_fuel_recharge": 1.5,
-          "locality_adjustments": {
-            "dead/sentient": [
-              "Array",
-              0,
-              0,
-              1
-            ]
-          },
-          "fleets": [
-            "Array",
-            {
-              "frequency": 400,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 400,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 400,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 400,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 550,
-              "fleet": "peregrine_trio_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 250,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 200,
-              "fleet": "condor_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 200,
-              "fleet": "condor_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 400,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 400,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 400,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 400,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 550,
-              "fleet": "peregrine_trio_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 250,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 200,
-              "fleet": "condor_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 200,
-              "fleet": "condor_cyclotrons",
-              "team": 1
-            }
-          ],
-          "objects": {
-            "seti_gamma": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Seti-ɣ",
-                "description": "",
-                "base": "",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 1,
-                "size": 15,
-                "color_scaling": [
-                  "Color",
-                  0.976471,
-                  0.984314,
-                  0.984314,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  -0.364706,
-                  -0.270588,
-                  0.145098,
-                  1
-                ],
-                "shader_seed": 0,
-                "rotation_period": 0,
-                "orbit_radius": 11.598228,
-                "orbit_period": 20,
-                "orbit_start": -3.71873,
-                "has_astral_gate": false,
-                "objects": {
-
-                }
-              }
-            ],
-            "Seti-gamma-2": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Seti-ɣ-2",
-                "description": "",
-                "base": "",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 1,
-                "size": 9,
-                "color_scaling": [
-                  "Color",
-                  0.517647,
-                  0.25098,
-                  0.25098,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  -0.082353,
-                  -0.560784,
-                  -0.035294,
-                  1
-                ],
-                "shader_seed": 42447,
-                "rotation_period": 0,
-                "orbit_radius": 15.793585,
-                "orbit_period": 20,
-                "orbit_start": -0.540446,
-                "has_astral_gate": false,
-                "objects": {
-
-                }
-              }
-            ],
-            "kindra": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array",
-                  "info"
-                ],
-                "shipyard": [
-                  "Array",
-                  "large_terran"
-                ],
-                "display_name": "Kindra",
-                "description": "",
-                "base": "",
-                "population": {
-                  "suvar": 57500,
-                  "human": 585000
-                },
-                "trading": [
-                  "Array",
-                  "suvar",
-                  "human",
-                  "terran_food",
-                  "terran_industrial",
-                  "terran_government"
-                ],
-                "locality_adjustments": {
-                  "deadly_drug/terran/human": [
-                    "Array",
-                    0,
-                    1,
-                    1
-                  ],
-                  "live/sentient": [
-                    "Array",
-                    0,
-                    1,
-                    1
-                  ]
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 0,
-                "size": 9,
-                "color_scaling": [
-                  "Color",
-                  0.862745,
-                  0.615686,
-                  0.615686,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  -0.152941,
-                  0.207843,
-                  -0.301961,
-                  1
-                ],
-                "shader_seed": 0,
-                "rotation_period": 0,
-                "orbit_radius": 321.565399,
-                "orbit_period": 20,
-                "orbit_start": 0.684115,
-                "has_astral_gate": false,
-                "objects": {
-                  "yarra": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array",
-                        "info"
-                      ],
-                      "shipyard": [
-                        "Array",
-                        "small_laser_terran"
-                      ],
-                      "display_name": "Yarra",
-                      "description": "",
-                      "base": "",
-                      "population": {
-                        "suvar": 14000,
-                        "human": 21000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_government",
-                        "terran_illegal"
-                      ],
-                      "locality_adjustments": {
-                        "dead/sentient": [
-                          "Array",
-                          0,
-                          0,
-                          1
-                        ]
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "object_type": 0,
-                      "size": 5,
-                      "color_scaling": [
-                        "Color",
-                        0.886275,
-                        0.772549,
-                        0.905882,
-                        1
-                      ],
-                      "color_addition": [
-                        "Color",
-                        0.47451,
-                        0.47451,
-                        0.72549,
-                        1
-                      ],
-                      "shader_seed": 96325,
-                      "rotation_period": 0,
-                      "orbit_radius": 39.730415,
-                      "orbit_period": 20,
-                      "orbit_start": 0.601413,
-                      "has_astral_gate": false,
-                      "objects": {
-
-                      }
-                    }
-                  ]
-                }
-              }
-            ],
-            "gondra": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Gondra",
-                "description": "",
-                "base": "",
-                "population": {
-                  "suvar": 1600,
-                  "human": 18000
-                },
-                "trading": [
-                  "Array",
-                  "suvar",
-                  "human",
-                  "terran_government"
-                ],
-                "locality_adjustments": {
-                  "deadly_drug/terran/human": [
-                    "Array",
-                    0,
-                    1,
-                    1
-                  ],
-                  "live/sentient": [
-                    "Array",
-                    0,
-                    1,
-                    1
-                  ]
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 0,
-                "size": 5,
-                "color_scaling": [
-                  "Color",
-                  0.894118,
-                  0.913725,
-                  0.294118,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  0.427451,
-                  -0.388235,
-                  -0.639216,
-                  1
-                ],
-                "shader_seed": 65871,
-                "rotation_period": 14,
-                "orbit_radius": 135.982407,
-                "orbit_period": 9,
-                "orbit_start": 0.658626,
-                "has_astral_gate": false,
-                "objects": {
-
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "alef-85": [
-        "SystemData",
-        {
-          "display_name": "א-85",
-          "position": [
-            "Vector3",
-            11.175005,
-            0,
-            -19.275
-          ],
-          "links": {
-            "alef_93": 1,
-            "seti_beta": 1
-          },
-          "plasma_seed": 320918,
-          "starfield_seed": 987686,
-          "plasma_color": [
-            "Color",
-            0.07,
-            0.07,
-            0.18,
-            1
-          ],
-          "show_on_map": true,
-          "system_fuel_recharge": 0.5,
-          "center_fuel_recharge": 1.5,
-          "locality_adjustments": {
-            "consumables/terran": [
-              "Array",
-              0.1,
-              1.25,
-              1
-            ],
-            "manufactured/defense": [
-              "Array",
-              1,
-              0.85,
-              1
-            ],
-            "manufactured/farming": [
-              "Array",
-              1,
-              0.8,
-              1
-            ],
-            "manufactured/industrial": [
-              "Array",
-              1,
-              0.85,
-              1
-            ],
-            "raw_materials/gems": [
-              "Array",
-              1,
-              1.2,
-              1
-            ],
-            "raw_materials/metal": [
-              "Array",
-              1,
-              1.2,
-              1
-            ],
-            "intoxicant/terran": [
-              "Array",
-              0.7,
-              1.1,
-              1
-            ],
-            "deadly_drug/terran/human": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "live/sentient": [
-              "Array",
-              0,
-              1,
-              1
-            ],
-            "dead/sentient": [
-              "Array",
-              0,
-              0,
-              1
-            ]
-          },
-          "fleets": [
-            "Array",
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 0
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_duo_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "eagle_peregrine_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 900,
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 1200,
-              "fleet": "peregrine_trio_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 600,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_lasers",
-              "team": 1
-            },
-            {
-              "frequency": 450,
-              "fleet": "condor_cyclotrons",
-              "team": 1
-            }
-          ],
-          "objects": {
-            "alef-85": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "א-85",
-                "description": "",
-                "base": "",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 1,
-                "size": 13,
-                "color_scaling": [
-                  "Color",
-                  0.94902,
-                  0.356863,
-                  0.356863,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  0.019608,
-                  -0.137255,
-                  -0.607843,
-                  1
-                ],
-                "shader_seed": 58199,
-                "rotation_period": 0,
-                "orbit_radius": 0,
-                "orbit_period": 20,
-                "orbit_start": -1.570796,
-                "has_astral_gate": false,
-                "objects": {
-                  "Moranna": [
-                    "SpaceObjectData",
-                    {
-                      "services": [
-                        "Array"
-                      ],
-                      "shipyard": [
-                        "Array",
-                        "small_particle_terran"
-                      ],
-                      "display_name": "Moranna",
-                      "description": "",
-                      "base": "",
-                      "population": {
-                        "suvar": 21000000,
-                        "human": 210000000
-                      },
-                      "trading": [
-                        "Array",
-                        "suvar",
-                        "human",
-                        "terran_trade",
-                        "terran_government"
-                      ],
-                      "locality_adjustments": {
-
-                      },
-                      "shipyard_locality_adjustments": {
-
-                      },
-                      "object_type": 0,
-                      "size": 8,
-                      "color_scaling": [
-                        "Color",
-                        0.45098,
-                        0.521569,
-                        0.972549,
-                        1
-                      ],
-                      "color_addition": [
-                        "Color",
-                        -0.568627,
-                        -0.035294,
-                        0.019608,
-                        1
-                      ],
-                      "shader_seed": 65871,
-                      "rotation_period": 0,
-                      "orbit_radius": 190.184326,
-                      "orbit_period": 20,
-                      "orbit_start": 0.528358,
-                      "has_astral_gate": false,
-                      "objects": {
-
-                      }
-                    }
-                  ]
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "interstellar1": [
-        "SystemData",
-        {
-          "display_name": "Interstellar Space",
-          "position": [
-            "Vector3",
-            -4.083333,
-            0,
-            4.625
-          ],
-          "links": {
-
-          },
-          "plasma_seed": 320918,
-          "starfield_seed": 987686,
-          "plasma_color": [
-            "Color",
-            0.023529,
-            0.031373,
-            0.058824,
-            1
-          ],
-          "show_on_map": false,
-          "system_fuel_recharge": 4,
-          "center_fuel_recharge": 0,
-          "locality_adjustments": {
-
-          },
-          "fleets": [
-            "Array",
-            {
-              "fleet": "eagle_peregrine_lasers",
-              "team": 1,
-              "frequency": 10
-            },
-            {
-              "fleet": "raven_peregrine_cyclotrons",
-              "team": 0,
-              "frequency": 3
-            }
-          ],
-          "objects": {
-            "rogue": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Rogue Planet",
-                "description": "",
-                "base": "",
-                "population": {
-
-                },
-                "trading": [
-                  "Array"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 1,
-                "size": 8,
-                "color_scaling": [
-                  "Color",
-                  0.776471,
-                  0.835294,
-                  0.960784,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  -0.482353,
-                  -0.521569,
-                  -0.537255,
-                  1
-                ],
-                "shader_seed": 0,
-                "rotation_period": 0,
-                "orbit_radius": 0,
-                "orbit_period": 20,
-                "orbit_start": 0.515073,
-                "has_astral_gate": false,
-                "objects": {
-
-                }
-              }
-            ]
-          }
-        }
-      ],
-      "interstellar2": [
-        "SystemData",
-        {
-          "display_name": "Interstellar Space",
-          "position": [
-            "Vector3",
-            0.075,
-            0,
-            9.75
-          ],
-          "links": {
-
-          },
-          "plasma_seed": 320918,
-          "starfield_seed": 987686,
-          "plasma_color": [
-            "Color",
-            0.07,
-            0.07,
-            0.18,
-            1
-          ],
-          "show_on_map": false,
-          "system_fuel_recharge": 4,
-          "center_fuel_recharge": 0,
-          "locality_adjustments": {
-
-          },
-          "fleets": [
-            "Array",
-            {
-              "frequency": 3,
-              "fleet": "raven_duo_cyclotrons",
-              "team": 0
-            },
-            {
-              "frequency": 10,
-              "fleet": "peregrine_trio_cyclotrons",
-              "team": 1
-            },
-            {
-              "frequency": 1,
-              "fleet": "condor_lasers",
-              "team": 1
-            }
-          ],
-          "objects": {
-            "rogue": [
-              "SpaceObjectData",
-              {
-                "services": [
-                  "Array"
-                ],
-                "shipyard": [
-                  "Array"
-                ],
-                "display_name": "Rogue Planet",
-                "description": "",
-                "base": "",
-                "population": {
-                  "suvar": 1000000,
-                  "human": 9000000
-                },
-                "trading": [
-                  "Array",
-                  "suvar",
-                  "human",
-                  "terran_government"
-                ],
-                "locality_adjustments": {
-
-                },
-                "shipyard_locality_adjustments": {
-
-                },
-                "object_type": 0,
-                "size": 7,
-                "color_scaling": [
-                  "Color",
-                  0.196078,
-                  0.137255,
-                  0.145098,
-                  1
-                ],
-                "color_addition": [
-                  "Color",
-                  -0.47451,
-                  -0.035294,
-                  -0.035294,
-                  1
-                ],
-                "shader_seed": 58199,
-                "rotation_period": 0,
-                "orbit_radius": 0,
-                "orbit_period": 20,
-                "orbit_start": 0.18673,
-                "has_astral_gate": false,
-                "objects": {
-
-                }
-              }
-            ]
-          }
-        }
-      ]
-    }
-  ],
-  "ship_designs": [
+    "ship_designs": [
     "SimpleNode",
       {
           
@@ -2137,11 +11,11 @@
               "res://ships/FrontierMilitia/Raven.tscn"
           ],
           {
-              "AuxEngine": [
+              "StarboardEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ],
               "ExternalEquipment": [
@@ -2167,11 +41,11 @@
                       ]
                   }
               ],
-              "Engine": [
+              "PortEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ],
               "AuxEquipment": [
@@ -2181,7 +55,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x1.tscn"
+                              "res://equipment/power/SmallReactor.tscn"
                           ],
                           0,
                           0
@@ -2204,7 +78,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumBioelectricGenerator.tscn"
+                              "res://equipment/repair/Shield2x2.tscn"
                           ],
                           0,
                           0
@@ -2246,6 +120,13 @@
                   [
                       "Resource",
                       "res://weapons/IACivilian/AntiMissile2x2.tscn"
+                  ]
+              ],
+              "CenterEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ]
           },
@@ -2772,11 +653,11 @@
               "res://ships/FrontierMilitia/Raven.tscn"
           ],
           {
-              "AuxEngine": [
+              "StarboardEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ],
               "ExternalEquipment": [
@@ -2802,11 +683,11 @@
                       ]
                   }
               ],
-              "Engine": [
+              "PortEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ],
               "AuxEquipment": [
@@ -2859,7 +740,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
+                      "res://weapons/FrontierMilitia/MagneticRailGun1x4.tscn"
                   ]
               ],
               "MainGun": [
@@ -2869,6 +750,13 @@
                       "res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn"
                   ]
               ],
+              "StarboardGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/FrontierMilitia/MagneticRailGun1x4.tscn"
+                  ]
+              ],
               "Turret": [
                   "Mounted",
                   [
@@ -2876,11 +764,11 @@
                       "res://weapons/IACivilian/AntiMissile2x2.tscn"
                   ]
               ],
-              "StarboardGun": [
+              "CenterEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ]
           },
@@ -2896,11 +784,11 @@
                   "res://ships/FrontierMilitia/Raven.tscn"
               ],
               {
-                  "AuxEngine": [
+                  "StarboardEngine": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://equipment/engines/Engine2x2.tscn"
+                          "res://equipment/engines/FrontierEngine2x2.tscn"
                       ]
                   ],
                   "ExternalEquipment": [
@@ -2926,11 +814,11 @@
                           ]
                       }
                   ],
-                  "Engine": [
+                  "PortEngine": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://equipment/engines/Engine2x2.tscn"
+                          "res://equipment/engines/FrontierEngine2x2.tscn"
                       ]
                   ],
                   "AuxEquipment": [
@@ -2983,21 +871,21 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/FrontierMilitia/MagneticRailGun1x4.tscn"
+                          "res://weapons/FrontierMilitia/SpikeLauncher1x4.tscn"
                       ]
                   ],
                   "MainGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/FrontierMilitia/MagneticRailGun2x4.tscn"
+                          "res://weapons/FrontierMilitia/SpikeLauncher2x4.tscn"
                       ]
                   ],
                   "StarboardGun": [
                       "Mounted",
                       [
                           "Resource",
-                          "res://weapons/FrontierMilitia/MagneticRailGun1x4.tscn"
+                          "res://weapons/FrontierMilitia/SpikeLauncher1x4.tscn"
                       ]
                   ],
                   "Turret": [
@@ -3005,6 +893,13 @@
                       [
                           "Resource",
                           "res://weapons/IACivilian/AntiMissile2x2.tscn"
+                      ]
+                  ],
+                  "CenterEngine": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://equipment/engines/FrontierEngine2x2.tscn"
                       ]
                   ]
               },
@@ -3766,13 +1661,6 @@
                 "res://ships/FrontierMilitia/Eagle.tscn"
             ],
             {
-                "AuxEngine": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
-                    ]
-                ],
                 "ExternalEquipment": [
                     "MultiMount",
                     {
@@ -3785,14 +1673,23 @@
                             0,
                             0
                         ],
-                        "ExternalEquipment_at_x2_y0": [
+                        "ExternalEquipment_at_x0_y2": [
                             "MultiMounted",
                             [
                                 "Resource",
                                 "res://equipment/defense/ReactiveArmor.tscn"
                             ],
-                            2,
-                            0
+                            0,
+                            2
+                        ],
+                        "ExternalEquipment_at_x0_y4": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                            ],
+                            0,
+                            4
                         ]
                     }
                 ],
@@ -3800,50 +1697,43 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncher2x4.tscn"
                     ]
                 ],
-                "Engine": [
+                "PortEngine": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
+                        "res://equipment/engines/FrontierEngine2x4.tscn"
                     ]
                 ],
                 "Turret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncherTurret4x4.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncher2x4.tscn"
+                    ]
+                ],
+                "StarboardEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/FrontierEngine2x4.tscn"
                     ]
                 ],
                 "AuxTurret": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IACivilian/AntiMissile2x2.tscn"
+                        "res://weapons/IACivilian/AntiMissile3x3.tscn"
                     ]
-                ],
-                "ForwardEquipment": [
-                    "MultiMount",
-                    {
-                        "ForwardEquipment_at_x0_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/cooling/LargeOpticalCooler.tscn"
-                            ],
-                            0,
-                            0
-                        ]
-                    }
                 ],
                 "PortEquipment": [
                     "MultiMount",
@@ -3852,19 +1742,10 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield2x2.tscn"
+                                "res://equipment/repair/Shield3x3.tscn"
                             ],
                             0,
                             0
-                        ],
-                        "PortEquipment_at_x0_y2": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/power/SmallBioelectricGenerator.tscn"
-                            ],
-                            0,
-                            2
                         ]
                     }
                 ],
@@ -3880,13 +1761,40 @@
                             0,
                             0
                         ],
+                        "StarboardEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "StarboardEquipment_at_x2_y1": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            2,
+                            1
+                        ],
                         "StarboardEquipment_at_x0_y2": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                                "res://equipment/power/SmallReactor.tscn"
                             ],
                             0,
+                            2
+                        ],
+                        "StarboardEquipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            2,
                             2
                         ]
                     }
@@ -3903,13 +1811,6 @@
               "res://ships/FrontierMilitia/Eagle.tscn"
           ],
           {
-              "AuxEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
-                  ]
-              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -3922,14 +1823,23 @@
                           0,
                           0
                       ],
-                      "ExternalEquipment_at_x2_y0": [
+                      "ExternalEquipment_at_x0_y2": [
                           "MultiMounted",
                           [
                               "Resource",
                               "res://equipment/defense/ReactiveArmor.tscn"
                           ],
-                          2,
-                          0
+                          0,
+                          2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                          ],
+                          0,
+                          4
                       ]
                   }
               ],
@@ -3937,50 +1847,43 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
+                      "res://weapons/FrontierMilitia/ElectronGun2x4.tscn"
                   ]
               ],
-              "Engine": [
+              "PortEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x4.tscn"
                   ]
               ],
               "Turret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/FrontierMilitia/ElectronTurret3x3.tscn"
+                      "res://weapons/FrontierMilitia/ElectronTurret4x4.tscn"
                   ]
               ],
               "StarboardGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/JusticeMissileLauncher.tscn"
+                      "res://weapons/FrontierMilitia/ElectronGun2x4.tscn"
+                  ]
+              ],
+              "StarboardEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/FrontierEngine2x4.tscn"
                   ]
               ],
               "AuxTurret": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
                   ]
-              ],
-              "ForwardEquipment": [
-                  "MultiMount",
-                  {
-                      "ForwardEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
               ],
               "PortEquipment": [
                   "MultiMount",
@@ -3989,19 +1892,10 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x2.tscn"
+                              "res://equipment/repair/Shield3x3.tscn"
                           ],
                           0,
                           0
-                      ],
-                      "PortEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          2
                       ]
                   }
               ],
@@ -4017,13 +1911,40 @@
                           0,
                           0
                       ],
+                      "StarboardEquipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                          ],
+                          2,
+                          0
+                      ],
+                      "StarboardEquipment_at_x2_y1": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          2,
+                          1
+                      ],
                       "StarboardEquipment_at_x0_y2": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/power/SmallReactor.tscn"
                           ],
                           0,
+                          2
+                      ],
+                      "StarboardEquipment_at_x2_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          2,
                           2
                       ]
                   }
@@ -6896,6 +4817,20 @@
               "res://ships/FrontierMilitia/Peregrine.tscn"
           ],
           {
+              "AuxEquipment": [
+                  "MultiMount",
+                  {
+                      "AuxEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -6926,7 +4861,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x1.tscn"
+                              "res://equipment/repair/Shield2x2.tscn"
                           ],
                           0,
                           0
@@ -6939,15 +4874,6 @@
                           ],
                           2,
                           0
-                      ],
-                      "Equipment_at_x0_y1": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          1
                       ],
                       "Equipment_at_x2_y1": [
                           "MultiMounted",
@@ -6964,7 +4890,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ],
               "MiddleGun": [
@@ -7000,6 +4926,20 @@
                 "res://ships/FrontierMilitia/Peregrine.tscn"
             ],
             {
+                "AuxEquipment": [
+                    "MultiMount",
+                    {
+                        "AuxEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            0
+                        ]
+                    }
+                ],
                 "ExternalEquipment": [
                     "MultiMount",
                     {
@@ -7030,7 +4970,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield2x1.tscn"
+                                "res://equipment/repair/Shield2x2.tscn"
                             ],
                             0,
                             0
@@ -7044,15 +4984,6 @@
                             2,
                             0
                         ],
-                        "Equipment_at_x0_y1": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/power/SmallBioelectricGenerator.tscn"
-                            ],
-                            0,
-                            1
-                        ],
                         "Equipment_at_x2_y1": [
                             "MultiMounted",
                             [
@@ -7064,38 +4995,38 @@
                         ]
                     }
                 ],
+                "Engine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/FrontierEngine2x2.tscn"
+                    ]
+                ],
                 "MiddleGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncher1x3.tscn"
                     ]
                 ],
                 "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
-                    ]
-                ],
-                "Engine": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncher1x3.tscn"
                     ]
                 ],
                 "StarboardGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IACivilian/BlueMissileLauncher.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncher1x3.tscn"
                     ]
                 ]
             },
             null
         ],
-        
+          
       "peregrine_lasers": [
           "ShipDesign",
           "Laser Peregrine",
@@ -7104,6 +5035,20 @@
               "res://ships/FrontierMilitia/Peregrine.tscn"
           ],
           {
+              "AuxEquipment": [
+                  "MultiMount",
+                  {
+                      "AuxEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          0
+                      ]
+                  }
+              ],
               "ExternalEquipment": [
                   "MultiMount",
                   {
@@ -7134,7 +5079,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x1.tscn"
+                              "res://equipment/repair/Shield2x2.tscn"
                           ],
                           0,
                           0
@@ -7143,19 +5088,10 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
                           ],
                           2,
                           0
-                      ],
-                      "Equipment_at_x0_y1": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          1
                       ],
                       "Equipment_at_x2_y1": [
                           "MultiMounted",
@@ -7172,7 +5108,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x2.tscn"
+                      "res://equipment/engines/FrontierEngine2x2.tscn"
                   ]
               ],
               "MiddleGun": [
@@ -7213,7 +5149,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://weapons/IAPolice/NuclearPumpedLaserTurret4x4.tscn"
+                        "res://weapons/FrontierMilitia/ElectronTurret4x4.tscn"
                     ]
                 ],
                 "NeckEquipment": [
@@ -7285,7 +5221,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/GravityControlSystem.tscn"
+                                "res://equipment/power/MediumReactor.tscn"
                             ],
                             0,
                             0
@@ -7299,7 +5235,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                                "res://equipment/cooling/LargeOpticalCooler.tscn"
                             ],
                             0,
                             0
@@ -7308,7 +5244,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                                "res://equipment/cooling/LargeOpticalCooler.tscn"
                             ],
                             0,
                             1
@@ -7399,7 +5335,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/FusionEngine.tscn"
+                        "res://equipment/engines/FrontierEngine4x4.tscn"
                     ]
                 ],
                 "AftStarboardTurret": [
@@ -7413,7 +5349,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Engine4x4.tscn"
+                        "res://equipment/engines/FrontierEngine4x4.tscn"
                     ]
                 ]
             },
@@ -7432,7 +5368,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
+                      "res://weapons/FrontierMilitia/SpikeLauncherTurret4x4.tscn"
                   ]
               ],
               "NeckEquipment": [
@@ -7478,7 +5414,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           7
@@ -7496,14 +5432,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/LinearAccelerator3x4.tscn"
+                      "res://weapons/FrontierMilitia/SpikeLauncher3x4.tscn"
                   ]
               ],
               "StarboardLargeGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/LinearAccelerator3x4.tscn"
+                      "res://weapons/FrontierMilitia/SpikeLauncher3x4.tscn"
                   ]
               ],
               "StarboardEquipment": [
@@ -7513,7 +5449,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumBioelectricGenerator.tscn"
+                              "res://equipment/power/MediumReactor.tscn"
                           ],
                           0,
                           0
@@ -7527,7 +5463,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           0
@@ -7536,7 +5472,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           1
@@ -7620,14 +5556,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/LinearAccelerator3x4.tscn"
+                      "res://weapons/FrontierMilitia/SpikeLauncher3x4.tscn"
                   ]
               ],
               "PortEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FusionEngine.tscn"
+                      "res://equipment/engines/FrontierEngine4x4.tscn"
                   ]
               ],
               "AftStarboardTurret": [
@@ -7641,7 +5577,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine4x4.tscn"
+                      "res://equipment/engines/FrontierEngine4x4.tscn"
                   ]
               ]
           },
@@ -7697,10 +5633,28 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/GravityControlSystem.tscn"
+                              "res://equipment/power/SmallReactor.tscn"
                           ],
                           0,
                           6
+                      ],
+                      "NeckEquipment_at_x0_y7": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          7
+                      ],
+                      "NeckEquipment_at_x1_y7": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                          ],
+                          1,
+                          7
                       ]
                   }
               ],
@@ -7732,19 +5686,10 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/power/MediumReactor.tscn"
                           ],
                           0,
                           0
-                      ],
-                      "StarboardEquipment_at_x0_y1": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          1
                       ]
                   }
               ],
@@ -7755,7 +5700,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           0
@@ -7764,7 +5709,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           1
@@ -7855,7 +5800,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FusionEngine.tscn"
+                      "res://equipment/engines/FrontierEngine4x4.tscn"
                   ]
               ],
               "AftStarboardTurret": [
@@ -7869,7 +5814,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine4x4.tscn"
+                      "res://equipment/engines/FrontierEngine4x4.tscn"
                   ]
               ]
           },
@@ -7925,10 +5870,19 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/power/MediumBioelectricGenerator.tscn"
+                                  "res://equipment/cooling/LargeOpticalCooler.tscn"
                               ],
                               0,
                               6
+                          ],
+                          "NeckEquipment_at_x0_y7": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/repair/Shield2x1.tscn"
+                              ],
+                              0,
+                              7
                           ]
                       }
                   ],
@@ -7960,7 +5914,7 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/defense/GravityControlSystem.tscn"
+                                  "res://equipment/power/MediumReactor.tscn"
                               ],
                               0,
                               0
@@ -7974,19 +5928,10 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                                  "res://equipment/repair/Shield2x2.tscn"
                               ],
                               0,
                               0
-                          ],
-                          "PortEquipment_at_x0_y1": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                              ],
-                              0,
-                              1
                           ]
                       }
                   ],
@@ -8074,7 +6019,7 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://equipment/engines/FusionEngine.tscn"
+                          "res://equipment/engines/FrontierEngine4x4.tscn"
                       ]
                   ],
                   "AftStarboardTurret": [
@@ -8088,7 +6033,7 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://equipment/engines/Engine4x4.tscn"
+                          "res://equipment/engines/FrontierEngine4x4.tscn"
                       ]
                   ]
               },
@@ -8097,411 +6042,4 @@
           
     } 
   ],
-  "fleets": [
-    "SimpleNode",
-    {
-        "samoyed_lasers_solo": [
-            "Fleet",
-            "One Samoyed (Lasers)",
-            {
-                "samoyed_lasers": 1
-            }
-        ],
-        "missile_qimmeq_solo": [
-            "Fleet",
-            "One Qimmeq (Missiles)",
-            {
-                "missile_qimmeq": 1
-            }
-        ],
-        "thoroughbred_haruspex_solo": [
-            "Fleet",
-            "One Thoroughbred (Haruspex)",
-            {
-                "thoroughbred_haruspex": 1
-            }
-        ],
-        "thoroughbred_haruspex_duo": [
-            "Fleet",
-            "Two Thoroughbred (Haruspex)",
-            {
-                "thoroughbred_haruspex": 2
-            }
-        ],
-        "husky_haruspex_solo": [
-            "Fleet",
-            "One Husky (Haruspex)",
-            {
-                "husky_haruspex": 1
-            }
-        ],
-        "one_pod_plasma_solo": [
-            "Fleet",
-            "One Monopod (Plasma)",
-            {
-                "one_pod_plasma": 1
-            }
-        ],
-        "one_pod_missiles_solo": [
-            "Fleet",
-            "One Monopod (Missiles)",
-            {
-                "one_pod_missile": 1
-            }
-        ],
-        "one_bipod_lasers_missiles_solo": [
-            "Fleet",
-            "One Bipod (Lasers+Missiles)",
-            {
-                "bipod_lasers_missiles": 1
-            }
-        ],
-        "one_hexapod_plasma_missiles_solo": [
-            "Fleet",
-            "One Hexapod (Plasma+Missiles)",
-            {
-                "hexapod_plasma_missiles": 1
-            }
-        ],
-        
-      "ankylorhiza_missile_duo": [
-        "Fleet",
-        "Missile-Particle and Missile-Laser Ankylorhiza",
-        {
-            "ankylorhiza_missiles_particles": 1,
-            "ankylorhiza_missiles_lasers": 1
-        }
-      ],
-      "ankylorhiza_missiles_particles_escorted": [
-        "Fleet",
-        "Missile+Particle Ankylorhiza with Escorts",
-        {
-          "ankylorhiza_missiles_particles": 1,
-          "bufeo_particles": 1,
-          "popoto_particles": 3
-        }
-      ],
-      "ankylorhiza_missiles_lasers_escorted": [
-        "Fleet",
-        "Missile+Laser Ankylorhiza with Escorts",
-        {
-          "ankylorhiza_missiles_lasers": 1,
-          "bufeo_lasers": 1,
-          "popoto_lasers": 3
-        }
-      ],
-      "ankylorhiza_particles_escorted": [
-        "Fleet",
-        "Missile+Particle Ankylorhiza with Escorts",
-        {
-          "ankylorhiza_particles": 1,
-          "bufeo_particles": 3
-        }
-      ],
-      "ankylorhiza_lasers_escorted": [
-        "Fleet",
-        "Missile+Laser Ankylorhiza with Escorts",
-        {
-          "ankylorhiza_lasers": 1,
-          "bufeo_lasers": 3
-        }
-      ],
-      "orca_four_types": [
-        "Fleet",
-        "3xOrcas (M+P, 2xP)",
-        {
-          "orca_missiles_particles": 1,
-          "orca_particles": 1,
-          "orca_missiles_lasers": 1,
-          "orca_lasers": 1
-        }
-      ],
-      "orca_particle_missile_mix": [
-        "Fleet",
-        "3xOrcas (M+P, 2xP)",
-        {
-          "orca_missiles_particles": 1,
-          "orca_particles": 2
-        }
-      ],
-      "orca_laser_missile_mix": [
-        "Fleet",
-        "3xOrcas (M+L, 2xL)",
-        {
-          "orca_missiles_lasers": 1,
-          "orca_lasers": 2
-        }
-      ],
-      "orca_mix_no_missiles": [
-        "Fleet",
-        "4xOrcas (2xLasers, 2xParticles)",
-        {
-          "orca_lasers": 2,
-          "orca_particles": 2
-        }
-      ],
-      "orca_lasers_missiles_escorted": [
-        "Fleet",
-        "Orcas (ML) plus Popotos",
-        {
-          "orca_missiles_lasers": 2,
-          "popoto_lasers": 2
-        }
-      ],
-      "orca_particles_missiles_escorted": [
-        "Fleet",
-        "Orcas (PL) plus Popotos",
-        {
-          "orca_missiles_particles": 2,
-          "popoto_lasers": 2
-        }
-      ],
-      "bufeo_particles_trio": [
-        "Fleet",
-        "3xBufeo (Particles)",
-        {
-          "bufeo_particles": 3
-        }
-      ],
-      "bufeo_lasers_trio": [
-        "Fleet",
-        "3xBufeo (Particles)",
-        {
-          "bufeo_particles": 3
-        }
-      ],
-      "bufeo_lasers_escorted": [
-        "Fleet",
-        "Bufeo (Lasers) + 2 Popotos",
-        {
-          "bufeo_lasers": 1,
-          "popoto_lasers": 2
-        }
-      ],
-      "bufeo_particles_escorted": [
-        "Fleet",
-        "Bufeo (Particles) + 2 Popotos",
-        {
-          "bufeo_particles": 1,
-          "popoto_lasers": 2
-        }
-      ],
-      "popoto_particles_trio": [
-        "Fleet",
-        "3xPopotos (Particles)",
-        {
-          "popoto_particles": 3
-        }
-      ],
-      "popoto_lasers_trio": [
-        "Fleet",
-        "3xPopotos (Lasers)",
-        {
-          "popoto_lasers": 3
-        }
-      ],
-
-
-      "condor_lasers_escorted": [
-        "Fleet",
-        "Condor (Lasers)",
-        {
-          "condor_lasers": 1,
-          "raven_rail_missile": 1,
-          "peregrine_lasers": 2
-        }
-      ],
-      "condor_particles_escorted": [
-        "Fleet",
-        "Condor (Lasers)",
-        {
-          "condor_particles": 1,
-          "raven_laser_wave": 2
-        }
-      ],
-      "raven_trio": [
-        "Fleet",
-        "3xRaven: Lasers, Particles, Missiles",
-        {
-          "raven_rail_missile": 1,
-          "raven_laser_wave": 1,
-          "raven_particles": 1
-        }
-      ],
-      "two_eagles_escorted": [
-        "Fleet",
-        "Eagles Mix with Escorts",
-        {
-          "eagle_lasers": 1,
-          "eagle_particles": 1,
-          "peregrine_lasers": 2
-        }
-      ],
-      "two_raven_missiles_escorted": [
-        "Fleet",
-        "2x Raven (Rail/Missiles) + 2 Peregrine (Lasers)",
-        {
-          "raven_rail_missile": 2,
-          "peregrine_lasers": 2
-        }
-      ],
-      "raven_lasers_trio": [
-        "Fleet",
-        "3x Raven (Lasers)",
-        {
-          "raven_laser_wave": 3
-        }
-      ],
-      "raven_particles_trio": [
-        "Fleet",
-        "3x Raven (Particles)",
-        {
-          "raven_particles": 3
-        }
-      ],
-
-      "raven_missiles_escorted": [
-        "Fleet",
-        "Missile Raven + 3 Peregrines",
-        {
-          "raven_laser_wave": 1,
-          "peregrine_lasers": 3
-        }
-      ],
-      "eagle_particles_escorted": [
-        "Fleet",
-        "Missile Raven + 3 Peregrines",
-        {
-          "eagle_particles": 1,
-          "peregrine_lasers": 3
-        }
-      ],
-      "rep_fleet_lasers": [
-        "Fleet",
-        "Raven+Eagle+Peregrine (Lasers)",
-        {
-          "raven_laser_wave": 1,
-          "eagle_lasers": 1,
-          "peregrine_lasers": 1
-        }
-      ],
-      "rep_fleet_particles": [
-        "Fleet",
-        "Raven+Eagle+Peregrine (Particles)",
-        {
-          "raven_particles": 1,
-          "eagle_particles": 1,
-          "peregrine_lasers": 1
-        }
-      ],
-      "five_peregrines_particles": [
-        "Fleet",
-        "Five Peregrines (Particles)",
-        {
-          "peregrine_particles": 5
-        }
-      ],
-      "five_peregrines_lasers": [
-        "Fleet",
-        "Five Peregrines (Lasers)",
-        {
-          "peregrine_lasers": 5
-        }
-      ],
-
-      "raven_duo_particles": [
-        "Fleet",
-        "Raven Duo (Particles)",
-        {
-          "raven_particles": 2
-        }
-      ],
-      "raven_duo_missiles": [
-        "Fleet",
-        "Raven Duo (Missiles)",
-        {
-          "raven_rail_missile": 2
-        }
-      ],
-      "eagle_duo_particles": [
-        "Fleet",
-        "Eagle Duo (Particles)",
-        {
-          "eagle_particles": 2
-        }
-      ],
-      "eagle_duo_lasers": [
-        "Fleet",
-        "Eagle Duo (Lasers)",
-        {
-          "eagle_lasers": 2
-        }
-      ],
-      "eagle_peregrine_lasers": [
-        "Fleet",
-        "Eagle and Peregrine (Lasers)",
-        {
-          "eagle_lasers": 1,
-          "peregrine_lasers": 1
-        }
-      ],
-      "raven_peregrine_particles": [
-        "Fleet",
-        "Raven and Peregrine (Particles)",
-        {
-          "eagle_particles": 1,
-          "peregrine_lasers": 1
-        }
-      ],
-      "peregrine_trio_lasers": [
-        "Fleet",
-        "Peregrine Trio (Lasers)",
-        {
-          "peregrine_lasers": 3
-        }
-      ],
-      "peregrine_trio_particles": [
-        "Fleet",
-        "Peregrine Trio (Particles)",
-        {
-          "peregrine_particles": 3
-        }
-      ],
-      "condor_lasers": [
-        "Fleet",
-        "Condor (Lasers)",
-        {
-          "condor_lasers": 1
-        }
-      ],
-      "condor_duo": [
-        "Fleet",
-        "Condor (Lasers)",
-        {
-          "condor_lasers": 1,
-          "condor_particles": 1
-        }
-      ],
-      "condor_particles": [
-        "Fleet",
-        "Condor (Particles)",
-        {
-          "condor_particles": 1
-        }
-      ],
-      "banner_ship": [
-        "Fleet",
-        "Banner Ship",
-        {
-          "banner_default": 1
-        }
-      ]
-    }
-  ],
-  "ui": [
-    "SimpleNode",
-    {
-
-    }
-  ]
 }

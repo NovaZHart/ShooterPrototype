@@ -1,0 +1,1876 @@
+{
+      "systems": [
+    "SimpleNode",
+    {
+      "seti_alpha": [
+        "SystemData",
+        {
+          "display_name": "Seti-α",
+          "position": [
+            "Vector3",
+            4.825001,
+            0,
+            -0.649999
+          ],
+          "links": {
+            "seti_beta": 1,
+            "seti-gamma": 1
+          },
+          "plasma_seed": 56929,
+          "starfield_seed": 86942,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "show_on_map": true,
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
+          "locality_adjustments": {
+            "luxury/terran": [
+              "Array",
+              0.4,
+              1.2,
+              1
+            ],
+            "manufactured/terran": [
+              "Array",
+              1.2,
+              0.75,
+              1
+            ],
+            "consumables/terran": [
+              "Array",
+              1,
+              1.1,
+              1
+            ],
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
+          },
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "sun": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Seti-α",
+                "description": "",
+                "base": "yellow_sun",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "size": 12,
+                "shader_seed": 1231333334,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 0,
+                "orbit_start": 0,
+                "has_astral_gate": false,
+                "objects": {
+                  "storm": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_laser_terran"
+                      ],
+                      "display_name": "Storm",
+                      "description": "Description of Storm planet.",
+                      "base": "ocean_planet",
+                      "population": {
+                        "suvar": 9100000,
+                        "human": 95000000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_trade",
+                        "terran_government"
+                      ],
+                      "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "size": 5,
+                      "shader_seed": 321321321,
+                      "rotation_period": 0,
+                      "orbit_radius": 200,
+                      "orbit_period": 300,
+                      "orbit_start": 0,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "alef_93": [
+        "SystemData",
+        {
+          "display_name": "א-93",
+          "position": [
+            "Vector3",
+            16.150005,
+            0,
+            -16.374998
+          ],
+          "links": {
+            "alef-85": 1
+          },
+          "plasma_seed": 82597,
+          "starfield_seed": 42878,
+          "plasma_color": [
+            "Color",
+            0.160784,
+            0.047059,
+            0.007843,
+            1
+          ],
+          "show_on_map": true,
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
+          "locality_adjustments": {
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "manufactured/mining": [
+              "Array",
+              1,
+              1.3,
+              1
+            ],
+            "raw_materials/gems": [
+              "Array",
+              1,
+              0.75,
+              1
+            ],
+            "raw_materials/metal": [
+              "Array",
+              1,
+              0.75,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
+          },
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "astra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array",
+                  "info"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Astra",
+                "description": "",
+                "base": "blue_sun",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "size": 14,
+                "color_addition": [
+                  "Color",
+                  0.388235,
+                  0.466667,
+                  0.866667,
+                  1
+                ],
+                "shader_seed": 53820,
+                "rotation_period": 13,
+                "orbit_radius": 0,
+                "orbit_period": 0,
+                "orbit_start": 0,
+                "has_astral_gate": false,
+                "objects": {
+                  "hellscape": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_laser_terran"
+                      ],
+                      "display_name": "Hellscape",
+                      "description": "",
+                      "base": "fiery_rock",
+                      "population": {
+                        "suvar": 6100,
+                        "human": 58000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_mining",
+                        "terran_government"
+                      ],
+                      "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "size": 5.5,
+                      "color_scaling": [
+                        "Color",
+                        0.988235,
+                        0.741176,
+                        0.741176,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        -0.05098,
+                        -0.254902,
+                        -0.717647,
+                        1
+                      ],
+                      "shader_seed": 58199,
+                      "rotation_period": 3,
+                      "orbit_radius": 160.636551,
+                      "orbit_period": 91,
+                      "orbit_start": -0.044163,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ],
+                  "pearl": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_particle_terran"
+                      ],
+                      "display_name": "Pearl",
+                      "description": "Description of Pearl planet.",
+                      "base": "ice_planet",
+                      "population": {
+                        "suvar": 21000,
+                        "human": 191000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_food",
+                        "terran_government"
+                      ],
+                      "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "size": 11,
+                      "color_scaling": [
+                        "Color",
+                        0.909804,
+                        0.980392,
+                        0.980392,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        0.207843,
+                        0.631373,
+                        0.662745,
+                        1
+                      ],
+                      "shader_seed": 18492,
+                      "rotation_period": 7,
+                      "orbit_radius": 348.036102,
+                      "orbit_period": 1092,
+                      "orbit_start": -0.006191,
+                      "has_astral_gate": false,
+                      "objects": {
+                        "ironclad": [
+                          "SpaceObjectData",
+                          {
+                            "services": [
+                              "Array",
+                              "info"
+                            ],
+                            "shipyard": [
+                              "Array"
+                            ],
+                            "display_name": "Ironclad",
+                            "description": "Description of Pearl planet.",
+                            "base": "ice_planet",
+                            "population": {
+                              "suvar": 11000,
+                              "human": 85000
+                            },
+                            "trading": [
+                              "Array",
+                              "suvar",
+                              "human",
+                              "terran_mining",
+                              "terran_government"
+                            ],
+                            "locality_adjustments": {
+
+                            },
+                            "shipyard_locality_adjustments": {
+
+                            },
+                            "size": 3,
+                            "color_scaling": [
+                              "Color",
+                              0.74902,
+                              0.964706,
+                              0.74902,
+                              1
+                            ],
+                            "color_addition": [
+                              "Color",
+                              -0.011765,
+                              0.003922,
+                              0.011765,
+                              1
+                            ],
+                            "shader_seed": 28185,
+                            "rotation_period": 5,
+                            "orbit_radius": 23.943014,
+                            "orbit_period": 13,
+                            "orbit_start": -1.561566,
+                            "has_astral_gate": false,
+                            "objects": {
+
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "seti_beta": [
+        "SystemData",
+        {
+          "display_name": "Seti-β",
+          "position": [
+            "Vector3",
+            2.250004,
+            0,
+            -4.2
+          ],
+          "links": {
+            "seti_alpha": 1,
+            "seti-gamma": 1,
+            "alef-85": 1
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.135742,
+            0.111328,
+            0.140625,
+            1
+          ],
+          "show_on_map": true,
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
+          "locality_adjustments": {
+            "consumables/terran/food": [
+              "Array",
+              2.5,
+              0.8,
+              1
+            ],
+            "raw_materials/gems": [
+              "Array",
+              1.3,
+              0.85,
+              1
+            ],
+            "raw_materials/metal": [
+              "Array",
+              1.2,
+              0.75,
+              1
+            ],
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
+          },
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "sun": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Sun",
+                "description": "",
+                "base": "",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 1,
+                "size": 13,
+                "color_scaling": [
+                  "Color",
+                  0.870588,
+                  0.803922,
+                  0.533333,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.239216,
+                  -0.223529,
+                  -0.176471,
+                  1
+                ],
+                "shader_seed": 56574,
+                "rotation_period": 5,
+                "orbit_radius": 0,
+                "orbit_period": 0,
+                "orbit_start": 0,
+                "has_astral_gate": false,
+                "objects": {
+                  "new_kano": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array"
+                      ],
+                      "display_name": "New Kano",
+                      "description": "",
+                      "base": "",
+                      "population": {
+                        "suvar": 11000,
+                        "human": 135000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_mining",
+                        "terran_government"
+                      ],
+                      "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "object_type": 0,
+                      "size": 6,
+                      "color_scaling": [
+                        "Color",
+                        0.913725,
+                        0.772549,
+                        0.203922,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        0.043137,
+                        -0.419608,
+                        -0.537255,
+                        1
+                      ],
+                      "shader_seed": 5547,
+                      "rotation_period": 7,
+                      "orbit_radius": 123.676346,
+                      "orbit_period": 31,
+                      "orbit_start": 0,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ],
+                  "new_lagos": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_particle_terran"
+                      ],
+                      "display_name": "New Lagos",
+                      "description": "",
+                      "base": "",
+                      "population": {
+                        "suvar": 51000,
+                        "human": 485000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_food",
+                        "terran_government"
+                      ],
+                      "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "object_type": 0,
+                      "size": 7,
+                      "color_scaling": [
+                        "Color",
+                        0.14902,
+                        0.145098,
+                        0.65098,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        -0.043137,
+                        -0.058824,
+                        0.372549,
+                        1
+                      ],
+                      "shader_seed": 67924,
+                      "rotation_period": 8,
+                      "orbit_radius": 369.066223,
+                      "orbit_period": 31,
+                      "orbit_start": 3,
+                      "has_astral_gate": false,
+                      "objects": {
+                        "new_ife": [
+                          "SpaceObjectData",
+                          {
+                            "services": [
+                              "Array",
+                              "info"
+                            ],
+                            "shipyard": [
+                              "Array",
+                              "small_particle_terran"
+                            ],
+                            "display_name": "New Ife",
+                            "description": "",
+                            "base": "",
+                            "population": {
+                              "suvar": 10300,
+                              "human": 111500
+                            },
+                            "trading": [
+                              "Array",
+                              "suvar",
+                              "human",
+                              "terran_trade",
+                              "terran_government"
+                            ],
+                            "locality_adjustments": {
+
+                            },
+                            "shipyard_locality_adjustments": {
+
+                            },
+                            "object_type": 0,
+                            "size": 4,
+                            "color_scaling": [
+                              "Color",
+                              0.172549,
+                              0.65098,
+                              0.145098,
+                              1
+                            ],
+                            "color_addition": [
+                              "Color",
+                              -0.043137,
+                              -0.058824,
+                              0.372549,
+                              1
+                            ],
+                            "shader_seed": 18492,
+                            "rotation_period": 8,
+                            "orbit_radius": 56.704685,
+                            "orbit_period": 31,
+                            "orbit_start": -0.600958,
+                            "has_astral_gate": false,
+                            "objects": {
+
+                            }
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "seti-gamma": [
+        "SystemData",
+        {
+          "display_name": "Seti-ɣ",
+          "position": [
+            "Vector3",
+            7.650002,
+            0,
+            -3.599999
+          ],
+          "links": {
+            "seti_beta": 1,
+            "seti_alpha": 1
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "show_on_map": true,
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
+          "locality_adjustments": {
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
+          },
+          "fleets": [
+            "Array",
+            {
+              "frequency": 400,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 550,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 250,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 400,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 400,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 400,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 550,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 250,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 200,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "seti_gamma": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Seti-ɣ",
+                "description": "",
+                "base": "",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 1,
+                "size": 15,
+                "color_scaling": [
+                  "Color",
+                  0.976471,
+                  0.984314,
+                  0.984314,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.364706,
+                  -0.270588,
+                  0.145098,
+                  1
+                ],
+                "shader_seed": 0,
+                "rotation_period": 0,
+                "orbit_radius": 11.598228,
+                "orbit_period": 20,
+                "orbit_start": -3.71873,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ],
+            "Seti-gamma-2": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Seti-ɣ-2",
+                "description": "",
+                "base": "",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 1,
+                "size": 9,
+                "color_scaling": [
+                  "Color",
+                  0.517647,
+                  0.25098,
+                  0.25098,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.082353,
+                  -0.560784,
+                  -0.035294,
+                  1
+                ],
+                "shader_seed": 42447,
+                "rotation_period": 0,
+                "orbit_radius": 15.793585,
+                "orbit_period": 20,
+                "orbit_start": -0.540446,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ],
+            "kindra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array",
+                  "info"
+                ],
+                "shipyard": [
+                  "Array",
+                  "large_terran"
+                ],
+                "display_name": "Kindra",
+                "description": "",
+                "base": "",
+                "population": {
+                  "suvar": 57500,
+                  "human": 585000
+                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_food",
+                  "terran_industrial",
+                  "terran_government"
+                ],
+                "locality_adjustments": {
+                  "deadly_drug/terran/human": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ],
+                  "live/sentient": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 0,
+                "size": 9,
+                "color_scaling": [
+                  "Color",
+                  0.862745,
+                  0.615686,
+                  0.615686,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.152941,
+                  0.207843,
+                  -0.301961,
+                  1
+                ],
+                "shader_seed": 0,
+                "rotation_period": 0,
+                "orbit_radius": 321.565399,
+                "orbit_period": 20,
+                "orbit_start": 0.684115,
+                "has_astral_gate": false,
+                "objects": {
+                  "yarra": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_laser_terran"
+                      ],
+                      "display_name": "Yarra",
+                      "description": "",
+                      "base": "",
+                      "population": {
+                        "suvar": 14000,
+                        "human": 21000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_government",
+                        "terran_illegal"
+                      ],
+                      "locality_adjustments": {
+                        "dead/sentient": [
+                          "Array",
+                          0,
+                          0,
+                          1
+                        ]
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "object_type": 0,
+                      "size": 5,
+                      "color_scaling": [
+                        "Color",
+                        0.886275,
+                        0.772549,
+                        0.905882,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        0.47451,
+                        0.47451,
+                        0.72549,
+                        1
+                      ],
+                      "shader_seed": 96325,
+                      "rotation_period": 0,
+                      "orbit_radius": 39.730415,
+                      "orbit_period": 20,
+                      "orbit_start": 0.601413,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
+                }
+              }
+            ],
+            "gondra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Gondra",
+                "description": "",
+                "base": "",
+                "population": {
+                  "suvar": 1600,
+                  "human": 18000
+                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_government"
+                ],
+                "locality_adjustments": {
+                  "deadly_drug/terran/human": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ],
+                  "live/sentient": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 0,
+                "size": 5,
+                "color_scaling": [
+                  "Color",
+                  0.894118,
+                  0.913725,
+                  0.294118,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.427451,
+                  -0.388235,
+                  -0.639216,
+                  1
+                ],
+                "shader_seed": 65871,
+                "rotation_period": 14,
+                "orbit_radius": 135.982407,
+                "orbit_period": 9,
+                "orbit_start": 0.658626,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "alef-85": [
+        "SystemData",
+        {
+          "display_name": "א-85",
+          "position": [
+            "Vector3",
+            11.175005,
+            0,
+            -19.275
+          ],
+          "links": {
+            "alef_93": 1,
+            "seti_beta": 1
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "show_on_map": true,
+          "system_fuel_recharge": 0.5,
+          "center_fuel_recharge": 1.5,
+          "locality_adjustments": {
+            "consumables/terran": [
+              "Array",
+              0.1,
+              1.25,
+              1
+            ],
+            "manufactured/defense": [
+              "Array",
+              1,
+              0.85,
+              1
+            ],
+            "manufactured/farming": [
+              "Array",
+              1,
+              0.8,
+              1
+            ],
+            "manufactured/industrial": [
+              "Array",
+              1,
+              0.85,
+              1
+            ],
+            "raw_materials/gems": [
+              "Array",
+              1,
+              1.2,
+              1
+            ],
+            "raw_materials/metal": [
+              "Array",
+              1,
+              1.2,
+              1
+            ],
+            "intoxicant/terran": [
+              "Array",
+              0.7,
+              1.1,
+              1
+            ],
+            "deadly_drug/terran/human": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "live/sentient": [
+              "Array",
+              0,
+              1,
+              1
+            ],
+            "dead/sentient": [
+              "Array",
+              0,
+              0,
+              1
+            ]
+          },
+          "fleets": [
+            "Array",
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 0
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_duo_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 900,
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1200,
+              "fleet": "peregrine_trio_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 600,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_lasers",
+              "team": 1
+            },
+            {
+              "frequency": 450,
+              "fleet": "condor_cyclotrons",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "alef-85": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "א-85",
+                "description": "",
+                "base": "",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 1,
+                "size": 13,
+                "color_scaling": [
+                  "Color",
+                  0.94902,
+                  0.356863,
+                  0.356863,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.019608,
+                  -0.137255,
+                  -0.607843,
+                  1
+                ],
+                "shader_seed": 58199,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 20,
+                "orbit_start": -1.570796,
+                "has_astral_gate": false,
+                "objects": {
+                  "Moranna": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_particle_terran"
+                      ],
+                      "display_name": "Moranna",
+                      "description": "",
+                      "base": "",
+                      "population": {
+                        "suvar": 21000000,
+                        "human": 210000000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_trade",
+                        "terran_government"
+                      ],
+                      "locality_adjustments": {
+
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "object_type": 0,
+                      "size": 8,
+                      "color_scaling": [
+                        "Color",
+                        0.45098,
+                        0.521569,
+                        0.972549,
+                        1
+                      ],
+                      "color_addition": [
+                        "Color",
+                        -0.568627,
+                        -0.035294,
+                        0.019608,
+                        1
+                      ],
+                      "shader_seed": 65871,
+                      "rotation_period": 0,
+                      "orbit_radius": 190.184326,
+                      "orbit_period": 20,
+                      "orbit_start": 0.528358,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "interstellar1": [
+        "SystemData",
+        {
+          "display_name": "Interstellar Space",
+          "position": [
+            "Vector3",
+            -4.083333,
+            0,
+            4.625
+          ],
+          "links": {
+
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.023529,
+            0.031373,
+            0.058824,
+            1
+          ],
+          "show_on_map": false,
+          "system_fuel_recharge": 4,
+          "center_fuel_recharge": 0,
+          "locality_adjustments": {
+
+          },
+          "fleets": [
+            "Array",
+            {
+              "fleet": "eagle_peregrine_lasers",
+              "team": 1,
+              "frequency": 10
+            },
+            {
+              "fleet": "raven_peregrine_cyclotrons",
+              "team": 0,
+              "frequency": 3
+            }
+          ],
+          "objects": {
+            "rogue": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Rogue Planet",
+                "description": "",
+                "base": "",
+                "population": {
+
+                },
+                "trading": [
+                  "Array"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 1,
+                "size": 8,
+                "color_scaling": [
+                  "Color",
+                  0.776471,
+                  0.835294,
+                  0.960784,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.482353,
+                  -0.521569,
+                  -0.537255,
+                  1
+                ],
+                "shader_seed": 0,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 20,
+                "orbit_start": 0.515073,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ]
+          }
+        }
+      ],
+      "interstellar2": [
+        "SystemData",
+        {
+          "display_name": "Interstellar Space",
+          "position": [
+            "Vector3",
+            0.075,
+            0,
+            9.75
+          ],
+          "links": {
+
+          },
+          "plasma_seed": 320918,
+          "starfield_seed": 987686,
+          "plasma_color": [
+            "Color",
+            0.07,
+            0.07,
+            0.18,
+            1
+          ],
+          "show_on_map": false,
+          "system_fuel_recharge": 4,
+          "center_fuel_recharge": 0,
+          "locality_adjustments": {
+
+          },
+          "fleets": [
+            "Array",
+            {
+              "frequency": 3,
+              "fleet": "raven_duo_cyclotrons",
+              "team": 0
+            },
+            {
+              "frequency": 10,
+              "fleet": "peregrine_trio_cyclotrons",
+              "team": 1
+            },
+            {
+              "frequency": 1,
+              "fleet": "condor_lasers",
+              "team": 1
+            }
+          ],
+          "objects": {
+            "rogue": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Rogue Planet",
+                "description": "",
+                "base": "",
+                "population": {
+                  "suvar": 1000000,
+                  "human": 9000000
+                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_government"
+                ],
+                "locality_adjustments": {
+
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 0,
+                "size": 7,
+                "color_scaling": [
+                  "Color",
+                  0.196078,
+                  0.137255,
+                  0.145098,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  -0.47451,
+                  -0.035294,
+                  -0.035294,
+                  1
+                ],
+                "shader_seed": 58199,
+                "rotation_period": 0,
+                "orbit_radius": 0,
+                "orbit_period": 20,
+                "orbit_start": 0.18673,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+}

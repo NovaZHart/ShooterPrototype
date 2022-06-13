@@ -23,7 +23,7 @@ light_specular = 0.0
 light_cull_mask = 4293918721
 shadow_bias = 2.0
 shadow_contact = 10.0
-omni_range = 999999.0
+omni_range = 10000.0
 omni_attenuation = 0.0228763
 
 [node name="PlanetLight" type="OmniLight" parent="."]

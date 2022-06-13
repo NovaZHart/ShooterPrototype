@@ -10,7 +10,7 @@ export var item_size_y: int = 3
 export var damage: float = 0
 export var damage_type: int = 0 # Make sure you override this!
 export var impulse: float = 0
-export var weapon_mass: float = 0
+export var weapon_mass: float = -2
 export var weapon_structure: float = -1
 export var initial_velocity: float = 30
 export var projectile_mass: float = 0.3
@@ -61,6 +61,7 @@ var initialized_mount_flags: bool = false
 var cached_bbcode = null
 var cached_stats = null
 var cached_structure = null
+var cached_mass = null
 var skipped_runtime_stats: bool = true
 var item_offset_x: int = -1
 var item_offset_y: int = -1
@@ -137,6 +138,10 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			cached_structure = weapon_structure
 		else:
 			cached_structure = mount_size_x*mount_size_y*45*-weapon_structure
+		if weapon_mass>=0:
+			cached_mass = weapon_mass
+		else:
+			cached_mass = mount_size_x*mount_size_y*-weapon_mass
 		var th = threat
 		if th<0:
 			th = 1.0/max(firing_delay,1.0/60) * damage
@@ -144,7 +149,7 @@ func pack_stats(skip_runtime_stats=false) -> Dictionary:
 			'damage':damage,
 			'damage_type':damage_type,
 			'impulse':impulse,
-			'weapon_mass':weapon_mass,
+			'weapon_mass':cached_mass,
 			'weapon_structure':cached_structure,
 			'initial_velocity':initial_velocity,
 			'projectile_mass':projectile_mass,
@@ -216,7 +221,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,_ship_node=null) -> vo
 		stats['battery'] += add_battery
 	if add_power:
 		stats['power'] += add_power
-	stats['empty_mass'] += weapon_mass
+	stats['empty_mass'] += cached_mass
 	stats['max_structure'] += cached_structure
 	stats['threat'] += cached_stats['threat']
 	if add_shield_resist:

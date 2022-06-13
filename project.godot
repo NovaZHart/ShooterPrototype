@@ -183,6 +183,7 @@ ui_toggle_cargo_web={
 
 [physics]
 
+common/physics_jitter_fix=1.0
 3d/physics_engine="Bullet"
 3d/active_soft_world=false
 3d/godot_physics/bvh_collision_margin=1.0
@@ -198,7 +199,6 @@ common/enable_object_picking=false
 [rendering]
 
 threads/thread_model=2
-threads/thread_safe_bvh=true
 quality/directional_shadow/size=1024
 quality/directional_shadow/size.mobile=1024
 quality/shadow_atlas/size=1024

@@ -88,8 +88,8 @@ namespace godot {
   namespace CE {
 
     enum visual_layers {
-      below_planets=-39,
-      below_ships=0,
+      below_planets=-30,
+      below_ships=-10,
       below_projectiles=25,
       projectile_height=27,
       above_projectiles=29

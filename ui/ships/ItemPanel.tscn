@@ -28,9 +28,6 @@ anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 2 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 ship_border = 0.05
 enabled_font = SubResource( 1 )
 disabled_font = SubResource( 2 )

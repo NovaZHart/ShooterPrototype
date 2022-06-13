@@ -1,0 +1,254 @@
+{
+    "factions": [ "FactionList", {
+      "initial_player_faction": [ "Faction", "initial_player_faction", [
+          "Array"
+      ], 0.0, {
+              "raiders": -1,
+              "police": 1,
+              "civilians": 1,
+              "flotsam": -1
+      }, {}, [ "Color", 0.1, 0.5, 0.5, 1.0 ] ],
+      "flotsam": [ "Faction", "flotsam", [
+          "Array"
+      ], 0.0, {
+          "initial_player_faction": -1,
+          "raiders": -1
+      }, {}, [ "Color", 1.0, 1.0, 1.0, 0.5 ] ],
+      "police": [ "Faction", "Police", [
+            "Array",
+            {
+              "frequency": 150,
+              "fleet": "popoto_lasers_trio",
+              "type": "light_police"
+            },
+            {
+              "frequency": 110,
+              "fleet": "bufeo_particles_escorted",
+              "type": "light_police"
+            },
+            {
+              "frequency": 110,
+              "fleet": "bufeo_lasers_escorted",
+              "type": "light_police"
+            },
+            {
+              "frequency": 70,
+              "fleet": "bufeo_particles_trio",
+              "type": "light_police"
+            },
+            {
+              "frequency": 70,
+              "fleet": "bufeo_lasers_trio",
+              "type": "light_police"
+            },
+            {
+              "frequency": 40,
+              "fleet": "orca_particles_missiles_escorted",
+              "type": "light_police"
+            },
+            {
+              "frequency": 40,
+              "fleet": "orca_lasers_missiles_escorted",
+              "type": "light_police"
+            },
+
+            {
+              "frequency": 30,
+              "fleet": "orca_particles_missiles_escorted",
+              "type": "large_police"
+            },
+            {
+              "frequency": 30,
+              "fleet": "orca_lasers_missiles_escorted",
+              "type": "large_police"
+            },
+            {
+              "frequency": 50,
+              "fleet": "orca_mix_no_missiles",
+              "type": "large_police"
+            },
+            {
+              "frequency": 50,
+              "fleet": "orca_laser_missile_mix",
+              "type": "large_police"
+            },
+            {
+              "frequency": 50,
+              "fleet": "orca_particle_missile_mix",
+              "type": "large_police"
+            },
+            {
+              "frequency": 50,
+              "fleet": "orca_four_types",
+              "type": "large_police"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_missiles_lasers_escorted",
+              "type": "large_police"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_missiles_particles_escorted",
+              "type": "large_police"
+            },
+            {
+              "frequency": 20,
+              "fleet": "ankylorhiza_missile_duo",
+              "type": "large_police"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_particles_escorted",
+              "type": "large_police"
+            },
+            {
+              "frequency": 30,
+              "fleet": "ankylorhiza_lasers_escorted",
+              "type": "large_police"
+            }
+          ], 3e5, {
+              "raiders": -3,
+              "initial_player_faction": 0.5,
+              "civilians": 3,
+              "flotsam": -1
+          }, {}, [ "Color", 0.2, 0.8, 1.0, 1.0 ] ],
+      "raiders": [ "Faction", "Raiders", [
+            "Array",
+            {
+              "frequency": 40,
+              "fleet": "condor_lasers_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 40,
+              "fleet": "condor_duo",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 40,
+              "fleet": "condor_particles_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 50,
+              "fleet": "raven_trio",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "two_eagles_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 50,
+              "fleet": "two_raven_missiles_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "raven_lasers_trio",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "raven_particles_trio",
+              "type": "large_raid"
+            },
+
+            {
+              "frequency": 60,
+              "fleet": "raven_missiles_escorted",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "raven_duo_lasers",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "raven_duo_particles",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "eagle_particles_escorted",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "rep_fleet_lasers",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "rep_fleet_particles",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "five_peregrines_lasers",
+              "type": "small_raid"
+            }
+          ], 3e5, {
+              "police": -1,
+              "civilians": -2,
+              "initial_player_faction": -0.5,
+              "flotsam": -1
+          }, {}, [ "Color", 0.9, 0.4, 0.9, 1.0 ] ],
+      "civilians": [ "Faction", "Civilians", [
+            "Array",
+            {
+              "frequency": 300,
+              "fleet": "samoyed_lasers_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 200,
+              "fleet": "missile_qimmeq_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 100,
+              "fleet": "husky_haruspex_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 140,
+              "fleet": "one_pod_plasma_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 140,
+              "fleet": "one_pod_missiles_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 150,
+              "fleet": "thoroughbred_haruspex_solo",
+              "type": "small_merchant"
+            },
+            {
+              "frequency": 80,
+              "fleet": "thoroughbred_haruspex_duo",
+              "type": "large_merchant"
+            },
+            {
+              "frequency": 120,
+              "fleet": "one_bipod_particles_missiles_solo",
+              "type": "large_merchant"
+            },
+            {
+              "frequency": 100,
+              "fleet": "one_hexapod_plasma_missiles_solo",
+              "type": "large_merchant"
+            },
+          ], 3e5, {
+              "police": 1,
+              "raiders": -3,
+              "initial_player_faction": 1,
+              "flotsam": -1
+          }, {}, [ "Color", 1.0, 1.0, 0.0, 1.0 ] ]
+  }]
+}

@@ -212,30 +212,32 @@ func remove_ship_stat_request(ship_name: String) -> void:
 func sync_Ships_with_stat_requests() -> void:
 	# Remove non-existent ships from the ship stats requests:
 	var new_requests: Dictionary = Dictionary()
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	ship_stats_requests_mutex.lock()
-	var duration: float = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for ship stats request mutex lock in sync_Ships_with_stat_requests (1)")
+#	var duration: float = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for ship stats request mutex lock in sync_Ships_with_stat_requests (1)")
 	var keys=ship_stats_requests.keys()
 	ship_stats_requests_mutex.unlock()
 	for ship_name in keys:
 		if $Ships.get_node_or_null(ship_name)!=null or \
 				$Planets.get_node_or_null(ship_name)!=null:
 			new_requests[ship_name]=1
-	start = OS.get_ticks_msec()
+#	start = OS.get_ticks_msec()
 	ship_stats_requests_mutex.lock()
-	duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for ship stats requests mutex lock in sync_Ships_with_stat_requests (2)")
+#	duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for ship stats requests mutex lock in sync_Ships_with_stat_requests (2)")
 	ship_stats_requests=new_requests
 	ship_stats_requests_mutex.unlock()
 
 func visible_region() -> AABB:
 	var ul: Vector3 = $TopCamera.project_position(Vector2(0,0),0)
 	var lr: Vector3 = $TopCamera.project_position(size,0)
-	return AABB(Vector3(min(ul.x,lr.x),-50,min(ul.z,lr.z)),
-		Vector3(abs(ul.x-lr.x),100,abs(ul.z-lr.z)))
+	var y0: float = $SpaceBackground.translation.y
+	var y1: float = $TopCamera.translation.y
+	return AABB(Vector3(min(ul.x,lr.x),min(y0,y1),min(ul.z,lr.z)),
+		Vector3(abs(ul.x-lr.x),abs(y1-y0),abs(ul.z-lr.z)))
 
 func visible_region_expansion_rate() -> Vector3:
 	var player_ship_stats = ship_stats.get(player_ship_name,null)
@@ -244,8 +246,7 @@ func visible_region_expansion_rate() -> Vector3:
 	var player_ship = $Ships.get_node_or_null(player_ship_name)
 	if not player_ship:
 		return Vector3(0,0,0)
-	var rate: float = utils.ship_max_speed(player_ship.combined_stats,
-		ship_stats.get('mass',null))
+	var rate: float = utils.ship_max_speed(player_ship.combined_stats)
 	return Vector3(rate,0,rate)
 
 func start_timing():
@@ -269,7 +270,7 @@ func _process(delta) -> void:
 		end_timing('_process')
 		return
 	
-	var player_ship_stats = ship_stats.get(player_ship_name,null)
+	#var player_ship_stats = ship_stats.get(player_ship_name,null)
 	
 	start_timing()
 	combat_engine.set_visible_region(visible_region(),
@@ -309,22 +310,22 @@ func update_target_display(old_target_name: String,new_target_name: String) -> v
 	new_target.call_deferred('add_child',display)
 
 func pack_ship_stats() -> Array:
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	new_ships_mutex.lock()
-	var duration: float = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for new ships mutex lock in pack_ship_stats")
+#	var duration: float = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for new ships mutex lock in pack_ship_stats")
 	var my_new_ships = new_ships.duplicate(true)
 	new_ships.clear()
 	new_ships_mutex.unlock()
 
 	var new_ships_packed: Array = []
 	var threats: Dictionary = {}
-	start = OS.get_ticks_msec()
+#	start = OS.get_ticks_msec()
 	team_stats_mutex.lock()
-	duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for team stats mutex lock in pack_ship_stats")
+#	duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for team stats mutex lock in pack_ship_stats")
 	for ship in my_new_ships:
 		if ship!=null and ship is RigidBody:
 			new_ships_packed.append(ship.pack_stats())
@@ -374,11 +375,11 @@ func process_space(delta):
 	Player.system.process_space(self,delta)
 	var make_me: Array = combat_engine.combat_state.process_space(delta)
 
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	team_stats_mutex.lock()
-	var duration: float = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for team stats mutex lock in process_space")
+#	var duration: float = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for team stats mutex lock in process_space")
 	for ship in make_me:
 		var faction_index: int = ship[4] # "team" argument to spawn_ship
 		if faction_index<0 :
@@ -395,11 +396,11 @@ func process_space(delta):
 	ship_count = new_ship_count
 	team_stats_mutex.unlock()
 	
-	start = OS.get_ticks_msec()
+#	start = OS.get_ticks_msec()
 	ship_maker_mutex.lock()
-	duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for ship maker mutex lock in process_space")
+#	duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for ship maker mutex lock in process_space")
 	ships_to_spawn = ships_to_spawn + make_me
 	var max_ships_to_spawn = max_new_ships_per_tick
 	if physics_tick<number_of_early_ticks:
@@ -418,11 +419,11 @@ func _physics_process(delta):
 	game_state.epoch_time += int(round(delta*game_state.EPOCH_ONE_SECOND*game_time_ratio))
 	physics_tick += 1
 	
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	combat_engine_mutex.lock() # ensure clear() does not run during _physics_process()
-	var duration: float = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for combat engine mutex lock in _physics_process")
+#	var duration: float = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for combat engine mutex lock in _physics_process")
 	
 	var new_ships_packed: Array = pack_ship_stats().duplicate(true)
 	var new_planets_packed: Array = pack_planet_stats_if_not_sent().duplicate(true)
@@ -433,11 +434,11 @@ func _physics_process(delta):
 	if ship_stats.has(player_ship_name):
 		old_player_target_name = ship_stats[player_ship_name].get('target_name','')
 	
-	start = OS.get_ticks_msec()
+#	start = OS.get_ticks_msec()
 	player_orders_mutex.lock()
-	duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for player orders mutex lock in _physics_process")
+#	duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for player orders mutex lock in _physics_process")
 	var orders_copy: Array = player_orders.duplicate(true)
 	player_orders_mutex.unlock()
 	
@@ -506,11 +507,11 @@ func _physics_process(delta):
 			elif fate==combat_engine.FATED_TO_RIFT:
 				store_player_ship_stats()
 				game_state.call_deferred('change_scene','res://places/Hyperspace.tscn')
-		start = OS.get_ticks_msec()
+#		start = OS.get_ticks_msec()
 		team_stats_mutex.lock()
-		duration = OS.get_ticks_msec()-start
-		if duration>1:
-			print("Waited "+str(duration)+" ms for team stats mutex lock in _physics_process")
+#		duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			print("Waited "+str(duration)+" ms for team stats mutex lock in _physics_process")
 		if team_stats.has(ship_node.faction_index):
 			team_stats[ship_node.faction_index]['count'] -= 1
 			team_stats[ship_node.faction_index]['threat'] -= max(0,ship_node.combined_stats.get('threat',0))
@@ -586,7 +587,7 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
 		initial_ai: int) -> Spatial:
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
 	ship.rotation=rotation
@@ -598,15 +599,15 @@ func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3
 	else:
 		ship.name = game_state.make_unique_ship_node_name()
 	ship.set_entry_method(entry_method)
-	var duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print('assemble_ship_to_spawn took '+str(duration)+'ms')
+#	var duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print('assemble_ship_to_spawn took '+str(duration)+'ms')
 	return ship
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
 		initial_ai: int) -> void:
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai)
 	if is_player:
 		add_ship_stat_request(player_ship_name)
@@ -618,9 +619,9 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		ship.name = game_state.make_unique_ship_node_name()
 		add_spawned_ship(ship,false)
 		#call_deferred('add_spawned_ship',ship,false)
-	var duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print('Spawn_ship took '+str(duration)+'ms')
+#	var duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print('Spawn_ship took '+str(duration)+'ms')
 
 func spawn_planet(planet: Spatial) -> void:
 	$Planets.add_child(planet)
@@ -668,11 +669,11 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	combat_engine.init_combat_state(Player.system,self,true)
 	Player.system.fill_system(self,planet_time,ship_time,detail)
 	var make_me: Array = combat_engine.combat_state.fill_system(planet_time,ship_time,detail)
-	var start: float = OS.get_ticks_msec()
+#	var start: float = OS.get_ticks_msec()
 	team_stats_mutex.lock()
-	var duration: float = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for team stats mutex lock in init_system")
+#	var duration: float = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for team stats mutex lock in init_system")
 	for ship in make_me:
 		var faction_index: int = ship[4] # "faction" argument to spawn_ship
 		if faction_index<0:
@@ -684,11 +685,11 @@ func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 			team_stats[faction_index]['count'] += 1
 	team_stats_mutex.unlock()
 	
-	start = OS.get_ticks_msec()
+#	start = OS.get_ticks_msec()
 	ship_maker_mutex.lock()
-	duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print("Waited "+str(duration)+" ms for ship maker mutex lock in init_system")
+#	duration = OS.get_ticks_msec()-start
+#	if duration>1:
+#		print("Waited "+str(duration)+" ms for ship maker mutex lock in init_system")
 	var front = make_me.pop_front()
 	if front:
 		# Player ship (if any) is always the first.
@@ -746,12 +747,12 @@ func center_view(center=null) -> void:
 		center = center_object.translation
 	var size=$TopCamera.size
 	$TopCamera.translation = Vector3(center.x, 50, center.z)
+	$EffectsLight.translation.y = min(max_sun_height,max(min_sun_height,
+		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
+	$EffectsLight.omni_range = ($EffectsLight.translation.y+size)*3
 	$SpaceBackground.center_view(center.x,center.z,0,size,30)
 	# Maintain 30 degree sun angle unless were're very close to the sun.
 	$ShipLight.translation.y = min(max_sun_height,max(min_sun_height,
 		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
-	$ShipLight.omni_range = $EffectsLight.translation.y*3
-	$EffectsLight.translation.y = min(max_sun_height,max(min_sun_height,
-		sqrt(center.x*center.x+center.z*center.z)/sqrt(3)))
-	$EffectsLight.omni_range = $EffectsLight.translation.y*3
+	$ShipLight.omni_range = ($EffectsLight.translation.y+size)*3
 	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))

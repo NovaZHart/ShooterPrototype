@@ -27,15 +27,17 @@ class Faction extends simple_tree.SimpleNode:
 	var display_name: String = ''
 	var faction_name: String = ''
 	var fleets: Array = []
+	var faction_color: Color = Color(1,0.8,0.3)
 
 	func is_Faction(): pass # never called; just used for type checking
 
 	func _init(display_name_: String = '', fleets_: Array = [], default_resources_: float = 1000.0,
-			string_affinities_: Dictionary = {}):
+			string_affinities_: Dictionary = {}, faction_color_: Color = Color(1,0.8,0.3)):
 		default_resources=default_resources_
 		affinities=string_affinities_.duplicate(true)
 		display_name=display_name_
 		fleets=fleets_
+		faction_color=faction_color_
 
 	func _ready():
 		if not display_name:
@@ -53,7 +55,7 @@ class Faction extends simple_tree.SimpleNode:
 		var gain_rate = faction_info.get('income_per_second',resources/300.0)
 		var fleet_type_weights = faction_info.get('fleet_type_weights',{})
 		var state = FactionState.new(resources,gain_rate,0.0,
-			fleet_type_weights.duplicate(true))
+			fleet_type_weights.duplicate(true),faction_color)
 		_impl_calculate_fleet_stats(state,gain_rate)
 		_impl_store_goals(combat_state,state)
 		return state
@@ -147,12 +149,14 @@ class Faction extends simple_tree.SimpleNode:
 	func encode():
 		return [ 'Faction', display_name,
 			game_state.Universe.encode_helper(fleets), default_resources,
-			game_state.Universe.encode_children(self) ]
+			game_state.Universe.encode_children(self),
+			game_state.Universe.encode_color(faction_color) ]
 
 func decode_Faction(v):
 	var result = Faction.new(String(v[1]),
 		game_state.Universe.decode_helper(v[2]), float(v[3]),
-		game_state.Universe.decode_helper(v[4]))
+		game_state.Universe.decode_helper(v[4]),
+		game_state.Universe.decode_helper(v[6]))
 	game_state.Universe.decode_children(result,v[5])
 	return result
 
@@ -171,18 +175,22 @@ class FactionState extends Reference:
 	var min_fleet_cost: float = 0.0
 	var fleet_weights: Array = []
 	var faction_index: int = -1
+	var faction_color: Color = Color(1,1,1,1)
 	var available_fleets: Array = [] # fleets that have arrived and can be spawned now
 
 	func _init(resources_available_: float,resource_gain_rate_: float,
-			min_resources_to_act_: float, fleet_type_weights_:Dictionary):
+			min_resources_to_act_: float, fleet_type_weights_:Dictionary,
+			faction_color_: Color):
 		resources_available = resources_available_
 		resource_gain_rate = resource_gain_rate_
 		min_resources_to_act = min_resources_to_act_
 		fleet_type_weights = fleet_type_weights_
+		faction_color = faction_color_
 
 	# Prepare data for the native Faction class
 	func data_for_native(combat_state: CombatState) -> Dictionary:
-		var result = { 'faction': faction_index, 'goals': [], 'threat_per_second':threat_per_second }
+		var result = { 'faction': faction_index, 'goals': [], 'threat_per_second':threat_per_second,
+			'faction_color': faction_color }
 		for goal in goals:
 			var target_faction: String = goal['target_faction']
 			var target_int = -1

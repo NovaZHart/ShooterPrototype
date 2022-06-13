@@ -118,10 +118,10 @@ func restore_transforms():
 		if child!=null:
 			child.transform=transforms[key]
 
-func set_entry_method(method: int, quiet: bool = false, skip_runtime_stats: bool = false):
+func set_entry_method(method: int, _quiet: bool = false, skip_runtime_stats: bool = false):
 	if not combined_stats.has('empty_mass'):
-		if not quiet:
-			push_error('No stats in set_entry_method! Making stats now.')
+#		if not quiet:
+#			push_error('No stats in set_entry_method! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	combined_stats['entry_method'] = method
 
@@ -166,10 +166,10 @@ func repack_stats(skip_runtime_stats=false) -> Dictionary:
 	combined_stats = new_stats
 	return combined_stats
 	
-func pack_stats(quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
+func pack_stats(_quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):
-		if not quiet:
-			push_error('No stats in pack_stats! Making stats now.')
+		#if not quiet:
+		#	push_error('No stats in pack_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	elif not skip_runtime_stats and skipped_runtime_stats:
 		update_stats()
@@ -187,28 +187,28 @@ func pack_cargo_stats(stats):
 	# Update cargo stats. This MUST match ShipDesign.set_cargo.
 	stats['cargo_mass'] = float(cargo.get_mass()/1000) if cargo else 0.0
 
-func set_cost(cost: float, quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
+func set_cost(cost: float, _quiet: bool = false, skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):
-		if not quiet:
-			push_warning('No stats in set_cost! Making stats now.')
+#		if not quiet:
+#			push_warning('No stats in set_cost! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	combined_stats['cost']=cost
 	return combined_stats
 
-func clear_cargo(quiet: bool = false,skip_runtime_stats: bool = false):
+func clear_cargo(_quiet: bool = false,skip_runtime_stats: bool = false):
 	cargo = null
 	if not combined_stats.has('empty_mass'):
-		if not quiet:
-			push_warning('No stats in set_cargo! Making stats now.')
+#		if not quiet:
+#			push_warning('No stats in set_cargo! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	pack_cargo_stats(combined_stats)
 	return combined_stats
 
-func set_cargo(products: Commodities.Products, quiet: bool = false,
+func set_cargo(products: Commodities.Products, _quiet: bool = false,
 		skip_runtime_stats=false) -> Dictionary:
 	if not combined_stats.has('empty_mass'):
-		if not quiet:
-			push_warning('No stats in set_cargo! Making stats now.')
+#		if not quiet:
+#			push_warning('No stats in set_cargo! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	cargo = Commodities.ManyProducts.new()
 	var _success = cargo.decode(products.all)
@@ -216,12 +216,12 @@ func set_cargo(products: Commodities.Products, quiet: bool = false,
 	return combined_stats
 
 
-func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, quiet: bool = false) -> void:
+func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, _quiet: bool = false) -> void:
 	#if not stats:
 	#	push_error('no combat stats to restore in restore_combat_stats')
 	if not combined_stats.has('empty_mass'):
-		if not quiet:
-			push_error('No stats in restore_combat_stats! Making stats now.')
+#		if not quiet:
+#			push_error('No stats in restore_combat_stats! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	for varname in [ 'fuel', 'shields', 'armor', 'structure', 'energy', 'heat' ]:
 		if stats.has(varname) and stats.has('max_'+varname):
@@ -331,7 +331,7 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	if cargo_web_strength>=0:
 		stats['cargo_web_strength']=cargo_web_strength
 	else:
-		stats['cargo_web_strength']=(250*cargo_web_add_radius+300)*-cargo_web_strength
+		stats['cargo_web_strength']=500*(cargo_web_add_radius+1)*-cargo_web_strength
 	if heal_shields>=0:
 		stats['heal_shields']=heal_shields
 	else:

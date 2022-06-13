@@ -1,0 +1,13 @@
+[gd_resource type="SpatialMaterial" load_steps=2 format=2]
+
+[ext_resource path="res://textures/messy-purple-metal-512x512.jpg" type="Texture" id=1]
+
+[resource]
+resource_name = "MessyGreyPurpleMetal"
+params_cull_mode = 2
+albedo_texture = ExtResource( 1 )
+emission_enabled = true
+emission = Color( 0.278431, 0, 1, 1 )
+emission_energy = 0.1
+emission_operator = 0
+emission_on_uv2 = false

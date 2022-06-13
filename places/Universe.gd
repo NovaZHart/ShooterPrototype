@@ -212,12 +212,16 @@ func get_part(scene: PackedScene):
 	var instanced = false
 	if not part:
 		instanced = true
-		print('Instancing scene '+str(scene.resource_path)+' in get_part')
+		#print('Instancing scene '+str(scene.resource_path)+' in get_part')
+		var start1 = OS.get_ticks_msec()
 		part = scene.instance()
 		cached_parts[scene]=part
+		var duration1 = OS.get_ticks_msec()-start1
+		if duration1>4:
+			print('get_part took '+str(duration1)+'ms to instance instance='+str(instanced)+' scene='+str(scene.resource_path))
 	var result = part.duplicate(4)
 	var duration = OS.get_ticks_msec()-start
-	if duration>1:
+	if duration>4:
 		print('get_part took '+str(duration)+'ms instance='+str(instanced)+' scene='+str(scene.resource_path))
 	return result
 
@@ -318,18 +322,18 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return float(product[Commodities.Products.VALUE_INDEX] if product else 0.0)
 	
 	func assemble_part(body: Node, child: Node, skip_hidden: bool) -> bool:
-		var start = OS.get_ticks_msec()
+#		var start = OS.get_ticks_msec()
 		var part = get_child_with_name(child.name)
 		if not part:
-			var duration = OS.get_ticks_msec()-start
-			if duration>1:
-				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to do nothing (1)")
+#			var duration = OS.get_ticks_msec()-start
+#			if duration>1:
+#				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to do nothing (1)")
 			return false
 		elif part is MultiMount:
 			if skip_hidden:
-				var duration = OS.get_ticks_msec()-start
-				if duration>1:
-					print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to skip a multimount")
+#				var duration = OS.get_ticks_msec()-start
+#				if duration>1:
+#					print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to skip a multimount")
 				return false # multimount contents should never be shown
 			var found = false
 			for part_name in part.get_child_names():
@@ -348,9 +352,9 @@ class ShipDesign extends simple_tree.SimpleNode:
 						old_child.queue_free()
 					body.add_child(new_child)
 					found = true
-			var duration = OS.get_ticks_msec()-start
-			if duration>1:
-				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to fill multimount "+str(child.name))
+#			var duration = OS.get_ticks_msec()-start
+#			if duration>1:
+#				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to fill multimount "+str(child.name))
 			return found
 		elif part is Mounted:
 			if skip_hidden and not_visible.has(child.name):
@@ -362,30 +366,30 @@ class ShipDesign extends simple_tree.SimpleNode:
 			#body.remove_child(child)
 			child.queue_free()
 			#body.add_child(new_child)
-			var duration = OS.get_ticks_msec()-start
-			if duration>1:
-				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to create part "+str(part.scene.resource_path))
+#			var duration = OS.get_ticks_msec()-start
+#			if duration>1:
+#				print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to create part "+str(part.scene.resource_path))
 			return true
-		var duration = OS.get_ticks_msec()-start
-		if duration>1:
-			print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to do nothing (2)")
+#		var duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			print("ShipDesign.assemble_part(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms to do nothing (2)")
 		return false
 
 	func assemble_body(): # -> Node or null
-		var start = OS.get_ticks_msec()
+#		var start = OS.get_ticks_msec()
 		var body = hull.instance()
 		body.ship_display_name = display_name
 		var _discard = body.get_item_slots()
 		if body == null:
 			push_error('assemble_ship: cannot instance scene: '+body)
-			var duration = OS.get_ticks_msec()-start
-			if duration>1:
-				print("ShipDesign.assemble_body took "+str(duration)+"ms to fail")
+#			var duration = OS.get_ticks_msec()-start
+#			if duration>1:
+#				print("ShipDesign.assemble_body took "+str(duration)+"ms to fail")
 			return null
 		body.save_transforms()
-		var duration = OS.get_ticks_msec()-start
-		if duration>1:
-			print("ShipDesign.assemble_body took "+str(duration)+"ms")
+#		var duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			print("ShipDesign.assemble_body took "+str(duration)+"ms")
 		return body
 
 	func assemble_stats(body: Node, reassemble: bool):
@@ -402,7 +406,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 		cache_remove_instance_info()
 
 	func assemble_parts(body: Node, reassemble: bool,retain_hidden_mounts: bool) -> void:
-		var start = OS.get_ticks_msec()
+#		var start = OS.get_ticks_msec()
 		var skip_hidden: bool = reassemble and not retain_hidden_mounts
 		for child in body.get_children():
 			if assemble_part(body,child,skip_hidden) and skip_hidden and not_visible.has(child.name):
@@ -420,12 +424,12 @@ class ShipDesign extends simple_tree.SimpleNode:
 #					child.queue_free()
 #			elif child is CollisionShape and child.scale.y<10:
 #				child.scale.y=10
-		var duration = OS.get_ticks_msec()-start
-		if duration>1:
-			print("ShipDesign.assemble_parts(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms")
+#		var duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			print("ShipDesign.assemble_parts(skip_hidden="+str(skip_hidden)+") took "+str(duration)+"ms")
 
 	func assemble_ship_setup_cargo_and_stats(body,reassemble):
-		var start = OS.get_ticks_msec()
+#		var start = OS.get_ticks_msec()
 		var stats = null
 		if reassemble:
 			body.set_stats(cached_stats)
@@ -434,13 +438,13 @@ class ShipDesign extends simple_tree.SimpleNode:
 		var _discard = body.set_cost(get_cost())
 		if cargo:
 			body.set_cargo(cargo)
-		var duration = OS.get_ticks_msec()-start
-		if duration>1:
-			print("ShipDesign.assemble_parts took "+str(duration)+"ms")
+		#var duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			print("ShipDesign.assemble_parts took "+str(duration)+"ms")
 		return stats
 	
 	func assemble_ship_remove_hidden_mounts(body,retain_hidden_mounts):
-		var start = OS.get_ticks_msec()
+#		var start = OS.get_ticks_msec()
 		for child in body.get_children():
 			if child is VisualInstance and not child.get_script():
 				continue # may be part of the ship, so keep it visible
@@ -450,22 +454,22 @@ class ShipDesign extends simple_tree.SimpleNode:
 				continue # weapons stay visible if they want to
 			# This is not visible in space, so remove it from the scene tree.
 			not_visible[child.name]=1
-			print("Assemble Ship "+str(display_name)+": will remove "+str(child.name)+" from the scene tree.")
+			#print("Assemble Ship "+str(display_name)+": will remove "+str(child.name)+" from the scene tree.")
 			if retain_hidden_mounts:
 				body.remove_child(child)
 				child.queue_free()
-		var duration = OS.get_ticks_msec()-start
-		if duration>1:
-			print("ShipDesign.assemble_ship took "+str(duration)+"ms")
+#		var duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			print("ShipDesign.assemble_ship took "+str(duration)+"ms")
 	
 	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
-		var start = OS.get_ticks_msec()
+#		var start = OS.get_ticks_msec()
 		var body = assemble_body()
 		if not body:
 			push_warning("No body to assemble. Returning an empty Node")
-			var duration = OS.get_ticks_msec()-start
-			if duration>1:
-				print("ShipDesign.assemble_ship took "+str(duration)+"ms to fail")
+#			var duration = OS.get_ticks_msec()-start
+#			if duration>1:
+#				print("ShipDesign.assemble_ship took "+str(duration)+"ms to fail")
 			return Node.new()
 		var reassemble = cached_stats!=null # true=already assembled design once
 		assemble_parts(body,reassemble,retain_hidden_mounts)
@@ -476,14 +480,14 @@ class ShipDesign extends simple_tree.SimpleNode:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
 		body.select_salvage()
-		var duration = OS.get_ticks_msec()-start
-		if duration>1:
-			if not reassemble:
-				print("ShipDesign.assemble_ship "+str(display_name)+" took "+str(duration)+
-					"ms to assemble a ship the first time (retain_hidden_mounts="+str(retain_hidden_mounts)+")")
-			else:
-				print("ShipDesign.assemble_ship "+str(display_name)+" took "+str(duration)+
-					"ms (retain_hidden_mounts="+str(retain_hidden_mounts)+")")
+#		var duration = OS.get_ticks_msec()-start
+#		if duration>1:
+#			if not reassemble:
+#				print("ShipDesign.assemble_ship "+str(display_name)+" took "+str(duration)+
+#					"ms to assemble a ship the first time (retain_hidden_mounts="+str(retain_hidden_mounts)+")")
+#			else:
+#				print("ShipDesign.assemble_ship "+str(display_name)+" took "+str(duration)+
+#					"ms (retain_hidden_mounts="+str(retain_hidden_mounts)+")")
 		return body
 
 static func encode_ShipDesign(d: ShipDesign):
@@ -660,30 +664,38 @@ static func encode_InputEvent(event: InputEvent):
 		push_error('Cannot encode unrecognized object '+str(event))
 
 
-func save_places_as_json(filename: String) -> bool:
-	var encoded: String = encode_places()
-	var file: File = File.new()
-	if file.open(filename, File.WRITE):
-		push_error('Cannot open file '+filename+'!!')
-		return false
-	file.store_string(encoded)
-	file.close()
+func save_places_as_json(prefix: String) -> bool:
+	var encoded: Dictionary = encode_places()
+	for encode_key in encoded:
+		var filename = prefix+str(encode_key)+".json"
+		var file: File = File.new()
+		if file.open(filename, File.WRITE):
+			push_error('Cannot open file '+filename+'!!')
+			return false
+		file.store_string(encoded[encode_key])
+		file.close()
 	return true
 
-func load_places_from_json(filename: String) -> bool:
+func load_places_from_json(prefix: String) -> bool:
 	assert(children_.has('systems'))
 	assert(children_.has('ship_designs'))
 	assert(children_.has('fleets'))
-	var file: File = File.new()
-	if file.open(filename, File.READ):
-		printerr('Cannot open file '+filename+'!!')
-		return false
-	var encoded: String = file.get_as_text()
-	file.close()
+	var all_encoded: Array = []
+	var input_keys: Array = [ "factions", "fleets", "ship_designs", "systems", "ui" ]
+	var context = prefix+"*.json"
+	for input_key in input_keys:
+		var filename: String = prefix+str(input_key)+".json"
+		var file: File = File.new()
+		if file.open(filename, File.READ):
+			printerr('Cannot open file '+filename+'!!')
+			return false
+		var encoded: String = file.get_as_text()
+		file.close()
+		all_encoded.append([encoded,filename])
 	var system_name = null
 	if Player and Player.system:
 		system_name = Player.system.get_name()
-	var success = decode_places(encoded,filename)
+	var success = decode_places(all_encoded,context)
 	emit_signal('reset_system')
 	if system_name:
 		var system = game_state.systems.get_node_or_null(system_name)
@@ -693,18 +705,28 @@ func load_places_from_json(filename: String) -> bool:
 
 
 
-func decode_places(json_string,context: String) -> bool:
+func decode_places(json_strings,context) -> bool:
 	assert(children_.has('systems'))
 	assert(children_.has('fleets'))
 	assert(children_.has('ship_designs'))
-	var parsed: JSONParseResult = JSON.parse(json_string)
-	if parsed.error:
-		push_error(context+':'+str(parsed.error_line)+': '+parsed.error_string)
-		return false
-	var content = decode_helper(parsed.result)
-	if not content is Dictionary:
-		printerr(context+': error: can only load systems from a Dictionary!')
-		return false
+	var content: Dictionary = {}
+	for json_string_context in json_strings:
+		var json_string: String = json_string_context[0]
+		var file_context: String = json_string_context[1]
+		var parsed: JSONParseResult = JSON.parse(json_string)
+		if parsed.error:
+			push_error(file_context+':'+str(parsed.error_line)+': '+parsed.error_string)
+			return false
+		var entry = decode_helper(parsed.result)
+		if not entry is Dictionary:
+			printerr(file_context+': error: can only load game data from a Dictionary!')
+			return false
+		if not entry:
+			push_warning(file_context+': error: nothing in this file!')
+		for key in entry:
+			if content.has(key):
+				push_warning(file_context+': error: key "'+str(key)+'" was specified in two game data files!')
+			content[key] = entry[key]
 	links.clear()
 
 	var content_designs = content['ship_designs']
@@ -843,8 +865,11 @@ static func decode_helper(what,key=null):
 
 
 
-func encode_places() -> String:
-	return JSON.print(encode_helper(children_),'  ')
+func encode_places() -> Dictionary:
+	var result: Dictionary = {}
+	for child_name in get_child_names():
+		result[child_name] = encode_helper({child_name:get_child_with_name(child_name)})
+	return result
 
 static func encode_helper(what):
 	if what is Dictionary:
