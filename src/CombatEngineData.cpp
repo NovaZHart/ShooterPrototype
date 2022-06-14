@@ -615,6 +615,9 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   goal_action(goal_patrol),
   goal_target(-1),
   salvage_target(-1),
+
+  shield_ellipse(-1),
+  cargo_web(-1),
   
   // These eight will be replaced by the PhysicsDirectBodyState every
   // timestep.  The GDScript code must make sure mass and drag are set
@@ -978,7 +981,7 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
   real_t shield_damage=0, armor_damage=0, structure_damage=0;
   
   if(remaining>0) {
-    shield_damage = apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
+    shield_damage = cargo_web_active ? 0 : apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
     if(remaining>0) {
       armor_damage = apply_damage(remaining,armor,type,armor_resist,armor_passthru,true);
       if(remaining>0)
@@ -1080,6 +1083,7 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
   s["ranges"]=r;
   s["destination"]=destination;
   s["faction_index"]=faction;
+  s["cargo_web_active"]=cargo_web_active;
   
   ships_const_iter target_p = ships.find(target);
   if(target_p!=ships.end() and target_p->second.structure>0) {

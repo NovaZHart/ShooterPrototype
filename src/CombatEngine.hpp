@@ -154,6 +154,10 @@ namespace godot {
     // // // // // // // // // // // // // // // // // // // // // // // //
     // Faction methods
     // // // // // // // // // // // // // // // // // // // // // // // //
+    inline Color get_faction_color(CE::faction_index_t faction) const {
+      auto it = factions.find(faction);
+      return it==factions.end() ? Color(1,1,1,1) : it->second.faction_color;
+    }
     inline bool is_hostile_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
       return enemy_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
     }
@@ -216,7 +220,7 @@ namespace godot {
     void arriving_merchant_ai(CE::Ship &ship);
     void opportunistic_firing(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);
-    void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance,bool avoid_targets) const;
+    void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;
     Vector3 make_threat_vector(CE::Ship &ship, real_t t);
     void evade(CE::Ship &ship);
     void aim_turrets(CE::Ship &ship,CE::ships_iter &target);
@@ -264,7 +268,7 @@ namespace godot {
     void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
     CE::ships_iter get_projectile_target(CE::Projectile &projectile);
     void guide_projectile(CE::Projectile &projectile);
-    bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading,DVector3 desired_heading);
+    bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading);
     void integrate_projectile_forces(CE::Projectile &projectile, real_t thrust_fraction, bool drag);
     Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
 

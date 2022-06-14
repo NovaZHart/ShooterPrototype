@@ -14,6 +14,7 @@ const Color HUDStatDisplay::default_outline_color = Color(0.6, 0.6, 0.6, 0.6);
 const Color HUDStatDisplay::default_structure_color = Color(0.8, 0.4, 0.2);
 const Color HUDStatDisplay::default_armor_color = Color(0.9, 0.7, 0.1);
 const Color HUDStatDisplay::default_shields_color = Color(0.4, 0.4, 1.0);
+const Color HUDStatDisplay::default_shields_down_color = Color(0.15, 0.15, 0.2);
 const Color HUDStatDisplay::default_fuel_color = Color(0.7, 0.4, 1.0);
 const Color HUDStatDisplay::default_heat_color = Color(0.9, 0.4, 0.4);
 const Color HUDStatDisplay::default_energy_color = Color(0.9, 0.9, 0.7);
@@ -35,6 +36,7 @@ HUDStatDisplay::HUDStatDisplay():
   structure_color(default_structure_color),
   armor_color(default_armor_color),
   shields_color(default_shields_color),
+  shields_down_color(default_shields_down_color),
   fuel_color(default_fuel_color),
   heat_color(default_heat_color),
   energy_color(default_energy_color),
@@ -68,7 +70,7 @@ void HUDStatDisplay::player_target_nothing(Variant system) {
 bool HUDStatDisplay::initialize() {
   if(initialized)
     return true;
-  
+
   bars[0]={ 'A', "shields", "max_shields", shields_color, 0, 1 };
   bars[1]={ 'B', "armor", "max_armor", armor_color, 0, 1 };
   bars[2]={ 'C', "structure", "max_structure", structure_color, 0, 1 };
@@ -107,6 +109,12 @@ void HUDStatDisplay::update_ship_stats(Variant updated_variant) {
       bars[ibar].maxval = updated[bars[ibar].maxname];
   }
 
+  bool active = updated["cargo_web_active"];
+  if(active)
+    bars[0].color = shields_down_color;
+  else
+    bars[0].color = shields_color;
+  
   update();
 }
 
@@ -249,6 +257,7 @@ void HUDStatDisplay::_register_methods() {
   register_property<HUDStatDisplay, Color>("structure_color", &HUDStatDisplay::structure_color, default_structure_color);
   register_property<HUDStatDisplay, Color>("armor_color", &HUDStatDisplay::armor_color, default_armor_color);
   register_property<HUDStatDisplay, Color>("shields_color", &HUDStatDisplay::shields_color, default_shields_color);
+  register_property<HUDStatDisplay, Color>("shields_down_color", &HUDStatDisplay::shields_down_color, default_shields_down_color);
   register_property<HUDStatDisplay, Color>("fuel_color", &HUDStatDisplay::fuel_color, default_fuel_color);
   register_property<HUDStatDisplay, Color>("heat_color", &HUDStatDisplay::heat_color, default_heat_color);
   register_property<HUDStatDisplay, Color>("energy_color", &HUDStatDisplay::energy_color, default_energy_color);

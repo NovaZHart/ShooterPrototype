@@ -40,7 +40,7 @@ namespace godot {
     real_t duration, time_shift, rotation;
     Vector3 velocity, relative_position, position;
     VisualRIDPtr instance;
-    volatile bool ready, dead;
+    volatile bool ready, dead, visible;
     bool expire_out_of_view;
     mesheffect_behavior behavior;
     object_id target1;
@@ -120,8 +120,8 @@ namespace godot {
     std::vector<Vector3> vertex_holder;
     std::vector<Vector2> uv2_holder, uv_holder;
     Ref<Shader> spatial_rift_shader, zap_ball_shader, hyperspacing_polygon_shader, fade_out_texture;
-    Ref<Texture> hyperspacing_texture, cargo_puff_texture, shield_texture;
-    Ref<Shader> shield_ellipse_shader;
+    Ref<Texture> hyperspacing_texture, cargo_puff_texture, shield_texture, cargo_web_texture;
+    Ref<Shader> shield_ellipse_shader, cargo_web_shader;
     VisibleContentManager content;
     VisibleContent *combat_content;
     
@@ -151,12 +151,19 @@ namespace godot {
     inline void set_combat_content(VisibleContent *v) {
       combat_content=v;
     }
-    void add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id);
     void set_visible_content(VisibleContent *visible);
-    void add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
-    void add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff);
-    void add_shield_ellipse(const godot::CE::Ship &ship,const AABB &aabb,real_t requested_spacing,real_t thickness,Color faction_color);
 
+    object_id add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id);
+    object_id add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
+    object_id add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff);
+    object_id add_shield_ellipse(const godot::CE::Ship &ship,const AABB &aabb,real_t requested_spacing,real_t thickness,Color faction_color);
+    object_id add_cargo_web(const CE::Ship &ship,const Color &faction_color);
+    
+    bool get_visibility(object_id id) const;
+    void set_visibility(object_id effect_id,bool visible);
+    void kill_effect(object_id effect_id);
+    void reset_effect(object_id effect_id);
+    
     // Send new content to visual thread.
     void add_content();
     
@@ -164,6 +171,24 @@ namespace godot {
     bool is_circle_visible(const Vector3 &position, real_t radius) const;
 
   private:
+
+    static Array make_circle(real_t radius,int polycount,bool angle_radius);
+    
+    object_id new_mmi_effect_id() {
+      return idgen.next()<<1;
+    }
+    object_id new_mesh_effect_id() {
+      return ( (idgen.next()<<1) | 1 );
+    }
+
+    bool is_mmi_effect(object_id id) const {
+      return id>=0 and !(id&1);
+    }
+
+    bool is_mesh_effect(object_id id) const {
+      return id>=0 and (id&1);
+    }
+    
     void step_multimeshes(real_t delta,Vector3 location,Vector3 size);
     VisibleObject * get_object_or_make_stationary(object_id target,VisualEffect &effect);
     void step_effect(VisualEffect &effect,VisualServer *visual_server,const AABB &clipping_area,real_t projectile_scale);

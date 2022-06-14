@@ -89,7 +89,7 @@ namespace godot {
 
     enum visual_layers {
       below_planets=-30,
-      below_ships=-10,
+      below_ships=-5,
       below_projectiles=25,
       projectile_height=27,
       above_projectiles=29
@@ -499,6 +499,8 @@ namespace godot {
       goal_action_t goal_action;
       object_id goal_target;
       object_id salvage_target;
+
+      object_id shield_ellipse, cargo_web;
       
       // Physics server state; do not change:
       Vector3 rotation, position, linear_velocity, angular_velocity, heading;

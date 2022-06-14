@@ -18,14 +18,15 @@ base_shields = 1200.0
 base_armor = 1500.0
 base_structure = 900.0
 base_fuel = 22.0
-base_drag = 0.75
-base_turn_drag = 0.4
+base_drag = 0.7
+base_turn_drag = 0.37
 armor_inverse_density = 140.0
-override_size = Vector3( 1.7, 0, 1.95 )
+override_size = Vector3( 2.2, 0, 2 )
 cargo_web_add_radius = 5.0
 cargo_web_strength = 2400.0
 
 [node name="Hull" type="MeshInstance" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.163682, 0, 0 )
 mesh = ExtResource( 3 )
 material/0 = null
 material/1 = null
@@ -35,7 +36,7 @@ material/4 = null
 material/5 = null
 
 [node name="MainEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.112815, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.276497, 0, 0 )
 script = ExtResource( 1 )
 mount_size_x = 4
 mount_size_y = 2
@@ -43,28 +44,28 @@ mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="PortEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.408149, 0, -0.629291 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.244467, 0, -0.629291 )
 script = ExtResource( 1 )
 mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="StarboardEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.408, 0, 0.629 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.244318, 0, 0.629 )
 script = ExtResource( 1 )
 mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="Gun" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.978904, -0.164733, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.14259, -0.164733, 0 )
 script = ExtResource( 1 )
 mount_size_y = 4
 mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="PortEngine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.828762, 0.029, -0.549872 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.66508, 0.029, -0.549872 )
 script = ExtResource( 1 )
 mount_size_x = 2
 mount_size_y = 2
@@ -72,7 +73,7 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="ExternalEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.829, 0.029, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.665318, 0.029, 0 )
 script = ExtResource( 1 )
 mount_size_x = 2
 mount_size_y = 2
@@ -80,7 +81,7 @@ mount_type = "external equipment"
 mount_type_display = "external equipment"
 
 [node name="StarboardEngine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.829, 0.029, 0.55 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.665318, 0.029, 0.55 )
 script = ExtResource( 1 )
 mount_size_x = 2
 mount_size_y = 2
@@ -88,6 +89,7 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.163682, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="Salvage" parent="." instance=ExtResource( 4 )]
@@ -109,5 +111,7 @@ structure_repair = 100
 spawn_probability = 0.99
 
 [node name="HuskyArmor" parent="." instance=ExtResource( 5 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.163682, 0, 0 )
 
 [node name="HuskyStructure" parent="." instance=ExtResource( 6 )]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.163682, 0, 0 )

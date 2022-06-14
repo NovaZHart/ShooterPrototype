@@ -24,7 +24,7 @@ VisualEffect::VisualEffect():
   duration(0.0f), time_shift(0.0f), rotation(),
   velocity(0,0,0), relative_position(), 
   position(), instance(), ready(false), dead(false),
-  behavior(CONSTANT_VELOCITY), target1(-1)
+  visible(true), behavior(CONSTANT_VELOCITY), target1(-1)
 {}
 VisualEffect::~VisualEffect()
 {}
@@ -107,10 +107,12 @@ void VisualEffects::_register_methods() {
   register_property<VisualEffects, Ref<Shader>>("zap_ball_shader", &VisualEffects::zap_ball_shader, Ref<Shader>());
   register_property<VisualEffects, Ref<Shader>>("hyperspacing_polygon_shader", &VisualEffects::hyperspacing_polygon_shader, Ref<Shader>());
   register_property<VisualEffects, Ref<Shader>>("fade_out_texture", &VisualEffects::fade_out_texture, Ref<Shader>());
+  register_property<VisualEffects, Ref<Shader>>("cargo_web_shader", &VisualEffects::cargo_web_shader, Ref<Shader>());
   register_property<VisualEffects, Ref<Shader>>("shield_ellipse_shader", &VisualEffects::shield_ellipse_shader, Ref<Shader>());
   register_property<VisualEffects, Ref<Texture>>("hyperspacing_texture", &VisualEffects::hyperspacing_texture, Ref<Texture>());
   register_property<VisualEffects, Ref<Texture>>("cargo_puff_texture", &VisualEffects::cargo_puff_texture, Ref<Texture>());
   register_property<VisualEffects, Ref<Texture>>("shield_texture", &VisualEffects::shield_texture, Ref<Texture>());
+  register_property<VisualEffects, Ref<Texture>>("cargo_web_texture", &VisualEffects::cargo_web_texture, Ref<Texture>());
 }
 
 void VisualEffects::clear_all_effects() {
@@ -129,6 +131,76 @@ void VisualEffects::free_unused_effects() {
       it = mmi_effects.erase(it);
     else
       it++;
+}
+
+bool VisualEffects::get_visibility(object_id id) const {
+  if(id<0)
+    return false;
+  else if(is_mmi_effect(id)) {
+    auto it = mmi_effects.find(id);
+    if(it!=mmi_effects.end())
+      return it->second.visible;
+  } else {
+    auto it = mesh_effects.find(id);
+    if(it!=mesh_effects.end())
+      return it->second.visible;
+  }
+  return false;
+}
+
+void VisualEffects::set_visibility(object_id id,bool visible) {
+  if(id<0)
+    return;
+  else if(is_mmi_effect(id)) {
+    auto it = mmi_effects.find(id);
+    if(it!=mmi_effects.end())
+      it->second.visible=visible;
+    else
+      Godot::print_warning("Tried to set visibility of invalid visual effect id "+str(id),__FUNCTION__,__FILE__,__LINE__);
+  } else {
+    auto it = mesh_effects.find(id);
+    if(it!=mesh_effects.end()) {
+      it->second.visible=visible;
+      VisualServer *visual_server = VisualServer::get_singleton();
+      visual_server->instance_set_visible(it->second.instance->rid,visible);
+    } else
+      Godot::print_warning("Tried to set visibility of invalid visual effect id "+str(id),__FUNCTION__,__FILE__,__LINE__);
+  }
+}
+
+void VisualEffects::kill_effect(object_id id) {
+  if( (id&1) )
+    mmi_effects.erase(id);
+  else
+    mesh_effects.erase(id);
+}
+
+void VisualEffects::reset_effect(object_id id) {
+  if(id<0)
+    return;
+  else if(is_mmi_effect(id)) {
+    auto it = mmi_effects.find(id);
+    if(it!=mmi_effects.end()) {
+      if(!it->second.visible) {
+        VisualServer *visual_server = VisualServer::get_singleton();
+        visual_server->instance_set_visible(it->second.instance->rid,true);
+        it->second.visible=true;
+      }
+      it->second.dead=false;
+      it->second.start_time=now;
+    }
+  } else if(is_mesh_effect(id)) {
+    auto it = mesh_effects.find(id);
+    if(it!=mesh_effects.end()) {
+      if(!it->second.visible) {
+        VisualServer *visual_server = VisualServer::get_singleton();
+        visual_server->instance_set_visible(it->second.instance->rid,true);
+        it->second.visible=true;
+      }
+      it->second.dead=false;
+      it->second.start_time=now;
+    }
+  }
 }
 
 void VisualEffects::set_visible_region(AABB visible_area,Vector3 visibility_expansion_rate) {
@@ -274,7 +346,7 @@ void VisualEffects::add_content() {
   next->effects.reserve(mmi_effects.size());
   for(auto &id_effect : mmi_effects) {
     MultiMeshInstanceEffect &effect=id_effect.second;
-    if(effect.ready and not effect.dead)
+    if(effect.ready and not effect.dead and effect.visible)
       next->effects.emplace_back(effect);
   }
   content.push_content(next);
@@ -304,8 +376,9 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   Ref<ShaderMaterial> material = ShaderMaterial::_new();
   material->set_shader(shader);
   mesh->surface_set_material(0,material);
-  
-  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(idgen.next(),MeshEffect()));
+
+  object_id id = new_mesh_effect_id();
+  pair<mesh_effects_iter,bool> it = mesh_effects.insert(mesh_effects_value(id,MeshEffect()));
   MeshEffect &effect = it.first->second;
   effect.rotation = rotation;
   effect.position = position;
@@ -314,6 +387,8 @@ MeshEffect &VisualEffects::add_MeshEffect(Array data, real_t duration, Vector3 p
   effect.start_time = now;
   effect.duration = duration;
   effect.expire_out_of_view = expire_out_of_view;
+  effect.id = id;
+  
   if(effect.expire_out_of_view) {
     effect.lifetime_aabb = mesh->get_aabb();
     effect.lifetime_aabb.position += position;
@@ -343,7 +418,7 @@ MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t dur
     mesh_id=multimeshes.add_preloaded_mesh(mesh);
   }
 
-  object_id effect_id=idgen.next();
+  object_id effect_id=new_mmi_effect_id();
   AABB aabb = expire_out_of_view ? mesh->get_aabb() : AABB();
   pair<mmi_effects_iter,bool> it =
     mmi_effects.emplace(effect_id,MultiMeshInstanceEffect(effect_id,mesh_id,now,duration,0,position,rotation,
@@ -352,12 +427,12 @@ MultiMeshInstanceEffect &VisualEffects::add_MMIEffect(Ref<Mesh> mesh, real_t dur
   return it.first->second;
 }
 
-void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
+object_id VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff) {
   FAST_PROFILING_FUNCTION;
   real_t aabb_growth = (ship.max_speed + relative_velocity.length())*duration;
 
   if(not is_circle_visible(ship.position,length*2+aabb_growth) or cargo_puff.is_null())
-    return;
+    return -1;
 
   PoolVector3Array pool_vertices;
   PoolVector2Array pool_uv;
@@ -401,17 +476,19 @@ void VisualEffects::add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Ve
     effect.shader_material->set_shader_param("duration",duration);
     effect.ready = true;
   }
+
+  return effect.id;
 }
 
-void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 position,Vector3 velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff) {
+object_id VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 position,Vector3 velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff) {
   FAST_PROFILING_FUNCTION;
   real_t aabb_growth = (velocity.length())*duration;
 
   if(not is_circle_visible(ship.position,length*2+aabb_growth)) {
-    return;
+    return -1;
   }
   if(cargo_puff.is_null()) {
-    return;
+    return -1;
   }
   
   MultiMeshInstanceEffect &effect = add_MMIEffect(cargo_puff,duration,position,0,false);
@@ -424,6 +501,8 @@ void VisualEffects::add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vec
     effect.position = position;
     effect.ready = true;
   }
+
+  return effect.id;
 }
 
 bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) const {
@@ -434,21 +513,20 @@ bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) co
   return true;
 }
 
-void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id) {
-  FAST_PROFILING_FUNCTION;
-  if(not is_circle_visible(position,radius) or not (duration>0.0f))
-   return;
-
+Array VisualEffects::make_circle(real_t radius,int polycount,bool angle_radius) {
   real_t scaled_radius=radius/0.95;
   PoolVector3Array pool_vertices;
+  PoolVector3Array pool_normals;
   PoolVector2Array pool_uv;
-  int polycount = clamp(int(roundf(PI*radius/0.1)),12,120);
   int nvert = polycount*3;
   pool_vertices.resize(nvert);
+  pool_normals.resize(nvert);
   pool_uv.resize(nvert);
   PoolVector3Array::Write write_vertices = pool_vertices.write();
+  PoolVector3Array::Write write_normals = pool_normals.write();
   PoolVector2Array::Write write_uv = pool_uv.write();
   Vector3 *vertices = write_vertices.ptr();
+  Vector3 *normals = write_normals.ptr();
   Vector2 *uv = write_uv.ptr();
 
   Vector3 prior=Vector3(sinf(0),0,cosf(0));
@@ -457,11 +535,25 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
     Vector3 next = Vector3(sinf(next_angle),0,cosf(next_angle));
     
     vertices[i*3+0] = prior*scaled_radius;
-    uv[i*3+0] = Vector2((prior.z+1)/2,(prior.x+1)/2);
+    normals[i*3+0] = prior;
+    if(angle_radius)
+      uv[i*3+0] = Vector2(i/real_t(polycount),1);
+    else
+      uv[i*3+0] = Vector2((prior.z+1)/2,(prior.x+1)/2);
+    
     vertices[i*3+1] = Vector3();
-    uv[i*3+1] = Vector2(0.5,0.5);
+    normals[i*3+1] = -(next+prior)/2;
+    if(angle_radius)
+      uv[i*3+1] = Vector2((i+0.5f)/polycount,0);
+    else
+      uv[i*3+1] = Vector2(0.5,0.5);
+    
     vertices[i*3+2] = next*scaled_radius;
-    uv[i*3+2] = Vector2((next.z+1)/2,(next.x+1)/2);
+    normals[i*3+2] = next;
+    if(angle_radius)
+      uv[i*3+2] = Vector2((i+1)/real_t(polycount),1);
+    else
+      uv[i*3+2] = Vector2((next.z+1)/2,(next.x+1)/2);
 
     prior=next;
   }
@@ -469,7 +561,45 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
   Array data;
   data.resize(ArrayMesh::ARRAY_MAX);
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
+  data[ArrayMesh::ARRAY_NORMAL] = pool_normals;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
+  
+  return data;
+}
+
+object_id VisualEffects::add_cargo_web(const Ship &ship,const Color &faction_color) {
+  Vector3 position(ship.position.x,below_ships,ship.position.z);
+
+  real_t radius = ship.cargo_web_radius;
+  int polycount = clamp(int(roundf(PI*radius/0.1)),12,120);
+  Array data = make_circle(radius,polycount,true);
+
+  assert(position.y<1);
+  MeshEffect &effect = add_MeshEffect(data,0,position,0,cargo_web_shader,false);
+
+  if(not effect.dead) {
+    effect.shader_material->set_shader_param("time",0.0f);
+    effect.shader_material->set_shader_param("ship_id",ship.id);
+    effect.shader_material->set_shader_param("cargo_web_texture",cargo_web_texture);
+    effect.shader_material->set_shader_param("perturbation",max(radius/10.0f,0.1f));
+    effect.shader_material->set_shader_param("faction_color",Vector3(faction_color.r,faction_color.g,faction_color.b));
+    effect.target1=ship.id;
+    effect.behavior=CENTER_AND_ROTATE_ON_TARGET1;
+    effect.ready=true;
+  } else {
+    Godot::print_warning("Hyperspacing polygon is dead on arrival.",__FUNCTION__,__FILE__,__LINE__);
+  }
+
+  return effect.id;
+}
+
+object_id VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id) {
+  FAST_PROFILING_FUNCTION;
+  if(not is_circle_visible(position,radius) or not (duration>0.0f))
+   return -1;
+
+  int polycount = clamp(int(roundf(PI*radius/0.1)),12,120);
+  Array data = make_circle(radius,polycount,false);
   MeshEffect &effect = add_MeshEffect(data,duration,position,0,hyperspacing_polygon_shader,false);
 
   if(not effect.dead) {
@@ -488,6 +618,8 @@ void VisualEffects::add_hyperspacing_polygon(real_t duration, Vector3 position, 
   } else {
     Godot::print_warning("Hyperspacing polygon is dead on arrival.",__FUNCTION__,__FILE__,__LINE__);
   }
+
+  return effect.id;
 }
 
 inline Vector3 negX(Vector3 v) {
@@ -504,9 +636,8 @@ inline Vector3 negXZ(Vector3 v) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t requested_spacing,real_t thickness,Color faction_color) {
+object_id VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t requested_spacing,real_t thickness,Color faction_color) {
   FAST_PROFILING_FUNCTION;
-  static bool printed=false;
   static const real_t sqrt2 = sqrtf(2);
   real_t rect_width=fabsf(aabb.size.x/2);
   real_t ellipse_width=rect_width/sqrt2;
@@ -539,7 +670,8 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
   min_radius = min(ellipse_width,ellipse_height);
   high_ratio = max_radius/min_radius;
 
-  // There must be a multiple of four edges along the circumference of the ellipse.
+  // There must be a multiple of four edges along the circumference of
+  // the ellipse, with each edge approximately requested_spacing wide.
   // This approximation comes from Srinivasa Ramanujan
   real_t rama_h = ((ellipse_width-ellipse_height)*(ellipse_width-ellipse_height)) /
     ((ellipse_width+ellipse_height)*(ellipse_width+ellipse_height));
@@ -553,6 +685,7 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
   assert(outer_edges>=8);
   
   PoolColorArray pool_colors;
+  PoolVector3Array pool_normal;
   PoolVector3Array pool_vertices;
   PoolVector2Array pool_uv;
   
@@ -561,18 +694,22 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
     pool_vertices.resize(nvert);
     pool_uv.resize(nvert);
     pool_colors.resize(nvert);
+    pool_normal.resize(nvert);
     PoolVector3Array::Write write_vertices = pool_vertices.write();
     PoolVector2Array::Write write_uv = pool_uv.write();
     PoolColorArray::Write write_color = pool_colors.write();
+    PoolVector3Array::Write write_normal = pool_normal.write();
     Vector3 *vertices = write_vertices.ptr();
     Vector2 *uv = write_uv.ptr();
     Color *colors = write_color.ptr();
+    Vector3 *normal = write_normal.ptr();
 
     for(int j=0;j<nvert;j++)
       colors[j]=faction_color;
 
     Vector2 prior_mid=Vector2(ellipse_width*sinf(0),ellipse_height*cosf(0));
-    Vector2 prior_thickness = prior_mid.normalized()*thickness/2;
+    Vector2 prior_norm = prior_mid.normalized();
+    Vector2 prior_thickness = prior_norm*thickness/2;
     Vector2 prior_inner = prior_mid-prior_thickness;
     Vector2 prior_outer = prior_mid+prior_thickness;
     real_t prior_t=0;
@@ -585,7 +722,8 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       next_angle *= (ellipse_height + tt*(ellipse_width-ellipse_height)/2);
 
       Vector2 next_mid=Vector2(ellipse_width*sinf(next_angle),ellipse_height*cosf(next_angle));
-      Vector2 next_thickness = next_mid.normalized()*thickness/2;
+      Vector2 next_norm = next_mid.normalized();
+      Vector2 next_thickness = next_norm*thickness/2;
       Vector2 next_inner = next_mid-next_thickness;
       Vector2 next_outer = next_mid+next_thickness;
       
@@ -593,6 +731,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+1] = Vector3(prior_inner.x,0,prior_inner.y);
       vertices[i*6+2] = Vector3(next_outer.x,0,next_outer.y);
 
+      normal[i*6+0] = Vector3(prior_norm.x,0,prior_norm.y);
+      normal[i*6+1] = -Vector3(prior_norm.x,0,prior_norm.y);
+      normal[i*6+2] = Vector3(next_norm.x,0,next_norm.y);
+      
       uv[i*6+0] = Vector2(prior_t,1);
       uv[i*6+1] = Vector2(prior_t,0);
       uv[i*6+2] = Vector2(t,1);
@@ -601,6 +743,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+4] = Vector3(next_inner.x,0,next_inner.y);
       vertices[i*6+5] = Vector3(next_outer.x,0,next_outer.y);
 
+      normal[i*6+3] = -Vector3(prior_norm.x,0,prior_norm.y);
+      normal[i*6+4] = -Vector3(next_norm.x,0,next_norm.y);
+      normal[i*6+5] = Vector3(next_norm.x,0,next_norm.y);
+      
       uv[i*6+3] = Vector2(prior_t,0);
       uv[i*6+4] = Vector2(t,0);
       uv[i*6+5] = Vector2(t,1);
@@ -608,6 +754,7 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       prior_outer=next_outer;
       prior_inner=next_inner;
       prior_t=t;
+      prior_norm=next_norm;
     }
 
     // Second Quadrant is the same as the first, but reversed order and -Y
@@ -617,6 +764,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+1] = negZ(vertices[j*6+0]);
       vertices[i*6+2] = negZ(vertices[j*6+2]);
 
+      normal[i*6+0] = negZ(normal[j*6+1]);
+      normal[i*6+1] = negZ(normal[j*6+0]);
+      normal[i*6+2] = negZ(normal[j*6+2]);
+      
       uv[i*6+0] = Vector2(0.5-uv[j*6+1].x,uv[j*6+1].y);
       uv[i*6+1] = Vector2(0.5-uv[j*6+0].x,uv[j*6+0].y);
       uv[i*6+2] = Vector2(0.5-uv[j*6+2].x,uv[j*6+2].y);
@@ -624,6 +775,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+3] = negZ(vertices[j*6+3]);
       vertices[i*6+4] = negZ(vertices[j*6+5]);
       vertices[i*6+5] = negZ(vertices[j*6+4]);
+
+      normal[i*6+3] = negZ(normal[j*6+3]);
+      normal[i*6+4] = negZ(normal[j*6+5]);
+      normal[i*6+5] = negZ(normal[j*6+4]);
 
       uv[i*6+3] = Vector2(0.5-uv[j*6+3].x,uv[j*6+3].y);
       uv[i*6+4] = Vector2(0.5-uv[j*6+5].x,uv[j*6+5].y);
@@ -639,6 +794,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+1] = negXZ(vertices[j*6+1]);
       vertices[i*6+2] = negXZ(vertices[j*6+2]);
 
+      normal[i*6+0] = negXZ(normal[j*6+0]);
+      normal[i*6+1] = negXZ(normal[j*6+1]);
+      normal[i*6+2] = negXZ(normal[j*6+2]);
+
       uv[i*6+0] = Vector2(0.5+uv[j*6+0].x,uv[j*6+0].y);
       uv[i*6+1] = Vector2(0.5+uv[j*6+1].x,uv[j*6+1].y);
       uv[i*6+2] = Vector2(0.5+uv[j*6+2].x,uv[j*6+2].y);
@@ -646,6 +805,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+3] = negXZ(vertices[j*6+3]);
       vertices[i*6+4] = negXZ(vertices[j*6+4]);
       vertices[i*6+5] = negXZ(vertices[j*6+5]);
+
+      normal[i*6+3] = negXZ(normal[j*6+3]);
+      normal[i*6+4] = negXZ(normal[j*6+4]);
+      normal[i*6+5] = negXZ(normal[j*6+5]);
 
       uv[i*6+3] = Vector2(0.5+uv[j*6+3].x,uv[j*6+3].y);
       uv[i*6+4] = Vector2(0.5+uv[j*6+4].x,uv[j*6+4].y);
@@ -661,6 +824,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+1] = negX(vertices[j*6+0]);
       vertices[i*6+2] = negX(vertices[j*6+2]);
 
+      normal[i*6+0] = negX(normal[j*6+1]);
+      normal[i*6+1] = negX(normal[j*6+0]);
+      normal[i*6+2] = negX(normal[j*6+2]);
+
       uv[i*6+0] = Vector2(1-uv[j*6+1].x,uv[j*6+1].y);
       uv[i*6+1] = Vector2(1-uv[j*6+0].x,uv[j*6+0].y);
       uv[i*6+2] = Vector2(1-uv[j*6+2].x,uv[j*6+2].y);
@@ -668,6 +835,10 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
       vertices[i*6+3] = negX(vertices[j*6+3]);
       vertices[i*6+4] = negX(vertices[j*6+5]);
       vertices[i*6+5] = negX(vertices[j*6+4]);
+
+      normal[i*6+3] = negX(normal[j*6+3]);
+      normal[i*6+4] = negX(normal[j*6+5]);
+      normal[i*6+5] = negX(normal[j*6+4]);
 
       uv[i*6+3] = Vector2(1-uv[j*6+3].x,uv[j*6+3].y);
       uv[i*6+4] = Vector2(1-uv[j*6+5].x,uv[j*6+5].y);
@@ -682,6 +853,7 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
   data[ArrayMesh::ARRAY_COLOR] = pool_colors;
+  data[ArrayMesh::ARRAY_NORMAL] = pool_normal;
   Vector3 position=ship.position;
   position.y=below_ships;
 
@@ -694,9 +866,12 @@ void VisualEffects::add_shield_ellipse(const Ship &ship,const AABB &aabb,real_t 
     effect.target1=ship.id;
     effect.behavior=CENTER_AND_ROTATE_ON_TARGET1;
     effect.shader_material->set_shader_param("shield_texture",shield_texture);
+    effect.shader_material->set_shader_param("ship_id",ship.id);
+    effect.shader_material->set_shader_param("thickness",thickness);
+    effect.shader_material->set_shader_param("projectile_scale",1.0f);
     effect.ready=true;
   } else
     Godot::print_warning("Shield ellipse is dead on arrival",__FUNCTION__,__FILE__,__LINE__);
 
-  printed=true;
+  return effect.id;
 }

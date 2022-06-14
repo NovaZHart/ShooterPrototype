@@ -6,11 +6,14 @@ var RiftShader = preload('res://shaders/Rift.shader')
 var ZapBallShader = preload('res://shaders/ZapBall.shader')
 var ShieldEllipseShader = preload('res://shaders/ShieldEllipse.shader')
 var HyperspacingPolygonShader = preload('res://shaders/HyperspacingPolygon.shader')
+var CargoWebShader = preload('res://shaders/cargo_web.shader')
 var native_combat_engine
 var native_visual_effects
 var hyperspacing_texture = preload('res://textures/blue-squiggles.jpeg')
 var cargo_puff_texture = preload('res://textures/magenta-beige-puff.png')
 var fade_out_texture = preload('res://shaders/FadeOutTexture.shader')
+var shield_ellipse_texture = hyperspacing_texture
+var cargo_web_texture = preload('res://textures/cell-noise.jpg')
 
 # All constants MUST match src/CombatEngineData.hpp
 
@@ -100,7 +103,9 @@ func _enter_tree():
 	native_visual_effects.shield_ellipse_shader=ShieldEllipseShader;
 	native_visual_effects.hyperspacing_texture=hyperspacing_texture;
 	native_visual_effects.cargo_puff_texture=cargo_puff_texture;
-	native_visual_effects.shield_texture=hyperspacing_texture;
+	native_visual_effects.shield_texture=shield_ellipse_texture;
+	native_visual_effects.cargo_web_texture=cargo_web_texture;
+	native_visual_effects.cargo_web_shader=CargoWebShader;
 	# FIXME: pass the ShieldEllipseShader
 
 func init_combat_state(system_info,system,immediate_entry: bool) -> void:

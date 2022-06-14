@@ -820,6 +820,7 @@ void CombatEngine::negate_drag_force(Ship &ship) {
 }
 
 bool CombatEngine::rift_ai(Ship &ship) {
+  deactivate_cargo_web(ship);
   FAST_PROFILING_FUNCTION;
   if(ship.rift_timer.alarmed()) {
     // If the ship has already opened the rift, and survived the minimum duration,
@@ -910,8 +911,8 @@ void CombatEngine::ai_step_ship(Ship &ship) {
   if(ship.at_first_tick) {
     factions_const_iter faction_it = factions.find(ship.faction);
     if(faction_it!=factions.end()) {
-      Godot::print(ship.name+" has an ellipse with color "+str(faction_it->second.faction_color));
-      visual_effects->add_shield_ellipse(ship,ship.aabb,0.1,0.8,faction_it->second.faction_color);
+      ship.shield_ellipse = visual_effects->add_shield_ellipse(ship,ship.aabb,0.1,0.35,faction_it->second.faction_color);
+      Godot::print(ship.name+" has ellipse "+str(ship.shield_ellipse)+" with color "+str(faction_it->second.faction_color));
     } else
       Godot::print_warning(ship.name+": has no faction",__FUNCTION__,__FILE__,__LINE__);
   }
@@ -1092,10 +1093,28 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
 }
 
 void CombatEngine::activate_cargo_web(Ship &ship) {
+  if(ship.cargo_web_active)
+    return;
   ship.cargo_web_active = true;
+  if(visual_effects.is_valid()) {
+    if(ship.shield_ellipse>=0)
+      visual_effects->set_visibility(ship.shield_ellipse,false);
+    if(ship.cargo_web>=0)
+      visual_effects->reset_effect(ship.cargo_web);
+    else
+      ship.cargo_web=visual_effects->add_cargo_web(ship,get_faction_color(ship.faction));
+  }
 }
 void CombatEngine::deactivate_cargo_web(Ship &ship) {
+  if(!ship.cargo_web_active)
+    return;
   ship.cargo_web_active = false;
+  if(visual_effects.is_valid()) {
+    if(ship.shield_ellipse>=0)
+      visual_effects->set_visibility(ship.shield_ellipse,true);
+    if(ship.cargo_web>=0)
+      visual_effects->set_visibility(ship.cargo_web,false);
+  }
 }
 
 pair<DVector3,double> CombatEngine::plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed) {
@@ -1410,7 +1429,7 @@ void CombatEngine::salvage_ai(Ship &ship) {
     Vector3 proj_position=get_position(it->second);
     Vector3 dp = proj_position-ship_position;
     pair<DVector3,double> course=plot_collision_course(dp,it->second.linear_velocity,ship.max_speed);
-    Vector3 desired_heading=course.first.normalized(), heading=ship.heading;
+    Vector3 desired_heading=course.first.normalized();
     
     //move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
     request_heading(ship,desired_heading);
@@ -1480,7 +1499,7 @@ bool CombatEngine::should_salvage(Ship &ship) {
   return false;
 }
 
-void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance,bool avoid_targets) const {
+void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const {
   FAST_PROFILING_FUNCTION;
 
   // Minimum and maximum distances to target for calculations:
@@ -1674,7 +1693,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       find_new_target = should_update_targetting(ship,target_ptr);
   }
   if(find_new_target) {
-    choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f,false);
+    choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f);
     target_ptr = ships.find(ship.get_target());
   }
 
@@ -1809,7 +1828,6 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
     return;
 
   planets_iter target_ptr = planets.end();
-  bool found_target=false;
  
   // If it is time to decide on our next action, ponder it.
   if(ship.ai_flags-=DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
@@ -3050,7 +3068,7 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   integrate_projectile_forces(projectile,should_thrust,true);
 }
 
-bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const Projectile &proj,DVector3 heading,DVector3 desired_heading) {
+bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const Projectile &proj,DVector3 heading) {
   FAST_PROFILING_FUNCTION;
   DVector3 next_target_position = target_position+target_velocity*delta;
   next_target_position.y=0;
