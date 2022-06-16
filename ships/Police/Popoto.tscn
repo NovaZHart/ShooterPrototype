@@ -92,7 +92,7 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="Salvage" parent="." instance=ExtResource( 4 )]
-flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
+flotsam_mesh_path = "res://flotsam/SmallCivilian/SamoyedWing.mesh"
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1

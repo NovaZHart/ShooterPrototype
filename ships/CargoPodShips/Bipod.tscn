@@ -131,7 +131,7 @@ transform = Transform( 2.08855, 0, 0, 0, 1, 0, 0, 0, 1.58486, -0.0273015, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="Salvage" parent="." instance=ExtResource( 5 )]
-flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
+flotsam_mesh_path = "res://flotsam/SmallCivilian/SamoyedWing.mesh"
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1
@@ -140,7 +140,7 @@ structure_repair = 100
 spawn_probability = 0.99
 
 [node name="Salvage2" parent="." instance=ExtResource( 5 )]
-flotsam_mesh_path = "weapons/FrontierMilitia/MassDriver.mesh"
+flotsam_mesh_path = "res://flotsam/SmallCivilian/SamoyedWing.mesh"
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1
