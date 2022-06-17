@@ -199,22 +199,22 @@ func _process(var _delta) -> void:
 		return # child no longer exists?
 
 	var tex = get_planet_texture()
-	if tex == null:
-		printerr('Planet texture is null!?')
-		return # should never get here in _process()
-
-	if tick==1:
-		if not have_valid_texture:
-			sphere.material_override.set_shader_param('precalculated',tex)
-		return
-	
-	var data = get_tex_data(tex)
-	if data == null:
-		printerr('Planet texture data is null!?')
-		return # should never here here either
-	
-	var newtex = copy_data_to_image(data)
-	sphere.material_override.set_shader_param('precalculated',newtex)
+#	if tex == null:
+#		printerr('Planet texture is null!?')
+#		return # should never get here in _process()
+#
+#	if tick==1:
+#		if not have_valid_texture:
+#			sphere.material_override.set_shader_param('precalculated',tex)
+#		return
+#
+#	var data = get_tex_data(tex)
+#	if data == null:
+#		printerr('Planet texture data is null!?')
+#		return # should never here here either
+#
+#	var newtex = copy_data_to_image(data)
+	sphere.material_override.set_shader_param('precalculated',tex)
 	#tex.flags = Texture.FLAG_FILTER
 	have_valid_texture = true
 	
