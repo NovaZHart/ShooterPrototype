@@ -376,20 +376,23 @@ class ShipDesign extends simple_tree.SimpleNode:
 		return false
 
 	func assemble_body(): # -> Node or null
-#		var start = OS.get_ticks_msec()
+		var start = OS.get_ticks_msec()
+		if not hull:
+			push_error('assemble_ship: hull is null')
+			return null
 		var body = hull.instance()
 		body.ship_display_name = display_name
 		var _discard = body.get_item_slots()
 		if body == null:
 			push_error('assemble_ship: cannot instance scene: '+body)
-#			var duration = OS.get_ticks_msec()-start
-#			if duration>1:
-#				print("ShipDesign.assemble_body took "+str(duration)+"ms to fail")
+			var duration = OS.get_ticks_msec()-start
+			if duration>4:
+				print("ShipDesign.assemble_body took "+str(duration)+"ms to fail")
 			return null
 		body.save_transforms()
-#		var duration = OS.get_ticks_msec()-start
-#		if duration>1:
-#			print("ShipDesign.assemble_body took "+str(duration)+"ms")
+		var duration = OS.get_ticks_msec()-start
+		if duration>4:
+			print("ShipDesign.assemble_body took "+str(duration)+"ms")
 		return body
 
 	func assemble_stats(body: Node, reassemble: bool):
@@ -462,15 +465,15 @@ class ShipDesign extends simple_tree.SimpleNode:
 #		if duration>1:
 #			print("ShipDesign.assemble_ship took "+str(duration)+"ms")
 	
-	func assemble_ship(retain_hidden_mounts: bool = false) -> Node:
+	func assemble_ship(retain_hidden_mounts: bool = false) -> Spatial:
 #		var start = OS.get_ticks_msec()
 		var body = assemble_body()
 		if not body:
-			push_warning("No body to assemble. Returning an empty Node")
+			push_error("No body to assemble. Returning an empty Spatial")
 #			var duration = OS.get_ticks_msec()-start
 #			if duration>1:
 #				print("ShipDesign.assemble_ship took "+str(duration)+"ms to fail")
-			return Node.new()
+			return Spatial.new()
 		var reassemble = cached_stats!=null # true=already assembled design once
 		assemble_parts(body,reassemble,retain_hidden_mounts)
 		var stats = assemble_ship_setup_cargo_and_stats(body,reassemble)
@@ -497,7 +500,11 @@ static func encode_ShipDesign(d: ShipDesign):
 static func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
 		return null
-	var result = ShipDesign.new(str(v[1]), decode_helper(v[2]))
+	var hull = decode_helper(v[2])
+	if not hull:
+		push_error('Ignoring invalid ship design and returning null')
+		return null
+	var result = ShipDesign.new(str(v[1]), hull)
 	if len(v)>3:
 		decode_children(result,v[3])
 	if len(v)>4:
