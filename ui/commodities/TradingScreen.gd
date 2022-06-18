@@ -140,8 +140,6 @@ func exit_to_orbit():
 	var design = Player.player_ship_design
 #	design.cargo = $All/Left/Bottom/Tabs/Market.mine.copy()
 #	design.cargo.add_products($All/Left/Bottom/Tabs/ShipParts.mine,null,null,null)
-	design.cargo.remove_empty_products()
-	$All/Left/Bottom/Tabs/Market.show_fruit('after removing empty products')
 	var message = null
 	if Player.money<0:
 		message = "You don't have enough money to buy your ship!"
@@ -165,12 +163,16 @@ func exit_to_orbit():
 		parent.remove_child(panel)
 		panel.queue_free()
 		if result:
+			design.cargo.remove_empty_products()
+			$All/Left/Bottom/Tabs/Market.show_fruit('after removing empty products')
 			$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
 			$All/Left/Bottom/Tabs/ShipParts.here.remove_empty_products()
 			$All/Left/Bottom/Tabs/Market.show_fruit('just before scene change')
 			game_state.call_deferred('change_scene',result)
 		else:
 			return # do not change scene
+	design.cargo.remove_empty_products()
+	$All/Left/Bottom/Tabs/Market.show_fruit('after removing empty products')
 	$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
 	$All/Left/Bottom/Tabs/ShipParts.here.remove_empty_products()
 	$All/Left/Bottom/Tabs/Market.show_fruit('just before OrbitScreen scene change')
