@@ -33,6 +33,7 @@ func add_button(text,metadata,index=-1):
 	button.text = text
 	$Top/Buttons.add_child(button)
 	button.connect('pressed',self,'_on_Button_pressed',[metadata,false])
+	button.theme=theme
 	if index>=0:
 		$Top/Buttons.move_child(button,index)
 

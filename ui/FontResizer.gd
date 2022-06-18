@@ -17,7 +17,9 @@ func _exit_tree():
 
 func choose_font_size() -> float:
 	var scale: Vector2 = utils.get_viewport_scale()
-	return max(min_font_size,default_res_font_size*min(scale[0],scale[1]))
+	var font_size = max(min_font_size,default_res_font_size*min(scale[0],scale[1]))
+	print(str(get_path())+": scale = "+str(scale)+" font_size "+str(default_res_font_size)+" => "+str(font_size))
+	return font_size
 
 func update_node_property_font_sizes(parent: Node, font_size: float,property_names: PoolStringArray):
 	for property_name in property_names:

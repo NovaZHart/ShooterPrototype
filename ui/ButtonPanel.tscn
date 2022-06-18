@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=2]
+[gd_scene load_steps=4 format=2]
 
 [ext_resource path="res://ui/ButtonPanel.gd" type="Script" id=1]
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=2]
+[ext_resource path="res://ui/FontResizer.tscn" type="PackedScene" id=3]
 
 [node name="ButtonPanel" type="PopupPanel"]
 anchor_left = 0.5
@@ -11,6 +13,7 @@ margin_right = 8.0
 margin_bottom = 8.0
 grow_horizontal = 2
 grow_vertical = 2
+theme = ExtResource( 2 )
 script = ExtResource( 1 )
 __meta__ = {
 "_edit_use_anchors_": false
@@ -31,7 +34,13 @@ __meta__ = {
 margin_right = 113.0
 margin_bottom = 14.0
 size_flags_horizontal = 3
+theme = ExtResource( 2 )
 text = "INSERT TEXT HERE"
+
+[node name="FontResizer" parent="Top/Label" instance=ExtResource( 3 )]
+default_res_font_size = 24
+resize_node_theme_default_font = false
+resize_node_theme_all_fonts = false
 
 [node name="Buttons" type="GridContainer" parent="Top"]
 margin_top = 18.0
@@ -42,5 +51,9 @@ size_flags_horizontal = 3
 [node name="Cancel" type="Button" parent="Top/Buttons"]
 margin_right = 54.0
 margin_bottom = 20.0
+theme = ExtResource( 2 )
 text = "Cancel"
+
+[node name="FontResizer" parent="." instance=ExtResource( 3 )]
+
 [connection signal="pressed" from="Top/Buttons/Cancel" to="." method="_on_Button_pressed" binds= [ "", true ]]
