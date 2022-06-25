@@ -17,9 +17,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource( 2 )
 script = ExtResource( 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 KeyPicker = ExtResource( 3 )
 RemoveTexture = ExtResource( 5 )
 AddTexture = ExtResource( 4 )

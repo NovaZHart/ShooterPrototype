@@ -6,6 +6,7 @@ var GDNativePreloadResources = preload("res://bin/PreloadResources.gdns")
 var preloader
 var got_resources: bool = false
 var designs_to_load: Array = []
+var ship_count=0
 
 func _ready():
 	preloader=GDNativePreloadResources.new()
@@ -23,11 +24,13 @@ func _process(_delta):
 		designs_to_load = game_state.ship_designs.get_child_names()
 	elif not designs_to_load:
 		set_process(false)
+		print("Preloaded "+str(ship_count)+" ship designs.")
 	else:
 		var child_name = designs_to_load.pop_back()
 		var design = game_state.ship_designs.get_child_with_name(child_name)
 		if design:
 			var _stats = design.get_stats()
+			ship_count += 1
 	
 
 func get_resource_path_list() -> Array:

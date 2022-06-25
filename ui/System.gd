@@ -586,7 +586,7 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 
 func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
-		initial_ai: int) -> Spatial:
+		initial_ai: int,ship_name_prefix) -> Spatial:
 #	var start: float = OS.get_ticks_msec()
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
@@ -597,7 +597,7 @@ func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3
 	if is_player:
 		ship.name = player_ship_name
 	else:
-		ship.name = game_state.make_unique_ship_node_name()
+		ship.name = game_state.make_unique_ship_node_name(ship_name_prefix)
 	ship.set_entry_method(entry_method)
 #	var duration = OS.get_ticks_msec()-start
 #	if duration>1:
@@ -606,9 +606,9 @@ func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
-		initial_ai: int) -> void:
+		initial_ai: int, ship_name_prefix) -> void:
 #	var start: float = OS.get_ticks_msec()
-	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai)
+	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai,ship_name_prefix)
 	if is_player:
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
@@ -616,7 +616,7 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		if ship.faction_index!=0:
 			push_warning('Player ship faction index should be 0 but is '+str(ship.faction_index))
 	else:
-		ship.name = game_state.make_unique_ship_node_name()
+		ship.name = game_state.make_unique_ship_node_name(ship_name_prefix)
 		add_spawned_ship(ship,false)
 		#call_deferred('add_spawned_ship',ship,false)
 #	var duration = OS.get_ticks_msec()-start

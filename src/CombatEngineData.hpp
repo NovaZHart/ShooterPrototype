@@ -338,7 +338,7 @@ namespace godot {
     typedef std::unordered_map<faction_index_t,CE::Faction>::const_iterator factions_const_iter;
 
     struct Salvage {
-      const String flotsam_mesh_path;
+      const Ref<Mesh> flotsam_mesh;
       const float flotsam_scale;
       const String cargo_name;
       const int cargo_count;
@@ -689,7 +689,10 @@ namespace godot {
       select_flying() {};
       template<class I>
       real_t operator () (I iter) const {
-        return not iter->second.fate;
+        if(iter->second.fate)
+          return 0;
+        else
+          return 1e-5;
       }
     };
 

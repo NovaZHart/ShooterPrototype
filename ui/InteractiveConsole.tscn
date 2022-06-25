@@ -22,9 +22,6 @@ anchor_bottom = 1.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 script = ExtResource( 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 h1_font = ExtResource( 5 )
 h2_font = ExtResource( 4 )
 small_code_font = ExtResource( 3 )

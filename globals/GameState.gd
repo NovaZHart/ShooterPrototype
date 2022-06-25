@@ -267,10 +267,10 @@ func switch_editors(what):
 	fleet_editor = what if(what is FleetEditorStub) else FleetEditorStub.new()
 	hyperspace = what if(what is HyperspaceStub) else HyperspaceStub.new()
 
-func make_unique_ship_node_name():
+func make_unique_ship_node_name(prefix: String):
 	var i: int = name_counter
 	name_counter = name_counter+1
-	return 'ship_'+str(i)
+	return str(prefix)+str(i)
 
 func print_to_console(s: String):
 	if s.ends_with('\n'):
@@ -362,7 +362,6 @@ func make_services():
 		'Service Button',preload('res://ui/AltTestService.tscn'))
 
 func _enter_tree():
-	var _errno: int = OSTools.make_process_high_priority()
 	load_universe()
 	make_services()
 	if not OS.has_feature('standalone'):

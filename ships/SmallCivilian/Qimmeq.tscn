@@ -1,9 +1,12 @@
-[gd_scene load_steps=8 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=1]
 [ext_resource path="res://ships/SmallCivilian/Qimmeq.mesh" type="ArrayMesh" id=2]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
 [ext_resource path="res://ships/Salvage.tscn" type="PackedScene" id=4]
+[ext_resource path="res://flotsam/SmallCivilian/QimmeqDebrisMiddle.mesh" type="ArrayMesh" id=5]
+[ext_resource path="res://flotsam/SmallCivilian/QimmeqDebrisWing.mesh" type="ArrayMesh" id=6]
+[ext_resource path="res://flotsam/SmallCivilian/QimmeqDebrisFront.mesh" type="ArrayMesh" id=7]
 
 [sub_resource type="ConvexPolygonShape" id=1]
 points = PoolVector3Array( 0.242896, 10, 0.623968, 0.242896, -10, -0.623968, 0.242896, -10, 0.623968, 0.242896, 10, -0.623968, 1.34436, -10, 0, 0.242896, -10, -0.623968, 1.34436, 10, 0, 0.242896, -10, 0.623968, 1.34436, -10, 0, 0.242896, -10, -0.623968, 1.34436, -10, 0, 0.242896, -10, 0.623968, 1.34436, 10, 0, 0.242896, 10, -0.623968, 0.242896, 10, 0.623968, 0.242896, 10, -0.623968, 1.34436, 10, 0, 0.242896, 10, 0.623968 )
@@ -117,8 +120,8 @@ mount_size_y = 3
 mount_type = "external gun"
 mount_type_display = "gun"
 
-[node name="Salvage" parent="." instance=ExtResource( 4 )]
-flotsam_mesh_path = "res://flotsam/SmallCivilian/SamoyedWing.mesh"
+[node name="QimmeqDebrisFront" parent="." instance=ExtResource( 4 )]
+flotsam_mesh = ExtResource( 7 )
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1
@@ -126,8 +129,17 @@ armor_repair = 40
 structure_repair = 100
 spawn_probability = 0.99
 
-[node name="Salvage2" parent="." instance=ExtResource( 4 )]
-flotsam_mesh_path = "res://flotsam/SmallCivilian/SamoyedWing.mesh"
+[node name="QimmeqDebrisMiddle" parent="." instance=ExtResource( 4 )]
+flotsam_mesh = ExtResource( 5 )
+flotsam_scale = 0.3
+product_name = "diamonds"
+product_count = 1
+armor_repair = 40
+structure_repair = 100
+spawn_probability = 0.99
+
+[node name="QimmeqDebrisWing" parent="." instance=ExtResource( 4 )]
+flotsam_mesh = ExtResource( 6 )
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1

@@ -17,6 +17,7 @@ __meta__ = {
 }
 increment_texture = ExtResource( 2 )
 decrement_texture = ExtResource( 3 )
+
 [connection signal="button_pressed" from="." to="." method="_on_Tree_button_pressed"]
 [connection signal="column_title_pressed" from="." to="." method="_on_TradingList_column_title_pressed"]
 [connection signal="focus_exited" from="." to="." method="_on_Tree_focus_exited"]

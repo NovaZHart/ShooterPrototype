@@ -21,7 +21,6 @@ config/icon="res://icon.png"
 
 [autoload]
 
-OSTools="*res://globals/OSTools.gd"
 PreloadResources="*res://globals/PreloadResources.gd"
 utils="*res://globals/Utils.gd"
 simple_tree="*res://globals/SimpleTree.gd"
@@ -42,8 +41,6 @@ input_state="*res://globals/InputState.gd"
 
 window/size/width=1600
 window/size/height=900
-window/size/borderless=true
-window/size/fullscreen=true
 
 [gui]
 

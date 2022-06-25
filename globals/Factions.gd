@@ -31,7 +31,8 @@ class Faction extends simple_tree.SimpleNode:
 
 	func is_Faction(): pass # never called; just used for type checking
 
-	func _init(display_name_: String = '', fleets_: Array = [], default_resources_: float = 1000.0,
+	func _init(display_name_: String, fleets_: Array = [],
+			default_resources_: float = 1000.0,
 			string_affinities_: Dictionary = {}, faction_color_: Color = Color(1,0.8,0.3)):
 		default_resources=default_resources_
 		affinities=string_affinities_.duplicate(true)
@@ -55,7 +56,8 @@ class Faction extends simple_tree.SimpleNode:
 		var gain_rate = faction_info.get('income_per_second',resources/300.0)
 		var fleet_type_weights = faction_info.get('fleet_type_weights',{})
 		var state = FactionState.new(resources,gain_rate,0.0,
-			fleet_type_weights.duplicate(true),faction_color)
+			fleet_type_weights.duplicate(true),faction_color,
+			faction_name+"_")
 		_impl_calculate_fleet_stats(state,gain_rate)
 		_impl_store_goals(combat_state,state)
 		return state
@@ -177,10 +179,13 @@ class FactionState extends Reference:
 	var faction_index: int = -1
 	var faction_color: Color = Color(1,1,1,1)
 	var available_fleets: Array = [] # fleets that have arrived and can be spawned now
+	var ship_name_prefix: String
 
 	func _init(resources_available_: float,resource_gain_rate_: float,
 			min_resources_to_act_: float, fleet_type_weights_:Dictionary,
-			faction_color_: Color):
+			faction_color_: Color, ship_name_prefix_: String):
+		assert(ship_name_prefix!='_')
+		ship_name_prefix = ship_name_prefix_
 		resources_available = resources_available_
 		resource_gain_rate = resource_gain_rate_
 		min_resources_to_act = min_resources_to_act_
@@ -295,7 +300,7 @@ class FactionState extends Reference:
 			
 			# Forward the request for this fleet to spawn.
 			return combat_state.spawn_fleet(fleet_node,faction_index,
-				goal['suggested_spawn_point'],entry_method,ai_type)
+				goal['suggested_spawn_point'],entry_method,ai_type,ship_name_prefix)
 		
 		# Could not spawn fleets this turn.
 		return []
@@ -464,6 +469,7 @@ class CombatState extends Reference:
 		var faction = game_state.factions.get_child_with_name(faction_name)
 		if faction:
 			faction_states[faction_name] = faction.make_faction_state(self)
+			faction_states[faction_name].ship_name_prefix = faction_name+'_'
 			if not faction_name2int.has(faction_name):
 				faction_int2name[ifaction] = faction_name
 				faction_name2int[faction_name] = ifaction
@@ -517,20 +523,20 @@ class CombatState extends Reference:
 			center = planet.translation
 		return spawn_ship(system,Player.player_ship_design,
 			0,angle,add_radius,safe_zone,0,0,center,true,entry_method,
-			combat_engine.ATTACKER_AI)
+			combat_engine.ATTACKER_AI,"initial_player_faction_")
 
 	# Spawn an individual ship. Intended to be called from
 	# spawn_fleet or spawn_player_ship
 	func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 			faction_index: int,angle: float,add_radius: float,safe_zone: float,
 			random_x: float, random_z: float, center: Vector3, is_player: bool,
-			entry_method: int, initial_ai: int):
+			entry_method: int, initial_ai: int, ship_name_prefix: String):
 		var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 		var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
 		# IMPORTANT: Return value must match what spawn_ship, init_system, and
 		#   _physics_process want in System.gd:
 		return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,game_state.SHIP_HEIGHT,z),
-			faction_index, is_player, entry_method, initial_ai]
+			faction_index, is_player, entry_method, initial_ai,ship_name_prefix]
 
 	func get_system_planets(): # -> Node or null
 		var Planets = system.get_node_or_null('Planets')
@@ -539,8 +545,10 @@ class CombatState extends Reference:
 
 	# Spawn all ships from a Fleet node. Intended to be called from FleetInfo
 	func spawn_fleet(fleet_node, faction_index: int, where=null,
-			entry_method = null, initial_ai=combat_engine.ATTACKER_AI) -> Array:
+			entry_method = null, initial_ai=combat_engine.ATTACKER_AI,
+			ship_name_prefix: String = "MISSING") -> Array:
 		assert(fleet_node)
+		assert(ship_name_prefix!="MISSING")
 		if faction_index<0:
 			return []
 		var center: Vector3 = where
@@ -575,7 +583,8 @@ class CombatState extends Reference:
 					result.push_back(spawn_ship(
 						system,design,faction_index,
 						angle,add_radius,randf()*10-5,randf()*10-5,
-						safe_zone,center,false,entry_method,initial_ai))
+						safe_zone,center,false,entry_method,initial_ai,
+						ship_name_prefix))
 				else:
 					push_warning('Fleet '+str(fleet_node.get_path())+
 						' wants to spawn missing design '+str(design_name))

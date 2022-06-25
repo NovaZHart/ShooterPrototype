@@ -184,6 +184,10 @@ void MultiMeshManager::time_passed(real_t delta) {
 
 object_id MultiMeshManager::add_preloaded_mesh(Ref<Mesh> meshref) {
   FAST_PROFILING_FUNCTION;
+  if(!meshref.is_valid()) {
+    Godot::print_warning("WARNING: Null mesh sent to add_preloaded_mesh.",__FUNCTION__,__FILE__,__LINE__);
+    return -1;
+  }
   std::unordered_map<Ref<Mesh>,object_id>::const_iterator it=v_meshref2id.find(meshref);
   if(it==v_meshref2id.end()) {
     object_id id=idgen.next();
@@ -488,10 +492,10 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
     if(mit==v_meshes.end()) {
       mesh_paths_iter pit = visible_content.mesh_paths.find(mesh_id);
       
-      if(pit==visible_content.mesh_paths.end()) {
+      if(pit==visible_content.mesh_paths.end() or pit->second.empty()) {
         auto id_meshref=v_id2meshref.find(mesh_id);
         //preloaded_meshes_iter pmi = visible_content.preloaded_meshes.find(mesh_id);
-        if(id_meshref==v_id2meshref.end()) {
+        if(id_meshref==v_id2meshref.end() or not id_meshref->second.is_valid()) {
           // Should never get here. This means the physics thread
           // generated an effect without sending its mesh resource path.
           pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));

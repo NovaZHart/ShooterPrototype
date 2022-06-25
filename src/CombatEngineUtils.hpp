@@ -239,7 +239,7 @@ namespace godot {
       select_mask(const select_mask &other): mask(other.mask) {}
       template<class I>
       inline real_t operator () (I iter) const {
-        return iter->second.collision_layer & mask;
+        return (iter->second.collision_layer & mask) ? 1e-5 : 0;
       }
     };
 

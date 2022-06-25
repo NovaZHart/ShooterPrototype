@@ -12,9 +12,6 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 theme = ExtResource( 1 )
 script = ExtResource( 2 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 anchor_left = 0.35
@@ -84,8 +81,6 @@ margin_right = 87.5
 margin_bottom = 14.0
 size_flags_horizontal = 2
 size_flags_vertical = 2
-align = 1
-valign = 1
 
 [node name="FontResizer" parent="Title" instance=ExtResource( 4 )]
 default_res_font_size = 24

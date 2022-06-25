@@ -106,7 +106,7 @@ Faction::Faction(Dictionary dict,const unordered_map<object_id,Planet> &planets,
 Faction::~Faction() {}
 
 Salvage::Salvage(Dictionary dict):
-flotsam_mesh_path(get<String>(dict,"flotsam_mesh_path")),
+flotsam_mesh(get<Ref<Mesh>>(dict,"flotsam_mesh")),
 flotsam_scale(get<float>(dict,"flotsam_scale")),
 cargo_name(get<String>(dict,"cargo_name")),
 cargo_count(get<int>(dict,"cargo_count")),
@@ -271,7 +271,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   id(id),
   source(ship.id),
   target(ship.get_target()),
-  mesh_id(multimeshes.add_mesh(salvage->flotsam_mesh_path)),
+  mesh_id(multimeshes.add_preloaded_mesh(salvage->flotsam_mesh)),
   guided(false),
   guidance_uses_velocity(false),
   auto_retarget(false),
@@ -306,7 +306,12 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   possible_hit(false),
   integrate_forces(true),
   salvage(salvage)
-{}
+{
+  if(!salvage->flotsam_mesh.is_valid())
+    Godot::print_error(ship.name+": salvage has no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+  else if(!mesh_id)
+    Godot::print_error(ship.name+": got no mesh_id from flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+}
 
 Projectile::~Projectile() {}
 

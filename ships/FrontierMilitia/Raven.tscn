@@ -1,9 +1,12 @@
-[gd_scene load_steps=7 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ships/FrontierMilitia/Raven.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=2]
+[ext_resource path="res://flotsam/FrontierMilitia/RavenDebrisWing.mesh" type="ArrayMesh" id=3]
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=4]
 [ext_resource path="res://ships/Salvage.tscn" type="PackedScene" id=5]
+[ext_resource path="res://flotsam/FrontierMilitia/RavenDebrisDome.mesh" type="ArrayMesh" id=6]
+[ext_resource path="res://flotsam/FrontierMilitia/RavenDebrisPort.mesh" type="ArrayMesh" id=7]
 
 [sub_resource type="CylinderShape" id=1]
 radius = 1.09
@@ -124,8 +127,26 @@ mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"
 
-[node name="Node" parent="." instance=ExtResource( 5 )]
-flotsam_mesh_path = "res://flotsam/SmallCivilian/SamoyedWing.mesh"
+[node name="RavenDebrisDome" parent="." instance=ExtResource( 5 )]
+flotsam_mesh = ExtResource( 6 )
+flotsam_scale = 0.3
+product_name = "diamonds"
+product_count = 1
+armor_repair = 40
+structure_repair = 100
+spawn_probability = 0.99
+
+[node name="RavenDebrisPort" parent="." instance=ExtResource( 5 )]
+flotsam_mesh = ExtResource( 7 )
+flotsam_scale = 0.3
+product_name = "diamonds"
+product_count = 1
+armor_repair = 40
+structure_repair = 100
+spawn_probability = 0.99
+
+[node name="RavenDebrisWing" parent="." instance=ExtResource( 5 )]
+flotsam_mesh = ExtResource( 3 )
 flotsam_scale = 0.3
 product_name = "diamonds"
 product_count = 1

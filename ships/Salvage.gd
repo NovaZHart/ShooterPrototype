@@ -1,6 +1,6 @@
 extends Node
 
-export var flotsam_mesh_path: String = ""
+export var flotsam_mesh: Mesh
 export var flotsam_scale: float = 1.0
 export var product_name: String = ""
 export var product_count: int = 0
@@ -34,7 +34,7 @@ func pack_stats(ship_node) -> Dictionary:
 
 func make_stats(ship_node) -> Dictionary:
 	var stats = {}
-	stats["flotsam_mesh_path"] = flotsam_mesh_path
+	stats["flotsam_mesh"] = flotsam_mesh
 	stats["flotsam_scale"] = flotsam_scale
 	if get_product():
 		stats["cargo_name"] = product[Commodities.Products.NAME_INDEX]

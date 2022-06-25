@@ -30,9 +30,6 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 theme = ExtResource( 11 )
 script = ExtResource( 2 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="View" type="ViewportContainer" parent="."]
 anchor_right = 1.0

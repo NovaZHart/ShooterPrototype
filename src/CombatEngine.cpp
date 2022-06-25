@@ -729,6 +729,7 @@ void CombatEngine::update_ship_list(const Array &update_request_rid, Array &resu
     if(ship.fate>0 or update_request_id.find(ship.id)!=update_request_id.end())
       result.append(ship.update_status(ships,planets));
     if(ship.fate>0) {
+      ship.collision_layer = 0;
       physics_server->body_set_collision_layer(ship.rid,0);
       physics_server->body_set_state(ship.rid,PhysicsServer::BODY_STATE_CAN_SLEEP,true);
       physics_server->body_set_state(ship.rid,PhysicsServer::BODY_STATE_SLEEPING,true);
@@ -1033,13 +1034,17 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
         int mask=0x7fffffff;
         if(target_selection==PLAYER_TARGET_ENEMY) {
           mask=enemy_masks[ship.faction];
+          Godot::print("Player targets enemy with mask "+str(mask));
         } else if(target_selection==PLAYER_TARGET_FRIEND) {
           mask=friend_masks[ship.faction];
+          Godot::print("Player targets enemy with mask "+str(mask));
         }
         if(target_nearest) {
           target=select_target(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships,false);
+          Godot::print("Player targets nearest flying ship to "+str(ship.position));
         } else {
           target=select_target(target,select_two(select_mask(mask),select_flying()),ships,true);
+          Godot::print("Player targets next flying ship");
         }
       }
       
@@ -2757,6 +2762,10 @@ void CombatEngine::create_flotsam(Ship &ship) {
     Vector3 heading = unit_from_angle(angle);
     v += heading*speed;
     object_id new_id=idgen.next();
+    if(!salvage_ptr->flotsam_mesh.is_valid()) {
+      Godot::print_warning(ship.name+": has a salvage with no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+      return;
+    }
     std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,flotsam_mass,multimeshes));
     real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
     flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
@@ -3157,15 +3166,13 @@ void CombatEngine::add_content() {
   next->effects.reserve(projectiles.size());
   for(auto &it : projectiles) {
     next->effects.emplace_back(it.second);
-    if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end())
-      next->mesh_paths.emplace(it.second.mesh_id,multimeshes.get_mesh_path(it.second.mesh_id));
-    // if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end()) {
-    //   MultiMeshManager::mesh2path_iter m2p = next->mesh_paths.find(it.second.mesh_id);
-    //   if(m2p!=next->mesh_paths.end())
-    //     next->mesh_paths.emplace(it.second.mesh_id,m2p->second);
-    //   else
-    //     Godot::print_warning("No mesh path found for id="+str(it.second.mesh_id));
-    // }
+    if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end()) {
+      String mesh_path = multimeshes.get_mesh_path(it.second.mesh_id);
+      if(mesh_path.empty() and it.second.mesh_id<=0)
+        Godot::print_warning("Mesh "+str(it.second.mesh_id)+" has no mesh path.",__FUNCTION__,__FILE__,__LINE__);
+      else
+        next->mesh_paths.emplace(it.second.mesh_id,mesh_path);
+    }
   }
   // Prepend to linked list:
   content.push_content(next);

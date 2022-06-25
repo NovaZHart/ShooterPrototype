@@ -67,7 +67,7 @@ elif env['platform'] in ('x11', 'linux'):
     if env['target'] in ('debug', 'd'):
         env.Append(CCFLAGS=['-g3', '-Og', '-Wall', '-W', '-Wno-unused-parameter'])
     else:
-        env.Append(CCFLAGS=['-g3', '-O3', '-Wall', '-W'])
+        env.Append(CCFLAGS=['-g3', '-O3', '-Wall', '-W', '-Wno-unused-parameter'])
 
 elif env['platform'] == "windows":
     env['target_path'] += 'win64/'
@@ -111,7 +111,6 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/SphereTool.cpp",
     "src/Starmap.cpp",
     "src/VisualEffects.cpp",
-    "src/OSTools.cpp",
     "src/HUDStatDisplay.cpp",
     "src/ShooterNativeLibrary.cpp"
 ])
