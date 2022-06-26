@@ -24,20 +24,21 @@ var has_astral_gate: bool = false
 var game_state_path: NodePath = NodePath() setget set_game_state_path,get_game_state_path
 var view_shade: ShaderMaterial
 var have_valid_texture: bool = false
-
-func make_ai_info(_delta: float) -> Dictionary:
-	return {
-		'combined_aabb': combined_aabb,
-		'radius': sphere.scale[0],
-		'position': Vector3(translation[0],0,translation[2]),
-		'has_astral_gate': has_astral_gate,
-		'display_name': display_name,
-		'name': name,
-		'rid': get_rid(),
-		'is_a_ship': false,
-		'is_a_planet': true,
-		'is_a_weapon': false,
-	}
+#
+#func make_ai_info(_delta: float) -> Dictionary:
+#	return {
+#		'combined_aabb': combined_aabb,
+#		'radius': sphere.scale[0],
+#		'position': Vector3(translation[0],0,translation[2]),
+#		'has_astral_gate': has_astral_gate,
+#		'display_name': display_name,
+#		'name': name,
+#		'scene_tree_path': get_path(),
+#		'rid': get_rid(),
+#		'is_a_ship': false,
+#		'is_a_planet': true,
+#		'is_a_weapon': false,
+#	}
 
 func get_display_name() -> String: return display_name
 func set_display_name(s: String): display_name=s
@@ -226,6 +227,8 @@ func _process(var _delta) -> void:
 
 func pack_stats() -> Dictionary:
 	var game_data = game_state.systems.get_node_or_null(game_state_path)
+	var scene_tree_path = get_path()
+	assert(scene_tree_path)
 	return {
 		'rotation': Vector3(0,0,0),
 		'position': Vector3(translation.x,0,translation.z),
@@ -235,4 +238,5 @@ func pack_stats() -> Dictionary:
 		'radius': sphere.scale[0],
 		'population': (game_data.total_population() if game_data else 0.0),
 		'industry': (game_data.total_industry() if game_data else 0.0),
+		'scene_tree_path': scene_tree_path,
 	}

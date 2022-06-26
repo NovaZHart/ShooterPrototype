@@ -23,14 +23,15 @@ const default_active_factions: Dictionary = {
 	'raiders': { 'starting_money':1e5, 'income_per_second':1e5, 'fleet_type_weights':{
 		'large_raid':1.0, 'small_raid':1.0 },
 	},
-	'civilians': { 'starting_money':1e6, 'income_per_second':1e6, 'fleet_type_weights':{
-		'small_merchant':1.0, 'large_merchant':1.0 }
+	'civilians': { 'starting_money':1e5, 'income_per_second':2e6, 'fleet_type_weights':{
+		'small_merchant':30.0, 'large_merchant':30.0 }
 	},
 }
 
 const default_faction_goals: Array = [
 	{ 'faction_name':'police','target_faction':'raiders','action':'patrol' },
 	{ 'faction_name':'civilians','target_faction':'raiders','action':'arriving_merchant' },
+	{ 'faction_name':'civilians','target_faction':'raiders','action':'departing_merchant' },
 	{ 'faction_name':'raiders','target_faction':'civilians','action':'raid' },
 ]
 

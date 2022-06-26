@@ -254,12 +254,14 @@ namespace godot {
       const float radius;
       float goal_success, spawn_desire;
       Vector3 suggested_spawn_point;
+      NodePath suggested_spawn_path;
       static goal_action_t action_enum_for_string(String string_goal);
       static object_id id_for_rid(const RID &rid,const rid2id_t &rid2id);
       inline void clear() {
         goal_success = 0.0f;
         spawn_desire = -std::numeric_limits<float>::infinity();
         suggested_spawn_point = Vector3(0.0f,0.0f,0.0f);
+        suggested_spawn_path = NodePath();
       }
       FactionGoal(Dictionary dict,const std::unordered_map<object_id,Planet> &planets,
                   const rid2id_t &rid2id);
@@ -423,6 +425,7 @@ namespace godot {
       const Vector3 rotation, position;
       const Transform transform;
       const String name;
+      const NodePath scene_tree_path;
       const RID rid;
       const real_t radius;
       const float population, industry;

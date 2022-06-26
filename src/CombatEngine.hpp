@@ -218,6 +218,7 @@ namespace godot {
     CE::planets_iter choose_arriving_merchant_goal_target(CE::Ship &ship);
     CE::planets_iter choose_arriving_merchant_action(CE::Ship &ship);
     void arriving_merchant_ai(CE::Ship &ship);
+    void departing_merchant_ai(CE::Ship &ship);
     void opportunistic_firing(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);
     void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;

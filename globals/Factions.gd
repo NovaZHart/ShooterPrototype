@@ -120,6 +120,7 @@ class Faction extends simple_tree.SimpleNode:
 				push_warning('Ignoring goal with invalid faction "'+str(target_faction)+'": '+str(goal))
 				continue
 			var target_path: NodePath = goal.get('target_location',NodePath())
+			var scene_tree_path: NodePath = NodePath()
 			var spawn_point: Vector3 = Vector3(0,0,0)
 			var target_rid: RID = RID()
 			if target_path:
@@ -135,6 +136,7 @@ class Faction extends simple_tree.SimpleNode:
 				else:
 					target_rid = spawned_planet.get_rid()
 					spawn_point = spawned_planet.position()
+					scene_tree_path = spawned_planet.get_path()
 			faction_state.goals.append({
 				'action':goal.get('action','patrol'),
 				'target_faction':target_faction,
@@ -143,6 +145,7 @@ class Faction extends simple_tree.SimpleNode:
 				'weight':max(0.0,float(goal.get('weight',DEFAULT_GOAL_WEIGHT))),
 				'goal_status':0.0,
 				'suggested_spawn_point':spawn_point,
+				'scene_tree_path':scene_tree_path,
 			})
 
 	func get_affinity(other_faction):
@@ -210,15 +213,18 @@ class FactionState extends Reference:
 	func update_from_native(_combat_state: CombatState,data: Dictionary):
 		var recouped = data.get("recouped_resources",0.0)
 		resources_available += recouped
-		var goal_status: PoolRealArray = data['goal_status']
-		var spawn_desire: PoolRealArray = data['spawn_desire']
-		var suggested_spawn_points: PoolVector3Array = data['suggested_spawn_point']
+		var goal_status: Array = data['goal_status']
+		var spawn_desire: Array = data['spawn_desire']
+		var suggested_spawn_points: Array = data['suggested_spawn_point']
+		var scene_tree_paths: Array = data['suggested_spawn_path']
 		var igoal = -1
 		for goal in goals:
 			igoal += 1
 			goal['goal_status'] = goal_status[igoal]
 			goal['spawn_desire'] = spawn_desire[igoal]
 			goal['suggested_spawn_point'] = suggested_spawn_points[igoal]
+			goal['scene_tree_path'] = scene_tree_paths[igoal]
+			assert(goal['scene_tree_path'])
 
 	# Given an amount of time that has passed (<=1 hour), update money and available fleets.
 	func process_space(delta):
@@ -231,6 +237,9 @@ class FactionState extends Reference:
 	func spawn_one_fleet(combat_state,only_if_available: bool) -> Array:
 		if resources_available<min_fleet_cost:
 			return [] # There are no fleets we can purchase now.
+		
+		var fac = 333
+		var sfac=str(fac)
 		
 		var max_tries = max_available_fleets
 		var fleets_to_try: Array
@@ -247,7 +256,7 @@ class FactionState extends Reference:
 				if i==1 or weight>best_weight:
 					best_weight = weight
 					fleet_index = i
-			fleets_to_try = [ available_fleets[fleet_index] ]
+			fleets_to_try = available_fleets.duplicate(false) # [ available_fleets[fleet_index] ]
 			max_tries = 1
 		
 		# Get combat statistics for this team
@@ -258,6 +267,8 @@ class FactionState extends Reference:
 		if ship_count>3:
 			var threats = combat_state.faction_threats(faction_index)
 			if threats['my_threat'] > 1.5*threats['enemy_threat']:
+				if faction_index==fac:
+					print('Faction '+sfac+' is too strong to spawn fleets.')
 				return []
 		
 		# Keep trying to spawn a fleet until we hit max_tries
@@ -268,16 +279,31 @@ class FactionState extends Reference:
 			else:
 				fleet = next_fleet(null)
 			
+			if faction_index==fac:
+				print('Faction '+sfac+' is considering fleet '+str(fleet['fleet']))
+			
 			# Can we spawn this fleet?
 			if not fleet['cost']:
-				continue # Error: fleet has no cost.
+				push_warning('ignoring fleet '+str(fleet['fleet'])+' which has no cost')
+				if fleet_index>=0:
+					available_fleets.remove(fleet_index)
+				return [] # Error: fleet has no cost. Try again next time.
 			var fleet_name = fleet['fleet']
 			var fleet_node = game_state.fleets.get_child_with_name(fleet_name)
 			if not fleet_node:
-				continue # Error: fleet does not exist.
+				push_warning('ignoring fleet '+str(fleet['fleet'])+' which has no node')
+				if fleet_index>=0:
+					available_fleets.remove(fleet_index)
+				return [] # Error: fleet has no node. Try again next time.
 			if fleet['cost'] > resources_available:
+				if faction_index==fac:
+					print('faction '+sfac+' cannot spawn fleet '+str(fleet['fleet'])+' because cost '+
+						str(fleet['cost'])+'>'+str(resources_available))
 				continue # Can't afford the fleet.
 			if not combat_state.can_spawn_fleet(faction_index,fleet):
+				if faction_index==fac:
+					print('faction '+sfac+' cannot spawn fleet '+str(fleet['fleet'])
+						+' because can_spawn_fleet returned false.')
 				continue # Can't spawn; we hit some system or game ship limit.
 			
 			# Pay for the fleet:
@@ -287,23 +313,42 @@ class FactionState extends Reference:
 			var goal = choose_random_goal()
 			var entry_method = combat_engine.ENTRY_FROM_RIFT
 			var ai_type = combat_engine.PATROL_SHIP_AI
+			var center = goal.get('scene_tree_path',null)
+			
 			if goal['action'] == 'patrol' and randf()>0.7:
 				entry_method = combat_engine.ENTRY_FROM_ORBIT
 			elif goal['action'] == 'raid':
 				ai_type = combat_engine.RAIDER_AI
 			elif goal['action'] == 'arriving_merchant':
 				ai_type = combat_engine.ARRIVING_MERCHANT_AI
+			elif goal['action'] == 'departing_merchant':
+				ai_type = combat_engine.DEPARTING_MERCHANT_AI
+				entry_method = combat_engine.ENTRY_FROM_ORBIT
 
 			# Success! Remove this fleet from those available:
 			if fleet_index>=0:
 				available_fleets.remove(fleet_index)
 			
 			# Forward the request for this fleet to spawn.
+			if faction_index==fac:
+				print('faction '+sfac+' is spawning a fleet')
+			if entry_method==combat_engine.ENTRY_FROM_ORBIT:
+				center = goal.get('scene_tree_path',null)
+				assert(center)
+			if not center:
+				if entry_method==combat_engine.ENTRY_FROM_ORBIT:
+					push_warning('Trying to spawn a fleet from orbit but the goal has no scene tree path')
+				center = goal['suggested_spawn_point']
 			return combat_state.spawn_fleet(fleet_node,faction_index,
-				goal['suggested_spawn_point'],entry_method,ai_type,ship_name_prefix)
+				center,entry_method,ai_type,ship_name_prefix)
 		
 		# Could not spawn fleets this turn.
+		if faction_index==fac:
+			print('faction '+sfac+' failed to spawn fleets this turn')
 		return []
+
+	func decide_merchant_planet():
+		return Vector3(0,0,0) # FIXME
 
 	func make_fleets_available(delta):
 		var fleet = next_fleet(delta)
@@ -547,14 +592,16 @@ class CombatState extends Reference:
 	func spawn_fleet(fleet_node, faction_index: int, where=null,
 			entry_method = null, initial_ai=combat_engine.ATTACKER_AI,
 			ship_name_prefix: String = "MISSING") -> Array:
+		print('Faction '+str(faction_index)+' is spawning fleet '+str(fleet_node.get_name())+' at '+str(where))
 		assert(fleet_node)
 		assert(ship_name_prefix!="MISSING")
 		if faction_index<0:
 			return []
-		var center: Vector3 = where
-		var planets: Array = get_system_planets().get_children()
-		var add_radius = 100*randf()*randf()
+		var center = null
+		var add_radius = null
 		var safe_zone = 25
+		var rand_halfwidth = 10
+		var fleet_angle = null
 		if immediate_entry:
 			entry_method = combat_engine.ENTRY_COMPLETE
 		elif entry_method == null:
@@ -562,27 +609,41 @@ class CombatState extends Reference:
 				entry_method = combat_engine.ENTRY_FROM_RIFT
 			else:
 				entry_method = combat_engine.ENTRY_FROM_RIFT_STATIONARY
-		if system_info and combat_engine.ENTRY_FROM_ORBIT==entry_method and planets:
-			if not center:
-				var planet: Spatial = planets[randi()%len(planets)]
+		if where is NodePath:
+			var planet = system.get_node_or_null(where)
+			if planet:
 				center = planet.translation
-				add_radius *= planet.get_radius()/100
-			safe_zone = 0
-		elif combat_engine.ENTRY_FROM_RIFT!=entry_method and planets and not center:
-			var planet: Spatial = planets[randi()%len(planets)]
-			center = planet.translation
-		if not center:
+				if entry_method==combat_engine.ENTRY_FROM_ORBIT:
+					add_radius = randf()
+					add_radius = 1.0 - add_radius*add_radius*0.9
+					safe_zone = 0
+					rand_halfwidth = 1
+			else:
+				push_warning('no planet at path "'+str(where)+'"')
+		elif where is Vector3:
+			center = where
+		if center==null:
 			center = Vector3(0,0,0)
+			add_radius = 250*randf()
+			fleet_angle = randf()*2*PI
+		if add_radius == null:
+			add_radius = randf()
+			add_radius = 100*add_radius*add_radius
+			fleet_angle = randf()*2*PI
 		var result: Array = Array()
-		var angle = randf()*2*PI
 		for design_name in fleet_node.get_designs():
 			var num_ships = int(fleet_node.spawn_count_for(design_name))
 			for _n in range(num_ships):
 				var design = game_state.ship_designs.get_node_or_null(design_name)
 				if design:
+					var angle = fleet_angle
+					if angle==null:
+						angle=randf()*2*PI
+					var rand_x = rand_halfwidth*(randf()*2-1)
+					var rand_z = rand_halfwidth*(randf()*2-1)
 					result.push_back(spawn_ship(
 						system,design,faction_index,
-						angle,add_radius,randf()*10-5,randf()*10-5,
+						angle,add_radius,rand_x,rand_z,
 						safe_zone,center,false,entry_method,initial_ai,
 						ship_name_prefix))
 				else:

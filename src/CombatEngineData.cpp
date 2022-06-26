@@ -45,24 +45,28 @@ FactionGoal::FactionGoal(Dictionary dict,const unordered_map<object_id,Planet> &
 {
   if(target_object_id>=0) {
     planets_const_iter pit = planets.find(target_object_id);
-    if(pit!=planets.end())
+    if(pit!=planets.end()) {
       suggested_spawn_point = pit->second.position;
+      suggested_spawn_path = pit->second.scene_tree_path;
+    }
   }
 }
 
 FactionGoal::~FactionGoal() {}
 
 void Faction::make_state_for_gdscript(Dictionary &factions) {
-  Array goal_status, spawn_desire, suggested_spawn_point;
+  Array goal_status, spawn_desire, suggested_spawn_point, suggested_spawn_path;
   for(auto &goal : goals) {
     goal_status.append(static_cast<real_t>(goal.goal_success));
     spawn_desire.append(static_cast<real_t>(goal.spawn_desire));
     suggested_spawn_point.append(goal.suggested_spawn_point);
+    suggested_spawn_path.append(goal.suggested_spawn_path);
   }
   Dictionary result;
   result["goal_status"] = goal_status;
   result["spawn_desire"] = spawn_desire;
   result["suggested_spawn_point"] = suggested_spawn_point;
+  result["suggested_spawn_path"] = suggested_spawn_path;
 
   // Reset the recouped resources accumulator when reporting back.
   result["recouped_resources"] = recouped_resources;
@@ -282,7 +286,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   turn_rate(0),
   always_drag(true),
   mass(mass),
-  drag(1),
+  drag(.2),
   thrust(0),
   lifetime(salvage->spawn_duration),
   initial_velocity(velocity.length()),
@@ -432,12 +436,16 @@ Planet::Planet(Dictionary dict,object_id id):
   position(get<Vector3>(dict,"position")),
   transform(get<Transform>(dict,"transform")),
   name(get<String>(dict,"name")),
+  scene_tree_path(get<NodePath>(dict,"scene_tree_path")),
   rid(get<RID>(dict,"rid")),
   radius(get<real_t>(dict,"radius")),
   population(get<real_t>(dict,"population")),
   industry(get<real_t>(dict,"industry")),
   goal_data()
-{}
+{
+  if(scene_tree_path.is_empty())
+    Godot::print_error(name+": planet has no scene tree path",__FUNCTION__,__FILE__,__LINE__);
+}
 
 Planet::~Planet()
 {}

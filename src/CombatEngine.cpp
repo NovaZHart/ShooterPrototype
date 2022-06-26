@@ -583,6 +583,7 @@ void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) 
   
   const Planet &planet = p_planet->second;
   goal.suggested_spawn_point = planet.position;
+  goal.suggested_spawn_path = planet.scene_tree_path;
   if(max_desire==min_desire)
     goal.spawn_desire = 0.5;
   else {
@@ -938,11 +939,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
       case PATROL_SHIP_AI: patrol_ship_ai(ship); return;
       case RAIDER_AI: raider_ai(ship); return;
       case ARRIVING_MERCHANT_AI: arriving_merchant_ai(ship); return;
-      case DEPARTING_MERCHANT_AI: {
-        if(!rift_ai(ship))
-          opportunistic_firing(ship);
-        return;
-      }
+      case DEPARTING_MERCHANT_AI: departing_merchant_ai(ship); return;
       default: attacker_ai(ship); return;
       }
 
@@ -1867,6 +1864,46 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
     opportunistic_firing(ship);
 }
 
+void CombatEngine::departing_merchant_ai(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+  if(ship.immobile)
+    return;
+
+  // If it is time to decide on our next action, ponder it.
+
+  if(ship.ai_flags-=DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4) {
+    ship.ticks_since_ai_change=0;
+    if(ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3)
+      ship.ai_flags = DECIDED_TO_RIFT;
+    else {
+      planets_iter target_ptr = planets.find(ship.goal_target);
+      if(target_ptr==planets.end()) {
+        ship.goal_target = select_target<>(-1,select_nearest(ship.position),planets,false);
+        target_ptr = planets.find(ship.goal_target);
+      }
+      if(target_ptr!=planets.end() and distsq(target_ptr->second.position,ship.position)>200*200)
+        ship.ai_flags = DECIDED_TO_RIFT;
+      else {
+        update_near_objects_using_ship_locations(ship);
+        make_threat_vector(ship,0.5);
+        real_t threat_threshold = ship.threat/10;
+        bool should_evade = (ship.threat_vector.length_squared() > threat_threshold*threat_threshold);
+        ship.ai_flags = should_evade ? DECIDED_TO_FLEE : DECIDED_TO_RIFT;
+      }
+    }
+  }
+
+  if(ship.ai_flags==DECIDED_TO_FLEE) {
+    evade(ship);
+    opportunistic_firing(ship);
+    return;
+  } else {
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
+    return;
+  }
+}
+
 
 void CombatEngine::opportunistic_firing(Ship &ship) {
   FAST_PROFILING_FUNCTION;
@@ -2756,7 +2793,7 @@ void CombatEngine::create_flotsam(Ship &ship) {
   for(auto & salvage_ptr : ship.salvage) {
     Vector3 v = ship.linear_velocity;
     real_t flotsam_mass = 10.0f;
-    real_t speed = min(ship.explosion_impulse/flotsam_mass,30.0f);
+    real_t speed = 50.0; //clamp(ship.explosion_impulse/flotsam_mass,10.0f,40.0f);
     speed = speed*(1+ship.rand.randf())/2;
     real_t angle = ship.rand.rand_angle();
     Vector3 heading = unit_from_angle(angle);
