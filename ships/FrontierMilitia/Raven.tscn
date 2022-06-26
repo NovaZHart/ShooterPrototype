@@ -33,6 +33,7 @@ base_explosion_radius = 4.0
 base_explosion_impulse = 800.0
 base_max_cargo = 35
 override_size = Vector3( 2.6, 0, 3.6 )
+flotsam_meshes = [ ExtResource( 6 ), ExtResource( 7 ), ExtResource( 3 ) ]
 cargo_web_add_radius = 5.0
 
 [node name="Body" type="MeshInstance" parent="."]

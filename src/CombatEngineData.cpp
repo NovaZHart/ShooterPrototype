@@ -117,6 +117,7 @@ cargo_count(get<int>(dict,"cargo_count")),
 cargo_unit_mass(get<real_t>(dict,"cargo_unit_mass")),
 armor_repair(get<real_t>(dict,"armor_repair")),
 structure_repair(get<real_t>(dict,"structure_repair")),
+fuel(get<real_t>(dict,"fuel")),
 spawn_duration(get<real_t>(dict,"spawn_duration")),
 grab_radius(get<real_t>(dict,"grab_radius"))
 {}

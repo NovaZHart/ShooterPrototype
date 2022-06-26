@@ -49,6 +49,7 @@ var ship_designs
 var fleets
 var ui
 var factions
+var flotsam
 
 const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
 
@@ -338,6 +339,7 @@ func load_universe():
 	ship_designs = universe.ship_designs
 	systems = universe.systems
 	fleets = universe.fleets
+	flotsam = universe.flotsam
 	ui = universe.ui
 	factions = universe.factions
 	

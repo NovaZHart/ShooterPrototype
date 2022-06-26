@@ -232,6 +232,28 @@ func TreeItem_child_count_at_least(item: TreeItem,min_children: int):
 			scan = scan.get_next()
 	return false
 
+func mesh_radius(mesh: Mesh) -> float:
+	if not mesh:
+		return 0.0
+	var aabb: AABB = mesh.get_aabb()
+	var x = abs(aabb.position.x)+abs(aabb.size.x)
+	var z = abs(aabb.position.z)+abs(aabb.size.z)
+	return sqrt(x*x+z*z)
+
+func dict_random_element_by_weight(dict: Dictionary,keys=null):
+	if not keys:
+		keys = dict.keys()
+	var n = len(keys)
+	if not n:
+		return null
+	var accum: Array = Array()
+	accum.resize(n+1)
+	accum[0] = 0.0
+	for i in range(n):
+		accum[i+1] = accum[i] + abs(dict.get(keys[i],0.0)+0.0)
+	var there = min(n-1,accum.bsearch(randf()*accum[n]))
+	return keys[there]
+
 func ship_max_speed(ship_stats,mass=null) -> float:
 	if mass==null:
 		mass = ship_stats.get('mass',null)

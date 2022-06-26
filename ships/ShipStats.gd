@@ -52,6 +52,15 @@ export var base_power: float = -1
 
 export var ai_type: int = 0 setget set_ai_type
 
+export var flotsam: Dictionary = {
+	'diamonds':2,
+	'transport_barge':5,
+	'medical_supplies':12,
+	'invalid_product':10,
+	'intoxicants':8,
+	'scrap_metal':30,
+}
+export var flotsam_meshes: Array = []
 export var cargo_puff: Mesh = preload('res://effects/meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
@@ -95,22 +104,64 @@ class SortByPriority:
 	static func by_priority(a,b):
 		return a.get("spawn_priority",50)>b.get("spawn_priority",50)
 
-func select_salvage():
-	combined_stats["salvage"] = select_salvage_from(combined_stats["salvage"])
-
-func select_salvage_from(possibilities: Array) -> Array:
-	return Array(possibilities) # FIXME: REMOVE
-	var selected: Array = []
-	var seen: Dictionary = {}
-	for sal in possibilities:
-		var path = sal.get("path",null)
-		if path and seen.has(path):
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
+func test_new_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
+	if not flotsam_meshes or not flotsam:
+		return result
+	var keys_left: Array
+	for mesh in flotsam_meshes:
+		if not keys_left:
+			keys_left = flotsam.keys()
+		var selected_key = utils.dict_random_element_by_weight(flotsam,keys_left)
+		if flotsam[selected_key]<=0:
+			keys_left.remove(selected_key)
+		var flotsam_node = game_state.universe.flotsam.get_child_with_name(selected_key)
+		if not flotsam_node:
+			push_warning('No flotsam exists with name '+str(selected_key))
 			continue
-		if randf()<=sal.get("spawn_probability",-1):
-			if path:
-				seen[path]=1
-			selected.append(Array(sal))
-	return selected
+		var product = flotsam_node.random_product()
+		if not product:
+			product=['',0,0,0,0]
+		result.append({
+			'flotsam_mesh': mesh,
+			'flotsam_scale': 1.0,
+			'cargo_name': product[Commodities.Products.NAME_INDEX],
+			'cargo_count': product[Commodities.Products.QUANTITY_INDEX],
+			'cargo_unit_mass': product[Commodities.Products.MASS_INDEX],
+			'armor_repair': flotsam_node.armor_repair*combined_stats.get('max_armor',2000),
+			'structure_repair': flotsam_node.structure_repair,
+			'fuel': flotsam_node.fuel*combined_stats.get('max_fuel',20),
+			"spawn_duration": combat_engine.SALVAGE_TIME_LIMIT,
+			'grab_radius': utils.mesh_radius(mesh),
+		})
+
+func select_salvage():
+	var results: Array = []
+	for d in combined_stats.get('flotsam_data',[]):
+		test_new_salvage(results,d[0],d[1])
+#	print('Salvage test results:')
+#	for stat in results:
+#		print('    '+str(stat['flotsam_mesh'].resource_path)+" armor="+str(stat['armor_repair'])
+#			+' fuel='+str(stat['fuel'])+' cargo='+str(stat['cargo_count'])+'x'+str(stat['cargo_name'])
+#			+'@'+str(stat['cargo_unit_mass'])+'kg')
+#	print('    (end results)')
+	#combined_stats["salvage"] = select_salvage_from(combined_stats["salvage"])
+	combined_stats['salvage'] = results
+
+#func select_salvage_from(possibilities: Array) -> Array:
+#	return Array(possibilities) # FIXME: REMOVE
+#	var selected: Array = []
+#	var seen: Dictionary = {}
+#	for sal in possibilities:
+#		var path = sal.get("path",null)
+#		if path and seen.has(path):
+#			continue
+#		if randf()<=sal.get("spawn_probability",-1):
+#			if path:
+#				seen[path]=1
+#			selected.append(Array(sal))
+#	return selected
 
 func restore_transforms():
 	for key in transforms:
@@ -390,6 +441,9 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	# Used for text generation, not CombatEngine:
 	stats['display_name']=ship_display_name
 	stats['help_page']=help_page
+	
+	stats['flotsam_data'] = [ [flotsam_meshes,flotsam] ]
+	
 	skipped_runtime_stats = skip_runtime_stats
 
 func update_stats():

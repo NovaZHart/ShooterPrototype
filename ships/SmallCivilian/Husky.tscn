@@ -25,6 +25,7 @@ base_drag = 0.7
 base_turn_drag = 0.37
 armor_inverse_density = 140.0
 override_size = Vector3( 2.2, 0, 2 )
+flotsam_meshes = [ ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ]
 cargo_web_add_radius = 5.0
 cargo_web_strength = 2400.0
 

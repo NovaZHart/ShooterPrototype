@@ -2930,6 +2930,8 @@ void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
       ship.structure = min(double(ship.max_structure),ship.structure+salvage.structure_repair);
     if(salvage.armor_repair>0)
       ship.armor = min(double(ship.max_armor),ship.armor+salvage.armor_repair);
+    if(salvage.fuel>0)
+      ship.fuel = min(ship.max_fuel,ship.fuel+salvage.fuel);
     if(salvage.cargo_unit_mass>0 and salvage.cargo_count>0) {
       float unit_mass = salvage.cargo_unit_mass/1000; // Convert kg->tons
       float old_mass = ship.cargo_mass;

@@ -25,6 +25,7 @@ base_drag = 1.3
 base_turn_drag = 0.45
 base_max_cargo = 40
 override_size = Vector3( 1.5, 0, 2.1 )
+flotsam_meshes = [ ExtResource( 5 ), ExtResource( 6 ) ]
 cargo_web_add_radius = 4.0
 
 [node name="Hull" type="MeshInstance" parent="."]

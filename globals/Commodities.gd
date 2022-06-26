@@ -1190,12 +1190,12 @@ func commodity_data_tables() -> ManyProducts:
 		[ 'suvar_skilled_slave', 5, 30000, 1000, 200, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
 		[ 'suvar_child_male', 1, 35000, 1000, 150, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
 		[ 'suvar_breeding_male', 1, 65000, 1000, 150, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
-		[ 'spider_slave', 1, 40000, 1000, 1500, 'slaves/common', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
 		
 		# Exceptionally rare slaves, only available at select locations
 		[ 'suvar_prime_slave', 1, 950000, 1000, 200, 'slaves/rare', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
-		[ 'ancient_spider_slave', 1, 260000, 1000, 1500, 'slaves/rare', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
-		[ 'exotic_human_slave', 10, 110000, 1000, 200, 'slaves/rare', 'slaves/terran/suvar', 'live/sentient', 'live/sentient/human' ],
+		[ 'spider_slave', 1, 1240000, 1000, 1500, 'slaves/rare', 'slaves/terran/spider', 'live/sentient', 'live/sentient/human' ],
+		[ 'ancient_spider_slave', 1, 4600000, 1000, 1500, 'slaves/rare', 'slaves/terran/spider', 'live/sentient', 'live/sentient/human' ],
+		[ 'exotic_human_slave', 10, 110000, 1000, 200, 'slaves/rare', 'slaves/terran/human', 'live/sentient', 'live/sentient/human' ],
 		
 		# Highly-illegal items made from killing a sentient being
 		[ 'human_skin_paper', 10, 1000, 10000, 1, 'dead/sentient/terran/human' ],

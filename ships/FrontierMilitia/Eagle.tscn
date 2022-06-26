@@ -25,6 +25,7 @@ base_fuel = 20.0
 base_drag = 1.7
 base_turn_drag = 0.5
 base_max_cargo = 200
+flotsam_meshes = [ ExtResource( 7 ), ExtResource( 4 ), ExtResource( 6 ) ]
 cargo_web_add_radius = 6.0
 
 [node name="MeshInstance" type="MeshInstance" parent="."]

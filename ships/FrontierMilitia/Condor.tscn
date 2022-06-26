@@ -30,6 +30,7 @@ base_drag = 1.8
 base_turn_drag = 0.45
 base_max_cargo = 200
 armor_inverse_density = 250.0
+flotsam_meshes = [ ExtResource( 7 ), ExtResource( 4 ), ExtResource( 6 ), ExtResource( 8 ) ]
 cargo_web_add_radius = 5.0
 cargo_web_strength = 4000.0
 

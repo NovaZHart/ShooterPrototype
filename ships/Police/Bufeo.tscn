@@ -27,6 +27,7 @@ base_turn_drag = 0.4
 base_max_cargo = 17
 armor_inverse_density = 300.0
 override_size = Vector3( 2.3, 0, 3.4 )
+flotsam_meshes = [ ExtResource( 7 ), ExtResource( 6 ), ExtResource( 5 ) ]
 
 [node name="MeshInstance" type="MeshInstance" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0557118, 0, 0 )

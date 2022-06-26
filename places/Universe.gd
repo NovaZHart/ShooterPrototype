@@ -9,6 +9,7 @@ var ship_designs: simple_tree.SimpleNode
 var fleets: simple_tree.SimpleNode
 var factions: Factions.FactionList
 var ui: simple_tree.SimpleNode
+var flotsam: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 var cached_parts: Dictionary
@@ -43,6 +44,9 @@ func _init():
 	
 	factions = Factions.FactionList.new()
 	mandatory_add_child(factions,'factions')
+	
+	flotsam = simple_tree.SimpleNode.new()
+	mandatory_add_child(flotsam,'flotsam')
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -205,6 +209,84 @@ static func decode_MultiMount(v):
 static func encode_MultiMount(m: MultiMount):
 	return [ 'MultiMount', encode_children(m) ]
 
+class Flotsam extends simple_tree.SimpleNode:
+	var display_name: String
+	var products: Array = []
+	#var flotsam_mesh: Mesh
+	var armor_repair: float = 0.0
+	var structure_repair: float = 0.0
+	var fuel: float = 0.0
+	const default_grab_radius: float = 0.25
+	#const default_flotsam_scale: float = 1.0
+	var grab_radius: float = default_grab_radius
+	#var flotsam_scale: float = default_flotsam_scale
+	
+	func _init(content: Dictionary):
+		display_name=content.get('display_name','(Unnamed)')
+		armor_repair=content.get('armor_repair',0.0)
+		structure_repair=content.get('structure_repair',0.0)
+		fuel=content.get('fuel',0.0)
+		grab_radius=content.get('grab_radius',default_grab_radius)
+		#flotsam_scale=content.get('flotsam_scale',default_flotsam_scale)
+		#var flotsam_mesh_path=content.get('flotsam_mesh_path')
+		#if flotsam_mesh_path:
+		#	flotsam_mesh = load(flotsam_mesh_path)
+		var prod = content.get('products')
+		if prod is Dictionary:
+			for product_name in prod:
+				var count = prod[product_name]
+				if not count or count<0:
+					continue
+				var id = Commodities.commodities.by_name.get(product_name,-1)
+				if id>=0:
+					var product = Commodities.commodities.all[id].duplicate(false)
+					product[Commodities.Products.QUANTITY_INDEX] = count
+					products.append(product)
+					continue
+				id = Commodities.ship_parts.by_name.get(product_name,-1)
+				if id>=0:
+					var product = Commodities.ship_parts.all[id].duplicate(false)
+					product[Commodities.Products.QUANTITY_INDEX] = count
+					products.append(product)
+					continue
+	
+	func random_product():
+		if not products:
+			return null
+		else:
+			var product: Array = products[randi()%products.size()]
+			var count: int = int(ceil(product[Commodities.Products.QUANTITY_INDEX]))
+			if count>1:
+				count = 1+randi()%(count-1)
+			product[Commodities.Products.QUANTITY_INDEX] = count
+			return product
+	
+	func is_flotsam(): pass # For type detection. Never called, just needs to exist.
+
+static func decode_Flotsam(var p,var _key=null):
+	if not p is Array or p.size()<2 or not p[1] is Dictionary:
+		push_error('Invalid flotsam data '+str(p))
+		return null
+	return Flotsam.new(p[1])
+
+# warning-ignore:shadowed_variable
+static func encode_Flotsam(flotsam: Flotsam):
+	var result = {}
+	if flotsam.display_name:
+		result['display_name']=flotsam.display_name
+	if flotsam.armor_repair:
+		result['armor_repair']=flotsam.armor_repair
+	if flotsam.structure_repair:
+		result['structure_repair']=flotsam.structure_repair
+	if flotsam.fuel:
+		result['fuel']=flotsam.fuel
+	#if flotsam.flotsam_mesh:
+	#	result['flotsam_mesh_path']=flotsam.flotsam_mesh.resource_path
+	if flotsam.grab_radius!=flotsam.default_grab_radius:
+		result['grab_radius']=flotsam.grab_radius
+	#if flotsam.flotsam_scale!=flotsam.default_flotsam_scale:
+	#	result['flotsam_scale']=flotsam.flotsam_scale
+	return ['Flotsam',result]
 
 func get_part(scene: PackedScene):
 	var start = OS.get_ticks_msec()
@@ -688,7 +770,7 @@ func load_places_from_json(prefix: String) -> bool:
 	assert(children_.has('ship_designs'))
 	assert(children_.has('fleets'))
 	var all_encoded: Array = []
-	var input_keys: Array = [ "factions", "fleets", "ship_designs", "systems", "ui" ]
+	var input_keys: Array = [ "factions", "fleets", "ship_designs", "systems", "ui", "flotsam" ]
 	var context = prefix+"*.json"
 	for input_key in input_keys:
 		var filename: String = prefix+str(input_key)+".json"
@@ -716,6 +798,7 @@ func decode_places(json_strings,context) -> bool:
 	assert(children_.has('systems'))
 	assert(children_.has('fleets'))
 	assert(children_.has('ship_designs'))
+	assert(children_.has('flotsam'))
 	var content: Dictionary = {}
 	for json_string_context in json_strings:
 		var json_string: String = json_string_context[0]
@@ -735,6 +818,13 @@ func decode_places(json_strings,context) -> bool:
 				push_warning(file_context+': error: key "'+str(key)+'" was specified in two game data files!')
 			content[key] = entry[key]
 	links.clear()
+
+	var content_flotsam = content['flotsam']
+	if content_flotsam:
+		content_flotsam.set_name('flotsam')
+		var a = add_child(content_flotsam)
+		assert(a)
+		flotsam = get_child_with_name('flotsam')
 
 	var content_designs = content['ship_designs']
 	if content_designs or not content_designs is simple_tree.SimpleNode:
@@ -851,6 +941,8 @@ static func decode_helper(what,key=null):
 			return SystemData.new(key,decode_helper(what[1]))
 		elif what[0] == 'ProductsNode':
 			return decode_ProductsNode(what)
+		elif what[0] == 'Flotsam':
+			return decode_Flotsam(what)
 		elif what[0] == 'SimpleNode':
 			if len(what)>1:
 				var result = simple_tree.SimpleNode.new()
@@ -911,6 +1003,8 @@ static func encode_helper(what):
 		return encode_Mounted(what)
 	elif what is ShipDesign:
 		return encode_ShipDesign(what)
+	elif what is Flotsam:
+		return encode_Flotsam(what)
 	elif what is Commodities.ProductsNode:
 		return encode_ProductsNode(what)
 	elif what is Resource:

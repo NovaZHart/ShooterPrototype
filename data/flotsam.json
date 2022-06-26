@@ -1,0 +1,106 @@
+{
+    "flotsam": [
+        "SimpleNode",
+        {
+
+            "diamonds": [
+                "Flotsam", {
+                    "display_name": "Diamonds",
+                    "armor_repair": 0.025,
+                    "fuel": 0.05,
+                    "products": {
+                        "diamonds": 1.0
+                    }
+                }
+            ],
+
+            "transport_barge": [
+                "Flotsam", {
+                    "display_name": "Transport Barge",
+                    "armor_repair": 0.005,
+                    "fuel": 0.02,
+                    "products": {
+                        "transport_barge": 1.0
+                    }
+                }
+            ],
+
+            "medical_supplies": [
+                "Flotsam", {
+                    "display_name": "Medical Supplies",
+                    "armor_repair": 0.005,
+                    "fuel": 0.02,
+                    "products": {
+                        "surgical_supplies": 30.0,
+                        "emergency_medical_kits": 30.0,
+                        "baby_powder": 30.0,
+                        "vitamins": 30.0,
+                        "claw_trimmers": 30.0,
+                    }
+                }
+            ],
+
+            "invalid_product": [
+                "Flotsam", {
+                    "display_name": "Invalid Product",
+                    "armor_repair": 0.005,
+                    "fuel": 0.02,
+                    "products": {
+                        "product_that_does_not_exist": 30.0
+                    }
+                }
+            ],
+
+            "no_product": [
+                "Flotsam", {
+                    "display_name": "No Product",
+                    "armor_repair": 0.07,
+                    "fuel": 0.15
+                }
+            ],
+
+            "intoxicants": [
+                "Flotsam", {
+                    "display_name": "Intoxicants",
+                    "armor_repair": 0.009,
+                    "fuel": 0.08,
+                    "products": {
+                        "catnip": 30.0,
+                        "spider_glitter": 30.0,
+                        "fine_wine": 30.0,
+                        "beer": 30.0,
+                        "magic_crystals": 30.0,
+                        "peppy_pints": 30.0
+                    }
+                }
+            ],
+
+            "scrap_metal": [
+                "Flotsam", {
+                    "display_name": "Scrap Metal",
+                    "armor_repair": 0.01,
+                    "fuel": 0.01,
+                    "products": {
+                        "iron": 50.0,
+                        "copper": 50.0,
+                        "nickel": 50.0,
+                        "aluminum": 50.0,
+                        "zinc": 50.0,
+                        "lead": 50.0,
+                        "cobalt": 50.0,
+                        "titanium": 50.0,
+                        "silver": 50.0,
+                        "gold": 50.0,
+                        "platinum": 50.0,
+                        "iridium": 50.0,
+                        "rhodium": 50.0,
+                        "palladium": 50.0,
+                        "ruthenium": 50.0,
+                        "plutonium": 50.0
+                    }
+                }
+            ]
+
+        }
+    ]
+}

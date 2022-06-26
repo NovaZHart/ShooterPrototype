@@ -347,6 +347,7 @@ namespace godot {
       const float cargo_unit_mass;
       const float armor_repair;
       const float structure_repair;
+      const float fuel;
       const float spawn_duration;
       const float grab_radius;
 
