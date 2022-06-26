@@ -48,7 +48,7 @@
             "Fleet",
             "One Monopod (Missiles)",
             {
-                "one_pod_missile": 1
+                "one_pod_missiles": 1
             }
         ],
         "one_bipod_lasers_missiles_solo": [
