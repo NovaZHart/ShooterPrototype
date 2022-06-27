@@ -150,14 +150,6 @@ func select_multimount(mouse_pos: Vector2, space_pos: Vector3,
 			update_hover(collider)
 		return true
 	return false
-#
-#
-#func in_top_dialog(node,top) -> bool:
-#	if node==null:
-#		return false
-#	if node==top:
-#		return true
-#	return in_top_dialog(node.get_parent(),top)
 
 func _input(event):
 	var scene = get_tree().current_scene

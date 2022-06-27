@@ -24,21 +24,6 @@ var has_astral_gate: bool = false
 var game_state_path: NodePath = NodePath() setget set_game_state_path,get_game_state_path
 var view_shade: ShaderMaterial
 var have_valid_texture: bool = false
-#
-#func make_ai_info(_delta: float) -> Dictionary:
-#	return {
-#		'combined_aabb': combined_aabb,
-#		'radius': sphere.scale[0],
-#		'position': Vector3(translation[0],0,translation[2]),
-#		'has_astral_gate': has_astral_gate,
-#		'display_name': display_name,
-#		'name': name,
-#		'scene_tree_path': get_path(),
-#		'rid': get_rid(),
-#		'is_a_ship': false,
-#		'is_a_planet': true,
-#		'is_a_weapon': false,
-#	}
 
 func get_display_name() -> String: return display_name
 func set_display_name(s: String): display_name=s
@@ -103,16 +88,11 @@ func choose_texture_size(x,y) -> int:
 
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
-# warning-ignore:narrowing_conversion
-
-	#var xyz_image = 
-	
 	var xyz: ImageTexture
 	if not sphere:
+# warning-ignore:narrowing_conversion
 		var subs: int = clamp(subdivisions/4.0,6,28) # choose_subdivisions(subdivisions)
-		#print('Requested ',subdivisions,' sphere subdivisions; using ',subs)
 		u_size = choose_texture_size(texture_size,texture_size)
-		#print('Requested texture size ',texture_size,'; using ',u_size)
 # warning-ignore:integer_division
 		v_size = u_size/2
 	
@@ -200,30 +180,13 @@ func _process(var _delta) -> void:
 		return # child no longer exists?
 
 	var tex = get_planet_texture()
-#	if tex == null:
-#		printerr('Planet texture is null!?')
-#		return # should never get here in _process()
-#
-#	if tick==1:
-#		if not have_valid_texture:
-#			sphere.material_override.set_shader_param('precalculated',tex)
-#		return
-#
-#	var data = get_tex_data(tex)
-#	if data == null:
-#		printerr('Planet texture data is null!?')
-#		return # should never here here either
-#
-#	var newtex = copy_data_to_image(data)
 	sphere.material_override.set_shader_param('precalculated',tex)
-	#tex.flags = Texture.FLAG_FILTER
 	have_valid_texture = true
 	
 	view=null
 	view_shade=null
 	
 	set_process(false)
-	#$View.remove_child($View/Content)
 
 func pack_stats() -> Dictionary:
 	var game_data = game_state.systems.get_node_or_null(game_state_path)

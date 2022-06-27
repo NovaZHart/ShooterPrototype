@@ -140,28 +140,7 @@ func select_salvage():
 	var results: Array = []
 	for d in combined_stats.get('flotsam_data',[]):
 		test_new_salvage(results,d[0],d[1])
-#	print('Salvage test results:')
-#	for stat in results:
-#		print('    '+str(stat['flotsam_mesh'].resource_path)+" armor="+str(stat['armor_repair'])
-#			+' fuel='+str(stat['fuel'])+' cargo='+str(stat['cargo_count'])+'x'+str(stat['cargo_name'])
-#			+'@'+str(stat['cargo_unit_mass'])+'kg')
-#	print('    (end results)')
-	#combined_stats["salvage"] = select_salvage_from(combined_stats["salvage"])
 	combined_stats['salvage'] = results
-
-#func select_salvage_from(possibilities: Array) -> Array:
-#	return Array(possibilities) # FIXME: REMOVE
-#	var selected: Array = []
-#	var seen: Dictionary = {}
-#	for sal in possibilities:
-#		var path = sal.get("path",null)
-#		if path and seen.has(path):
-#			continue
-#		if randf()<=sal.get("spawn_probability",-1):
-#			if path:
-#				seen[path]=1
-#			selected.append(Array(sal))
-#	return selected
 
 func restore_transforms():
 	for key in transforms:
@@ -178,12 +157,6 @@ func set_entry_method(method: int, _quiet: bool = false, skip_runtime_stats: boo
 
 func set_faction_index(new_faction_index: int):
 	faction_index = new_faction_index
-
-#func set_team(new_team: int):
-#	team=new_team
-#	enemy_team=1-new_team
-#	collision_layer = 1<<team
-#	enemy_mask = 1<<enemy_team
 
 func get_combined_aabb(node: Node = self) -> AABB:
 	if override_size.length()>1e-5:

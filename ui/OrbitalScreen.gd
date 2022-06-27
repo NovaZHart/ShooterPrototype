@@ -14,7 +14,6 @@ var current_service: NodePath
 signal jump_complete
 
 func _ready():
-	Player.dump_fruit_count('Top of OrbitalScreen.ready')
 	combat_engine.clear_visuals()
 	var system_name = Player.system.display_name
 	planet_info = Player.get_space_object_or_null()
@@ -41,12 +40,6 @@ func _ready():
 	if planet_info.services:
 		_discard = Player.ship_combat_stats.erase('armor')
 		_discard = Player.ship_combat_stats.erase('fuel')
-	Player.dump_fruit_count('Bottom of OrbitalScreen.ready')
-#	old_msaa = get_viewport().msaa
-#	get_viewport().msaa = Viewport.MSAA_4X
-
-#func _exit_tree():
-#	get_viewport().msaa = old_msaa
 
 func force_viewport_size():
 	$View.rect_size=get_viewport().size

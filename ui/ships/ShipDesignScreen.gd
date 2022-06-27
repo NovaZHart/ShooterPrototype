@@ -137,7 +137,7 @@ func _input(event):
 		var json = JSON.print(encoded,'  ')
 		OS.set_clipboard(json)
 
-func make_edited_ship_design() -> simple_tree.SimpleNode:
+func make_edited_ship_design():
 	return $All/Show/Grid/Ship.make_design(design_id,design_display_name)
 
 func exit_to_orbit():

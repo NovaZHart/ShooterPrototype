@@ -65,11 +65,6 @@ func load_actions(path=input_path):
 		push_error(path+':'+str(parsed.error_line)+': '+parsed.error_string)
 		return null
 	return parsed.result
-#	var decoded = game_state.universe.decode_helper(parsed.result)
-#	if not decoded or not decoded is Dictionary:
-#		push_error('Could not understand input key data in "'+path+'"')
-#		return null
-#	return decoded
 
 func _enter_tree():
 	default_actions = encode_actions()

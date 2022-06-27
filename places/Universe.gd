@@ -212,14 +212,12 @@ static func encode_MultiMount(m: MultiMount):
 class Flotsam extends simple_tree.SimpleNode:
 	var display_name: String
 	var products: Array = []
-	#var flotsam_mesh: Mesh
 	var armor_repair: float = 0.0
 	var structure_repair: float = 0.0
 	var fuel: float = 0.0
+	var cargo: float = 0.0
 	const default_grab_radius: float = 0.25
-	#const default_flotsam_scale: float = 1.0
 	var grab_radius: float = default_grab_radius
-	#var flotsam_scale: float = default_flotsam_scale
 	
 	func _init(content: Dictionary):
 		display_name=content.get('display_name','(Unnamed)')
@@ -227,6 +225,7 @@ class Flotsam extends simple_tree.SimpleNode:
 		structure_repair=content.get('structure_repair',0.0)
 		fuel=content.get('fuel',0.0)
 		grab_radius=content.get('grab_radius',default_grab_radius)
+		cargo = content.get('cargo',0.0)
 		#flotsam_scale=content.get('flotsam_scale',default_flotsam_scale)
 		#var flotsam_mesh_path=content.get('flotsam_mesh_path')
 		#if flotsam_mesh_path:

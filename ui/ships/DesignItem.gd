@@ -91,12 +91,6 @@ func set_design(new_path: NodePath) -> bool:
 	design_size = max(1.0,max(stats['aabb'].size.x,stats['aabb'].size.z))
 	$View/Port.add_child(ship)
 	var _discard = set_ship_layers()
-#	var layers = regular_layer
-#	if selected:
-#		layers |= highlight_layer
-#	if disabled:
-#		layers |= disabled_layer
-#	set_layers(ship,layers)
 	sync_sizes()
 	$View/Port/Annotation.update()
 	old_path=new_path

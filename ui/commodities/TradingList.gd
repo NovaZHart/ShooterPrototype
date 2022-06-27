@@ -55,7 +55,6 @@ func set_column_indices():
 	columns = len(column_ids)
 
 func _ready():
-	Player.dump_fruit_count('TradingList '+str(name)+'._ready top')
 	set_column_indices()
 	if market_type == Commodities.MARKET_TYPE_COMMODITIES:
 		all_products = Commodities.commodities
@@ -84,7 +83,6 @@ func _ready():
 	for c in [ PROFIT_COLUMN, PRICE_COLUMN, MASS_COLUMN, MINE_COLUMN, BUTTON_COLUMN, HERE_COLUMN ]:
 		if c>=0:
 			set_column_expand(c,false)
-	Player.dump_fruit_count('TradingList '+str(name)+'._ready bottom')
 
 func clear_list():
 	utils.Tree_clear(self)
@@ -93,16 +91,8 @@ func clear_list():
 	if here:
 		here.clear()
 		product_names=[]
-	show_fruit('after clear_list')
-
-func show_fruit(why,only_commodities=false):
-	if only_commodities and not market_type == Commodities.MARKET_TYPE_COMMODITIES:
-		return
-	Player.dump_fruit_count('TradingList '+str(name)+' '+str(why))
 
 func populate_list(all_known_products,products_here,ship_design):
-	show_fruit('populate_list top')
-	
 	# Make sure we have no items in the tree:
 	clear_list()
 	
@@ -115,7 +105,6 @@ func populate_list(all_known_products,products_here,ship_design):
 	var now_cargo = int(round(mine.get_mass()))
 	ship.queue_free()
 	emit_signal('cargo_mass_changed',now_cargo,max_cargo)
-	show_fruit('populate_list after cargo_mass_changed')
 	
 	# Record the list of items for sale:
 	here = products_here
@@ -132,13 +121,11 @@ func populate_list(all_known_products,products_here,ship_design):
 	names.sort()
 	for product_name in names:
 		populate_product_named(product_name,root)
-	show_fruit('populate_list after tree-making loop')
 	
 	# Sort the products ascending by name:
 	product_names = here.by_name.keys()
 	product_names.sort()
 	apply_last_sort_method()
-	show_fruit('populate_list bottom')
 
 func populate_product_named(product_name,root):
 		var norm_id: int = all_products.by_name.get(product_name,-1)

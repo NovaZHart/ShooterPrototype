@@ -57,12 +57,6 @@ var regular_layer: int = 0
 var disabled_layer: int = 0
 var highlight_layer: int = 0
 
-# func _exit_tree():
-# 	print(str(get_path())+": ItemPanel is leaving tree, freeing all items")
-# 	items.queue_free()
-# 	camera.queue_free()
-# 	scrollbar.queue_free()
-
 func update_hover(what):
 	var what_path = what.get_path() if what else NodePath()
 	if what_path!=last_hover:

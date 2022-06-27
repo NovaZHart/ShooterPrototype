@@ -136,13 +136,6 @@ func get_textures_from_cache():
 	if bg_cache and bg_cache.bg_color==plasma_color and bg_cache.bg_seed==plasma_seed \
 			and bg_cache.hyperspace==hyperspace and bg_cache.bg_texture:
 		bg_okay = true
-#	elif bg_cache and bg_cache.bg_texture:
-#		print('background mismatch:')
-#		print('bg_color '+str(plasma_color)+' vs. '+str(bg_cache.bg_color))
-#		print('bg_seed '+str(plasma_seed)+' vs. '+str(bg_cache.bg_seed))
-#		print('hyperspace '+str(hyperspace)+' vs. '+str(bg_cache.hyperspace))
-#	else:
-#		print('no background cached')
 
 	if not hyperspace:
 		var sf_cache = game_state.get_starfield_cache()
@@ -150,18 +143,10 @@ func get_textures_from_cache():
 		if sf_cache and sf_cache.bg_seed==starfield_seed and sf_cache.hyperspace==hyperspace \
 				and sf_cache.bg_texture:
 			sf_okay = true
-#		elif sf_cache:
-#			print('starfield mismatch:')
-#			print('bg_seed '+str(starfield_seed)+' vs. '+str(sf_cache.bg_seed))
-#			print('hyperspace '+str(hyperspace)+' vs. '+str(sf_cache.hyperspace))
-#		else:
-#			print('no starfield cached')
 		if sf_okay and bg_okay:
-#			print('get starfield from cache')
 			cached_starfield_texture = sf_cache.bg_texture
 	
 	if bg_okay and sf_okay:
-#		print('get background from cache')
 		cached_background_texture = bg_cache.bg_texture
 
 func _ready():

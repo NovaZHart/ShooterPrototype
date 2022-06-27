@@ -203,20 +203,6 @@ func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
 	
 	return result
 
-# warning-ignore:unused_argument
-func dump_fruit_count(why):
-#	var cargo = player_ship_design.cargo
-#	if not cargo:
-#		print('FRUIT '+str(why)+': null cargo')
-#		return
-#	var fruit_mine = cargo.all.get(cargo.by_name.get('fruit',-1),null)
-#	if not fruit_mine:
-#		print('FRUIT '+str(why)+': no fruit product entry in cargo')
-#		return
-#	var I = Commodities.Products.QUANTITY_INDEX
-#	var count_mine = fruit_mine[I] if fruit_mine else '(none)'
-#	print('FRUIT '+str(why)+': player cargo count is '+str(count_mine))
-	pass
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']

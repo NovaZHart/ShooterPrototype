@@ -14,6 +14,64 @@
                 }
             ],
 
+            "armor": [
+                "Flotsam", {
+                    "display_name": "Armor Repair",
+                    "armor_repair": 0.15,
+                    "fuel": 0.0,
+                    "products": {}
+                }
+            ],
+
+            "fuel": [
+                "Flotsam", {
+                    "display_name": "Fuel",
+                    "armor_repair": 0.0,
+                    "fuel": 0.2,
+                    "products": {}
+                }
+            ],
+
+            "cargo": [
+                "Flotsam", {
+                    "display_name": "Cargo",
+                    "armor_repair": 0.025,
+                    "fuel": 0.05,
+                    "cargo": 0.1,
+                    "products": {}
+                }
+            ],
+
+            "cargo2": [
+                "Flotsam", {
+                    "display_name": "Cargo",
+                    "armor_repair": 0.025,
+                    "fuel": 0.05,
+                    "cargo": 0.1,
+                    "products": {}
+                }
+            ],
+
+            "cargo3": [
+                "Flotsam", {
+                    "display_name": "Cargo",
+                    "armor_repair": 0.025,
+                    "fuel": 0.05,
+                    "cargo": 0.1,
+                    "products": {}
+                }
+            ],
+
+            "cargo4": [
+                "Flotsam", {
+                    "display_name": "Cargo",
+                    "armor_repair": 0.025,
+                    "fuel": 0.05,
+                    "cargo": 0.1,
+                    "products": {}
+                }
+            ],
+
             "transport_barge": [
                 "Flotsam", {
                     "display_name": "Transport Barge",

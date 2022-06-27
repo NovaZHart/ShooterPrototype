@@ -2,37 +2,8 @@ extends Panel
 
 signal page_selected
 
-#func store_state():
-#	return {
-#		'Info':$Split/Left/Consoles/Info.store_state(),
-#		'Help':$Split/Left/Consoles/Info.store_state()
-#	}
-#
-#func restore_state(state):
-#	if state.has('Info'):
-#		$Split/Left/Consoles/Info.restore_state(state['Info'])
-#	if state.has('Help'):
-#		$Split/Left/Consoles/Help.restore_state(state['Help'])
-#
-#func restore_state_from_universe():
-#	var node = game_state.ui.get_node_or_null('DialogShipPanel')
-#	if node and node.has_method('UIState'):
-#		restore_state(node.ui_state)
-#
-#func store_state_to_universe():
-#	var node = game_state.ui.get_node_or_null('DialogShipPanel')
-#	if node==null:
-#		node = game_state.universe.UIState.new(store_state())
-#		node.name = 'DialogShipPanel'
-#		if not game_state.ui.add_child(node):
-#			push_error('Could not add a DialogShipPanel UIState to game_state.ui')
-#	else:
-#		node.ui_state = store_state()
 
 func _ready():
-#	var state = game_state.universe.get_node_or_null('ui/DialogShipPanel')
-#	if state and state.has_method('is_UIState'):
-#		restore_state(state.ui_state)
 	show_ship_stats()
 	$Split/Ship/Viewport.own_world=true
 

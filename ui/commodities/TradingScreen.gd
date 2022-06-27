@@ -7,12 +7,6 @@ var hover_name = null # : String or null
 var trading_list: Tree
 var is_updating: int = 0
 
-func _init():
-	Player.dump_fruit_count('TradingScreen init')
-
-func _enter_tree():
-	Player.dump_fruit_count('TradingScreen enter tree')
-
 func _ready():
 	var planet_info = Player.get_space_object_or_null()
 	if planet_info==null:
@@ -29,9 +23,7 @@ func _ready():
 #
 	$All/Right/Location.text = planet_info.full_display_name()
 	
-	Player.dump_fruit_count('TradingScreen._ready before products_for_sale')
 	var sale_info = Player.products_for_sale_at(planet_info.get_path())
-	Player.dump_fruit_count('TradingScreen._ready after products_for_sale')
 	
 	var commodities_here = sale_info.get('commodities',null)
 	var ship_parts_here = sale_info.get('ship_parts',null)
@@ -95,7 +87,6 @@ func _not_ready():
 		commodities_here = Commodities.products_for_market(Commodities.commodities,
 			commodities_for_sale,cargo,planet_info,'price_products')
 	$All/Left/Bottom/Tabs/Market.populate_list(commodities_here,Player.player_ship_design)
-	$All/Left/Bottom/Tabs/Market.show_fruit('After Market populate_list')
 	
 	Player.age_off_ship_parts()
 	var ship_parts_for_sale = Player.update_ship_parts_at(Player.player_location)
@@ -111,7 +102,6 @@ func _not_ready():
 			ship_parts_for_sale,cargo,planet_info,'price_ship_parts')
 		$All/Left/Bottom/Tabs/ShipParts.populate_list(
 			ship_parts_here,Player.player_ship_design)
-		$All/Left/Bottom/Tabs/Market.show_fruit('After ShipParts populate_list')
 	
 	var unknown_player_cargo = Player.player_ship_design.cargo.duplicate(true)
 	unknown_player_cargo.remove_named_products(commodities_here)
@@ -121,7 +111,6 @@ func _not_ready():
 		print('unknown cargo: '+str(unknown_player_cargo.by_name.keys()))
 		$All/Left/Bottom/Tabs/Unknown.populate_list(
 			Player.player_ship_design.cargo.duplicate(true),Player.player_ship_design,planet_info)
-		$All/Left/Bottom/Tabs/Market.show_fruit('After Unknown populate_list')
 	else:
 		var unknown = $All/Left/Bottom/Tabs/Unknown
 		$All/Left/Bottom/Tabs.remove_child(unknown)
@@ -133,13 +122,9 @@ func _not_ready():
 	$All/Right/Content/Top/BuySell.add_item('Buying Map',0)
 	$All/Right/Content/Top/BuySell.add_item('Selling Map',1)
 	_on_Content_resized()
-	$All/Left/Bottom/Tabs/Market.show_fruit('Bottom of ready')
 
 func exit_to_orbit():
-	$All/Left/Bottom/Tabs/Market.show_fruit('exit_to_orbit')
 	var design = Player.player_ship_design
-#	design.cargo = $All/Left/Bottom/Tabs/Market.mine.copy()
-#	design.cargo.add_products($All/Left/Bottom/Tabs/ShipParts.mine,null,null,null)
 	var message = null
 	if Player.money<0:
 		message = "You don't have enough money to buy your ship!"
@@ -164,18 +149,14 @@ func exit_to_orbit():
 		panel.queue_free()
 		if result:
 			design.cargo.remove_empty_products()
-			$All/Left/Bottom/Tabs/Market.show_fruit('after removing empty products')
 			$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
 			$All/Left/Bottom/Tabs/ShipParts.here.remove_empty_products()
-			$All/Left/Bottom/Tabs/Market.show_fruit('just before scene change')
 			game_state.call_deferred('change_scene',result)
 		else:
 			return # do not change scene
 	design.cargo.remove_empty_products()
-	$All/Left/Bottom/Tabs/Market.show_fruit('after removing empty products')
 	$All/Left/Bottom/Tabs/Market.here.remove_empty_products()
 	$All/Left/Bottom/Tabs/ShipParts.here.remove_empty_products()
-	$All/Left/Bottom/Tabs/Market.show_fruit('just before OrbitScreen scene change')
 	game_state.change_scene('res://ui/OrbitalScreen.tscn')
 
 func _input(event):

@@ -57,13 +57,6 @@ const outfit_borders = [	       # U D L R
 const box_scale: float = 0.135
 const item_scale: float = 0.125
 
-# func _exit_tree():
-# 	print(str(get_path())+": InventorySlot is leaving tree, freeing all items")
-# 	var children = get_children();
-# 	for child in children:
-# 		remove_child(child)
-# 		child.queue_free()
-
 func get_mount_name() -> String:
 	return mount_name if mount_name else name
 

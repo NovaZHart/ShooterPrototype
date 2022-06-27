@@ -153,7 +153,7 @@ class ShipEditorStub extends Panel:
 		return true
 	func set_edited_ship_design(_design: simple_tree.SimpleNode) -> bool:
 		return true
-	func make_edited_ship_design() -> simple_tree.SimpleNode:
+	func make_edited_ship_design():
 		return simple_tree.SimpleNode.new()
 	func cancel_drag() -> bool:
 		return true

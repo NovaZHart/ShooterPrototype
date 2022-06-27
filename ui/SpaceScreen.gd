@@ -160,16 +160,11 @@ func make_player_orders(_delta: float) -> Dictionary:
 	return result
 
 func _enter_tree() -> void:
-#	if mesh_loader.load_meshes() != OK:
-#		printerr('Could not start the mesh loader.')
 	combat_engine.change_worlds(get_viewport().world)
 	var system = Player.system
 	if system:
 		combat_engine.set_system_stats(false,system.system_fuel_recharge,
 			system.center_fuel_recharge)
-
-#func _exit_tree() -> void:
-#	mesh_loader.wait_for_thread()
 
 func _process(delta: float) -> void:
 	#warning-ignore:narrowing_conversion
@@ -187,12 +182,8 @@ func _process(delta: float) -> void:
 		if death_start<0:
 			death_start = tick
 		if tick-death_start>300 or Input.is_action_just_released('ui_select'):
-#			if get_tree().current_scene.has_method('change_scene'):
 			Player.go_back_to_departure()
 			game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
-#			else:
-#				var _discard = get_tree().change_scene('res://ui/OrbitalScreen.tscn')
-			#yield(get_tree(),'idle_frame')
 
 
 # Called when the node enters the scene tree for the first time.
