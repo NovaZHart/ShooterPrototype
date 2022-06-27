@@ -148,8 +148,8 @@ func make_random_cargo(cargo_hold_spawn_fraction,from,_quiet: bool = false, skip
 		product = product.duplicate()
 		product[Commodities.Products.QUANTITY_INDEX] = max_items
 		results.append(product)
-		print('   '+str(product[Commodities.Products.NAME_INDEX])+
-			' '+str(max_items)+' @ '+str(unit_cost)+' & '+str(unit_mass)+'kg')
+#		print('   '+str(product[Commodities.Products.NAME_INDEX])+
+#			' '+str(max_items)+' @ '+str(unit_cost)+' & '+str(unit_mass)+'kg')
 		ids_remaining.pop_at(index)
 	
 	if results:
@@ -191,7 +191,7 @@ func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 			"spawn_duration": combat_engine.SALVAGE_TIME_LIMIT,
 			'grab_radius': utils.mesh_radius(mesh),
 		}
-		print(get_name()+' flotsam '+str(mesh.resource_path)+' product '+str(entry['cargo_name'])+' * '+str(entry['cargo_count'])+' @ '+str(entry['cargo_unit_mass']))
+#		print(get_name()+' flotsam '+str(mesh.resource_path)+' product '+str(entry['cargo_name'])+' * '+str(entry['cargo_count'])+' @ '+str(entry['cargo_unit_mass']))
 		result.append(entry)
 
 func select_salvage():
@@ -310,7 +310,7 @@ func restore_combat_stats(stats: Dictionary, skip_runtime_stats: bool = false, _
 	for varname in [ 'fuel', 'shields', 'armor', 'structure', 'energy', 'heat' ]:
 		if stats.has(varname) and stats.has('max_'+varname):
 			combined_stats[varname] = clamp(stats[varname],0.0,stats['max_'+varname])
-			print('restored '+str(varname)+' to '+str(combined_stats[varname]))
+#			print('restored '+str(varname)+' to '+str(combined_stats[varname]))
 
 func set_stats(stats: Dictionary) -> void:
 	combined_stats = stats.duplicate(true)

@@ -600,9 +600,9 @@ func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3
 	if not ship.cargo and cargo_hold_spawn_fraction>0:
 		if not commodities:
 			push_warning('Tried to spawn a ship with cargo, but no commodities to pick from')
-		print(ship.name+': making random cargo')
+#		print(ship.name+': making random cargo')
 		ship.make_random_cargo(cargo_hold_spawn_fraction,commodities)
-		print('    ... end cargo list')
+#		print('    ... end cargo list')
 	ship.select_salvage()
 #	var duration = OS.get_ticks_msec()-start
 #	if duration>1:
