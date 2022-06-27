@@ -7,7 +7,7 @@
               "police": 1,
               "civilians": 1,
               "flotsam": -1
-      }, {}, [ "Color", 0.2, 1.0, 0.2, 1.0 ] ],
+      }, {}, [ "Color", 0.9, 0.4, 0.9, 1.0 ] ],
       "flotsam": [ "Faction", "flotsam", [
           "Array"
       ], 0.0, {
@@ -196,7 +196,7 @@
               "civilians": -2,
               "initial_player_faction": -0.5,
               "flotsam": -1
-          }, {}, [ "Color", 0.9, 0.4, 0.9, 1.0 ] ],
+          }, {}, [ "Color", 0.4, 0.8, 0.0, 1.0 ] ],
       "civilians": [ "Faction", "Civilians", [
             "Array",
             {
