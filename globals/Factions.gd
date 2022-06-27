@@ -238,7 +238,7 @@ class FactionState extends Reference:
 		if resources_available<min_fleet_cost:
 			return [] # There are no fleets we can purchase now.
 		
-		var fac = 3
+		var fac = 333
 		var sfac=str(fac)
 		
 		var fleet_index: int = 0 # index in available_fleets to try spawning
@@ -369,13 +369,13 @@ class FactionState extends Reference:
 	func make_fleets_available(delta):
 		var fleet = next_fleet(delta)
 		if fleet:
-			print('Faction '+str(faction_index)+" fleet "+str(fleet['fleet'])+" is available")
+#			print('Faction '+str(faction_index)+" fleet "+str(fleet['fleet'])+" is available")
 			available_fleets.push_back(fleet)
 			if len(available_fleets)>max_available_fleets:
 				# We hit the limit for maximum fleets available, so
 				# the fleet waiting the longest leaves.
-				var removed = available_fleets.pop_front()
-				print('Faction '+str(faction_index)+" fleet "+str(removed['fleet'])+" is no longer available")
+				var _removed = available_fleets.pop_front()
+#				print('Faction '+str(faction_index)+" fleet "+str(removed['fleet'])+" is no longer available")
 
 	# Given an amount of time that has passed, decide what fleet may be spawned.
 	# If delta is null, then a fleet is always returned (if there is one)
@@ -604,7 +604,7 @@ class CombatState extends Reference:
 	func spawn_fleet(fleet_node, faction_index: int, where=null,
 			entry_method = null, initial_ai=combat_engine.ATTACKER_AI,
 			ship_name_prefix: String = "MISSING",cargo_hold_fill_fraction: float = 0.0) -> Array:
-		print('Faction '+str(faction_index)+' is spawning fleet '+str(fleet_node.get_name())+' at '+str(where))
+#		print('Faction '+str(faction_index)+' is spawning fleet '+str(fleet_node.get_name())+' at '+str(where))
 		assert(fleet_node)
 		assert(ship_name_prefix!="MISSING")
 		if faction_index<0:

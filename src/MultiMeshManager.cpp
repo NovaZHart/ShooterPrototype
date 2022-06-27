@@ -44,7 +44,7 @@ VisibleEffect::VisibleEffect(const Projectile &projectile):
   rotation_y(projectile.rotation.y),
   scale_x(projectile.direct_fire ? projectile.scale : 0),
   scale_z(0),
-  y(godot::CE::projectile_height),
+  y(projectile.visual_height),
   center(projectile.position.x,projectile.position.z),
   half_size(projectile.direct_fire ? Vector2(projectile.scale,projectile.scale) : Vector2(0.1f,0.1f)),
   data(),

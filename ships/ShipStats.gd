@@ -53,12 +53,12 @@ export var base_power: float = -1
 export var ai_type: int = 0 setget set_ai_type
 
 export var flotsam: Dictionary = {
-#	'diamonds':2,
-#	'transport_barge':5,
-#	'medical_supplies':12,
-#	'invalid_product':10,
-#	'intoxicants':8,
-#	'scrap_metal':30,
+	'diamonds':2,
+	'transport_barge':5,
+	'medical_supplies':12,
+	'invalid_product':10,
+	'intoxicants':8,
+	'scrap_metal':30,
 	'cargo':25,
 	'cargo2':25,
 	'cargo3':25,
@@ -135,7 +135,7 @@ func make_random_cargo(cargo_hold_spawn_fraction,from,_quiet: bool = false, skip
 			continue
 		var unit_cost = product[Commodities.Products.VALUE_INDEX]
 		var unit_mass = product[Commodities.Products.MASS_INDEX]
-		var available = product[Commodities.Products.QUANTITY_INDEX]
+		var available = product[Commodities.Products.QUANTITY_INDEX]*100
 		if unit_cost<=0 or unit_mass<=0 or available<=0:
 			ids_remaining.pop_at(index)
 			continue
@@ -185,6 +185,7 @@ func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 			'cargo_name': product[Commodities.Products.NAME_INDEX],
 			'cargo_count': product[Commodities.Products.QUANTITY_INDEX],
 			'cargo_unit_mass': product[Commodities.Products.MASS_INDEX],
+			'cargo_unit_value': product[Commodities.Products.VALUE_INDEX],
 			'armor_repair': flotsam_node.armor_repair*combined_stats.get('max_armor',2000),
 			'structure_repair': flotsam_node.structure_repair,
 			'fuel': flotsam_node.fuel*combined_stats.get('max_fuel',20),

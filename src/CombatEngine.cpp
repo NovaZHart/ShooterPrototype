@@ -914,7 +914,6 @@ void CombatEngine::ai_step_ship(Ship &ship) {
     factions_const_iter faction_it = factions.find(ship.faction);
     if(faction_it!=factions.end()) {
       ship.shield_ellipse = visual_effects->add_shield_ellipse(ship,ship.aabb,0.1,0.35,faction_it->second.faction_color);
-      Godot::print(ship.name+" has ellipse "+str(ship.shield_ellipse)+" with color "+str(faction_it->second.faction_color));
     } else
       Godot::print_warning(ship.name+": has no faction",__FUNCTION__,__FILE__,__LINE__);
   }
@@ -1031,17 +1030,17 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
         int mask=0x7fffffff;
         if(target_selection==PLAYER_TARGET_ENEMY) {
           mask=enemy_masks[ship.faction];
-          Godot::print("Player targets enemy with mask "+str(mask));
+          //Godot::print("Player targets enemy with mask "+str(mask));
         } else if(target_selection==PLAYER_TARGET_FRIEND) {
           mask=friend_masks[ship.faction];
-          Godot::print("Player targets enemy with mask "+str(mask));
+          //Godot::print("Player targets enemy with mask "+str(mask));
         }
         if(target_nearest) {
           target=select_target(target,select_three(select_mask(mask),select_flying(),select_nearest(ship.position)),ships,false);
-          Godot::print("Player targets nearest flying ship to "+str(ship.position));
+          //Godot::print("Player targets nearest flying ship to "+str(ship.position));
         } else {
           target=select_target(target,select_two(select_mask(mask),select_flying()),ships,true);
-          Godot::print("Player targets next flying ship");
+          //Godot::print("Player targets next flying ship");
         }
       }
       
@@ -1360,17 +1359,24 @@ void CombatEngine::raider_ai(Ship &ship) {
       opportunistic_firing(ship);
     return;
   }
-  
-  ships_iter target_ptr = update_targetting(ship);
-  bool low_health = ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3;
 
-  if(low_health) {
+  ships_iter target_ptr = update_targetting(ship);
+
+  if( (ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3)
+      or
+      ( ship.max_cargo_mass and
+        ( ship.cargo_mass>=ship.max_cargo_mass or ship.salvaged_value>5e3*ship.max_cargo_mass
+          or (ship.cost and ship.salvaged_value>ship.cost*0.5))
+        )
+      ) {
+    // Got enough stuff, so rift away.
     if(!rift_ai(ship))
       opportunistic_firing(ship);
+    
     ship.ai_flags=DECIDED_TO_RIFT;
     return;
   }
-
+  
   bool have_target = target_ptr!=ships.end();
   bool close_to_target = have_target and target_ptr->second.position.distance_squared_to(ship.position)<100*100;
 
@@ -1451,9 +1457,9 @@ void CombatEngine::salvage_ai(Ship &ship) {
 
 bool CombatEngine::should_salvage(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  projectiles_iter it = projectiles.find(ship.salvage_target);
-  if(it!=projectiles.end())
-    return true;
+  // projectiles_iter it = projectiles.find(ship.salvage_target);
+  // if(it!=projectiles.end())
+  //   return true;
 
   if(ship.salvage_timer.active() and !ship.salvage_timer.alarmed())
     return false; 
@@ -1476,7 +1482,7 @@ bool CombatEngine::should_salvage(Ship &ship) {
   real_t best_time=numeric_limits<real_t>::infinity();
   
   for(auto &id : objects_found) {
-    it = projectiles.find(id);
+    projectiles_iter it = projectiles.find(id);
     if(it==projectiles.end()) {
       //Godot::print(ship.name+": projectile "+str(id)+" does not exist.");
       continue;
@@ -1809,8 +1815,10 @@ planets_iter CombatEngine::choose_arriving_merchant_action(Ship &ship) {
     return target_ptr;
   }
   
-  // If we're dying, leave.
-  if(ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3) {
+  // If we're dying, leave. Civilians will stay longer than they should
+  // since they're panicking.
+  if(ship.structure<0.5*ship.max_structure or
+     (!ship.armor and !ship.shields and ship.structure<0.75*ship.max_structure)) {
     ship.ai_flags = DECIDED_TO_RIFT;
     return target_ptr;
   }
@@ -1832,7 +1840,7 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
   planets_iter target_ptr = planets.end();
  
   // If it is time to decide on our next action, ponder it.
-  if(ship.ai_flags-=DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
+  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
     choose_arriving_merchant_action(ship);
 
   if(ship.ai_flags==DECIDED_TO_RIFT) {
@@ -1864,44 +1872,83 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
     opportunistic_firing(ship);
 }
 
+void CombatEngine::decide_departing_merchant_ai_action(Ship &ship) {
+  ship.ticks_since_ai_change=0;
+  if(ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3) {
+    ship.ai_flags = DECIDED_TO_RIFT;
+    return;
+  }
+    
+  planets_iter target_ptr = planets.find(ship.goal_target);
+  if(target_ptr==planets.end()) {
+    ship.goal_target = select_target<>(-1,select_nearest(ship.position),planets,false);
+    target_ptr = planets.find(ship.goal_target);
+  }
+
+  bool is_too_far = false, is_too_close = false;
+
+  if(target_ptr!=planets.end()) {
+    Planet &planet = target_ptr->second;
+    real_t dist2 = distance2(planet.position,ship.position)-ship.radius-planet.radius;
+
+    if(dist2<clamp(2*ship.max_speed,5.0f,15.0f)) // too close to rift away
+      is_too_close=true;
+    else if(dist2>min(150.0f,30*ship.max_speed)) // distance at which to give up and rift
+      is_too_far=true;
+  } else
+    Godot::print_warning(ship.name+": no goal target to leave from in decide_departing_merchant_ai_action",
+                         __FUNCTION__,__FILE__,__LINE__);
+
+  if(is_too_far) {
+    ship.ai_flags = DECIDED_TO_RIFT;
+    return;
+  }
+  
+  update_near_objects_using_ship_locations(ship);
+  make_threat_vector(ship,0.5);
+  real_t threat_threshold = ship.threat/10;
+  bool should_evade = (ship.threat_vector.length_squared() > threat_threshold*threat_threshold);
+  if(should_evade) {
+    ship.ai_flags = DECIDED_TO_FLEE;
+    return;
+  }
+
+  if(is_too_close)
+    ship.ai_flags = DECIDED_TO_WANDER;
+  else
+    ship.ai_flags = DECIDED_TO_RIFT;
+}
+
 void CombatEngine::departing_merchant_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.immobile)
     return;
 
   // If it is time to decide on our next action, ponder it.
+  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
+    decide_departing_merchant_ai_action(ship);
 
-  if(ship.ai_flags-=DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4) {
-    ship.ticks_since_ai_change=0;
-    if(ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3)
-      ship.ai_flags = DECIDED_TO_RIFT;
-    else {
-      planets_iter target_ptr = planets.find(ship.goal_target);
-      if(target_ptr==planets.end()) {
-        ship.goal_target = select_target<>(-1,select_nearest(ship.position),planets,false);
-        target_ptr = planets.find(ship.goal_target);
-      }
-      if(target_ptr!=planets.end() and distsq(target_ptr->second.position,ship.position)>200*200)
-        ship.ai_flags = DECIDED_TO_RIFT;
-      else {
-        update_near_objects_using_ship_locations(ship);
-        make_threat_vector(ship,0.5);
-        real_t threat_threshold = ship.threat/10;
-        bool should_evade = (ship.threat_vector.length_squared() > threat_threshold*threat_threshold);
-        ship.ai_flags = should_evade ? DECIDED_TO_FLEE : DECIDED_TO_RIFT;
-      }
-    }
-  }
-
-  if(ship.ai_flags==DECIDED_TO_FLEE) {
+  if(ship.ai_flags==DECIDED_TO_WANDER) {
+    // We're too close to the planet, so wander away.
+    planets_iter target_ptr = planets.find(ship.goal_target);
+    if(target_ptr != planets.end()) {
+      Planet &planet = target_ptr->second;
+      Vector3 planet_loc = get_position(planet);
+      Vector3 direction = (get_position(ship)-planet_loc).normalized();
+      request_heading(ship,direction);
+      if(dot2(ship.heading,direction)>=0)
+        request_thrust(ship,1,0);
+      else
+        request_thrust(ship,0,1);
+    } else if(rift_ai(ship)) // Departure planet is gone, so just rift away
+      return;
+  } else if(ship.ai_flags==DECIDED_TO_FLEE)
+    // Flee in terror because of nearby threats.
     evade(ship);
-    opportunistic_firing(ship);
-    return;
-  } else {
-    if(!rift_ai(ship))
-      opportunistic_firing(ship);
-    return;
-  }
+  else if(rift_ai(ship))    // Time to rift away.
+      return;
+
+  opportunistic_firing(ship);
 }
 
 
@@ -2941,7 +2988,8 @@ void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
         pickup=salvage.cargo_count;
       ship.cargo_mass = min(original_max_mass,old_mass+pickup*unit_mass);
       // if(ship.cargo_mass != old_mass)
-      //   Godot::print(ship.name+" cargo mass increased from "+str(old_mass)+" to "+str(ship.cargo_mass)+" by picking up "+str(pickup)+" units of "+str(salvage.cargo_name));
+      ship.salvaged_value += pickup*salvage.cargo_unit_value;
+      Godot::print(ship.name+" gained "+str(pickup*unit_mass)+"tn (of "+str(ship.max_cargo_mass)+" max) and "+str(pickup*salvage.cargo_unit_value)+" (tot "+str(ship.salvaged_value)+") by picking up "+str(pickup)+" units of "+str(salvage.cargo_name)+" ship cost "+str(ship.cost));
     }
   }
 }

@@ -89,6 +89,7 @@ namespace godot {
 
     enum visual_layers {
       below_planets=-30,
+      flotsam_height=-7,
       below_ships=-5,
       below_projectiles=25,
       projectile_height=27,
@@ -345,6 +346,7 @@ namespace godot {
       const String cargo_name;
       const int cargo_count;
       const float cargo_unit_mass;
+      const float cargo_unit_value;
       const float armor_repair;
       const float structure_repair;
       const float fuel;
@@ -371,7 +373,7 @@ namespace godot {
       const double max_structure;
       double structure;
       Vector3 position, linear_velocity, rotation, angular_velocity, forces;
-      real_t age, scale;
+      real_t age, scale, visual_height;
       bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
       inline real_t radius() const {
@@ -455,7 +457,7 @@ namespace godot {
     enum fate_t { FATED_TO_EXPLODE=-1, FATED_TO_FLY=0, FATED_TO_DIE=1, FATED_TO_LAND=2, FATED_TO_RIFT=3 };
     enum entry_t { ENTRY_COMPLETE=0, ENTRY_FROM_ORBIT=1, ENTRY_FROM_RIFT=2, ENTRY_FROM_RIFT_STATIONARY=3 };
     enum ship_ai_t { ATTACKER_AI=0, PATROL_SHIP_AI=1, RAIDER_AI=2, ARRIVING_MERCHANT_AI=3, DEPARTING_MERCHANT_AI=4 };
-    enum ai_flags { DECIDED_NOTHING=0, DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=4, DECIDED_TO_SALVAGE=8 };
+    enum ai_flags { DECIDED_NOTHING=0, DECIDED_TO_LAND=1, DECIDED_TO_RIFT=2, DECIDED_TO_FLEE=4, DECIDED_TO_SALVAGE=8, DECIDED_TO_WANDER=16 };
 
     typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
     
@@ -488,7 +490,8 @@ namespace godot {
       const real_t rifting_damage_multiplier, cargo_web_radius, cargo_web_radiussq, cargo_web_strength;
       const Ref<Mesh> cargo_puff_mesh;
       
-      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency, cargo_mass;
+      real_t energy, heat, power, cooling, thrust, reverse_thrust, turning_thrust, efficiency;
+      real_t cargo_mass, salvaged_value;
       real_t forward_thrust_heat, reverse_thrust_heat, forward_thrust_energy, reverse_thrust_energy;
       double thrust_loss;
 
@@ -586,7 +589,7 @@ namespace godot {
       // Determine how much money is recouped when this ship leaves the system alive:
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
-          * (1.0f - std::clamp(tick/(300.0f*ticks_per_second),0.0f,1.0f) );
+          * (1.0f - std::clamp(tick/(300.0f*ticks_per_second),0.0f,1.0f) ) + salvaged_value;
       }
 
       // Update internal state from the physics server:

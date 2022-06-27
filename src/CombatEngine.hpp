@@ -218,6 +218,7 @@ namespace godot {
     CE::planets_iter choose_arriving_merchant_goal_target(CE::Ship &ship);
     CE::planets_iter choose_arriving_merchant_action(CE::Ship &ship);
     void arriving_merchant_ai(CE::Ship &ship);
+    void decide_departing_merchant_ai_action(CE::Ship &ship);
     void departing_merchant_ai(CE::Ship &ship);
     void opportunistic_firing(CE::Ship &ship);
     bool patrol_ai(CE::Ship &ship);

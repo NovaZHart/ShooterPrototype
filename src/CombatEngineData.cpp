@@ -111,16 +111,21 @@ Faction::~Faction() {}
 
 Salvage::Salvage(Dictionary dict):
 flotsam_mesh(get<Ref<Mesh>>(dict,"flotsam_mesh")),
-flotsam_scale(get<float>(dict,"flotsam_scale")),
+flotsam_scale(get<float>(dict,"flotsam_scale",1.0f)),
 cargo_name(get<String>(dict,"cargo_name")),
-cargo_count(get<int>(dict,"cargo_count")),
-cargo_unit_mass(get<real_t>(dict,"cargo_unit_mass")),
-armor_repair(get<real_t>(dict,"armor_repair")),
-structure_repair(get<real_t>(dict,"structure_repair")),
-fuel(get<real_t>(dict,"fuel")),
-spawn_duration(get<real_t>(dict,"spawn_duration")),
-grab_radius(get<real_t>(dict,"grab_radius"))
-{}
+cargo_count(get<int>(dict,"cargo_count",1)),
+cargo_unit_mass(get<real_t>(dict,"cargo_unit_mass",1.0f)),
+cargo_unit_value(get<real_t>(dict,"cargo_unit_value",1.0f)),
+armor_repair(get<real_t>(dict,"armor_repair",0.0f)),
+structure_repair(get<real_t>(dict,"structure_repair",0.0f)),
+fuel(get<real_t>(dict,"fuel",0.0f)),
+spawn_duration(get<real_t>(dict,"spawn_duration",60.0f)),
+grab_radius(get<real_t>(dict,"grab_radius",0.25f))
+{
+  if(cargo_count and cargo_unit_value<=0)
+    Godot::print_warning("Salvageable \""+str(cargo_name)+"\" in flotsam has no value.",
+                   __FUNCTION__,__FILE__,__LINE__);
+}
 Salvage::~Salvage() {}
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object_id alternative_target):
@@ -157,6 +162,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object
   forces(),
   age(0),
   scale(1.0f),
+  visual_height(projectile_height),
   alive(true),
   direct_fire(weapon.direct_fire),
   possible_hit(true),
@@ -218,6 +224,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projec
   forces(),
   age(0),
   scale(scale),
+  visual_height(above_projectiles),
   alive(true),
   direct_fire(true),
   possible_hit(false),
@@ -259,6 +266,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   forces(),
   age(0),
   scale(scale),
+  visual_height(projectile_height),
   alive(true),
   direct_fire(weapon.direct_fire),
   possible_hit(true),
@@ -299,13 +307,14 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   damage_type(DAMAGE_TYPELESS),
   max_structure(0),
   structure(max_structure),
-  position(Vector3(position.x,below_ships,position.z)),
+  position(position),
   linear_velocity(velocity),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
   forces(),
   age(0),
   scale(salvage->flotsam_scale),
+  visual_height(flotsam_height),
   alive(true),
   direct_fire(false),
   possible_hit(false),
@@ -608,6 +617,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   turning_thrust(max_turning_thrust),
   efficiency(1),
   cargo_mass(max(0.0f,get<real_t>(dict,"cargo_mass",0))),
+  salvaged_value(max(0.0f,get<real_t>(dict,"salvaged_value",0))),
   forward_thrust_heat(only_forward_thrust_heat),
   reverse_thrust_heat(only_reverse_thrust_heat),
   forward_thrust_energy(only_forward_thrust_energy),
