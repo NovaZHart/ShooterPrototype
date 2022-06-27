@@ -1,5 +1,10 @@
 extends Node
 
+func _init():
+	var the_seed = OS.get_system_time_msecs()
+	print('Setting random seed to '+str(the_seed))
+	seed(the_seed)
+
 func get_viewport_scale() -> Vector2:
 	var window_size: Vector2 = get_tree().root.size
 	var project_height: int = ProjectSettings.get_setting("display/window/size/height")
