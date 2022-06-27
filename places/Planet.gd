@@ -10,6 +10,7 @@ var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV2.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
+var commodities: Commodities.ManyProducts = Commodities.ManyProducts.new()
 var u_size: int
 var v_size: int
 var tick: int =0

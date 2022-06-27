@@ -49,9 +49,6 @@ var latest_target_info: Dictionary = Dictionary()
 
 var raise_sun: bool = false setget set_raise_sun
 
-var Landiing = preload('res://ui/OrbitalScreen.tscn')
-
-
 var old_target_fps = null
 
 signal view_center_changed          #<-- visual thread
@@ -606,7 +603,8 @@ func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3
 
 func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
-		initial_ai: int, ship_name_prefix) -> void:
+		initial_ai: int, ship_name_prefix, cargo_hold_spawn_fraction: float = 0.0,
+		commodities=null) -> void:
 #	var start: float = OS.get_ticks_msec()
 	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai,ship_name_prefix)
 	if is_player:
@@ -618,6 +616,12 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	else:
 		ship.name = game_state.make_unique_ship_node_name(ship_name_prefix)
 		add_spawned_ship(ship,false)
+		if not ship.cargo and cargo_hold_spawn_fraction>0:
+			if not commodities:
+				push_warning('Tried to spawn a ship with cargo, but no commodities to pick from')
+			print(ship.name+': making random cargo')
+			ship.make_random_cargo(cargo_hold_spawn_fraction,commodities)
+			print('    ... end cargo list')
 		#call_deferred('add_spawned_ship',ship,false)
 #	var duration = OS.get_ticks_msec()-start
 #	if duration>1:

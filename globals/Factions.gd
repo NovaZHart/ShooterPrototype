@@ -314,6 +314,7 @@ class FactionState extends Reference:
 			var entry_method = combat_engine.ENTRY_FROM_RIFT
 			var ai_type = combat_engine.PATROL_SHIP_AI
 			var center = goal.get('scene_tree_path',null)
+			var cargo_hold_fill_fraction: float = 0.0
 			
 			if goal['action'] == 'patrol' and randf()>0.7:
 				entry_method = combat_engine.ENTRY_FROM_ORBIT
@@ -321,9 +322,11 @@ class FactionState extends Reference:
 				ai_type = combat_engine.RAIDER_AI
 			elif goal['action'] == 'arriving_merchant':
 				ai_type = combat_engine.ARRIVING_MERCHANT_AI
+				cargo_hold_fill_fraction = 0.3 + randf()*0.7
 			elif goal['action'] == 'departing_merchant':
 				ai_type = combat_engine.DEPARTING_MERCHANT_AI
 				entry_method = combat_engine.ENTRY_FROM_ORBIT
+				cargo_hold_fill_fraction = 0.3 + randf()*0.7
 
 			# Success! Remove this fleet from those available:
 			if fleet_index>=0:
@@ -340,7 +343,7 @@ class FactionState extends Reference:
 					push_warning('Trying to spawn a fleet from orbit but the goal has no scene tree path')
 				center = goal['suggested_spawn_point']
 			return combat_state.spawn_fleet(fleet_node,faction_index,
-				center,entry_method,ai_type,ship_name_prefix)
+				center,entry_method,ai_type,ship_name_prefix,cargo_hold_fill_fraction)
 		
 		# Could not spawn fleets this turn.
 		if faction_index==fac:
@@ -568,20 +571,22 @@ class CombatState extends Reference:
 			center = planet.translation
 		return spawn_ship(system,Player.player_ship_design,
 			0,angle,add_radius,safe_zone,0,0,center,true,entry_method,
-			combat_engine.ATTACKER_AI,"initial_player_faction_")
+			combat_engine.ATTACKER_AI,"initial_player_faction_",0.0,null)
 
 	# Spawn an individual ship. Intended to be called from
 	# spawn_fleet or spawn_player_ship
 	func spawn_ship(var _system,var ship_design: simple_tree.SimpleNode,
 			faction_index: int,angle: float,add_radius: float,safe_zone: float,
 			random_x: float, random_z: float, center: Vector3, is_player: bool,
-			entry_method: int, initial_ai: int, ship_name_prefix: String):
+			entry_method: int, initial_ai: int, ship_name_prefix: String,
+			cargo_hold_fill_fraction: float,commodities):
 		var x = (safe_zone+add_radius)*sin(angle) + center.x + random_x
 		var z = (safe_zone+add_radius)*cos(angle) + center.z + random_z
 		# IMPORTANT: Return value must match what spawn_ship, init_system, and
 		#   _physics_process want in System.gd:
 		return ['spawn_ship',ship_design, Vector3(0,2*PI-angle,0), Vector3(x,game_state.SHIP_HEIGHT,z),
-			faction_index, is_player, entry_method, initial_ai,ship_name_prefix]
+			faction_index, is_player, entry_method, initial_ai,ship_name_prefix,cargo_hold_fill_fraction,
+			commodities]
 
 	func get_system_planets(): # -> Node or null
 		var Planets = system.get_node_or_null('Planets')
@@ -591,7 +596,7 @@ class CombatState extends Reference:
 	# Spawn all ships from a Fleet node. Intended to be called from FleetInfo
 	func spawn_fleet(fleet_node, faction_index: int, where=null,
 			entry_method = null, initial_ai=combat_engine.ATTACKER_AI,
-			ship_name_prefix: String = "MISSING") -> Array:
+			ship_name_prefix: String = "MISSING",cargo_hold_fill_fraction: float = 0.0) -> Array:
 		print('Faction '+str(faction_index)+' is spawning fleet '+str(fleet_node.get_name())+' at '+str(where))
 		assert(fleet_node)
 		assert(ship_name_prefix!="MISSING")
@@ -602,6 +607,7 @@ class CombatState extends Reference:
 		var safe_zone = 25
 		var rand_halfwidth = 10
 		var fleet_angle = null
+		var commodities = null
 		if immediate_entry:
 			entry_method = combat_engine.ENTRY_COMPLETE
 		elif entry_method == null:
@@ -613,6 +619,7 @@ class CombatState extends Reference:
 			var planet = system.get_node_or_null(where)
 			if planet:
 				center = planet.translation
+				commodities = planet.commodities
 				if entry_method==combat_engine.ENTRY_FROM_ORBIT:
 					add_radius = randf()
 					add_radius = 1.0 - add_radius*add_radius*0.9
@@ -645,7 +652,8 @@ class CombatState extends Reference:
 						system,design,faction_index,
 						angle,add_radius,rand_x,rand_z,
 						safe_zone,center,false,entry_method,initial_ai,
-						ship_name_prefix))
+						ship_name_prefix,cargo_hold_fill_fraction,
+						commodities))
 				else:
 					push_warning('Fleet '+str(fleet_node.get_path())+
 						' wants to spawn missing design '+str(design_name))

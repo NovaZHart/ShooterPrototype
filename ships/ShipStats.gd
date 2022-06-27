@@ -104,9 +104,60 @@ class SortByPriority:
 	static func by_priority(a,b):
 		return a.get("spawn_priority",50)>b.get("spawn_priority",50)
 
+func make_random_cargo(cargo_hold_spawn_fraction,from,_quiet: bool = false, skip_runtime_stats: bool = false):
+	if not combined_stats.has('empty_mass'):
+#		if not quiet:
+#			push_warning('No stats in set_cargo! Making stats now.')
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
+	var max_mass = combined_stats.get('max_cargo',0)
+	if max_mass<=0:
+		return
+	var max_cash = 1e4*max_mass + combined_stats.get('cost',1e5)
+	max_mass *= 1000*clamp(cargo_hold_spawn_fraction,0.0,1.0)
+	var ids_remaining = from.all.keys()
+	var mass_remaining = max_mass
+	var cash_remaining = max_cash
+	var results = Array()
+	
+	var infinite_loop_guard = 0
+	
+	while ids_remaining and cash_remaining and mass_remaining and infinite_loop_guard<100:
+		infinite_loop_guard += 1
+		var index = randi()%ids_remaining.size()
+		var id = ids_remaining[index]
+		var product = from.all.get(id,null)
+		if product==null:
+			ids_remaining.pop_at(index)
+			continue
+		var unit_cost = product[Commodities.Products.VALUE_INDEX]
+		var unit_mass = product[Commodities.Products.MASS_INDEX]
+		var available = product[Commodities.Products.QUANTITY_INDEX]
+		if unit_cost<=0 or unit_mass<=0 or available<=0:
+			ids_remaining.pop_at(index)
+			continue
+		var max_items = int(min(available,min(floor(mass_remaining/unit_mass),floor(cash_remaining/unit_cost))))
+		if max_items<=0:
+			ids_remaining.pop_at(index)
+			continue
+		mass_remaining -= max_items*unit_mass
+		cash_remaining -= max_items*unit_cost
+		product = product.duplicate()
+		product[Commodities.Products.QUANTITY_INDEX] = max_items
+		results.append(product)
+		print('   '+str(product[Commodities.Products.NAME_INDEX])+
+			' '+str(max_items)+' @ '+str(unit_cost)+' & '+str(unit_mass)+'kg')
+		ids_remaining.pop_at(index)
+	
+	if results:
+		var products = Commodities.ManyProducts.new()
+		products.add_products(results)
+		set_cargo(products)
+	else:
+		clear_cargo()
+
 # warning-ignore:shadowed_variable
 # warning-ignore:shadowed_variable
-func test_new_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
+func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 	if not flotsam_meshes or not flotsam:
 		return result
 	var keys_left: Array
@@ -139,7 +190,7 @@ func test_new_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 func select_salvage():
 	var results: Array = []
 	for d in combined_stats.get('flotsam_data',[]):
-		test_new_salvage(results,d[0],d[1])
+		add_salvage(results,d[0],d[1])
 	combined_stats['salvage'] = results
 
 func restore_transforms():

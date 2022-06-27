@@ -436,7 +436,7 @@ class ManyProducts extends Products:
 			push_warning('Could not find product "'+str(product_name)+'" in all_products, self, or fallback.')
 			assert(false)
 	
-	func add_products(all_products,  # : Dictionary or Products
+	func add_products(all_products,  # : Dictionary or Products or Array
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
 			skip_checks: bool = true, keys_to_add = null, zero_quantity_if_missing = false):
 		var have_multipliers = (quantity_multiplier!=null or \

@@ -291,6 +291,7 @@ func make_planet(detail: float=150, time: float=0, planet = null):
 	planet.full_display_name = full_display_name()
 	planet.has_astral_gate = has_astral_gate
 	planet.game_state_path = game_state.systems.get_path_to(self)
+	list_products(Commodities.commodities,planet.commodities)
 	return planet
 
 func fill_system(var system,planet_time: float,ship_time: float,detail: float,ships=true):
