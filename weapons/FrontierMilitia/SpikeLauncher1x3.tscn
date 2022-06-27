@@ -12,6 +12,7 @@ script = ExtResource( 1 )
 help_page = "weapons/spike_launcher_small"
 damage = 23.0
 damage_type = 3
+impulse = 40.0
 weapon_mass = 6.0
 weapon_structure = 90.0
 initial_velocity = 50.0

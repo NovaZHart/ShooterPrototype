@@ -13,6 +13,7 @@ help_page = "weapons/electron_gun_small"
 item_size_y = 4
 damage = 160.0
 damage_type = 11
+impulse = 80.0
 weapon_mass = 8.0
 weapon_structure = 120.0
 initial_velocity = 1260.0
