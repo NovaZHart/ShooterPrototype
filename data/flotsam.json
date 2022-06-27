@@ -37,7 +37,7 @@
                     "display_name": "Cargo",
                     "armor_repair": 0.025,
                     "fuel": 0.05,
-                    "cargo": 0.1,
+                    "cargo": 0.75,
                     "products": {}
                 }
             ],
@@ -47,7 +47,7 @@
                     "display_name": "Cargo",
                     "armor_repair": 0.025,
                     "fuel": 0.05,
-                    "cargo": 0.1,
+                    "cargo": 0.75,
                     "products": {}
                 }
             ],
@@ -57,7 +57,7 @@
                     "display_name": "Cargo",
                     "armor_repair": 0.025,
                     "fuel": 0.05,
-                    "cargo": 0.1,
+                    "cargo": 0.75,
                     "products": {}
                 }
             ],
@@ -67,7 +67,7 @@
                     "display_name": "Cargo",
                     "armor_repair": 0.025,
                     "fuel": 0.05,
-                    "cargo": 0.1,
+                    "cargo": 0.75,
                     "products": {}
                 }
             ],

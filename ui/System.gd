@@ -583,7 +583,8 @@ func add_spawned_ship(ship: RigidBody,is_player: bool):
 
 func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3,
 		faction_index: int, is_player: bool, entry_method: int,
-		initial_ai: int,ship_name_prefix) -> Spatial:
+		initial_ai: int,ship_name_prefix,cargo_hold_spawn_fraction: float = 0.0,
+		commodities=null) -> Spatial:
 #	var start: float = OS.get_ticks_msec()
 	var ship = ship_design.assemble_ship()
 	ship.set_identity()
@@ -596,6 +597,13 @@ func assemble_ship_to_spawn(ship_design, rotation: Vector3, translation: Vector3
 	else:
 		ship.name = game_state.make_unique_ship_node_name(ship_name_prefix)
 	ship.set_entry_method(entry_method)
+	if not ship.cargo and cargo_hold_spawn_fraction>0:
+		if not commodities:
+			push_warning('Tried to spawn a ship with cargo, but no commodities to pick from')
+		print(ship.name+': making random cargo')
+		ship.make_random_cargo(cargo_hold_spawn_fraction,commodities)
+		print('    ... end cargo list')
+	ship.select_salvage()
 #	var duration = OS.get_ticks_msec()-start
 #	if duration>1:
 #		print('assemble_ship_to_spawn took '+str(duration)+'ms')
@@ -606,7 +614,7 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 		initial_ai: int, ship_name_prefix, cargo_hold_spawn_fraction: float = 0.0,
 		commodities=null) -> void:
 #	var start: float = OS.get_ticks_msec()
-	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai,ship_name_prefix)
+	var ship = assemble_ship_to_spawn(ship_design,rotation,translation,faction_index,is_player,entry_method,initial_ai,ship_name_prefix,cargo_hold_spawn_fraction,commodities)
 	if is_player:
 		add_ship_stat_request(player_ship_name)
 		ship.restore_combat_stats(Player.ship_combat_stats)
@@ -616,12 +624,6 @@ func spawn_ship(ship_design, rotation: Vector3, translation: Vector3,
 	else:
 		ship.name = game_state.make_unique_ship_node_name(ship_name_prefix)
 		add_spawned_ship(ship,false)
-		if not ship.cargo and cargo_hold_spawn_fraction>0:
-			if not commodities:
-				push_warning('Tried to spawn a ship with cargo, but no commodities to pick from')
-			print(ship.name+': making random cargo')
-			ship.make_random_cargo(cargo_hold_spawn_fraction,commodities)
-			print('    ... end cargo list')
 		#call_deferred('add_spawned_ship',ship,false)
 #	var duration = OS.get_ticks_msec()-start
 #	if duration>1:

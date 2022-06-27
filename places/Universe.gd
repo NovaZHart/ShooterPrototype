@@ -249,7 +249,18 @@ class Flotsam extends simple_tree.SimpleNode:
 					products.append(product)
 					continue
 	
-	func random_product():
+	func random_product(ship_cargo = null):
+		if ship_cargo: # and randf()<cargo:
+			var keys = ship_cargo.all.keys()
+			if keys:
+				var id = keys[randi()%keys.size()]
+				var product = ship_cargo.all.get(id,null)
+				if product:
+					var quantity =  product[Commodities.Products.QUANTITY_INDEX]
+					if quantity:
+						product = product.duplicate(false)
+						product[Commodities.Products.QUANTITY_INDEX] = int(max(1,ceil(randf()*quantity)))
+						return product
 		if not products:
 			return null
 		else:
@@ -563,7 +574,6 @@ class ShipDesign extends simple_tree.SimpleNode:
 		if not reassemble and not retain_hidden_mounts:
 			cached_stats = stats.duplicate(true)
 			cache_remove_instance_info()
-		body.select_salvage()
 #		var duration = OS.get_ticks_msec()-start
 #		if duration>1:
 #			if not reassemble:

@@ -53,12 +53,16 @@ export var base_power: float = -1
 export var ai_type: int = 0 setget set_ai_type
 
 export var flotsam: Dictionary = {
-	'diamonds':2,
-	'transport_barge':5,
-	'medical_supplies':12,
-	'invalid_product':10,
-	'intoxicants':8,
-	'scrap_metal':30,
+#	'diamonds':2,
+#	'transport_barge':5,
+#	'medical_supplies':12,
+#	'invalid_product':10,
+#	'intoxicants':8,
+#	'scrap_metal':30,
+	'cargo':25,
+	'cargo2':25,
+	'cargo3':25,
+	'cargo4':25
 }
 export var flotsam_meshes: Array = []
 export var cargo_puff: Mesh = preload('res://effects/meshes/cargo-puff.mesh');
@@ -151,6 +155,7 @@ func make_random_cargo(cargo_hold_spawn_fraction,from,_quiet: bool = false, skip
 	if results:
 		var products = Commodities.ManyProducts.new()
 		products.add_products(results)
+# warning-ignore:return_value_discarded
 		set_cargo(products)
 	else:
 		clear_cargo()
@@ -171,10 +176,10 @@ func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 		if not flotsam_node:
 			push_warning('No flotsam exists with name '+str(selected_key))
 			continue
-		var product = flotsam_node.random_product()
+		var product = flotsam_node.random_product(cargo)
 		if not product:
 			product=['',0,0,0,0]
-		result.append({
+		var entry = {
 			'flotsam_mesh': mesh,
 			'flotsam_scale': 1.0,
 			'cargo_name': product[Commodities.Products.NAME_INDEX],
@@ -185,7 +190,9 @@ func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 			'fuel': flotsam_node.fuel*combined_stats.get('max_fuel',20),
 			"spawn_duration": combat_engine.SALVAGE_TIME_LIMIT,
 			'grab_radius': utils.mesh_radius(mesh),
-		})
+		}
+		print(get_name()+' flotsam '+str(mesh.resource_path)+' product '+str(entry['cargo_name'])+' * '+str(entry['cargo_count'])+' @ '+str(entry['cargo_unit_mass']))
+		result.append(entry)
 
 func select_salvage():
 	var results: Array = []
@@ -288,6 +295,8 @@ func set_cargo(products: Commodities.Products, _quiet: bool = false,
 	cargo = Commodities.ManyProducts.new()
 	var _success = cargo.decode(products.all)
 	pack_cargo_stats(combined_stats)
+	if products.all:
+		assert(cargo.all)
 	return combined_stats
 
 
