@@ -1306,10 +1306,10 @@ bool CombatEngine::should_update_targetting(Ship &ship,ships_iter &other) {
 ships_iter CombatEngine::update_targetting(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   ships_iter target_ptr = ships.find(ship.get_target());
-  bool pick_new_target = target_ptr==ships.end() ||
+  bool pick_new_target = target_ptr==ships.end() || 
     should_update_targetting(ship,target_ptr);
   
-  if(pick_new_target or target_ptr==ships.end()) {
+  if(pick_new_target) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
     object_id found=select_target(-1,select_three(select_mask(enemy_masks[ship.faction]),select_flying(),select_nearest(ship.position,200.0f)),ships,false);
     target_ptr = ships.find(found);
@@ -1342,6 +1342,67 @@ void CombatEngine::attacker_ai(Ship &ship) {
   }
 }
 
+void CombatEngine::decide_raider_ai_action(Ship &ship) {
+  FAST_PROFILING_FUNCTION;
+  ship.ticks_since_ai_change=0;
+
+  if(ship.structure<0.5*ship.max_structure) {
+    // Panic time. Only hope is to rift away.
+    Godot::print(ship.name+": severe damage, so rift");
+    ship.ai_flags = DECIDED_TO_RIFT;
+    return;
+  }
+
+  // If we have enough cargo, it is time to leave.
+  if(not (ship.ai_flags&DECIDED_MISSION_SUCCESS)) {
+    bool have_enough_cargo= ship.cargo_mass == ship.max_cargo_mass;
+    if(!have_enough_cargo)
+      have_enough_cargo = ship.salvaged_value>5e3*ship.max_cargo_mass
+        or (ship.cost and ship.salvaged_value>ship.cost*0.5);
+    if(have_enough_cargo)
+      ship.ai_flags = DECIDED_MISSION_SUCCESS & DECIDED_TO_FLEE;
+  }
+
+  // If we're fleeing, do we stop to rift, keep fleeing, or switch to normal behavior?
+  if(ship.ai_flags&DECIDED_TO_FLEE) {
+    if(ship.ai_flags&DECIDED_MISSION_SUCCESS) {
+      // We have enough cargo. Is it safe enough to leave?
+      make_threat_vector(ship,0.5);
+      real_t threat_threshold = ship.threat/5;
+      bool ship_is_safe = ship.threat_vector.length_squared() <= threat_threshold*threat_threshold;
+      if(ship_is_safe) {
+        Godot::print(ship.name+": have enough cargo and is safe, so rift");
+        ship.ai_flags = DECIDED_TO_RIFT;
+        return;
+      }
+    }
+
+    // We don't have enough cargo. Are the shields and efficiency recharged enough to fight again?
+    else if(ship.shields>0.75*ship.max_shields && ship.efficiency>0.9)
+      ship.ai_flags = DECIDED_NOTHING;
+  }
+
+  // If shields are low, flee to recharge unless we have a lot of armor left.
+  // Or, if efficiency is low, flee to recharge efficiency.
+  if( (ship.shields<0.1*ship.max_shields and ship.armor<0.5*ship.max_armor) or ship.efficiency<0.6) {
+    ship.ai_flags = DECIDED_TO_FLEE;
+    return;
+  }
+
+  // Should we salvage cargo?
+  if(!(ship.ai_flags&DECIDED_MISSION_SUCCESS)) {
+    real_t salvage_time=9e9; // initialized by should_salvage
+    if(should_salvage(ship,&salvage_time)) {
+      ship.ai_flags = DECIDED_TO_SALVAGE;
+      if(salvage_time>3)
+        ship.ai_flags &= DECIDED_TO_FIGHT;
+      return;
+    }
+  }
+
+  ship.ai_flags = DECIDED_TO_FIGHT;
+}
+
 void CombatEngine::raider_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
@@ -1353,77 +1414,52 @@ void CombatEngine::raider_ai(Ship &ship) {
     if(p_planet!=planets.end())
       ship.destination = p_planet->second.position;
   }
+  
+  // If it is time to decide on our next action, ponder it.
+  if(!(ship.ai_flags&DECIDED_TO_RIFT) and ship.ticks_since_ai_change>=ticks_per_second/4)
+    decide_raider_ai_action(ship);
 
   if(ship.ai_flags&DECIDED_TO_RIFT) {
+    deactivate_cargo_web(ship);
     if(!rift_ai(ship))
       opportunistic_firing(ship);
     return;
   }
 
-  ships_iter target_ptr = update_targetting(ship);
-
-  if( (ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3)
-      or
-      ( ship.max_cargo_mass and
-        ( ship.cargo_mass>=ship.max_cargo_mass or ship.salvaged_value>5e3*ship.max_cargo_mass
-          or (ship.cost and ship.salvaged_value>ship.cost*0.5))
-        )
-      ) {
-    // Got enough stuff, so rift away.
-    if(!rift_ai(ship))
-      opportunistic_firing(ship);
-    
-    ship.ai_flags=DECIDED_TO_RIFT;
-    return;
+  if(ship.ai_flags&DECIDED_TO_FLEE) {
+    deactivate_cargo_web(ship);
+    evade(ship);
+    opportunistic_firing(ship);
   }
-  
-  bool have_target = target_ptr!=ships.end();
-  bool close_to_target = have_target and target_ptr->second.position.distance_squared_to(ship.position)<100*100;
 
-  projectiles_iter salvage_ptr;
-  bool have_salvage = should_salvage(ship);
-  if(have_salvage)
-    salvage_ptr = projectiles.find(ship.salvage_target);
-  else
-    salvage_ptr = projectiles.end();
+  bool close_to_target=false;
+  ships_iter target_ptr = ships.end();
   
-  bool close_to_salvage = have_salvage and salvage_ptr->second.position.distance_squared_to(ship.position)<ship.cargo_web_radiussq;
+  if(ship.ai_flags&DECIDED_TO_FIGHT) {
+    target_ptr = update_targetting(ship);
+    close_to_target = target_ptr!=ships.end()
+      and target_ptr->second.position.distance_squared_to(ship.position)<900;
+  }
 
-  if(close_to_salvage) {
+  if(!close_to_target and ship.ai_flags&DECIDED_TO_SALVAGE) {
     salvage_ai(ship);
-  } else if(close_to_target) {
-    if(ship.cargo_web_active)
-      deactivate_cargo_web(ship);
-    ship.ai_flags=DECIDED_NOTHING;
+    opportunistic_firing(ship);
+    return;
+  }
+
+  deactivate_cargo_web(ship);
+  
+  if(target_ptr!=ships.end()) {
     move_to_attack(ship,target_ptr->second);
     aim_turrets(ship,target_ptr);
-    auto_fire(ship,target_ptr);
+    if(ship.efficiency>0.9)
+      auto_fire(ship,target_ptr);
     fire_antimissile_turrets(ship);
   } else {
-    if(not have_target)
-      ship.clear_target();
-    if(ship.ai_flags==0) {
-      float randf = ship.rand.randf();
-      float scale = (ship.tick_at_last_shot-ship.tick)>ticks_per_minute ? .05 : .25;
-      scale *= delta/3600;
-      if(randf<scale)
-        ship.ai_flags=DECIDED_TO_RIFT;
-    }
-    if(ship.cargo_web_active)
-      deactivate_cargo_web(ship);
-    if(ship.ai_flags&DECIDED_TO_RIFT) {
-      if(!rift_ai(ship))
-        opportunistic_firing(ship);
-    } else if(have_salvage)
-      salvage_ai(ship);
-    else if(have_target) {
-      move_to_attack(ship,target_ptr->second);
-      opportunistic_firing(ship);
-    } else {
-      patrol_ai(ship);
-      opportunistic_firing(ship);
-    }
-  }
+    // Nothing to do.
+    patrol_ai(ship);
+    opportunistic_firing(ship);
+  }  
 }
 
 void CombatEngine::salvage_ai(Ship &ship) {
@@ -1437,14 +1473,15 @@ void CombatEngine::salvage_ai(Ship &ship) {
     Vector3 proj_position=get_position(it->second);
     Vector3 dp = proj_position-ship_position;
     pair<DVector3,double> course=plot_collision_course(dp,it->second.linear_velocity,ship.max_speed);
-    Vector3 desired_heading=course.first.normalized();
+    Vector3 correction = course.first-ship.linear_velocity;
+    Vector3 desired_heading=correction.normalized();
     
     //move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
     request_heading(ship,desired_heading);
     real_t dot = dot2(ship.heading,desired_heading);
     request_thrust(ship,dot>0.95,dot<-0.95);
     
-    if(dp.length_squared()<ship.cargo_web_radius*ship.cargo_web_radius)
+    if(dp.length_squared()<ship.cargo_web_radiussq)
       activate_cargo_web(ship);
     else if(ship.cargo_web_active)
       deactivate_cargo_web(ship);
@@ -1455,12 +1492,15 @@ void CombatEngine::salvage_ai(Ship &ship) {
   opportunistic_firing(ship);
 }
 
-bool CombatEngine::should_salvage(Ship &ship) {
+ bool CombatEngine::should_salvage(Ship &ship,real_t *returned_best_time) {
   FAST_PROFILING_FUNCTION;
   // projectiles_iter it = projectiles.find(ship.salvage_target);
   // if(it!=projectiles.end())
   //   return true;
 
+  if(returned_best_time)
+    *returned_best_time = numeric_limits<real_t>::infinity();
+  
   if(ship.salvage_timer.active() and !ship.salvage_timer.alarmed())
     return false; 
 
@@ -1502,6 +1542,7 @@ bool CombatEngine::should_salvage(Ship &ship) {
   }
   if(isfinite(best_time)) {
     ship.salvage_target=best_id;
+    *returned_best_time=best_time;
     return true;
   }
   return false;
@@ -1957,7 +1998,8 @@ void CombatEngine::opportunistic_firing(Ship &ship) {
   // Take shots when you can, without turning the ship to aim.
   ships_iter nowhere = ships.end();
   aim_turrets(ship,nowhere);
-  auto_fire(ship,nowhere);
+  if(ship.efficiency>0.9)
+    auto_fire(ship,nowhere);
   fire_antimissile_turrets(ship);
 }
 
