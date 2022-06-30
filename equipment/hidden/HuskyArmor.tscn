@@ -11,4 +11,3 @@ hidden = true
 mount_type_display = "hidden"
 mount_type_all = "hidden"
 add_armor_resist = PoolRealArray( 0, 0, -0.173, -0.173, -0.173, 0, 0, 0, -0.173, 0, -0.173 )
-add_armor_passthru = PoolRealArray( 0, 0, 0, 0.2, 0, 0.173, 0.173, 0, 0, 0 )

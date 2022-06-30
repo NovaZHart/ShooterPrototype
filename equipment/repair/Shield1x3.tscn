@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/repair/shield-1x3.mesh" type="ArrayMesh" id=2]
+
+[node name="Shield1x3" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+script = ExtResource( 1 )
+help_page = "equipment/energy_shield_long"
+mount_type_display = "generic"
+mount_type_any = "internal external"
+add_structure = 90.0
+add_heal_shields = 16.0
+add_explosion_damage = 22.5
+add_explosion_impulse = 45.0

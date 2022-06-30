@@ -980,7 +980,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/Shield1x1.tscn"
                           ],
                           2,
                           0
@@ -1116,7 +1116,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/Shield1x1.tscn"
                           ],
                           2,
                           0
@@ -1125,7 +1125,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/Shield1x1.tscn"
                           ],
                           2,
                           1
@@ -1282,7 +1282,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/repair/Shield2x1.tscn"
                           ],
                           0,
                           4
@@ -1291,9 +1291,18 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           0,
+                          5
+                      ],
+                      "SpinalEquipment_at_x1_y5": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/Shield1x1.tscn"
+                          ],
+                          1,
                           5
                       ]
                   }
@@ -1428,7 +1437,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
                           ],
                           0,
                           3
@@ -1437,7 +1446,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/Shield1x1.tscn"
                           ],
                           2,
                           3
@@ -1455,7 +1464,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/Shield1x3.tscn"
                           ],
                           2,
                           4
@@ -1469,15 +1478,6 @@
                           0,
                           5
                       ],
-                      "SpinalEquipment_at_x2_y5": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
-                          ],
-                          2,
-                          5
-                      ],
                       "SpinalEquipment_at_x0_y6": [
                           "MultiMounted",
                           [
@@ -1487,20 +1487,11 @@
                           0,
                           6
                       ],
-                      "SpinalEquipment_at_x2_y6": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
-                          ],
-                          2,
-                          6
-                      ],
                       "SpinalEquipment_at_x2_y7": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/Shield1x3.tscn"
                           ],
                           2,
                           7
@@ -1513,24 +1504,6 @@
                           ],
                           0,
                           8
-                      ],
-                      "SpinalEquipment_at_x2_y8": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
-                          ],
-                          2,
-                          8
-                      ],
-                      "SpinalEquipment_at_x2_y9": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
-                          ],
-                          2,
-                          9
                       ],
                       "SpinalEquipment_at_x0_y10": [
                           "MultiMounted",
@@ -4185,27 +4158,36 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
                             ],
                             0,
                             0
+                        ],
+                        "PortAuxEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "PortAuxEquipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
+                            ],
+                            2,
+                            2
                         ],
                         "PortAuxEquipment_at_x0_y3": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield2x1.tscn"
+                                "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
                             ],
                             0,
-                            3
-                        ],
-                        "PortAuxEquipment_at_x2_y3": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/cooling/SmallOpticalCooler.tscn"
-                            ],
-                            2,
                             3
                         ]
                     }
@@ -4217,19 +4199,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
                             ],
                             0,
                             0
                         ],
-                        "StarboardAuxEquipment_at_x0_y3": [
+                        "StarboardAuxEquipment_at_x1_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
+                            ],
+                            1,
+                            0
+                        ],
+                        "StarboardAuxEquipment_at_x0_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
                             ],
                             0,
-                            3
+                            2
                         ],
                         "StarboardAuxEquipment_at_x1_y3": [
                             "MultiMounted",
@@ -4290,18 +4281,27 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
                             ],
                             0,
                             0
                         ],
-                        "Equipment_at_x3_y0": [
+                        "Equipment_at_x2_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
                             ],
-                            3,
+                            2,
+                            0
+                        ],
+                        "Equipment_at_x4_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
+                            ],
+                            4,
                             0
                         ],
                         "Equipment_at_x0_y3": [
@@ -4317,7 +4317,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/GravityControlSystem.tscn"
+                                "res://equipment/power/MediumBioelectricGenerator.tscn"
                             ],
                             2,
                             3
@@ -4417,10 +4417,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
                             ],
                             0,
                             0
+                        ],
+                        "PortAuxEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "PortAuxEquipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
+                            ],
+                            2,
+                            2
                         ],
                         "PortAuxEquipment_at_x0_y3": [
                             "MultiMounted",
@@ -4429,15 +4447,6 @@
                                 "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
                             ],
                             0,
-                            3
-                        ],
-                        "PortAuxEquipment_at_x2_y3": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/power/TinyBioelectricGenerator.tscn"
-                            ],
-                            2,
                             3
                         ]
                     }
@@ -4449,19 +4458,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
                             ],
                             0,
                             0
                         ],
-                        "StarboardAuxEquipment_at_x0_y3": [
+                        "StarboardAuxEquipment_at_x1_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
+                            ],
+                            1,
+                            0
+                        ],
+                        "StarboardAuxEquipment_at_x0_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors1x2.tscn"
                             ],
                             0,
-                            3
+                            2
                         ],
                         "StarboardAuxEquipment_at_x1_y3": [
                             "MultiMounted",
@@ -4522,18 +4540,27 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
                             ],
                             0,
                             0
                         ],
-                        "Equipment_at_x3_y0": [
+                        "Equipment_at_x2_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
                             ],
-                            3,
+                            2,
+                            0
+                        ],
+                        "Equipment_at_x4_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/ShieldCapacitors2x3.tscn"
+                            ],
+                            4,
                             0
                         ],
                         "Equipment_at_x0_y3": [
@@ -4549,7 +4576,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/GravityControlSystem.tscn"
+                                "res://equipment/power/MediumBioelectricGenerator.tscn"
                             ],
                             2,
                             3
