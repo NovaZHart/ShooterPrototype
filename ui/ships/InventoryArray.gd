@@ -313,7 +313,7 @@ func _ready():
 			slot.name = 'slot_x'+str(x)+'_y'+str(y)
 			slot.create_only_box(1,1,mount_flags)
 			slot.mount_name = name
-			slot.translation = first + Vector3(-y,0,x)*gs
+			slot.translation = first + Vector3(-y,-.1,x)*gs
 			slot.collision_layer = my_collision_mask
 			slot.collision_mask = my_collision_mask
 			slot.my_x = x
