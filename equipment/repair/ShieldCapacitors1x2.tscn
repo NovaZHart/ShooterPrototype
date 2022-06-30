@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/repair/ShieldCapacitors1x2.mesh" type="ArrayMesh" id=2]
+
+[node name="ShieldCapacitors1x2" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+help_page = "equipment/shield_capacitors_small"
+item_size_y = 2
+mount_type_any = "internal equipment"
+add_heal_shields = 18.0
+add_explosion_damage = 25.0
+add_explosion_impulse = 50.0
+add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.15 )
+add_structure_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.1 )
+add_cooling = -0.25
+add_battery = 20.0
+add_power = -0.5

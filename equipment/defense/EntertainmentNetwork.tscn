@@ -17,6 +17,6 @@ mount_type_all = "internal equipment"
 add_mass = 8.0
 add_structure = 150.0
 add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3 )
-add_structure_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.3 )
+add_structure_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.2 )
 add_cooling = -0.05
 add_power = -0.5
