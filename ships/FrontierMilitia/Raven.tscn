@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ships/FrontierMilitia/Raven.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=2]
 [ext_resource path="res://flotsam/FrontierMilitia/RavenDebrisWing.mesh" type="ArrayMesh" id=3]
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=4]
+[ext_resource path="res://equipment/hidden/UndeadShip.tscn" type="PackedScene" id=5]
 [ext_resource path="res://flotsam/FrontierMilitia/RavenDebrisDome.mesh" type="ArrayMesh" id=6]
 [ext_resource path="res://flotsam/FrontierMilitia/RavenDebrisPort.mesh" type="ArrayMesh" id=7]
 
@@ -23,13 +24,15 @@ base_shields = 3700.0
 base_armor = 1900.0
 base_structure = 800.0
 base_fuel = 16.0
-heal_structure = 12.0
+heal_shields = -1.5
+heal_structure = -1.5
 base_drag = 1.55
 base_turn_drag = 0.5
 base_explosion_damage = 400.0
 base_explosion_radius = 4.0
 base_explosion_impulse = 800.0
 base_max_cargo = 35
+armor_inverse_density = 150.0
 override_size = Vector3( 2.6, 0, 3.6 )
 base_heat_capacity = 0.35
 base_shield_repair_heat = 0.03
@@ -126,3 +129,5 @@ mount_size_x = 2
 mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"
+
+[node name="UndeadShip" parent="." instance=ExtResource( 5 )]

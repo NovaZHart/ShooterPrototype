@@ -206,7 +206,7 @@
 
       "condor_electrons_escorted": [
         "Fleet",
-        "Condor (Lasers)",
+        "Condor (Lasers) with Escorts",
         {
           "condor_electrons": 1,
           "raven_rail_guns": 1,
@@ -215,10 +215,19 @@
       ],
       "condor_spikes_escorted": [
         "Fleet",
-        "Condor (Lasers)",
+        "Condor (Spikes) with Escorts",
         {
           "condor_spikes": 1,
           "raven_electrons": 2
+        }
+      ],
+      "condor_mass_drivers_escorted": [
+        "Fleet",
+        "Condor (Mass Drivers) with Escorts",
+        {
+          "condor_spikes": 1,
+          "raven_electrons": 1,
+          "peregrine_electrons": 3
         }
       ],
       "raven_trio": [

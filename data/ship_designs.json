@@ -569,7 +569,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/engines/Hyperdrive.tscn"
+                                "res://equipment/engines/SmallHyperdrive.tscn"
                             ],
                             0,
                             0
@@ -589,29 +589,6 @@
                         "Resource",
                         "res://weapons/IACivilian/GreenMissileLauncher.tscn"
                     ]
-                ],
-                "PortEquipment": [
-                    "MultiMount",
-                    {
-                        "PortEquipment_at_x0_y0": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/power/TinyBioelectricGenerator.tscn"
-                            ],
-                            0,
-                            0
-                        ],
-                        "PortEquipment_at_x0_y1": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/power/TinyBioelectricGenerator.tscn"
-                            ],
-                            0,
-                            1
-                        ]
-                    }
                 ],
                 "MainEquipment": [
                     "MultiMount",
@@ -636,32 +613,51 @@
                         ]
                     }
                 ],
-                "StarboardEquipment": [
+                "AuxEquipment": [
                     "MultiMount",
                     {
-                        "StarboardEquipment_at_x0_y0": [
+                        "AuxEquipment_at_x0_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/SmallBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            0
+                        ],
+                        "AuxEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/Shield2x1.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "AuxEquipment_at_x4_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
                                 "res://equipment/power/TinyBioelectricGenerator.tscn"
                             ],
-                            0,
+                            4,
                             0
                         ],
-                        "StarboardEquipment_at_x0_y1": [
+                        "AuxEquipment_at_x5_y0": [
                             "MultiMounted",
                             [
                                 "Resource",
                                 "res://equipment/cooling/SmallOpticalCooler.tscn"
                             ],
-                            0,
-                            1
+                            5,
+                            0
                         ]
                     }
                 ]
             },
+            null
         ],
-        
+          
         
       "raven_rail_guns":[
           "ShipDesign",
@@ -5522,46 +5518,28 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumBioelectricGenerator.tscn"
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
                           ],
                           0,
                           4
                       ],
-                      "NeckEquipment_at_x0_y6": [
+                      "NeckEquipment_at_x0_y5": [
                           "MultiMounted",
                           [
                               "Resource",
                               "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
-                          6
+                          5
                       ],
-                      "NeckEquipment_at_x0_y7": [
+                      "NeckEquipment_at_x0_y6": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/FrontierShield1x2.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
-                          7
-                      ],
-                      "NeckEquipment_at_x1_y7": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/TinyBioelectricGenerator.tscn"
-                          ],
-                          1,
-                          7
-                      ],
-                      "NeckEquipment_at_x1_y8": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/TinyBioelectricGenerator.tscn"
-                          ],
-                          1,
-                          8
+                          6
                       ]
                   }
               ],
@@ -5680,7 +5658,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
+                              "res://equipment/power/LargeBioelectricGenerator.tscn"
                           ],
                           0,
                           0
@@ -5719,9 +5697,9 @@
           null
       ],
           
-      "condor_rail_guns":[
+      "condor_mass_drivers":[
           "ShipDesign",
-          "Rail Gun Condor",
+          "Mass Driver Condor",
           [
               "Resource",
               "res://ships/FrontierMilitia/Condor.tscn"
@@ -5741,7 +5719,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumBioelectricGenerator.tscn"
+                              "res://equipment/defense/DefensiveScatterer.tscn"
                           ],
                           0,
                           0
@@ -5768,19 +5746,37 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/power/MediumBioelectricGenerator.tscn"
                           ],
                           0,
                           5
                       ],
-                      "NeckEquipment_at_x0_y6": [
+                      "NeckEquipment_at_x0_y7": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/FrontierShield2x3.tscn"
+                              "res://equipment/repair/FrontierShield1x2.tscn"
                           ],
                           0,
-                          6
+                          7
+                      ],
+                      "NeckEquipment_at_x1_y7": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                          ],
+                          1,
+                          7
+                      ],
+                      "NeckEquipment_at_x1_y8": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                          ],
+                          1,
+                          8
                       ]
                   }
               ],

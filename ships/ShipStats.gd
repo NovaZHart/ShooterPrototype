@@ -71,9 +71,9 @@ export var cargo_web_strength: float = -1
                                                                #  0    1    2    3    4    5    6    7    8    9    10   11   12
                                                                # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  EPL  PSI  PLS  CRG  SPT
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
-export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
+export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0])
 export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0, 0.2, 0.1, 0.0])
-export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.1, 0.1, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0])
+export var base_armor_passthru: PoolRealArray =   PoolRealArray([0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 export var base_structure_resist: PoolRealArray = PoolRealArray([0.0, 0.0, 0.0, 0.1, 0.0,-0.2, 0.2,-1.0,-0.1, 0.0, 0.0,-0.1,-0.1])
 
 var ship_display_name: String = 'Unnamed'
@@ -402,11 +402,6 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 		stats['turning_thrust']=base_mass*15*-base_turning_thrust
 	assert(stats['turning_thrust']>0)
 	stats['hyperthrust']=max(base_hyperthrust,0)
-	if base_threat<0:
-		stats['threat'] = ((base_shields+base_armor+base_structure)/60 + \
-			heal_shields+heal_armor+heal_structure)*-base_threat
-	else:
-		stats['threat'] = base_threat
 	stats['max_shields']=base_shields
 	stats['max_armor']=base_armor
 	stats['max_structure']=base_structure
@@ -426,6 +421,11 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 		stats['heal_structure']=heal_structure
 	else:
 		stats['heal_structure']=base_structure/120.0*-heal_structure
+	if base_threat<0:
+		stats['threat'] = ((stats['max_shields']+stats['max_armor']+stats['max_structure'])/60 + \
+			stats['heal_shields']+stats['heal_armor']+stats['heal_structure'])*-base_threat
+	else:
+		stats['threat'] = base_threat
 	stats['heal_fuel']=heal_fuel
 	stats['fuel_efficiency']=fuel_efficiency
 	stats['aabb']=get_combined_aabb()

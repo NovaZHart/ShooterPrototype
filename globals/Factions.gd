@@ -72,6 +72,9 @@ class Faction extends simple_tree.SimpleNode:
 		var spawn_chance: float = 0
 		for ifleet in range(len(fleets)):
 			var fleet = fleets[ifleet]
+			if not fleet is Dictionary:
+				push_error('Found a fleet that was not a dictionary. Ignoring it.')
+				continue
 			var fleet_type = fleet.get('type','')
 			var type_weight = faction_state.fleet_type_weights.get(fleet_type,0.0)
 			if type_weight<=0.0:

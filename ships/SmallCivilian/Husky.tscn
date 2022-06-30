@@ -22,7 +22,7 @@ base_structure = 900.0
 base_fuel = 22.0
 base_drag = 0.7
 base_turn_drag = 0.37
-armor_inverse_density = 140.0
+armor_inverse_density = 250.0
 override_size = Vector3( 2.2, 0, 2 )
 flotsam_meshes = [ ExtResource( 7 ), ExtResource( 8 ), ExtResource( 9 ) ]
 cargo_web_add_radius = 5.0
@@ -39,24 +39,17 @@ material/4 = null
 material/5 = null
 
 [node name="MainEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.276497, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.305416, 0, 0 )
 script = ExtResource( 1 )
 mount_size_x = 4
 mount_size_y = 2
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
-[node name="PortEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.244467, 0, -0.629291 )
+[node name="AuxEquipment" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.275542, 0, 0 )
 script = ExtResource( 1 )
-mount_size_y = 2
-mount_type = "internal equipment"
-mount_type_display = "equipment"
-
-[node name="StarboardEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.244318, 0, 0.629 )
-script = ExtResource( 1 )
-mount_size_y = 2
+mount_size_x = 6
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
@@ -79,7 +72,6 @@ mount_type_display = "engine"
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.665318, 0.029, 0 )
 script = ExtResource( 1 )
 mount_size_x = 2
-mount_size_y = 2
 mount_type = "external equipment"
 mount_type_display = "external equipment"
 

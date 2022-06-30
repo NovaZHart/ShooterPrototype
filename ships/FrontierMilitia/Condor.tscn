@@ -1,9 +1,10 @@
-[gd_scene load_steps=10 format=2]
+[gd_scene load_steps=11 format=2]
 
 [ext_resource path="res://ships/FrontierMilitia/Condor.mesh" type="ArrayMesh" id=1]
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=2]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=3]
 [ext_resource path="res://flotsam/FrontierMilitia/CondorDebrisNeck.mesh" type="ArrayMesh" id=4]
+[ext_resource path="res://equipment/hidden/UndeadShip.tscn" type="PackedScene" id=5]
 [ext_resource path="res://flotsam/FrontierMilitia/CondorDebrisEngine.mesh" type="ArrayMesh" id=6]
 [ext_resource path="res://flotsam/FrontierMilitia/CondorDebrisHead.mesh" type="ArrayMesh" id=7]
 [ext_resource path="res://flotsam/FrontierMilitia/CondorDebrisWingtip.mesh" type="ArrayMesh" id=8]
@@ -24,11 +25,13 @@ base_shields = 12700.0
 base_armor = 5600.0
 base_structure = 2600.0
 base_fuel = 40.0
+heal_shields = -1.5
+heal_structure = -1.5
 heal_fuel = 40.0
 base_drag = 1.8
 base_turn_drag = 0.6
 base_max_cargo = 200
-armor_inverse_density = 250.0
+armor_inverse_density = 150.0
 base_heat_capacity = 0.35
 base_shield_repair_heat = 0.03
 flotsam_meshes = [ ExtResource( 7 ), ExtResource( 4 ), ExtResource( 6 ), ExtResource( 8 ) ]
@@ -152,3 +155,5 @@ mount_size_x = 4
 mount_size_y = 4
 mount_type = "turret"
 mount_type_display = "turret"
+
+[node name="UndeadShip" parent="." instance=ExtResource( 5 )]

@@ -1,9 +1,10 @@
-[gd_scene load_steps=9 format=2]
+[gd_scene load_steps=10 format=2]
 
 [ext_resource path="res://ships/ShipStats.gd" type="Script" id=1]
 [ext_resource path="res://ships/MountStats.gd" type="Script" id=2]
 [ext_resource path="res://ships/FrontierMilitia/Eagle.mesh" type="ArrayMesh" id=3]
 [ext_resource path="res://flotsam/FrontierMilitia/EagleDebrisWingCurve.mesh" type="ArrayMesh" id=4]
+[ext_resource path="res://equipment/hidden/UndeadShip.tscn" type="PackedScene" id=5]
 [ext_resource path="res://flotsam/FrontierMilitia/EagleDebrisWingSpike.mesh" type="ArrayMesh" id=6]
 [ext_resource path="res://flotsam/FrontierMilitia/EagleDebrisDome.mesh" type="ArrayMesh" id=7]
 
@@ -21,9 +22,12 @@ base_shields = 8600.0
 base_armor = 3800.0
 base_structure = 1600.0
 base_fuel = 20.0
+heal_shields = -1.5
+heal_structure = -1.5
 base_drag = 1.7
 base_turn_drag = 0.55
 base_max_cargo = 200
+armor_inverse_density = 150.0
 base_heat_capacity = 0.35
 base_shield_repair_heat = 0.03
 flotsam_meshes = [ ExtResource( 7 ), ExtResource( 4 ), ExtResource( 6 ) ]
@@ -114,3 +118,5 @@ shape = SubResource( 1 )
 [node name="CollisionShape" type="CollisionShape" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 0.8, 0.0117804, 0, 0 )
 shape = SubResource( 2 )
+
+[node name="UndeadShip" parent="." instance=ExtResource( 5 )]

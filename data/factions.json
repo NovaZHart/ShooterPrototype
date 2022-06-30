@@ -122,6 +122,11 @@
             },
             {
               "frequency": 40,
+              "fleet": "condor_mass_drivers_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 40,
               "fleet": "condor_duo",
               "type": "large_raid"
             },
