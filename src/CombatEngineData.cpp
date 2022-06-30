@@ -653,7 +653,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   angular_velocity(get<Vector3>(dict,"angular_velocity",Vector3(0,0,0))),
   heading(get_heading(*this)),
   drag(max(1e-5f,get<real_t>(dict,"drag"))),
-  inverse_mass(1.0/(empty_mass+cargo_mass+fuel_inverse_density*fuel+armor_inverse_density*armor)),
+  inverse_mass(1.0/(empty_mass+cargo_mass+fuel_inverse_density*fuel+armor/armor_inverse_density)),
   inverse_inertia(get<Vector3>(dict,"inverse_inertia",Vector3(0,1,0))),
   transform(get<Transform>(dict,"transform")),
 
