@@ -26,9 +26,11 @@ base_structure = 2600.0
 base_fuel = 40.0
 heal_fuel = 40.0
 base_drag = 1.8
-base_turn_drag = 0.45
+base_turn_drag = 0.6
 base_max_cargo = 200
 armor_inverse_density = 250.0
+base_heat_capacity = 0.35
+base_shield_repair_heat = 0.03
 flotsam_meshes = [ ExtResource( 7 ), ExtResource( 4 ), ExtResource( 6 ), ExtResource( 8 ) ]
 cargo_web_add_radius = 5.0
 cargo_web_strength = 4000.0
@@ -72,18 +74,18 @@ mount_type = "external equipment"
 mount_type_display = "external equipment"
 
 [node name="PortEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.13286, 0, -1.15182 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.956847, 0, -1.15182 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 2
+mount_size_y = 3
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
 [node name="StarboardEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.13275, 0, 1.152 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.956737, 0, 1.152 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 2
+mount_size_y = 3
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 
@@ -136,10 +138,10 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="NeckEquipment" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.275839, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.375773, 0, 0 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 8
+mount_size_y = 9
 mount_type = "internal equipment"
 mount_type_display = "equipment"
 

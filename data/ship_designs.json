@@ -3,9 +3,9 @@
     "SimpleNode",
       {
           
-      "raven_laser_wave": [
+      "raven_electrons": [
           "ShipDesign",
-          "Laser-Wave Raven",
+          "Electron Raven",
           [
               "Resource",
               "res://ships/FrontierMilitia/Raven.tscn"
@@ -55,7 +55,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           0,
                           0
@@ -64,10 +64,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           0,
                           1
+                      ],
+                      "AuxEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          2
                       ]
                   }
               ],
@@ -78,7 +87,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x2.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
@@ -87,10 +96,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/repair/FrontierRepair2x2.tscn"
                           ],
                           2,
                           0
+                      ],
+                      "Equipment_at_x2_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          2,
+                          2
                       ]
                   }
               ],
@@ -645,9 +663,9 @@
         ],
         
         
-      "raven_rail_missile":[
+      "raven_rail_guns":[
           "ShipDesign",
-          "Rail-Missile Raven",
+          "Rail Gun Raven",
           [
               "Resource",
               "res://ships/FrontierMilitia/Raven.tscn"
@@ -697,7 +715,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           0,
                           0
@@ -706,10 +724,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           0,
                           1
+                      ],
+                      "AuxEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          0,
+                          2
                       ]
                   }
               ],
@@ -720,7 +747,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x2.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
@@ -729,10 +756,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/repair/FrontierRepair2x2.tscn"
                           ],
                           2,
                           0
+                      ],
+                      "Equipment_at_x2_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
+                          ],
+                          2,
+                          2
                       ]
                   }
               ],
@@ -776,9 +812,9 @@
       ],
           
 
-          "raven_particles":[
+          "raven_spikes":[
               "ShipDesign",
-              "Particle Raven",
+              "Spike Raven",
               [
                   "Resource",
                   "res://ships/FrontierMilitia/Raven.tscn"
@@ -828,7 +864,7 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/cooling/LargeOpticalCooler.tscn"
+                                  "res://equipment/cooling/SmallOpticalCooler.tscn"
                               ],
                               0,
                               0
@@ -837,10 +873,19 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/power/SmallReactor.tscn"
+                                  "res://equipment/cooling/SmallOpticalCooler.tscn"
                               ],
                               0,
                               1
+                          ],
+                          "AuxEquipment_at_x0_y2": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/power/TinyBioelectricGenerator.tscn"
+                              ],
+                              0,
+                              2
                           ]
                       }
                   ],
@@ -851,7 +896,7 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/repair/Shield2x2.tscn"
+                                  "res://equipment/repair/FrontierShield2x3.tscn"
                               ],
                               0,
                               0
@@ -860,10 +905,19 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/defense/DefensiveScatterer.tscn"
+                                  "res://equipment/repair/FrontierRepair2x2.tscn"
                               ],
                               2,
                               0
+                          ],
+                          "Equipment_at_x2_y2": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/power/SmallBioelectricGenerator.tscn"
+                              ],
+                              2,
+                              2
                           ]
                       }
                   ],
@@ -1653,9 +1707,9 @@
           null
       ],
 
-        "eagle_particles": [
+        "eagle_spikes": [
             "ShipDesign",
-            "Particle Eagle",
+            "Spike Eagle",
             [
                 "Resource",
                 "res://ships/FrontierMilitia/Eagle.tscn"
@@ -1742,10 +1796,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/repair/FrontierShield2x3.tscn"
                             ],
                             0,
                             0
+                        ],
+                        "PortEquipment_at_x2_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/FrontierShield1x2.tscn"
+                            ],
+                            2,
+                            0
+                        ],
+                        "PortEquipment_at_x2_y2": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            2,
+                            2
                         ]
                     }
                 ],
@@ -1756,7 +1828,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/DefensiveScatterer.tscn"
+                                "res://equipment/repair/FrontierRepair2x2.tscn"
                             ],
                             0,
                             0
@@ -1765,7 +1837,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/SmallOpticalCooler.tscn"
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
                             ],
                             2,
                             0
@@ -1783,7 +1855,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/SmallReactor.tscn"
+                                "res://equipment/power/SmallBioelectricGenerator.tscn"
                             ],
                             0,
                             2
@@ -1803,9 +1875,9 @@
             null
         ],
           
-      "eagle_lasers": [
+      "eagle_electrons": [
           "ShipDesign",
-          "Laser Eagle",
+          "Electron Eagle",
           [
               "Resource",
               "res://ships/FrontierMilitia/Eagle.tscn"
@@ -1892,10 +1964,28 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
+                      ],
+                      "PortEquipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/FrontierShield1x2.tscn"
+                          ],
+                          2,
+                          0
+                      ],
+                      "PortEquipment_at_x2_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          2,
+                          2
                       ]
                   }
               ],
@@ -1906,7 +1996,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/repair/FrontierRepair2x2.tscn"
                           ],
                           0,
                           0
@@ -1915,7 +2005,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
                           ],
                           2,
                           0
@@ -1933,7 +2023,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
                           ],
                           0,
                           2
@@ -4809,9 +4899,9 @@
           null
       ],
 
-      "peregrine_particles": [
+      "peregrine_rail_guns": [
           "ShipDesign",
-          "Particle Peregrine",
+          "Rail Gun Peregrine",
           [
               "Resource",
               "res://ships/FrontierMilitia/Peregrine.tscn"
@@ -4861,9 +4951,18 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x2.tscn"
+                              "res://equipment/repair/FrontierShield1x2.tscn"
                           ],
                           0,
+                          0
+                      ],
+                      "Equipment_at_x1_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/FrontierShield1x2.tscn"
+                          ],
+                          1,
                           0
                       ],
                       "Equipment_at_x2_y0": [
@@ -4918,9 +5017,9 @@
           null
       ],
 
-        "peregrine_missiles": [
+        "peregrine_spikes": [
             "ShipDesign",
-            "Missile Peregrine",
+            "Spike Peregrine",
             [
                 "Resource",
                 "res://ships/FrontierMilitia/Peregrine.tscn"
@@ -4970,9 +5069,18 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield2x2.tscn"
+                                "res://equipment/repair/FrontierShield1x2.tscn"
                             ],
                             0,
+                            0
+                        ],
+                        "Equipment_at_x1_y0": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/FrontierShield1x2.tscn"
+                            ],
+                            1,
                             0
                         ],
                         "Equipment_at_x2_y0": [
@@ -5027,9 +5135,9 @@
             null
         ],
           
-      "peregrine_lasers": [
+      "peregrine_electrons": [
           "ShipDesign",
-          "Laser Peregrine",
+          "Electron Peregrine",
           [
               "Resource",
               "res://ships/FrontierMilitia/Peregrine.tscn"
@@ -5079,9 +5187,18 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x2.tscn"
+                              "res://equipment/repair/FrontierShield1x2.tscn"
                           ],
                           0,
+                          0
+                      ],
+                      "Equipment_at_x1_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/FrontierShield1x2.tscn"
+                          ],
+                          1,
                           0
                       ],
                       "Equipment_at_x2_y0": [
@@ -5137,9 +5254,9 @@
       ],
 
 
-        "condor_lasers": [
+        "condor_electrons": [
             "ShipDesign",
-            "Laser Condor",
+            "Electron Condor",
             [
                 "Resource",
                 "res://ships/FrontierMilitia/Condor.tscn"
@@ -5168,7 +5285,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/DefensiveScatterer.tscn"
+                                "res://equipment/power/MediumBioelectricGenerator.tscn"
                             ],
                             0,
                             2
@@ -5177,7 +5294,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Structure2x2.tscn"
+                                "res://equipment/repair/FrontierRepair2x2.tscn"
                             ],
                             0,
                             4
@@ -5186,10 +5303,28 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/MediumBioelectricGenerator.tscn"
+                                "res://equipment/cooling/LargeOpticalCooler.tscn"
                             ],
                             0,
                             6
+                        ],
+                        "NeckEquipment_at_x0_y7": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/FrontierShield1x2.tscn"
+                            ],
+                            0,
+                            7
+                        ],
+                        "NeckEquipment_at_x1_y7": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/repair/FrontierShield1x2.tscn"
+                            ],
+                            1,
+                            7
                         ]
                     }
                 ],
@@ -5221,7 +5356,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/MediumReactor.tscn"
+                                "res://equipment/repair/FrontierShield2x3.tscn"
                             ],
                             0,
                             0
@@ -5235,19 +5370,10 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/LargeOpticalCooler.tscn"
+                                "res://equipment/repair/FrontierShield2x3.tscn"
                             ],
                             0,
                             0
-                        ],
-                        "PortEquipment_at_x0_y1": [
-                            "MultiMounted",
-                            [
-                                "Resource",
-                                "res://equipment/cooling/LargeOpticalCooler.tscn"
-                            ],
-                            0,
-                            1
                         ]
                     }
                 ],
@@ -5317,7 +5443,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/repair/Shield3x3.tscn"
+                                "res://equipment/power/LargeBioelectricGenerator.tscn"
                             ],
                             0,
                             0
@@ -5356,9 +5482,9 @@
             null
         ],
           
-      "condor_particles": [
+      "condor_spikes": [
           "ShipDesign",
-          "Particle Condor",
+          "Spike Condor",
           [
               "Resource",
               "res://ships/FrontierMilitia/Condor.tscn"
@@ -5387,7 +5513,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/repair/FrontierRepair2x2.tscn"
                           ],
                           0,
                           2
@@ -5396,7 +5522,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Structure2x2.tscn"
+                              "res://equipment/power/MediumBioelectricGenerator.tscn"
                           ],
                           0,
                           4
@@ -5405,7 +5531,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           6
@@ -5414,10 +5540,28 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/repair/FrontierShield1x2.tscn"
                           ],
                           0,
                           7
+                      ],
+                      "NeckEquipment_at_x1_y7": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          1,
+                          7
+                      ],
+                      "NeckEquipment_at_x1_y8": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          1,
+                          8
                       ]
                   }
               ],
@@ -5449,7 +5593,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumReactor.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
@@ -5463,19 +5607,10 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
-                      ],
-                      "PortEquipment_at_x0_y1": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
-                          ],
-                          0,
-                          1
                       ]
                   }
               ],
@@ -5606,7 +5741,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/power/MediumBioelectricGenerator.tscn"
                           ],
                           0,
                           0
@@ -5615,7 +5750,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
+                              "res://equipment/repair/FrontierRepair2x2.tscn"
                           ],
                           0,
                           2
@@ -5624,37 +5759,28 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Structure2x2.tscn"
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
                           ],
                           0,
                           4
+                      ],
+                      "NeckEquipment_at_x0_y5": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                          ],
+                          0,
+                          5
                       ],
                       "NeckEquipment_at_x0_y6": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           6
-                      ],
-                      "NeckEquipment_at_x0_y7": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/TinyBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          7
-                      ],
-                      "NeckEquipment_at_x1_y7": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
-                          ],
-                          1,
-                          7
                       ]
                   }
               ],
@@ -5686,7 +5812,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/MediumReactor.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
@@ -5700,19 +5826,10 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
+                              "res://equipment/repair/FrontierShield2x3.tscn"
                           ],
                           0,
                           0
-                      ],
-                      "PortEquipment_at_x0_y1": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/LargeOpticalCooler.tscn"
-                          ],
-                          0,
-                          1
                       ]
                   }
               ],
@@ -5782,7 +5899,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
+                              "res://equipment/power/LargeBioelectricGenerator.tscn"
                           ],
                           0,
                           0
@@ -5819,226 +5936,8 @@
               ]
           },
           null
-      ],
+      ]
           
-          "condor_missiles":[
-              "ShipDesign",
-              "Missile Condor",
-              [
-                  "Resource",
-                  "res://ships/FrontierMilitia/Condor.tscn"
-              ],
-              {
-                  "MainTurret": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/FrontierMilitia/MassDriverTurret.tscn"
-                      ]
-                  ],
-                  "NeckEquipment": [
-                      "MultiMount",
-                      {
-                          "NeckEquipment_at_x0_y0": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/defense/DefensiveScatterer.tscn"
-                              ],
-                              0,
-                              0
-                          ],
-                          "NeckEquipment_at_x0_y2": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/defense/DefensiveScatterer.tscn"
-                              ],
-                              0,
-                              2
-                          ],
-                          "NeckEquipment_at_x0_y4": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/repair/Structure2x2.tscn"
-                              ],
-                              0,
-                              4
-                          ],
-                          "NeckEquipment_at_x0_y6": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/cooling/LargeOpticalCooler.tscn"
-                              ],
-                              0,
-                              6
-                          ],
-                          "NeckEquipment_at_x0_y7": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/repair/Shield2x1.tscn"
-                              ],
-                              0,
-                              7
-                          ]
-                      }
-                  ],
-                  "AftPortTurret": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
-                      ]
-                  ],
-                  "CenterGun": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/Old/BigRedMissileLauncher.tscn"
-                      ]
-                  ],
-                  "StarboardLargeGun": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/Old/BigRedMissileLauncher.tscn"
-                      ]
-                  ],
-                  "StarboardEquipment": [
-                      "MultiMount",
-                      {
-                          "StarboardEquipment_at_x0_y0": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/power/MediumReactor.tscn"
-                              ],
-                              0,
-                              0
-                          ]
-                      }
-                  ],
-                  "PortEquipment": [
-                      "MultiMount",
-                      {
-                          "PortEquipment_at_x0_y0": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/repair/Shield2x2.tscn"
-                              ],
-                              0,
-                              0
-                          ]
-                      }
-                  ],
-                  "ExternalEquipment": [
-                      "MultiMount",
-                      {
-                          "ExternalEquipment_at_x0_y0": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/engines/Hyperdrive.tscn"
-                              ],
-                              0,
-                              0
-                          ],
-                          "ExternalEquipment_at_x2_y0": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/engines/Hyperdrive.tscn"
-                              ],
-                              2,
-                              0
-                          ],
-                          "ExternalEquipment_at_x0_y2": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/defense/AblativeBiogelExcreter.tscn"
-                              ],
-                              0,
-                              2
-                          ],
-                          "ExternalEquipment_at_x2_y2": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/defense/ElectroMagneticDampener.tscn"
-                              ],
-                              2,
-                              2
-                          ],
-                          "ExternalEquipment_at_x0_y4": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/defense/ReactiveArmor.tscn"
-                              ],
-                              0,
-                              4
-                          ],
-                          "ExternalEquipment_at_x2_y4": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/defense/ReactiveArmor.tscn"
-                              ],
-                              2,
-                              4
-                          ]
-                      }
-                  ],
-                  "AftEquipment": [
-                      "MultiMount",
-                      {
-                          "AftEquipment_at_x0_y0": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/repair/Shield3x3.tscn"
-                              ],
-                              0,
-                              0
-                          ]
-                      }
-                  ],
-                  "PortLargeGun": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/Old/BigRedMissileLauncher.tscn"
-                      ]
-                  ],
-                  "PortEngine": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://equipment/engines/FrontierEngine4x4.tscn"
-                      ]
-                  ],
-                  "AftStarboardTurret": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://weapons/IACivilian/AntiMissile3x3.tscn"
-                      ]
-                  ],
-                  "StarbboardEngine": [
-                      "Mounted",
-                      [
-                          "Resource",
-                          "res://equipment/engines/FrontierEngine4x4.tscn"
-                      ]
-                  ]
-              },
-              null
-          ]
           
     } 
   ],

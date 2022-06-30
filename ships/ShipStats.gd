@@ -89,7 +89,7 @@ var height: float = 5 setget set_height
 var random_height: bool = true
 var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
-var cargo: Commodities.Products setget set_cargo
+var cargo setget set_cargo
 
 var skipped_runtime_stats: bool = true
 

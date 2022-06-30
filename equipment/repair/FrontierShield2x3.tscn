@@ -1,0 +1,21 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/repair/FrontierShield2x3.mesh" type="ArrayMesh" id=2]
+
+[node name="FrontierShield2x3" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+help_page = "equipment/frontier_shield_tiny"
+item_size_x = 2
+mount_type_any = "internal equipment"
+add_structure = -1.8
+add_heal_shields = 70.0
+add_explosion_damage = 30.0
+add_explosion_impulse = 60.0
+add_cooling = -0.5
+shield_repair_heat = 0.03
+add_power = -3.0

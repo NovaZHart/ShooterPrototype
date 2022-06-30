@@ -1,0 +1,20 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/repair/FrontierRepair2x2.mesh" type="ArrayMesh" id=1]
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=2]
+
+[node name="FrontierRepair2x2" type="MeshInstance"]
+mesh = ExtResource( 1 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 2 )
+help_page = "equipment/digestive_symbiotes"
+item_size_x = 2
+item_size_y = 2
+mount_type_all = "internal"
+add_heal_structure = 20.0
+add_cooling = -1.0
+structure_repair_heat = 0.03
+structure_repair_energy = 0.3
+add_power = 9.0

@@ -17,9 +17,11 @@ base_shields = 1900.0
 base_armor = 800.0
 base_fuel = 9.0
 base_drag = 1.0
-base_turn_drag = 0.33
+base_turn_drag = 0.4
 base_max_cargo = 7
 override_size = Vector3( 1.2, 0, 1.9 )
+base_heat_capacity = 0.35
+base_shield_repair_heat = 0.03
 flotsam_meshes = [ ExtResource( 5 ), ExtResource( 6 ) ]
 cargo_web_add_radius = 5.0
 

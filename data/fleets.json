@@ -204,191 +204,205 @@
       ],
 
 
-      "condor_lasers_escorted": [
+      "condor_electrons_escorted": [
         "Fleet",
         "Condor (Lasers)",
         {
-          "condor_lasers": 1,
-          "raven_rail_missile": 1,
-          "peregrine_lasers": 2
+          "condor_electrons": 1,
+          "raven_rail_guns": 1,
+          "peregrine_electrons": 2
         }
       ],
-      "condor_particles_escorted": [
+      "condor_spikes_escorted": [
         "Fleet",
         "Condor (Lasers)",
         {
-          "condor_particles": 1,
-          "raven_laser_wave": 2
+          "condor_spikes": 1,
+          "raven_electrons": 2
         }
       ],
       "raven_trio": [
         "Fleet",
-        "3xRaven: Lasers, Particles, Missiles",
+        "3xRaven: Spikes, Electrons, Rail Guns",
         {
-          "raven_rail_missile": 1,
-          "raven_laser_wave": 1,
-          "raven_particles": 1
+          "raven_rail_guns": 1,
+          "raven_electrons": 1,
+          "raven_spikes": 1
         }
       ],
       "two_eagles_escorted": [
         "Fleet",
         "Eagles Mix with Escorts",
         {
-          "eagle_lasers": 1,
-          "eagle_particles": 1,
-          "peregrine_lasers": 2
+          "eagle_electrons": 1,
+          "eagle_spikes": 1,
+          "peregrine_electrons": 2
         }
       ],
-      "two_raven_missiles_escorted": [
+      "two_ravens_escorted": [
         "Fleet",
-        "2x Raven (Rail/Missiles) + 2 Peregrine (Lasers)",
+        "2x Raven (Rail Guns) + 2 Peregrine (Electrons)",
         {
-          "raven_rail_missile": 2,
-          "peregrine_lasers": 2
+          "raven_rail_guns": 2,
+          "peregrine_electrons": 2
         }
       ],
-      "raven_lasers_trio": [
+      "raven_electrons_trio": [
         "Fleet",
-        "3x Raven (Lasers)",
+        "3x Raven (Electrons)",
         {
-          "raven_laser_wave": 3
+          "raven_electrons": 3
         }
       ],
-      "raven_particles_trio": [
+      "raven_spikes_trio": [
         "Fleet",
-        "3x Raven (Particles)",
+        "3x Raven (Spikes)",
         {
-          "raven_particles": 3
-        }
-      ],
-
-      "raven_missiles_escorted": [
-        "Fleet",
-        "Missile Raven + 3 Peregrines",
-        {
-          "raven_laser_wave": 1,
-          "peregrine_lasers": 3
-        }
-      ],
-      "eagle_particles_escorted": [
-        "Fleet",
-        "Missile Raven + 3 Peregrines",
-        {
-          "eagle_particles": 1,
-          "peregrine_lasers": 3
-        }
-      ],
-      "rep_fleet_lasers": [
-        "Fleet",
-        "Raven+Eagle+Peregrine (Lasers)",
-        {
-          "raven_laser_wave": 1,
-          "eagle_lasers": 1,
-          "peregrine_lasers": 1
-        }
-      ],
-      "rep_fleet_particles": [
-        "Fleet",
-        "Raven+Eagle+Peregrine (Particles)",
-        {
-          "raven_particles": 1,
-          "eagle_particles": 1,
-          "peregrine_lasers": 1
-        }
-      ],
-      "five_peregrines_particles": [
-        "Fleet",
-        "Five Peregrines (Particles)",
-        {
-          "peregrine_particles": 5
-        }
-      ],
-      "five_peregrines_lasers": [
-        "Fleet",
-        "Five Peregrines (Lasers)",
-        {
-          "peregrine_lasers": 5
+          "raven_spikes": 3
         }
       ],
 
-      "raven_duo_particles": [
+      "raven_electrons_escorted": [
         "Fleet",
-        "Raven Duo (Particles)",
+        "Electron Raven + 3 Peregrines",
         {
-          "raven_particles": 2
+          "raven_electrons": 1,
+          "peregrine_electrons": 3
         }
       ],
-      "raven_duo_missiles": [
+      "eagle_spikes_escorted": [
         "Fleet",
-        "Raven Duo (Missiles)",
+        "Spike Eagle + 3 Peregrines",
         {
-          "raven_rail_missile": 2
+          "eagle_spikes": 1,
+          "peregrine_electrons": 3
         }
       ],
-      "eagle_duo_particles": [
+      "rep_fleet_electrons": [
         "Fleet",
-        "Eagle Duo (Particles)",
+        "Raven+Eagle+Peregrine (Electrons)",
         {
-          "eagle_particles": 2
+          "raven_electrons": 1,
+          "eagle_electrons": 1,
+          "peregrine_electrons": 1
         }
       ],
-      "eagle_duo_lasers": [
+      "rep_fleet_spikes": [
         "Fleet",
-        "Eagle Duo (Lasers)",
+        "Raven+Eagle+Peregrine (Spikes)",
         {
-          "eagle_lasers": 2
+          "raven_spikes": 1,
+          "eagle_spikes": 1,
+          "peregrine_spikes": 1
         }
       ],
-      "eagle_peregrine_lasers": [
+      "five_peregrines_rail_guns": [
         "Fleet",
-        "Eagle and Peregrine (Lasers)",
+        "Five Peregrines (Rail Guns)",
         {
-          "eagle_lasers": 1,
-          "peregrine_lasers": 1
+          "peregrine_rail_guns": 5
         }
       ],
-      "raven_peregrine_particles": [
+      "five_peregrines_electrons": [
         "Fleet",
-        "Raven and Peregrine (Particles)",
+        "Five Peregrines (Electrons)",
         {
-          "eagle_particles": 1,
-          "peregrine_lasers": 1
+          "peregrine_electrons": 5
         }
       ],
-      "peregrine_trio_lasers": [
+      "five_peregrines_spikes": [
         "Fleet",
-        "Peregrine Trio (Lasers)",
+        "Five Peregrines (Electrons)",
         {
-          "peregrine_lasers": 3
+          "peregrine_spikes": 5
         }
       ],
-      "peregrine_trio_particles": [
+
+      "raven_duo_spikes": [
         "Fleet",
-        "Peregrine Trio (Particles)",
+        "Raven Duo (Spikes)",
         {
-          "peregrine_particles": 3
+          "raven_spikes": 2
         }
       ],
-      "condor_lasers": [
+      "raven_duo_rail_guns": [
         "Fleet",
-        "Condor (Lasers)",
+        "Raven Duo (Rail Guns)",
         {
-          "condor_lasers": 1
+          "raven_rail_guns": 2
+        }
+      ],
+      "eagle_duo_spikes": [
+        "Fleet",
+        "Eagle Duo (Spikes)",
+        {
+          "eagle_spikes": 2
+        }
+      ],
+      "eagle_duo_electrons": [
+        "Fleet",
+        "Eagle Duo (Electrons)",
+        {
+          "eagle_electrons": 2
+        }
+      ],
+      "eagle_peregrine_electrons": [
+        "Fleet",
+        "Eagle and Peregrine (Electrons)",
+        {
+          "eagle_electrons": 1,
+          "peregrine_electrons": 1
+        }
+      ],
+      "raven_peregrine_rail_guns": [
+        "Fleet",
+        "Raven and Peregrine (Rail Guns)",
+        {
+          "eagle_spikes": 1,
+          "peregrine_electrons": 1
+        }
+      ],
+      "peregrine_trio_electrons": [
+        "Fleet",
+        "Peregrine Trio (Electrons)",
+        {
+          "peregrine_electrons": 3
+        }
+      ],
+      "peregrine_trio_rail_guns": [
+        "Fleet",
+        "Peregrine Trio (Rail Guns)",
+        {
+          "peregrine_rail_guns": 3
+        }
+      ],
+      "peregrine_trio_spikes": [
+        "Fleet",
+        "Peregrine Trio (Spikes)",
+        {
+          "peregrine_spikes": 3
+        }
+      ],
+      "condor_electrons": [
+        "Fleet",
+        "Condor (Electrons)",
+        {
+          "condor_electrons": 1
         }
       ],
       "condor_duo": [
         "Fleet",
-        "Condor (Lasers)",
+        "Condor (Electrons+Spikes)",
         {
-          "condor_lasers": 1,
-          "condor_particles": 1
+          "condor_electrons": 1,
+          "condor_spikes": 1
         }
       ],
-      "condor_particles": [
+      "condor_spikes": [
         "Fleet",
-        "Condor (Particles)",
+        "Condor (Spikes)",
         {
-          "condor_particles": 1
+          "condor_spikes": 1
         }
       ],
       "banner_ship": [
