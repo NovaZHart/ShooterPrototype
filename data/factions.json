@@ -114,96 +114,121 @@
               "flotsam": -1
           }, {}, [ "Color", 0.2, 0.8, 1.0, 1.0 ] ],
       "raiders": [ "Faction", "Raiders", [
-            "Array",
+          "Array",
             {
-              "frequency": 40,
+              "frequency": 60,
+              "fleet": "condor_trio",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
               "fleet": "condor_electrons_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 40,
-              "fleet": "condor_mass_drivers_escorted",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 40,
-              "fleet": "condor_duo",
-              "type": "large_raid"
-            },
-            {
-              "frequency": 40,
+              "frequency": 60,
               "fleet": "condor_spikes_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 50,
+              "frequency": 60,
+              "fleet": "condor_mass_drivers_escorted",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
               "fleet": "raven_trio",
               "type": "large_raid"
             },
             {
-              "frequency": 90,
+              "frequency": 60,
               "fleet": "two_eagles_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 50,
+              "frequency": 60,
               "fleet": "two_ravens_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 90,
+              "frequency": 60,
               "fleet": "raven_electrons_trio",
               "type": "large_raid"
             },
             {
-              "frequency": 90,
+              "frequency": 60,
               "fleet": "raven_spikes_trio",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "raven_rail_guns_trio",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "condor_electrons",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "condor_duo",
+              "type": "large_raid"
+            },
+            {
+              "frequency": 60,
+              "fleet": "condor_spikes",
               "type": "large_raid"
             },
 
             {
-              "frequency": 60,
+              "frequency": 90,
               "fleet": "raven_electrons_escorted",
               "type": "small_raid"
             },
             {
-              "frequency": 60,
-              "fleet": "raven_duo_rail_guns",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
-              "fleet": "raven_duo_spikes",
-              "type": "small_raid"
-            },
-            {
-              "frequency": 60,
+              "frequency": 90,
               "fleet": "eagle_spikes_escorted",
               "type": "small_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 90,
               "fleet": "rep_fleet_electrons",
               "type": "small_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 90,
               "fleet": "rep_fleet_spikes",
               "type": "small_raid"
             },
             {
-              "frequency": 60,
-              "fleet": "five_peregrines_spikes",
+              "frequency": 90,
+              "fleet": "raven_duo_spikes",
               "type": "small_raid"
             },
             {
-              "frequency": 60,
-              "fleet": "five_peregrines_electrons",
+              "frequency": 90,
+              "fleet": "raven_duo_rail_guns",
               "type": "small_raid"
             },
             {
-              "frequency": 60,
-              "fleet": "five_peregrines_rail_guns",
+              "frequency": 90,
+              "fleet": "eagle_duo_spikes",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "eagle_duo_electrons",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "eagle_peregrine_electrons",
+              "type": "small_raid"
+            },
+            {
+              "frequency": 90,
+              "fleet": "raven_peregrine_rail_guns",
               "type": "small_raid"
             }
           ], 3e5, {

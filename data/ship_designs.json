@@ -34,7 +34,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
+                              "res://equipment/defense/SelfHealingFoam.tscn"
                           ],
                           0,
                           2
@@ -690,7 +690,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
+                              "res://equipment/defense/SelfHealingFoam.tscn"
                           ],
                           0,
                           2
@@ -839,7 +839,7 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/defense/ReactiveArmor.tscn"
+                                  "res://equipment/defense/SelfHealingFoam.tscn"
                               ],
                               0,
                               2
@@ -1709,7 +1709,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                                "res://equipment/defense/SelfHealingFoam.tscn"
                             ],
                             0,
                             4
@@ -1877,7 +1877,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                              "res://equipment/defense/SelfHealingFoam.tscn"
                           ],
                           0,
                           4
@@ -5479,7 +5479,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                                "res://equipment/defense/AstralShieldingPanels.tscn"
                             ],
                             0,
                             2
@@ -5488,7 +5488,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/ElectroMagneticDampener.tscn"
+                                "res://equipment/defense/AstralShieldingPanels.tscn"
                             ],
                             2,
                             2
@@ -5497,7 +5497,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/defense/ReactiveArmor.tscn"
+                                "res://equipment/defense/SelfHealingFoam.tscn"
                             ],
                             0,
                             4
@@ -5698,7 +5698,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                              "res://equipment/defense/AstralShieldingPanels.tscn"
                           ],
                           0,
                           2
@@ -5707,7 +5707,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ElectroMagneticDampener.tscn"
+                              "res://equipment/defense/AstralShieldingPanels.tscn"
                           ],
                           2,
                           2
@@ -5716,7 +5716,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
+                              "res://equipment/defense/SelfHealingFoam.tscn"
                           ],
                           0,
                           4
@@ -5935,7 +5935,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                              "res://equipment/defense/AstralShieldingPanels.tscn"
                           ],
                           0,
                           2
@@ -5944,7 +5944,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ElectroMagneticDampener.tscn"
+                              "res://equipment/defense/AstralShieldingPanels.tscn"
                           ],
                           2,
                           2
@@ -5953,7 +5953,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
+                              "res://equipment/defense/SelfHealingFoam.tscn"
                           ],
                           0,
                           4

@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/defense/AstralShieldingPanels.mesh" type="ArrayMesh" id=2]
+
+[node name="AblativeBiogelExcreter" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+help_page = "equipment/astral_shielding_panels"
+item_size_x = 2
+item_size_y = 2
+mount_type_display = "external equipment"
+mount_type_all = "external equipment"
+add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0.4, 0, 0.3, 0, 0.2 )
+add_cooling = 4.0

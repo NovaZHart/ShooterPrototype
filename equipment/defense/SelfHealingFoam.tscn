@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/defense/SelfHealingFoam.mesh" type="ArrayMesh" id=2]
+
+[node name="SelfHealingFoam" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+script = ExtResource( 1 )
+help_page = "equipment/self_healing_foam"
+item_size_x = 2
+item_size_y = 2
+mount_type_display = "external equipment"
+mount_type_all = "external equipment"
+add_armor_resist = PoolRealArray( 0, 0.3, 0.4, 0.2, 0, 0, 0, 0, 0, 0, 0 )
+add_cooling = 4.0

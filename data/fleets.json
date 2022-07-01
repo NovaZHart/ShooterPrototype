@@ -204,13 +204,22 @@
       ],
 
 
+      "condor_trio": [
+        "Fleet",
+        "Three Condors (Spikes, Mass Drivers, Electrons)",
+        {
+          "condor_electrons": 1,
+          "condor_spikes": 1,
+          "condor_mass_drivers": 1,
+        }
+      ],
       "condor_electrons_escorted": [
         "Fleet",
         "Condor (Lasers) with Escorts",
         {
           "condor_electrons": 1,
           "raven_rail_guns": 1,
-          "peregrine_electrons": 2
+          "eagle_electrons": 1
         }
       ],
       "condor_spikes_escorted": [
@@ -225,9 +234,8 @@
         "Fleet",
         "Condor (Mass Drivers) with Escorts",
         {
-          "condor_spikes": 1,
-          "raven_electrons": 1,
-          "peregrine_electrons": 3
+          "condor_mass_drivers": 1,
+          "raven_electrons": 2
         }
       ],
       "raven_trio": [
@@ -268,6 +276,13 @@
         "3x Raven (Spikes)",
         {
           "raven_spikes": 3
+        }
+      ],
+      "raven_rail_guns_trio": [
+        "Fleet",
+        "3x Raven (Rail Guns)",
+        {
+          "raven_rail_guns": 3
         }
       ],
 
