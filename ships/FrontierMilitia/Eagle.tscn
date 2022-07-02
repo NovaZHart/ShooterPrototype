@@ -18,18 +18,18 @@ points = PoolVector3Array( -1.16756, 10, 1.7902, 0.863889, 10, 0.803627, -1.2250
 script = ExtResource( 1 )
 help_page = "hulls/eagle"
 base_mass = 175.0
-base_shields = 8600.0
-base_armor = 3800.0
-base_structure = 1600.0
+base_shields = 6600.0
+base_armor = 3500.0
+base_structure = 2800.0
 base_fuel = 20.0
 heal_shields = -1.5
-heal_structure = -1.5
 base_drag = 1.7
 base_turn_drag = 0.55
 base_max_cargo = 200
 armor_inverse_density = 150.0
 base_heat_capacity = 0.35
 base_shield_repair_heat = 0.03
+base_power = -1.2
 flotsam_meshes = [ ExtResource( 7 ), ExtResource( 4 ), ExtResource( 6 ) ]
 cargo_web_add_radius = 6.0
 
@@ -81,6 +81,14 @@ mount_type_display = "gun"
 
 [node name="PortGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.0137, -0.487, -1 )
+script = ExtResource( 2 )
+mount_size_x = 2
+mount_size_y = 4
+mount_type = "external gun"
+mount_type_display = "gun"
+
+[node name="CenterGun" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.89101, -0.487, 0 )
 script = ExtResource( 2 )
 mount_size_x = 2
 mount_size_y = 4

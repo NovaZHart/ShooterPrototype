@@ -1346,6 +1346,8 @@ void CombatEngine::decide_raider_ai_action(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   ship.ticks_since_ai_change=0;
 
+  ship.ai_flags = DECIDED_NOTHING;
+  
   if(ship.structure<0.5*ship.max_structure) {
     // Panic time. Only hope is to rift away.
     Godot::print(ship.name+": severe damage, so rift");
@@ -1355,7 +1357,7 @@ void CombatEngine::decide_raider_ai_action(Ship &ship) {
 
   // If we have enough cargo, it is time to leave.
   if(not (ship.ai_flags&DECIDED_MISSION_SUCCESS)) {
-    bool have_enough_cargo= ship.cargo_mass == ship.max_cargo_mass;
+    bool have_enough_cargo= ship.cargo_mass >= ship.max_cargo_mass or ship.cargo_mass>ship.empty_mass;
     if(!have_enough_cargo)
       have_enough_cargo = ship.salvaged_value>5e3*ship.max_cargo_mass
         or (ship.cost and ship.salvaged_value>ship.cost*0.5);
@@ -1368,7 +1370,7 @@ void CombatEngine::decide_raider_ai_action(Ship &ship) {
     if(ship.ai_flags&DECIDED_MISSION_SUCCESS) {
       // We have enough cargo. Is it safe enough to leave?
       make_threat_vector(ship,0.5);
-      real_t threat_threshold = ship.threat/5;
+      real_t threat_threshold = ship.threat/10;
       bool ship_is_safe = ship.threat_vector.length_squared() <= threat_threshold*threat_threshold;
       if(ship_is_safe) {
         Godot::print(ship.name+": have enough cargo and is safe, so rift");
@@ -1400,7 +1402,8 @@ void CombatEngine::decide_raider_ai_action(Ship &ship) {
     }
   }
 
-  ship.ai_flags = DECIDED_TO_FIGHT;
+  if(ship.ai_flags==DECIDED_NOTHING)
+    ship.ai_flags = DECIDED_TO_FIGHT;
 }
 
 void CombatEngine::raider_ai(Ship &ship) {

@@ -68,8 +68,8 @@ export var flotsam_meshes: Array = []
 export var cargo_puff: Mesh = preload('res://effects/meshes/cargo-puff.mesh');
 export var cargo_web_add_radius: float = 3
 export var cargo_web_strength: float = -1
-                                                               #  0    1    2    3    4    5    6    7    8    9    10   11   12
-                                                               # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  EPL  PSI  PLS  CRG  SPT
+															   #  0    1    2    3    4    5    6    7    8    9    10   11   12
+															   # TYP  LGT  HEP  PRC  IMP  EMF  GRV  ATM  EPL  PSI  PLS  CRG  SPT
 export var base_shield_resist: PoolRealArray =    PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.5, 0.0, 0.0, 0.0])
 export var base_shield_passthru: PoolRealArray =  PoolRealArray([0.0, 0.3, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.2, 0.0, 0.0, 0.0])
 export var base_armor_resist: PoolRealArray =     PoolRealArray([0.0, 0.1, 0.2, 0.2, 0.2, 0.1, 0.1,-0.7, 0.2, 0.0, 0.2, 0.1, 0.0])
