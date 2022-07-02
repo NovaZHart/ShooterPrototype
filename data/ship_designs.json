@@ -270,7 +270,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
+                        "res://equipment/engines/IonEngine2x4.tscn"
                     ]
                 ],
                 "Turret": [
@@ -291,14 +291,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
-                    ]
-                ],
-                "CenterEngine": [
-                    "Mounted",
-                    [
-                        "Resource",
-                        "res://equipment/engines/FissionEngine.tscn"
+                        "res://equipment/engines/Engine2x4.tscn"
                     ]
                 ],
                 "ForwardEquipment": [
@@ -308,7 +301,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
+                                "res://equipment/power/MediumBioelectricGenerator.tscn"
                             ],
                             0,
                             0
@@ -349,6 +342,24 @@
                             ],
                             0,
                             0
+                        ],
+                        "AftEquipment_at_x0_y3": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                            ],
+                            0,
+                            3
+                        ],
+                        "AftEquipment_at_x1_y3": [
+                            "MultiMounted",
+                            [
+                                "Resource",
+                                "res://equipment/cooling/LargeOpticalCooler.tscn"
+                            ],
+                            1,
+                            3
                         ]
                     }
                 ]
@@ -476,7 +487,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                                "res://equipment/power/SmallReactor.tscn"
                             ],
                             0,
                             4
@@ -526,21 +537,21 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/FissionEngine.tscn"
+                        "res://equipment/engines/Engine2x2.tscn"
                     ]
                 ],
                 "PortAuxEngine": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/FissionEngine.tscn"
+                        "res://equipment/engines/Engine2x2.tscn"
                     ]
                 ],
                 "MainEngine": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/LargeMultisystem.tscn"
+                        "res://equipment/engines/IonEngine4x4.tscn"
                     ]
                 ]
             },
@@ -980,7 +991,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield1x1.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           2,
                           0
@@ -989,7 +1000,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
                           ],
                           2,
                           1
@@ -998,7 +1009,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/SmallReactor.tscn"
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
                           ],
                           0,
                           2
@@ -1007,7 +1018,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
                           ],
                           2,
                           2
@@ -1078,7 +1089,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x4.tscn"
+                      "res://equipment/engines/IonEngine2x4.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -1214,7 +1225,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Engine2x4.tscn"
+                      "res://equipment/engines/IonEngine2x4.tscn"
                   ]
               ],
               "StarboardEngine": [
@@ -1240,21 +1251,21 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FissionEngine.tscn"
+                      "res://equipment/engines/SmallMultisystem.tscn"
                   ]
               ],
               "StarboardEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
+                      "res://equipment/engines/Hyperdrive.tscn"
                   ]
               ],
               "MainEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/Hyperdrive.tscn"
+                      "res://equipment/engines/IonEngine4x4.tscn"
                   ]
               ],
               "SpinalEquipment": [
@@ -1282,28 +1293,19 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield2x1.tscn"
+                              "res://equipment/power/MediumBioelectricGenerator.tscn"
                           ],
                           0,
                           4
                       ],
-                      "SpinalEquipment_at_x0_y5": [
+                      "SpinalEquipment_at_x0_y6": [
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/power/SmallBioelectricGenerator.tscn"
                           ],
                           0,
-                          5
-                      ],
-                      "SpinalEquipment_at_x1_y5": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/Shield1x1.tscn"
-                          ],
-                          1,
-                          5
+                          6
                       ]
                   }
               ],
@@ -1344,7 +1346,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                              "res://equipment/engines/Hyperdrive.tscn"
                           ],
                           0,
                           2
@@ -1446,7 +1448,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/repair/Shield1x1.tscn"
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
                           ],
                           2,
                           3
@@ -1455,7 +1457,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                              "res://equipment/power/MediumReactor.tscn"
                           ],
                           0,
                           4
@@ -1468,15 +1470,6 @@
                           ],
                           2,
                           4
-                      ],
-                      "SpinalEquipment_at_x0_y5": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                          ],
-                          0,
-                          5
                       ],
                       "SpinalEquipment_at_x0_y6": [
                           "MultiMounted",
@@ -1648,14 +1641,14 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FusionEngine.tscn"
+                      "res://equipment/engines/IonEngine4x4.tscn"
                   ]
               ],
               "CenterEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
+                      "res://equipment/engines/Engine2x4.tscn"
                   ]
               ],
               "StarboardTurret2": [
@@ -1669,7 +1662,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FusionEngine.tscn"
+                      "res://equipment/engines/IonEngine4x4.tscn"
                   ]
               ]
           },
@@ -4652,198 +4645,6 @@
             null
         ],
           
-
-
-      "divine_ankylorhiza": [
-          "ShipDesign",
-          "Thoroughbred",
-          [
-              "Resource",
-              "res://ships/Starliner/Thoroughbred.tscn"
-          ],
-          {
-              "PortGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IACivilian/GreenMissileLauncher.tscn"
-                  ]
-              ],
-              "StarboardGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IACivilian/GreenMissileLauncher.tscn"
-                  ]
-              ],
-              "ForeEquipment": [
-                  "MultiMount",
-                  {
-                      "ForeEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/Shield3x3.tscn"
-                          ],
-                          0,
-                          0
-                      ]
-                  }
-              ],
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ElectroMagneticDampener.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "ExternalEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "ExternalEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "ExternalEquipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
-                          ],
-                          2,
-                          2
-                      ]
-                  }
-              ],
-              "AftEquipment": [
-                  "MultiMount",
-                  {
-                      "AftEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "AftEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/GravityControlSystem.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "AftEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/EnvironmentalControlSystem.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "AftEquipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/EntertainmentNetwork.tscn"
-                          ],
-                          2,
-                          2
-                      ],
-                      "AftEquipment_at_x0_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                          ],
-                          0,
-                          4
-                      ],
-                      "AftEquipment_at_x2_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          2,
-                          4
-                      ],
-                      "AftEquipment_at_x0_y5": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          5
-                      ]
-                  }
-              ],
-              "PortTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
-                  ]
-              ],
-              "StarboardTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IACivilian/AntiMissile2x2.tscn"
-                  ]
-              ],
-              "MainTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IACivilian/PlasmaTurret.tscn"
-                  ]
-              ],
-              "StarboardAuxEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/FissionEngine.tscn"
-                  ]
-              ],
-              "PortAuxEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/FissionEngine.tscn"
-                  ]
-              ],
-              "MainEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
-                  ]
-              ]
-          },
-          null
-      ],
 
       "divine_condor": [
           "ShipDesign",

@@ -45,7 +45,7 @@ material/4 = null
 [node name="MainEngine" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.73254, 0, 0 )
 script = ExtResource( 3 )
-mount_size_x = 2
+mount_size_x = 4
 mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"
@@ -54,7 +54,7 @@ mount_type_display = "engine"
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65788, 0, -1.271 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 4
+mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"
 
@@ -62,7 +62,7 @@ mount_type_display = "engine"
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.65741, 0, 1.27121 )
 script = ExtResource( 3 )
 mount_size_x = 2
-mount_size_y = 4
+mount_size_y = 2
 mount_type = "external engine"
 mount_type_display = "engine"
 

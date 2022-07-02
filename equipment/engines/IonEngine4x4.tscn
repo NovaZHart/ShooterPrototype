@@ -1,0 +1,31 @@
+[gd_scene load_steps=3 format=2]
+
+[ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
+[ext_resource path="res://equipment/engines/IonEngine4x4.mesh" type="ArrayMesh" id=2]
+
+[node name="IonEngine4x4" type="MeshInstance"]
+mesh = ExtResource( 2 )
+material/0 = null
+material/1 = null
+material/2 = null
+script = ExtResource( 1 )
+help_page = "engine/ion_large"
+item_size_x = 4
+item_size_y = 4
+mount_type_display = "engine"
+mount_type_all = "engine"
+add_mass = 48.0
+add_thrust = 11600.0
+add_reverse_thrust = 2320.0
+add_turning_thrust = 1160.0
+add_structure = 900.0
+add_explosion_damage = 200.0
+add_explosion_impulse = 400.0
+add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.25 )
+forward_thrust_heat = 0.02
+reverse_thrust_heat = 0.02
+turning_thrust_heat = 0.06
+forward_thrust_energy = 1.5
+reverse_thrust_energy = 1.5
+turning_thrust_energy = 4.5
+add_battery = 170.0
