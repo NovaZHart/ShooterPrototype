@@ -21,13 +21,18 @@ points = PoolVector3Array( 0, 0.36, 10, 0, 0.36, -10, 0, 0.36, 10, 0, 0.36, -10,
 script = ExtResource( 3 )
 help_page = "hulls/orca"
 base_mass = 182.0
-base_shields = 3600.0
-base_armor = 4800.0
-base_structure = 1600.0
+base_thrust = -1.2
+base_reverse_thrust = -1.2
+base_turning_thrust = -1.2
+base_shields = 5200.0
+base_armor = 7200.0
+base_structure = 3600.0
 base_fuel = 22.0
-base_drag = 1.75
-base_turn_drag = 0.5
-base_max_cargo = 40
+heal_shields = -1.7
+heal_structure = -1.7
+base_drag = 1.55
+base_turn_drag = 0.45
+base_max_cargo = 25
 armor_inverse_density = 300.0
 override_size = Vector3( 4.1, 0, 4.3 )
 flotsam_meshes = [ ExtResource( 5 ), ExtResource( 7 ), ExtResource( 8 ), ExtResource( 6 ) ]
@@ -92,15 +97,23 @@ mount_type = "external turret"
 mount_type_display = "turret"
 
 [node name="PortEngine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.63371, -0.331846, -0.382911 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.704, -0.332, -0.746 )
 script = ExtResource( 1 )
 mount_size_x = 2
 mount_size_y = 4
 mount_type = "external engine"
 mount_type_display = "engine"
 
+[node name="AuxEngine" type="Position3D" parent="."]
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.62726, -0.332, 0 )
+script = ExtResource( 1 )
+mount_size_x = 2
+mount_size_y = 2
+mount_type = "external engine"
+mount_type_display = "engine"
+
 [node name="StarboardEngine" type="Position3D" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.63384, -0.332, 0.383 )
+transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -1.70374, -0.332, 0.745573 )
 script = ExtResource( 1 )
 mount_size_x = 2
 mount_size_y = 4
@@ -118,10 +131,10 @@ mount_type_display = "gun"
 [node name="CenterGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 2.10164, -0.651613, 0 )
 script = ExtResource( 1 )
-mount_size_x = 2
+mount_size_x = 3
 mount_size_y = 4
-mount_type = "external gun"
-mount_type_display = "gun"
+mount_type = "internal gun"
+mount_type_display = "spinal mount"
 
 [node name="StarboardGun" type="Position3D" parent="."]
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 1.66639, -0.301612, 0.768342 )

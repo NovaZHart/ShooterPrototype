@@ -2945,7 +2945,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/RetributionMissileLauncher.tscn"
                   ]
               ],
               "PortGun": [
@@ -2953,13 +2953,6 @@
                   [
                       "Resource",
                       "res://weapons/IAPolice/GreyMissileLauncher.tscn"
-                  ]
-              ],
-              "StarboardEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
                   ]
               ],
               "PortEngine": [
@@ -2983,179 +2976,11 @@
                       "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
-              "CenterTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
-                  ]
-              ],
-              "ForeEquipment": [
-                  "MultiMount",
-                  {
-                      "ForeEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "ForeEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "ForeEquipment_at_x0_y3": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/SmallBioelectricGenerator.tscn"
-                          ],
-                          0,
-                          3
-                      ]
-                  }
-              ],
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "ExternalEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "ExternalEquipment_at_x0_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/ReactiveArmor.tscn"
-                          ],
-                          0,
-                          4
-                      ]
-                  }
-              ],
-              "AftEquipment": [
-                  "MultiMount",
-                  {
-                      "AftEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/ShieldCapacitors2x3.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "AftEquipment_at_x2_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/ShieldCapacitors1x2.tscn"
-                          ],
-                          2,
-                          0
-                      ],
-                      "AftEquipment_at_x2_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/repair/ShieldCapacitors1x2.tscn"
-                          ],
-                          2,
-                          2
-                      ],
-                      "AftEquipment_at_x0_y3": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/DefensiveScatterer.tscn"
-                          ],
-                          0,
-                          3
-                      ],
-                      "AftEquipment_at_x2_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/power/TinyBioelectricGenerator.tscn"
-                          ],
-                          2,
-                          4
-                      ]
-                  }
-              ]
-          },
-          null
-      ],
-
-      "orca_particles": [
-          "ShipDesign",
-          "Particle Orca",
-          [
-              "Resource",
-              "res://ships/Police/Orca.tscn"
-          ],
-          {
-              "CenterGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
-                  ]
-              ],
-              "PortGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
-                  ]
-              ],
               "StarboardEngine": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
-                  ]
-              ],
-              "PortEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/FissionEngine.tscn"
-                  ]
-              ],
-              "MainTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
-                  ]
-              ],
-              "StarboardGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
+                      "res://equipment/engines/Engine2x4.tscn"
                   ]
               ],
               "CenterTurret": [
@@ -3163,6 +2988,13 @@
                   [
                       "Resource",
                       "res://weapons/IACivilian/AntiMissile3x3.tscn"
+                  ]
+              ],
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/SmallMultisystem.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -3283,6 +3115,188 @@
           null
       ],
 
+      "orca_particles": [
+          "ShipDesign",
+          "Particle Orca",
+          [
+              "Resource",
+              "res://ships/Police/Orca.tscn"
+          ],
+          {
+              "CenterGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/IAPolice/LinearAccelerator3x4.tscn"
+                  ]
+              ],
+              "PortGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
+                  ]
+              ],
+              "PortEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/FissionEngine.tscn"
+                  ]
+              ],
+              "MainTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/IAPolice/CyclotronTurret4x4.tscn"
+                  ]
+              ],
+              "StarboardGun": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/IAPolice/LinearAccelerator2x4.tscn"
+                  ]
+              ],
+              "StarboardEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x4.tscn"
+                  ]
+              ],
+              "CenterTurret": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://weapons/IACivilian/AntiMissile3x3.tscn"
+                  ]
+              ],
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/SmallMultisystem.tscn"
+                  ]
+              ],
+              "ForeEquipment": [
+                  "MultiMount",
+                  {
+                      "ForeEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/DefensiveScatterer.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "ForeEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/cooling/AdiabaticDemagnitizationCooler.tscn"
+                          ],
+                          0,
+                          2
+                      ],
+                      "ForeEquipment_at_x0_y3": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/SmallReactor.tscn"
+                          ],
+                          0,
+                          3
+                      ]
+                  }
+              ],
+              "ExternalEquipment": [
+                  "MultiMount",
+                  {
+                      "ExternalEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/engines/Hyperdrive.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "ExternalEquipment_at_x0_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/AblativeBiogelExcreter.tscn"
+                          ],
+                          0,
+                          2
+                      ],
+                      "ExternalEquipment_at_x0_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/ReactiveArmor.tscn"
+                          ],
+                          0,
+                          4
+                      ]
+                  }
+              ],
+              "AftEquipment": [
+                  "MultiMount",
+                  {
+                      "AftEquipment_at_x0_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/ShieldCapacitors2x3.tscn"
+                          ],
+                          0,
+                          0
+                      ],
+                      "AftEquipment_at_x2_y0": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/ShieldCapacitors1x2.tscn"
+                          ],
+                          2,
+                          0
+                      ],
+                      "AftEquipment_at_x2_y2": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/repair/ShieldCapacitors1x2.tscn"
+                          ],
+                          2,
+                          2
+                      ],
+                      "AftEquipment_at_x0_y3": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/defense/DefensiveScatterer.tscn"
+                          ],
+                          0,
+                          3
+                      ],
+                      "AftEquipment_at_x2_y4": [
+                          "MultiMounted",
+                          [
+                              "Resource",
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                          ],
+                          2,
+                          4
+                      ]
+                  }
+              ]
+          },
+          null
+      ],
+
       "orca_missiles_lasers": [
           "ShipDesign",
           "Missile+Laser Orca",
@@ -3295,7 +3309,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/GreyMissileLauncher.tscn"
+                      "res://weapons/IAPolice/RetributionMissileLauncher.tscn"
                   ]
               ],
               "PortGun": [
@@ -3303,13 +3317,6 @@
                   [
                       "Resource",
                       "res://weapons/IAPolice/GreyMissileLauncher.tscn"
-                  ]
-              ],
-              "StarboardEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
                   ]
               ],
               "PortEngine": [
@@ -3333,11 +3340,25 @@
                       "res://weapons/IAPolice/GreyMissileLauncher.tscn"
                   ]
               ],
+              "StarboardEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x4.tscn"
+                  ]
+              ],
               "CenterTurret": [
                   "Mounted",
                   [
                       "Resource",
                       "res://weapons/IACivilian/AntiMissile3x3.tscn"
+                  ]
+              ],
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/SmallMultisystem.tscn"
                   ]
               ],
               "ForeEquipment": [
@@ -3470,7 +3491,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
+                      "res://weapons/IAPolice/NuclearPumpedLaser3x4.tscn"
                   ]
               ],
               "PortGun": [
@@ -3478,13 +3499,6 @@
                   [
                       "Resource",
                       "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
-                  ]
-              ],
-              "StarboardEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/engines/LargeMultisystem.tscn"
                   ]
               ],
               "PortEngine": [
@@ -3508,11 +3522,25 @@
                       "res://weapons/IAPolice/NuclearPumpedLaser2x4.tscn"
                   ]
               ],
+              "StarboardEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/Engine2x4.tscn"
+                  ]
+              ],
               "CenterTurret": [
                   "Mounted",
                   [
                       "Resource",
                       "res://weapons/IACivilian/AntiMissile3x3.tscn"
+                  ]
+              ],
+              "AuxEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/SmallMultisystem.tscn"
                   ]
               ],
               "ForeEquipment": [

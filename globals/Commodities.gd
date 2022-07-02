@@ -1025,7 +1025,7 @@ func shipyard_data_tables() -> ManyProducts:
 		[ 'res://ships/BannerShip/BannerShipHull.tscn', 3, 394000, 394000, 0, 'hull/civilian/advertisment', 'terran', 'large', 'license/alliance_military' ],
 		[ 'res://ships/Police/Popoto.tscn', 9, 108000, 108000, 0, 'hull/combat/interceptor', 'terran', 'license/alliance_police' ],
 		[ 'res://ships/Police/Bufeo.tscn', 4, 228000, 228000, 0, 'hull/combat/warship', 'terran', 'license/alliance_police' ],
-		[ 'res://ships/Police/Orca.tscn', 2, 581000, 581000, 0, 'hull/combat/warship', 'terran', 'large', 'license/alliance_police' ],
+		[ 'res://ships/Police/Orca.tscn', 2, 681000, 681000, 0, 'hull/combat/warship', 'terran', 'large', 'license/alliance_police' ],
 		[ 'res://ships/Police/Ankylorhiza.tscn', 1, 1308000, 1308000, 0, 'hull/combat/capital', 'terran', 'capital', 'license/alliance_police' ],
 		[ 'res://ships/FrontierMilitia/Eagle.tscn', 3, 133000, 133000, 0, 'hull/combat/warship', 'terran', 'license/frontier_militia' ],
 		[ 'res://ships/FrontierMilitia/Condor.tscn', 1, 793000, 793000, 0, 'hull/combat/capital', 'terran', 'capital', 'license/frontier_militia' ],
