@@ -116,22 +116,22 @@
       "raiders": [ "Faction", "Raiders", [
           "Array",
             {
-              "frequency": 60,
+              "frequency": 100,
               "fleet": "condor_trio",
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "condor_electrons_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "condor_spikes_escorted",
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "condor_mass_drivers_escorted",
               "type": "large_raid"
             },
@@ -151,7 +151,7 @@
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "raven_electrons_trio",
               "type": "large_raid"
             },
@@ -166,17 +166,17 @@
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "condor_electrons",
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "condor_duo",
               "type": "large_raid"
             },
             {
-              "frequency": 60,
+              "frequency": 80,
               "fleet": "condor_spikes",
               "type": "large_raid"
             },

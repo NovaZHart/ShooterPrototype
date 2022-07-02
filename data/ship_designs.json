@@ -1716,18 +1716,25 @@
                         ]
                     }
                 ],
-                "PortGun": [
+                "PortEngine": [
+                    "Mounted",
+                    [
+                        "Resource",
+                        "res://equipment/engines/FrontierEngine2x4.tscn"
+                    ]
+                ],
+                "CenterGun": [
                     "Mounted",
                     [
                         "Resource",
                         "res://weapons/FrontierMilitia/SpikeLauncher2x4.tscn"
                     ]
                 ],
-                "PortEngine": [
+                "PortGun": [
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/FrontierEngine2x4.tscn"
+                        "res://weapons/FrontierMilitia/SpikeLauncher2x4.tscn"
                     ]
                 ],
                 "Turret": [
@@ -1783,7 +1790,7 @@
                             "MultiMounted",
                             [
                                 "Resource",
-                                "res://equipment/power/TinyBioelectricGenerator.tscn"
+                                "res://equipment/cooling/SmallOpticalCooler.tscn"
                             ],
                             2,
                             2
@@ -1884,18 +1891,25 @@
                       ]
                   }
               ],
-              "PortGun": [
+              "PortEngine": [
+                  "Mounted",
+                  [
+                      "Resource",
+                      "res://equipment/engines/FrontierEngine2x4.tscn"
+                  ]
+              ],
+              "CenterGun": [
                   "Mounted",
                   [
                       "Resource",
                       "res://weapons/FrontierMilitia/ElectronGun2x4.tscn"
                   ]
               ],
-              "PortEngine": [
+              "PortGun": [
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FrontierEngine2x4.tscn"
+                      "res://weapons/FrontierMilitia/ElectronGun2x4.tscn"
                   ]
               ],
               "Turret": [
@@ -1951,7 +1965,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/power/TinyBioelectricGenerator.tscn"
+                              "res://equipment/cooling/SmallOpticalCooler.tscn"
                           ],
                           2,
                           2
