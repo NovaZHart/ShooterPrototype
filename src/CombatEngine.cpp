@@ -9,9 +9,9 @@
 #include <NodePath.hpp>
 #include <RID.hpp>
 
-#include "CombatEngine.hpp"
-#include "CombatEngineUtils.hpp"
-#include "CombatEngineData.hpp"
+#include "CE/CombatEngine.hpp"
+#include "CE/Utils.hpp"
+#include "CE/Data.hpp"
 
 using namespace godot;
 using namespace godot::CE;

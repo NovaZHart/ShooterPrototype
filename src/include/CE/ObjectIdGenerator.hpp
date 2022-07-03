@@ -1,6 +1,8 @@
 #ifndef OBJECTIDGENERATOR_HPP
 #define OBJECTIDGENERATOR_HPP
 
+#include <unordered_map>
+
 namespace godot {
   class ObjectIdGenerator {
   public:
@@ -29,6 +31,10 @@ namespace godot {
 
   // To simplify code, copy the object_id typedef to the godot scope.
   typedef ObjectIdGenerator::object_id object_id;
+
+  typedef std::unordered_map<int32_t,object_id> rid2id_t;
+  typedef std::unordered_map<int32_t,object_id>::iterator rid2id_iter;
+  typedef std::unordered_map<int32_t,object_id>::iterator rid2id_const_iter;
 }
 
 #endif

@@ -99,7 +99,7 @@ env.Append(LIBPATH=[cpp_bindings_path + 'bin/'])
 env.Append(LIBS=[cpp_library])
 
 # tweak this if you want to use different folders, or more folders, to store your source code in.
-env.Append(CPPPATH=['src/'])
+env.Append(CPPPATH=['src/include/'])
 
 ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['ShooterNative_target_name'] , source=[
     "src/MultiMeshManager.cpp",
@@ -107,7 +107,6 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/PreloadResources.cpp",
     "src/CombatEngine.cpp",
     "src/CombatEngineData.cpp",
-    "src/CombatEngineUtils.cpp",
     "src/SphereTool.cpp",
     "src/Starmap.cpp",
     "src/VisualEffects.cpp",

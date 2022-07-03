@@ -1,7 +1,5 @@
 #include <GodotGlobal.hpp>
-#include "VisualEffects.hpp"
-
-#include <GodotGlobal.hpp>
+#include "CE/VisualEffects.hpp"
 
 using namespace std;
 using namespace godot;

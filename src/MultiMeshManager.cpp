@@ -9,10 +9,10 @@
 #include <NodePath.hpp>
 #include <RID.hpp>
 
-#include "VisualEffects.hpp"
-#include "CombatEngineUtils.hpp"
-#include "CombatEngineData.hpp"
-#include "MultiMeshManager.hpp"
+#include "CE/VisualEffects.hpp"
+#include "CE/Utils.hpp"
+#include "CE/Data.hpp"
+#include "CE/MultiMeshManager.hpp"
 
 using namespace godot;
 using namespace godot::CE;

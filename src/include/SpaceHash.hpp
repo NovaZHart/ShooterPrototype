@@ -5,10 +5,12 @@
 #include <unordered_set>
 #include <unordered_map>
 
+#include <String.hpp>
 #include <Vector2.hpp>
 #include <Rect2.hpp>
+#include <Vector3.hpp>
 
-#include <CombatEngineUtils.hpp>
+#include <CE/Utils.hpp>
 
 namespace godot {
   struct IntVector2 {

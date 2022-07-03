@@ -1,6 +1,6 @@
-#include "CombatEngineData.hpp"
-#include "CombatEngineUtils.hpp"
-#include "MultiMeshManager.hpp"
+#include "CE/Data.hpp"
+#include "CE/Utils.hpp"
+#include "CE/MultiMeshManager.hpp"
 
 #include <cstdint>
 #include <cmath>
