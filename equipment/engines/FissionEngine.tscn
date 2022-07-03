@@ -19,3 +19,4 @@ add_mass = 16.0
 add_thrust = 5400.0
 add_cooling = -9.62
 add_power = 40.0
+add_structure = 400.0

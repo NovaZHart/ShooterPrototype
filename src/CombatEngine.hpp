@@ -213,7 +213,7 @@ namespace godot {
     void patrol_ship_ai(CE::Ship &ship);
     void decide_raider_ai_action(CE::Ship &ship);
     void raider_ai(CE::Ship &ship);
-    void salvage_ai(CE::Ship &ship);
+    bool salvage_ai(CE::Ship &ship);
     bool should_salvage(CE::Ship &ship,real_t *returned_best_time=nullptr);
     void landing_ai(CE::Ship &ship);
     CE::planets_iter choose_arriving_merchant_goal_target(CE::Ship &ship);

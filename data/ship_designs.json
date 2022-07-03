@@ -25,7 +25,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/engines/Hyperdrive.tscn"
+                              "res://equipment/defense/AstralShieldingPanels.tscn"
                           ],
                           0,
                           0
@@ -55,19 +55,10 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/repair/FrontierShield1x2.tscn"
                           ],
                           0,
                           0
-                      ],
-                      "AuxEquipment_at_x0_y1": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
-                          ],
-                          0,
-                          1
                       ],
                       "AuxEquipment_at_x0_y2": [
                           "MultiMounted",
@@ -144,7 +135,7 @@
                   "Mounted",
                   [
                       "Resource",
-                      "res://equipment/engines/FrontierEngine2x2.tscn"
+                      "res://equipment/engines/Hyperdrive.tscn"
                   ]
               ]
           },
@@ -537,7 +528,7 @@
                     "Mounted",
                     [
                         "Resource",
-                        "res://equipment/engines/Engine2x2.tscn"
+                        "res://equipment/engines/SmallMultisystem.tscn"
                     ]
                 ],
                 "PortAuxEngine": [
@@ -731,7 +722,7 @@
                           "MultiMounted",
                           [
                               "Resource",
-                              "res://equipment/cooling/SmallOpticalCooler.tscn"
+                              "res://equipment/power/TinyBioelectricGenerator.tscn"
                           ],
                           0,
                           1
@@ -841,7 +832,7 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/engines/Hyperdrive.tscn"
+                                  "res://equipment/defense/AstralShieldingPanels.tscn"
                               ],
                               0,
                               0
@@ -871,19 +862,10 @@
                               "MultiMounted",
                               [
                                   "Resource",
-                                  "res://equipment/cooling/SmallOpticalCooler.tscn"
+                                  "res://equipment/repair/FrontierShield1x2.tscn"
                               ],
                               0,
                               0
-                          ],
-                          "AuxEquipment_at_x0_y1": [
-                              "MultiMounted",
-                              [
-                                  "Resource",
-                                  "res://equipment/cooling/SmallOpticalCooler.tscn"
-                              ],
-                              0,
-                              1
                           ],
                           "AuxEquipment_at_x0_y2": [
                               "MultiMounted",
@@ -960,7 +942,7 @@
                       "Mounted",
                       [
                           "Resource",
-                          "res://equipment/engines/FrontierEngine2x2.tscn"
+                          "res://equipment/engines/Hyperdrive.tscn"
                       ]
                   ]
               },

@@ -3,7 +3,7 @@
 [ext_resource path="res://equipment/EquipmentStats.gd" type="Script" id=1]
 [ext_resource path="res://equipment/defense/AstralShieldingPanels.mesh" type="ArrayMesh" id=2]
 
-[node name="AblativeBiogelExcreter" type="MeshInstance"]
+[node name="AstralShieldingPanels" type="MeshInstance"]
 mesh = ExtResource( 2 )
 material/0 = null
 material/1 = null
@@ -15,4 +15,4 @@ item_size_y = 2
 mount_type_display = "external equipment"
 mount_type_all = "external equipment"
 add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0.4, 0, 0.3, 0, 0.2 )
-add_cooling = 4.0
+add_cooling = 6.0

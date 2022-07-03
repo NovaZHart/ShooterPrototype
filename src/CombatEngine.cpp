@@ -1344,65 +1344,68 @@ void CombatEngine::attacker_ai(Ship &ship) {
 
 void CombatEngine::decide_raider_ai_action(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  ship.ticks_since_ai_change=0;
+  ship.ticks_since_ai_check=0;
 
-  ship.ai_flags = DECIDED_NOTHING;
-  
-  if(ship.structure<0.5*ship.max_structure) {
+  if(ship.structure<0.667*ship.max_structure) {
     // Panic time. Only hope is to rift away.
     Godot::print(ship.name+": severe damage, so rift");
     ship.ai_flags = DECIDED_TO_RIFT;
     return;
   }
 
-  // If we have enough cargo, it is time to leave.
-  if(not (ship.ai_flags&DECIDED_MISSION_SUCCESS)) {
-    bool have_enough_cargo= ship.cargo_mass >= ship.max_cargo_mass or ship.cargo_mass>ship.empty_mass;
-    if(!have_enough_cargo)
-      have_enough_cargo = ship.salvaged_value>5e3*ship.max_cargo_mass
-        or (ship.cost and ship.salvaged_value>ship.cost*0.5);
-    if(have_enough_cargo)
-      ship.ai_flags = DECIDED_MISSION_SUCCESS & DECIDED_TO_FLEE;
-  }
-
-  // If we're fleeing, do we stop to rift, keep fleeing, or switch to normal behavior?
   if(ship.ai_flags&DECIDED_TO_FLEE) {
-    if(ship.ai_flags&DECIDED_MISSION_SUCCESS) {
-      // We have enough cargo. Is it safe enough to leave?
-      make_threat_vector(ship,0.5);
-      real_t threat_threshold = ship.threat/10;
-      bool ship_is_safe = ship.threat_vector.length_squared() <= threat_threshold*threat_threshold;
-      if(ship_is_safe) {
-        Godot::print(ship.name+": have enough cargo and is safe, so rift");
+    // We're already fleeing. Should we keep doing it?
+    if(ship.shields<0.75*ship.max_shields or ship.efficiency<0.9) {
+      if(ship.shields<ship.ai_work and ship.ticks_since_ai_change>3*ticks_per_second) {
+        // Shields don't seem to be recharging.
+        Godot::print(ship.name+": shields are not recharging, so rift");
         ship.ai_flags = DECIDED_TO_RIFT;
         return;
       }
+      // Shields are recharging, but aren't 75% yet, so keep fleeing.
+      update_near_objects_using_ship_locations(ship);
+      make_threat_vector(ship,0.5);
+      return;
+    } else {
+      // We're done fleeing.
+      ship.ticks_since_ai_change=0;
+      ship.ai_flags = DECIDED_TO_FIGHT;
     }
-
-    // We don't have enough cargo. Are the shields and efficiency recharged enough to fight again?
-    else if(ship.shields>0.75*ship.max_shields && ship.efficiency>0.9)
-      ship.ai_flags = DECIDED_NOTHING;
   }
 
   // If shields are low, flee to recharge unless we have a lot of armor left.
   // Or, if efficiency is low, flee to recharge efficiency.
   if( (ship.shields<0.1*ship.max_shields and ship.armor<0.5*ship.max_armor) or ship.efficiency<0.6) {
     ship.ai_flags = DECIDED_TO_FLEE;
+    ship.ai_work = ship.shields;
+    ship.ticks_since_ai_change=0;
+    update_near_objects_using_ship_locations(ship);
+    make_threat_vector(ship,0.5);
+    return;
+  }
+
+  // If we have enough cargo, it is time to leave.
+  bool have_enough_cargo= ship.cargo_mass >= ship.max_cargo_mass or ship.cargo_mass>ship.empty_mass;
+  if(!have_enough_cargo)
+    have_enough_cargo = ship.salvaged_value>5e4*ship.max_cargo_mass
+      or (ship.cost and ship.salvaged_value>ship.cost*0.5);
+  if(have_enough_cargo) {
+    Godot::print(ship.name+": have enough cargo ("+str(ship.salvaged_value)+" worth) so rift");
+    ship.ai_flags = DECIDED_TO_RIFT;
+    ship.ticks_since_ai_change=0;
     return;
   }
 
   // Should we salvage cargo?
-  if(!(ship.ai_flags&DECIDED_MISSION_SUCCESS)) {
-    real_t salvage_time=9e9; // initialized by should_salvage
-    if(should_salvage(ship,&salvage_time)) {
-      ship.ai_flags = DECIDED_TO_SALVAGE;
-      if(salvage_time>3)
-        ship.ai_flags &= DECIDED_TO_FIGHT;
-      return;
-    }
-  }
-
-  if(ship.ai_flags==DECIDED_NOTHING)
+  real_t salvage_time=9e9; // initialized by should_salvage
+  if(should_salvage(ship,&salvage_time)) {
+    ship.ai_flags = DECIDED_TO_SALVAGE;
+    // If we're salvaging cargo, only consider fighting instead if we're far from the salvage.
+    if(salvage_time>3)
+      ship.ai_flags &= DECIDED_TO_FIGHT;
+    return;
+  } else
+    // Nothing else to do, so let's fight.
     ship.ai_flags = DECIDED_TO_FIGHT;
 }
 
@@ -1410,6 +1413,14 @@ void CombatEngine::raider_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
     return;
+  
+  // If the ship decided to rift, there's nothing left to consider.
+  if(0 != (ship.ai_flags&DECIDED_TO_RIFT)) {
+    deactivate_cargo_web(ship);
+    if(!rift_ai(ship))
+      opportunistic_firing(ship);
+    return;
+  }
 
   if(ship.goal_target<0 and planets.size()>0) {
     ship.goal_target = select_target(-1,select_nearest(ship.position),planets,false);
@@ -1417,22 +1428,16 @@ void CombatEngine::raider_ai(Ship &ship) {
     if(p_planet!=planets.end())
       ship.destination = p_planet->second.position;
   }
-  
-  // If it is time to decide on our next action, ponder it.
-  if(!(ship.ai_flags&DECIDED_TO_RIFT) and ship.ticks_since_ai_change>=ticks_per_second/4)
-    decide_raider_ai_action(ship);
 
-  if(ship.ai_flags&DECIDED_TO_RIFT) {
-    deactivate_cargo_web(ship);
-    if(!rift_ai(ship))
-      opportunistic_firing(ship);
-    return;
-  }
+  // If it is time to decide on our next action, ponder it.
+  if(!(ship.ai_flags&DECIDED_TO_RIFT) and ship.ticks_since_ai_check>=ticks_per_second/4)
+    decide_raider_ai_action(ship);
 
   if(ship.ai_flags&DECIDED_TO_FLEE) {
     deactivate_cargo_web(ship);
     evade(ship);
     opportunistic_firing(ship);
+    return;
   }
 
   bool close_to_target=false;
@@ -1444,11 +1449,8 @@ void CombatEngine::raider_ai(Ship &ship) {
       and target_ptr->second.position.distance_squared_to(ship.position)<900;
   }
 
-  if(!close_to_target and ship.ai_flags&DECIDED_TO_SALVAGE) {
-    salvage_ai(ship);
-    opportunistic_firing(ship);
+  if(!close_to_target and ship.ai_flags&DECIDED_TO_SALVAGE and salvage_ai(ship))
     return;
-  }
 
   deactivate_cargo_web(ship);
   
@@ -1460,39 +1462,39 @@ void CombatEngine::raider_ai(Ship &ship) {
     fire_antimissile_turrets(ship);
   } else {
     // Nothing to do.
+    target_ptr = update_targetting(ship);
     patrol_ai(ship);
     opportunistic_firing(ship);
   }  
 }
 
-void CombatEngine::salvage_ai(Ship &ship) {
+bool CombatEngine::salvage_ai(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   projectiles_iter it = projectiles.find(ship.salvage_target);
-  if(it==projectiles.end()) {
-    ship.salvage_target=-1;
-    patrol_ai(ship);
-  } else {
-    Vector3 ship_position=get_position(ship);
-    Vector3 proj_position=get_position(it->second);
-    Vector3 dp = proj_position-ship_position;
-    pair<DVector3,double> course=plot_collision_course(dp,it->second.linear_velocity,ship.max_speed);
-    Vector3 correction = course.first-ship.linear_velocity;
-    Vector3 desired_heading=correction.normalized();
-    
-    //move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
-    request_heading(ship,desired_heading);
-    real_t dot = dot2(ship.heading,desired_heading);
-    request_thrust(ship,dot>0.95,dot<-0.95);
-    
-    if(dp.length_squared()<ship.cargo_web_radiussq)
-      activate_cargo_web(ship);
-    else if(ship.cargo_web_active)
-      deactivate_cargo_web(ship);
-    use_cargo_web(ship);
-  }
+  if(it==projectiles.end())
+    return false;
 
-  // Opportunistic firing
+  Vector3 ship_position=get_position(ship);
+  Vector3 proj_position=get_position(it->second);
+  Vector3 dp = proj_position-ship_position;
+  pair<DVector3,double> course=plot_collision_course(dp,it->second.linear_velocity,ship.max_speed);
+  Vector3 correction = course.first-ship.linear_velocity;
+  Vector3 desired_heading=correction.normalized();
+  
+  //move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
+  request_heading(ship,desired_heading);
+  real_t dot = dot2(ship.heading,desired_heading);
+  request_thrust(ship,dot>0.95,dot<-0.95);
+  
+  if(dp.length_squared()<ship.cargo_web_radiussq) {
+    activate_cargo_web(ship);
+    use_cargo_web(ship);
+  } else if(ship.cargo_web_active)
+    deactivate_cargo_web(ship);
+
   opportunistic_firing(ship);
+
+  return true;
 }
 
  bool CombatEngine::should_salvage(Ship &ship,real_t *returned_best_time) {
@@ -1831,7 +1833,7 @@ planets_iter CombatEngine::choose_arriving_merchant_goal_target(Ship &ship) {
 
 planets_iter CombatEngine::choose_arriving_merchant_action(Ship &ship) {
   FAST_PROFILING_FUNCTION;
-  ship.ticks_since_ai_change=0;
+  ship.ticks_since_ai_check=0;
   planets_iter target_ptr = choose_arriving_merchant_goal_target(ship);
   if(target_ptr==planets.end()) {
     // Nowhere to go and nothing to do. Time to leave.
@@ -1884,7 +1886,7 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
   planets_iter target_ptr = planets.end();
  
   // If it is time to decide on our next action, ponder it.
-  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
+  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_check>=ticks_per_second/4)
     choose_arriving_merchant_action(ship);
 
   if(ship.ai_flags==DECIDED_TO_RIFT) {
@@ -1917,7 +1919,7 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
 }
 
 void CombatEngine::decide_departing_merchant_ai_action(Ship &ship) {
-  ship.ticks_since_ai_change=0;
+  ship.ticks_since_ai_check=0;
   if(ship.armor<ship.max_armor/3 and ship.shields<ship.max_shields/3) {
     ship.ai_flags = DECIDED_TO_RIFT;
     return;
@@ -1969,7 +1971,7 @@ void CombatEngine::departing_merchant_ai(Ship &ship) {
     return;
 
   // If it is time to decide on our next action, ponder it.
-  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_change>=ticks_per_second/4)
+  if(ship.ai_flags==DECIDED_NOTHING or ship.ticks_since_ai_check>=ticks_per_second/4)
     decide_departing_merchant_ai_action(ship);
 
   if(ship.ai_flags==DECIDED_TO_WANDER) {
@@ -2052,6 +2054,11 @@ Vector3 CombatEngine::make_threat_vector(Ship &ship, real_t t) {
 void CombatEngine::evade(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   Vector3 reaction_vector=-ship.threat_vector.normalized();
+  if(reaction_vector.length_squared()<1e-5) {
+    set_angular_velocity(ship,Vector3(0,0,0));
+    request_thrust(ship,1,0);
+    return;
+  }
   real_t dot = dot2(reaction_vector,ship.heading);
   
   request_thrust(ship,real_t(dot>=0),real_t(dot<0));

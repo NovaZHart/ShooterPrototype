@@ -238,13 +238,13 @@ class Flotsam extends simple_tree.SimpleNode:
 					continue
 				var id = Commodities.commodities.by_name.get(product_name,-1)
 				if id>=0:
-					var product = Commodities.commodities.all[id].duplicate(false)
+					var product = Array(Commodities.commodities.all[id])
 					product[Commodities.Products.QUANTITY_INDEX] = count
 					products.append(product)
 					continue
 				id = Commodities.ship_parts.by_name.get(product_name,-1)
 				if id>=0:
-					var product = Commodities.ship_parts.all[id].duplicate(false)
+					var product = Array(Commodities.ship_parts.all[id])
 					product[Commodities.Products.QUANTITY_INDEX] = count
 					products.append(product)
 					continue
@@ -258,17 +258,22 @@ class Flotsam extends simple_tree.SimpleNode:
 				if product:
 					var quantity =  product[Commodities.Products.QUANTITY_INDEX]
 					if quantity:
-						product = product.duplicate(false)
+						product = Array(product)
 						product[Commodities.Products.QUANTITY_INDEX] = int(max(1,ceil(randf()*quantity)))
 						return product
 		if not products:
 			return null
 		else:
-			var product: Array = products[randi()%products.size()]
+			var index = randi()%products.size()
+			var product: Array = products[index].duplicate(true)
 			var count: int = int(ceil(product[Commodities.Products.QUANTITY_INDEX]))
+			var original = products[index][Commodities.Products.QUANTITY_INDEX]
 			if count>1:
-				count = 1+randi()%(count-1)
+				var selected = 1+randi()%(count-1)
+				#print("Randomly selecting "+str(selected)+" of "+str(count)+" "+str(product[Commodities.Products.NAME_INDEX]));
+				count = selected
 			product[Commodities.Products.QUANTITY_INDEX] = count
+			assert(products[index][Commodities.Products.QUANTITY_INDEX] == original)
 			return product
 	
 	func is_flotsam(): pass # For type detection. Never called, just needs to exist.

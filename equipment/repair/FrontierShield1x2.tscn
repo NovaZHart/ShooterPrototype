@@ -17,5 +17,5 @@ add_heal_shields = 22.0
 add_explosion_damage = 10.0
 add_explosion_impulse = 20.0
 add_cooling = -0.17
-shield_repair_heat = 0.03
+shield_repair_heat = 0.02
 add_power = -1.0

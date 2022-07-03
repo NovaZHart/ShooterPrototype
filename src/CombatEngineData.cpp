@@ -639,6 +639,7 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   goal_action(goal_patrol),
   goal_target(-1),
   salvage_target(-1),
+  ai_work(0),
 
   shield_ellipse(-1),
   cargo_web(-1),

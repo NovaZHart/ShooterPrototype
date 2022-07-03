@@ -508,6 +508,7 @@ namespace godot {
       goal_action_t goal_action;
       object_id goal_target;
       object_id salvage_target;
+      real_t ai_work;
 
       object_id shield_ellipse, cargo_web;
       
@@ -533,7 +534,7 @@ namespace godot {
       PresetCountdown<ticks_per_second/4> nearby_hostiles_timer;
       PresetCountdown<ticks_per_second/4> salvage_timer;
       PresetCountdown<ticks_per_second/60> confusion_timer;
-      ticks_t tick_at_last_shot, ticks_since_targetting_change, ticks_since_ai_change;
+      ticks_t tick_at_last_shot, ticks_since_targetting_change, ticks_since_ai_change, ticks_since_ai_check;
       real_t damage_since_targetting_change;
       Vector3 threat_vector;
       ship_hit_list_t nearby_objects;
@@ -668,6 +669,7 @@ namespace godot {
         tick += idelta;
         ticks_since_targetting_change+=idelta;
         ticks_since_ai_change+=idelta;
+        ticks_since_ai_check+=idelta;
 
         explosion_timer.advance(idelta);
         rift_timer.advance(idelta);
