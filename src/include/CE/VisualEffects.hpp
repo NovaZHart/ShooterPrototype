@@ -13,6 +13,7 @@
 
 #include <cmath>
 
+#include "CE/VisibleContent.hpp"
 #include "CE/MultiMeshManager.hpp"
 #include "CE/Utils.hpp"
 #include "CE/Data.hpp"

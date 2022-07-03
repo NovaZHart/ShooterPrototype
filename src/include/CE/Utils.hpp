@@ -57,6 +57,10 @@ namespace godot {
     inline uint32_t state_for_name(const String &name) {
       return name.hash();
     }
+
+    inline bool compare_distance(const std::pair<real_t,std::pair<RID,object_id>> &a,const std::pair<real_t,std::pair<RID,object_id>> &b) {
+      return a.first<b.first;
+    }
   }
 }
 

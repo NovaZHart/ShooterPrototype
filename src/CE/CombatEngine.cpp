@@ -822,14 +822,14 @@ void CombatEngine::negate_drag_force(Ship &ship) {
 }
 
 bool CombatEngine::rift_ai(Ship &ship) {
-  deactivate_cargo_web(ship);
+  ship.deactivate_cargo_web(*this);
   FAST_PROFILING_FUNCTION;
   if(ship.rift_timer.alarmed()) {
     // If the ship has already opened the rift, and survived the minimum duration,
     // it can vanish into the rift.
     ship.fate = FATED_TO_RIFT;
   } else if(not ship.rift_timer.active()) {
-    if(request_stop(ship,Vector3(0,0,0),3.0f)) {
+    if(ship.request_stop(*this,Vector3(0,0,0),3.0f)) {
       // Once the ship is stopped, paralyze it and open a rift.
       ship.immobile = true;
       ship.inactive = true;
@@ -900,15 +900,11 @@ void CombatEngine::explode_ship(Ship &ship) {
   }
 }
 
-void CombatEngine::heal_ship(Ship &ship) {
-  ship.heal(hyperspace,system_fuel_recharge,center_fuel_recharge,delta);
-}
-
 void CombatEngine::ai_step_ship(Ship &ship) {
   FAST_PROFILING_FUNCTION;
 
-  heal_ship(ship);
-  ship.apply_heat_and_energy_costs(delta);
+  ship.heal(*this);
+  ship.apply_heat_and_energy_costs(*this);
 
   if(ship.at_first_tick) {
     factions_const_iter faction_it = factions.find(ship.faction);
@@ -918,7 +914,7 @@ void CombatEngine::ai_step_ship(Ship &ship) {
       Godot::print_warning(ship.name+": has no faction",__FUNCTION__,__FILE__,__LINE__);
   }
 
-  if(ship.entry_method!=ENTRY_COMPLETE and not init_ship(ship))
+  if(ship.entry_method!=ENTRY_COMPLETE and not ship.init_ship(*this))
     return; // Ship has not yet fully arrived.
 
   for(auto &weapon : ship.weapons)
@@ -950,59 +946,6 @@ void CombatEngine::ai_step_ship(Ship &ship) {
   
   if(ship.cargo_web_active)
     use_cargo_web(ship);
-}
-
-bool CombatEngine::init_ship(Ship &ship) {
-  FAST_PROFILING_FUNCTION;
-  // return false = ship does nothing else this timestep
-  if(ship.entry_method == ENTRY_FROM_ORBIT) {
-    // Ships entering from orbit start at maximum speed.
-    if(ship.max_speed>0 and ship.max_speed<999999)
-      set_velocity(ship,ship.heading*ship.max_speed);
-    ship.entry_method=ENTRY_COMPLETE;
-    ship.damage_multiplier=1.0;
-    return false;
-  } else if(ship.entry_method != ENTRY_FROM_RIFT and
-            ship.entry_method != ENTRY_FROM_RIFT_STATIONARY) {
-    // Invalid entry method; treat it as ENTRY_COMPLETE.
-    ship.entry_method=ENTRY_COMPLETE;
-    ship.damage_multiplier=1.0;
-    return false;
-  }
-  if(ship.at_first_tick) {
-    // Ship is arriving via spatial rift. Trigger the animation and start a timer.
-    ship.immobile=true;
-    ship.inactive=true;
-    ship.damage_multiplier = ship.rifting_damage_multiplier;
-    ship.rift_timer.reset();
-    if(visual_effects.is_valid()) {
-      Vector3 rift_position = ship.position;
-      rift_position.y = ship.visual_height+1.1f;
-      // if(rift_position.y<ship.position.y)
-      //   Godot::print_warning(str("Rift is below ship: ")+str(rift_position.y)+"<"+str(ship.position.y),__FUNCTION__,__FILE__,__LINE__);
-      // else
-      //   Godot::print(str("Rift at ")+str(rift_position.y)+" ship at "+str(ship.position.y));
-      visual_effects->add_hyperspacing_polygon(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true,ship.id);
-      //visual_effects->add_zap_pattern(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*2.0f,true);
-      //visual_effects->add_zap_ball(SPATIAL_RIFT_LIFETIME_SECS,rift_position,ship.radius*1.5f,true);
-    } else
-      Godot::print_warning("No visual_effects!!",__FUNCTION__,__FILE__,__LINE__);
-    set_angular_velocity(ship,Vector3(0.0,15.0+ship.rand.randf()*15.0,0.0));
-    return false;
-  } else if(ship.rift_timer.alarmed()) {
-    // Rift animation just completed.
-    ship.rift_timer.clear_alarm();
-    ship.immobile=false;
-    ship.inactive=false;
-    ship.damage_multiplier=1.0;
-    if(ship.max_speed>0 and ship.max_speed<999999 and
-       ship.entry_method!=ENTRY_FROM_RIFT_STATIONARY)
-      set_velocity(ship,ship.heading*ship.max_speed);
-    set_angular_velocity(ship,Vector3(0.0,0.0,0.0));
-    ship.entry_method=ENTRY_COMPLETE;
-    return false;
-  }
-  return false; // rift animation not yet complete
 }
 
 bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
@@ -1053,37 +996,37 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
     ship.should_autotarget = not ship.should_autotarget;
   
   if(overrides.orders&PLAYER_ORDER_STOP_SHIP) {
-    request_stop(ship,Vector3(0,0,0),3.0f);
+    ship.request_stop(*this,Vector3(0,0,0),3.0f);
     thrust = rotation = true;
   }
 
   if(overrides.orders&PLAYER_ORDER_TOGGLE_CARGO_WEB) {
     if(!ship.cargo_web_active)
-      activate_cargo_web(ship);
+      ship.activate_cargo_web(*this);
     else
-      deactivate_cargo_web(ship);
+      ship.deactivate_cargo_web(*this);
   }
   
   if(!rotation and fabsf(overrides.manual_rotation)>1e-5) {
-    request_rotation(ship,overrides.manual_rotation);
+    ship.request_rotation(*this,overrides.manual_rotation);
     rotation=true;
   }
    
   if(!thrust and fabsf(overrides.manual_thrust)>1e-5) {
-    request_thrust(ship,clamp(overrides.manual_thrust,0.0f,1.0f),
-                   clamp(-overrides.manual_thrust,0.0f,1.0f));
+    ship.request_thrust(*this,clamp(overrides.manual_thrust,0.0f,1.0f),
+                        clamp(-overrides.manual_thrust,0.0f,1.0f));
     thrust=true;
   }
   
   if(!rotation)
-    request_rotation(ship,0);
+    ship.request_rotation(*this,0);
 
   if(overrides.orders&PLAYER_ORDER_FIRE_PRIMARIES) {
     ships_iter target_ptr = ships.find(ship.get_target());
     if(not rotation and ship.should_autotarget and target_ptr!=ships.end()) {
       bool in_range=false;
-      Vector3 aim = aim_forward(ship,target_ptr->second,in_range);
-        request_heading(ship,aim);
+      Vector3 aim = ship.aim_forward(*this,target_ptr->second,in_range);
+      ship.request_heading(*this,aim);
         rotation=true;
     }
     aim_turrets(ship,target_ptr);
@@ -1091,52 +1034,6 @@ bool CombatEngine::apply_player_orders(Ship &ship,PlayerOverrides &overrides) {
   }
   fire_antimissile_turrets(ship);
   return thrust or rotation;
-}
-
-void CombatEngine::activate_cargo_web(Ship &ship) {
-  if(ship.cargo_web_active)
-    return;
-  ship.cargo_web_active = true;
-  if(visual_effects.is_valid()) {
-    if(ship.shield_ellipse>=0)
-      visual_effects->set_visibility(ship.shield_ellipse,false);
-    if(ship.cargo_web>=0)
-      visual_effects->reset_effect(ship.cargo_web);
-    else
-      ship.cargo_web=visual_effects->add_cargo_web(ship,get_faction_color(ship.faction));
-  }
-}
-void CombatEngine::deactivate_cargo_web(Ship &ship) {
-  if(!ship.cargo_web_active)
-    return;
-  ship.cargo_web_active = false;
-  if(visual_effects.is_valid()) {
-    if(ship.shield_ellipse>=0)
-      visual_effects->set_visibility(ship.shield_ellipse,true);
-    if(ship.cargo_web>=0)
-      visual_effects->set_visibility(ship.cargo_web,false);
-  }
-}
-
-pair<DVector3,double> CombatEngine::plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed) {
-  FAST_PROFILING_FUNCTION;
-  // Returns desired velocity vector and time to collision.
-  double target_speed = target_velocity.length();
-  DVector3 relative_heading = relative_position.normalized();     // VrHat
-
-  if(target_speed>max_speed)
-    // Special case: cannot catch up to target. Instead, fly towards it.
-    return pair<DVector3,double>(relative_heading*max_speed,NAN);
-  
-  double sina = cross2(relative_heading,target_velocity)/max_speed; // (VrHat x V0Hat) * v0Hat/vg
-  double relative_angle = asin_clamp(sina);
-  double distance = relative_position.length();
-  double start_angle = angle_from_unit(relative_heading);         // angle of VrHat
-  DVector3 course = unit_from_angle_d(start_angle+relative_angle)*max_speed;
-  DVector3 relative_course = course-target_velocity;
-  double relative_speed = max(0.01,relative_course.length());
-  
-  return pair<DVector3,double>(course,distance/relative_speed);
 }
 
 void CombatEngine::use_cargo_web(Ship &ship) {
@@ -1203,7 +1100,7 @@ bool CombatEngine::apply_player_goals(Ship &ship,PlayerOverrides &overrides) {
       ships_iter target_p = ships.find(overrides.target_id);
       if(target_p!=ships.end()) {
         ship.new_target(target_p->first);
-        move_to_attack(ship,target_p->second);
+        ship.move_to_attack(*this,target_p->second);
       }
       return true;
     }
@@ -1238,10 +1135,6 @@ void CombatEngine::update_near_objects_using_godot_physics(Ship &ship) {
     ship.nearby_objects.emplace_back(rid,it->second);
     happy++;
   }
-}
-
-static bool compare_distance(const pair<real_t,pair<RID,object_id>> &a,const pair<real_t,pair<RID,object_id>> &b) {
-  return a.first<b.first;
 }
 
 void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,vector<pair<real_t,pair<RID,object_id>>> &results) {
@@ -1286,28 +1179,11 @@ void CombatEngine::update_near_objects_using_ship_locations(Ship &ship) {
     ship.nearby_objects.push_back(r.second);
 }
 
-bool CombatEngine::should_update_targetting(Ship &ship,ships_iter &other) {
-  if(other->second.fate!=FATED_TO_FLY)
-    return true;
-  else if(ship.shot_at_target_timer.alarmed()) {
-    // After 15 seconds without firing, reevaluate target
-    ship.shot_at_target_timer.reset();
-    return true;
-  } else if(ship.range_check_timer.alarmed()) {
-    // Every 25 seconds reevaluate target if target is out of range
-    ship.range_check_timer.reset();
-    real_t target_distance = ship.position.distance_to(other->second.position);
-    return target_distance > 1.5*ship.range.all;
-  }
-  real_t hp = ship.armor+ship.shields+ship.structure;
-  return hp/4<ship.damage_since_targetting_change;
-}
-
 ships_iter CombatEngine::update_targetting(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   ships_iter target_ptr = ships.find(ship.get_target());
   bool pick_new_target = target_ptr==ships.end() || 
-    should_update_targetting(ship,target_ptr);
+    ship.should_update_targetting(target_ptr->second);
   
   if(pick_new_target) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
@@ -1327,7 +1203,7 @@ void CombatEngine::attacker_ai(Ship &ship) {
   
   if(close_to_target) {
     ship.new_target(target_ptr->first);
-    move_to_attack(ship,target_ptr->second);
+    ship.move_to_attack(*this,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
   } else {
@@ -1416,7 +1292,7 @@ void CombatEngine::raider_ai(Ship &ship) {
   
   // If the ship decided to rift, there's nothing left to consider.
   if(0 != (ship.ai_flags&DECIDED_TO_RIFT)) {
-    deactivate_cargo_web(ship);
+    ship.deactivate_cargo_web(*this);
     if(!rift_ai(ship))
       opportunistic_firing(ship);
     return;
@@ -1434,7 +1310,7 @@ void CombatEngine::raider_ai(Ship &ship) {
     decide_raider_ai_action(ship);
 
   if(ship.ai_flags&DECIDED_TO_FLEE) {
-    deactivate_cargo_web(ship);
+    ship.deactivate_cargo_web(*this);
     evade(ship);
     opportunistic_firing(ship);
     return;
@@ -1452,10 +1328,10 @@ void CombatEngine::raider_ai(Ship &ship) {
   if(!close_to_target and ship.ai_flags&DECIDED_TO_SALVAGE and salvage_ai(ship))
     return;
 
-  deactivate_cargo_web(ship);
+  ship.deactivate_cargo_web(*this);
   
   if(target_ptr!=ships.end()) {
-    move_to_attack(ship,target_ptr->second);
+    ship.move_to_attack(*this,target_ptr->second);
     aim_turrets(ship,target_ptr);
     if(ship.efficiency>0.9)
       auto_fire(ship,target_ptr);
@@ -1481,16 +1357,16 @@ bool CombatEngine::salvage_ai(Ship &ship) {
   Vector3 correction = course.first-ship.linear_velocity;
   Vector3 desired_heading=correction.normalized();
   
-  //move_to_intercept(ship,ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
-  request_heading(ship,desired_heading);
+  //ship.move_to_intercept(ship.cargo_web_radius/4,.01,proj_position,it->second.linear_velocity,false);
+  ship.request_heading(*this,desired_heading);
   real_t dot = dot2(ship.heading,desired_heading);
-  request_thrust(ship,dot>0.95,dot<-0.95);
+  ship.request_thrust(*this,dot>0.95,dot<-0.95);
   
   if(dp.length_squared()<ship.cargo_web_radiussq) {
-    activate_cargo_web(ship);
+    ship.activate_cargo_web(*this);
     use_cargo_web(ship);
   } else if(ship.cargo_web_active)
-    deactivate_cargo_web(ship);
+    ship.deactivate_cargo_web(*this);
 
   opportunistic_firing(ship);
 
@@ -1744,7 +1620,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
     if(target_ptr == ships.end())
       find_new_target = true;
     else
-      find_new_target = should_update_targetting(ship,target_ptr);
+      find_new_target = ship.should_update_targetting(target_ptr->second);
   }
   if(find_new_target) {
     choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f);
@@ -1756,7 +1632,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
   
   if(close_to_target) {
     ship.ai_flags=0;
-    move_to_attack(ship,target_ptr->second);
+    ship.move_to_attack(*this,target_ptr->second);
     aim_turrets(ship,target_ptr);
     auto_fire(ship,target_ptr);
     fire_antimissile_turrets(ship);
@@ -1779,7 +1655,7 @@ void CombatEngine::patrol_ship_ai(Ship &ship) {
       if(!rift_ai(ship))
         opportunistic_firing(ship);
     } else if(have_target) {
-      move_to_attack(ship,target_ptr->second);
+      ship.move_to_attack(*this,target_ptr->second);
       opportunistic_firing(ship);
     } else
       patrol_ai(ship);
@@ -1801,8 +1677,8 @@ void CombatEngine::landing_ai(Ship &ship) {
   if(target == planets.end())
     // Nowhere to land!
     patrol_ai(ship);
-  else if(move_to_intercept(ship, target->second.radius, 5.0, target->second.position,
-                            Vector3(0,0,0), true)) {
+  else if(ship.move_to_intercept(*this,target->second.radius, 5.0, target->second.position,
+                                 Vector3(0,0,0), true)) {
     // Reached planet.
     // FIXME: implement factions, etc.:
     // if(target->second.can_land(ship))
@@ -1905,7 +1781,7 @@ void CombatEngine::arriving_merchant_ai(Ship &ship) {
     target_ptr = CombatEngine::choose_arriving_merchant_goal_target(ship);
   if(target_ptr!=planets.end()) {
     Planet &target = target_ptr->second;
-    if(move_to_intercept(ship, target.radius, 5.0, target.position, Vector3(0,0,0), true))
+    if(ship.move_to_intercept(*this, target.radius, 5.0, target.position, Vector3(0,0,0), true))
       // Reached planet.
       ship.fate = FATED_TO_LAND;
     opportunistic_firing(ship);
@@ -1981,11 +1857,11 @@ void CombatEngine::departing_merchant_ai(Ship &ship) {
       Planet &planet = target_ptr->second;
       Vector3 planet_loc = get_position(planet);
       Vector3 direction = (get_position(ship)-planet_loc).normalized();
-      request_heading(ship,direction);
+      ship.request_heading(*this,direction);
       if(dot2(ship.heading,direction)>=0)
-        request_thrust(ship,1,0);
+        ship.request_thrust(*this,1,0);
       else
-        request_thrust(ship,0,1);
+        ship.request_thrust(*this,0,1);
     } else if(rift_ai(ship)) // Departure planet is gone, so just rift away
       return;
   } else if(ship.ai_flags==DECIDED_TO_FLEE)
@@ -2020,7 +1896,7 @@ bool CombatEngine::patrol_ai(Ship &ship) {
         ship.destination += p_planet->second.position;
     }
   }
-  move_to_intercept(ship, 5, 1, ship.destination, Vector3(0,0,0), false);
+  ship.move_to_intercept(*this, 5, 1, ship.destination, Vector3(0,0,0), false);
   return true;
 }
 
@@ -2055,45 +1931,14 @@ void CombatEngine::evade(Ship &ship) {
   FAST_PROFILING_FUNCTION;
   Vector3 reaction_vector=-ship.threat_vector.normalized();
   if(reaction_vector.length_squared()<1e-5) {
-    set_angular_velocity(ship,Vector3(0,0,0));
-    request_thrust(ship,1,0);
+    ship.set_angular_velocity(*this,Vector3(0,0,0));
+    ship.request_thrust(*this,1,0);
     return;
   }
   real_t dot = dot2(reaction_vector,ship.heading);
   
-  request_thrust(ship,real_t(dot>=0),real_t(dot<0));
-  request_heading(ship,reaction_vector);
-}
-
-bool CombatEngine::pull_back_to_standoff_range(Ship &ship,Ship &target,Vector3 &aim) {
-  FAST_PROFILING_FUNCTION;
-
-  if(not ship.reverse_thrust)
-    // Cannot pull back without reverse thrusters.
-    return false;
-
-  real_t standoff_range=ship.get_standoff_range(target,idelta);
-
-  if(not isfinite(standoff_range))
-    // Cannot pull back to standoff range for an unarmed ship.
-    return false;
-
-  if(dot2(ship.heading,aim)>0) {
-    real_t distance = (target.position-ship.position).length();
-    if(distance<standoff_range*0.7)
-      request_thrust(ship,0,1);
-    else if(distance>standoff_range*.9)
-      request_thrust(ship,1,0);
-  }
-    
-  return false;
-}
-
-real_t CombatEngine::time_of_closest_approach(Vector3 dp,Vector3 dv) {
-  real_t dv2 = dot2(dv,dv);
-  if(dv2<1e-9)
-    return 0;
-  return max(dot2(dp,dv)/dv2,0.0f);
+  ship.request_thrust(*this,real_t(dot>=0),real_t(dot<0));
+  ship.request_heading(*this,reaction_vector);
 }
 
 void CombatEngine::fire_antimissile_turrets(Ship &ship) {
@@ -2311,76 +2156,6 @@ void CombatEngine::aim_turrets(Ship &ship,ships_iter &target) {
   }
 }
 
-Vector3 CombatEngine::aim_forward(Ship &ship,Ship &target,bool &in_range) {
-  FAST_PROFILING_FUNCTION;
-  Vector3 aim = Vector3(0,0,0);
-  Vector3 my_pos=ship.position;
-  Vector3 tgt_pos=target.position+ship.confusion;
-  Vector3 dp_ships = tgt_pos - my_pos;
-  Vector3 dv = target.linear_velocity - ship.linear_velocity;
-  dp_ships += dv*delta;
-  in_range=false;
-  for(auto &weapon : ship.weapons) {
-    if(weapon.is_turret or weapon.guided)
-      continue;
-    //Vector3 weapon_velocity = ship.linear_velocity + weapon.terminal_velocity*ship.heading;
-    Vector3 dp = dp_ships - weapon.position.rotated(y_axis,ship.rotation.y);
-    real_t t = rendezvous_time(dp,dv,weapon.terminal_velocity);
-    if(isnan(t)) 
-      continue;
-    //return (tgt_pos - my_pos).normalized();
-    in_range = in_range or t<weapon.projectile_lifetime;
-    t = min(t,weapon.projectile_lifetime);
-    aim += (dp+t*dv)*max(1.0f,weapon.threat);
-  }
-  return aim.length_squared() ? aim.normalized() : (tgt_pos-my_pos).normalized();
-}
-
-bool CombatEngine::request_stop(Ship &ship,Vector3 desired_heading,real_t max_speed) {
-  FAST_PROFILING_FUNCTION;
-  bool have_heading = desired_heading.length_squared()>1e-10;
-  real_t speed = ship.linear_velocity.length();
-  const real_t speed_epsilon = 0.01;
-  real_t slow = max(max_speed,speed_epsilon);
-  Vector3 velocity_norm = ship.linear_velocity.normalized();
-  
-  if(speed<slow) {
-    set_velocity(ship,Vector3(0,0,0));
-    if(have_heading)
-      request_heading(ship,desired_heading);
-    else
-      set_angular_velocity(ship,Vector3(0,0,0));
-    return true;
-  }
-
-  double stop_time = speed/(ship.inverse_mass*ship.thrust);
-  //double limit = 0.8 + 0.2/(1.0+stop_time*stop_time*stop_time*speed_epsilon);
-  double turn = acos_clamp_dot(-velocity_norm,ship.heading);
-  double forward_turn_time = turn/ship.max_angular_velocity;
-
-  if(ship.reverse_thrust>1e-5) {
-    double forward_time = forward_turn_time + stop_time;
-    double reverse_stop_time = speed/(ship.inverse_mass*ship.reverse_thrust);
-    double reverse_turn_time = (PI/2-turn)/ship.max_angular_velocity;
-    double reverse_time = reverse_turn_time + reverse_stop_time;
-    if(have_heading) {
-      double turn_from_backward = acos_clamp_dot(desired_heading,-velocity_norm);
-      forward_time += turn_from_backward/ship.max_angular_velocity;
-      
-      double turn_from_forwards = acos_clamp_dot(desired_heading,velocity_norm);
-      reverse_time += turn_from_forwards/ship.max_angular_velocity;
-    }
-    if(reverse_time<forward_time) {
-      if(fabsf(request_heading(ship,velocity_norm))>0.9)
-        request_thrust(ship,0,speed/(delta*ship.inverse_mass*ship.reverse_thrust));
-      return false;
-    }
-  }
-  if(fabsf(request_heading(ship,-velocity_norm))>0.9)
-    request_thrust(ship,speed/(delta*ship.inverse_mass*ship.thrust),0);
-  return false;
-}
-
 void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
   FAST_PROFILING_FUNCTION;
   result.clear();
@@ -2403,33 +2178,6 @@ void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
   result.resize(next_index+1);
 }
 
-double CombatEngine::rendezvous_time(Vector3 target_location,Vector3 target_velocity,
-                                     double interception_speed) {
-  FAST_PROFILING_FUNCTION;
-  double a = dot2(target_velocity,target_velocity) - interception_speed*interception_speed;
-  double b = 2.0 * dot2(target_location,target_velocity);
-  double c = dot2(target_location,target_location);
-  double descriminant = b*b - 4*a*c;
-
-  if(fabs(a)<1e-5)
-    return -c/b;
-
-  if(descriminant<0)
-    return NAN;
-
-  descriminant = sqrt(descriminant);
-        
-  double d1 = (-b + descriminant)/(2.0*a);
-  double d2 = (-b - descriminant)/(2.0*a);
-  double mn = min(d1,d2);
-  double mx = max(d1,d2);
-
-  if(mn>=0)
-    return mn;
-  else if(mx>=0)
-    return mx;
-  return NAN;
-}
 
 void CombatEngine::fire_primary_weapons(Ship &ship) {
   FAST_PROFILING_FUNCTION;
@@ -2455,8 +2203,8 @@ void CombatEngine::player_auto_target(Ship &ship) {
   ships_iter target = ships.find(ship.get_target());
   if(target!=ships.end()) {
     bool in_range=false;
-    Vector3 aim = aim_forward(ship,target->second,in_range);
-    request_heading(ship,aim);
+    Vector3 aim = ship.aim_forward(*this,target->second,in_range);
+    ship.request_heading(*this,aim);
   }
   fire_primary_weapons(ship);
 }
@@ -2686,138 +2434,6 @@ void CombatEngine::auto_fire(Ship &ship,ships_iter &target) {
   }
 }
 
-void CombatEngine::move_to_attack(Ship &ship,Ship &target) {
-  FAST_PROFILING_FUNCTION;
-  if(ship.weapons.empty() or ship.inactive or ship.immobile)
-    return;
-
-  bool in_range=false;
-  Vector3 aim=aim_forward(ship,target,in_range);
-  // if(not in_range) {
-  //   Vector3 dp = get_position(ship)-get_position(target);
-  //   if(dp.length_squared()<max(ship.radiussq,target.radiussq))
-  //     in_range=true;
-  // }
-
-  real_t standoff_range=ship.get_standoff_range(target,idelta);
-  
-  if(in_range) {
-    pull_back_to_standoff_range(ship,target,aim);
-    request_heading(ship,aim);
-  } else {
-    move_to_intercept(ship,standoff_range*0.7,0,target.position,target.linear_velocity,false);
-    return;
-  }
-
-  Vector3 dp = target.position - ship.position;
-  real_t dotted = dot2(ship.heading,dp.normalized());
-	
-  // Heuristic; needs improvement
-  if((dotted>=0.9 and dot2(ship.linear_velocity,dp)<0) or
-     lensq2(dp)>max(100.0f,ship.turn_diameter_squared))
-    request_thrust(ship,1.0,0.0);
-  else if(dotted<-0.75 and ship.reverse_thrust>0)
-    request_thrust(ship,0.0,1.0);
-}
-
-bool CombatEngine::move_to_intercept(Ship &ship,double close, double slow,
-                                     DVector3 tgt_pos, DVector3 tgt_vel,
-                                     bool force_final_state) {
-  FAST_PROFILING_FUNCTION;
-  if(ship.immobile)
-    return false;
-  const double big_dot_product = 0.95;
-  DVector3 position = ship.position;
-  DVector3 heading = get_heading_d(ship);
-  DVector3 dp = tgt_pos - position;
-  DVector3 dv = tgt_vel - DVector3(ship.linear_velocity);
-  dp += dv*delta;
-  double speed = dv.length();
-  bool is_close = dp.length()<close;
-  if(is_close && speed<slow) {
-    if(force_final_state) {
-      set_velocity(ship,Vector3(tgt_vel.x,0,tgt_vel.z));
-      set_angular_velocity(ship,Vector3(0,0,0));
-    }
-    return true;
-  }
-  bool should_reverse = false;
-  dp = tgt_pos - ship.stopping_point(tgt_vel, should_reverse);
-
-  if(should_reverse and dp.length()<close*.95) {
-    request_thrust(ship,0,1);
-    return false;
-  }
-
-  DVector3 dp_dir = dp.normalized();
-  double dot = dp_dir.dot(heading);
-  bool is_facing = dot > big_dot_product;
-
-  if( !is_close || !is_facing)
-    request_heading(ship,Vector3(dp_dir.x,0,dp_dir.z));
-  else
-    set_angular_velocity(ship,Vector3(0,0,0));
-  if(is_facing)
-    request_thrust(ship,1,0);
-  else if(should_reverse)
-    request_thrust(ship,0,1);
-  return false;
-}
-
-real_t CombatEngine::request_heading(Ship &ship, Vector3 new_heading) {
-  FAST_PROFILING_FUNCTION;
-  Vector3 norm_heading = new_heading.normalized();
-  real_t cross = -cross2(norm_heading,ship.heading);
-  real_t new_av=0, dot_product = dot2(norm_heading,ship.heading);
-  
-  if(dot_product>0) {
-    double angle = asin_clamp(cross);
-    new_av = copysign(1.0,angle)*min(fabsf(angle)/delta,ship.max_angular_velocity);
-  } else
-    new_av = cross<0 ? -ship.max_angular_velocity : ship.max_angular_velocity;
-  set_angular_velocity(ship,Vector3(0,new_av,0));
-  return dot_product;
-}
-
-void CombatEngine::request_rotation(Ship &ship, real_t rotation_factor) {
-  FAST_PROFILING_FUNCTION;
-  rotation_factor = clamp(rotation_factor,-1.0f,1.0f);
-  set_angular_velocity(ship,Vector3(0,rotation_factor*ship.max_angular_velocity,0));
-}
-
-void CombatEngine::request_thrust(Ship &ship, real_t forward, real_t reverse) {
-  FAST_PROFILING_FUNCTION;
-  if(ship.immobile or (hyperspace and ship.fuel<=0))
-    return;
-  real_t ai_thrust = ship.thrust*clamp(forward,0.0f,1.0f) - ship.reverse_thrust*clamp(reverse,0.0f,1.0f);
-  ship.energy -= delta*(ship.forward_thrust_energy*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_energy*ship.reverse_thrust*clamp(reverse,0.0f,1.0f));
-  ship.heat += delta*(ship.forward_thrust_heat*ship.thrust*clamp(forward,0.0f,1.0f) + ship.reverse_thrust_heat*ship.reverse_thrust*clamp(reverse,0.0f,1.0f));
-  Vector3 v_thrust = Vector3(ai_thrust,0,0).rotated(y_axis,ship.rotation.y);
-  physics_server->body_add_central_force(ship.rid,v_thrust);
-}
-
-void CombatEngine::set_angular_velocity(Ship &ship,const Vector3 &angular_velocity) {
-  FAST_PROFILING_FUNCTION;
-  // Apply an impulse that gives the ship a new angular velocity.
-  Vector3 change = angular_velocity-ship.angular_velocity;
-  physics_server->body_apply_torque_impulse(ship.rid,change/ship.inverse_inertia);
-  // Update our internal copy of the ship's angular velocity.
-  ship.angular_velocity = angular_velocity;
-}
-
-void CombatEngine::set_velocity(Ship &ship,const Vector3 &velocity) {
-  // Apply an impulse that gives the ship the new velocity.
-  // Assumes the impulse is small, so we can ignore heat and energy
-  FAST_PROFILING_FUNCTION;
-  if(ship.inverse_mass<1e-5) {
-    Godot::print_error(String("Invalid inverse mass ")+String(Variant(ship.inverse_mass)),__FUNCTION__,__FILE__,__LINE__);
-    return;
-  }
-  physics_server->body_apply_central_impulse(ship.rid,(velocity-ship.linear_velocity)/ship.inverse_mass);
-  // Update our internal copy of the ship's velocity.
-  ship.linear_velocity = velocity;
-}
-
 
 /**********************************************************************/
 
@@ -2847,7 +2463,7 @@ void CombatEngine::integrate_projectiles() {
         if(projectile.salvage)
           flotsam_locations.set_rect(projectile.id,rect_for_circle(projectile.position,projectile.radius()));
       }
-      integrate_projectile_forces(projectile,1,true);
+      projectile.integrate_projectile_forces(1,true,delta);
     }
     
     bool collided=false;
@@ -3021,29 +2637,8 @@ CE::ships_iter CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 p
 }
 
 void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
-  FAST_PROFILING_FUNCTION;
-  if(projectile.salvage) {
-    const Salvage & salvage = *projectile.salvage;
+  if(ship.salvage_projectile(projectile))
     salvaged_items.emplace(ship.id,projectile.salvage);
-    if(salvage.structure_repair>0)
-      ship.structure = min(double(ship.max_structure),ship.structure+salvage.structure_repair);
-    if(salvage.armor_repair>0)
-      ship.armor = min(double(ship.max_armor),ship.armor+salvage.armor_repair);
-    if(salvage.fuel>0)
-      ship.fuel = min(ship.max_fuel,ship.fuel+salvage.fuel);
-    if(salvage.cargo_unit_mass>0 and salvage.cargo_count>0) {
-      float unit_mass = salvage.cargo_unit_mass/1000; // Convert kg->tons
-      float old_mass = ship.cargo_mass;
-      float original_max_mass = max(ship.cargo_mass,ship.max_cargo_mass);
-      int pickup = floorf((original_max_mass-old_mass)/unit_mass);
-      if(pickup>salvage.cargo_count)
-        pickup=salvage.cargo_count;
-      ship.cargo_mass = min(original_max_mass,old_mass+pickup*unit_mass);
-      // if(ship.cargo_mass != old_mass)
-      ship.salvaged_value += pickup*salvage.cargo_unit_value;
-      Godot::print(ship.name+" gained "+str(pickup*unit_mass)+"tn (of "+str(ship.max_cargo_mass)+" max) and "+str(pickup*salvage.cargo_unit_value)+" (tot "+str(ship.salvaged_value)+") by picking up "+str(pickup)+" units of "+str(salvage.cargo_name)+" ship cost "+str(ship.cost));
-    }
-  }
 }
 
 bool CombatEngine::collide_point_projectile(Projectile &projectile) {
@@ -3161,20 +2756,20 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
   ships_iter target_iter = get_projectile_target(projectile);
   if(target_iter == ships.end()) {
     projectile.angular_velocity.y = 0;
-    integrate_projectile_forces(projectile,1,true);
+    projectile.integrate_projectile_forces(1,true,delta);
     return; // Nothing to track.
   }
 
   Ship &target = target_iter->second;
   if(target.fate==FATED_TO_DIE) {
     projectile.angular_velocity.y = 0;
-    integrate_projectile_forces(projectile,1,true);
+    projectile.integrate_projectile_forces(1,true,delta);
     return; // Target is dead.
   }
   real_t max_speed = projectile.max_speed; // linear_velocity.length();
   if(max_speed<1e-5) {
     projectile.angular_velocity.y = 0;
-    integrate_projectile_forces(projectile,1,true);
+    projectile.integrate_projectile_forces(1,true,delta);
     return; // Cannot track until we have a speed.
   }
 
@@ -3213,58 +2808,8 @@ void CombatEngine::guide_projectile(Projectile &projectile) {
 
   projectile.angular_velocity.y = clamp(angle_correction/delta,-turn_rate,turn_rate);
 
-  integrate_projectile_forces(projectile,should_thrust,true);
+  projectile.integrate_projectile_forces(should_thrust,true,delta);
 }
-
-bool CombatEngine::is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const Projectile &proj,DVector3 heading) {
-  FAST_PROFILING_FUNCTION;
-  DVector3 next_target_position = target_position+target_velocity*delta;
-  next_target_position.y=0;
-  DVector3 next_heading = heading+proj.angular_velocity*delta;
-  DVector3 position = proj.position;
-  position.y=0;
-  
-  DVector3 position_without_thrust = position+proj.linear_velocity*delta;
-  DVector3 dp=next_target_position-position_without_thrust;
-  double eta_without_thrust = dp.length()/proj.max_speed + fabs(angle2(next_heading,dp.normalized()))/proj.turn_rate;
-
-  DVector3 next_velocity = proj.linear_velocity;
-  next_velocity -= proj.linear_velocity*proj.drag*delta;
-  next_velocity += proj.thrust*next_heading*delta/proj.mass;
-  
-  DVector3 position_with_thrust = position+next_velocity*delta;
-  dp=next_target_position-position_with_thrust;
-  double eta_with_thrust = dp.length()/proj.max_speed + fabs(angle2(next_heading,dp.normalized()))/proj.turn_rate;
-
-  return eta_with_thrust<eta_without_thrust;
-}
-
-void CombatEngine::integrate_projectile_forces(Projectile &projectile,real_t thrust_fraction,bool drag) {
-  FAST_PROFILING_FUNCTION;
-
-  projectile.age += delta;
-
-  // Projectiles with direct fire are always at their destination.
-  if(projectile.direct_fire)
-    return;
-
-  // Integrate forces if requested.
-  if(projectile.integrate_forces) {
-    real_t mass=max(projectile.mass,1e-5f);
-    if(drag and (projectile.always_drag ||
-                 projectile.linear_velocity.length_squared()>projectile.max_speed*projectile.max_speed) )
-      projectile.linear_velocity -= projectile.linear_velocity*projectile.drag*projectile.mass*delta;
-    if(projectile.thrust and thrust_fraction>0)
-      projectile.forces += projectile.thrust*thrust_fraction*get_heading(projectile);
-    projectile.linear_velocity += projectile.forces*delta/mass;
-    projectile.forces = Vector3(0,0,0);
-  }
-
-  // Advance state by time delta
-  projectile.rotation.y += projectile.angular_velocity.y*delta;
-  projectile.position += projectile.linear_velocity*delta;
-}
-
 
 
 

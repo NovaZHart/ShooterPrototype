@@ -1,6 +1,7 @@
 #ifndef SHIP_HPP
 #define SHIP_HPP
 
+#include <unordered_map>
 #include <array>
 #include <vector>
 #include <memory>
@@ -30,17 +31,20 @@
 
 namespace godot {
   namespace CE {
-    struct WeaponRanges {
-      real_t guns, turrets, guided, unguided, antimissile, all;
-    };
-
-    typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
+    class CombatEngine;
 
     typedef std::vector<std::pair<RID,object_id>> ship_hit_list_t;
     typedef std::vector<std::pair<RID,object_id>>::iterator ship_hit_list_iter;
     typedef std::vector<std::pair<RID,object_id>>::const_iterator ship_hit_list_const_iter;
 
-    struct Ship {
+    class Ship {
+    public:
+      typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
+      
+      struct WeaponRanges {
+        real_t guns, turrets, guided, unguided, antimissile, all;
+      };
+    public:
       const object_id id;
       const String name; // last element of node path
       const RID rid; // of rigid body
@@ -163,15 +167,38 @@ namespace godot {
       inline Rect2 get_location_rect_at_0() const {
         return location_rect;
       }
-      
-      real_t get_standoff_range(const Ship &target,ticks_t idelta);
+
+      bool pull_back_to_standoff_range(const CombatEngine &ce,Ship &target,Vector3 &aim);
+      bool request_stop(const CombatEngine &ce,Vector3 desired_heading,real_t max_speed);
+      Vector3 aim_forward(const CombatEngine &ce,Ship &target,bool &in_range);
+      void move_to_attack(const CombatEngine &ce,Ship &target);
+      bool move_to_intercept(const CombatEngine &ce,double close, double slow,
+                             DVector3 tgt_pos, DVector3 tgt_vel,
+                             bool force_final_state);
+      bool init_ship(CombatEngine &ce);
+      void activate_cargo_web(CombatEngine &ce);
+      void deactivate_cargo_web(CombatEngine &ce);
+
+      real_t request_heading(const CombatEngine &ce,Vector3 new_heading);
+      void request_rotation(const CombatEngine &ce,real_t rotation_factor);
+      void request_thrust(const CombatEngine &ce,real_t forward, real_t reverse);
+      void set_angular_velocity(const CombatEngine &ce,const Vector3 &angular_velocity);
+      void set_velocity(const CombatEngine &ce,const Vector3 &velocity);
+
+      real_t get_standoff_range(const Ship &target);
       
       // Determine how much money is recouped when this ship leaves the system alive:
       inline float recouped_resources() const {
         return cost * (0.3 + 0.4*armor/max_armor + 0.3*structure/max_structure)
           * (1.0f - std::clamp(tick/(300.0f*ticks_per_second),0.0f,1.0f) ) + salvaged_value;
       }
+      
+      static WeaponRanges make_ranges(const std::vector<Weapon> &weapons);
+      
+      bool should_update_targetting(Ship &other);
 
+      bool salvage_projectile(const Projectile &projectile);
+      
       // Update internal state from the physics server:
       bool update_from_physics_server(PhysicsServer *server,bool hyperspace);
 
@@ -179,10 +206,10 @@ namespace godot {
       void update_stats(PhysicsServer *state,bool hyperspace);
 
       // Pay for rotation or other constant usage:
-      void apply_heat_and_energy_costs(real_t delta);
+      void apply_heat_and_energy_costs(const CombatEngine &ce);
       
       // Repair the ship based on information from the system (or hyperspace):
-      void heal(bool hyperspace,real_t system_fuel_recharge,real_t center_fuel_recharge,real_t delta);
+      void heal(const CombatEngine &ce);
 
       // Generate a Ship from GDScript objects:
       Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes);
@@ -270,9 +297,8 @@ namespace godot {
       }
     };
 
-
-    typedef std::unordered_map<object_id,Ship>::iterator ships_iter;
-    typedef std::unordered_map<object_id,Ship>::const_iterator ships_const_iter;
+    typedef std::unordered_map<object_id,::godot::CE::Ship>::iterator ships_iter;
+    typedef std::unordered_map<object_id,::godot::CE::Ship>::const_iterator ships_const_iter;
     typedef std::vector<std::pair<Vector3,ships_iter>> projectile_hit_list_t;
   }
 }

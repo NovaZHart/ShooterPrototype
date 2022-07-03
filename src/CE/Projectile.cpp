@@ -249,3 +249,52 @@ real_t Projectile::take_damage(real_t amount) {
   structure=after;
   return 0;
 }
+
+bool Projectile::is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,DVector3 heading,real_t delta) {
+  FAST_PROFILING_FUNCTION;
+  DVector3 next_target_position = target_position+target_velocity*delta;
+  next_target_position.y=0;
+  DVector3 next_heading = heading+angular_velocity*delta;
+  DVector3 position = this->position;
+  position.y=0;
+  
+  DVector3 position_without_thrust = position+linear_velocity*delta;
+  DVector3 dp=next_target_position-position_without_thrust;
+  double eta_without_thrust = dp.length()/max_speed + fabs(angle2(next_heading,dp.normalized()))/turn_rate;
+
+  DVector3 next_velocity = linear_velocity;
+  next_velocity -= linear_velocity*drag*delta;
+  next_velocity += thrust*next_heading*delta/mass;
+  
+  DVector3 position_with_thrust = position+next_velocity*delta;
+  dp=next_target_position-position_with_thrust;
+  double eta_with_thrust = dp.length()/max_speed + fabs(angle2(next_heading,dp.normalized()))/turn_rate;
+
+  return eta_with_thrust<eta_without_thrust;
+}
+
+void Projectile::integrate_projectile_forces(real_t thrust_fraction,bool drag,real_t delta) {
+  FAST_PROFILING_FUNCTION;
+
+  age += delta;
+
+  // Projectiles with direct fire are always at their destination.
+  if(direct_fire)
+    return;
+
+  // Integrate forces if requested.
+  if(integrate_forces) {
+    real_t mass=max(this->mass,1e-5f);
+    if(drag and (always_drag ||
+                 linear_velocity.length_squared()>max_speed*max_speed) )
+      linear_velocity -= linear_velocity*drag*mass*delta;
+    if(thrust and thrust_fraction>0)
+      forces += thrust*thrust_fraction*get_heading(*this);
+    linear_velocity += forces*delta/mass;
+    forces = Vector3(0,0,0);
+  }
+
+  // Advance state by time delta
+  rotation.y += angular_velocity.y*delta;
+  position += linear_velocity*delta;
+}

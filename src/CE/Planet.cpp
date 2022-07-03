@@ -31,7 +31,7 @@ Planet::Planet(Dictionary dict,object_id id):
   goal_data()
 {
   if(scene_tree_path.is_empty())
-    Godot::print_error(name+": planet has no scene tree path",__FUNCTION__,__FILE__,__LINE__);
+    Godot::print_warning(name+": planet has no scene tree path",__FUNCTION__,__FILE__,__LINE__);
 }
 
 Planet::~Planet()

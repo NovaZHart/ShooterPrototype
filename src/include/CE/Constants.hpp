@@ -11,7 +11,7 @@ namespace godot {
   namespace CE {
     constexpr double PI = 3.141592653589793;
 
-// All constants MUST match CombatEngine.gd
+    // All constants MUST match CombatEngine.gd
 
     const ticks_t FOREVER = 189000000000; /* more ticks than a game should reach (about 100 years) */
     const ticks_t TICKS_LONG_AGO = -9999; /* for ticks before object began (just needs to be negative) */

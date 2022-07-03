@@ -11,7 +11,7 @@
 namespace godot {
   namespace CE {
     class MultiMeshManager;
-    struct Ship;
+    class Ship;
     
     struct Weapon {
       const real_t damage, impulse, initial_velocity;

@@ -9,9 +9,9 @@
 #include <RID.hpp>
 #include <Dictionary.hpp>
 
-#include "Types.hpp"
-#include "Constants.hpp"
-#include "Constants.hpp"
+#include "CE/Types.hpp"
+#include "CE/Planet.hpp"
+#include "CE/Constants.hpp"
 
 namespace godot {
   namespace CE {
@@ -68,7 +68,7 @@ namespace godot {
       }
 
       Faction(Dictionary dict,const std::unordered_map<object_id,Planet> &planets,
-               const rid2id_t &rid2id);
+              const rid2id_t &rid2id);
       ~Faction();
 
       void update_masks(const std::unordered_map<int,float> &affinities);

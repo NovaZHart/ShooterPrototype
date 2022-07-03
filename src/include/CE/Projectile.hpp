@@ -8,11 +8,12 @@
 
 #include <memory>
 
+#include "DVector3.hpp"
 #include "CE/ObjectIdGenerator.hpp"
 
 namespace godot {
   namespace CE {
-    struct Ship;
+    class Ship;
     struct Weapon;
     struct Projectile;
     struct Salvage;
@@ -54,6 +55,8 @@ namespace godot {
       real_t age, scale, visual_height;
       bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
+
+    public:
       inline real_t radius() const {
         return std::max(1e-5f,detonation_range);
       }
@@ -63,6 +66,9 @@ namespace godot {
       Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes);
       ~Projectile();
+
+      bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,DVector3 heading,real_t delta);
+      void integrate_projectile_forces(real_t thrust_fraction, bool drag, real_t delta);
     };
 
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;

@@ -6,6 +6,7 @@
 
 #include "Vector3.hpp"
 #include "DVector3.hpp"
+#include "CE/Constants.hpp"
 
 namespace godot {
   namespace CE {
@@ -14,6 +15,11 @@ namespace godot {
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
 
+    double rendezvous_time(Vector3 target_location,Vector3 target_velocity,
+                           double interception_speed);
+
+    std::pair<DVector3,double> plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed);
+    
     template<class T>
     double acos_clamp(T value) {
       return acos(std::clamp(static_cast<double>(value),-1.0,1.0));
@@ -125,6 +131,11 @@ namespace godot {
 
     inline double asin_clamp_dot(const DVector3 &a,const DVector3 &b) {
       return asinf(std::clamp(dot2(a,b),-1.0,1.0));
+    }
+  
+    inline real_t time_of_closest_approach(Vector3 dp,Vector3 dv) {
+      real_t dv2 = dot2(dv,dv);
+      return (dv2<1e-9) ? 0.0f : std::max(dot2(dp,dv)/dv2,0.0f);
     }
   }
 }

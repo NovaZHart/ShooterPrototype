@@ -126,6 +126,33 @@ namespace godot {
       ~CombatEngine();
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Accessors
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+    public:      
+      real_t get_delta() const { return delta; }
+      ticks_t get_idelta() const { return idelta; }
+      real_t get_system_fuel_recharge() const { return system_fuel_recharge; }
+      real_t get_center_fuel_recharge() const { return center_fuel_recharge; }
+      bool is_in_hyperspace() const { return hyperspace; }
+      Ref<VisualEffects> &get_visual_effects() { return visual_effects; }
+      
+      inline Color get_faction_color(CE::faction_index_t faction) const {
+        auto it = factions.find(faction);
+        return it==factions.end() ? Color(1,1,1,1) : it->second.faction_color;
+      }
+      inline bool is_hostile_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
+        return enemy_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
+      }
+      inline bool is_friendly_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
+        return friend_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
+      }
+      inline real_t affinity_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
+        int key = CE::Faction::affinity_key(from_faction,to_faction);
+        std::unordered_map<int,float>::const_iterator it = affinities.find(key);
+        return (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
+      }
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:
       // // // // // // // // // // // // // // // // // // // // // // // // 
     
@@ -154,21 +181,6 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // //
       // Faction methods
       // // // // // // // // // // // // // // // // // // // // // // // //
-      inline Color get_faction_color(CE::faction_index_t faction) const {
-        auto it = factions.find(faction);
-        return it==factions.end() ? Color(1,1,1,1) : it->second.faction_color;
-      }
-      inline bool is_hostile_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
-        return enemy_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
-      }
-      inline bool is_friendly_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
-        return friend_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
-      }
-      inline real_t affinity_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
-        int key = CE::Faction::affinity_key(from_faction,to_faction);
-        std::unordered_map<int,float>::const_iterator it = affinities.find(key);
-        return (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
-      }
       void change_relations(CE::faction_index_t from_faction,CE::faction_index_t to_faction,
                             real_t how_much,bool immediate_update);
       void make_faction_state_for_gdscript(Dictionary &result);
@@ -194,13 +206,8 @@ namespace godot {
       bool rift_ai(CE::Ship &ship);
       void explode_ship(CE::Ship &ship);
       void ai_step_ship(CE::Ship &ship);
-      bool init_ship(CE::Ship &ship);
 
-      bool pull_back_to_standoff_range(CE::Ship &ship,CE::Ship &target,Vector3 &aim);
-      real_t time_of_closest_approach(Vector3 dp,Vector3 dv);
       void fire_antimissile_turrets(CE::Ship &ship);
-      void activate_cargo_web(CE::Ship &ship);
-      void deactivate_cargo_web(CE::Ship &ship);
       void use_cargo_web(CE::Ship &ship);
       bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
       bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
@@ -227,10 +234,6 @@ namespace godot {
       Vector3 make_threat_vector(CE::Ship &ship, real_t t);
       void evade(CE::Ship &ship);
       void aim_turrets(CE::Ship &ship,CE::ships_iter &target);
-      Vector3 aim_forward(CE::Ship &ship,CE::Ship &target,bool &in_range);
-      bool request_stop(CE::Ship &ship,Vector3 desired_heading,real_t max_speed);
-      double rendezvous_time(Vector3 target_location,Vector3 target_velocity,
-                             double interception_speed);
       void fire_primary_weapons(CE::Ship &ship);
       void player_auto_target(CE::Ship &ship);
       Dictionary check_target_lock(CE::Ship &target, Vector3 point1, Vector3 point2);
@@ -240,17 +243,6 @@ namespace godot {
       const CE::ship_hit_list_t &get_ships_within_turret_range(CE::Ship &ship, real_t fudge_factor);
       bool fire_direct_weapon(CE::Ship &ship,CE::Weapon &weapon,bool allow_untargeted);
       void auto_fire(CE::Ship &ship, CE::ships_iter &target);
-      void move_to_attack(CE::Ship &ship,CE::Ship &target);
-      std::pair<DVector3,double> plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed);
-      bool move_to_intercept(CE::Ship &ship,double close, double slow,
-                             DVector3 tgt_pos, DVector3 tgt_vel,
-                             bool force_final_state);
-      real_t request_heading(CE::Ship &ship, Vector3 new_heading);
-      void request_rotation(CE::Ship &ship, real_t rotation_factor);
-      void request_thrust(CE::Ship &ship, real_t forward, real_t reverse);
-      void set_angular_velocity(CE::Ship &ship,const Vector3 &angular_velocity);
-      void set_velocity(CE::Ship &ship,const Vector3 &velocity);
-      void heal_ship(CE::Ship &ship);
       void encode_salvaged_items_for_gdscript(Array result);
     
       // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -271,8 +263,6 @@ namespace godot {
       void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
       CE::ships_iter get_projectile_target(CE::Projectile &projectile);
       void guide_projectile(CE::Projectile &projectile);
-      bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,const CE::Projectile &proj,DVector3 heading);
-      void integrate_projectile_forces(CE::Projectile &projectile, real_t thrust_fraction, bool drag);
       Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
 
       // // // // // // // // // // // // // // // // // // // // // // // // 

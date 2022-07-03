@@ -13,7 +13,7 @@
 namespace godot {
   namespace CE {
     struct ShipGoalData;
-    struct Ship;
+    class Ship;
     
     struct Planet {
       const object_id id;

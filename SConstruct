@@ -110,6 +110,8 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/Starmap.cpp",
     "src/CE/VisualEffects.cpp",
     "src/HUDStatDisplay.cpp",
+    "src/CE/Math.cpp",
+    "src/CE/VisibleContent.cpp",
     "src/CE/Faction.cpp",
     "src/CE/Planet.cpp",
     "src/CE/PlayerOrders.cpp",
