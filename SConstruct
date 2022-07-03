@@ -102,15 +102,20 @@ env.Append(LIBS=[cpp_library])
 env.Append(CPPPATH=['src/include/'])
 
 ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['ShooterNative_target_name'] , source=[
-    "src/MultiMeshManager.cpp",
+    "src/CE/MultiMeshManager.cpp",
     "src/SpaceHash.cpp",
     "src/PreloadResources.cpp",
-    "src/CombatEngine.cpp",
-    "src/CombatEngineData.cpp",
+    "src/CE/CombatEngine.cpp",
     "src/SphereTool.cpp",
     "src/Starmap.cpp",
-    "src/VisualEffects.cpp",
+    "src/CE/VisualEffects.cpp",
     "src/HUDStatDisplay.cpp",
+    "src/CE/Faction.cpp",
+    "src/CE/Planet.cpp",
+    "src/CE/PlayerOrders.cpp",
+    "src/CE/Projectile.cpp",
+    "src/CE/Ship.cpp",
+    "src/CE/Weapon.cpp",
     "src/ShooterNativeLibrary.cpp"
 ])
 
