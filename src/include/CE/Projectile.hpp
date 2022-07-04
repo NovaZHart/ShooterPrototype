@@ -18,6 +18,7 @@ namespace godot {
     struct Projectile;
     struct Salvage;
     struct MultiMeshManager;
+    class CombatEngine;
     
     struct Salvage {
       const Ref<Mesh> flotsam_mesh;
@@ -55,8 +56,23 @@ namespace godot {
       real_t age, scale, visual_height;
       bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
-
+      const bool antimissile_damage;
+      
     public:
+
+      inline bool is_antimissile() const {
+        return antimissile_damage;
+      }
+      inline bool is_missile() const {
+        return max_structure;
+      }
+      inline bool is_flotsam() const {
+        return !!salvage;
+      }
+      inline bool is_direct_fire() const {
+        return direct_fire;
+      }
+      
       inline real_t radius() const {
         return std::max(1e-5f,detonation_range);
       }
@@ -68,7 +84,12 @@ namespace godot {
       ~Projectile();
 
       bool is_eta_lower_with_thrust(DVector3 target_position,DVector3 target_velocity,DVector3 heading,real_t delta);
-      void integrate_projectile_forces(real_t thrust_fraction, bool drag, real_t delta);
+      bool collide_projectile(CombatEngine &ce);
+      Ship *get_projectile_target(CombatEngine &ce);
+      void guide_projectile(CombatEngine &ce);
+      void step_projectile(CombatEngine &ce,bool &have_died,bool &have_collided,bool &have_moved);
+      void integrate_projectile_forces(real_t thrust_fraction,bool drag,real_t delta);
+      bool collide_point_projectile(CombatEngine &ce);
     };
 
     typedef std::unordered_map<object_id,Projectile>::iterator projectiles_iter;

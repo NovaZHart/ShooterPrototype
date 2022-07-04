@@ -850,7 +850,7 @@ void CombatEngine::explode_ship(Ship &ship) {
         }
       }
     }
-    create_flotsam(ship);
+    ship.create_flotsam(*this);
   }
 }
 
@@ -1128,46 +1128,27 @@ void CombatEngine::integrate_projectiles() {
   for(projectiles_iter it=projectiles.begin();it!=projectiles.end();) {
     Projectile &projectile = it->second;
 
-    // Direct fire projectiles do damage when launched and last only one frame.
-    // The exception is anti-missile projectiles which have to stay around for a few frames.
-    if(projectile.direct_fire and not projectile.max_structure) {
-      if(projectile.max_structure)
-        missile_locations.remove(projectile.id);
-      it=projectiles.erase(it);
-      continue;
-    }
+    bool have_died=false, have_moved=false, have_collided=false;
 
-    if(projectile.guided)
-      guide_projectile(projectile);
-    else {
-      if(projectile.integrate_forces) {
-        if(projectile.salvage)
-          flotsam_locations.set_rect(projectile.id,rect_for_circle(projectile.position,projectile.radius()));
-      }
-      projectile.integrate_projectile_forces(1,true,delta);
-    }
-    
-    bool collided=false;
-    if(projectile.possible_hit) {
-      if(projectile.detonation_range>1e-5)
-        collided = collide_projectile(projectile);
-      else
-        collided = collide_point_projectile(projectile);
-      if(projectile.salvage)
-        projectile.possible_hit=false;
-    }
-    
-    if(collided or projectile.age > projectile.lifetime or (projectile.max_structure and not projectile.structure)) {
-      if(projectile.salvage)
-        flotsam_locations.remove(projectile.id);
-      if(projectile.max_structure)
+    projectile.step_projectile(*this,have_died,have_collided,have_moved);
+    if(have_died) {
+      if(projectile.is_missile())
         missile_locations.remove(projectile.id);
+      if(projectile.is_flotsam())
+        flotsam_locations.remove(projectile.id);
+      if(projectile.is_antimissile())
+        Godot::print("remove antimissile");
       it=projectiles.erase(it);
     } else {
-      if(projectile.max_structure) {
-        Rect2 there(Vector2(projectile.position.x,projectile.position.z)-Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
-                    Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
-        missile_locations.set_rect(projectile.id,there);
+      if(have_moved) {
+        if(projectile.is_missile()) {
+          Rect2 there(Vector2(projectile.position.x,projectile.position.z)
+                      - Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
+                      Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
+          missile_locations.set_rect(projectile.id,there);
+        }
+        if(projectile.is_flotsam())
+          flotsam_locations.set_rect(projectile.id,rect_for_circle(projectile.position,projectile.radius()));
       }
       it++;
     }
@@ -1184,26 +1165,12 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
 }
 
-void CombatEngine::create_flotsam(Ship &ship) {
-  FAST_PROFILING_FUNCTION;
-  for(auto & salvage_ptr : ship.salvage) {
-    Vector3 v = ship.linear_velocity;
-    real_t flotsam_mass = 10.0f;
-    real_t speed = 50.0; //clamp(ship.explosion_impulse/flotsam_mass,10.0f,40.0f);
-    speed = speed*(1+ship.rand.randf())/2;
-    real_t angle = ship.rand.rand_angle();
-    Vector3 heading = unit_from_angle(angle);
-    v += heading*speed;
-    object_id new_id=idgen.next();
-    if(!salvage_ptr->flotsam_mesh.is_valid()) {
-      Godot::print_warning(ship.name+": has a salvage with no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
-      return;
-    }
-    std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,ship.position,angle,v,flotsam_mass,multimeshes));
-    real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
-    flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
-    emplaced.first->second.possible_hit=false;
-  }
+void CombatEngine::create_flotsam_projectile(Ship &ship,shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass) {
+  object_id new_id=idgen.next();
+  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes));
+  real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
+  flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
+  emplaced.first->second.possible_hit=false;
 }
 
 void CombatEngine::create_antimissile_projectile(Ship &ship,Weapon &weapon,Projectile &target,Vector3 position,real_t rotation,real_t length) {
@@ -1301,195 +1268,24 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
   return result;
 }
 
-CE::ships_iter CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask) {
+Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask) {
   FAST_PROFILING_FUNCTION;
 
   if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),
                                         Vector2(point2.x,point2.z)))
     // No possibility of any matches.
-    return ships.end();
+    return nullptr;
   
   static Array empty;
   Dictionary d=space->intersect_ray(point1,point2,empty,mask);
   rid2id_iter there=rid2id.find(static_cast<RID>(d["rid"]).get_id());
   if(there==rid2id.end())
-    return ships.end();
-  return ships.find(there->second);
+    return nullptr;
+  return ship_with_id(there->second);
 }
 
-void CombatEngine::salvage_projectile(Ship &ship,Projectile &projectile) {
-  if(ship.salvage_projectile(projectile))
-    salvaged_items.emplace(ship.id,projectile.salvage);
-}
-
-bool CombatEngine::collide_point_projectile(Projectile &projectile) {
-  FAST_PROFILING_FUNCTION;
-  Vector3 point1(projectile.position.x,500,projectile.position.z);
-  Vector3 point2(projectile.position.x,-500,projectile.position.z);
-  ships_iter p_ship = space_intersect_ray_p_ship(point1,point2,enemy_masks[projectile.faction]);
-  if(p_ship==ships.end())
-    return false;
-
-  if(projectile.damage)
-    p_ship->second.take_damage(projectile.damage,projectile.damage_type,
-                               projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
-  if(projectile.impulse and not p_ship->second.immobile) {
-    Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
-    if(impulse.length_squared())
-      physics_server->body_apply_central_impulse(p_ship->second.rid,impulse);
-  }
-
-  if(p_ship->second.fate==FATED_TO_FLY and projectile.salvage and p_ship->second.cargo_web_active)
-    salvage_projectile(p_ship->second,projectile);
-  return true;
-}
-
-bool CombatEngine::collide_projectile(Projectile &projectile) {
-  FAST_PROFILING_FUNCTION;
-  projectile_hit_list_t hits = find_projectile_collisions(projectile,projectile.detonation_range);
-  if(hits.empty())
-    return false;
-
-  real_t min_dist = numeric_limits<real_t>::infinity();
-  ships_iter closest = ships.end();
-  Vector3 closest_pos(0,0,0);
-  bool hit_something = false;
-
-  for(auto &hit : hits) {
-    Ship &ship = hit.second->second;
-    if(ship.fate<=0) {
-      real_t dist = ship.position.distance_to(projectile.position);
-      if(dist<min_dist) {
-        closest = hit.second;
-        closest_pos = hit.first;
-        min_dist = dist;
-      }
-      hit_something = true;
-    }
-  }
-
-  if(hit_something) {
-    bool have_impulse = projectile.impulse>1e-5;
-    if(not projectile.salvage and projectile.blast_radius>1e-5) {
-      projectile_hit_list_t blasted = find_projectile_collisions(projectile,projectile.blast_radius,max_ships_hit_per_projectile_blast);
-
-      for(auto &blastee : blasted) {
-        Ship &ship = blastee.second->second;
-        if(ship.fate<=0) {
-          real_t distance = max(0.0f,ship.position.distance_to(projectile.position)-ship.radius);
-          real_t dropoff = 1.0 - distance/projectile.blast_radius;
-          dropoff*=dropoff;
-          if(projectile.damage)
-            ship.take_damage(projectile.damage*dropoff,projectile.damage_type,
-                             projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
-          if(have_impulse and not ship.immobile) {
-            Vector3 impulse1 = projectile.linear_velocity.normalized();
-            Vector3 impulse2 = (ship.position-projectile.position).normalized();
-            Vector3 combined = projectile.impulse*(impulse1+impulse2)*dropoff/2;
-            if(combined.length_squared())
-              physics_server->body_apply_central_impulse(ship.rid,combined);
-          }
-        }
-      }
-    } else {
-      Ship &ship = closest->second;
-      if(projectile.damage)
-        closest->second.take_damage(projectile.damage,projectile.damage_type,
-                                    projectile.heat_fraction,projectile.energy_fraction,projectile.thrust_fraction);
-      if(have_impulse and not ship.immobile) {
-        Vector3 impulse = projectile.impulse*projectile.linear_velocity.normalized();
-        if(impulse.length_squared())
-          physics_server->body_apply_central_impulse(ship.rid,impulse);
-      }
-      if(ship.fate==FATED_TO_FLY and projectile.salvage and ship.cargo_web_active)
-        salvage_projectile(ship,projectile);
-    }
-    return true;
-  } else
-    return false;
-}
-
-ships_iter CombatEngine::get_projectile_target(Projectile &projectile) {
-  FAST_PROFILING_FUNCTION;
-
-  ships_iter target_iter = ships.find(projectile.target);
-  
-  if(target_iter != ships.end() or not projectile.auto_retarget)
-    return target_iter;
-
-  // Target is gone. Is the attacker still alive?
-  
-  ships_iter source_iter = ships.find(projectile.source);
-  if(source_iter == ships.end())
-    return target_iter;
-
-  // Projectile target is now the new target of the attacker.
-  projectile.target = source_iter->second.get_target();
-
-  // Use the new target, if it exists.
-  target_iter = ships.find(projectile.target);
-  return target_iter;
-}
-
-void CombatEngine::guide_projectile(Projectile &projectile) {
-  FAST_PROFILING_FUNCTION;
-
-  ships_iter target_iter = get_projectile_target(projectile);
-  if(target_iter == ships.end()) {
-    projectile.angular_velocity.y = 0;
-    projectile.integrate_projectile_forces(1,true,delta);
-    return; // Nothing to track.
-  }
-
-  Ship &target = target_iter->second;
-  if(target.fate==FATED_TO_DIE) {
-    projectile.angular_velocity.y = 0;
-    projectile.integrate_projectile_forces(1,true,delta);
-    return; // Target is dead.
-  }
-  real_t max_speed = projectile.max_speed; // linear_velocity.length();
-  if(max_speed<1e-5) {
-    projectile.angular_velocity.y = 0;
-    projectile.integrate_projectile_forces(1,true,delta);
-    return; // Cannot track until we have a speed.
-  }
-
-  DVector3 relative_position = target.position - projectile.position;
-  DVector3 course_velocity;
-  double intercept_time;
-  double lifetime_remaining = projectile.lifetime-projectile.age;
-  
-  if(projectile.guidance_uses_velocity) {
-    pair<DVector3,double> course = plot_collision_course(relative_position,target.linear_velocity,max_speed);
-    intercept_time = course.second;
-    course_velocity = course.first;
-
-    if(!(intercept_time>1e-5)) // !(>) detects NaN
-      intercept_time=1e-5;
-  } else {
-    course_velocity = relative_position.normalized()*max_speed;
-    intercept_time = relative_position.length()/max_speed;
-  }
-
-  double intercept_time_ratio = intercept_time/max(1e-5,lifetime_remaining);
-
-  double weight = 0.0;
-  if(intercept_time_ratio>0.5)
-    weight = min(1.0,2*(intercept_time_ratio-0.5));
-  
-  DVector3 velocity_correction = course_velocity-projectile.linear_velocity;
-  DVector3 heading = get_heading_d(projectile);
-  DVector3 desired_heading = velocity_correction.normalized()*(1-weight) + course_velocity.normalized()*weight;
-  double desired_heading_angle = angle_from_unit(desired_heading);
-  double heading_angle = angle_from_unit(heading);
-  double angle_correction = desired_heading_angle-heading_angle;
-  double turn_rate = projectile.turn_rate;
-
-  bool should_thrust = dot2(heading,desired_heading)>0.95; // Don't thrust away from desired heading
-
-  projectile.angular_velocity.y = clamp(angle_correction/delta,-turn_rate,turn_rate);
-
-  projectile.integrate_projectile_forces(should_thrust,true,delta);
+void CombatEngine::add_salvaged_items(Ship &ship,const Projectile &projectile) {
+  salvaged_items.emplace(ship.id,projectile.salvage);
 }
 
 

@@ -288,7 +288,7 @@ namespace godot {
       const CE::ship_hit_list_t &get_ships_within_turret_range(CE::Ship &ship, real_t fudge_factor);
       CE::ships_iter ship_for_rid(const RID &rid);
       CE::ships_iter ship_for_rid(int rid_id);
-      CE::ships_iter space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
+      Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
       Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
       void explode_ship(Ship &ship);
 
@@ -297,15 +297,10 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
       void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
-      void create_flotsam(CE::Ship &ship);
+      void create_flotsam_projectile(Ship &ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
       void create_antimissile_projectile(CE::Ship &ship,CE::Weapon &weapon,CE::Projectile &target,Vector3 position,real_t rotation,real_t length);
       void create_projectile(CE::Ship &ship,CE::Weapon &weapon,object_id target=-1);
       CE::projectile_hit_list_t find_projectile_collisions(CE::Projectile &projectile,real_t radius,int max_results=32);
-      bool collide_point_projectile(CE::Projectile &projectile);
-      bool collide_projectile(CE::Projectile &projectile);
-      void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
-      CE::ships_iter get_projectile_target(CE::Projectile &projectile);
-      void guide_projectile(CE::Projectile &projectile);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:
@@ -366,7 +361,8 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
       void integrate_projectiles();
-
+      void add_salvaged_items(Ship &ship,const Projectile &projectile);
+      
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Visual methods:
       // // // // // // // // // // // // // // // // // // // // // // // // 

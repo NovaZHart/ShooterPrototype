@@ -10,7 +10,10 @@
 #include <PhysicsDirectBodyState.hpp>
 #include <PhysicsShapeQueryParameters.hpp>
 #include <NodePath.hpp>
+#include <PhysicsServer.hpp>
 
+#include "CE/CombatEngine.hpp"
+#include "CE/Ship.hpp"
 #include "CE/Projectile.hpp"
 
 using namespace godot;
@@ -75,7 +78,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object
   direct_fire(weapon.direct_fire),
   possible_hit(true),
   integrate_forces(guided),
-  salvage()
+  salvage(),
+  antimissile_damage(false)
 {
   if(guided and direct_fire)
     Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
@@ -115,7 +119,7 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projec
   mass(weapon.projectile_mass),
   drag(weapon.projectile_drag),
   thrust(0),
-  lifetime(weapon.firing_delay*4),
+  lifetime(weapon.projectile_lifetime ? weapon.projectile_lifetime : weapon.firing_delay),
   initial_velocity(weapon.initial_velocity),
   max_speed(weapon.terminal_velocity),
   heat_fraction(0),
@@ -126,9 +130,9 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projec
   max_structure(weapon.projectile_structure),
   structure(max_structure),
   position(position),
-  linear_velocity(),
+  linear_velocity(ship.linear_velocity),
   rotation(Vector3(0,rotation,0)),
-  angular_velocity(),
+  angular_velocity(Vector3(0,0,0)),
   forces(),
   age(0),
   scale(scale),
@@ -137,7 +141,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projec
   direct_fire(true),
   possible_hit(false),
   integrate_forces(false),
-  salvage()
+  salvage(),
+  antimissile_damage(true)
 {}
 
 Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
@@ -179,7 +184,8 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   direct_fire(weapon.direct_fire),
   possible_hit(true),
   integrate_forces(false),
-  salvage()
+  salvage(),
+  antimissile_damage(false)
 {
   if(guided and direct_fire)
     Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
@@ -227,7 +233,8 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   direct_fire(false),
   possible_hit(false),
   integrate_forces(true),
-  salvage(salvage)
+  salvage(salvage),
+  antimissile_damage(false)
 {
   if(!salvage->flotsam_mesh.is_valid())
     Godot::print_error(ship.name+": salvage has no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
@@ -276,10 +283,8 @@ bool Projectile::is_eta_lower_with_thrust(DVector3 target_position,DVector3 targ
 void Projectile::integrate_projectile_forces(real_t thrust_fraction,bool drag,real_t delta) {
   FAST_PROFILING_FUNCTION;
 
-  age += delta;
-
   // Projectiles with direct fire are always at their destination.
-  if(direct_fire)
+  if(is_direct_fire() and !is_antimissile())
     return;
 
   // Integrate forces if requested.
@@ -297,4 +302,208 @@ void Projectile::integrate_projectile_forces(real_t thrust_fraction,bool drag,re
   // Advance state by time delta
   rotation.y += angular_velocity.y*delta;
   position += linear_velocity*delta;
+}
+
+bool Projectile::collide_point_projectile(CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+  Vector3 point1(position.x,500,position.z);
+  Vector3 point2(position.x,-500,position.z);
+  Ship * p_ship = ce.space_intersect_ray_p_ship(point1,point2,ce.get_enemy_mask(faction));
+  if(!p_ship)
+    return false;
+
+  if(damage)
+    p_ship->take_damage(damage,damage_type,
+                        heat_fraction,energy_fraction,thrust_fraction);
+  if(impulse and not p_ship->immobile) {
+    Vector3 impulse = this->impulse*linear_velocity.normalized();
+    if(impulse.length_squared())
+      PhysicsServer::get_singleton()->body_apply_central_impulse(p_ship->rid,impulse);
+  }
+
+  if(p_ship->fate==FATED_TO_FLY and salvage and p_ship->cargo_web_active)
+    p_ship->salvage_projectile(ce,*this);
+  return true;
+}
+
+
+bool Projectile::collide_projectile(CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+  projectile_hit_list_t hits = ce.find_projectile_collisions(*this,detonation_range);
+  if(hits.empty())
+    return false;
+
+  real_t min_dist = numeric_limits<real_t>::infinity();
+  Ship *closest = nullptr;
+  Vector3 closest_pos(0,0,0);
+  bool hit_something = false;
+
+  for(auto &hit : hits) {
+    Ship &ship = hit.second->second;
+    if(ship.fate<=0) {
+      real_t dist = ship.position.distance_to(position);
+      if(dist<min_dist) {
+        closest = &ship;
+        closest_pos = hit.first;
+        min_dist = dist;
+      }
+      hit_something = true;
+    }
+  }
+
+  PhysicsServer * physics_server = PhysicsServer::get_singleton();
+  
+  if(hit_something) {
+    bool have_impulse = impulse>1e-5;
+    if(not salvage and blast_radius>1e-5) {
+      projectile_hit_list_t blasted = ce.find_projectile_collisions(*this,blast_radius,ce.max_ships_hit_per_projectile_blast);
+
+      for(auto &blastee : blasted) {
+        Ship &ship = blastee.second->second;
+        if(ship.fate<=0) {
+          real_t distance = max(0.0f,ship.position.distance_to(position)-ship.radius);
+          real_t dropoff = 1.0 - distance/blast_radius;
+          dropoff*=dropoff;
+          if(damage)
+            ship.take_damage(damage*dropoff,damage_type,
+                             heat_fraction,energy_fraction,thrust_fraction);
+          if(have_impulse and not ship.immobile) {
+            Vector3 impulse1 = linear_velocity.normalized();
+            Vector3 impulse2 = (ship.position-position).normalized();
+            Vector3 combined = impulse*(impulse1+impulse2)*dropoff/2;
+            if(combined.length_squared())
+              physics_server->body_apply_central_impulse(ship.rid,combined);
+          }
+        }
+      }
+    } else {
+      Ship &ship = *closest;
+      if(damage)
+        closest->take_damage(damage,damage_type,
+                             heat_fraction,energy_fraction,thrust_fraction);
+      if(have_impulse and not ship.immobile) {
+        Vector3 impulse = this->impulse*linear_velocity.normalized();
+        if(impulse.length_squared())
+          physics_server->body_apply_central_impulse(ship.rid,impulse);
+      }
+      if(ship.fate==FATED_TO_FLY and salvage and ship.cargo_web_active)
+        ship.salvage_projectile(ce,*this);
+    }
+    return true;
+  } else
+    return false;
+}
+
+Ship * Projectile::get_projectile_target(CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+
+  Ship *target_iter = ce.ship_with_id(target);
+  
+  if(target_iter or not auto_retarget)
+    return target_iter;
+
+  // Target is gone. Is the attacker still alive?
+  
+  Ship * source_iter = ce.ship_with_id(source);
+  if(!source_iter)
+    return target_iter;
+
+  // Projectile target is now the new target of the attacker.
+  target = source_iter->get_target();
+
+  // Use the new target, if it exists.
+  target_iter = ce.ship_with_id(target);
+  return target_iter;
+}
+
+void Projectile::guide_projectile(CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+  real_t delta = ce.get_delta();
+  Ship * target_iter = get_projectile_target(ce);
+  if(!target_iter) {
+    angular_velocity.y = 0;
+    integrate_projectile_forces(1,true,delta);
+    return; // Nothing to track.
+  }
+
+  Ship &target = *target_iter;
+  if(target.fate==FATED_TO_DIE) {
+    angular_velocity.y = 0;
+    integrate_projectile_forces(1,true,delta);
+    return; // Target is dead.
+  }
+  if(max_speed<1e-5) {
+    angular_velocity.y = 0;
+    integrate_projectile_forces(1,true,delta);
+    return; // Cannot track until we have a speed.
+  }
+
+  DVector3 relative_position = target.position - position;
+  DVector3 course_velocity;
+  double intercept_time;
+  double lifetime_remaining = lifetime-age;
+  
+  if(guidance_uses_velocity) {
+    pair<DVector3,double> course = plot_collision_course(relative_position,target.linear_velocity,max_speed);
+    intercept_time = course.second;
+    course_velocity = course.first;
+
+    if(!(intercept_time>1e-5)) // !(>) detects NaN
+      intercept_time=1e-5;
+  } else {
+    course_velocity = relative_position.normalized()*max_speed;
+    intercept_time = relative_position.length()/max_speed;
+  }
+
+  double intercept_time_ratio = intercept_time/max(1e-5,lifetime_remaining);
+
+  double weight = 0.0;
+  if(intercept_time_ratio>0.5)
+    weight = min(1.0,2*(intercept_time_ratio-0.5));
+  
+  DVector3 velocity_correction = course_velocity-linear_velocity;
+  DVector3 heading = get_heading_d(*this);
+  DVector3 desired_heading = velocity_correction.normalized()*(1-weight) + course_velocity.normalized()*weight;
+  double desired_heading_angle = angle_from_unit(desired_heading);
+  double heading_angle = angle_from_unit(heading);
+  double angle_correction = desired_heading_angle-heading_angle;
+  double turn_rate = this->turn_rate;
+
+  bool should_thrust = dot2(heading,desired_heading)>0.95; // Don't thrust away from desired heading
+
+  angular_velocity.y = clamp(angle_correction/delta,-turn_rate,turn_rate);
+
+  integrate_projectile_forces(should_thrust,true,delta);
+}
+
+void Projectile::step_projectile(CombatEngine &ce,bool &have_died,bool &have_collided,bool &have_moved) {
+  have_collided = false;
+  have_moved = false;
+  
+  real_t delta = ce.get_delta();
+  age += delta;
+  
+  // Direct fire projectiles do damage when launched and last only one frame.
+  // The exception is anti-missile projectiles which have to stay around for a few frames.
+  if(is_direct_fire() && !is_antimissile()) {
+    have_died = true;
+    return;
+  }
+
+  if(guided)
+    guide_projectile(ce);
+  else
+    integrate_projectile_forces(1,true,delta);
+  have_moved = true;
+  
+  if(possible_hit) {
+    if(detonation_range>1e-5)
+      have_collided = collide_projectile(ce);
+    else
+      have_collided = collide_point_projectile(ce);
+    if(salvage)
+      possible_hit=false;
+  }
+
+  have_died = have_collided or age > lifetime or (is_missile() and not structure);
 }

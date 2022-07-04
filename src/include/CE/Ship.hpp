@@ -192,7 +192,8 @@ namespace godot {
       void request_thrust(const CombatEngine &ce,real_t forward, real_t reverse);
       void set_angular_velocity(const CombatEngine &ce,const Vector3 &angular_velocity);
       void set_velocity(const CombatEngine &ce,const Vector3 &velocity);
-
+      void create_flotsam(CombatEngine &ce);
+      
       real_t get_standoff_range(const Ship &target);
       
       // Determine how much money is recouped when this ship leaves the system alive:
@@ -205,7 +206,7 @@ namespace godot {
       
       bool should_update_targetting(Ship &other);
 
-      bool salvage_projectile(const Projectile &projectile);
+      void salvage_projectile(CombatEngine &ce,const Projectile &projectile);
       
       // Update internal state from the physics server:
       bool update_from_physics_server(PhysicsServer *server,bool hyperspace);

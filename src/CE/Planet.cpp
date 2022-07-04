@@ -68,7 +68,7 @@ void Planet::update_goal_data(const std::unordered_map<object_id,Ship> &ships) {
     ShipGoalData d = {
       p_ship->second.threat,
       p_ship->second.position.distance_squared_to(position),
-      p_ship->second.faction,
+      p_ship->second.faction_mask,
       p_ship->second.position
     };
     goal_data.emplace_back(d);

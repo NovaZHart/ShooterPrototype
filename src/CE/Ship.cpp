@@ -598,7 +598,7 @@ void Ship::set_velocity(const CombatEngine &ce,const Vector3 &velocity) {
   linear_velocity = velocity;
 }
 
-bool Ship::salvage_projectile(const Projectile &projectile) {
+void Ship::salvage_projectile(CombatEngine &ce,const Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
   if(projectile.salvage) {
     const Salvage & salvage = *projectile.salvage;
@@ -619,9 +619,8 @@ bool Ship::salvage_projectile(const Projectile &projectile) {
       salvaged_value += pickup*salvage.cargo_unit_value;
       Godot::print(name+" gained "+str(pickup*unit_mass)+"tn (of "+str(max_cargo_mass)+" max) and "+str(pickup*salvage.cargo_unit_value)+" (tot "+str(salvaged_value)+") by picking up "+str(pickup)+" units of "+str(salvage.cargo_name)+" ship cost "+str(cost));
     }
-    return true;
+    ce.add_salvaged_items(*this,projectile);
   }
-  return false;
 }
 
 bool Ship::should_update_targetting(Ship &other) {
@@ -1066,4 +1065,22 @@ void Ship::update_near_objects(CombatEngine &ce) {
   nearby_objects.clear();
   for(auto & r : search_results)
     nearby_objects.push_back(r.second);
+}
+
+void Ship::create_flotsam(CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+  for(auto & salvage_ptr : salvage) {
+    Vector3 v = linear_velocity;
+    real_t flotsam_mass = 10.0f;
+    real_t speed = 50.0; //clamp(ship.explosion_impulse/flotsam_mass,10.0f,40.0f);
+    speed = speed*(1+rand.randf())/2;
+    real_t angle = rand.rand_angle();
+    Vector3 heading = unit_from_angle(angle);
+    v += heading*speed;
+    if(!salvage_ptr->flotsam_mesh.is_valid()) {
+      Godot::print_warning(name+": has a salvage with no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+      return;
+    }
+    ce.create_flotsam_projectile(*this,salvage_ptr,position,angle,v,flotsam_mass);
+  }
 }
