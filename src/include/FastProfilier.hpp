@@ -3,6 +3,12 @@
 
 #undef ENABLE_PROFILING
 
+#include <cstdint>
+#include <cstdio>
+#include "time.h"
+
+#include <Godot.hpp>
+
 namespace godot {
   class FastProfiling {
     const char *function;

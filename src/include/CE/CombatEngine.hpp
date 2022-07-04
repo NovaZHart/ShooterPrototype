@@ -29,6 +29,7 @@
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
 
+#include "CE/Minimap.hpp"
 #include "CE/Data.hpp"
 #include "CE/VisualEffects.hpp"
 #include "SpaceHash.hpp"
@@ -47,7 +48,6 @@ namespace godot {
       static constexpr float position_box_size = 10.0f;
       static const int max_ships_hit_per_projectile_blast = 100;
       static constexpr float search_cylinder_radius = 30.0f;
-      static constexpr real_t crosshairs_width = 1;
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Statistics for this solar system
@@ -56,6 +56,7 @@ namespace godot {
       real_t system_fuel_recharge, center_fuel_recharge;
       bool hyperspace;
 
+      Minimap minimap;
     
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Management of Projectiles and Animations (physics & visual thread)
@@ -117,7 +118,7 @@ namespace godot {
       real_t v_delta;
       Vector3 v_camera_location, v_camera_size;
       int v_frame;
-      RID scenario, canvas;
+      RID scenario;
       bool reset_scenario;
 
       // For temporary use in some functions:
@@ -369,33 +370,6 @@ namespace godot {
 
       void add_content(); // physics thread sends data to visual thread
     
-      Vector2 place_center(const Vector2 &where,
-                           const Vector2 &map_center,float map_radius,
-                           const Vector2 &minimap_center,float minimap_radius);
-      Vector2 place_in_rect(const Vector2 &map_location,
-                            const Vector2 &map_center,const Vector2 &map_scale,
-                            const Vector2 &minimap_center,const Vector2 &minimap_half_size);
-      void draw_anulus(const Vector2 &center,float inner_radius,float outer_radius,
-                       const Color &color,bool antialiased);
-      void draw_crosshairs(const Vector2 &loc, float minimap_radius, const Color &color);
-      void rect_draw_velocity(VisibleObject &ship, const Vector2 &loc,
-                              const Vector2 &map_center,const Vector2 &map_scale,
-                              const Vector2 &minimap_center,const Vector2 &minimap_half_size,
-                              const Color &color);
-      void rect_draw_heading(VisibleObject &ship, const Vector2 &loc,
-                             const Vector2 &map_center,const Vector2 &map_scale,
-                             const Vector2 &minimap_center,const Vector2 &minimap_half_size,
-                             const Color &color);
-
-      void draw_velocity(VisibleObject &ship, const Vector2 &loc,
-                         const Vector2 &map_center,real_t map_radius,
-                         const Vector2 &minimap_center,real_t minimap_radius,
-                         const Color &color);
-      void draw_heading(VisibleObject &ship, const Vector2 &loc,
-                        const Vector2 &map_center,real_t map_radius,
-                        const Vector2 &minimap_center,real_t minimap_radius,
-                        const Color &color);
-      const Color &pick_object_color(VisibleObject &object);
     };
   }
 }
