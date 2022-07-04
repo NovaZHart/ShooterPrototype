@@ -9,6 +9,9 @@
 #include "String.hpp"
 #include "NodePath.hpp"
 #include "RID.hpp"
+#include "Dictionary.hpp"
+
+#include "CE/ObjectIdGenerator.hpp"
 
 namespace godot {
   namespace CE {

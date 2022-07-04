@@ -8,6 +8,8 @@
 #include <NodePath.hpp>
 #include <PhysicsServer.hpp>
 
+#include "CE/SpecializedShipAI.hpp"
+#include "CE/BaseShipAI.hpp"
 #include "CE/CombatEngine.hpp"
 #include "CE/VisualEffects.hpp"
 #include "CE/Data.hpp"
@@ -220,6 +222,8 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   should_autotarget(true),
   at_first_tick(true),
 
+  ai(),
+  
   visual_scale(1.0),
   target(-1),
   cached_standoff_range(0),
@@ -254,6 +258,23 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   }
 
   nearby_hostiles_timer.reset();
+
+  switch(ai_type) {
+  case PATROL_SHIP_AI:
+    ai = make_shared<PatrolShipAI>();
+    break;
+  case RAIDER_AI:
+    ai = make_shared<RaiderAI>();
+    break;
+  case ARRIVING_MERCHANT_AI:
+    ai = make_shared<ArrivingMerchantAI>();
+    break;
+  case DEPARTING_MERCHANT_AI:
+    ai =make_shared<DepartingMerchantAI>();
+    break;
+  default:
+    ai = make_shared<BaseShipAI>();
+  };
 }
 
 Ship::~Ship()
@@ -497,6 +518,7 @@ void Ship::activate_cargo_web(CombatEngine &ce) {
       cargo_web=visual_effects->add_cargo_web(*this,ce.get_faction_color(faction));
   }
 }
+
 void Ship::deactivate_cargo_web(CombatEngine &ce) {
   if(!cargo_web_active)
     return;
@@ -508,6 +530,17 @@ void Ship::deactivate_cargo_web(CombatEngine &ce) {
     if(cargo_web>=0)
       visual_effects->set_visibility(cargo_web,false);
   }
+}
+
+void Ship::negate_drag_force(const CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+  // Negate the drag force if the ship is below its max speed. Exceptions:
+  // 1. If the ship is immobile due to entering orbit or a spatial rift.
+  // 2. In hyperspace, if the ship has no fuel.
+  if(immobile or (ce.is_in_hyperspace() and fuel<=0))
+    return;
+  if(linear_velocity.length_squared()<max_speed*max_speed)
+    PhysicsServer::get_singleton()->body_add_central_force(rid,-drag_force);
 }
 
 real_t Ship::request_heading(const CombatEngine &ce,Vector3 new_heading) {
@@ -1016,4 +1049,21 @@ std::vector<std::shared_ptr<const Salvage>> Ship::get_salvage(Array a) {
     result.emplace_back(make_shared<const Salvage>(static_cast<Dictionary>(a[i])));
   }
   return result;
+}
+
+
+void Ship::update_near_objects(CombatEngine &ce) {
+  FAST_PROFILING_FUNCTION;
+
+  if(!nearby_hostiles_timer.alarmed())
+    return;
+
+  nearby_hostiles_timer.reset();
+
+  vector<pair<real_t,pair<RID,object_id>>> search_results = ce.get_search_results();
+  search_results.clear();
+  ce.find_ships_in_radius(get_position(*this),100,ce.get_enemy_mask(faction),search_results);
+  nearby_objects.clear();
+  for(auto & r : search_results)
+    nearby_objects.push_back(r.second);
 }

@@ -20,6 +20,7 @@ namespace godot {
     };
 
     typedef std::unordered_map<object_id,PlayerOverrides>::iterator player_orders_iter;
+    typedef std::unordered_map<object_id,PlayerOverrides>::const_iterator player_orders_citer;
   }
 }
 

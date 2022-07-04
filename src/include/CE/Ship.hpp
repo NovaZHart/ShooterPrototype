@@ -18,6 +18,7 @@
 #include "Dictionary.hpp"
 #include "PhysicsServer.hpp"
 
+#include "CE/BaseShipAI.hpp"
 #include "CE/Types.hpp"
 #include "CE/Constants.hpp"
 #include "CE/MultiMeshManager.hpp"
@@ -151,7 +152,8 @@ namespace godot {
       bool at_first_tick; // true iff this is the frame at which the ship spawned
 
     private:
-            
+
+      std::shared_ptr<BaseShipAI> ai;
       real_t visual_scale; // Intended to resize ship graphics when rifting
       object_id target;
       real_t cached_standoff_range;
@@ -168,6 +170,11 @@ namespace godot {
         return location_rect;
       }
 
+      inline void ai_step(CombatEngine &ce) {
+        if(ai)
+          ai->ai_step(ce,*this);
+      }
+      
       bool pull_back_to_standoff_range(const CombatEngine &ce,Ship &target,Vector3 &aim);
       bool request_stop(const CombatEngine &ce,Vector3 desired_heading,real_t max_speed);
       Vector3 aim_forward(const CombatEngine &ce,Ship &target,bool &in_range);
@@ -178,7 +185,8 @@ namespace godot {
       bool init_ship(CombatEngine &ce);
       void activate_cargo_web(CombatEngine &ce);
       void deactivate_cargo_web(CombatEngine &ce);
-
+      
+      void negate_drag_force(const CombatEngine &ce);
       real_t request_heading(const CombatEngine &ce,Vector3 new_heading);
       void request_rotation(const CombatEngine &ce,real_t rotation_factor);
       void request_thrust(const CombatEngine &ce,real_t forward, real_t reverse);
@@ -235,7 +243,9 @@ namespace godot {
 
       // Update visual_scale:
       void set_scale(real_t scale);
-      
+
+      void update_near_objects(CombatEngine &ce);
+        
       DVector3 stopping_point(DVector3 tgt_vel, bool &should_reverse) const;
 
       // Return a Dictionary to pass back to GDScript with the ship's info:

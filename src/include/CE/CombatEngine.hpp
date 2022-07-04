@@ -43,10 +43,16 @@ namespace godot {
       // Game mechanics constants and settings:
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
+    public:
       static constexpr float position_box_size = 10.0f;
       static const int max_ships_hit_per_projectile_blast = 100;
       static constexpr float search_cylinder_radius = 30.0f;
       static constexpr real_t crosshairs_width = 1;
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Statistics for this solar system
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+    private:
       real_t system_fuel_recharge, center_fuel_recharge;
       bool hyperspace;
 
@@ -128,13 +134,62 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Accessors
       // // // // // // // // // // // // // // // // // // // // // // // // 
-    public:      
-      real_t get_delta() const { return delta; }
-      ticks_t get_idelta() const { return idelta; }
-      real_t get_system_fuel_recharge() const { return system_fuel_recharge; }
-      real_t get_center_fuel_recharge() const { return center_fuel_recharge; }
-      bool is_in_hyperspace() const { return hyperspace; }
-      Ref<VisualEffects> &get_visual_effects() { return visual_effects; }
+    public:
+
+
+      faction_index_t get_player_faction_index() const {
+        return player_faction_index;
+      }
+      faction_mask_t get_player_faction_mask() const {
+        return player_faction_mask;
+      }
+      
+      std::unordered_set<object_id> &get_objects_found() {
+        return objects_found;
+      }
+      std::vector<std::pair<real_t,std::pair<RID,object_id>>> get_search_results() {
+        return search_results;
+      }
+
+      PhysicsDirectSpaceState *get_space_state() {
+        return space;
+      }
+      
+      const SpaceHash<object_id> &get_flotsam_locations() const {
+        return flotsam_locations;
+      }
+      const SpaceHash<object_id> &get_ship_locations() const {
+        return ship_locations;
+      }
+      const SpaceHash<object_id> &get_missile_locations() const {
+        return missile_locations;
+      }
+      const std::unordered_map<int32_t,object_id> get_rid2id() const {
+        return rid2id;
+      }
+      
+      real_t get_delta() const {
+        return delta;
+      }
+      ticks_t get_idelta() const {
+        return idelta;
+      }
+      real_t get_system_fuel_recharge() const {
+        return system_fuel_recharge;
+      }
+      real_t get_center_fuel_recharge() const {
+        return center_fuel_recharge;
+      }
+      bool is_in_hyperspace() const {
+        return hyperspace;
+      }
+      Ref<VisualEffects> &get_visual_effects() {
+        return visual_effects;
+      }
+
+      void set_weapon_rotation(const NodePath &np,real_t rotation) {
+        weapon_rotations[np] = rotation;
+      }
       
       inline Color get_faction_color(CE::faction_index_t faction) const {
         auto it = factions.find(faction);
@@ -148,14 +203,115 @@ namespace godot {
       }
       inline real_t affinity_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
         int key = CE::Faction::affinity_key(from_faction,to_faction);
-        std::unordered_map<int,float>::const_iterator it = affinities.find(key);
+        auto it = affinities.find(key);
         return (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
       }
+      
+      Faction *faction_with_id(object_id id) {
+        auto it = factions.find(id);
+        return it == factions.end() ? nullptr : &it->second;
+      }
+      const Faction *faction_with_id(object_id id) const {
+        auto it = factions.find(id);
+        return it == factions.end() ? nullptr : &it->second;
+      }
 
+      Ship *ship_with_id(object_id id) {
+        auto it = ships.find(id);
+        return it == ships.end() ? nullptr : &it->second;
+      }
+      const Ship *ship_with_id(object_id id) const {
+        auto it = ships.find(id);
+        return it == ships.end() ? nullptr : &it->second;
+      }
+
+      PlayerOverrides *player_order_with_id(object_id id) {
+        auto it = player_orders.find(id);
+        return it == player_orders.end() ? nullptr : &it->second;
+      }
+      const PlayerOverrides *player_order_with_id(object_id id) const {
+        auto it = player_orders.find(id);
+        return it == player_orders.end() ? nullptr : &it->second;
+      }
+
+      Planet *planet_with_id(object_id id) {
+        auto it = planets.find(id);
+        return it == planets.end() ? nullptr : &it->second;
+      }
+      const Planet *planet_with_id(object_id id) const {
+        auto it = planets.find(id);
+        return it == planets.end() ? nullptr : &it->second;
+      }
+
+      Projectile *projectile_with_id(object_id id) {
+        auto it = projectiles.find(id);
+        return it == projectiles.end() ? nullptr : &it->second;
+      }
+      const Projectile *projectile_with_id(object_id id) const {
+        auto it = projectiles.find(id);
+        return it == projectiles.end() ? nullptr : &it->second;
+      }
+
+      const std::unordered_map<object_id,CE::Planet> &get_planets() const {
+        return planets;
+      }
+      const std::unordered_map<object_id,CE::Projectile> &get_projectiles() const {
+        return projectiles;
+      }
+      const std::unordered_map<object_id,CE::Ship> &get_ships() const {
+        return ships;
+      }
+
+      faction_mask_t get_enemy_mask(faction_index_t faction) const {
+        return enemy_masks[faction];
+      }
+      faction_mask_t get_friend_mask(faction_index_t faction) const {
+        return friend_masks[faction];
+      }
+      faction_mask_t get_self_mask(faction_index_t faction) const {
+        return self_masks[faction];
+      }
+
+      void find_ships_in_radius(Vector3 position,real_t radius,CE::faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
+
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Ship utilities for other classes
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+    public:      
+      
+      void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;
+      Dictionary check_target_lock(CE::Ship &target, Vector3 point1, Vector3 point2);
+      const CE::ship_hit_list_t &get_ships_within_range(CE::Ship &ship, real_t desired_range);
+      const CE::ship_hit_list_t &get_ships_within_unguided_weapon_range(CE::Ship &ship,real_t fudge_factor);
+      const CE::ship_hit_list_t &get_ships_within_weapon_range(CE::Ship &ship,real_t fudge_factor);
+      const CE::ship_hit_list_t &get_ships_within_turret_range(CE::Ship &ship, real_t fudge_factor);
+      CE::ships_iter ship_for_rid(const RID &rid);
+      CE::ships_iter ship_for_rid(int rid_id);
+      CE::ships_iter space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
+      Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
+      void explode_ship(Ship &ship);
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Projectile utilities for other classes
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+    public:      
+      void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
+      void create_flotsam(CE::Ship &ship);
+      void create_antimissile_projectile(CE::Ship &ship,CE::Weapon &weapon,CE::Projectile &target,Vector3 position,real_t rotation,real_t length);
+      void create_projectile(CE::Ship &ship,CE::Weapon &weapon,object_id target=-1);
+      CE::projectile_hit_list_t find_projectile_collisions(CE::Projectile &projectile,real_t radius,int max_results=32);
+      bool collide_point_projectile(CE::Projectile &projectile);
+      bool collide_projectile(CE::Projectile &projectile);
+      void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
+      CE::ships_iter get_projectile_target(CE::Projectile &projectile);
+      void guide_projectile(CE::Projectile &projectile);
+      
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:
       // // // // // // // // // // // // // // // // // // // // // // // // 
-    
+    public:
+      
       static void _register_methods();
       void _init();
       void clear_ai();
@@ -173,7 +329,7 @@ namespace godot {
                                  Vector2 minimap_center, float minimap_radius);
       void draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap);
 
-    protected:
+    public: // FIXME: Some of these should be private
 
 
       // FIXME: missing sorted_enemy_list()
@@ -202,47 +358,7 @@ namespace godot {
       void update_ship_list(const Array &update_request_rid, Array &result);
       void add_ships_and_planets(const Array &new_ships,const Array &new_planets);
       void update_player_orders(const Array &new_player_orders);
-      void negate_drag_force(CE::Ship &ship);
-      bool rift_ai(CE::Ship &ship);
-      void explode_ship(CE::Ship &ship);
-      void ai_step_ship(CE::Ship &ship);
 
-      void fire_antimissile_turrets(CE::Ship &ship);
-      void use_cargo_web(CE::Ship &ship);
-      bool apply_player_orders(CE::Ship &ship,CE::PlayerOverrides &overrides);
-      bool apply_player_goals(CE::Ship &ship,CE::PlayerOverrides &overrides);
-      void update_near_objects_using_godot_physics(CE::Ship &ship);
-      void find_ships_in_radius(Vector3 position,real_t radius,CE::faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
-      void update_near_objects_using_ship_locations(CE::Ship &ship);
-      bool should_update_targetting(CE::Ship &ship,CE::ships_iter &other);
-      CE::ships_iter update_targetting(CE::Ship &ship);
-      void attacker_ai(CE::Ship &ship);
-      void patrol_ship_ai(CE::Ship &ship);
-      void decide_raider_ai_action(CE::Ship &ship);
-      void raider_ai(CE::Ship &ship);
-      bool salvage_ai(CE::Ship &ship);
-      bool should_salvage(CE::Ship &ship,real_t *returned_best_time=nullptr);
-      void landing_ai(CE::Ship &ship);
-      CE::planets_iter choose_arriving_merchant_goal_target(CE::Ship &ship);
-      CE::planets_iter choose_arriving_merchant_action(CE::Ship &ship);
-      void arriving_merchant_ai(CE::Ship &ship);
-      void decide_departing_merchant_ai_action(CE::Ship &ship);
-      void departing_merchant_ai(CE::Ship &ship);
-      void opportunistic_firing(CE::Ship &ship);
-      bool patrol_ai(CE::Ship &ship);
-      void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;
-      Vector3 make_threat_vector(CE::Ship &ship, real_t t);
-      void evade(CE::Ship &ship);
-      void aim_turrets(CE::Ship &ship,CE::ships_iter &target);
-      void fire_primary_weapons(CE::Ship &ship);
-      void player_auto_target(CE::Ship &ship);
-      Dictionary check_target_lock(CE::Ship &target, Vector3 point1, Vector3 point2);
-      const CE::ship_hit_list_t &get_ships_within_range(CE::Ship &ship, real_t desired_range);
-      const CE::ship_hit_list_t &get_ships_within_unguided_weapon_range(CE::Ship &ship,real_t fudge_factor);
-      const CE::ship_hit_list_t &get_ships_within_weapon_range(CE::Ship &ship,real_t fudge_factor);
-      const CE::ship_hit_list_t &get_ships_within_turret_range(CE::Ship &ship, real_t fudge_factor);
-      bool fire_direct_weapon(CE::Ship &ship,CE::Weapon &weapon,bool allow_untargeted);
-      void auto_fire(CE::Ship &ship, CE::ships_iter &target);
       void encode_salvaged_items_for_gdscript(Array result);
     
       // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -250,20 +366,6 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
       void integrate_projectiles();
-      void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
-      void create_flotsam(CE::Ship &ship);
-      void create_antimissile_projectile(CE::Ship &ship,CE::Weapon &weapon,CE::Projectile &target,Vector3 position,real_t rotation,real_t length);
-      void create_projectile(CE::Ship &ship,CE::Weapon &weapon,object_id target=-1);
-      CE::ships_iter ship_for_rid(const RID &rid);
-      CE::ships_iter ship_for_rid(int rid_id);
-      CE::projectile_hit_list_t find_projectile_collisions(CE::Projectile &projectile,real_t radius,int max_results=32);
-      bool collide_point_projectile(CE::Projectile &projectile);
-      CE::ships_iter space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
-      bool collide_projectile(CE::Projectile &projectile);
-      void salvage_projectile(CE::Ship &ship,CE::Projectile &projectile);
-      CE::ships_iter get_projectile_target(CE::Projectile &projectile);
-      void guide_projectile(CE::Projectile &projectile);
-      Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Visual methods:
