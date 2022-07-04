@@ -106,8 +106,6 @@ namespace godot {
     
       // For temporary use in some functions:
       std::unordered_set<object_id> update_request_id;
-      mutable std::vector<CE::PlanetGoalData> planet_goal_data;
-      mutable std::vector<float> goal_weight_data;
       mutable CE::CheapRand32 rand;
     
       // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -136,7 +134,6 @@ namespace godot {
       // Accessors
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:
-
 
       faction_index_t get_player_faction_index() const {
         return player_faction_index;
@@ -194,7 +191,7 @@ namespace godot {
       
       inline Color get_faction_color(CE::faction_index_t faction) const {
         auto it = factions.find(faction);
-        return it==factions.end() ? Color(1,1,1,1) : it->second.faction_color;
+        return it==factions.end() ? Color(1,1,1,1) : it->second.get_faction_color();
       }
       inline bool is_hostile_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
         return enemy_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
@@ -281,7 +278,6 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
       
-      void choose_target_by_goal(CE::Ship &ship,bool prefer_strong_targets,CE::goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const;
       Dictionary check_target_lock(CE::Ship &target, Vector3 point1, Vector3 point2);
       const CE::ship_hit_list_t &get_ships_within_range(CE::Ship &ship, real_t desired_range);
       const CE::ship_hit_list_t &get_ships_within_unguided_weapon_range(CE::Ship &ship,real_t fudge_factor);
@@ -337,8 +333,6 @@ namespace godot {
                             real_t how_much,bool immediate_update);
       void make_faction_state_for_gdscript(Dictionary &result);
       void update_affinity_masks();
-      CE::PlanetGoalData update_planet_faction_goal(const CE::Faction &faction, const CE::Planet &planet, const CE::FactionGoal &goal) const;
-      void update_one_faction_goal(CE::Faction &faction, CE::FactionGoal &goal) const;
       void update_all_faction_goals();
       void faction_ai_step();
 

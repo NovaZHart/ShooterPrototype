@@ -57,7 +57,7 @@ void PatrolShipAI::run_ai(CombatEngine &ce,Ship &ship) {
       find_new_target = ship.should_update_targetting(*target_ptr);
   }
   if(find_new_target) {
-    ce.choose_target_by_goal(ship,false,goal_patrol,0.0f,30.0f);
+    choose_target_by_goal(ce,ship,false,goal_patrol,0.0f,30.0f);
     target_ptr = ce.ship_with_id(ship.get_target());
   }
 
@@ -363,7 +363,7 @@ void RaiderAI::decide_raider_ai_action(CombatEngine &ce,Ship &ship) {
 
   if(ship.structure<0.667*ship.max_structure) {
     // Panic time. Only hope is to rift away.
-    Godot::print(ship.name+": severe damage, so rift");
+    //Godot::print(ship.name+": severe damage, so rift");
     ship.ai_flags = DECIDED_TO_RIFT;
     return;
   }
@@ -373,7 +373,7 @@ void RaiderAI::decide_raider_ai_action(CombatEngine &ce,Ship &ship) {
     if(ship.shields<0.75*ship.max_shields or ship.efficiency<0.9) {
       if(ship.shields<ship.ai_work and ship.ticks_since_ai_change>3*ticks_per_second) {
         // Shields don't seem to be recharging.
-        Godot::print(ship.name+": shields are not recharging, so rift");
+        //Godot::print(ship.name+": shields are not recharging, so rift");
         ship.ai_flags = DECIDED_TO_RIFT;
         return;
       }
@@ -405,7 +405,7 @@ void RaiderAI::decide_raider_ai_action(CombatEngine &ce,Ship &ship) {
     have_enough_cargo = ship.salvaged_value>5e4*ship.max_cargo_mass
       or (ship.cost and ship.salvaged_value>ship.cost*0.5);
   if(have_enough_cargo) {
-    Godot::print(ship.name+": have enough cargo ("+str(ship.salvaged_value)+" worth) so rift");
+    //Godot::print(ship.name+": have enough cargo ("+str(ship.salvaged_value)+" worth) so rift");
     ship.ai_flags = DECIDED_TO_RIFT;
     ship.ticks_since_ai_change=0;
     return;

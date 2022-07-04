@@ -2,6 +2,7 @@
 #define BASESHIPAI_HPP
 
 #include <Vector3.hpp>
+#include "CE/Faction.hpp"
 
 namespace godot {
   namespace CE {
@@ -38,8 +39,11 @@ namespace godot {
       void player_auto_target(CombatEngine &ce,Ship &ship);
 
       void ai_step(CombatEngine &ce,Ship &ship);
-      // void attacker_ai(CE::Ship &ship);
 
+      void choose_target_by_goal(CombatEngine &ce,Ship &ship,bool prefer_strong_targets,
+                                 goal_action_t goal_filter,real_t min_weight_to_target,
+                                 real_t override_distance) const;
+  
       virtual ~BaseShipAI();
       BaseShipAI();
     protected:

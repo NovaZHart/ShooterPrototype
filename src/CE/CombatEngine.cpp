@@ -68,8 +68,6 @@ CombatEngine::CombatEngine():
   ship_locations(position_box_size),
 
   update_request_id(),
-  planet_goal_data(),
-  goal_weight_data(),
   rand(),
   
   visual_server(VisualServer::get_singleton()),
@@ -379,135 +377,6 @@ void CombatEngine::update_affinity_masks() {
   need_to_update_affinity_masks = false;
 }
 
-PlanetGoalData CombatEngine::update_planet_faction_goal(const Faction &faction, const Planet &planet, const FactionGoal &goal) const {
-  FAST_PROFILING_FUNCTION;
-  float spawn_desire = min(100.0f,sqrtf(max(100.0f,planet.population))+sqrtf(max(0.0f,planet.industry)));
-  PlanetGoalData result = { 0.0f,spawn_desire,-1 };
-  
-  if(goal.action == goal_planet) {
-    result.goal_status = 1.0f;
-    return result;
-  }
-  
-  faction_mask_t one = static_cast<faction_mask_t>(1);
-  faction_mask_t self_mask = one << faction.faction_index;
-  faction_mask_t target_mask = enemy_masks[faction.faction_index];
-  target_mask = one<<goal.target_faction;
-  
-  float my_threat=0.0f, enemy_threat=0.0f;
-  float radsq = goal.radius*goal.radius;
-  for(auto &goal_datum : planet.get_goal_data()) {
-    if(goal_datum.distsq>radsq)
-      break;
-    if(goal_datum.faction_mask==self_mask)
-      my_threat = goal_datum.threat;
-    else if(goal_datum.faction_mask&target_mask)
-      enemy_threat = -goal_datum.threat;
-  }
-  float threat_weight = sqrtf(max(100.0f,fabsf(my_threat-enemy_threat))) / max(10.0f,faction.threat_per_second*60);
-  if(my_threat<enemy_threat)
-    threat_weight = -threat_weight;
-
-  result.planet = planet.id;
-  result.goal_status = threat_weight;
-  if(goal_raid)
-    result.spawn_desire *= threat_weight;
-  else
-    result.spawn_desire *= -threat_weight;
-
-  return result;
-}
-
-void CombatEngine::update_one_faction_goal(Faction &faction, FactionGoal &goal) const {
-  FAST_PROFILING_FUNCTION;
-  planet_goal_data.reserve(planets.size());
-  goal_weight_data.reserve(planets.size());
-  planet_goal_data.clear();
-  goal_weight_data.clear();
-
-  std::vector<TargetAdvice> &target_advice = faction.get_target_advice();
-  int target_advice_start = target_advice.size();
-  
-  float accum = 0;
-  float min_desire=0;
-  float max_desire=0;
-  for(planets_const_iter p_planet=planets.begin();p_planet!=planets.end();p_planet++) {
-    object_id id = p_planet->first;
-    if(goal.target_object_id>=0 and goal.target_object_id!=id) {
-      //Godot::print("Skipping planet because it is not the target.");
-      continue;
-    }
-    planet_goal_data.push_back(update_planet_faction_goal(faction,p_planet->second,goal));
-    float spawn_desire = planet_goal_data.back().spawn_desire;
-    if(planet_goal_data.size()<2)
-      max_desire = min_desire = spawn_desire;
-    else {
-      min_desire = min(spawn_desire,min_desire);
-      max_desire = max(spawn_desire,max_desire);
-    }
-    goal_weight_data.push_back(spawn_desire);
-    TargetAdvice ta;
-    ta.action = goal.action;
-    ta.target_weight = spawn_desire;
-    ta.radius = goal.radius;
-    ta.planet = id;
-    ta.position = p_planet->second.position;
-    target_advice.push_back(ta);
-  }
-
-  for(size_t i=0;i<goal_weight_data.size();i++) {
-    float &weight = goal_weight_data[i];
-    weight -= min_desire;
-    if(max_desire>min_desire)
-      weight /= max_desire-min_desire;
-    if(weight>1e-5)
-      weight = 0.2 + 0.7*weight;
-    accum += weight;
-    weight = accum;
-  }
-  
-  if(not goal_weight_data.size()) {
-    //Godot::print("No goal weights. Bailing out.");
-    goal.clear();
-    return;
-  }
-
-  float val = accum * rand.randf();
-
-  size_t i=0;
-  while(i+1<goal_weight_data.size() and val>goal_weight_data[i])
-    i++;
-
-  planets_const_iter p_planet = planets.find(planet_goal_data[i].planet);
-  if(p_planet==planets.end()) {
-    //Godot::print("Planet goal data is invalid");
-    goal.clear();
-    return;
-  }
-
-  for(int j=target_advice_start,n=target_advice.size();j<n;j++) {
-    if(max_desire==min_desire)
-      target_advice[j].target_weight = 0.5;
-    else {
-      target_advice[j].target_weight -= min_desire;
-      target_advice[j].target_weight /= max_desire-min_desire;
-    }
-    target_advice[j].target_weight *= goal.weight;
-  }
-  
-  const Planet &planet = p_planet->second;
-  goal.suggested_spawn_point = planet.position;
-  goal.suggested_spawn_path = planet.scene_tree_path;
-  if(max_desire==min_desire)
-    goal.spawn_desire = 0.5;
-  else {
-    goal.spawn_desire = (planet_goal_data[i].spawn_desire-min_desire);
-    goal.spawn_desire /= max_desire-min_desire;
-  }
-  
-  goal.goal_success = planet_goal_data[i].goal_status;
-}
-
 void CombatEngine::update_all_faction_goals() {
   FAST_PROFILING_FUNCTION;
   planets_iter p_first=planets.end();
@@ -523,7 +392,7 @@ void CombatEngine::update_all_faction_goals() {
     Faction &faction = p_faction.second;
     faction.clear_target_advice(planet_count);
     for(auto &goal : faction.get_goals())
-      update_one_faction_goal(faction,goal);
+      faction.update_one_faction_goal(*this,goal);
   }
   last_planet_updated = -1;
   last_faction_updated = FACTION_ARRAY_SIZE;
@@ -795,152 +664,6 @@ void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_m
   sort(results.begin(),results.end(),compare_distance);
 }
 
-
-void CombatEngine::choose_target_by_goal(Ship &ship,bool prefer_strong_targets,goal_action_t goal_filter,real_t min_weight_to_target,real_t override_distance) const {
-  FAST_PROFILING_FUNCTION;
-
-  // Minimum and maximum distances to target for calculations:
-  real_t min_move = clamp(max(3.0f*ship.max_speed,ship.range.all),10.0f,30.0f);
-  real_t max_move = clamp(20.0f*ship.max_speed+ship.range.all,100.0f,1000.0f);
-  real_t move_scale = max(max_move-min_move,1.0f);
-
-  factions_const_iter faction_it = factions.find(ship.faction);
-  
-  int i=0;
-  object_id target = -1;
-  real_t target_weight = -1.0f;
-
-  for(ships_const_iter it=ships.begin();it!=ships.end();it++,i++) {
-    real_t weight = 0.0f;
-    const Ship &other = it->second;
-    if(other.id==ship.id or not is_hostile_towards(ship.faction,other.faction))
-      // Cannot harm the other ship, so don't target it.
-      continue;
-
-    real_t ship_dist = other.position.distance_to(ship.position);
-    if(ship_dist>max_move and ship_dist>override_distance)
-      // Ship is essentially infinitely far away, so ignore it.
-      continue;
-
-    weight  = clamp(-affinity_towards(ship.faction,other.faction),0.5f,2.0f);
-    weight *= clamp((max_move-ship_dist)/move_scale, 0.1f, 1.0f);
-
-    // Lower weight for potential targets much stronger than the ship.
-    real_t rel_threat = max(100.0f,ship.threat)/other.threat;
-    if(prefer_strong_targets)
-      rel_threat = 1.0f/rel_threat;
-    rel_threat = clamp(rel_threat,0.3f,1.0f);
-    weight *= rel_threat;
-
-    weight *= 10.0f;
-
-    // Goal weight is now 1..10 for range times 0.15..2 for other factors
-
-    if(ship.get_target() == other.id)
-      weight += 5; // prefer the current target
-
-    if(faction_it!=factions.end()) {
-      real_t all_advice_weight_sq = 0;
-      for(auto &advice : faction_it->second.get_target_advice()) {
-        if(advice.action != goal_filter)
-          continue; // ship does not contribute to this goal
-
-        // Starting advice weight is goal weight multiplied by a number from 0..1:
-        real_t advice_weight = advice.target_weight;
-
-        // Reduce the weight based on distance to the goal, if the
-        // goal cares about distance.
-        if(advice.radius>0) {
-          real_t dist = advice.position.distance_to(ship.position);
-          if(advice.radius>dist)
-            continue; // target is outside goal radius
-          advice_weight *= (advice.radius-dist)/advice.radius;
-        }
-
-        if(advice_weight>0)
-          all_advice_weight_sq += advice_weight*advice_weight;
-      }
-
-      // Use the square root of sum of squares to accumulate so the
-      // relative values don't get too high if there are many goals.
-      if(all_advice_weight_sq>0)
-        weight += 5*sqrtf(all_advice_weight_sq);
-    }
-
-    if(weight<min_weight_to_target and ship_dist>override_distance)
-      continue; // Ship is too unimportant to attack
-    
-    if(weight>target_weight) {
-      target_weight = weight;
-      target = other.id;
-    }
-  }
-
-  if(target!=ship.get_target()) {
-    ship.new_target(target);
-    // if(target>=0) {
-    //   ships_const_iter it=ships.find(target);
-    // }
-  }
-
-  if(target<0 and ship.goal_target>0) {
-    // No ship to target, and this ship is tracking a planet-based
-    // goal, so we'll target that instead.
-
-    target = -1;
-    target_weight = -1.0f;
-
-    object_id closest_planet = select_target(-1,select_nearest(ship.position),planets,false);
-
-    const vector<TargetAdvice> &target_advice = faction_it->second.get_target_advice();
-    unordered_map<object_id,float> weighted_planets;
-
-    weighted_planets.reserve(target_advice.size()*2);
-
-    real_t weight_sum=0;
-    for(auto &advice : target_advice) {
-      if(advice.action != goal_filter)
-        continue; // ship does not contribute to this goal
-
-      real_t weight = advice.target_weight;
-      
-      if(advice.planet == ship.goal_target)
-        weight *= 1.5;
-      if(advice.planet == closest_planet)
-        weight *= 1.5;
-
-      unordered_map<object_id,float>::iterator it=weighted_planets.find(advice.planet);
-      if(it==weighted_planets.end())
-        weighted_planets[advice.planet] = weight;
-      else
-        it->second += weight;
-      weight_sum += weight;
-    }
-
-    real_t randf = ship.rand.randf()*weight_sum;
-    unordered_map<object_id,float>::iterator choice = weighted_planets.begin();
-    unordered_map<object_id,float>::iterator next = choice;
-
-    while(next!=weighted_planets.end()) {
-      if(randf<choice->second)
-        break;
-      randf -= choice->second;
-      choice=next;
-      next++;
-    };
-
-    if(choice!=weighted_planets.end())
-      target = choice->first;
-
-    if(target>=0) {
-      // if(target != ship.goal_target) {
-      //   planets_const_iter it=planets.find(target);
-      // }
-      ship.goal_target = target;
-    }
-  }
-}
-
 void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
   FAST_PROFILING_FUNCTION;
   result.clear();
@@ -1050,8 +773,6 @@ void CombatEngine::integrate_projectiles() {
         missile_locations.remove(projectile.id);
       if(projectile.is_flotsam())
         flotsam_locations.remove(projectile.id);
-      if(projectile.is_antimissile())
-        Godot::print("remove antimissile");
       it=projectiles.erase(it);
     } else {
       if(have_moved) {

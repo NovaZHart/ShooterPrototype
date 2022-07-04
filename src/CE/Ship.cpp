@@ -617,7 +617,7 @@ void Ship::salvage_projectile(CombatEngine &ce,const Projectile &projectile) {
         pickup=salvage.cargo_count;
       cargo_mass = min(original_max_mass,old_mass+pickup*unit_mass);
       salvaged_value += pickup*salvage.cargo_unit_value;
-      Godot::print(name+" gained "+str(pickup*unit_mass)+"tn (of "+str(max_cargo_mass)+" max) and "+str(pickup*salvage.cargo_unit_value)+" (tot "+str(salvaged_value)+") by picking up "+str(pickup)+" units of "+str(salvage.cargo_name)+" ship cost "+str(cost));
+      //Godot::print(name+" gained "+str(pickup*unit_mass)+"tn (of "+str(max_cargo_mass)+" max) and "+str(pickup*salvage.cargo_unit_value)+" (tot "+str(salvaged_value)+") by picking up "+str(pickup)+" units of "+str(salvage.cargo_name)+" ship cost "+str(cost));
     }
     ce.add_salvaged_items(*this,projectile);
   }

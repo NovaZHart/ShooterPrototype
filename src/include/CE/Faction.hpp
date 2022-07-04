@@ -9,12 +9,15 @@
 #include <RID.hpp>
 #include <Dictionary.hpp>
 
+#include "CheapRand32.hpp"
 #include "CE/Types.hpp"
 #include "CE/Planet.hpp"
 #include "CE/Constants.hpp"
 
 namespace godot {
   namespace CE {
+    class CombatEngine;
+    
     struct FactionGoal {
       const goal_action_t action;
       const faction_index_t target_faction;
@@ -58,10 +61,29 @@ namespace godot {
       Vector3 position;
     };
 
-    struct Faction {
+    class Faction {
       const faction_index_t faction_index;
       const float threat_per_second;
       const Color faction_color;
+
+      // For temporary use to avoid memory allocation:
+      mutable std::vector<PlanetGoalData> planet_goal_data;
+      mutable std::vector<real_t> goal_weight_data;
+
+      float recouped_resources;
+      std::vector<FactionGoal> goals;
+      std::vector<TargetAdvice> target_advice;
+      faction_mask_t enemy_mask, friend_mask;
+      CheapRand32 rand;
+      
+    public:
+      faction_index_t get_faction_index() const {
+        return faction_index;
+      }
+      Color get_faction_color() const {
+        return faction_color;
+      }
+      
       static inline int affinity_key(const faction_index_t from_faction,
                                      const faction_index_t to_faction) {
         return to_faction | (from_faction<<FACTION_BIT_SHIFT);
@@ -99,11 +121,9 @@ namespace godot {
       inline void recoup_resources(float resources) {
         recouped_resources+=std::max(resources,0.0f);
       }
-    private:
-      float recouped_resources;
-      std::vector<FactionGoal> goals;
-      std::vector<TargetAdvice> target_advice;
-      faction_mask_t enemy_mask, friend_mask;
+
+      PlanetGoalData update_planet_faction_goal(CombatEngine &ce, const Planet &planet, const FactionGoal &goal);
+      void update_one_faction_goal(CombatEngine &ce, FactionGoal &goal);
     };
 
 
