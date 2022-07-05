@@ -951,7 +951,7 @@ Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int
   Vector3 center = (point1+point2)/2;
   real_t radius = distance2(point1,point2)/2;
 
-  if(not ship_locations.circle_is_nonempty(Vector2(center.x,center.z),radius))
+  if(not ship_locations.circle_is_nonempty(Vector2(center.x,center.z),radius+1))
     // No possibility of any matches.
     return nullptr;
   
