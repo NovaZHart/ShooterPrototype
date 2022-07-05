@@ -47,7 +47,7 @@ namespace godot {
       const real_t lifetime, max_speed, detonation_range;
       const faction_index_t faction;
       double structure;
-      Vector3 position, linear_velocity, rotation, angular_velocity, forces;
+      Vector3 position, old_position, linear_velocity, rotation, angular_velocity, forces;
       real_t age, scale, visual_height;
       bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
@@ -132,6 +132,9 @@ namespace godot {
       }
       inline Vector3 get_position() const {
         return position;
+      }
+      inline Vector3 get_old_position() const {
+        return old_position;
       }
       inline Vector3 get_linear_velocity() const {
         return linear_velocity;

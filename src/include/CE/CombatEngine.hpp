@@ -48,7 +48,8 @@ namespace godot {
       static constexpr float position_box_size = 10.0f;
       static const int max_ships_hit_per_projectile_blast = 100;
       static constexpr float search_cylinder_radius = 30.0f;
-
+      static const int max_ships_searched_for_detonation_range = 32;
+      
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Statistics for this solar system
       // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -299,7 +300,8 @@ namespace godot {
       void create_flotsam_projectile(Ship &ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
       void create_antimissile_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length);
       void create_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,object_id target=-1);
-      projectile_hit_list_t find_projectile_collisions(Projectile &projectile,real_t radius,int max_results=32);
+      projectile_hit_list_t find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results);
+  //projectile_hit_list_t find_projectile_collisions(Projectile &projectile,real_t radius,bool consider_motion,int max_results);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:

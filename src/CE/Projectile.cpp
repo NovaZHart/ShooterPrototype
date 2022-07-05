@@ -52,6 +52,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
   faction(ship.faction),
   structure(weapon->projectile_structure),
   position(ship.position + weapon->get_position().rotated(y_axis,ship.rotation.y)),
+  old_position(position),
   linear_velocity(),
   rotation(),
   angular_velocity(),
@@ -99,6 +100,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
   faction(ship.faction),
   structure(weapon->projectile_structure),
   position(position),
+  old_position(position),
   linear_velocity(ship.linear_velocity),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(Vector3(0,0,0)),
@@ -126,6 +128,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
   faction(ship.faction),
   structure(weapon->projectile_structure),
   position(position),
+  old_position(position),
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
@@ -159,6 +162,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   faction(FLOTSAM_FACTION),
   structure(weapon->projectile_structure),
   position(position),
+  old_position(position),
   linear_velocity(velocity),
   rotation(Vector3(0,rotation,0)),
   angular_velocity(),
@@ -242,8 +246,8 @@ void Projectile::integrate_projectile_forces(real_t thrust_fraction,bool drag,re
 
 bool Projectile::collide_point_projectile(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
-  Vector3 point1(position.x,500,position.z);
-  Vector3 point2(position.x,-500,position.z);
+  Vector3 point1(position.x,ship_height,position.z);
+  Vector3 point2(old_position.x,ship_height,old_position.z);
   Ship * p_ship = ce.space_intersect_ray_p_ship(point1,point2,ce.get_enemy_mask(faction));
   if(!p_ship)
     return false;
@@ -265,7 +269,11 @@ bool Projectile::collide_point_projectile(CombatEngine &ce) {
 
 bool Projectile::collide_projectile(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
-  projectile_hit_list_t hits = ce.find_projectile_collisions(*this,detonation_range);
+  
+  Vector3 collision_location;
+  faction_mask_t collision_mask=ce.get_enemy_mask(faction);
+  projectile_hit_list_t hits = ce.find_projectile_collisions(position,old_position,collision_mask,detonation_range,true,collision_location,ce.max_ships_searched_for_detonation_range);
+  
   if(hits.empty())
     return false;
 
@@ -292,7 +300,8 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
   if(hit_something) {
     bool have_impulse = get_impulse()>1e-5;
     if(not salvage and get_blast_radius()>1e-5) {
-      projectile_hit_list_t blasted = ce.find_projectile_collisions(*this,get_blast_radius(),ce.max_ships_hit_per_projectile_blast);
+      Vector3 discard;
+      projectile_hit_list_t blasted = ce.find_projectile_collisions(collision_location,collision_location,collision_mask,get_blast_radius(),false,discard,ce.max_ships_hit_per_projectile_blast);
 
       for(auto &blastee : blasted) {
         Ship &ship = blastee.second->second;
@@ -429,6 +438,8 @@ void Projectile::step_projectile(CombatEngine &ce,bool &have_died,bool &have_col
     return;
   }
 
+  old_position=position;
+  
   if(get_guided())
     guide_projectile(ce);
   else

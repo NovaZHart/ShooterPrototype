@@ -230,9 +230,9 @@ namespace godot {
 
   template<class T>
   bool SpaceHash<T>::ray_is_nonempty(Vector2 p1,Vector2 p2) const {
-  FAST_PROFILING_FUNCTION;
+    FAST_PROFILING_FUNCTION;
     // FIXME: This should use a line drawing algorithm instead of searching the rect with p1..p2 as the diagonal.
-    Rect2 real_rect = rect_positive_size(Rect2(p1,Vector2(p2.x-p1.x,p2.y-p1.y)));
+    Rect2 real_rect = rect_positive_size(Rect2(p1,p2-p1));
     IntRect2 rect = IntRect2(real_rect,position_box_size);
     for(int iy=0,y=rect.position.y;iy<rect.size.y;iy++,y++)
       for(int ix=0,x=rect.position.x;ix<rect.size.x;ix++,x++) {

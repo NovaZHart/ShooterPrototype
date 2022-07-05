@@ -64,6 +64,7 @@ namespace godot {
       below_planets=-30,
       flotsam_height=-7,
       below_ships=-5,
+      ship_height=5,
       below_projectiles=25,
       projectile_height=27,
       above_projectiles=29

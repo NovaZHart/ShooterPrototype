@@ -859,44 +859,83 @@ ships_iter CombatEngine::ship_for_rid(int rid_id) {
   return ships.find(p_id->second);
 }
 
-projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &projectile,real_t radius,int max_results) {
+projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results) {
   FAST_PROFILING_FUNCTION;
   projectile_hit_list_t result;
 
-  if(not ship_locations.circle_is_nonempty(Vector2(projectile.get_position().x,projectile.get_position().z),radius)) {
+  Vector3 search_pos = projectile_position;
+  Vector3 midpoint = projectile_position;
+  real_t search_radius = radius;
+  int max_tries=1;
+  if(consider_motion) {
+    max_tries = 2;
+    midpoint = (projectile_position+projectile_old_position)/2;
+    real_t distance_traveled = distance2(projectile_position,projectile_old_position);
+    search_radius = radius+distance_traveled;
+    search_pos = projectile_old_position;
+  }
+
+  collision_location = projectile_position;
+  
+  if(not ship_locations.circle_is_nonempty(Vector2(midpoint.x,midpoint.z),search_radius)) {
     // No possibility of any hits.
     return result;
   }
   
   // FIXME: first pass with a boost r*tree
   if(radius>1e-5) {
-    real_t trans_x(projectile.get_position().x), trans_z(projectile.get_position().z);
+    real_t trans_x(search_pos.x), trans_z(search_pos.z);
     real_t scale = radius / search_cylinder_radius;
     Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
-    query->set_collision_mask(enemy_masks[projectile.get_faction()]);
+    query->set_collision_mask(collision_mask);
     query->set_shape(search_cylinder);
-    if(not ship_locations.circle_is_nonempty(Vector2(trans_x,trans_z),radius))
+    if(not ship_locations.circle_is_nonempty(Vector2(trans_x,trans_z),search_radius))
       return result; // No possibility of collision
     Transform trans;
     trans.scale(Vector3(scale,1,scale));
-    trans.origin = Vector3(trans_x,5,trans_z);
+    trans.origin = Vector3(trans_x,ship_height,trans_z);
+
+    // First, check if the initial projectile location overlaps with something.
     //query->set_transform(Transform(scale,0,0, 0,1,0, 0,0,scale, trans_x,5,trans_z));
     query->set_transform(trans);
-    Array hits = space->intersect_shape(query,max_results);
-    for(int i=0,size=hits.size();i<size;i++) {
-      Dictionary hit=static_cast<Dictionary>(hits[i]);
-      if(!hit.empty()) {
-        ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
-        if(p_ship!=ships.end())
-          result.emplace_back(p_ship->second.position,p_ship);
+    for(int tries=0;tries<max_tries;tries++) {
+      Array hits = space->intersect_shape(query,max_results);
+      for(int i=0,size=hits.size();i<size;i++) {
+        Dictionary hit=static_cast<Dictionary>(hits[i]);
+        if(!hit.empty()) {
+          ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
+          if(p_ship!=ships.end())
+            result.emplace_back(p_ship->second.position,p_ship);
+        }
+      }
+
+      if(result.size())
+        break;
+      
+      // If the projectile did not hit anything at time 0, try later times.
+      if(tries==0) {
+        Vector3 motion = projectile_position-projectile_old_position;
+        motion.y=0;
+        Array cast_motion = space->cast_motion(query,motion);
+        real_t safe = cast_motion[0];
+        real_t unsafe = cast_motion[1];
+        real_t frac = min(safe,unsafe);
+        if(frac>=0 and frac<.99999) {
+          Godot::print("Detected collision at frac="+str(frac));
+          collision_location = projectile_old_position+motion*frac;
+          trans.origin = Vector3(collision_location.x,ship_height,collision_location.z);
+          query->set_transform(trans);
+        } else
+          // No hits at all.
+          break;
       }
     }
   } else {
-    if(not ship_locations.point_is_nonempty(Vector2(projectile.get_position().x,projectile.get_position().z)))
+    if(not ship_locations.point_is_nonempty(Vector2(projectile_position.x,projectile_position.z)))
       return result; // no possibility of collision
-    Vector3 point1(projectile.get_position().x,500,projectile.get_position().z);
-    Vector3 point2(projectile.get_position().x,-500,projectile.get_position().z);
-    Dictionary hit = space->intersect_ray(point1, point2, Array(), enemy_masks[projectile.get_faction()]);
+    Vector3 point1(projectile_position.x,ship_height,projectile_position.z);
+    Vector3 point2(projectile_old_position.x,ship_height,projectile_old_position.z);
+    Dictionary hit = space->intersect_ray(point1, point2, Array(), collision_mask);
     if(!hit.empty()) {
       ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
       if(p_ship!=ships.end())
@@ -909,10 +948,17 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
 Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask) {
   FAST_PROFILING_FUNCTION;
 
-  if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),
-                                        Vector2(point2.x,point2.z)))
+  Vector3 center = (point1+point2)/2;
+  real_t radius = distance2(point1,point2)/2;
+
+  if(not ship_locations.circle_is_nonempty(Vector2(center.x,center.z),radius))
     // No possibility of any matches.
     return nullptr;
+  
+  // if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),
+  //                                       Vector2(point2.x,point2.z)))
+  //   // No possibility of any matches.
+  //   return nullptr;
   
   static Array empty;
   Dictionary d=space->intersect_ray(point1,point2,empty,mask);
