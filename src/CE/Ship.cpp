@@ -22,10 +22,11 @@ using namespace godot::CE;
 using namespace std;
 
 
-Ship::WeaponRanges Ship::make_ranges(const vector<Weapon> &weapons) {
+Ship::WeaponRanges Ship::make_ranges(const vector<shared_ptr<Weapon>> &weapons) {
   Ship::WeaponRanges r = {0,0,0,0,0,0};
   
-  for(auto &weapon : weapons) {
+  for(auto &weapon_ptr : weapons) {
+    Weapon &weapon = *weapon_ptr;
     real_t range = weapon.projectile_lifetime*weapon.terminal_velocity;
     if(weapon.antimissile)
       r.antimissile = max(r.antimissile,range);
@@ -361,11 +362,12 @@ Vector3 Ship::aim_forward(const CombatEngine &ce,Ship &target,bool &in_range) {
   Vector3 dv = target.linear_velocity - linear_velocity;
   dp_ships += dv*ce.get_delta();
   in_range=false;
-  for(auto &weapon : weapons) {
+  for(auto &weapon_ptr : weapons) {
+    Weapon &weapon = *weapon_ptr;
     if(weapon.is_turret or weapon.guided)
       continue;
     //Vector3 weapon_velocity = linear_velocity + weapon.terminal_velocity*heading;
-    Vector3 dp = dp_ships - weapon.position.rotated(y_axis,rotation.y);
+    Vector3 dp = dp_ships - weapon.get_position().rotated(y_axis,rotation.y);
     real_t t = rendezvous_time(dp,dv,weapon.terminal_velocity);
     if(isnan(t)) 
       continue;
@@ -600,8 +602,8 @@ void Ship::set_velocity(const CombatEngine &ce,const Vector3 &velocity) {
 
 void Ship::salvage_projectile(CombatEngine &ce,const Projectile &projectile) {
   FAST_PROFILING_FUNCTION;
-  if(projectile.salvage) {
-    const Salvage & salvage = *projectile.salvage;
+  if(projectile.get_salvage()) {
+    const Salvage & salvage = *projectile.get_salvage();
     if(salvage.structure_repair>0)
       structure = min(double(max_structure),structure+salvage.structure_repair);
     if(salvage.armor_repair>0)
@@ -740,11 +742,12 @@ real_t Ship::get_standoff_range(const Ship &target) {
     return cached_standoff_range = standoff_range;
   }
   
-  Vector3 dp_ships = get_position(target) - get_position(*this);
+  Vector3 dp_ships = godot::CE::get_position(target) - godot::CE::get_position(*this);
   real_t distance = dp_ships.length();
   
-  for(auto &weapon : weapons) {
-    Vector3 dp_weapon = dp_ships - get_position(weapon).rotated(y_axis,rotation.y);
+  for(auto &weapon_ptr : weapons) {
+    Weapon &weapon = *weapon_ptr;
+    Vector3 dp_weapon = dp_ships - godot::CE::get_position(weapon).rotated(y_axis,rotation.y);
 
     // The weapon may be closer to the target than the ship. Consider
     // this when deciding the standoff range.
@@ -752,7 +755,7 @@ real_t Ship::get_standoff_range(const Ship &target) {
 
     if(weapon.guided) {
       // Guided weapon range depends on turn time.
-      if(weapon.ammo or weapon.reload_delay) {
+      if(weapon.get_ammo() or weapon.reload_delay) {
         real_t turn_time = weapon.is_turret ? 0 : PI/weapon.projectile_turn_rate;
         real_t travel = max(0.0f,weapon.projectile_range-weapon.terminal_velocity*turn_time);
         standoff_range = min(standoff_range,travel+untraveled_distance);
@@ -1033,11 +1036,11 @@ Dictionary Ship::update_status(const unordered_map<object_id,Ship> &ships,
 }
 
 
-std::vector<Weapon> Ship::get_weapons(Array a,MultiMeshManager &multimeshes) {
-  vector<Weapon> result;
+std::vector<shared_ptr<Weapon>> Ship::get_weapons(Array a,MultiMeshManager &multimeshes) {
+  vector<shared_ptr<Weapon>> result;
   int s=a.size();
   for(int i=0;i<s;i++)
-    result.emplace_back(static_cast<Dictionary>(a[i]),multimeshes);
+    result.emplace_back(make_shared<Weapon>(static_cast<Dictionary>(a[i]),multimeshes));
   return result;
 }
 
@@ -1061,7 +1064,7 @@ void Ship::update_near_objects(CombatEngine &ce) {
 
   vector<pair<real_t,pair<RID,object_id>>> search_results = ce.get_search_results();
   search_results.clear();
-  ce.find_ships_in_radius(get_position(*this),100,ce.get_enemy_mask(faction),search_results);
+  ce.find_ships_in_radius(godot::CE::get_position(*this),100,ce.get_enemy_mask(faction),search_results);
   nearby_objects.clear();
   for(auto & r : search_results)
     nearby_objects.push_back(r.second);

@@ -17,7 +17,48 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
-
+Weapon::Weapon(const Weapon::CreateFlotsamPlaceholder &p):
+  damage(0),
+  impulse(0),
+  initial_velocity(10), // overridden in Projectile
+  projectile_mass(10),
+  projectile_drag(.2),
+  projectile_thrust(0),
+  projectile_lifetime(10), // overridden in Projectile
+  projectile_structure(0),
+  projectile_turn_rate(0),
+  firing_delay(1),
+  turn_rate(0),
+  blast_radius(0),
+  detonation_range(2), // overridden in Projectile
+  threat(0),
+  heat_fraction(0),
+  energy_fraction(0),
+  thrust_fraction(0),
+  firing_energy(0),
+  firing_heat(0),
+  antimissile(false),
+  direct_fire(false),
+  guided(false),
+  guidance_uses_velocity(false),
+  auto_retarget(false),
+  mesh_id(-1),
+  terminal_velocity(0),
+  projectile_range(0),
+  node_path(),
+  is_turret(false),
+  damage_type(0),
+  reload_delay(0),
+  reload_energy(0),
+  reload_heat(0),
+  ammo_capacity(0),
+  harmony_angle(0),
+  ammo(0),
+  position(),
+  rotation(),
+  firing_countdown(),
+  reload_countdown()
+{}
 
 Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   damage(get<real_t>(dict,"damage")),
@@ -54,10 +95,10 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   reload_energy(max(0.0f,get<real_t>(dict,"reload_energy"))),
   reload_heat(max(0.0f,get<real_t>(dict,"reload_heat"))),
   ammo_capacity(max(0,get<int>(dict,"ammo_capacity"))),
+  harmony_angle(asin_clamp(position.z/projectile_range)),
   ammo(get<int>(dict,"ammo",ammo_capacity)),
   position(get<Vector3>(dict,"position")),
   rotation(get<Vector3>(dict,"rotation")),
-  harmony_angle(asin_clamp(position.z/projectile_range)),
   firing_countdown(0), reload_countdown(0)
 {
   if(not ammo_capacity)

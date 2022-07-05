@@ -29,14 +29,14 @@ VisibleObject::VisibleObject(const Planet &planet):
 {}
 
 VisibleEffect::VisibleEffect(const Projectile &projectile):
-  rotation_y(projectile.rotation.y),
-  scale_x(projectile.direct_fire ? projectile.scale : 0),
+  rotation_y(projectile.get_rotation().y),
+  scale_x(projectile.is_direct_fire() ? projectile.get_scale() : 0),
   scale_z(0),
-  y(projectile.visual_height),
-  center(projectile.position.x,projectile.position.z),
-  half_size(projectile.direct_fire ? Vector2(projectile.scale,projectile.scale) : Vector2(0.1f,0.1f)),
+  y(projectile.get_visual_height()),
+  center(projectile.get_position().x,projectile.get_position().z),
+  half_size(projectile.is_direct_fire() ? Vector2(projectile.get_scale(),projectile.get_scale()) : Vector2(0.1f,0.1f)),
   data(),
-  mesh_id(projectile.mesh_id)
+  mesh_id(projectile.get_mesh_id())
 {}
 
 VisibleEffect::VisibleEffect(const MultiMeshInstanceEffect &effect):

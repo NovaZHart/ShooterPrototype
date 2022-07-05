@@ -1,6 +1,7 @@
 #ifndef BASESHIPAI_HPP
 #define BASESHIPAI_HPP
 
+#include <memory>
 #include <Vector3.hpp>
 #include "CE/Faction.hpp"
 
@@ -10,7 +11,7 @@ namespace godot {
     class CombatEngine;
     struct Planet;
     struct PlayerOverrides;
-    struct Weapon;
+    class Weapon;
     
     class BaseShipAI {
       // FIXME: Move stuff from Ship to here.
@@ -30,7 +31,7 @@ namespace godot {
       Vector3 make_threat_vector(CombatEngine &ce,Ship &ship, real_t t);
       void aim_turrets(CombatEngine &ce,Ship &ship,Ship *target);
       void fire_primary_weapons(CombatEngine &ce,Ship &ship);
-      bool fire_direct_weapon(CombatEngine &ce,Ship &ship,Weapon &weapon,bool allow_untargeted);
+      bool fire_direct_weapon(CombatEngine &ce,Ship &ship,std::shared_ptr<Weapon> weapon_ptr,bool allow_untargeted);
       void auto_fire(CombatEngine &ce,Ship &ship, Ship *target);
       Ship *update_targetting(CombatEngine &ce,Ship &ship);
 

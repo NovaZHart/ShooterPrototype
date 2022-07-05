@@ -35,6 +35,13 @@ namespace godot {
       void update_goal_data(const std::unordered_map<object_id,Ship> &ships);
       inline const std::vector<ShipGoalData> &get_goal_data() const { return goal_data; }
 
+      inline Vector3 get_position() const {
+        return position;
+      }
+      inline Vector3 get_rotation() const {
+        return rotation;
+      }
+
     private:
       std::vector<ShipGoalData> goal_data;
     };

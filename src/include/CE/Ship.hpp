@@ -102,7 +102,7 @@ namespace godot {
 
       const std::vector<std::shared_ptr<const Salvage>> salvage;
       
-      std::vector<Weapon> weapons;
+      std::vector<std::shared_ptr<Weapon>> weapons;
       const WeaponRanges range;
 
       // Lifetime counter:
@@ -161,6 +161,13 @@ namespace godot {
 
     public:
 
+      inline Vector3 get_position() const {
+        return position;
+      }
+      inline Vector3 get_rotation() const {
+        return rotation;
+      }
+      
       inline Rect2 get_location_rect_now() const {
         return Rect2(location_rect.position+Vector2(position.x,position.z),
                      location_rect.size);
@@ -202,7 +209,7 @@ namespace godot {
           * (1.0f - std::clamp(tick/(300.0f*ticks_per_second),0.0f,1.0f) ) + salvaged_value;
       }
       
-      static WeaponRanges make_ranges(const std::vector<Weapon> &weapons);
+      static WeaponRanges make_ranges(const std::vector<std::shared_ptr<Weapon>> &weapons);
       
       bool should_update_targetting(Ship &other);
 
@@ -234,7 +241,7 @@ namespace godot {
       std::vector<std::shared_ptr<const Salvage>> get_salvage(Array a);
 
       // Generate the Weapon vector from GDScript datatypes:
-      std::vector<Weapon> get_weapons(Array a, MultiMeshManager &multimeshes);
+      std::vector<std::shared_ptr<Weapon>> get_weapons(Array a, MultiMeshManager &multimeshes);
 
       // All damage, resist, and passthru logic:
       real_t take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction);

@@ -39,34 +39,19 @@ grab_radius(get<real_t>(dict,"grab_radius",0.25f))
 }
 Salvage::~Salvage() {}
 
-Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object_id alternative_target):
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> weapon,object_id alternative_target):
   id(id),
+  weapon(weapon),
   source(ship.id),
   target(alternative_target>=0 ? alternative_target : ship.get_target()),
-  mesh_id(weapon.mesh_id),
-  guided(weapon.guided),
-  guidance_uses_velocity(weapon.guidance_uses_velocity),
-  auto_retarget(weapon.auto_retarget),
-  damage(weapon.damage),
-  impulse(weapon.impulse),
-  blast_radius(weapon.blast_radius),
-  detonation_range(weapon.detonation_range),
-  turn_rate(weapon.projectile_turn_rate),
+  mesh_id(weapon->mesh_id),
   always_drag(false),
-  mass(weapon.projectile_mass),
-  drag(weapon.projectile_drag),
-  thrust(weapon.projectile_thrust),
-  lifetime(weapon.projectile_lifetime),
-  initial_velocity(weapon.initial_velocity),
-  max_speed(weapon.terminal_velocity),
-  heat_fraction(weapon.heat_fraction),
-  energy_fraction(weapon.energy_fraction),
-  thrust_fraction(weapon.thrust_fraction),
+  lifetime(weapon->projectile_lifetime),
+  max_speed(weapon->terminal_velocity),
+  detonation_range(weapon->detonation_range),
   faction(ship.faction),
-  damage_type(weapon.damage_type),
-  max_structure(weapon.projectile_structure),
-  structure(max_structure),
-  position(ship.position + weapon.position.rotated(y_axis,ship.rotation.y)),
+  structure(weapon->projectile_structure),
+  position(ship.position + weapon->get_position().rotated(y_axis,ship.rotation.y)),
   linear_velocity(),
   rotation(),
   angular_velocity(),
@@ -75,60 +60,44 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,object
   scale(1.0f),
   visual_height(projectile_height),
   alive(true),
-  direct_fire(weapon.direct_fire),
+  direct_fire(weapon->direct_fire),
   possible_hit(true),
-  integrate_forces(guided),
-  salvage(),
-  antimissile_damage(false)
+  integrate_forces(weapon->guided),
+  salvage()
 {
-  if(guided and direct_fire)
+  if(get_guided() and is_direct_fire())
     Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
   // if(guided and target<0)
   //   // This can happen if the player fires with no target. The AI should never do this.
   //   Godot::print_warning(ship.name+" fired a guided projectile with no target (1)",__FUNCTION__,__FILE__,__LINE__);
   rotation.y = ship.rotation.y;
-  if(weapon.turn_rate>0)
-    rotation.y += weapon.rotation.y;
-  else if(!weapon.guided) {
-    real_t estimated_range = weapon.projectile_lifetime*weapon.terminal_velocity;
-    rotation.y += asin_clamp(weapon.position.z/estimated_range);
+  if(weapon->turn_rate>0)
+    rotation.y += weapon->get_rotation().y;
+  else if(!weapon->guided) {
+    real_t estimated_range = weapon->projectile_lifetime*weapon->terminal_velocity;
+    rotation.y += asin_clamp(weapon->get_position().z/estimated_range);
   }
   rotation.y = fmodf(rotation.y,2*PI);
 
-  if(guided and not thrust)
+  if(get_guided() and not get_thrust())
     Godot::print_warning("Guided weapon has no thrust",__FUNCTION__,__FILE__,__LINE__);
 
-  linear_velocity = unit_from_angle(rotation.y)*initial_velocity + ship.linear_velocity;
+  linear_velocity = unit_from_angle(rotation.y)*get_initial_velocity() + ship.linear_velocity;
 }
 
 // Create an anti-missile projectile
-Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation):
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation):
   id(id),
+  weapon(weapon),
   source(ship.id),
   target(-1),
-  mesh_id(weapon.mesh_id),
-  guided(false),
-  guidance_uses_velocity(false),
-  auto_retarget(false),
-  damage(weapon.damage),
-  impulse(false),
-  blast_radius(0),
-  detonation_range(0),
-  turn_rate(0),
+  mesh_id(weapon->mesh_id),
   always_drag(false),
-  mass(weapon.projectile_mass),
-  drag(weapon.projectile_drag),
-  thrust(0),
-  lifetime(weapon.projectile_lifetime ? weapon.projectile_lifetime : weapon.firing_delay),
-  initial_velocity(weapon.initial_velocity),
-  max_speed(weapon.terminal_velocity),
-  heat_fraction(0),
-  energy_fraction(0),
-  thrust_fraction(0),
+  lifetime(weapon->projectile_lifetime ? weapon->projectile_lifetime : weapon->firing_delay),
+  max_speed(weapon->terminal_velocity),
+  detonation_range(0),
   faction(ship.faction),
-  damage_type(DAMAGE_TYPELESS),
-  max_structure(weapon.projectile_structure),
-  structure(max_structure),
+  structure(weapon->projectile_structure),
   position(position),
   linear_velocity(ship.linear_velocity),
   rotation(Vector3(0,rotation,0)),
@@ -141,37 +110,21 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Projec
   direct_fire(true),
   possible_hit(false),
   integrate_forces(false),
-  salvage(),
-  antimissile_damage(true)
+  salvage()
 {}
 
-Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
   id(id),
+  weapon(weapon),
   source(ship.id),
   target(target),
-  mesh_id(weapon.mesh_id),
-  guided(weapon.guided),
-  guidance_uses_velocity(weapon.guidance_uses_velocity),
-  auto_retarget(weapon.auto_retarget),
-  damage(weapon.damage),
-  impulse(weapon.impulse),
-  blast_radius(weapon.blast_radius),
-  detonation_range(weapon.detonation_range),
-  turn_rate(weapon.projectile_turn_rate),
+  mesh_id(weapon->mesh_id),
   always_drag(false),
-  mass(weapon.projectile_mass),
-  drag(weapon.projectile_drag),
-  thrust(weapon.projectile_thrust),
-  lifetime(weapon.projectile_lifetime),
-  initial_velocity(weapon.initial_velocity),
-  max_speed(weapon.terminal_velocity),
-  heat_fraction(weapon.heat_fraction),
-  energy_fraction(weapon.energy_fraction),
-  thrust_fraction(weapon.thrust_fraction),
+  lifetime(weapon->projectile_lifetime),
+  max_speed(weapon->terminal_velocity),
+  detonation_range(weapon->detonation_range),
   faction(ship.faction),
-  damage_type(weapon.damage_type),
-  max_structure(weapon.projectile_structure),
-  structure(max_structure),
+  structure(weapon->projectile_structure),
   position(position),
   linear_velocity(),
   rotation(Vector3(0,rotation,0)),
@@ -181,46 +134,30 @@ Projectile::Projectile(object_id id,const Ship &ship,const Weapon &weapon,Vector
   scale(scale),
   visual_height(projectile_height),
   alive(true),
-  direct_fire(weapon.direct_fire),
+  direct_fire(weapon->direct_fire),
   possible_hit(true),
   integrate_forces(false),
-  salvage(),
-  antimissile_damage(false)
+  salvage()
 {
-  if(guided and direct_fire)
+  if(get_guided() and is_direct_fire())
     Godot::print_warning(ship.name+" fired a direct fire weapon that is guided (2)",__FUNCTION__,__FILE__,__LINE__);
   // if(guided and target<0)
   //   // This can happen if the player fires with no target. The AI should never do this.
   //   Godot::print_warning(ship.name+" fired a guided projectile with no target (2)",__FUNCTION__,__FILE__,__LINE__);
 }
 
-Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes):
+Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,shared_ptr<const Weapon> weapon_placeholder):
   id(id),
+  weapon(weapon_placeholder),
   source(ship.id),
   target(ship.get_target()),
   mesh_id(multimeshes.add_preloaded_mesh(salvage->flotsam_mesh)),
-  guided(false),
-  guidance_uses_velocity(false),
-  auto_retarget(false),
-  damage(0),
-  impulse(0),
-  blast_radius(0),
-  detonation_range(salvage->grab_radius),
-  turn_rate(0),
   always_drag(true),
-  mass(mass),
-  drag(.2),
-  thrust(0),
   lifetime(salvage->spawn_duration),
-  initial_velocity(velocity.length()),
   max_speed(velocity.length()),
-  heat_fraction(0),
-  energy_fraction(0),
-  thrust_fraction(0),
+  detonation_range(salvage->grab_radius),
   faction(FLOTSAM_FACTION),
-  damage_type(DAMAGE_TYPELESS),
-  max_structure(0),
-  structure(max_structure),
+  structure(weapon->projectile_structure),
   position(position),
   linear_velocity(velocity),
   rotation(Vector3(0,rotation,0)),
@@ -233,8 +170,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   direct_fire(false),
   possible_hit(false),
   integrate_forces(true),
-  salvage(salvage),
-  antimissile_damage(false)
+  salvage(salvage)
 {
   if(!salvage->flotsam_mesh.is_valid())
     Godot::print_error(ship.name+": salvage has no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
@@ -245,7 +181,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
 Projectile::~Projectile() {}
 
 real_t Projectile::take_damage(real_t amount) {
-  if(not max_structure)
+  if(not is_missile())
     return amount;
   double after = structure-amount;
   if(after<=0) {
@@ -267,15 +203,15 @@ bool Projectile::is_eta_lower_with_thrust(DVector3 target_position,DVector3 targ
   
   DVector3 position_without_thrust = position+linear_velocity*delta;
   DVector3 dp=next_target_position-position_without_thrust;
-  double eta_without_thrust = dp.length()/max_speed + fabs(angle2(next_heading,dp.normalized()))/turn_rate;
+  double eta_without_thrust = dp.length()/max_speed + fabs(angle2(next_heading,dp.normalized()))/get_turn_rate();
 
   DVector3 next_velocity = linear_velocity;
-  next_velocity -= linear_velocity*drag*delta;
-  next_velocity += thrust*next_heading*delta/mass;
+  next_velocity -= linear_velocity*get_drag()*delta;
+  next_velocity += get_thrust()*next_heading*delta/get_mass();
   
   DVector3 position_with_thrust = position+next_velocity*delta;
   dp=next_target_position-position_with_thrust;
-  double eta_with_thrust = dp.length()/max_speed + fabs(angle2(next_heading,dp.normalized()))/turn_rate;
+  double eta_with_thrust = dp.length()/max_speed + fabs(angle2(next_heading,dp.normalized()))/get_turn_rate();
 
   return eta_with_thrust<eta_without_thrust;
 }
@@ -289,12 +225,12 @@ void Projectile::integrate_projectile_forces(real_t thrust_fraction,bool drag,re
 
   // Integrate forces if requested.
   if(integrate_forces) {
-    real_t mass=max(this->mass,1e-5f);
+    real_t mass=max(get_mass(),1e-5f);
     if(drag and (always_drag ||
                  linear_velocity.length_squared()>max_speed*max_speed) )
-      linear_velocity -= linear_velocity*drag*mass*delta;
-    if(thrust and thrust_fraction>0)
-      forces += thrust*thrust_fraction*get_heading(*this);
+      linear_velocity -= linear_velocity*get_drag()*mass*delta;
+    if(get_thrust() and thrust_fraction>0)
+      forces += get_thrust()*thrust_fraction*CE::get_heading(*this);
     linear_velocity += forces*delta/mass;
     forces = Vector3(0,0,0);
   }
@@ -312,11 +248,11 @@ bool Projectile::collide_point_projectile(CombatEngine &ce) {
   if(!p_ship)
     return false;
 
-  if(damage)
-    p_ship->take_damage(damage,damage_type,
-                        heat_fraction,energy_fraction,thrust_fraction);
-  if(impulse and not p_ship->immobile) {
-    Vector3 impulse = this->impulse*linear_velocity.normalized();
+  if(get_damage())
+    p_ship->take_damage(get_damage(),get_damage_type(),
+                        get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
+  if(get_impulse() and not p_ship->immobile) {
+    Vector3 impulse = get_impulse()*linear_velocity.normalized();
     if(impulse.length_squared())
       PhysicsServer::get_singleton()->body_apply_central_impulse(p_ship->rid,impulse);
   }
@@ -354,23 +290,23 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
   PhysicsServer * physics_server = PhysicsServer::get_singleton();
   
   if(hit_something) {
-    bool have_impulse = impulse>1e-5;
-    if(not salvage and blast_radius>1e-5) {
-      projectile_hit_list_t blasted = ce.find_projectile_collisions(*this,blast_radius,ce.max_ships_hit_per_projectile_blast);
+    bool have_impulse = get_impulse()>1e-5;
+    if(not salvage and get_blast_radius()>1e-5) {
+      projectile_hit_list_t blasted = ce.find_projectile_collisions(*this,get_blast_radius(),ce.max_ships_hit_per_projectile_blast);
 
       for(auto &blastee : blasted) {
         Ship &ship = blastee.second->second;
         if(ship.fate<=0) {
           real_t distance = max(0.0f,ship.position.distance_to(position)-ship.radius);
-          real_t dropoff = 1.0 - distance/blast_radius;
+          real_t dropoff = 1.0 - distance/get_blast_radius();
           dropoff*=dropoff;
-          if(damage)
-            ship.take_damage(damage*dropoff,damage_type,
-                             heat_fraction,energy_fraction,thrust_fraction);
+          if(get_damage())
+            ship.take_damage(get_damage()*dropoff,get_damage_type(),
+                             get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
           if(have_impulse and not ship.immobile) {
             Vector3 impulse1 = linear_velocity.normalized();
             Vector3 impulse2 = (ship.position-position).normalized();
-            Vector3 combined = impulse*(impulse1+impulse2)*dropoff/2;
+            Vector3 combined = get_impulse()*(impulse1+impulse2)*dropoff/2;
             if(combined.length_squared())
               physics_server->body_apply_central_impulse(ship.rid,combined);
           }
@@ -378,11 +314,11 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
       }
     } else {
       Ship &ship = *closest;
-      if(damage)
-        closest->take_damage(damage,damage_type,
-                             heat_fraction,energy_fraction,thrust_fraction);
+      if(get_damage())
+        closest->take_damage(get_damage(),get_damage_type(),
+                             get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
       if(have_impulse and not ship.immobile) {
-        Vector3 impulse = this->impulse*linear_velocity.normalized();
+        Vector3 impulse = get_impulse()*linear_velocity.normalized();
         if(impulse.length_squared())
           physics_server->body_apply_central_impulse(ship.rid,impulse);
       }
@@ -399,7 +335,7 @@ Ship * Projectile::get_projectile_target(CombatEngine &ce) {
 
   Ship *target_iter = ce.ship_with_id(target);
   
-  if(target_iter or not auto_retarget)
+  if(target_iter or not get_auto_retarget())
     return target_iter;
 
   // Target is gone. Is the attacker still alive?
@@ -418,6 +354,7 @@ Ship * Projectile::get_projectile_target(CombatEngine &ce) {
 
 void Projectile::guide_projectile(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
+
   real_t delta = ce.get_delta();
   Ship * target_iter = get_projectile_target(ce);
   if(!target_iter) {
@@ -430,11 +367,13 @@ void Projectile::guide_projectile(CombatEngine &ce) {
   if(target.fate==FATED_TO_DIE) {
     angular_velocity.y = 0;
     integrate_projectile_forces(1,true,delta);
+    Godot::print("guided projectile target is dead");
     return; // Target is dead.
   }
   if(max_speed<1e-5) {
     angular_velocity.y = 0;
     integrate_projectile_forces(1,true,delta);
+    Godot::print("guided projectile has no max speed");
     return; // Cannot track until we have a speed.
   }
 
@@ -443,7 +382,7 @@ void Projectile::guide_projectile(CombatEngine &ce) {
   double intercept_time;
   double lifetime_remaining = lifetime-age;
   
-  if(guidance_uses_velocity) {
+  if(get_guidance_uses_velocity()) {
     pair<DVector3,double> course = plot_collision_course(relative_position,target.linear_velocity,max_speed);
     intercept_time = course.second;
     course_velocity = course.first;
@@ -467,12 +406,12 @@ void Projectile::guide_projectile(CombatEngine &ce) {
   double desired_heading_angle = angle_from_unit(desired_heading);
   double heading_angle = angle_from_unit(heading);
   double angle_correction = desired_heading_angle-heading_angle;
-  double turn_rate = this->turn_rate;
+  double turn_rate = get_turn_rate();
 
   bool should_thrust = dot2(heading,desired_heading)>0.95; // Don't thrust away from desired heading
 
   angular_velocity.y = clamp(angle_correction/delta,-turn_rate,turn_rate);
-
+  
   integrate_projectile_forces(should_thrust,true,delta);
 }
 
@@ -490,7 +429,7 @@ void Projectile::step_projectile(CombatEngine &ce,bool &have_died,bool &have_col
     return;
   }
 
-  if(guided)
+  if(get_guided())
     guide_projectile(ce);
   else
     integrate_projectile_forces(1,true,delta);

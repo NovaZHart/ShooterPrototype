@@ -59,22 +59,24 @@ namespace godot {
 
     template<class T>
     Vector3 get_position(T &object) {
-      return Vector3(object.position.x,0,object.position.z);
+      Vector3 pos = object.get_position();
+      return Vector3(pos.x,0,pos.z);
     }
 
     template<class T>
     DVector3 get_position_d(T &object) {
-      return DVector3(object.position.x,0,object.position.z);
+      DVector3 pos = object.get_position();
+      return DVector3(pos.x,0,pos.z);
     }
     
     template<class T>
     Vector3 get_heading(T &object) {
-      return unit_from_angle(object.rotation[1]);
+      return unit_from_angle(object.get_rotation()[1]);
     }
     
     template<class T>
     DVector3 get_heading_d(T &object) {
-      return unit_from_angle_d(object.rotation[1]);
+      return unit_from_angle_d(object.get_rotation()[1]);
     }
 
     inline real_t lensq2(const Vector3 &a) {

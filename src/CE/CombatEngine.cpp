@@ -50,6 +50,9 @@ CombatEngine::CombatEngine():
   idelta(delta*ticks_per_second),
   player_ship_id(-1),
   p_frame(0),
+  ai_ticks(0),
+
+  flotsam_weapon(make_shared<Weapon>(Weapon::CreateFlotsamPlaceholder())),
   
   factions(),
   affinities(),
@@ -770,31 +773,31 @@ void CombatEngine::integrate_projectiles() {
     projectile.step_projectile(*this,have_died,have_collided,have_moved);
     if(have_died) {
       if(projectile.is_missile())
-        missile_locations.remove(projectile.id);
+        missile_locations.remove(projectile.get_id());
       if(projectile.is_flotsam())
-        flotsam_locations.remove(projectile.id);
+        flotsam_locations.remove(projectile.get_id());
       it=projectiles.erase(it);
     } else {
       if(have_moved) {
         if(projectile.is_missile()) {
-          Rect2 there(Vector2(projectile.position.x,projectile.position.z)
+          Rect2 there(Vector2(projectile.get_position().x,projectile.get_position().z)
                       - Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
                       Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
-          missile_locations.set_rect(projectile.id,there);
+          missile_locations.set_rect(projectile.get_id(),there);
         }
         if(projectile.is_flotsam())
-          flotsam_locations.set_rect(projectile.id,rect_for_circle(projectile.position,projectile.radius()));
+          flotsam_locations.set_rect(projectile.get_id(),rect_for_circle(projectile.get_position(),projectile.radius()));
       }
       it++;
     }
   }
 }
 
-void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {
+void CombatEngine::create_direct_projectile(Ship &ship,shared_ptr<Weapon> weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {
   FAST_PROFILING_FUNCTION;
-  if(not weapon.can_fire())
+  if(not weapon->can_fire())
     return;
-  weapon.fire(ship,idelta);
+  weapon->fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=idgen.next();
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
@@ -802,40 +805,40 @@ void CombatEngine::create_direct_projectile(Ship &ship,Weapon &weapon,Vector3 po
 
 void CombatEngine::create_flotsam_projectile(Ship &ship,shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass) {
   object_id new_id=idgen.next();
-  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes));
-  real_t radius = max(1e-5f,emplaced.first->second.detonation_range);
-  flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.position,radius));
-  emplaced.first->second.possible_hit=false;
+  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes,flotsam_weapon));
+  real_t radius = max(1e-5f,emplaced.first->second.get_detonation_range());
+  flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.get_position(),radius));
+  emplaced.first->second.set_possible_hit(false);
 }
 
-void CombatEngine::create_antimissile_projectile(Ship &ship,Weapon &weapon,Projectile &target,Vector3 position,real_t rotation,real_t length) {
+void CombatEngine::create_antimissile_projectile(Ship &ship,shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length) {
   FAST_PROFILING_FUNCTION;
-  if(not weapon.can_fire())
+  if(not weapon->can_fire())
     return;
-  weapon.fire(ship,idelta);
+  weapon->fire(ship,idelta);
   // Do not update tick_at_last_shot since we're not shooting weapons at a ship target.
   object_id next = idgen.next();
   projectiles.emplace(next,Projectile(next,ship,weapon,target,position,rotation,length));
-  ship.heat += weapon.firing_heat;
-  ship.energy -= weapon.firing_energy;
+  ship.heat += weapon->firing_heat;
+  ship.energy -= weapon->firing_energy;
 }
 
-void CombatEngine::create_projectile(Ship &ship,Weapon &weapon,object_id target) {
+void CombatEngine::create_projectile(Ship &ship,shared_ptr<Weapon> weapon,object_id target) {
   FAST_PROFILING_FUNCTION;
-  if(not weapon.can_fire())
+  if(not weapon->can_fire())
     return;
-  weapon.fire(ship,idelta);
+  weapon->fire(ship,idelta);
   ship.tick_at_last_shot=ship.tick;
   object_id new_id=idgen.next();
   std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,weapon,target));
-  if(emplaced.first!=projectiles.end() and emplaced.first->second.max_structure) {
+  if(emplaced.first!=projectiles.end() and emplaced.first->second.get_max_structure()) {
     Projectile &proj = emplaced.first->second;
-    Rect2 there(Vector2(proj.position.x,proj.position.z)-Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
+    Rect2 there(Vector2(proj.get_position().x,proj.get_position().z)-Vector2(PROJECTILE_POINT_WIDTH/2,PROJECTILE_POINT_WIDTH/2),
                 Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
-    missile_locations.set_rect(proj.id,there);
+    missile_locations.set_rect(proj.get_id(),there);
   }
-  ship.heat += weapon.firing_heat;
-  ship.energy -= weapon.firing_energy;
+  ship.heat += weapon->firing_heat;
+  ship.energy -= weapon->firing_energy;
 }
 
 ships_iter CombatEngine::ship_for_rid(const RID &rid) {
@@ -860,17 +863,17 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
   FAST_PROFILING_FUNCTION;
   projectile_hit_list_t result;
 
-  if(not ship_locations.circle_is_nonempty(Vector2(projectile.position.x,projectile.position.z),radius)) {
+  if(not ship_locations.circle_is_nonempty(Vector2(projectile.get_position().x,projectile.get_position().z),radius)) {
     // No possibility of any hits.
     return result;
   }
   
   // FIXME: first pass with a boost r*tree
   if(radius>1e-5) {
-    real_t trans_x(projectile.position.x), trans_z(projectile.position.z);
+    real_t trans_x(projectile.get_position().x), trans_z(projectile.get_position().z);
     real_t scale = radius / search_cylinder_radius;
     Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
-    query->set_collision_mask(enemy_masks[projectile.faction]);
+    query->set_collision_mask(enemy_masks[projectile.get_faction()]);
     query->set_shape(search_cylinder);
     if(not ship_locations.circle_is_nonempty(Vector2(trans_x,trans_z),radius))
       return result; // No possibility of collision
@@ -889,11 +892,11 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Projectile &proje
       }
     }
   } else {
-    if(not ship_locations.point_is_nonempty(Vector2(projectile.position.x,projectile.position.z)))
+    if(not ship_locations.point_is_nonempty(Vector2(projectile.get_position().x,projectile.get_position().z)))
       return result; // no possibility of collision
-    Vector3 point1(projectile.position.x,500,projectile.position.z);
-    Vector3 point2(projectile.position.x,-500,projectile.position.z);
-    Dictionary hit = space->intersect_ray(point1, point2, Array(), enemy_masks[projectile.faction]);
+    Vector3 point1(projectile.get_position().x,500,projectile.get_position().z);
+    Vector3 point2(projectile.get_position().x,-500,projectile.get_position().z);
+    Dictionary hit = space->intersect_ray(point1, point2, Array(), enemy_masks[projectile.get_faction()]);
     if(!hit.empty()) {
       ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
       if(p_ship!=ships.end())
@@ -920,7 +923,7 @@ Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int
 }
 
 void CombatEngine::add_salvaged_items(Ship &ship,const Projectile &projectile) {
-  salvaged_items.emplace(ship.id,projectile.salvage);
+  salvaged_items.emplace(ship.id,projectile.get_salvage());
 }
 
 
@@ -962,12 +965,13 @@ void CombatEngine::add_content() {
   next->effects.reserve(projectiles.size());
   for(auto &it : projectiles) {
     next->effects.emplace_back(it.second);
-    if(next->mesh_paths.find(it.second.mesh_id)==next->mesh_paths.end()) {
-      String mesh_path = multimeshes.get_mesh_path(it.second.mesh_id);
-      if(mesh_path.empty() and it.second.mesh_id<=0)
-        Godot::print_warning("Mesh "+str(it.second.mesh_id)+" has no mesh path.",__FUNCTION__,__FILE__,__LINE__);
+    object_id mesh_id = it.second.get_mesh_id();
+    if(next->mesh_paths.find(mesh_id)==next->mesh_paths.end()) {
+      String mesh_path = multimeshes.get_mesh_path(mesh_id);
+      if(mesh_path.empty() and mesh_id<=0)
+        Godot::print_warning("Mesh "+str(mesh_id)+" has no mesh path.",__FUNCTION__,__FILE__,__LINE__);
       else
-        next->mesh_paths.emplace(it.second.mesh_id,mesh_path);
+        next->mesh_paths.emplace(mesh_id,mesh_path);
     }
   }
   // Prepend to linked list:

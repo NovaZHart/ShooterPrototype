@@ -73,28 +73,30 @@ namespace godot {
       PhysicsServer *physics_server;
       PhysicsDirectSpaceState *space;
       std::unordered_map<int32_t,object_id> rid2id;
-      std::unordered_map<object_id,CE::Planet> planets;
-      std::unordered_map<object_id,CE::Ship> ships;
-      std::unordered_map<object_id,CE::Projectile> projectiles;
-      std::unordered_map<object_id,CE::PlayerOverrides> player_orders;
-      std::unordered_multimap<object_id,std::shared_ptr<const CE::Salvage>> salvaged_items;
+      std::unordered_map<object_id,Planet> planets;
+      std::unordered_map<object_id,Ship> ships;
+      std::unordered_map<object_id,Projectile> projectiles;
+      std::unordered_map<object_id,PlayerOverrides> player_orders;
+      std::unordered_multimap<object_id,std::shared_ptr<const Salvage>> salvaged_items;
       Dictionary weapon_rotations;
       std::unordered_set<object_id> dead_ships;
       ObjectIdGenerator idgen;
       real_t delta;
-      CE::ticks_t idelta;
+      ticks_t idelta;
       object_id player_ship_id;
       int p_frame;
       int ai_ticks; // ticks since last reset
 
-      std::unordered_map<CE::faction_index_t,CE::Faction> factions;
+      std::shared_ptr<const Weapon> flotsam_weapon;
+      
+      std::unordered_map<faction_index_t,Faction> factions;
       std::unordered_map<int,float> affinities;
-      CE::faction_mask_t enemy_masks[FACTION_ARRAY_SIZE];
-      CE::faction_mask_t friend_masks[FACTION_ARRAY_SIZE];
-      CE::faction_mask_t self_masks[FACTION_ARRAY_SIZE];
+      faction_mask_t enemy_masks[FACTION_ARRAY_SIZE];
+      faction_mask_t friend_masks[FACTION_ARRAY_SIZE];
+      faction_mask_t self_masks[FACTION_ARRAY_SIZE];
       bool need_to_update_affinity_masks;
-      CE::faction_index_t player_faction_index;
-      CE::faction_mask_t player_faction_mask;
+      faction_index_t player_faction_index;
+      faction_mask_t player_faction_mask;
       object_id last_planet_updated;
       int last_faction_updated;
       Dictionary faction_info;
@@ -106,7 +108,7 @@ namespace godot {
     
       // For temporary use in some functions:
       std::unordered_set<object_id> update_request_id;
-      mutable CE::CheapRand32 rand;
+      mutable CheapRand32 rand;
     
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Members for the visual thread:
@@ -189,18 +191,18 @@ namespace godot {
         weapon_rotations[np] = rotation;
       }
       
-      inline Color get_faction_color(CE::faction_index_t faction) const {
+      inline Color get_faction_color(faction_index_t faction) const {
         auto it = factions.find(faction);
         return it==factions.end() ? Color(1,1,1,1) : it->second.get_faction_color();
       }
-      inline bool is_hostile_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
-        return enemy_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
+      inline bool is_hostile_towards(faction_index_t from_faction,faction_index_t to_faction) const {
+        return enemy_masks[from_faction]&static_cast<faction_index_t>(1)<<to_faction;
       }
-      inline bool is_friendly_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
-        return friend_masks[from_faction]&static_cast<CE::faction_index_t>(1)<<to_faction;
+      inline bool is_friendly_towards(faction_index_t from_faction,faction_index_t to_faction) const {
+        return friend_masks[from_faction]&static_cast<faction_index_t>(1)<<to_faction;
       }
-      inline real_t affinity_towards(CE::faction_index_t from_faction,CE::faction_index_t to_faction) const {
-        int key = CE::Faction::affinity_key(from_faction,to_faction);
+      inline real_t affinity_towards(faction_index_t from_faction,faction_index_t to_faction) const {
+        int key = Faction::affinity_key(from_faction,to_faction);
         auto it = affinities.find(key);
         return (it==affinities.end()) ? DEFAULT_AFFINITY : it->second;
       }
@@ -250,13 +252,13 @@ namespace godot {
         return it == projectiles.end() ? nullptr : &it->second;
       }
 
-      const std::unordered_map<object_id,CE::Planet> &get_planets() const {
+      const std::unordered_map<object_id,Planet> &get_planets() const {
         return planets;
       }
-      const std::unordered_map<object_id,CE::Projectile> &get_projectiles() const {
+      const std::unordered_map<object_id,Projectile> &get_projectiles() const {
         return projectiles;
       }
-      const std::unordered_map<object_id,CE::Ship> &get_ships() const {
+      const std::unordered_map<object_id,Ship> &get_ships() const {
         return ships;
       }
 
@@ -270,7 +272,7 @@ namespace godot {
         return self_masks[faction];
       }
 
-      void find_ships_in_radius(Vector3 position,real_t radius,CE::faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
+      void find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
 
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -278,13 +280,13 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
       
-      Dictionary check_target_lock(CE::Ship &target, Vector3 point1, Vector3 point2);
-      const CE::ship_hit_list_t &get_ships_within_range(CE::Ship &ship, real_t desired_range);
-      const CE::ship_hit_list_t &get_ships_within_unguided_weapon_range(CE::Ship &ship,real_t fudge_factor);
-      const CE::ship_hit_list_t &get_ships_within_weapon_range(CE::Ship &ship,real_t fudge_factor);
-      const CE::ship_hit_list_t &get_ships_within_turret_range(CE::Ship &ship, real_t fudge_factor);
-      CE::ships_iter ship_for_rid(const RID &rid);
-      CE::ships_iter ship_for_rid(int rid_id);
+      Dictionary check_target_lock(Ship &target, Vector3 point1, Vector3 point2);
+      const ship_hit_list_t &get_ships_within_range(Ship &ship, real_t desired_range);
+      const ship_hit_list_t &get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor);
+      const ship_hit_list_t &get_ships_within_weapon_range(Ship &ship,real_t fudge_factor);
+      const ship_hit_list_t &get_ships_within_turret_range(Ship &ship, real_t fudge_factor);
+      ships_iter ship_for_rid(const RID &rid);
+      ships_iter ship_for_rid(int rid_id);
       Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
       Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
       void explode_ship(Ship &ship);
@@ -293,11 +295,11 @@ namespace godot {
       // Projectile utilities for other classes
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
-      void create_direct_projectile(CE::Ship &ship,CE::Weapon &weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
+      void create_direct_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
       void create_flotsam_projectile(Ship &ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
-      void create_antimissile_projectile(CE::Ship &ship,CE::Weapon &weapon,CE::Projectile &target,Vector3 position,real_t rotation,real_t length);
-      void create_projectile(CE::Ship &ship,CE::Weapon &weapon,object_id target=-1);
-      CE::projectile_hit_list_t find_projectile_collisions(CE::Projectile &projectile,real_t radius,int max_results=32);
+      void create_antimissile_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length);
+      void create_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,object_id target=-1);
+      projectile_hit_list_t find_projectile_collisions(Projectile &projectile,real_t radius,int max_results=32);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:
@@ -329,7 +331,7 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // //
       // Faction methods
       // // // // // // // // // // // // // // // // // // // // // // // //
-      void change_relations(CE::faction_index_t from_faction,CE::faction_index_t to_faction,
+      void change_relations(faction_index_t from_faction,faction_index_t to_faction,
                             real_t how_much,bool immediate_update);
       void make_faction_state_for_gdscript(Dictionary &result);
       void update_affinity_masks();

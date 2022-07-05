@@ -16,7 +16,7 @@
 namespace godot {
   namespace CE {
     struct MultiMeshInstanceEffect;
-    struct Projectile;
+    class Projectile;
     
     // A planet or ship to be displayed on the screen (minimap or main viewer)
     struct VisibleObject {

@@ -62,11 +62,11 @@ bool BaseShipAI::do_salvage(CombatEngine &ce,Ship &ship) {
   Vector3 ship_position=get_position(ship);
   Vector3 proj_position=get_position(*it);
   Vector3 dp = proj_position-ship_position;
-  pair<DVector3,double> course=plot_collision_course(dp,it->linear_velocity,ship.max_speed);
+  pair<DVector3,double> course=plot_collision_course(dp,it->get_linear_velocity(),ship.max_speed);
   Vector3 correction = course.first-ship.linear_velocity;
   Vector3 desired_heading=correction.normalized();
   
-  //ship.move_to_intercept(ship.cargo_web_radius/4,.01,proj_position,it->linear_velocity,false);
+  //ship.move_to_intercept(ship.cargo_web_radius/4,.01,proj_position,it->get_linear_velocity(),false);
   ship.request_heading(ce,desired_heading);
   real_t dot = dot2(ship.heading,desired_heading);
   ship.request_thrust(ce,dot>0.95,dot<-0.95);
@@ -159,8 +159,8 @@ bool BaseShipAI::should_salvage(CombatEngine &ce,Ship &ship,real_t *returned_bes
       continue;
     }
     DVector3 dp = get_position(*it)-ship_position;
-    pair<DVector3,double> course = plot_collision_course(dp,it->linear_velocity,ship.max_speed);
-    real_t life_remaining = it->lifetime-it->age;
+    pair<DVector3,double> course = plot_collision_course(dp,it->get_linear_velocity(),ship.max_speed);
+    real_t life_remaining = it->get_lifetime()-it->get_age();
     if(course.second>life_remaining)
       continue;
     if(course.second<best_time) {
@@ -187,10 +187,11 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
     return; // Ship has no enemy factions, so no possible projectile matches.
   
   real_t antimissile_range=0;  
-  for(auto &weapon : ship.weapons)
+  for(auto &weapon_ptr : ship.weapons) {
+    Weapon &weapon = *weapon_ptr;
     if(weapon.antimissile and weapon.damage>0 and weapon.can_fire())
       antimissile_range = max(antimissile_range,weapon.projectile_range);
-
+  }
   if(antimissile_range<=0)
     return; // No anti-missile weapons are ready to fire.
   
@@ -212,15 +213,15 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
       continue; // Projectile does not exist.
     }
     Projectile &proj = *proj_it;
-    if(proj.direct_fire or not proj.max_structure or not proj.alive) {
+    if(proj.is_direct_fire() or not proj.is_missile() or not proj.is_alive()) {
       iter = objects_found.erase(iter);
       continue; // Projectile is not a valid target.
     }
-    if( not ( (1<<proj.faction) & enemy_mask )) {
+    if( not ( (1<<proj.get_faction()) & enemy_mask )) {
       iter = objects_found.erase(iter);
       continue; // Projectile is not an enemy.
     }
-    if(proj.structure<=0) {
+    if(proj.get_structure()<=0) {
       iter = objects_found.erase(iter);
       continue; // Projectile is already dead.
     }
@@ -230,25 +231,26 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
   //Godot::print(ship.name+": retained "+str(objects_found.size())+" potential targets for anti-missile systems.");
   
   // Have each weapon try to fire at a projectile.
-  for(auto &weapon : ship.weapons) {
+  for(auto &weapon_ptr : ship.weapons) {
+    Weapon &weapon = *weapon_ptr;
     size_t within_range = 0;
     if(weapon.antimissile and weapon.damage>0 and weapon.can_fire()) {
-      Vector3 start = ship.position + weapon.position.rotated(y_axis,ship.rotation.y);
+      Vector3 start = ship.position + weapon.get_position().rotated(y_axis,ship.rotation.y);
       Projectile * best = nullptr;
       real_t best_score = -numeric_limits<real_t>::infinity();
       for(auto &id : objects_found) {
         Projectile * proj_it = ce.projectile_with_id(id);
         Projectile &proj = *proj_it;
-        real_t distance = distance2(proj.position,start);
+        real_t distance = distance2(get_position(proj),start);
         if(distance<=weapon.projectile_range) {
           within_range++;
-          real_t hits_to_kill = ceilf(proj.structure/weapon.damage);
-          real_t arrival_time = distance/proj.max_speed;// FIXME: This is not an ideal solution.
+          real_t hits_to_kill = ceilf(proj.get_structure()/weapon.damage);
+          real_t arrival_time = distance/proj.get_max_speed();// FIXME: This is not an ideal solution.
           real_t hits_available = ceilf(arrival_time/weapon.reload_delay);
-          real_t score = proj.damage;
+          real_t score = proj.get_damage();
           if(hits_available>hits_to_kill)
             score/=2;
-          if(proj.target!=ship.id)
+          if(proj.get_target()!=ship.id)
             score/=2;
           if(score>best_score) {
             best = proj_it;
@@ -258,23 +260,24 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
       } // End objects loop
       
       if(best) {
-        Vector3 dp = best->position-start;
+        Vector3 dp = best->get_position()-start;
         real_t dp_angle = angle_from_unit(dp);
         real_t rotation = dp_angle-ship.rotation.y;
 
-        weapon.rotation.y = fmodf(rotation,2*PI);
-        ce.set_weapon_rotation(weapon.node_path,weapon.rotation.y);
+        real_t weapon_rotation = fmodf(rotation,2*PI);
+        weapon.set_rotation(Vector3(0,weapon_rotation,0));
+        ce.set_weapon_rotation(weapon.node_path,weapon_rotation);
 
-        Vector3 hit_position = best->position;
+        Vector3 hit_position = best->get_position();
         Vector3 point1 = start;
         Vector3 projectile_position = (point1+hit_position)*0.5;
         real_t projectile_length = (hit_position-point1).length();
-        real_t projectile_rotation = weapon.rotation.y+ship.rotation.y;
+        real_t projectile_rotation = weapon_rotation+ship.rotation.y;
         
-        ce.create_antimissile_projectile(ship,weapon,*best,projectile_position,projectile_length,projectile_rotation);
+        ce.create_antimissile_projectile(ship,weapon_ptr,*best,projectile_position,projectile_length,projectile_rotation);
         best->take_damage(weapon.damage);
-        if(not best->alive)
-          objects_found.erase(best->id);
+        if(not best->is_alive())
+          objects_found.erase(best->get_id());
       }
     }
   } // end weapons loop
@@ -292,27 +295,27 @@ void BaseShipAI::use_cargo_web(CombatEngine &ce,Ship &ship) {
     if(proj_ptr) {
       Projectile &proj = *proj_ptr;
       
-      Vector3 dp = ship.position-proj.position;
+      Vector3 dp = get_position(ship)-get_position(proj);
 
       real_t distsq = lensq2(dp);
       
       if(distsq>ship.cargo_web_radiussq)
         continue;
-      if(!proj.possible_hit)
-        proj.possible_hit = distsq<ship.radiussq;
+      if(!proj.get_possible_hit())
+        proj.set_possible_hit(distsq<ship.radiussq);
 
-      real_t terminal_velocity = thrust/max(.01f,proj.drag*proj.mass);
+      real_t terminal_velocity = thrust/max(.01f,proj.get_drag()*proj.get_mass());
       pair<DVector3,double> collision_course = plot_collision_course(dp,ship.linear_velocity,terminal_velocity);
-      //Vector3 velocity_correction = collision_course.first-proj.linear_velocity;
-      //proj.forces += velocity_correction.normalized()*thrust;
+      //Vector3 velocity_correction = collision_course.first-proj.get_linear_velocity();
+      //proj.apply_force(velocity_correction.normalized()*thrust);
 
-      proj.forces += collision_course.first.normalized()*thrust;
+      proj.apply_force(collision_course.first.normalized()*thrust);
 
       if(ship.rand.randf()<30*ce.get_delta()) {
         Vector3 ship_position(ship.position.x,ship.visual_height,ship.position.z);
         Vector3 puff_velocity = (ship.rand.randf()*0.1 + 0.3)*(collision_course.first);
         Vector3 random_perturbation = Vector3((ship.rand.randf()-1)/2,ship.rand.randf()/10,(ship.rand.randf()-1)/2);
-        Vector3 puff_location = Vector3(proj.position.x,-1,proj.position.z)+random_perturbation;
+        Vector3 puff_location = Vector3(proj.get_position().x,-1,proj.get_position().z)+random_perturbation;
         real_t duration = isnan(collision_course.second) ? .4f : collision_course.second;
         duration*=3.5;
         ce.get_visual_effects()->add_cargo_web_puff_MMIEffect(ship,puff_location,puff_velocity,1,duration,ship.cargo_puff_mesh);
@@ -370,7 +373,8 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
   int num_eptrs=0;
   Ship *eptrs[12];
   
-  for(auto &weapon : ship.weapons) {
+  for(auto &weapon_ptr : ship.weapons) {
+    Weapon &weapon = *weapon_ptr;
     if(not weapon.is_turret)
       continue; // Not a turret.
     
@@ -404,14 +408,14 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
     // FIXME: implement weapon.get_opportunistic
     //bool opportunistic = false;
     
-    Vector3 proj_start = ship_pos + weapon.position.rotated(y_axis,ship_rotation) + confusion;
+    Vector3 proj_start = ship_pos + weapon.get_position().rotated(y_axis,ship_rotation) + confusion;
     real_t turret_angular_velocity=0;
     real_t best_score = numeric_limits<real_t>::infinity();
     //int best_enemy = -1;
     real_t lifetime = weapon.projectile_lifetime;
     bool is_target = have_a_target;
     double turn_rate = weapon.turn_rate;
-    real_t proj_rotation = ship_rotation + weapon.rotation.y;
+    real_t proj_rotation = ship_rotation + weapon.get_rotation().y;
     const real_t delta = ce.get_delta();      
     
     for(int i=0;i<num_eptrs;i++,is_target=false) {
@@ -451,15 +455,15 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
       // } else {
       // Aim turret forward
       // Vector3 to_center = ship.heading.rotated();
-      real_t to_center = weapon.harmony_angle-weapon.rotation.y;
+      real_t to_center = weapon.harmony_angle-weapon.get_rotation().y;
       if(to_center>PI)
         to_center-=2*PI;
       turret_angular_velocity = clamp(to_center/delta, -weapon.turn_rate, weapon.turn_rate);
       // }
     }
 
-    weapon.rotation.y = fmodf(weapon.rotation.y+delta*turret_angular_velocity,2*PI);
-    ce.set_weapon_rotation(weapon.node_path, weapon.rotation.y);
+    weapon.set_rotation(Vector3(0,fmodf(weapon.get_rotation().y+delta*turret_angular_velocity,2*PI),0));
+    ce.set_weapon_rotation(weapon.node_path, weapon.get_rotation().y);
   }
 }
 
@@ -468,28 +472,30 @@ void BaseShipAI::fire_primary_weapons(CombatEngine &ce,Ship &ship) {
   if(ship.inactive)
     return;
   // FIXME: UPDATE ONCE SECONDARY WEAPONS EXIST
-  for(auto &weapon : ship.weapons) {
+  for(auto &weapon_ptr : ship.weapons) {
+    Weapon &weapon = *weapon_ptr;
     if(not weapon.can_fire())
       continue;
     if(weapon.antimissile)
       continue;
     if(weapon.direct_fire)
-      fire_direct_weapon(ce,ship,weapon,true);
+      fire_direct_weapon(ce,ship,weapon_ptr,true);
     else
-      ce.create_projectile(ship,weapon);
+      ce.create_projectile(ship,weapon_ptr);
   }
 }
 
 
-bool BaseShipAI::fire_direct_weapon(CombatEngine &ce,Ship &ship,Weapon &weapon,bool allow_untargeted) {
+bool BaseShipAI::fire_direct_weapon(CombatEngine &ce,Ship &ship,shared_ptr<Weapon> weapon_ptr,bool allow_untargeted) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
     return false;
-  Vector3 p_weapon = weapon.position.rotated(y_axis,ship.rotation.y);
+  const Weapon &weapon = *weapon_ptr;
+  Vector3 p_weapon = weapon.get_position().rotated(y_axis,ship.rotation.y);
   real_t weapon_range = weapon.projectile_range;
   real_t weapon_rotation;
   if(weapon.is_turret)
-    weapon_rotation = weapon.rotation.y;
+    weapon_rotation = weapon.get_rotation().y;
   else
     weapon_rotation = weapon.harmony_angle;
 
@@ -537,7 +543,7 @@ bool BaseShipAI::fire_direct_weapon(CombatEngine &ce,Ship &ship,Weapon &weapon,b
   point1[1]=0;
   Vector3 projectile_position = (point1+hit_position)*0.5;
   real_t projectile_length = (hit_position-point1).length();
-  ce.create_direct_projectile(ship,weapon,projectile_position,projectile_length,
+  ce.create_direct_projectile(ship,weapon_ptr,projectile_position,projectile_length,
                               Vector3(0,weapon_rotation,0),hit_target);
   return true;
 }
@@ -557,8 +563,8 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
   bool hit_detected=false;
   bool ships_in_range=false;
   
-  for(auto &weapon : ship.weapons) {
-    
+  for(auto &weapon_ptr : ship.weapons) {
+    Weapon &weapon = *weapon_ptr;
     if(not weapon.can_fire())
       continue;
 
@@ -569,16 +575,16 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
       if(have_a_target) {
         real_t travel_squared = target->position.distance_squared_to(ship.position);
         if(travel_squared<max_travel_squared) {
-          ce.create_projectile(ship,weapon,target->id);
+          ce.create_projectile(ship,weapon_ptr,target->id);
           continue;
         }
       }
     } else if(hit_detected and not weapon.is_turret) {
       // If one non-turret non-guided weapon fires, all fire.
       if(weapon.direct_fire)
-        fire_direct_weapon(ce,ship,weapon,false);
+        fire_direct_weapon(ce,ship,weapon_ptr,false);
       else
-        ce.create_projectile(ship,weapon);
+        ce.create_projectile(ship,weapon_ptr);
       continue;
     }
     if(not have_enemies) {  
@@ -605,12 +611,12 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
     real_t projectile_speed = weapon.terminal_velocity;
     real_t projectile_lifetime = weapon.projectile_lifetime;
 
-    Vector3 p_weapon = weapon.position.rotated(y_axis,ship.rotation.y);
+    Vector3 p_weapon = weapon.get_position().rotated(y_axis,ship.rotation.y);
     p_weapon[1]=5;
 
     Vector3 weapon_rotation=Vector3(0,0,0);
     if(weapon.is_turret)
-      weapon_rotation = weapon.rotation;
+      weapon_rotation = weapon.get_rotation();
 
     for(int i=0;i<num_eptrs;i++) {
       const AABB &bound = eptrs[i]->aabb;
@@ -629,9 +635,9 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
       if(bound.intersects_segment(another1,another2)) {
         if(not weapon.direct_fire) {
           hit_detected=true;
-          ce.create_projectile(ship,weapon,eptrs[i]->id);
+          ce.create_projectile(ship,weapon_ptr,eptrs[i]->id);
           break;
-        } else if(fire_direct_weapon(ce,ship,weapon,false)) {
+        } else if(fire_direct_weapon(ce,ship,weapon_ptr,false)) {
           hit_detected=true;
           break;
         }
@@ -674,8 +680,8 @@ void BaseShipAI::ai_step(CombatEngine &ce,Ship &ship) {
     return; // Ship has not yet fully arrived.
   }
   
-  for(auto &weapon : ship.weapons)
-    weapon.reload(ship,ce.get_idelta());
+  for(auto &weapon_ptr : ship.weapons)
+    weapon_ptr->reload(ship,ce.get_idelta());
   
   if(ship.rift_timer.active())
     do_rift(ce,ship);

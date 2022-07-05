@@ -12,8 +12,13 @@ namespace godot {
   namespace CE {
     class MultiMeshManager;
     class Ship;
-    
-    struct Weapon {
+
+    class Weapon {
+    public:
+      class CreateFlotsamPlaceholder {};
+      class CreateExplosionPlaceholder {};
+
+    public:
       const real_t damage, impulse, initial_velocity;
       const real_t projectile_mass, projectile_drag, projectile_thrust, projectile_lifetime, projectile_structure;
       const real_t projectile_turn_rate;
@@ -28,14 +33,15 @@ namespace godot {
       
       const real_t reload_delay, reload_energy, reload_heat;
       const int ammo_capacity;
-      
-      int ammo;
-
-      Vector3 position, rotation;
       const real_t harmony_angle;
+
+    private:
+      int ammo;
+      Vector3 position, rotation;
       Countdown firing_countdown;
       Countdown reload_countdown;
-
+      
+    public:
       void reload(Ship &ship,ticks_t idelta);
       void fire(Ship &ship,ticks_t idelta);
       
@@ -43,6 +49,26 @@ namespace godot {
         return ammo and not firing_countdown.ticking();
       }
 
+      inline Vector3 get_position() const {
+        return position;
+      }
+      inline Vector3 get_rotation() const {
+        return rotation;
+      }
+      inline void set_rotation(Vector3 r) {
+        rotation = r;
+      }
+      inline int get_ammo() const {
+        return ammo;
+      }
+      
+      Weapon(const CreateFlotsamPlaceholder &p);
+      Weapon(const CreateExplosionPlaceholder &p,
+             real_t damage, real_t impulse, real_t initial_velocity,
+             real_t projectile_mass, real_t projectile_drag, real_t projectile_lifetime,
+             real_t blast_radius, real_t detonation_range,
+             real_t heat_fraction, int damage_type);
+             
       Weapon(Dictionary dict,MultiMeshManager &multimeshes);
       ~Weapon();
       Dictionary make_status_dict() const;
