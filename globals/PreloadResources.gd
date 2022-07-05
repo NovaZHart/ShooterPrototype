@@ -11,7 +11,18 @@ var ship_count=0
 func _ready():
 	preloader=GDNativePreloadResources.new()
 
+func free_all_resources():
+	if not preloader:
+		return
+	preloader.free_all_resources()
+	preloader = null
+
+func _exit_tree():
+	free_all_resources()
+
 func _process(_delta):
+	if not preloader:
+		return
 	if not got_resources:
 		var resource_list: Array = get_resource_path_list()
 		preloader.add_resources(resource_list)
@@ -34,6 +45,8 @@ func _process(_delta):
 	
 
 func get_resource_path_list() -> Array:
+	if not preloader:
+		return []
 	var file: File = File.new()
 	if file.open(resource_path_list, File.READ):
 		printerr('Cannot open file '+filename+'!!')

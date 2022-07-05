@@ -370,3 +370,6 @@ func _enter_tree():
 		max_ships = debug_max_ships
 		max_ships_per_faction = debug_max_ships_per_faction
 		print('Reducing ship count for debug build: ',max_ships,' ',max_ships_per_faction)
+
+func set_paused(v: bool):
+	get_tree().paused = v

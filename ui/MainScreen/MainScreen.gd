@@ -14,6 +14,9 @@ func has_saved_games():
 	dir.list_dir_end()
 	return not not scan
 
+func _enter_tree():
+	get_tree().paused=false
+
 func _ready():
 	if not has_saved_games():
 		$CenterContainer/GridContainer/LoadGame.disabled = true
@@ -29,4 +32,5 @@ func _on_GameEditor_pressed():
 	game_state.change_scene(SectorEditor)
 
 func _on_Exit_pressed():
-	get_tree().quit()
+	print("change scene exit")
+	get_tree().call_deferred('change_scene_to',preload('res://ui/ExitScene.tscn'))

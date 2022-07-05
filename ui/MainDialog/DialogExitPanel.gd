@@ -1,6 +1,6 @@
 extends Panel
 
-export var exit_countdown_start = 5.0
+export var exit_countdown_start = 0.1
 export var cancel_button_text = 'Cancel'
 export var countdown_label_format = 'Program shutdown in 0:%06.3f.'
 
@@ -23,12 +23,11 @@ func _process(delta):
 	if exit_countdown<INF:
 		$Grid/Label.text = countdown_label_format % max(1e-9,exit_countdown)
 	if exit_countdown<=0:
-		yield(get_tree(),'idle_frame')
-		get_tree().quit()
+		game_state.call_deferred('change_scene','res://ui/ExitScene.tscn')
 	
 func _on_Button_pressed():
 	if exit_countdown == INF:
-		exit_countdown = clamp(exit_countdown_start,3,59)
+		exit_countdown = clamp(exit_countdown_start,0.05,3)
 		$Grid/Button.text = 'Cancel'
 		set_process(true)
 	else:
@@ -41,4 +40,5 @@ func _on_DialogPageSelector_page_selected(page):
 	emit_signal('page_selected',page)
 
 func _on_MainMenu_pressed():
-	game_state.change_scene('res://ui/MainScreen/MainScreen.tscn')
+	get_tree().paused=false
+	game_state.call_deferred('change_scene','res://ui/MainScreen/MainScreen.tscn')

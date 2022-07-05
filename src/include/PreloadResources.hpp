@@ -29,6 +29,7 @@ namespace godot {
     void _init();
     int load_resources();
     void add_resources(Array these);
+    void free_all_resources();
   private:
     Ref<Resource> load_resource(String path);
   };

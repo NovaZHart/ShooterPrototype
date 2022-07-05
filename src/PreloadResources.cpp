@@ -16,6 +16,7 @@ PreloadResources::~PreloadResources() {}
 void PreloadResources::_register_methods() {
   register_method("add_resources",&PreloadResources::add_resources);
   register_method("load_resources",&PreloadResources::load_resources);
+  register_method("free_all_resources",&PreloadResources::free_all_resources);
 }
 
 void PreloadResources::_init() {}
@@ -44,4 +45,9 @@ void PreloadResources::add_resources(Array these) {
     else
       requests.insert(these[i]);
   }
+}
+
+void PreloadResources::free_all_resources() {
+  requests.clear();
+  loaded.clear();
 }

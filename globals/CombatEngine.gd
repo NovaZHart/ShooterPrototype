@@ -92,7 +92,26 @@ var combat_state = null
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()
 
-func _enter_tree():
+func is_initialized() -> bool:
+	return not not native_combat_engine
+
+func exit_tree():
+	free_all_resources()
+
+func free_all_resources():
+	if not native_combat_engine:
+		return
+	native_combat_engine.clear_ai()
+	native_combat_engine.clear_visuals()
+
+	native_combat_engine = null
+	native_visual_effects = null
+
+
+func init_native():
+	if native_combat_engine:
+		return
+	print("CREATING COMBAT ENGINE")
 	native_combat_engine = GDNativeCombatEngine.new()
 	native_visual_effects = GDNativeVisualEffects.new()
 	native_combat_engine.set_visual_effects(native_visual_effects)
@@ -109,6 +128,7 @@ func _enter_tree():
 	# FIXME: pass the ShieldEllipseShader
 
 func init_combat_state(system_info,system,immediate_entry: bool) -> void:
+	init_native()
 	# Call in _ready to create the CombatState for a System or Hyperspace
 	# system_info = SystemData for current system or null for Hyperspace
 	# system = System or Hyperspace
@@ -122,6 +142,8 @@ func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	visual_mutex.unlock()
 
 func clear_ai() -> void:
+	if not is_initialized():
+		return
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
 	# the CombatEngine to discard everything: projectiles, ship stats,
 	# multimeshes, and visual instances. Only meshes and their resource paths
@@ -136,6 +158,8 @@ func clear_ai() -> void:
 	visual_mutex.unlock()
 
 func clear_visuals() -> void:
+	if not is_initialized():
+		return
 	# Called in VISUAL THREAD by screens that don't show outer space, to remove
 	# all projectiles and visual effects.
 	visual_mutex.lock()
@@ -147,9 +171,11 @@ func clear_visuals() -> void:
 
 func set_system_stats(hyperspace: bool = false, system_fuel_recharge: float = 0.5, 
 		center_fuel_recharge = 1.5):
+	init_native()
 	native_combat_engine.set_system_stats(hyperspace, system_fuel_recharge, center_fuel_recharge)
 
 func change_worlds(world: World) -> void:
+	init_native()
 	# Call by ANY THREAD during a SCENE CHANGE to erase everything. This tells
 	# the CombatEngine to discard everything: projectiles, ship stats,
 	# multimeshes, and visual instances. Only meshes and their resource paths
@@ -165,6 +191,7 @@ func change_worlds(world: World) -> void:
 	visual_mutex.unlock()
 
 func set_world(world: World) -> void:
+	init_native()
 	assert(world)
 	visual_mutex.lock()
 	physics_mutex.lock()
@@ -176,6 +203,7 @@ func set_world(world: World) -> void:
 func ai_step(delta: float,new_ships: Array,new_planets: Array,
 		player_orders: Array,player_ship_rid: RID,
 		space: PhysicsDirectSpaceState,update_request: Array) -> Dictionary:
+	init_native()
 	# Call in PHYSICS THREAD in a _physics_process() before any PhysicsBody
 	# objects call their _physics_process(). This runs the ai, integrates
 	# projectiles (which aren't in the physics server), damages ships,
@@ -197,9 +225,11 @@ func ai_step(delta: float,new_ships: Array,new_planets: Array,
 
 func set_visible_region(visible_area: AABB,
 		visibility_expansion_rate: Vector3):
+	init_native()
 	native_visual_effects.set_visible_region(visible_area,visibility_expansion_rate)
 
 func step_visual_effects(delta: float, camera: Camera, viewport: Viewport):
+	init_native()
 	var viewport_size: Vector2 = viewport.size
 	var ul: Vector3 = camera.project_position(Vector2(0,0),0)
 	var lr: Vector3 = camera.project_position(viewport_size,0)
@@ -209,6 +239,7 @@ func step_visual_effects(delta: float, camera: Camera, viewport: Viewport):
 	native_visual_effects.free_unused_effects() # FIXME: move to another thread?
 
 func draw_space(camera: Camera,viewport: Viewport) -> void:
+	init_native()
 	# Call in VISUAL THREAD to update on-screen projectiles.
 	visual_mutex.lock()
 	var viewport_size: Vector2 = viewport.size
@@ -220,6 +251,7 @@ func draw_space(camera: Camera,viewport: Viewport) -> void:
 	visual_mutex.unlock()
 
 func draw_minimap_rect(minimap: Node2D,map_rect: Rect2,minimap_rect: Rect2) -> void:
+	init_native()
 	# Call in VISUAL THREAD to draw the minimap
 	# Note: map_rect is the bounds of the minimap view in world space, and
 	# minimap_rect is the bounds of the minimap on the screen
@@ -230,6 +262,7 @@ func draw_minimap_rect(minimap: Node2D,map_rect: Rect2,minimap_rect: Rect2) -> v
 
 func draw_minimap(minimap: Node2D,minimap_size: float,
 		map_center: Vector2,map_radius: float) -> void:
+	init_native()
 	# Call in VISUAL THREAD to draw the minimap
 	# Note: map_center&map_radius are location of minimap view in world space
 	# minimap_size is the size of the minimap as a fraction of the screen linearly

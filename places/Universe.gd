@@ -13,6 +13,7 @@ var flotsam: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 var cached_parts: Dictionary
+var allow_caching: bool = true
 
 signal reset_system
 signal added_system
@@ -28,6 +29,15 @@ func mandatory_add_child(child, child_name: String):
 	child.name=child_name
 	if not add_child(child):
 		push_error('Could not add '+child_name+' child to universe.')
+
+func _exit_tree():
+	free_all_resources()
+
+func free_all_resources():
+	allow_caching = false
+	for v in cached_parts.values():
+		v.queue_free()
+	cached_parts.clear()
 
 func _init():
 	systems = simple_tree.SimpleNode.new()
@@ -304,6 +314,8 @@ static func encode_Flotsam(flotsam: Flotsam):
 	return ['Flotsam',result]
 
 func get_part(scene: PackedScene):
+	if not allow_caching:
+		return scene.instance()
 	var start = OS.get_ticks_msec()
 	var part = cached_parts.get(scene,null)
 	var instanced = false

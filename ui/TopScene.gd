@@ -7,6 +7,12 @@ func _ready():
 	var _discard = change_scene(preload('res://ui/MainScreen/MainScreen.tscn'))
 	var rid = get_viewport().get_viewport_rid()
 	VisualServer.viewport_set_render_direct_to_screen(rid,true)
+	get_tree().set_auto_accept_quit(false)
+
+func _notification(what):
+	if what==MainLoop.NOTIFICATION_WM_QUIT_REQUEST:
+		print('Caught WM QUIT. Switching scenes.')
+		get_tree().call_deferred('change_scene_to',preload('res://ui/ExitScene.tscn'))
 
 func popup_has_focus():
 	var scene = get_scene()
@@ -34,7 +40,7 @@ func change_scene(arg) -> bool:
 			scene_mutex.unlock()
 			get_tree().paused = false
 			if was_paused:
-				get_tree().call_deferred('set_paused',was_paused)
+				game_state.call_deferred('set_paused',was_paused)
 			return true
 	
 	scene_mutex.unlock()
