@@ -22,6 +22,7 @@ func _exit_tree():
 
 func _process(_delta):
 	if not preloader:
+		set_process(false)
 		return
 	if not got_resources:
 		var resource_list: Array = get_resource_path_list()
