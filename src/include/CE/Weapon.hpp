@@ -33,14 +33,16 @@ namespace godot {
       
       const real_t reload_delay, reload_energy, reload_heat;
       const int ammo_capacity;
-      const real_t harmony_angle;
 
     private:
       int ammo;
       Vector3 position, rotation;
       Countdown firing_countdown;
       Countdown reload_countdown;
-      
+
+    public:
+      const real_t harmony_angle;
+
     public:
       void reload(Ship &ship,ticks_t idelta);
       void fire(Ship &ship,ticks_t idelta);

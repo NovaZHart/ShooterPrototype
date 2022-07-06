@@ -52,12 +52,12 @@ Weapon::Weapon(const Weapon::CreateFlotsamPlaceholder &p):
   reload_energy(0),
   reload_heat(0),
   ammo_capacity(0),
-  harmony_angle(0),
   ammo(0),
   position(),
   rotation(),
   firing_countdown(),
-  reload_countdown()
+  reload_countdown(),
+  harmony_angle(0)
 {}
 
 Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
@@ -95,11 +95,11 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   reload_energy(max(0.0f,get<real_t>(dict,"reload_energy"))),
   reload_heat(max(0.0f,get<real_t>(dict,"reload_heat"))),
   ammo_capacity(max(0,get<int>(dict,"ammo_capacity"))),
-  harmony_angle(asin_clamp(position.z/projectile_range)),
   ammo(get<int>(dict,"ammo",ammo_capacity)),
   position(get<Vector3>(dict,"position")),
   rotation(get<Vector3>(dict,"rotation")),
-  firing_countdown(0), reload_countdown(0)
+  firing_countdown(0), reload_countdown(0),
+  harmony_angle(asin_clamp(position.z/projectile_range))
 {
   if(not ammo_capacity)
     ammo=-1;
