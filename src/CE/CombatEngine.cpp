@@ -863,6 +863,8 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectil
   FAST_PROFILING_FUNCTION;
   projectile_hit_list_t result;
 
+  consider_motion = false;
+  
   Vector3 search_pos = projectile_position;
   Vector3 midpoint = projectile_position;
   real_t search_radius = radius;
@@ -921,7 +923,7 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectil
         real_t unsafe = cast_motion[1];
         real_t frac = min(safe,unsafe);
         if(frac>=0 and frac<.99999) {
-          Godot::print("Detected collision at frac="+str(frac));
+          //Godot::print("Detected collision at frac="+str(frac));
           collision_location = projectile_old_position+motion*frac;
           trans.origin = Vector3(collision_location.x,ship_height,collision_location.z);
           query->set_transform(trans);
