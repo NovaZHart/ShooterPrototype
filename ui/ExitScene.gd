@@ -10,10 +10,8 @@ func _process(delta):
 	print('stage '+str(stage))
 	if stage == 1:
 		PreloadResources.free_all_resources()
-	if stage == 3:
 		combat_engine.free_all_resources()
-	if stage == 5:
 		game_state.universe.free_all_resources()
-	if stage == 7:
+	if stage == 2:
 		set_process(false)
 		get_tree().quit()
