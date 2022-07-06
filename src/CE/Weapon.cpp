@@ -95,7 +95,7 @@ Weapon::Weapon(Dictionary dict,MultiMeshManager &multimeshes):
   reload_energy(max(0.0f,get<real_t>(dict,"reload_energy"))),
   reload_heat(max(0.0f,get<real_t>(dict,"reload_heat"))),
   ammo_capacity(max(0,get<int>(dict,"ammo_capacity"))),
-  ammo(get<int>(dict,"ammo",ammo_capacity)),
+  ammo(max(0,get<int>(dict,"ammo_capacity"))),
   position(get<Vector3>(dict,"position")),
   rotation(get<Vector3>(dict,"rotation")),
   firing_countdown(0), reload_countdown(0),
