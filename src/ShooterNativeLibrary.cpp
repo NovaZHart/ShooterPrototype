@@ -10,6 +10,7 @@ extern "C" void GDN_EXPORT godot_gdnative_init(godot_gdnative_init_options *o) {
 }
 
 extern "C" void GDN_EXPORT godot_gdnative_terminate(godot_gdnative_terminate_options *o) {
+    godot::Godot::nativescript_terminate(godot::_RegisterState::nativescript_handle);
     godot::Godot::gdnative_terminate(o);
 }
 
