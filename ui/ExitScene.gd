@@ -1,18 +1,19 @@
 extends Node
 
+var stage = 0
+
 func _enter_tree():
 	get_tree().paused = false
 
-func _ready():
-	call_deferred('free_all_resources')
-
-func free_all_resources():
-	print('ExitScene is freeing all resources')
-	PreloadResources.free_all_resources()
-	combat_engine.free_all_resources()
-	game_state.universe.free_all_resources()
-	call_deferred('exit_program')
-
-func exit_program():
-	print('ExitScene is exiting')
-	get_tree().quit()
+func _process(delta):
+	stage += 1
+	print('stage '+str(stage))
+	if stage == 1:
+		PreloadResources.free_all_resources()
+	if stage == 3:
+		combat_engine.free_all_resources()
+	if stage == 5:
+		game_state.universe.free_all_resources()
+	if stage == 7:
+		set_process(false)
+		get_tree().quit()
