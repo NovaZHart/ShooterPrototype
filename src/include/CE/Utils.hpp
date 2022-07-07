@@ -28,6 +28,19 @@ namespace godot {
     return String(Variant(t));
   }
   
+  template<>
+  String str(const wstring &s) {
+    const wchar_t *c = s.c_str();
+    if(c&&*c)
+      return String(c);
+    return String();
+  }
+  
+  wstring as_wstring(const String &s) {
+    const wchar_t *c = s.unicode_str();
+    return c ? wstring(c) : wstring();
+  }
+
   namespace CE {
 
     inline object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1) {
@@ -40,7 +53,6 @@ namespace godot {
       return (it==rid2id.end()) ? default_id : it->second;
     }
     
-
     template<class T>
     inline T get(const Dictionary &dict,const char *key) {
       return static_cast<T>(dict[key]);

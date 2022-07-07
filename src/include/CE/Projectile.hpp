@@ -19,24 +19,6 @@ namespace godot {
     struct Salvage;
     struct MultiMeshManager;
     class CombatEngine;
-    
-    struct Salvage {
-      const Ref<Mesh> flotsam_mesh;
-      const float flotsam_scale;
-      const String cargo_name;
-      const int cargo_count;
-      const float cargo_unit_mass;
-      const float cargo_unit_value;
-      const float armor_repair;
-      const float structure_repair;
-      const float fuel;
-      const float spawn_duration;
-      const float grab_radius;
-
-      Salvage(Dictionary dict);
-      Salvage(const Salvage &,int new_count);
-      ~Salvage();
-    };
   
     class Projectile {
       const object_id id;

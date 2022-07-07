@@ -18,27 +18,32 @@ namespace godot {
       uint32_t state;
     public:
       CheapRand32():
-        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_usec()>>4)))
+        state(generate_seed())
       {};
-      CheapRand32(uint32_t state): state(state) {}
+      CheapRand32(uint32_t salt):
+        state(hash(salt))
+      {}
       inline uint32_t randi() {
         // Random 32-bit integer, uniformly distributed.
-        return state=bob_full_avalanche(state);
+        return state=hash(state);
       }
       inline float randf() {
         // Random float in [0..1), uniformly distributed.
-        return int2float(state=bob_full_avalanche(state));
+        return int2float(state=hash(state));
       }
       inline float rand_angle() {
         return randf()*2*PI;
       }
 
-      static inline uint32_t bob_full_avalanche(uint32_t a) {
+      static inline uint32_t make_seed() {
+        return hash(static_cast<uint32_t>(OS::get_singleton()->get_ticks_usec()));
+      }
+      static inline uint32_t hash(uint32_t a) {
         // Generator magic from https://burtleburtle.net/bob/hash/integer.html
-        // Calls to this routine are why the class is not thread-safe.
         // There is no protection against updating the state twice at the same time.
         // That means the state will be valid, but two threads may see the same
         // state if they update it at the same time.
+        // Hence, calls to this routine are why the class is not thread-safe.
         a = (a+0x7ed55d16) + (a<<12);
         a = (a^0xc761c23c) ^ (a>>19);
         a = (a+0x165667b1) + (a<<5);
@@ -46,11 +51,6 @@ namespace godot {
         a = (a+0xfd7046c5) + (a<<3);
         a = (a^0xb55a4f09) ^ (a>>16);
         return a;
-      }
-
-      static inline uint32_t hash(uint32_t a) {
-        // Simply a convenient alias to the algorithm name
-        return bob_full_avalanche(a);
       }
       
       static inline float int2float(uint32_t i) {
