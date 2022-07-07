@@ -10,6 +10,7 @@ namespace godot {
  
   namespace CE {
     constexpr double PI = 3.141592653589793;
+    constexpr real_t PIf = 3.141592653589793f;
 
     // All constants MUST match CombatEngine.gd
 
@@ -80,6 +81,8 @@ namespace godot {
     const ticks_t inactive_ticks = -1;
     const double thrust_loss_heal = 0.5;
 
+    const double effectively_infinite_hitpoints = 1e20;
+    
     static constexpr real_t hyperspace_display_ratio = 20.0f;
   
     enum goal_action_t {

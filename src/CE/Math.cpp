@@ -4,6 +4,40 @@
 
 namespace godot {
   namespace CE {
+    // Intersection of a circle at the origin and a circle not at the origin.
+    // Return value is yes/no: is there an intersection?
+    // Point1 & point2 are the points of intersection if return value is true
+    // Arc of circle 1 that resides in circle 2 is point1..point2
+    bool circle_intersection(real_t radius1,Vector2 center2, real_t radius2,
+                             Vector2 &point1, Vector2 &point2) {
+      real_t len = center2.length();
+
+      if(len+radius2<radius1)
+        return false; // circle2 entirely within circle1
+      else if(len-radius2>radius1)
+        return false; // circle2 entirely outside circle1
+      else if(!len)
+        return false; // circle1 == circle2
+      
+      Vector2 norm = center2/len;
+      real_t x = (radius1*radius1-radius2*radius2+len*len)/(2*len);
+      real_t x2 = radius1*radius1-x;
+      if(x2<=0)
+        return false;
+      real_t y = sqrtf(x2);
+
+      Vector2 p1(x*norm.x-y*norm.y, x*norm.y+y*norm.x);
+      Vector2 p2(x*norm.x+y*norm.y, x*norm.y-y*norm.x);
+
+      Vector2 connect = p2-p1;
+      if(connect.cross(center2)<0) {
+        point2=p1;
+        point1=p2;
+      } else {
+        point1=p1;
+        point2=p2;
+      }
+    }
 
     using namespace std;
     double rendezvous_time(Vector3 target_location,Vector3 target_velocity,

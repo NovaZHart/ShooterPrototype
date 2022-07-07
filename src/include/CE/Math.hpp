@@ -15,6 +15,14 @@ namespace godot {
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
 
+    // Intersection of a circle at the origin and a circle not at the origin.
+    // Return value is yes/no: is there an intersection?
+    // Point1 & point2 are the points of intersection if return value is true
+    // Arc of circle 1 that resides in circle 2 is point1..point2
+    bool circle_intersection(real_t radius1,Vector2 center2, real_t radius2,
+                             Vector2 &point1, Vector2 &point2);
+                             
+    
     double rendezvous_time(Vector3 target_location,Vector3 target_velocity,
                            double interception_speed);
 

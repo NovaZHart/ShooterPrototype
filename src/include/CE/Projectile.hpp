@@ -34,6 +34,7 @@ namespace godot {
       const float grab_radius;
 
       Salvage(Dictionary dict);
+      Salvage(const Salvage &,int new_count);
       ~Salvage();
     };
   

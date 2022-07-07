@@ -18,7 +18,7 @@ namespace godot {
       uint32_t state;
     public:
       CheapRand32():
-        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_msec()/10)))
+        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_usec()>>4)))
       {};
       CheapRand32(uint32_t state): state(state) {}
       inline uint32_t randi() {
@@ -46,6 +46,11 @@ namespace godot {
         a = (a+0xfd7046c5) + (a<<3);
         a = (a^0xb55a4f09) ^ (a>>16);
         return a;
+      }
+
+      static inline uint32_t hash(uint32_t a) {
+        // Simply a convenient alias to the algorithm name
+        return bob_full_avalanche(a);
       }
       
       static inline float int2float(uint32_t i) {

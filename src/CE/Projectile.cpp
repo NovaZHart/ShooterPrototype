@@ -20,6 +20,20 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
+Salvage::Salvage(const Salvage &o,int cargo_count):
+  flotsam_mesh(o.flotsam_mesh),
+  flotsam_scale(o.flotsam_scale),
+  cargo_name(o.cargo_name),
+  cargo_count(cargo_count),
+  cargo_unit_mass(o.cargo_unit_mass),
+  cargo_unit_value(o.cargo_unit_value),
+  armor_repair(o.armor_repair),
+  structure_repair(o.structure_repair),
+  fuel(o.fuel),
+  spawn_duration(o.spawn_duration),
+  grab_radius(o.grab_radius)
+{}
+
 Salvage::Salvage(Dictionary dict):
 flotsam_mesh(get<Ref<Mesh>>(dict,"flotsam_mesh")),
 flotsam_scale(get<float>(dict,"flotsam_scale",1.0f)),
