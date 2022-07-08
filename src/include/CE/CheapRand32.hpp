@@ -18,10 +18,10 @@ namespace godot {
       uint32_t state;
     public:
       CheapRand32():
-        state(generate_seed())
+        state(make_seed())
       {};
-      CheapRand32(uint32_t salt):
-        state(hash(salt))
+      CheapRand32(uint32_t seed):
+        state(hash(hash(hash(seed))))
       {}
       inline uint32_t randi() {
         // Random 32-bit integer, uniformly distributed.
@@ -34,9 +34,16 @@ namespace godot {
       inline float rand_angle() {
         return randf()*2*PI;
       }
-
+      inline void seed(uint32_t s) {
+        state = hash(hash(hash(s)));
+      }
+      inline void seed() {
+        state = make_seed();
+      }
+      
       static inline uint32_t make_seed() {
-        return hash(static_cast<uint32_t>(OS::get_singleton()->get_ticks_usec()));
+        uint32_t s=OS::get_singleton()->get_ticks_usec();
+        return hash(hash(hash(s)));
       }
       static inline uint32_t hash(uint32_t a) {
         // Generator magic from https://burtleburtle.net/bob/hash/integer.html

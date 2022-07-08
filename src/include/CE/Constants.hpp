@@ -9,8 +9,8 @@
 namespace godot {
  
   namespace CE {
-    constexpr double PI = 3.141592653589793;
-    constexpr real_t PIf = 3.141592653589793f;
+    constexpr double PI = 3.141592653589793, TAU = 2*PI;
+    constexpr real_t PIf = PI, TAUf = TAU;
 
     // All constants MUST match CombatEngine.gd
 
@@ -19,7 +19,7 @@ namespace godot {
     const ticks_t FAST = 9999999; /* faster than any object should move */
     const ticks_t FAR = 9999999; /* farther than any distance that should be considered */
     const ticks_t BIG = 9999999; /* bigger than any object should be */
-    const ticks_t SALVAGE_TIME_LIMIT = 60;
+    const ticks_t SALVAGE_TIME_LIMIT = 60; // How long flotsam remains before vanishing
 
     const int EFFECTS_LIGHT_LAYER_MASK = 2;
 
@@ -52,14 +52,14 @@ namespace godot {
       DAMAGE_PSIONIC = 9,     /* Mind over matter */
       DAMAGE_PLASMA = 10,     /* Super-heated matter */
       DAMAGE_CHARGE = 11,     /* Electric charge */
-      DAMAGE_SPACETIME = 12  /* Tear open rifts in the fabric of spacetimeo */
+      DAMAGE_SPACETIME = 12   /* Tear open rifts in the fabric of spacetime */
     };
-    constexpr real_t MAX_RESIST = 0.75;
-    constexpr real_t MIN_RESIST = -2.0;
+    constexpr real_t MAX_RESIST = 0.75; // Lowest allowed resistance (fraction)
+    constexpr real_t MIN_RESIST = -2.0; // Highest allowed resistance (fraction)
     constexpr real_t MIN_PASSTHRU = 0.0;
     constexpr real_t MAX_PASSTHRU = 1.0;
 
-    constexpr real_t PROJECTILE_POINT_WIDTH = 0.001;
+    constexpr real_t PROJECTILE_POINT_WIDTH = 0.001; // Width of bounding square for point projectiles
   
     enum visual_layers {
       below_planets=-30,
@@ -71,12 +71,12 @@ namespace godot {
       above_projectiles=29
     };
     
-    const int max_meshes=50;
-    const int max_ships=700;
-    const int max_planets=300;
+    const int max_meshes=50; // For pre-allocating data, expected max meshes
+    const int max_ships=700; // For pre-allocating data, expected max ships
+    const int max_planets=300; // For pre-allocating data, expacted max planets or system entrances
 
     const ticks_t ticks_per_second = 10800;
-    const ticks_t ticks_per_minute = 648000;
+    const ticks_t ticks_per_minute = static_cast<ticks_t>(60)*ticks_per_second;
     const ticks_t zero_ticks = 0;
     const ticks_t inactive_ticks = -1;
     const double thrust_loss_heal = 0.5;

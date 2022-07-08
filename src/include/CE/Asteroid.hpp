@@ -33,7 +33,7 @@ namespace godot {
       real_t x,z;
 
       // Relatively expensive hash calculation from Asteroid members:
-      uint32_t hash;
+      CheapRand32 rand;
 
       // Last time at which Asteroid::update_state was called:
       real_t valid_time;
@@ -93,14 +93,6 @@ namespace godot {
       double structure;
     public:
 
-      // Reset state to an asteroid at the same location, but with a
-      // different salvage, mesh, and max structure.
-      void reset_stats(const Asteroid &reference);
-      
-      // Reset state to an effectively-invincible asteroid at the same
-      // location with the default mesh and no salvage
-      void reset_stats();
-
       // Make a fully-healed copy of the given asteroid, with a different location.
       Asteroid(real_t theta,real_t r,real_t y,const Asteroid &reference);
 
@@ -112,14 +104,21 @@ namespace godot {
       
       ~Asteroid();
 
+      // Reset state to an asteroid at the same location, but with a
+      // different salvage, mesh, and max structure.
+      void reset_stats(const Asteroid &reference);
+      
+      // Reset state to an effectively-invincible asteroid at the same
+      // location with the default mesh and no salvage
+      void reset_stats();
+
       // Updates the location of the asteroid. If the state is
       // invalid, this will also initialize the hash and random
       // colors.
       void update_state(AsteroidState &state,real_t orbit_period,real_t inner_radius,real_t thickness);
 
       // Calculate the full transform for a multimesh instance based
-      // on cached, non-time-varying, information in the asteroid
-      // state.
+      // on cached information in the asteroid state.
       Transform calculate_transform(const AsteroidState &state) const;
 
       // Receive a specified amount of damage:
@@ -263,7 +262,7 @@ namespace godot {
       }
       
       // How many asteroids are in the palette?
-      size_t count() const {
+      size_t size() const {
         return asteroids.size();
       }
 
