@@ -33,15 +33,14 @@ namespace godot {
       // Location of the asteroid.
       real_t x,z;
 
-      // Relatively expensive hash calculation from Asteroid members:
-      CheapRand32 rand;
+      // Four random numbers generated from a relatively-expensive hash calculation:
+      Color random_numbers;
 
+    private:
       // Last time at which Asteroid::update_state was called:
       real_t valid_time;
 
-      // Four random numbers generated from the hash:
-      Color random_numbers;
-
+    public:
       inline const Color &get_instance_data() const {
         return random_numbers;
       }
@@ -63,7 +62,7 @@ namespace godot {
 
       // Create a new AsteroidState with an invalid state.
       AsteroidState():
-        x(0),y(0),rand(0),valid_time(invalid_time),random_numbers(0,0,0,0)
+        x(0),y(0),valid_time(invalid_time),random_numbers(0,0,0,0)
       {}
       ~AsteroidState() {}
     };

@@ -35,11 +35,7 @@ All of that can be overridden by storyline events.
 
 TO DO:
 
-Recheck everything
-Compile gdscript code
-Make it run
-Add a third faction with cargo ships
+Hosts
 Faction affinity inheritence
-Unified faction for cargo + patrol. Both factions inherit the unified faction's affinities
+Faction affinity changes mid-battle (written but untested)
 
-Faction editor

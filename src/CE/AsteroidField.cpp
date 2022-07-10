@@ -1,5 +1,7 @@
 #include <cmath>
 
+#include <Variant.hpp>
+
 #include "CE/AsteroidField.hpp"
 #include "CE/CheapRand32.hpp"
 
@@ -32,6 +34,14 @@ static AsteroidSearchResult longest_theta_from(Vector2 a,Vector2 b) {
 
 const AsteroidSearchResult AsteroidSearchResult::no_match = AsteroidSearchResult(false);
 const AsteroidSearchResult AsteroidSearchResult::all_match = AsteroidSearchResult(true);
+
+AsteroidSearchResult::AsteroidSearchResult(real_t start, real_t end):
+  start_theta(fmodf(start,TAUf)),
+  end_theta(fmodf(end,TAUf)),
+  theta_width(fmodf(end_theta-start_theta,TAUf)),
+  any_intersect(true),
+  all_intersect(false)
+{}
 
 pair<AsteroidSearchResult,AsteroidSearchResult>
 AsteroidSearchResult::minus(const AsteroidSearchResult &region) const {
@@ -103,6 +113,20 @@ AsteroidSearchResult::merge(const AsteroidSearchResult &one) const {
   return result(false,no_match);
 }
 
+
+AsteroidSearchResult AsteroidSearchResult::expanded_by(real_t dtheta) {
+  if(all_intersect or !any_intersect or !dtheta)
+    return *this;
+
+  real_t theta_sum = 2*dtheta+theta_width;
+  if(theta_sum>=TAUf) // expanded to full circle
+    return all_match;
+  if(theta_sum<=0) // shrunk to null set
+    return no_match;
+
+  return AsteroidSearchResult(start_theta-dtheta,end_theta+dtheta);
+}
+
 static void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results) {
   if(results.size()<2)
     return;
@@ -144,17 +168,17 @@ static void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results)
 ////////////////////////////////////////////////////////////////////////
 
 
-AsteroidLayer::AsteroidLayer(real_t orbit_period, real_t inner_radius, real_t thickness, real_t spacing, real_t y):
-  orbit_period(orbit_period),
+AsteroidLayer::AsteroidLayer(const Dictionary &d):
+  orbit_period(get<real_t>(d,"orbit_period")),
   orbit_mult(orbit_period ? TAUf/orbit_period : 1),
-  inner_radius(inner_radius),
-  thickness(max(Asteroid::max_scale)*3,thickness),
+  inner_radius(max(0.0f,get<real_t>(d,"inner_radius"))),
+  thickness(max(Asteroid::max_scale*3,get<real_t>(d,"thickness"))),
   outer_radius(inner_radius+thickness),
-  spacing(spacing),
-  y(y),
+  spacing(max(Asteroid::min_scale,get<real_t>(d,"spacing",Asteroid::max_scale*2))),
+  y(asteroid_height),
   asteroids(),
   state()
-{}
+}
 
 AsteroidLayer::~AsteroidLayer()
 {}
@@ -482,11 +506,34 @@ void AsteroidLayer::sort_asteroids() {
 ////////////////////////////////////////////////////////////////////////
 
 AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalette> asteroids,
-                             std::shared_ptr<SalvagePalette> salvege)
-// FIXME: INSERT CODE HERE
-{}
+                             std::shared_ptr<SalvagePalette> salvege):
+  palette(asteroids),
+  salvate(salvage),
+  layers(),
+  now(now),
+  dead_asteroids()
+{
+  layers.reserve(data.size);
+  for(int i=0,e=data.size();i<e;i++) {
+    Variant v=data[i];
+    if(v.get_type() != Variant::DICTIONARY) {
+      godot::print_warning("Ignoring non-dictionary in AsteroidField data.",
+                           __FUNCTION__,__FILE__,__LINE__);
+      continue;
+    }
+    layers.emplace_back(static_cast<Dictionary>(v));
+  }
+  if(!layers.size())
+    godot::print_error("No asteroid layers in AsteroidField!",
+                       __FUNCTION__,__FILE__,__LINE__);
+}
 
 AsteroidField::~AsteroidField();
+
+void AsteroidField::generate_field(CheapRand32 &rand) {
+  for(auto &layer : layers)
+    layer.generate_field(palette,rand);
+}
 
 pair<const Asteroid *,const AsteroidState*> AsteroidField::get(object_id id) const {
   static const pair<const Asteroid*,const AsteroidState*> no_match(nullptr,nullptr);
@@ -536,15 +583,30 @@ bool AsteroidField::is_alive(object_id id) const {
 
 void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) {
   now+=delta;
+  real_t rnow = now;
+
+  Rect2 search_region = visible_region.expand(Asteroid.max_scale+1);
 
   for(auto it=dead_asteroids.begin();it!=dead_asteroids.end();) {
     object_id id = *it;
     pair<int,int> split = split_id(id);
     if(split.first>=0 and split.first<layers.size()) {
-      const Asteroid *asteroid = layers[split.first].get_asteroid(split.second);
-      if(asteroid and !asteroid->is_alive()) {
-        // FIXME: INSERT CODE HERE
-      }
+      AsteroidLayer &layer = layers[split.first];
+      Asteroid *asteroid = layer.get_asteroid(split.second);
+      
+      if(!asteroid or asteroid->is_alive())
+        continue;
+
+      // Only spawn a new asteroid if this one is off screen.
+      AsteroidState *state = layer.get_valid_state(split.second,asteroid,rnow);
+      if(!state or search_region.has_point(asteroid->get_xy(*state)))
+        continue;
+
+      // Replace the asteroid's stats
+      asteroid->set_template(palette.random_choice());
+
+      // Ensure the state is reinitialized next time it is needed.
+      state->reset();
     }
   }
 }
@@ -564,7 +626,7 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) co
     if(layer.theta_ranges_of_rect(search_region,found)) {
       real_t theta0 = layer.theta_time_shift(now);
       for(auto &range : found) {
-        if(range.none_intersect)
+        if(!range.any_intersect)
           continue;
 
         // What range of indices do we search?
@@ -584,8 +646,9 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) co
 
           // Get the asteroid and its up-to-date state.
           const Asteroid *a = layer.get_asteroid(itheta);
-          if(!a)
+          if(!a or !a->is_visible())
             continue;
+          
           const AsteroidState *s = layer.get_valid_state(itheta,a,valid_time);
           if(!s)
             continue;
@@ -704,18 +767,18 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
     ranges[0]=range_pair.first;
     ranges[1]=range_pair.second;
 
-    int loop_start=0,loop_end=1;
-
     if(ranges[0].all_intersect or ranges[1].all_intersect)
       loop_end=0;
-    else {
-      if(!ranges[0].any_intersect)
-        loop_start=1;
-      if(!ranges[1].any_intersect)
-        loop_end=0;
-    }
+
+    int loop_start=0,loop_end=1;
+
+    if(!ranges[0].any_intersect)
+      loop_start=1;
+    if(!ranges[1].any_intersect)
+      loop_end=0;
+    
     for(irange=loop_start;irange<=loop_end;irange++) {
-      AsteroidSearchResult &range = ranges[irange];
+      AsteroidSearchResult range = ranges[irange].expanded_by(Asteroid::max_scale/layer.inner_radius);
       int itheta_start, itheta_after;
       if(range.all_intersect) {
         itheta_start = 0;

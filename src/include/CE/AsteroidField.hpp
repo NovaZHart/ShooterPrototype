@@ -70,6 +70,11 @@ namespace godot {
         return any_intersect ? (fmodf(theta-start_theta,TAUf) <= theta_width) : false;
       }
 
+      // Creates a new AsteroidSearchResult where the range has been
+      // expanded or shrunk by dtheta in each direction.
+      AsteroidSearchResult expanded_by(real_t dtheta);
+      
+      // Merge multiple ranges into a smaller number of ranges that cover the same set.
       static void merge_set(std::deque<AsteroidSearchResult> results);
       
       // Remove the region, returning the zero, one, or two regions of remaining thetas:
@@ -117,9 +122,8 @@ namespace godot {
 
       // Cached state of each asteroid.
       mutable std::vector<AsteroidState> state;
-        
-      AsteroidLayer(real_t orbit_period, real_t inner_radius, real_t thickness, real_t spacing, real_t y);
-        
+
+      AsteroidLayer(const Dictionary &d);
       ~AsteroidLayer();
 
       inline size_t size() {
@@ -127,22 +131,22 @@ namespace godot {
       }
       
       // Return the asteroid at the given index, or nullptr if there is none
-      inline Asteroid *get_asteroid(object_id id) {
-        return (id<0 or id>=asteroids.size()) ? nullptr : &asteroids[id];
+      inline Asteroid *get_asteroid(object_id index) {
+        return (index<0 or index>=asteroids.size()) ? nullptr : &asteroids[index];
       }
-      inline const Asteroid *get_asteroid(object_id id) const {
-        return (id<0 or id>=asteroids.size()) ? nullptr : &asteroids[id];
+      inline const Asteroid *get_asteroid(object_id index) const {
+        return (index<0 or index>=asteroids.size()) ? nullptr : &asteroids[index];
       }
 
-      // Get, make, or update an AstroidState, assuming the id is a valid index and a is non-null
-      inline AsteroidState *get_valid_state(object_id id, const Asteroid *a, real_t time) {
-        AsteroidState *s = &state[id];
+      // Get, make, or update an AstroidState, assuming the index is a valid index and a is non-null
+      inline AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) {
+        AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
           a->update_state(*s,orbit_period,inner_radius,thickness);
         return s;
       }
-      inline const AsteroidState *get_valid_state(object_id id, const Asteroid *a, real_t time) const {
-        AsteroidState *s = &state[id];
+      inline const AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) const {
+        AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
           a->update_state(*s,orbit_period,inner_radius,thickness);
         return s;
@@ -167,7 +171,7 @@ namespace godot {
       // If there are any, they'll be in the results.
       bool theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> &results);
 
-      // Clears the asteroid field and generates a new one from the given selection of asteroids.
+      // Clears the asteroid layer and generates a new one from the given selection of asteroids.
       // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
       void generate_field(const AsteroidPalette &palette,CheapRand32 &rand);
 
@@ -216,6 +220,10 @@ namespace godot {
                     std::shared_ptr<SalvagePalette> salvege);
 
       ~AsteroidField();
+
+      // Clears the asteroid field and generates a new one.
+      // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
+      void generate_field(CheapRand32 &rand);
       
       // Return the asteroid and state for the given id, if it exists.
       // If a state is returned, it is up-to-date with the current time.

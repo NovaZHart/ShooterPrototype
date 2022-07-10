@@ -67,15 +67,10 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
     hash ^= sh>>32;
     hash = CheapRand32::hash(hash);
     hash ^= time_hash(when);
-    hash = CheapRand32::hash(hash);
-
-    state.rand.seed(hash);
+    //hash = CheapRand32::hash(hash);  // constructor will hash one more time for us
 
     // Use the hash to generate some random numbers.
-    random_numbers = Color(CheapRand32::int2float(CheapRand32::hash(hash+123)),
-                           CheapRand32::int2float(CheapRand32::hash(hash+456)),
-                           CheapRand32::int2float(CheapRand32::hash(hash+789)),
-                           CheapRand32::int2float(CheapRand32::hash(hash+90909)));
+    random_numbers = CheapRand32(hash).rand_color();
   }
 
   real_t theta_now = when*TAUf/orbit_period+theta;

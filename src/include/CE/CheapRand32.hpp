@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <algorithm>
 
-#include "OS.hpp"
+#include <OS.hpp>
+#include <Color.hpp>
 
 #include "CE/Constants.hpp"
 
@@ -21,7 +22,7 @@ namespace godot {
         state(make_seed())
       {};
       CheapRand32(uint32_t seed):
-        state(hash(hash(hash(seed))))
+        state(hash(seed))
       {}
       inline uint32_t randi() {
         // Random 32-bit integer, uniformly distributed.
@@ -32,7 +33,7 @@ namespace godot {
         return int2float(state=hash(state));
       }
       inline float rand_angle() {
-        return randf()*2*PI;
+        return randf()*TAUf;
       }
       inline void seed(uint32_t s) {
         state = hash(hash(hash(s)));
@@ -40,10 +41,14 @@ namespace godot {
       inline void seed() {
         state = make_seed();
       }
+      inline Color rand_color() {
+        real_t r=randf(), g=randf(), b=randf(), a=randf();
+        return Color(r,g,b,a);
+      }
       
       static inline uint32_t make_seed() {
-        uint32_t s=OS::get_singleton()->get_ticks_usec();
-        return hash(hash(hash(s)));
+        uint64_t s=OS::get_singleton()->get_ticks_usec();
+        return hash( (s>>32) ^ s );
       }
       static inline uint32_t hash(uint32_t a) {
         // Generator magic from https://burtleburtle.net/bob/hash/integer.html
