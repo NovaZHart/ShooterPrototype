@@ -20,7 +20,8 @@
 
 namespace godot {
   namespace CE {
-
+    class MultiMeshManager;
+    
     struct AsteroidState {
       // Stores the time-varying state and expensive calculations for one asteroid.
       // Updated as needed by Asteroid::update_state
@@ -41,6 +42,10 @@ namespace godot {
       // Four random numbers generated from the hash:
       Color random_numbers;
 
+      inline const Color &get_instance_data() const {
+        return random_numbers;
+      }
+      
       // Does this state match that time?
       inline bool needs_update_to(real_t time) const {
         return time!=valid_time;
@@ -58,34 +63,104 @@ namespace godot {
 
       // Create a new AsteroidState with an invalid state.
       AsteroidState():
-        x(0),y(0),hash(0),valid_time(invalid_time)
+        x(0),y(0),rand(0),valid_time(invalid_time),random_numbers(0,0,0,0)
       {}
       ~AsteroidState() {}
     };
+
+    ////////////////////////////////////////////////////////////////////
     
-    class Asteroid {
-    public:
-      // Maximum speed an asteroid can rotate around its randomly-chosen axis
-      static const real_t max_rotation_speed;
-
-      // Minimum x,y,z scale of asteroid
-      static const real_t min_scale;
-
-      // Maximum x,y,z scale of asteroid
-      static const real_t max_scale;
-
-      // max_scale-min_scale
-      static const real_t scale_range;
-    private:
+    class AsteroidTemplate {
+      // Stores data that is common among many asteroids.
+      
       // Mesh for this asteroid
-      int mesh_index;
+      Ref<Mesh> mesh;
 
+      // Mesh ID from a MultimeshManager
+      object_id mesh_id;
+
+      // Color sent to asteroid mesh's shader
+      Color color_data;
+      
       // Name of the flotsam from the SalvagePalette for when this asteroid is destroyed
       wstring salvage;
 
       // Structure of asteroid when totally undamaged.
       real_t max_structure;
 
+    public:
+      AsteroidTemplate(const Dictionary &dict,object_id mesh_id=-1);
+      AsteroidTemplate();
+      ~AsteroidTemplate();
+
+      // Does this template have what is needed for an asteroid to be visible on the screen?
+      inline bool is_visible() const {
+        return mesh_id>=0;
+      }
+
+      // When an asteroid made from template is destroyed, should it leave behind flotsam?
+      inline bool has_cargo() const {
+        return salvage;
+      }
+
+      inline object_id get_mesh_id() const {
+        return mesh_id;
+      }
+      inline void set_mesh_id(object_id id) {
+        mesh_id=id;
+      }
+      
+      inline const Ref<Mesh> &get_mesh() const {
+        return mesh;
+      }
+      inline void set_mesh(const Ref<Mesh> &mesh) {
+        this->mesh = mesh;
+      }
+      
+      inline const Color &get_color_data() const {
+        return color_data;
+      }
+      inline void set_color_data(const Color &color_data) {
+        this->color_data = color_data;
+      }
+      
+      inline const wstring &get_salvage() const {
+        return salvage;
+      }
+      inline void set_salvage(const wstring &salvage) {
+        this->salvage = salvage;
+      }
+
+      inline real_t get_max_structure() const {
+        return max_structure;
+      }
+      inline void set_max_structure(real_t max_structure) const {
+        this->max_structure = max_structure;
+      }
+
+      inline bool is_invincible() const {
+        return max_structure == effectively_infinite_hitpoints;
+      }
+    };
+
+    ////////////////////////////////////////////////////////////////////
+    
+    class Asteroid {
+    public:
+      // Maximum speed an asteroid can rotate around its randomly-chosen axis
+      static const real_t max_rotation_speed;
+      
+      // Minimum x,y,z scale of asteroid
+      static const real_t min_scale;
+      
+      // Maximum x,y,z scale of asteroid
+      static const real_t max_scale;
+      
+      // max_scale-min_scale
+      static const real_t scale_range;
+
+      shared_ptr<const AsteroidTemplate> templ;
+      
       // Location of the asteroid in a cylindrical coordinate system at time 0
       real_t theta, r, y;
 
@@ -94,47 +169,57 @@ namespace godot {
     public:
 
       // Make a fully-healed copy of the given asteroid, with a different location.
-      Asteroid(real_t theta,real_t r,real_t y,const Asteroid &reference);
+      Asteroid(real_t theta,real_t r,real_t y,shared_ptr<const AsteroidTemplate> templ):
+        templ(templ), theta(theta), r(r), y(y),
+        structure(templ ? templ->max_structure : effectively_infinite_structure)
+      {}
 
-      // Generates an asteroid from the specified data.
-      Asteroid(Dictionary d,int mesh_index);
-
-      // Make an effectively invincible asteroid with mesh 0 at location 0:
-      Asteroid();
+      // Make an effectively invincible asteroid at location 0 with no mesh
+      Asteroid():
+        templ(), theta(0), r(0), y(0), structure(effectively_infinite_structure)
+      {}
       
-      ~Asteroid();
+      ~Asteroid() {}
 
-      // Reset state to an asteroid at the same location, but with a
-      // different salvage, mesh, and max structure.
-      void reset_stats(const Asteroid &reference);
-      
-      // Reset state to an effectively-invincible asteroid at the same
-      // location with the default mesh and no salvage
-      void reset_stats();
+      inline real_t calculate_rotation_speed(const AsteroidState &state) const {
+        return state.random_numbers.r * max_rotation_speed;
+      }
+
+      inline real_t calculate_rotation_phase(const AsteroidState &state) const {
+        return state.random_numbers.g * TAUf;
+      }
+
+      inline real_t calculate_scale(const AsteroidState &state) const {
+        return random_numbers.b*scale_range + min_scale;
+      }
 
       // Updates the location of the asteroid. If the state is
       // invalid, this will also initialize the hash and random
       // colors.
-      void update_state(AsteroidState &state,real_t orbit_period,real_t inner_radius,real_t thickness);
+      void update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,real_t thickness,bool initialize);
 
       // Calculate the full transform for a multimesh instance based
       // on cached information in the asteroid state.
       Transform calculate_transform(const AsteroidState &state) const;
 
       // Receive a specified amount of damage:
-      inline double take_damage(double damage) {
-        double structure_remaining = structure-damage;
-        if(structure_remaining>0) {
-          structure = structure_remaining;
-          return 0;
-        }
-        structure = 0;
-        return damage;
+      double take_damage(double damage);
+      
+      inline shared_ptr<const AsteroidTemplate> get_template() const {
+        return templ;
       }
+      
+      // Reset state to an asteroid at the same location, fully
+      // healed, and with different stats
+      void set_template(shared_ptr<const AsteroidTemplate> reference);
 
+      inline real_t get_max_structure() const {
+        return templ ? templ->get_max_structure() : effectively_infinite_hitpoints;
+      }
+      
       // Asteroid heals some amount of damage.
       inline void heal_asteroid(double amount) {
-        structure = min(static_cast<double>(max_structure),structure+amount);
+        structure = min(double(get_max_structure),structure+amount);
       }
 
       // Fully heal asteroid
@@ -146,6 +231,11 @@ namespace godot {
       inline double get_structure() const {
         return structure;
       }
+
+      // Should this asteroid be shown if it is on camera?
+      inline bool is_visible() const {
+        return is_alive() and templ and templ->is_visible();
+      }
       
       // Does the asteroid have any structure left?
       inline bool is_alive() const {
@@ -154,14 +244,19 @@ namespace godot {
 
       // When it explodes, should this asteroid generate flotsam?
       inline bool has_cargo() const {
-        return !salvage.empty();
+        return templ && templ->has_cargo();
       }
 
       // Is this asteroid effectively invincible?
       inline bool is_invincible() const {
-        max_structure>=effectively_infinite_hitpoints;
+        return !templ or templ->is_invincible();
       }
 
+      // 2D location x-z
+      inline Vector2 get_xz(const AsteroidState &state) const {
+        return Vector2(state.x,state.z);
+      }
+      
       // Full 3D location
       inline Vector3 get_xyz(const AsteroidState &state) const {
         return Vector3(state.x,y,state.z);
@@ -197,67 +292,41 @@ namespace godot {
       }
 
       // Get/set mesh index within palette
-      inline int get_mesh_index() const {
-        return mesh_index;
-      }
-      inline void set_mesh_index(int mesh) {
-        this->mesh_index=mesh_index;
+      inline Ref<Mesh> get_mesh() const {
+        return templ ? templ->get_mesh() : Ref<Mesh>();
       }
       
       // Get/set salvage name
       inline const wstring &get_salvage() const {
-        return salvage;
-      }
-      inline void set_salvage(const wstring &salvage) const {
-        this->salvage=salvage;
-      }
-
-      // Get maximum structure.
-      inline real_t get_max_structure() const {
-        return max_structure;
-      }
-
-      // Set maximum structure, and reduce structure if it is higher than that.
-      inline void set_max_structure(real_t max_structure) {
-        this->max_structure = max_structure;
-        structure = min(structure,static_cast<double>(this->max_structure));
+        static const wstring empty_string="";
+        return templ ? templ->get_salvage() : empty_string;
       }
     };
-
-                    
+    
     ////////////////////////////////////////////////////////////////////////
 
     class AsteroidPalette {
-      // A set of possible asteroids that can be generated in an asteroid field.
-      // All vectors have the same length.
+      // A set of possible asteroid templates that can be used in an
+      // asteroid field.  Both vectors have the same length.
       
       // All possible asteroids.
-      std::vector<Asteroid> asteroids;
-
-      // Mesh paths for each asteroid.
-      std::vector<String> mesh_path;
+      std::vector<shared_ptr<AsteroidTemplate>> asteroids;
 
       // Weights for randomly selecting asteroids. These are
       // accumulated weights, so weight n > weight n-1
       std::vector<real_t> accumulated_weights;
 
-      // The asteroid used if asteroids.size()==0
-      static const Asteroid default_asteroid;
+      // The asteroid template used if asteroids.size()==0
+      static const shared_ptr<const AsteroidTemplate> default_asteroid;
     public:
       AsteroidPalette(Array selection,std::shared_ptr<SalvagePalette> salvage);
 
       // Randomly choose an asteroid, or return default_asteroid if there
       // are no asteroids. Uses the provided random number generator.
-      const Asteroid &random_choice(CheapRand32 &rand) const;
-
-      // Return all mesh paths. Each asteroid provides the integer
-      // (object_id) index within this list.
-      inline const std::vector<String> get_meshes() const {
-        return mesh_paths;
-      }
+      shared_ptr<const AsteroidTemplate> random_choice(CheapRand32 &rand) const;
 
       // What asteroid will be provided if this->empty()
-      static inline const Asteroid &get_default_asteroid() {
+      static inline shared_ptr<const AsteroidTemplate> get_default_asteroid() {
         return default_asteroid;
       }
       

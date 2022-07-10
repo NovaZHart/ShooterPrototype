@@ -47,18 +47,31 @@ namespace godot {
       static const AsteroidSearchResult no_match;
       static const AsteroidSearchResult all_match;
 
+      inline bool operator == (const AsteroidSearchResult & o) const {
+        return any_intersect==o.any_intersect && all_intersect==o.all_intersect
+          && start_theta==o.start_theta && end_theta==o.end_theta;
+      }
+      inline bool operator < (const AsteroidSearchResult & o) const {
+        if(any_intersect!=o.any_intersect)
+          return any_intersect<o.any_intersect;
+        if(all_intersect!=o.all_intersect)
+          return all_intersect<o.all_intersect;
+        if(start_theta!=o.start_theta)
+          return start_theta<o.start_theta;
+        return end_theta<o.end_theta;
+      }
+
       inline AsteroidSearchResult negation() const {
-        if(all_intersect)
-          return no_match;
-        if(!any_intersect)
-          return all_match;
-        return AsteroidSearchResult(end_theta,start_theta);
+        return all_intersect ? no_match : ( any_intersect ? all_match :
+           AsteroidSearchResult(end_theta,start_theta));
       }
         
       inline real_t contains(real_t theta) const {
         return any_intersect ? (fmodf(theta-start_theta,TAUf) <= theta_width) : false;
       }
-        
+
+      static void merge_set(std::deque<AsteroidSearchResult> results);
+      
       // Remove the region, returning the zero, one, or two regions of remaining thetas:
       std::pair<AsteroidSearchResult,AsteroidSearchResult> minus(const AsteroidSearchResult &region) const;
 
@@ -76,12 +89,18 @@ namespace godot {
 
       // Time it takes for an asteroid to go all the away around the circle.
       const real_t orbit_period;
-
+      
+      // TAUf/orbit_period
+      const real_t orbit_mult;
+      
       // Radius of the inner circle of the annulus
       const real_t inner_radius;
 
       // Difference between the outer and inner circles of the annulus
       const real_t thickness;
+      
+      // Radius of the outer circle of the annulus
+      const real_t inner_radius;
 
       // Target mean distance between asteroids.
       const real_t spacing;
@@ -103,6 +122,10 @@ namespace godot {
         
       ~AsteroidLayer();
 
+      inline size_t size() {
+        return asteroids.size();
+      }
+      
       // Return the asteroid at the given index, or nullptr if there is none
       inline Asteroid *get_asteroid(object_id id) {
         return (id<0 or id>=asteroids.size()) ? nullptr : &asteroids[id];
@@ -128,6 +151,11 @@ namespace godot {
       // upper_bound of theta
       int find_theta(real_t theta) const;
 
+      // How much has the annulus rotated by this time?
+      inline real_t theta_time_shift(double when) const {
+        return when*orbit_mult;
+      }
+
       // Find all thetas that overlap the given ray.
       std::pair<AsteroidSearchResult,AsteroidSearchResult> theta_ranges_of_ray(Vector2 start,Vector2 end);
 
@@ -137,7 +165,7 @@ namespace godot {
       // Find all thetas that lie within the given rect.
       // If there are none, returns false and clears results.
       // If there are any, they'll be in the results.
-      bool theta_ranges_of_rect(Rect2 rect,vector<AsteroidSearchResult> &results);
+      bool theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> &results);
 
       // Clears the asteroid field and generates a new one from the given selection of asteroids.
       // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
@@ -203,11 +231,7 @@ namespace godot {
       void step_time(int64_t idelta,real_t delta,Rect2 visible_region);
 
       // Update multimeshes for asteroids overlapping the visible region.
-      void add_content(Rect2 visible_region) const;
-
-      // find all asteroids overlapping the given rect.
-      // Adds all matches to results and returns the number of matches.
-      std::size_t overlapping_rect(Rect2 rect,std::unordered_set<object_id> &results) const;
+      void add_content(Rect2 visible_region,VisualContent &content) const;
 
       // Finds all asteroids overlapping the given circle.
       // Adds all matches to results and returns the number of matches.
@@ -215,7 +239,21 @@ namespace godot {
 
       // Finds all asteroids that contain the given point.
       // Adds all matches to results and returns the number of matches.
-      std::size_t overlapping_point(Vector2 point,std::unordered_set<object_id> &results) const;
+      inline std::size_t overlapping_point(Vector2 point,std::unordered_set<object_id> &results) const {
+        return overlapping_circle(point,0,results);
+      }
+
+      // Finds an asteroid overlapping the given circle and returns it.
+      // If there are multiple matches, the first match found is returned.
+      // Returns -1 if nothing matches.
+      object_id first_in_circle(Vector2 center,real_t radius) const;
+
+      // Finds an asteroid overlapping the given point and returns it.
+      // If there are multiple matches, the first match found is returned.
+      // Returns -1 if nothing matches.
+      inline object_id first_at_point(Vector2 point) const {
+        return first_in_circle(point,0);
+      }
 
       // Return the id of the first asteroid that the given ray hits.
       object_id cast_ray(Vector2 start,Vector2 end) const;

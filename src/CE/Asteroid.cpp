@@ -9,45 +9,42 @@ const real_t Asteroid::min_scale = 0.4;
 const real_t Asteroid::max_scale = 1.4;
 const real_t Asteroid::scale_range = fabsf(Asteroid::max_scale-Asteroid::min_scale);
 
-Asteroid::Asteroid(real_t theta,real_t r,real_t y,const Asteroid &reference):
-  mesh_index(reference.mesh_index),
-  salvage(reference.salvage),
-  max_structure(reference.max_structure),
-  theta(theta),r(r),y(y),
-  structure(max_structure)
-{}  
-
-Asteroid::Asteroid(Dictionary data,int mesh_index):
-  mesh_index(mesh_index),
-  salvage(to_wstring(get<String>(data,"salvage"))),
-  max_structure(get<double>(data,"max_structure",effectively_infinite_hitpoints)),
-  theta(0),r(0),y(0),
-  structure(max_structure)
+AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
+  mesh(get<Ref<Mesh>>(dict,"mesh")),
+  mesh_id(mesh_id),
+  salvage(to_wstring(get<String>(dict,"salvage"))),
+  color_data(get<Color>(dict,"color_data")),
+  max_structure(get<real_t>(dict,"max_structure",effectively_infinite_hitpoints))
 {}
 
-Asteroid::Asteroid():
-  mesh_index(-1), salvage(),
-  max_structure(effectively_infinite_hitpoints),
-  theta(theta), r(r), y(0),
-  structure(max_structure)
+AsteroidTemplate::AsteroidTemplate():
+  mesh(), mesh_id(-1), Color(0,0,0,0), 
+  salvage(), max_structure(effectively_infinite_hitpoints)
 {}
 
-void Asteroid::reset_stats(const Asteroid &reference) {
-  mesh_index=reference.mesh_index;
-  salvage=reference.salvage;
-  max_structure=reference.max_structure;
-  structure=max_structure;
+AsteroidTemplate::~AsteroidTemplate();
+
+////////////////////////////////////////////////////////////////////////
+
+double Asteroid::take_damage(double damage) {
+  double overkill = damage-structure;
+  if(overkill>=0) {
+    structure = 0;
+    return overkill;
+  } else {
+    structure = -overkill;
+    return 0;
+  }
 }
 
-void Asteroid::reset_stats() {
-  mesh_index=0;
-  salvage=wstring();
-  max_structure=effectively_infinite_hitpoints;
-  structure=max_structure;
+void Asteroid::set_template(shared_ptr<const AsteroidTemplate> &temp) {
+  this->temp = temp;
+  structure = temp ? temp->max_structure : effectively_infinite_hitpoints;
 }
 
 void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,real_t thickness,bool initialize) {
-  static std::hash<wstring> salvage_hash;
+  static const std::hash<wstring> salvage_hash;
+  static const std::hash<real_t> time_hash;
   if(state.valid_time==when)
     return;
   
@@ -62,12 +59,14 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
     hash = CheapRand32::hash(hash);
     hash ^= fmodf(orbit_period*1024,1048576.0f)*1<<20;
     hash = CheapRand32::hash(hash);
-    hash ^= fmodf(max_structure*1024,1048576.0f);
+    hash ^= fmodf(get_max_structure()*1024,1048576.0f);
     hash = CheapRand32::hash(hash);
-    uint64_t sh = salvage_hash(salvage);
+    size_t sh = salvage_hash(salvage);
     hash ^= sh;
     hash = CheapRand32::hash(hash);
     hash ^= sh>>32;
+    hash = CheapRand32::hash(hash);
+    hash ^= time_hash(when);
     hash = CheapRand32::hash(hash);
 
     state.rand.seed(hash);
@@ -89,11 +88,11 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
 }
 
 Transform Asteroid::calculate_transform(const AsteroidState &state) {
-  real_t rotation_speed = state.random_numbers.r * max_rotation_speed;
-  real_t rotation_phase = state.random_numbers.g * TAUf;
+  real_t rotation_speed = calculate_rotation_speed(state);
+  real_t rotation_phase = calculate_rotation_phase(state);
   real_t rotation_angle = rotation_phase + rotation_speed*state.valid_time;
   
-  real_t scale_xyz = state.random_numbers.b*scale_range + min_scale;
+  real_t scale_xyz = state.calculate_scale();
   
   Vector3 rotation_axis(state.random_numbers.r,state.random_numbers.g,state.random_numbers.a);
   rotation_axis.normalize();
@@ -113,33 +112,37 @@ AsteroidPalette::AsteroidPalette(Array selection) {
   int size=selection.size();
   asteroids.reserve(size);
   weights.reserve(size);
-  int count=0;
   real_t weight_accum=0;
   for(int i=0;i<size;i++) {
     Array item=selection[i];
-    if(item.size()!=2)
+    if(item.size()!=2) {
+      Godot::print_warning("Asteroid palette list items must have 2 elements, not "+str(item.size()),
+                           __FUNCTION__,__FILE__,__LINE__);
       continue;
+    }
     
     real_t weight = item[0];
     Dictionary asteroid_data = item[1];
-    if(weight<=0 or !asteroid_data.size())
+    if(weight<=0) {
+      Godot::print_warning("Non-positive asteroid palette weight "+str(weight),
+                           __FUNCTION__,__FILE__,__LINE__);
       continue;
-
-    String mesh_path = asteroid_data["asteroid_mesh_path"];
-    if(mesh_path.empty())
+    }
+    if(!asteroid_data.size()) {
+      Godot::print_warning("Empty asteroid information in an asteroid ",
+                           __FUNCTION__,__FILE__,__LINE__);
       continue;
+    }
     
     asteroids.emplace_back(asteroid_data,count);
     weight_accum += weight;
     accumulated_weights.push_back(weight_accum);
-    meshes.push_back(mesh_path);
-    count++;
   }
 }
 
-const Asteroid AsteroidPalette::default_asteroid = Asteroid();
+const AsteroidTemplate AsteroidPalette::default_asteroid = AsteroidTemplate();
 
-const Asteroid &AsteroidPalette::random_choice(CheapRand32 &rand) const {
+const AsteroidTemplate &AsteroidPalette::random_choice(CheapRand32 &rand) const {
   if(!empty()) {
     real_t random_weight = rand.randf()*accumulated_weights.back();
     vector<real_t>::const_iterator there = upper_bound(accumulated_weights.start(),accumulated_weights.end(),random_weight);

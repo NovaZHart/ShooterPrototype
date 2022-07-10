@@ -15,6 +15,13 @@ namespace godot {
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
 
+    // Intersection of a circle at the origin and a line.
+    // Returns the number of points of intersection.
+    // Input: radius is the radius of the circle (center is the origin)
+    // Input: line[2] has two points on the line.
+    // Output: intersection[2] will receive the zero, one, or two points of intersection
+    int line_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
+
     // Intersection of a circle at the origin and a circle not at the origin.
     // Return value is yes/no: is there an intersection?
     // Point1 & point2 are the points of intersection if return value is true

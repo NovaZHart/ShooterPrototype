@@ -4,6 +4,41 @@
 
 namespace godot {
   namespace CE {
+
+    // Intersection of a circle at the origin and a line.
+    // Returns the number of points of intersection.
+    // Input: radius is the radius of the circle (center is the origin)
+    // Input: line[2] has two points on the line.
+    // Output: intersection[2] will receive the zero, one, or two points of intersection
+    int line_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
+      Vector2 d = line[1]-line[0];
+      real_t dr2=d.length_squared();
+      real_t dcross=line[0].cross(line[1]);
+      real_t Q2 = radius*radius*dr2-dcross*dcross;
+      if(Q2<0)
+        return 0;
+
+      real_t x0=dcross*dy, y0=-cross*dx;
+      
+      if(Q2==0) {
+        intersection[0].x=x0/dr2;
+        intersection[0].y=y0/dr2;
+        return 1;
+      }
+
+      real_t Q=sqrtf(Q);
+      real_t xp=dx*Q*(dy<0 ? -1 : 1);
+      real_t yp=fabsf(dy)*Q;
+
+      intersection[0].x = (x0+xp)/dr2;
+      intersection[0].y = (y0+yp)/dr2;
+      
+      intersection[1].x = (x0-xp)/dr2;
+      intersection[1].y = (y0-yp)/dr2;
+      
+      return 2;
+    }
+    
     // Intersection of a circle at the origin and a circle not at the origin.
     // Return value is yes/no: is there an intersection?
     // Point1 & point2 are the points of intersection if return value is true

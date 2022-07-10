@@ -17,6 +17,7 @@ namespace godot {
   namespace CE {
     struct MultiMeshInstanceEffect;
     class Projectile;
+    class Asteroid;
     
     // A planet or ship to be displayed on the screen (minimap or main viewer)
     struct VisibleObject {
@@ -26,6 +27,13 @@ namespace godot {
       VisibleObject(const Planet &);
     };
 
+    // Visual effect with full mesh instance data.
+    struct InstanceEffect {
+      const object_id mesh_id;
+      Transform transform;
+      Color color_data, instance_data;
+    };
+    
     // A projectile or passive visual effect:
     struct VisibleEffect {
       const real_t rotation_y, scale_x, scale_z, y;
@@ -54,6 +62,7 @@ namespace godot {
       ships_and_planets_t ships_and_planets;
       std::vector<VisibleEffect> effects;
       std::unordered_map<object_id,String> mesh_paths;
+      std::vector<InstanceEffect> instances;
       //std::unordered_map<object_id,object_id> preloaded_meshes;
       VisibleContent *next;
       VisibleContent();
