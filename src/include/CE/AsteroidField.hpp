@@ -48,8 +48,8 @@ namespace godot {
       }
       
       AsteroidSearchResult(real_t start, real_t end):
-        start_theta(fmodf(start,TAUf)), end_theta(fmodf(end,TAUf)),
-        theta_width(fmodf(end_theta-start_theta,TAUf)),
+        start_theta(fmod(start+20*TAU,TAU)), end_theta(fmodf(end+20*TAU,TAU)),
+        theta_width(fmod(end_theta-start_theta+20*TAU,TAU)),
         any_intersect(true), all_intersect(false)
       {}
 
@@ -82,12 +82,15 @@ namespace godot {
       }
 
       inline AsteroidSearchResult negation() const {
-        return all_intersect ? no_match : ( any_intersect ? all_match :
-           AsteroidSearchResult(end_theta,start_theta));
+        if(all_intersect)
+          return no_match;
+	if(!any_intersect)
+          return all_match;
+        return AsteroidSearchResult(end_theta,start_theta);
       }
         
       inline real_t contains(real_t theta) const {
-        return any_intersect ? (fmodf(theta-start_theta,TAUf) <= theta_width) : false;
+        return any_intersect ? (fmod(theta-start_theta+20*TAU,TAU) <= theta_width) : false;
       }
 
       // Creates a new AsteroidSearchResult where the range has been

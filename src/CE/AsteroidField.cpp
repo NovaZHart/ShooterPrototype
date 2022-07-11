@@ -18,19 +18,27 @@ using namespace godot::CE;
 static const AsteroidSearchResult no_match = AsteroidSearchResult::no_match;
 static const AsteroidSearchResult all_match = AsteroidSearchResult::all_match;
 
+static real_t theta_from_vector(Vector2 v) {
+  return fmod(angle_from_unit(v)+20*TAU,TAU);
+}
+
 static AsteroidSearchResult theta_from(Vector2 a,Vector2 b) {
-  return AsteroidSearchResult(angle_from_unit(a), angle_from_unit(b));
+  return AsteroidSearchResult(theta_from_vector(a), theta_from_vector(b));
+}
+
+static AsteroidSearchResult reverse_theta_from(Vector2 a,Vector2 b) {
+  return AsteroidSearchResult(theta_from_vector(b), theta_from_vector(a));
 }
 
 static AsteroidSearchResult shortest_theta_from(Vector2 a,Vector2 b) {
   AsteroidSearchResult r(angle_from_unit(a), angle_from_unit(b));
-  real_t size = fmodf(r.get_end_theta()-r.get_start_theta(),TAUf);
+  real_t size = fmod(r.get_end_theta()-r.get_start_theta()+20*TAU,TAU);
   return (size>PIf) ? r.negation() : r;
 }
 
 static AsteroidSearchResult longest_theta_from(Vector2 a,Vector2 b) {
   AsteroidSearchResult r(angle_from_unit(a), angle_from_unit(b));
-  real_t size = fmodf(r.get_end_theta()-r.get_start_theta(),TAUf);
+  real_t size = fmod(r.get_end_theta()-r.get_start_theta()+20*TAU,TAU);
   return (size<PIf) ? r.negation() : r;
 }
 
@@ -288,7 +296,6 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
 
 AsteroidSearchResult AsteroidSearchResult::theta_range_of_circle(Vector2 center,real_t search_radius,real_t inner_radius,real_t outer_radius) {
   real_t clen = center.length();
-  real_t thickness = outer_radius-inner_radius;
 
   Godot::print("theta_range_of_circle center="+str(center)+" search_radius="+str(search_radius)
                +" inner_radius="+str(inner_radius)+" outer_radius="+str(outer_radius));
@@ -329,8 +336,8 @@ AsteroidSearchResult AsteroidSearchResult::theta_range_of_circle(Vector2 center,
     if(intersect_outer) {
       AsteroidSearchResult inner_angles = theta_from(inner1,inner2);
       AsteroidSearchResult outer_angles = theta_from(outer1,outer2);
-      real_t inner_range = fmodf(inner_angles.get_end_theta()-inner_angles.get_start_theta(),TAUf);
-      real_t outer_range = fmodf(outer_angles.get_end_theta()-outer_angles.get_start_theta(),TAUf);
+      real_t inner_range = fmodf(inner_angles.get_end_theta()-inner_angles.get_start_theta()+20*TAUf,TAUf);
+      real_t outer_range = fmodf(outer_angles.get_end_theta()-outer_angles.get_start_theta()+20*TAUf,TAUf);
       return (inner_range>outer_range) ? inner_angles : outer_angles;
     } else
       return theta_from(inner1,inner2);
@@ -340,7 +347,20 @@ AsteroidSearchResult AsteroidSearchResult::theta_range_of_circle(Vector2 center,
     return no_match;
 }
 
+static void dump_range(String prefix,const AsteroidSearchResult &range) {
+  if(range.get_all_intersect())
+    Godot::print(prefix+str("all match"));
+  else if(!range.get_any_intersect())
+    Godot::print(prefix+str("no match"));
+  else
+    Godot::print(prefix+str("start=")+str(range.get_start_theta())+" end="+str(range.get_end_theta()));
+}
 
+static void dump_ranges(deque<AsteroidSearchResult> &ranges) {
+  int i=0;
+  for(auto &range : ranges)
+    dump_range("  item "+str(i)+": ",range);
+}
 
 bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> &results,deque<AsteroidSearchResult> &work1,real_t inner_radius,real_t outer_radius) {
 
@@ -351,8 +371,8 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
     Vector2(rect.position.x,rect.position.y+rect.size.y),
     rect.position
   };
-  static const int xdir[4] = { -1, 0, 1, 0 };
-  static const int ydir[4] = { 0, -1, 0, 1 };
+  static const int xdir[4] = { 0, 1, 0, -1 };
+  static const int ydir[4] = { -1, 0, 1, 0 };
 
   results.clear();
   
@@ -361,7 +381,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
   //   - rectangle is entirely outside the outer_circle.
   {
     real_t ir2 = inner_radius*inner_radius;
-    real_t or2 = inner_radius*inner_radius;
+    real_t or2 = outer_radius*outer_radius;
     int within_inner=0, outside_outer=0;
     for(int i=0;i<4;i++) {
       if(points[i].length_squared()<ir2)
@@ -370,6 +390,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         outside_outer++;
     }
     if(within_inner==4) {
+      Godot::print("All points inside");
       // Rectangle is entirely inside the inner circle, so overlap is impossible.
       results.push_back(no_match);
       return false;
@@ -385,6 +406,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         quadrant[i] = copysignf(1,points[i].x) + copysignf(2,points[i].y);
 
       if(quadrant[0]==quadrant[1] and quadrant[1]==quadrant[2] and quadrant[2]==quadrant[3]) {
+        Godot::print("All points outside, within same quadrant");
         // All points of the rectangle are outside the outer circle
         // and in the same quadrant, so overlap is impossible.
         results.push_back(no_match);
@@ -399,28 +421,59 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
     Vector2 *side_points=points+side;
     
     real_t dr;
-    
-    if(ydir)
-      dr=ydir[side]*side_points[0].y;
-    else
-      dr=xdir[side]*side_points[0].x;
 
+    //Godot::print("Side "+str(side)+" line="+str(side_points[0])+"..."+str(side_points[1]));
+
+    real_t dir;
+    Vector2 flip(1,1);
+    if(ydir[side]) {
+      //flip.y=ydir[side];
+      dir=ydir[side];
+      dr=-dir*side_points[0].y;
+      //Godot::print("   is ydir "+str(ydir[side])+" side with dr="+str(dr));
+    } else {
+      //flip.x=xdir[side];
+      dir=xdir[side];
+      dr=-dir*side_points[0].x;
+      //Godot::print("   is xdir "+str(xdir[side])+" side with dr="+str(dr));
+    }
+    
+    //Godot::print("   flip="+str(flip));
+    
     if(dr>outer_radius) { // Case F
+      //Godot::print("   Case F: entire annulus was removed.");
       // Entire annulus was removed.
       results.push_back(no_match);
       return false;
-    } else if(dr<-inner_radius) // Cases A & B
+    } else if(dr<-inner_radius) { // Cases A & B
+      //Godot::print("   Case AB: remove nothing");
       continue;
-    else if(dr>0) { // Cases D & E
+    } else if(dr>=0) { // Cases D & E
       Vector2 intersection[2];
       int n=line_intersect_circle(outer_radius,side_points,intersection);
-      if(n>1)
+      if(n>1) {
+        intersection[0]*=flip;
+        intersection[1]*=flip;
+        if(dir<0)
+          swap(intersection[0],intersection[1]);
+        //Godot::print("   Case DE with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
         work1.push_back(longest_theta_from(intersection[0],intersection[1]));
+        //Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
+      } // else
+        // Godot::print("   Case DE no intersection.");
     } else { // Case C
       Vector2 intersection[2];
       int n=line_intersect_circle(inner_radius,side_points,intersection);
-      if(n>1)
+      if(n>1) {
+        intersection[0]*=flip;
+        intersection[1]*=flip;
+        if(dir<0)
+          swap(intersection[0],intersection[1]);
+        //Godot::print("   Case C with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
         work1.push_back(shortest_theta_from(intersection[0],intersection[1]));
+        //Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
+      } // else
+        //Godot::print("   Case C no intersection");
     }
   }
 
@@ -429,11 +482,21 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
   if(!work1.empty()) {
     // At least one region was removed. What is left?
     results.push_back(all_match);
+
+    Godot::print("START");
+    Godot::print("Remove:");
+    dump_ranges(work1);
+    Godot::print("From:");
+    dump_ranges(results);
     
-    for(auto &r : work1)
-      for(auto it=results.begin();it!=results.end();it++) {
+    for(auto &r : work1) {
+      dump_range("-- REMOVAL STEP ",r);
+      dump_ranges(results);
+      for(auto it=results.begin();it!=results.end();) {
+        dump_range("Remove from ",*it);
         pair<AsteroidSearchResult,AsteroidSearchResult> minused=it->minus(r);
         if(!minused.first.get_any_intersect()) {
+          Godot::print("Eliminated range");
           // Entirely eliminated this range.
           it=results.erase(it);
           continue;
@@ -441,15 +504,19 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         *it = minused.first;
         if(!minused.second.get_any_intersect()) {
           // Reduce the size of this range.
+          dump_range("Reduced size to: ",*it);
           it++;
           continue;
         }
         // Range was split in two. Push to the front so we don't loop over this new location.
+        dump_range("Split range 1: ",*it);
+        dump_range("Split range 2: ",minused.second);
         results.push_front(minused.second);
         it++;
       }
+    }
 
-    AsteroidSearchResult::merge_set(results);
+    //AsteroidSearchResult::merge_set(results);
     switch(results.size()) {
     case 0:
       return false; // should never happen
@@ -459,7 +526,6 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
       return true;
     }
   }
-
   return work1.empty();
 }
 

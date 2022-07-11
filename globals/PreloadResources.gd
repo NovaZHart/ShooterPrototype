@@ -10,6 +10,10 @@ var ship_count=0
 
 func _ready():
 	preloader=GDNativePreloadResources.new()
+	set_process(false)
+
+func preload():
+	set_process(true)
 
 func free_all_resources():
 	if not preloader:

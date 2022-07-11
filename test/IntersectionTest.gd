@@ -12,14 +12,16 @@ var world_size: Vector2 = Vector2(12,12)
 var inner_radius: float = 2
 var outer_radius: float = 4
 
-var ray_start: Vector2 = Vector2(-1,0)
+var ray_start: Vector2 = Vector2(-1,-1)
 var ray_end: Vector2 = Vector2(1,5)
 
 var theta_regions: Array = [Vector2(0.2,0.6), Vector2(0.9,1.3)]
 
 const CAST_RAY: int = 1
 const INTERSECT_CIRCLE: int = 2
-var mode = INTERSECT_CIRCLE
+const INTERSECT_RECT: int = 3
+const MAX_MODE: int = 3
+var mode = CAST_RAY
 
 class WorldInfo:
 	var world_scale: float
@@ -43,6 +45,11 @@ class WorldInfo:
 		return Vector2(q.x,2*center_pixels.y-q.y)
 
 func _input(event: InputEvent):
+	if event is InputEventMouseButton and event.button_index==BUTTON_RIGHT and !event.pressed:
+		mode = (mode%MAX_MODE) + 1
+		if !Input.is_mouse_button_pressed(BUTTON_LEFT):
+			run_native()
+		update()
 	if (event is InputEventMouseButton and event.button_index==BUTTON_LEFT) \
 			or (event is InputEventMouseMotion and Input.is_mouse_button_pressed(BUTTON_LEFT)):
 		var w = WorldInfo.new(world_size, rect_size, inner_radius, outer_radius)
@@ -69,22 +76,29 @@ func run_native():
 	if mode==CAST_RAY:
 		var result: Array = native.cast_ray(ray_start,ray_end)
 		theta_regions = Array(result)
-	else: # INTERSECT_CIRCLE
+	elif mode==INTERSECT_CIRCLE:
 		var result: Array = native.intersect_circle(ray_start,(ray_end-ray_start).length())
+		theta_regions = result
+	else: #INTERSECT_RECT
+		var rect: Rect2 = Rect2(ray_start,ray_end-ray_start).abs()
+		var result: Array = native.intersect_rect(rect);
 		theta_regions = result
 	print('result: '+str(theta_regions))
 	update()
 
 func make_arc_polygon(r_inner: float, r_outer: float, center: Vector2, thetas: Vector2, full_circle_lines: int) -> PoolVector2Array:
 	var a: PoolVector2Array = PoolVector2Array()
-	var theta_width = fmod(thetas[1]-thetas[0],2*PI)
-	var lines = int(max(10, full_circle_lines * theta_width/2*PI))
+	var theta_width = fmod(thetas[1]-thetas[0]+20*PI,2*PI)
+	var lines = int(max(10, full_circle_lines * theta_width/(2*PI)))
 	var nvertex = 2*(lines+1)+1
 	a.resize(nvertex)
+	print("make_arc_polygon from "+str(thetas[0])+" extending by "+str(theta_width)+" using "+str(lines)+" steps of "+str(full_circle_lines))
 	for i in range(lines+1):
 		var angle = thetas[0]+i*theta_width/lines
 		a[i] = r_inner*Vector2(cos(angle),sin(angle))+center
 		a[nvertex-i-2] = r_outer*Vector2(cos(angle),sin(angle))+center
+		if i<5:
+			print("point "+str(i)+" = "+str(a[i]))
 	a[2*(lines+1)] = a[0]
 	return a
 	
@@ -118,10 +132,13 @@ func _draw():
 	var end_poly = make_circle_polygon(0.04*w.world_scale,pixel_end,20)
 	draw_colored_polygon(end_poly,ray_color)
 	
-	assert(mode==INTERSECT_CIRCLE)
-	
 	if mode==CAST_RAY:
 		draw_line(pixel_start,pixel_end,ray_color,line_thickness,false)
 	elif mode==INTERSECT_CIRCLE:
 		var cpoly = make_circle_polygon((pixel_end-pixel_start).length(),pixel_start,100);
 		draw_polyline(cpoly,ray_color,line_thickness,false)
+	elif mode==INTERSECT_RECT:
+		draw_line(pixel_start,Vector2(pixel_start.x,pixel_end.y),ray_color,line_thickness,false)
+		draw_line(Vector2(pixel_start.x,pixel_end.y),pixel_end,ray_color,line_thickness,false)
+		draw_line(pixel_end,Vector2(pixel_end.x,pixel_start.y),ray_color,line_thickness,false)
+		draw_line(Vector2(pixel_end.x,pixel_start.y),pixel_start,ray_color,line_thickness,false)

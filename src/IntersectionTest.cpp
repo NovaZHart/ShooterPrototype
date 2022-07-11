@@ -10,6 +10,7 @@ void IntersectionTest::_register_methods() {
   register_method("set_annulus",&IntersectionTest::set_annulus);
   register_method("cast_ray",&IntersectionTest::cast_ray);
   register_method("intersect_circle",&IntersectionTest::intersect_circle);
+  register_method("intersect_rect",&IntersectionTest::intersect_rect);
 }
 
 void IntersectionTest::_init() {}
@@ -29,6 +30,21 @@ Array IntersectionTest::intersect_circle(Vector2 center,real_t radius) {
       result.append(Vector2(0,TAUf-.001));
     else
       result.append(Vector2(range.get_start_theta(),range.get_end_theta()));
+  }
+  return result;
+}
+
+Array IntersectionTest::intersect_rect(Rect2 rect) {
+  deque<AsteroidSearchResult> ranges,work1;
+  bool match = AsteroidSearchResult::theta_ranges_of_rect(rect,ranges,work1,inner_radius,outer_radius);
+  Array result;
+  if(match) {
+     for(auto &range : ranges) {
+       if(range.get_all_intersect())
+         result.append(Vector2(0,TAUf-.001));
+       else if(range.get_any_intersect())
+         result.append(Vector2(range.get_start_theta(),range.get_end_theta()));
+     }
   }
   return result;
 }
