@@ -11,8 +11,6 @@ const real_t Asteroid::min_scale = 0.4;
 const real_t Asteroid::max_scale = 1.4;
 const real_t Asteroid::scale_range = fabsf(Asteroid::max_scale-Asteroid::min_scale);
 
-const String AsteroidTemplate::no_cargo = String();
-
 AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   mesh(get<Ref<Mesh>>(dict,"mesh")),
   mesh_id(mesh_id),
@@ -152,7 +150,7 @@ AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
       ptr = make_shared<AsteroidTemplate>(*ptr);
 }
 
-const shared_ptr<const AsteroidTemplate> AsteroidPalette::default_asteroid = make_shared<AsteroidTemplate>();
+shared_ptr<const AsteroidTemplate> AsteroidPalette::default_asteroid;
 
 shared_ptr<const AsteroidTemplate> AsteroidPalette::random_choice(CheapRand32 &rand) const {
   if(!empty()) {
@@ -160,5 +158,5 @@ shared_ptr<const AsteroidTemplate> AsteroidPalette::random_choice(CheapRand32 &r
     vector<real_t>::const_iterator there = upper_bound(accumulated_weights.begin(),accumulated_weights.end(),random_weight);
     return asteroids[there-accumulated_weights.begin()];
   } else
-    return default_asteroid;
+    return get_default_asteroid();
 }

@@ -109,8 +109,6 @@ namespace godot {
 
     public:
 
-      static const String no_cargo;
-
       AsteroidTemplate(const Dictionary &dict,object_id mesh_id=-1);
       AsteroidTemplate();
       ~AsteroidTemplate();
@@ -259,8 +257,8 @@ namespace godot {
 
       // What is the name in the SalvagePalette of the flotsam that
       // should be created when this asteroid is destroyed?
-      inline const String &get_cargo() const {
-        return templ ? templ->get_cargo() : AsteroidTemplate::no_cargo;
+      inline String get_cargo() const {
+        return templ ? templ->get_cargo() : String();
       }
       
       // Should this asteroid be shown if it is on camera?
@@ -348,10 +346,27 @@ namespace godot {
       std::vector<real_t> accumulated_weights;
 
       // The asteroid template used if asteroids.size()==0
-      static const std::shared_ptr<const AsteroidTemplate> default_asteroid;
+      static std::shared_ptr<const AsteroidTemplate> default_asteroid;
     public:
       AsteroidPalette(Array selection);
       AsteroidPalette(const AsteroidPalette &a,bool deep_copy);
+
+      // Iterators are over asteroids.
+      std::vector<std::shared_ptr<AsteroidTemplate>>::iterator begin() {
+        return asteroids.begin();
+      }
+
+      std::vector<std::shared_ptr<AsteroidTemplate>>::iterator end() {
+        return asteroids.end();
+      }
+
+      std::vector<std::shared_ptr<AsteroidTemplate>>::const_iterator begin() const {
+        return asteroids.begin();
+      }
+
+      std::vector<std::shared_ptr<AsteroidTemplate>>::const_iterator end() const {
+        return asteroids.end();
+      }
       
       // Randomly choose an asteroid, or return default_asteroid if there
       // are no asteroids. Uses the provided random number generator.
@@ -359,6 +374,8 @@ namespace godot {
 
       // What asteroid will be provided if this->empty()
       static inline std::shared_ptr<const AsteroidTemplate> get_default_asteroid() {
+        if(!default_asteroid)
+          default_asteroid=std::make_shared<AsteroidTemplate>();
         return default_asteroid;
       }
       

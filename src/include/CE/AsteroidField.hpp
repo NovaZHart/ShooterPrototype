@@ -104,6 +104,17 @@ namespace godot {
       // returns false. If possible, returns true and the merged
       // region.
       std::pair<bool,AsteroidSearchResult> merge(const AsteroidSearchResult &region) const;
+
+      // Find all thetas of an annulus that overlap the given ray.
+      static std::pair<AsteroidSearchResult,AsteroidSearchResult> theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner_radius,real_t outer_radius);
+
+      // Find all thetas of an annulus that lie within the given circle.
+      static AsteroidSearchResult theta_range_of_circle(Vector2 center,real_t radius,real_t inner_radius,real_t outer_radius);
+
+      // Find all thetas of an annulus that lie within the given rect.
+      // If there are none, returns false and puts no_match in the results.
+      // If there are any, they'll be in the results.
+      static bool theta_ranges_of_rect(Rect2 rect,std::deque<AsteroidSearchResult> &results,std::deque<AsteroidSearchResult> &work1,real_t inner_radius,real_t outer_radius);
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -146,7 +157,7 @@ namespace godot {
       AsteroidLayer(const Dictionary &d);
       ~AsteroidLayer();
 
-      inline size_t size() {
+      inline size_t size() const {
         return asteroids.size();
       }
       
@@ -173,23 +184,12 @@ namespace godot {
       }
 
       // upper_bound of theta
-      int find_theta(real_t theta);
+      int find_theta(real_t theta) const;
 
       // How much has the annulus rotated by this time?
       inline real_t theta_time_shift(double when) const {
         return when*orbit_mult;
       }
-
-      // Find all thetas that overlap the given ray.
-      std::pair<AsteroidSearchResult,AsteroidSearchResult> theta_ranges_of_ray(Vector2 start,Vector2 end);
-
-      // Find all thetas that lie within the given circle.
-      AsteroidSearchResult theta_range_of_circle(Vector2 center,real_t radius);
-
-      // Find all thetas that lie within the given rect.
-      // If there are none, returns false and clears results.
-      // If there are any, they'll be in the results.
-      bool theta_ranges_of_rect(Rect2 rect,std::deque<AsteroidSearchResult> &results,std::deque<AsteroidSearchResult> &work1);
 
       // Clears the asteroid layer and generates a new one from the given selection of asteroids.
       // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
@@ -220,6 +220,8 @@ namespace godot {
       // instanced as needed throughout the asteroid layers.
       AsteroidPalette palette;
 
+      CheapRand32 rand;
+      
       // The selection of flotsam that asteroids can generate upon destruction.
       std::shared_ptr<const SalvagePalette> salvage;
 

@@ -126,7 +126,7 @@ void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results) {
   if(results.size()<2)
     return;
 
-  for(size_t loops_since_merge; loops_since_merge<results.size(); loops_since_merge++) {
+  for(size_t loops_since_merge=0; loops_since_merge<results.size(); loops_since_merge++) {
 
     // Consider whether we can merge "mergeme" with anything in the deque.
     AsteroidSearchResult mergeme = results.front();
@@ -161,39 +161,9 @@ void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results) {
   }
 }
 
-////////////////////////////////////////////////////////////////////////
-
-
-AsteroidLayer::AsteroidLayer(const Dictionary &d):
-  orbit_period(get<real_t>(d,"orbit_period")),
-  orbit_mult(orbit_period ? TAUf/orbit_period : 1),
-  inner_radius(max(0.0f,get<real_t>(d,"inner_radius"))),
-  thickness(max(Asteroid::max_scale*3,get<real_t>(d,"thickness"))),
-  outer_radius(inner_radius+thickness),
-  spacing(max(Asteroid::min_scale,get<real_t>(d,"spacing",Asteroid::max_scale*2))),
-  y(asteroid_height),
-  asteroids(),
-  state()
-{}
-
-AsteroidLayer::~AsteroidLayer()
-{}
-
-int AsteroidLayer::find_theta(real_t theta) {
-  real_t modded = fmodf(theta,TAUf);
-  Asteroid findme(modded,0,0,0);
-  struct compare {
-    bool operator () (const Asteroid &a,const Asteroid &b) {
-      return a.theta<b.theta;
-    }
-  };
-  vector<Asteroid>::iterator bound =
-    lower_bound(asteroids.begin(),asteroids.end(),findme,compare());
-  return bound==asteroids.end() ? 0 : bound-asteroids.begin();
-}
 
 pair<AsteroidSearchResult,AsteroidSearchResult>
-AsteroidLayer::theta_ranges_of_ray(Vector2 start,Vector2 end) {
+AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner_radius,real_t outer_radius) {
   typedef pair<AsteroidSearchResult,AsteroidSearchResult> result;
   real_t slen = start.length(), elen=end.length();
 
@@ -302,9 +272,10 @@ AsteroidLayer::theta_ranges_of_ray(Vector2 start,Vector2 end) {
   return result(no_match,no_match);
 }
 
-AsteroidSearchResult AsteroidLayer::theta_range_of_circle(Vector2 center,real_t search_radius) {
+AsteroidSearchResult AsteroidSearchResult::theta_range_of_circle(Vector2 center,real_t search_radius,real_t inner_radius,real_t outer_radius) {
   real_t clen = center.length();
-
+  real_t thickness = outer_radius-inner_radius;
+  
   // Check for special cases. The vast majority of searches will match case 1 or 3.
   if(clen<thickness) {
     if(search_radius+clen<inner_radius)
@@ -330,7 +301,7 @@ AsteroidSearchResult AsteroidLayer::theta_range_of_circle(Vector2 center,real_t 
       AsteroidSearchResult inner_angles = theta_from(inner1,inner2);
       AsteroidSearchResult outer_angles = theta_from(outer1,outer2);
       real_t inner_range = fmodf(inner_angles.get_end_theta()-inner_angles.get_start_theta(),TAUf);
-      real_t outer_range = fmodf(outer_angles.get_end_theta()-outer_angles.get_end_theta(),TAUf);
+      real_t outer_range = fmodf(outer_angles.get_end_theta()-outer_angles.get_start_theta(),TAUf);
       return (inner_range>outer_range) ? inner_angles : outer_angles;
     } else
       return theta_from(inner1,inner2);
@@ -342,7 +313,7 @@ AsteroidSearchResult AsteroidLayer::theta_range_of_circle(Vector2 center,real_t 
 
 
 
-bool AsteroidLayer::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> &results,deque<AsteroidSearchResult> &work1) {
+bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> &results,deque<AsteroidSearchResult> &work1,real_t inner_radius,real_t outer_radius) {
 
   Vector2 points[5] = {
     rect.position,
@@ -356,19 +327,44 @@ bool AsteroidLayer::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> 
 
   results.clear();
   
+  // Check for common special cases:
+  //   - rectangle is entirely within the inner circle.
+  //   - rectangle is entirely outside the outer_circle.
   {
-    // Check for a common special case: rectangle is entirely within the inner circle.
     real_t ir2 = inner_radius*inner_radius;
-    int within_inner=0;
-    for(int i=0;i<4;i++)
+    real_t or2 = inner_radius*inner_radius;
+    int within_inner=0, outside_outer=0;
+    for(int i=0;i<4;i++) {
       if(points[i].length_squared()<ir2)
         within_inner++;
+      if(points[i].length_squared()>or2)
+        outside_outer++;
+    }
     if(within_inner==4) {
+      // Rectangle is entirely inside the inner circle, so overlap is impossible.
       results.push_back(no_match);
       return false;
     }
+
+    if(outside_outer==4) {
+      // All four points are outside the outer circle.
+      // BUT: the rectangle may still overlap.
+
+      // What quadrant are the points in?
+      real_t quadrant[4];
+      for(int i=0;i<4;i++)
+        quadrant[i] = copysignf(1,points[i].x) + copysignf(2,points[i].y);
+
+      if(quadrant[0]==quadrant[1] and quadrant[1]==quadrant[2] and quadrant[2]==quadrant[3]) {
+        // All points of the rectangle are outside the outer circle
+        // and in the same quadrant, so overlap is impossible.
+        results.push_back(no_match);
+        return false;
+      }
+    }
   }
-  
+
+  // Find all regions that should NOT be in the intersection, and put them in the work1 array.
   work1.clear();
   for(int side=0;side<4;side++) {
     Vector2 *side_points=points+side;
@@ -399,21 +395,29 @@ bool AsteroidLayer::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> 
     }
   }
 
+  // Starting with the universal set in results, subtract from
+  // "results" each region of work1.
   if(!work1.empty()) {
     // At least one region was removed. What is left?
     results.push_back(all_match);
     
     for(auto &r : work1)
-      for(auto it=results.begin();it!=results.end();) {
-        pair<AsteroidSearchResult,AsteroidSearchResult> minused=r.minus(*it);
+      for(auto it=results.begin();it!=results.end();it++) {
+        pair<AsteroidSearchResult,AsteroidSearchResult> minused=it->minus(r);
         if(!minused.first.get_any_intersect()) {
-          it++;
+          // Entirely eliminated this range.
+          it=results.erase(it);
           continue;
         }
         *it = minused.first;
         if(!minused.second.get_any_intersect()) {
+          // Reduce the size of this range.
+          it++;
           continue;
-        it.push_back(minused.second);
+        }
+        // Range was split in two. Push to the front so we don't loop over this new location.
+        results.push_front(minused.second);
+        it++;
       }
 
     AsteroidSearchResult::merge_set(results);
@@ -428,6 +432,37 @@ bool AsteroidLayer::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> 
   }
 
   return work1.empty();
+}
+
+////////////////////////////////////////////////////////////////////////
+
+
+AsteroidLayer::AsteroidLayer(const Dictionary &d):
+  orbit_period(get<real_t>(d,"orbit_period")),
+  orbit_mult(orbit_period ? TAUf/orbit_period : 1),
+  inner_radius(max(0.0f,get<real_t>(d,"inner_radius"))),
+  thickness(max(Asteroid::max_scale*3,get<real_t>(d,"thickness"))),
+  outer_radius(inner_radius+thickness),
+  spacing(max(Asteroid::min_scale,get<real_t>(d,"spacing",Asteroid::max_scale*2))),
+  y(asteroid_height),
+  asteroids(),
+  state()
+{}
+
+AsteroidLayer::~AsteroidLayer()
+{}
+
+int AsteroidLayer::find_theta(real_t theta) const {
+  real_t modded = fmodf(theta,TAUf);
+  Asteroid findme(modded,0,0,0);
+  struct compare {
+    bool operator () (const Asteroid &a,const Asteroid &b) {
+      return a.theta<b.theta;
+    }
+  };
+  vector<Asteroid>::const_iterator bound =
+    lower_bound(asteroids.begin(),asteroids.end(),findme,compare());
+  return bound==asteroids.end() ? 0 : bound-asteroids.begin();
 }
 
 void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &rand) {
@@ -508,6 +543,7 @@ void AsteroidLayer::sort_asteroids() {
 AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalette> asteroids,
                              std::shared_ptr<SalvagePalette> salvage):
   palette(*asteroids,true),
+  rand(),
   salvage(salvage),
   layers(),
   now(now),
@@ -576,10 +612,10 @@ double AsteroidField::damage_asteroid(CombatEngine &ce,object_id id,double damag
       if(state) {
         real_t r = asteroid->get_r()+layer.inner_radius;
         real_t speed = r*layer.orbit_mult;
-        Vector3 position = asteroid->get_x0z(state);
+        Vector3 position = asteroid->get_x0z(*state);
         Vector3 pnorm = position.normalized();
         Vector3 velocity(-pnorm.z*speed,0,pnorm.x*speed);
-        ce.create_flotsam_projectile(nullptr,salvage,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
+        ce.create_flotsam_projectile(nullptr,salvage_ptr,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
       }
     }
     return remaining;
@@ -603,7 +639,7 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
   now+=delta;
   real_t rnow = now;
 
-  Rect2 search_region = visible_region.expand(Asteroid::max_scale+1);
+  Rect2 search_region = visible_region.grow(Asteroid::max_scale+1);
 
   for(auto it=dead_asteroids.begin();it!=dead_asteroids.end();) {
     object_id id = *it;
@@ -621,7 +657,7 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
         continue;
 
       // Replace the asteroid's stats
-      asteroid->set_template(palette.random_choice());
+      asteroid->set_template(palette.random_choice(rand));
 
       // Ensure the state is reinitialized next time it is needed.
       state->reset();
@@ -632,16 +668,16 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
 void AsteroidField::send_meshes(MultiMeshManager &mmm) {
   if(!sent_meshes) {
     for(auto & pal : palette)
-      pal.set_mesh_id(mmm.add_preloaded_mesh(pal.get_mesh()));
+      pal->set_mesh_id(mmm.add_preloaded_mesh(pal->get_mesh()));
     sent_meshes = true;
   }
 }
 
-void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) const {
+void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
   deque<AsteroidSearchResult> found,work;
 
   // Search a slightly larger region due to asteroid scaling.
-  Rect2 search_region = visible_region.expand(Asteroid.max_scale+1);
+  Rect2 search_region = visible_region.grow(Asteroid::max_scale+1);
   real_t valid_time = now;
 
   // Search each layer.
@@ -649,7 +685,7 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) co
     found.clear();
 
     // What theta ranges does this rect overlap?
-    if(layer.theta_ranges_of_rect(search_region,found,work)) {
+    if(AsteroidSearchResult::theta_ranges_of_rect(search_region,found,work,layer.inner_radius,layer.outer_radius)) {
       real_t theta0 = layer.theta_time_shift(now);
       for(auto &range : found) {
         if(!range.get_any_intersect())
@@ -660,8 +696,8 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) co
         if(range.get_all_intersect())
           itheta1 = itheta2 = 0;
         else {
-          int itheta1 = found.find_theta(range.start_end_theta()+theta0);
-          int itheta2 = found.find_theta(range.get_end_theta()+theta0);
+          itheta1 = layer.find_theta(range.get_start_theta()+theta0);
+          itheta2 = layer.find_theta(range.get_end_theta()+theta0);
         }
 
         // Search all indices within the range.
@@ -679,18 +715,21 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) co
           if(!s)
             continue;
 
-          if(!search_region.has_point(a->get_xz(state)))
+          if(!search_region.has_point(a->get_xz(*s)))
             continue;
 
           // Get the template, for its mesh id and color
-          const shared_ptr<const AsteroidTemplate> *t = a->get_template();
+          const shared_ptr<const AsteroidTemplate> t = a->get_template();
           if(!t)
             continue;
 
+          real_t scale = a->calculate_scale(*s);
+          
           // Calculate the transform, and put everything in a new InstanceEffect
-          content->instances.push_back(InstanceEffect {
+          content.instances.push_back(InstanceEffect {
               t->get_mesh_id(), a->calculate_transform(*s),
-                t->get_color_data(), s->get_instance_data() });
+                t->get_color_data(), s->get_instance_data(),
+                Vector2(scale,scale) });
         } while(itheta!=itheta1);
       }
     }
@@ -699,20 +738,20 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) co
 
 std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::unordered_set<object_id> &results) const {
   size_t count=0;
-  real_t expanded_radius = radius+Asteroid.max_scale+1;
-  real_t radius_squared = radius*radius;
+  real_t expanded_radius = radius+Asteroid::max_scale+1;
   real_t valid_time = now;
-  for(int ilayer = 0;ilayer<layers.size();ilayer++) {
-    AsteroidLayer &layer = layers[ilayer];
-    AsteroidSearchResult range = layer.theta_range_of_circle(center,search_radius);
+  for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
+    const AsteroidLayer &layer = layers[ilayer];
+    real_t theta0 = layer.theta_time_shift(now);
+    AsteroidSearchResult range = AsteroidSearchResult::theta_range_of_circle(center,expanded_radius,layer.inner_radius,layer.outer_radius);
 
     // What range of indices do we search?
     int itheta1, itheta2;
     if(range.get_all_intersect())
       itheta1 = itheta2 = 0;
     else {
-      int itheta1 = found.find_theta(range.start_end_theta()+theta0);
-      int itheta2 = found.find_theta(range.get_end_theta()+theta0);
+      itheta1 = layer.find_theta(range.get_start_theta()+theta0);
+      itheta2 = layer.find_theta(range.get_end_theta()+theta0);
     }
     
     // Search all indices within the range.
@@ -729,10 +768,10 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
       if(!s)
         continue;
 
-      real_t combined_radius = a->calculate_scale(state)+radius;
+      real_t combined_radius = a->calculate_scale(*s)+radius;
 
-      if(center.distance_squared_to(Vector2(a->get_xz(state)))<=combined_radius*combined_radius) {
-        results.push_back(combined_id(ilayer,itheta));
+      if(center.distance_squared_to(Vector2(a->get_xz(*s)))<=combined_radius*combined_radius) {
+        results.insert(combined_id(ilayer,itheta));
         count++;
       }
     } while(itheta!=itheta1);
@@ -741,20 +780,20 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
 }
 
 object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
-  real_t expanded_radius = radius+Asteroid.max_scale+1;
-  real_t radius_squared = radius*radius;
+  real_t expanded_radius = radius+Asteroid::max_scale+1;
   real_t valid_time = now;
-  for(int ilayer = 0;ilayer<layers.size();ilayer++) {
-    AsteroidLayer &layer = layers[ilayer];
-    AsteroidSearchResult range = layer.theta_range_of_circle(center,search_radius);
+  for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
+    const AsteroidLayer &layer = layers[ilayer];
+    real_t theta0 = layer.theta_time_shift(now);
+    AsteroidSearchResult range = AsteroidSearchResult::theta_range_of_circle(center,expanded_radius,layer.inner_radius,layer.outer_radius);
 
     // What range of indices do we search?
     int itheta1, itheta2;
     if(range.get_all_intersect())
       itheta1 = itheta2 = 0;
     else {
-      int itheta1 = found.find_theta(range.start_end_theta()+theta0);
-      int itheta2 = found.find_theta(range.get_end_theta()+theta0);
+      itheta1 = layer.find_theta(range.get_start_theta()+theta0);
+      itheta2 = layer.find_theta(range.get_end_theta()+theta0);
     }
     
     // Search all indices within the range.
@@ -771,9 +810,9 @@ object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
       if(!s)
         continue;
 
-      real_t combined_radius = a->calculate_scale(state)+radius;
+      real_t combined_radius = a->calculate_scale(*s)+radius;
 
-      if(center.distance_squared_to(Vector2(a->get_xz(state)))<=combined_radius*combined_radius)
+      if(center.distance_squared_to(Vector2(a->get_xz(*s)))<=combined_radius*combined_radius)
         return combined_id(ilayer,itheta);
     } while(itheta!=itheta1);
   }
@@ -790,19 +829,19 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
   Vector2 direction = length ? diff/length : Vector2(1,0);
   Vector2 normal(-direction.y,direction.x);
   
-  for(int ilayer=0;ilayer<layers.size();ilayer++) {
+  for(size_t ilayer=0;ilayer<layers.size();ilayer++) {
     const AsteroidLayer &layer = layers[ilayer];
     if(!layer.asteroids.size())
       continue; // Layer is empty. Should never happen.
 
     // Find the theta ranges of all possible intersections of the ray with this layer.
-    pair<AsteroidSearchResult,AsteroidSearchResult> range_pair = layer.theta_ranges_of_ray(start,end);
+    pair<AsteroidSearchResult,AsteroidSearchResult> range_pair = AsteroidSearchResult::theta_ranges_of_ray(start,end,layer.inner_radius,layer.outer_radius);
     AsteroidSearchResult ranges[2];
     ranges[0]=range_pair.first;
     ranges[1]=range_pair.second;
 
     // Are we searching zero, one, or two ranges?
-    int loop_start=0,loop_end=1;
+    size_t loop_start=0,loop_end=1;
     if(ranges[0].get_all_intersect() or ranges[1].get_all_intersect())
       loop_end=0;
     else {
@@ -813,14 +852,14 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
     }
 
     // Find the asteroid closest to the beginning of the ray.
-    for(irange=loop_start;irange<=loop_end;irange++) {
+    for(size_t irange=loop_start;irange<=loop_end;irange++) {
       AsteroidSearchResult range = ranges[irange].expanded_by(Asteroid::max_scale/layer.inner_radius);
-      int itheta_start, itheta_after;
+      int itheta_start, itheta_end;
       if(range.get_all_intersect()) {
         itheta_start = 0;
         itheta_end = layer.asteroids.size();
       } else {
-        itheta_start = layer.find_theta(range.start_end_theta());
+        itheta_start = layer.find_theta(range.get_start_theta());
         itheta_end = layer.find_theta(range.get_end_theta())+1;
       }
 
@@ -837,11 +876,11 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
         if(!s)
           continue;
 
-        Vector2 relative_location = state->get_xz()-start;
+        Vector2 relative_location = s->get_xz()-start;
         real_t along = relative_location.dot(direction);
-        real_t radius = a->calculate_scale(*state);
+        real_t radius = a->calculate_scale(*s);
         real_t approach = along-radius;
-        if(approach>len or along+radius<0)
+        if(approach>length or along+radius<0)
           // Asteroid is before or after ray
           continue;
         real_t across = fabsf(relative_location.dot(normal));
@@ -859,7 +898,7 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
           closest_id = combined_id(ilayer,itheta);
         }
         itheta++;
-      } while(itheta!=itheta_after)
+      } while(itheta!=itheta_after);
     }
   }
   

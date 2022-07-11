@@ -25,12 +25,12 @@
 namespace godot {
 
   template<class T>
-  String str(const T &t) {
+  inline String str(const T &t) {
     return String(Variant(t));
   }
   
   template<>
-  String str(const std::wstring &s) {
+  inline String str(const std::wstring &s) {
     const wchar_t *c = s.c_str();
     if(c&&*c)
       return String(c);
