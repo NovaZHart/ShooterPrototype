@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <limits>
 #include <memory>
+#include <string>
 
 #include <Dictionary.hpp>
 #include <RID.hpp>
@@ -29,16 +30,16 @@ namespace godot {
   }
   
   template<>
-  String str(const wstring &s) {
+  String str(const std::wstring &s) {
     const wchar_t *c = s.c_str();
     if(c&&*c)
       return String(c);
     return String();
   }
   
-  wstring as_wstring(const String &s) {
+  inline std::wstring to_wstring(const String &s) {
     const wchar_t *c = s.unicode_str();
-    return c ? wstring(c) : wstring();
+    return c ? std::wstring(c) : std::wstring();
   }
 
   namespace CE {

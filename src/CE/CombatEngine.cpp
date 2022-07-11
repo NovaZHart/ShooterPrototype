@@ -9,6 +9,7 @@
 #include <NodePath.hpp>
 #include <RID.hpp>
 
+#include "CE/Salvage.hpp"
 #include "CE/CombatEngine.hpp"
 #include "CE/Utils.hpp"
 #include "CE/Data.hpp"
@@ -803,9 +804,9 @@ void CombatEngine::create_direct_projectile(Ship &ship,shared_ptr<Weapon> weapon
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
 }
 
-void CombatEngine::create_flotsam_projectile(Ship &ship,shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass) {
+void CombatEngine::create_flotsam_projectile(Ship *ship_ptr,shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass) {
   object_id new_id=idgen.next();
-  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes,flotsam_weapon));
+  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship_ptr,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes,flotsam_weapon));
   real_t radius = max(1e-5f,emplaced.first->second.get_detonation_range());
   flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.get_position(),radius));
   emplaced.first->second.set_possible_hit(false);

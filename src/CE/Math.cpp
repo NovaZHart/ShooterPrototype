@@ -18,7 +18,7 @@ namespace godot {
       if(Q2<0)
         return 0;
 
-      real_t x0=dcross*dy, y0=-cross*dx;
+      real_t x0=dcross*d.y, y0=-dcross*d.x;
       
       if(Q2==0) {
         intersection[0].x=x0/dr2;
@@ -26,9 +26,9 @@ namespace godot {
         return 1;
       }
 
-      real_t Q=sqrtf(Q);
-      real_t xp=dx*Q*(dy<0 ? -1 : 1);
-      real_t yp=fabsf(dy)*Q;
+      real_t Q=sqrtf(Q2);
+      real_t xp=d.x*Q*(d.y<0 ? -1 : 1);
+      real_t yp=fabsf(d.y)*Q;
 
       intersection[0].x = (x0+xp)/dr2;
       intersection[0].y = (y0+yp)/dr2;
@@ -72,6 +72,7 @@ namespace godot {
         point1=p1;
         point2=p2;
       }
+      return true;
     }
 
     using namespace std;

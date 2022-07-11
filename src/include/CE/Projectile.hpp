@@ -183,7 +183,7 @@ namespace godot {
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Weapon> weapon,object_id alternative_target);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Weapon> weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Weapon> weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
-      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,std::shared_ptr<const Weapon> weapon_placeholder);
+      Projectile(object_id id,const Ship *ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,std::shared_ptr<const Weapon> weapon_placeholder);
       
       ~Projectile();
 

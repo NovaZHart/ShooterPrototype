@@ -3,7 +3,6 @@
 
 #include <vector>
 #include <cstdint>
-#include <string>
 #include <memory>
 
 #include "Ref.hpp"
@@ -50,6 +49,14 @@ namespace godot {
         return time!=valid_time;
       }
 
+      inline Vector2 get_xz() const {
+        return Vector2(x,z);
+      }
+
+      inline const Color &get_random_numbers() const {
+        return random_numbers;
+      }
+      
       // Does the state have valid data?
       inline bool is_valid() const {
         return valid_time!=invalid_time;
@@ -82,7 +89,7 @@ namespace godot {
       Color color_data;
       
       // Name of the flotsam from the SalvagePalette for when this asteroid is destroyed
-      wstring salvage;
+      String salvage;
 
       // Structure of asteroid when totally undamaged.
       real_t max_structure;
@@ -123,10 +130,10 @@ namespace godot {
         this->color_data = color_data;
       }
       
-      inline const wstring &get_salvage() const {
+      inline const String &get_salvage() const {
         return salvage;
       }
-      inline void set_salvage(const wstring &salvage) {
+      inline void set_salvage(const String &salvage) {
         this->salvage = salvage;
       }
 
@@ -231,6 +238,12 @@ namespace godot {
         return structure;
       }
 
+      // What is the name in the SalvagePalette of the flotsam that
+      // should be created when this asteroid is destroyed?
+      inline const String &get_cargo() const {
+        return templ && templ->get_cargo();
+      }
+      
       // Should this asteroid be shown if it is on camera?
       inline bool is_visible() const {
         return is_alive() and templ and templ->is_visible();
@@ -296,8 +309,8 @@ namespace godot {
       }
       
       // Get/set salvage name
-      inline const wstring &get_salvage() const {
-        static const wstring empty_string="";
+      inline const String &get_salvage() const {
+        static const String empty_string="";
         return templ ? templ->get_salvage() : empty_string;
       }
     };
@@ -319,7 +332,8 @@ namespace godot {
       static const shared_ptr<const AsteroidTemplate> default_asteroid;
     public:
       AsteroidPalette(Array selection,std::shared_ptr<SalvagePalette> salvage);
-
+      AsteroidPalette(const AsteroidPalette &a,bool deep_copy);
+      
       // Randomly choose an asteroid, or return default_asteroid if there
       // are no asteroids. Uses the provided random number generator.
       shared_ptr<const AsteroidTemplate> random_choice(CheapRand32 &rand) const;

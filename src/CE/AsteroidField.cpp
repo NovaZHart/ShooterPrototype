@@ -507,11 +507,12 @@ void AsteroidLayer::sort_asteroids() {
 
 AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalette> asteroids,
                              std::shared_ptr<SalvagePalette> salvege):
-  palette(asteroids),
+  palette(*asteroids,true),
   salvate(salvage),
   layers(),
   now(now),
-  dead_asteroids()
+  dead_asteroids(),
+  sent_meshes(false)
 {
   layers.reserve(data.size);
   for(int i=0,e=data.size();i<e;i++) {
@@ -551,19 +552,35 @@ pair<const Asteroid *,const AsteroidState*> AsteroidField::get(object_id id) con
   return pair(asteroid,state);
 }
 
-double AsteroidField::damage_asteroid(object_id id,double damage) {
+double AsteroidField::damage_asteroid(CombatEngine &ce,object_id id,double damage) {
   pair<int,int> split = split_id(id);
   if(split.first<0 or split.first>=layers.size())
     return damage;
 
-  Asteroid *asteroid = layers[split.first].get_asteroid(split.second);
+  AsteroidLayer &layer = layers[split.first]
+  Asteroid *asteroid = layer.get_asteroid(split.second);
   if(!asteroid)
     return damage;
 
   double remaining = asteroid.take_damage(damage);
 
   if(!asteroid.is_alive()) {
+    // Mark the asteroid as dead so we make a new one later.
     dead_asteroids.insert(id);
+
+    // If the asteroid had cargo, make flotsam.
+    std::shared_ptr<const Salvage> salvage_ptr = salvage.get_salvage(asteroid->get_cargo());
+    if(salvage_ptr) {
+      AsteroidState *state = layer.get_valid_state(split.second,asteroid,rnow);
+      if(state) {
+        real_t r = asteroid->get_radius()+layer.inner_radius;
+        real_t speed = r*orbit_mult;
+        Vector3 position = asteroid->get_x0z();
+        Vector3 pnorm = position.normalized();
+        Vector3 velocity(-pnorm.z*speed,0,pnorm.x*speed);
+        ce.create_flotsam_projectile(nullptr,salvage,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
+      }
+    }
     return remaining;
   } else
     return 0;
@@ -608,6 +625,14 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
       // Ensure the state is reinitialized next time it is needed.
       state->reset();
     }
+  }
+}
+
+void AsteroidField::send_meshes(MultiMeshManager &mmm) {
+  if(!sent_meshes) {
+    for(auto & pal : palette)
+      pal.set_mesh_id(mmm.add_preloaded_mesh(pal.get_mesh()));
+    sent_meshes = true;
   }
 }
 
@@ -675,6 +700,7 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
   size_t count=0;
   real_t expanded_radius = radius+Asteroid.max_scale+1;
   real_t radius_squared = radius*radius;
+  real_t valid_time = now;
   for(int ilayer = 0;ilayer<layers.size();ilayer++) {
     AsteroidLayer &layer = layers[ilayer];
     AsteroidSearchResult range = layer.theta_range_of_circle(center,search_radius);
@@ -716,6 +742,7 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
 object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
   real_t expanded_radius = radius+Asteroid.max_scale+1;
   real_t radius_squared = radius*radius;
+  real_t valid_time = now;
   for(int ilayer = 0;ilayer<layers.size();ilayer++) {
     AsteroidLayer &layer = layers[ilayer];
     AsteroidSearchResult range = layer.theta_range_of_circle(center,search_radius);
@@ -753,30 +780,38 @@ object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
 }
 
 object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
-  real_t best_distsq = numeric_limits<real_t>::infinity();
-  const Asteroid *best_asteroid = nullptr;
-  const AsteroidState *best_state = nullptr;
+  real_t closest_approach = numeric_limits<real_t>::infinity();
+  object_id closest_id = -1;
+  real_t valid_time = now;
 
+  Vector2 diff = end-start;
+  real_t length = diff.length();
+  Vector2 direction = length ? diff/length : Vector2(1,0);
+  Vector2 normal(-direction.y,direction.x);
+  
   for(int ilayer=0;ilayer<layers.size();ilayer++) {
     const AsteroidLayer &layer = layers[ilayer];
     if(!layer.asteroids.size())
       continue; // Layer is empty. Should never happen.
-    
+
+    // Find the theta ranges of all possible intersections of the ray with this layer.
     pair<AsteroidSearchResult,AsteroidSearchResult> range_pair = layer.theta_ranges_of_ray(start,end);
     AsteroidSearchResult ranges[2];
     ranges[0]=range_pair.first;
     ranges[1]=range_pair.second;
 
+    // Are we searching zero, one, or two ranges?
+    int loop_start=0,loop_end=1;
     if(ranges[0].all_intersect or ranges[1].all_intersect)
       loop_end=0;
+    else {
+      if(!ranges[0].any_intersect)
+        loop_start=1;
+      if(!ranges[1].any_intersect)
+        loop_end=0;
+    }
 
-    int loop_start=0,loop_end=1;
-
-    if(!ranges[0].any_intersect)
-      loop_start=1;
-    if(!ranges[1].any_intersect)
-      loop_end=0;
-    
+    // Find the asteroid closest to the beginning of the ray.
     for(irange=loop_start;irange<=loop_end;irange++) {
       AsteroidSearchResult range = ranges[irange].expanded_by(Asteroid::max_scale/layer.inner_radius);
       int itheta_start, itheta_after;
@@ -792,9 +827,40 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
       int itheta_after = itheta_end+1;
       do {
         itheta=itheta%layer.asteroids.size();
+
+        // Get the asteroid and its up-to-date state.
+        const Asteroid *a = layer.get_asteroid(itheta);
+        if(!a)
+          continue;
+        const AsteroidState *s = layer.get_valid_state(itheta,a,valid_time);
+        if(!s)
+          continue;
+
+        Vector2 relative_location = state->get_xz()-start;
+        real_t along = relative_location.dot(direction);
+        real_t radius = a->calculate_scale(*state);
+        real_t approach = along-radius;
+        if(approach>len or along+radius<0)
+          // Asteroid is before or after ray
+          continue;
+        real_t across = fabsf(relative_location.dot(normal));
+        if(across>radius)
+          // Ray does not pass through asteroid
+          continue;
+
+        if(approach<=0)
+          // Start point is within asteroid, so this is a final match.
+          return combined_id(ilayer,itheta);
         
+        if(approach<closest_approach) {
+          // This is closer than the next best match, so record it.
+          closest_approach = approach;
+          closest_id = combined_id(ilayer,itheta);
+        }
         itheta++;
       } while(itheta!=itheta_after)
     }
   }
+  
+  return closest_id;
 }

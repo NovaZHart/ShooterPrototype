@@ -138,6 +138,21 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:
 
+      // Allow const access to generate random numbers
+      inline uint32_t randi() const {
+        return rand.randi();
+      }
+      inline float randf() const {
+        // Random float in [0..1), uniformly distributed.
+        return rand.randf();
+      }
+      inline float rand_angle() const {
+        return rand.rand_angle();
+      }
+      inline Color rand_color() const {
+        return rand.rand_color();
+      }
+      
       faction_index_t get_player_faction_index() const {
         return player_faction_index;
       }
@@ -297,7 +312,7 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
       void create_direct_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
-      void create_flotsam_projectile(Ship &ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
+      void create_flotsam_projectile(Ship *ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
       void create_antimissile_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length);
       void create_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,object_id target=-1);
       projectile_hit_list_t find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results);

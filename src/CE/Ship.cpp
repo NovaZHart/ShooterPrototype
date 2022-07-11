@@ -16,6 +16,7 @@
 #include "CE/Utils.hpp"
 #include "CE/MultiMeshManager.hpp"
 #include "CE/Math.hpp"
+#include "CE/Salvage.hpp"
 
 using namespace godot;
 using namespace godot::CE;
@@ -1074,8 +1075,8 @@ void Ship::create_flotsam(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
   for(auto & salvage_ptr : salvage) {
     Vector3 v = linear_velocity;
-    real_t flotsam_mass = 10.0f;
-    real_t speed = 50.0; //clamp(ship.explosion_impulse/flotsam_mass,10.0f,40.0f);
+    real_t flotsam_mass = FLOTSAM_MASS;
+    real_t speed = EXPLOSION_FLOTSAM_INITIAL_SPEED;
     speed = speed*(1+rand.randf())/2;
     real_t angle = rand.rand_angle();
     Vector3 heading = unit_from_angle(angle);
@@ -1084,6 +1085,6 @@ void Ship::create_flotsam(CombatEngine &ce) {
       Godot::print_warning(name+": has a salvage with no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
       return;
     }
-    ce.create_flotsam_projectile(*this,salvage_ptr,position,angle,v,flotsam_mass);
+    ce.create_flotsam_projectile(this,salvage_ptr,position,angle,v,flotsam_mass);
   }
 }

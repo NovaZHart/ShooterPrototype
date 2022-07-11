@@ -12,6 +12,7 @@
 #include <NodePath.hpp>
 #include <PhysicsServer.hpp>
 
+#include "CE/Salvage.hpp"
 #include "CE/CombatEngine.hpp"
 #include "CE/Ship.hpp"
 #include "CE/Projectile.hpp"
@@ -130,11 +131,11 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
   //   Godot::print_warning(ship.name+" fired a guided projectile with no target (2)",__FUNCTION__,__FILE__,__LINE__);
 }
 
-Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,shared_ptr<const Weapon> weapon_placeholder):
+Projectile::Projectile(object_id id,const Ship *ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,shared_ptr<const Weapon> weapon_placeholder):
   id(id),
   weapon(weapon_placeholder),
-  source(ship.id),
-  target(ship.get_target()),
+  source(ship ? ship->id : -1),
+  target(ship ? ship->get_target() : -1),
   mesh_id(multimeshes.add_preloaded_mesh(salvage->flotsam_mesh)),
   always_drag(true),
   lifetime(salvage->spawn_duration),
@@ -157,10 +158,13 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Salvage> s
   integrate_forces(true),
   salvage(salvage)
 {
-  if(!salvage->flotsam_mesh.is_valid())
-    Godot::print_error(ship.name+": salvage has no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
-  else if(!mesh_id)
-    Godot::print_error(ship.name+": got no mesh_id from flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+  if(!salvage->flotsam_mesh.is_valid()) {
+    String name = ship ? ship->name : String("Non-ship flotsam");
+    Godot::print_error(ship->name+": salvage has no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+  } else if(!mesh_id) {
+    String name = ship ? ship->name : String("Non-ship flotsam");
+    Godot::print_error(ship->name+": got no mesh_id from flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
+  }
 }
 
 Projectile::~Projectile() {}

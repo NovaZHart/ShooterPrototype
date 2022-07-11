@@ -135,6 +135,15 @@ AsteroidPalette::AsteroidPalette(Array selection) {
   }
 }
 
+AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
+  asteroids(a.asteroids),
+  accumulated_weights(a.accumulated_weights)
+{
+  if(deep_copy)
+    for(auto & ptr : asteroids)
+      ptr = make_shared<AsteroidTemplate>(*ptr);
+}
+
 const AsteroidTemplate AsteroidPalette::default_asteroid = AsteroidTemplate();
 
 const AsteroidTemplate &AsteroidPalette::random_choice(CheapRand32 &rand) const {

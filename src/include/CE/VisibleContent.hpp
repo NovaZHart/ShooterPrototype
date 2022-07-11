@@ -12,12 +12,12 @@
 #include "CE/Planet.hpp"
 #include "CE/MultiMeshManager.hpp"
 #include "CE/Projectile.hpp"
+#include "CE/InstanceEffect.hpp"
 
 namespace godot {
   namespace CE {
     struct MultiMeshInstanceEffect;
     class Projectile;
-    class Asteroid;
     
     // A planet or ship to be displayed on the screen (minimap or main viewer)
     struct VisibleObject {
@@ -25,13 +25,6 @@ namespace godot {
       int flags;
       VisibleObject(const Ship &,bool hostile);
       VisibleObject(const Planet &);
-    };
-
-    // Visual effect with full mesh instance data.
-    struct InstanceEffect {
-      const object_id mesh_id;
-      Transform transform;
-      Color color_data, instance_data;
     };
     
     // A projectile or passive visual effect:

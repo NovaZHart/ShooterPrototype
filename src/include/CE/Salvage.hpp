@@ -3,7 +3,6 @@
 
 #include <memory>
 #include <unordered_map>
-#include <string>
 
 #include <Ref.hpp>
 #include <Mesh.hpp>
@@ -11,6 +10,7 @@
 #include <Dictionary.hpp>
 
 #include "CE/CheapRand32.hpp"
+#include "hash_functions.hpp"
 
 namespace godot {
   namespace CE {
@@ -36,22 +36,22 @@ namespace godot {
     ////////////////////////////////////////////////////////////////////
 
     class SalvagePalette {
-      std::unordered_map<wstring,std::shared_ptr<const Salvage>> salvage;
+      std::unordered_map<String,std::shared_ptr<const Salvage>> salvage;
     public:
       static constexpr real_t max_product_fraction = 1.0f;
       static constexpr real_t min_product_fraction = 0.3f;
       static constexpr real_t product_fraction_range = max_product_fraction-min_product_fraction;
       
       SalvagePalette(Dictionary from);
-      std::shared_ptr<Salvage> instance_salvage(const wstring &whut,CheapRand32 &rand) const;
+      std::shared_ptr<Salvage> instance_salvage(const String &whut,CheapRand32 &rand) const;
 
       inline ~SalvagePalette() {};
-      inline std::shared_ptr<const Salvage> get_salvage(const wstring &whut) const {
+      inline std::shared_ptr<const Salvage> get_salvage(const String &whut) const {
         auto found=salvage.find(whut);
         return (found==salvage.end()) ? nullptr : found->second;
       }
-      inline void add_salvage(const wstring &whut,std::shared_ptr<const Salvage> salvage) {
-        salvage.emplace(whut,salvage);
+      inline void add_salvage(const String &whut,std::shared_ptr<const Salvage> salvage) {
+        this->salvage.emplace(whut,salvage);
       }
     };
 

@@ -1,4 +1,5 @@
 #include "CE/Salvage.hpp"
+#include "CE/Utils.hpp"
 
 using namespace godot;
 using namespace godot::CE;
@@ -42,25 +43,22 @@ Salvage::~Salvage() {}
 SalvagePalette::SalvagePalette(Dictionary from) {
   Array keys = from.keys();
   for(int i=0,s=keys.size();i<s;i++) {
-    String godot_key = keys[i];
-    if(!godot_key.empty()) {
-      wstring key = to_wstring(godot_key);
-      if(key) {
-        Dictionary value = from[key];
-        if(!value.empty())
-          salvage.emplace(key,make_shared<const Salvage>(value));
-      }
+    String key = keys[i];
+    if(!key.empty()) {
+      Dictionary value = from[key];
+      if(!value.empty())
+        salvage.emplace(key,make_shared<const Salvage>(value));
     }
   }
 }
 
-shared_ptr<Salvage> SalvagePalette::instance_salvage(const wstring &whut,CheapRand32 &rand) const {
+shared_ptr<Salvage> SalvagePalette::instance_salvage(const String &whut,CheapRand32 &rand) const {
   shared_ptr<const Salvage> original = get_salvage(whut);
   if(!original)
     return nullptr;
 
   real_t frac = min_product_fraction + product_fraction_range*rand.randf();
-  int count = max(1,original->cargo_count*frac);
+  int count = max(1.0f,original->cargo_count*frac);
   
-  return make_shared<Salvage>(original,count);
+  return make_shared<Salvage>(*original,count);
 }

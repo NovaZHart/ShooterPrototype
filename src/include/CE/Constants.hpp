@@ -60,9 +60,13 @@ namespace godot {
     constexpr real_t MAX_PASSTHRU = 1.0;
 
     constexpr real_t PROJECTILE_POINT_WIDTH = 0.001; // Width of bounding square for point projectiles
-  
+
+    const real_t FLOTSAM_MASS = 10.0;
+    const real_t EXPLOSION_FLOTSAM_INITIAL_SPEED = 50.0;
+    
     enum visual_layers {
       below_planets=-30,
+      asteroid_height=-9,
       flotsam_height=-7,
       below_ships=-5,
       ship_height=5,
@@ -71,9 +75,9 @@ namespace godot {
       above_projectiles=29
     };
     
-    const int max_meshes=50; // For pre-allocating data, expected max meshes
-    const int max_ships=700; // For pre-allocating data, expected max ships
-    const int max_planets=300; // For pre-allocating data, expacted max planets or system entrances
+    const int max_meshes=50; // For pre-allocating data, expected max meshes (not actual limit)
+    const int max_ships=700; // For pre-allocating data, expected max ships (not actual_limit)
+    const int max_planets=300; // For pre-allocating data, expected max planets or system entrances (not actual limit)
 
     const ticks_t ticks_per_second = 10800;
     const ticks_t ticks_per_minute = static_cast<ticks_t>(60)*ticks_per_second;

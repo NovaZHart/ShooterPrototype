@@ -21,7 +21,8 @@
 
 namespace godot {
   namespace CE {
-
+    class CombatEngine;
+    
     struct AsteroidSearchResult {
       // Results from searching for a region of thetas matching a shape in an AsteroidLayer.
       // Not intended for use outside AsteroidField, except for unit tests.
@@ -95,7 +96,7 @@ namespace godot {
       // Time it takes for an asteroid to go all the away around the circle.
       const real_t orbit_period;
       
-      // TAUf/orbit_period
+      // TAUf/orbit_period = dtheta/dtime
       const real_t orbit_mult;
       
       // Radius of the inner circle of the annulus
@@ -198,7 +199,7 @@ namespace godot {
 
       // The selection of asteroids to choose from. These will be
       // instanced as needed throughout the asteroid layers.
-      std::shared_ptr<const AsteroidPalette> palette;
+      AsteroidPalette palette;
 
       // The selection of flotsam that asteroids can generate upon destruction.
       std::shared_ptr<const SalvagePalette> salvage;
@@ -212,7 +213,9 @@ namespace godot {
       // All asteroids that have been destroyed. New ones will be
       // generated in the same place after they're off-screen.
       std::unordered_set<object_id> dead_asteroids;
-      
+
+      // Have we initialized the palette mesh_ids by sending the meshes to a MultiMeshManager?
+      bool sent_meshes;
     public:
 
       // Read asteroid layer descriptions (data) and generate asteroid layers using the specified palettes.
@@ -229,8 +232,8 @@ namespace godot {
       // If a state is returned, it is up-to-date with the current time.
       std::pair<const Asteroid*,const AsteroidState *> get(object_id id) const;
 
-      // Somebody shot that asteroid. Return the amount of overkill damage.
-      double damage_asteroid(object_id id,double amount);
+      // Somebody shot that asteroid. Return the amount of overkill damage. Create flotsam if needed
+      double damage_asteroid(CombatEngine &ce,object_id id,double amount);
 
       // Is this asteroid still alive?
       bool is_alive(object_id id) const;
@@ -238,8 +241,11 @@ namespace godot {
       // Increment the current time. Generate new asteroids to replace dead ones outside the visible_region.
       void step_time(int64_t idelta,real_t delta,Rect2 visible_region);
 
+      // Send palette meshes to a multimesh manager to get mesh ids
+      void send_meshes(MultiMeshManager &mmm);
+      
       // Update multimeshes for asteroids overlapping the visible region.
-      void add_content(Rect2 visible_region,VisualContent &content) const;
+      void add_content(Rect2 visible_region,VisualContent &content);
 
       // Finds all asteroids overlapping the given circle.
       // Adds all matches to results and returns the number of matches.

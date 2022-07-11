@@ -1,7 +1,6 @@
 #include "CE/VisualEffects.hpp"
 #include "CE/VisibleContent.hpp"
 #include "CE/MultiMeshManager.hpp"
-#include "CE/Asteroids.hpp"
 
 using namespace godot;
 using namespace godot::CE;
