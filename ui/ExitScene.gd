@@ -5,7 +5,7 @@ var stage = 0
 func _enter_tree():
 	get_tree().paused = false
 
-func _process(delta):
+func _process(_delta):
 	stage += 1
 	print('stage '+str(stage))
 	if stage == 1:

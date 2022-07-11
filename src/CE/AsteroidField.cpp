@@ -182,8 +182,11 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
       intersect_outer = line_segment_intersect_circle(outer_radius,line,outer);
       Vector2 inner[2];
       intersect_inner = line_segment_intersect_circle(inner_radius,line,inner);
-      if(intersect_inner and intersect_outer)
+      if(intersect_inner and intersect_outer) {
+        Godot::print("slen<inner elen>outer inner="+str(inner[0])+" outer="+str(outer[0]));
+
         return result(shortest_theta_from(inner[0],outer[0]),no_match);
+      }
      
       // Should not reach this line.
     } else {
@@ -207,16 +210,20 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
 
       Vector2 outer[2];
       intersect_outer = line_segment_intersect_circle(outer_radius,line,outer);
-      if(intersect_outer<2)
+      if(intersect_outer<2) {
+        Godot::print("slen outer elen outer intersect_outer="+str(intersect_outer)+" so NO MATCH");
         // Ray is entirely outside the outer circle. No match.
         return result(no_match,no_match);
+      }
 
       Vector2 inner[2];
       intersect_inner = line_segment_intersect_circle(inner_radius,line,inner);
-      if(intersect_inner<2)
+      if(intersect_inner<2) {
+        Godot::print("slen outer elen outer intersect_inner="+str(intersect_inner)+" so match "+str(outer[0])+"..."+str(outer[1]));
         // Ray passes within annulus, but not through inner circle.
         // Match the range between the outer matches.
         return result(shortest_theta_from(outer[0],outer[1]),no_match);
+      }
 
       // Ray passes through the inner and outer circles. There are two regions that match.
       return result(shortest_theta_from(outer[0],inner[0]),shortest_theta_from(inner[1],outer[1]));
@@ -231,9 +238,16 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
       // Should not reach this line.      
     } else {
       // Start outside outer, end within annulus. Match the range from outer intersection to end point
+      Vector2 inner[2];
+      intersect_inner = line_segment_intersect_circle(inner_radius,line,inner);
+      
       Vector2 outer[2];
       intersect_outer = line_segment_intersect_circle(outer_radius,line,outer);
-      if(intersect_outer)
+
+      if(intersect_inner==2) {
+        return result(shortest_theta_from(outer[0],inner[0]),
+                      shortest_theta_from(inner[1],end));
+      } else if(intersect_outer)
         return result(shortest_theta_from(outer[0],end),no_match);
       // Should not reach this line.
     }
