@@ -14,6 +14,14 @@ namespace godot {
     static const Vector3 x_axis(1,0,0);
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
+    
+    // Intersection of a circle at the origin and a line segment
+    // Returns the number of points of intersection.
+    // Input: radius is the radius of the circle (center is the origin)
+    // Input: line[2] has two points on the line.
+    // Output: intersection[2] will receive the zero, one, or two points of intersection
+    //     ordered by increasing distance from line[0] along the line.
+    int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]);
 
     // Intersection of a circle at the origin and a line.
     // Returns the number of points of intersection.
@@ -70,6 +78,10 @@ namespace godot {
 
     inline double angle_from_unit_d(DVector3 angle) {
       return atan2(-angle.z,angle.x);
+    }
+
+    inline real_t angle_from_unit(Vector2 angle) {
+      return atan2f(-angle.y,angle.x);
     }
 
     template<class T>

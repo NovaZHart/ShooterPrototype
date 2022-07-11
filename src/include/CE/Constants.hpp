@@ -85,7 +85,7 @@ namespace godot {
     const ticks_t inactive_ticks = -1;
     const double thrust_loss_heal = 0.5;
 
-    const double effectively_infinite_hitpoints = 1e20;
+    const double EFFECTIVELY_INFINITE_HITPOINTS = 1e20;
     
     static constexpr real_t hyperspace_display_ratio = 20.0f;
   

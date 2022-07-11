@@ -6,7 +6,7 @@
 namespace godot {
   class ObjectIdGenerator {
   public:
-    typedef int object_id;
+    typedef int64_t object_id;
     object_id last_id;
   public:
     inline ObjectIdGenerator():

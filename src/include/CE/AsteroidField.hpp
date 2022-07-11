@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_set>
 #include <memory>
+#include <deque>
 
 #include <Godot.hpp>
 #include <Vector2.hpp>
@@ -16,31 +17,49 @@
 #include "CE/Asteroid.hpp"
 #include "CE/Types.hpp"
 #include "CE/Constants.hpp"
-#include "CE/MultimeshManager.hpp"
+#include "CE/MultiMeshManager.hpp"
 #include "CE/ObjectIdGenerator.hpp"
 
 namespace godot {
   namespace CE {
     class CombatEngine;
+    class VisibleContent;
     
-    struct AsteroidSearchResult {
+    class AsteroidSearchResult {
       // Results from searching for a region of thetas matching a shape in an AsteroidLayer.
       // Not intended for use outside AsteroidField, except for unit tests.
       
-      const real_t start_theta, end_theta, theta_width;
-      const bool any_intersect, all_intersect;
+      real_t start_theta, end_theta, theta_width;
+      bool any_intersect, all_intersect;
 
+    public:
+
+      inline real_t get_start_theta() const {
+        return start_theta;
+      }
+      inline real_t get_end_theta() const {
+        return end_theta;
+      }
+      inline bool get_any_intersect() const {
+        return any_intersect;
+      }
+      inline bool get_all_intersect() const {
+        return all_intersect;
+      }
+      
       AsteroidSearchResult(real_t start, real_t end):
-        start_theta(start), end_theta(end), any_intersect(true), all_intersect(false)
+        start_theta(fmodf(start,TAUf)), end_theta(fmodf(end,TAUf)),
+        theta_width(fmodf(end_theta-start_theta,TAUf)),
+        any_intersect(true), all_intersect(false)
       {}
 
-      AsteroidSearchResult(bool all) // true = all match, false = no match
+      AsteroidSearchResult(bool all): // true = all match, false = no match
         start_theta(0), end_theta(0),
         theta_width(all ? TAUf : 0),
         any_intersect(all), all_intersect(all)
       {}
 
-      AsteroidSearchResult() // no match
+      AsteroidSearchResult(): // no match
         start_theta(0), end_theta(0), theta_width(0),
         any_intersect(false), all_intersect(false)
       {}
@@ -106,7 +125,7 @@ namespace godot {
       const real_t thickness;
       
       // Radius of the outer circle of the annulus
-      const real_t inner_radius;
+      const real_t outer_radius;
 
       // Target mean distance between asteroids.
       const real_t spacing;
@@ -133,28 +152,28 @@ namespace godot {
       
       // Return the asteroid at the given index, or nullptr if there is none
       inline Asteroid *get_asteroid(object_id index) {
-        return (index<0 or index>=asteroids.size()) ? nullptr : &asteroids[index];
+        return (index<0 or static_cast<size_t>(index)>=asteroids.size()) ? nullptr : &asteroids[index];
       }
       inline const Asteroid *get_asteroid(object_id index) const {
-        return (index<0 or index>=asteroids.size()) ? nullptr : &asteroids[index];
+        return (index<0 or static_cast<size_t>(index)>=asteroids.size()) ? nullptr : &asteroids[index];
       }
 
       // Get, make, or update an AstroidState, assuming the index is a valid index and a is non-null
       inline AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) {
         AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
-          a->update_state(*s,orbit_period,inner_radius,thickness);
+          a->update_state(*s,time,orbit_period,inner_radius,thickness,!s->is_valid());
         return s;
       }
       inline const AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) const {
         AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
-          a->update_state(*s,orbit_period,inner_radius,thickness);
+          a->update_state(*s,time,orbit_period,inner_radius,thickness,!s->is_valid());
         return s;
       }
 
       // upper_bound of theta
-      int find_theta(real_t theta) const;
+      int find_theta(real_t theta);
 
       // How much has the annulus rotated by this time?
       inline real_t theta_time_shift(double when) const {
@@ -170,7 +189,7 @@ namespace godot {
       // Find all thetas that lie within the given rect.
       // If there are none, returns false and clears results.
       // If there are any, they'll be in the results.
-      bool theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchResult> &results);
+      bool theta_ranges_of_rect(Rect2 rect,std::deque<AsteroidSearchResult> &results,std::deque<AsteroidSearchResult> &work1);
 
       // Clears the asteroid layer and generates a new one from the given selection of asteroids.
       // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
@@ -245,7 +264,7 @@ namespace godot {
       void send_meshes(MultiMeshManager &mmm);
       
       // Update multimeshes for asteroids overlapping the visible region.
-      void add_content(Rect2 visible_region,VisualContent &content);
+      void add_content(Rect2 visible_region,VisibleContent &content);
 
       // Finds all asteroids overlapping the given circle.
       // Adds all matches to results and returns the number of matches.
@@ -276,7 +295,7 @@ namespace godot {
 
       // Return the layer number and asteroid index of the given object id,
       // or -1,-1 if nothing matches.
-      inline std::pair<int,int> split_id(object_id id) {
+      static inline std::pair<int,int> split_id(object_id id) {
         if(id<0)
           return std::pair<int,int>(-1,-1);
         else
@@ -285,7 +304,7 @@ namespace godot {
 
       // Given the layer number and asteroid index, returns the object id.
       // Will return -1 if either are <0
-      inline object_id combined_id(int layer,int index) {
+      static inline object_id combined_id(int layer,int index) {
         if(layer<0 or index<0)
           return -1;
         else

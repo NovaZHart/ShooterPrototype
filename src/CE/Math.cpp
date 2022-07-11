@@ -1,9 +1,57 @@
+#include <algorithm>
+
 #include "CE/Math.hpp"
 
 #include "FastProfilier.hpp"
 
 namespace godot {
   namespace CE {
+
+    // Intersection of a circle at the origin and a line segment
+    // Returns the number of points of intersection.
+    // Input: radius is the radius of the circle (center is the origin)
+    // Input: line[2] has two points on the line.
+    // Output: intersection[2] will receive the zero, one, or two points of intersection
+    int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
+      Vector2 d = line[1]-line[0];
+      real_t dr2=d.length_squared();
+      real_t dr = sqrtf(dr2);
+      Vector2 dn = dr ? d/dr : d;
+      
+      real_t dcross=line[0].cross(line[1]);
+      real_t Q2 = radius*radius*dr2-dcross*dcross;
+      if(Q2<0)
+        return 0;
+
+      real_t x0=dcross*d.y, y0=-dcross*d.x;
+      
+      if(Q2==0) {
+        intersection[0].x=x0/dr2;
+        intersection[0].y=y0/dr2;
+        real_t along = intersection[0].dot(dn);
+        return (along>=0 and along<=dr) ? 1 : 0;
+      }
+
+      real_t Q=sqrtf(Q2);
+      real_t xp=d.x*Q*(d.y<0 ? -1 : 1);
+      real_t yp=fabsf(d.y)*Q;
+
+      Vector2 p0((x0+xp)/dr2,(y0+yp)/dr2);
+      Vector2 p1((x0-xp)/dr2,(y0-yp)/dr2);
+
+      int count=0;
+      real_t along0 = p0.dot(dn);
+      if(along0>=0 and along0<=dr)
+        intersection[count++] = p0;
+      real_t along1 = p1.dot(dn);
+      if(along1>=0 and along1<=dr)
+        intersection[count++] = p1;
+
+      if(count==2 and along1<along0)
+        std::swap(intersection[0],intersection[1]);
+      
+      return count;
+    }
 
     // Intersection of a circle at the origin and a line.
     // Returns the number of points of intersection.
@@ -23,6 +71,7 @@ namespace godot {
       if(Q2==0) {
         intersection[0].x=x0/dr2;
         intersection[0].y=y0/dr2;
+        intersection[1] = intersection[0];
         return 1;
       }
 
