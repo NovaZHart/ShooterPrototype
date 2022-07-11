@@ -289,18 +289,33 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
 AsteroidSearchResult AsteroidSearchResult::theta_range_of_circle(Vector2 center,real_t search_radius,real_t inner_radius,real_t outer_radius) {
   real_t clen = center.length();
   real_t thickness = outer_radius-inner_radius;
+
+  Godot::print("theta_range_of_circle center="+str(center)+" search_radius="+str(search_radius)
+               +" inner_radius="+str(inner_radius)+" outer_radius="+str(outer_radius));
   
   // Check for special cases. The vast majority of searches will match case 1 or 3.
-  if(clen<thickness) {
-    if(search_radius+clen<inner_radius)
-      // Special case 1: circle lies entirely inside the inner circle of the annulus (no intersection)
-      return no_match;
-    if(search_radius-clen>=inner_radius and search_radius+clen<=outer_radius)
-      // Special case 2: circle lies entirely within the annulus (all points match)
-      return all_match;
-  } else if(search_radius-clen>=outer_radius)
-    // Special case 3: circle entirely encloses annulus (all points match)
+  if(search_radius+clen<inner_radius) {
+    // Special case 1: circle lies entirely inside the inner circle of the annulus (no intersection)
+    Godot::print("Search circle entirely inside inner circle; no match");
+    return no_match;
+  }
+  if(search_radius-clen>=inner_radius and search_radius+clen<=outer_radius) {
+    // Special case 2: circle lies entirely within the annulus and contains origin (all points match)
+    Godot::print("Search circle entirely within annulus and contains origin; all match");
     return all_match;
+  }
+  if(search_radius-clen>=outer_radius) {
+    // Special case 3: circle entirely encloses annulus (all points match)
+    Godot::print("Search circle entirely encloses annulus; all match");
+    return all_match;
+  }
+  if(clen-search_radius>=inner_radius and clen+search_radius<=outer_radius) {
+    // Special case 2: circle lies entirely within the annulus but does not contain origin (all points match)
+    Godot::print("Search circle entirely within annulus but does not contain origin");
+    real_t theta_halfwidth = atanf(search_radius/center.length());
+    real_t mid_theta = angle_from_unit(center);
+    return AsteroidSearchResult(mid_theta-theta_halfwidth,mid_theta+theta_halfwidth);
+  }
 
   Vector2 inner1, inner2;
   bool intersect_inner = circle_intersection(inner_radius,center,search_radius,

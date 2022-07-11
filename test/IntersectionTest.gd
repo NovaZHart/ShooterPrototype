@@ -17,8 +17,9 @@ var ray_end: Vector2 = Vector2(1,5)
 
 var theta_regions: Array = [Vector2(0.2,0.6), Vector2(0.9,1.3)]
 
-const CAST_RAY: int = 0
-var mode = CAST_RAY
+const CAST_RAY: int = 1
+const INTERSECT_CIRCLE: int = 2
+var mode = INTERSECT_CIRCLE
 
 class WorldInfo:
 	var world_scale: float
@@ -62,13 +63,17 @@ func _ready():
 	native = NativeIntersectionTest.new()
 	native.set_annulus(inner_radius,outer_radius)
 	run_native()
-	update()
 
 func run_native():
 	print('run_native')
-	var result: Array = native.cast_ray(ray_start,ray_end)
-	theta_regions = Array(result)
+	if mode==CAST_RAY:
+		var result: Array = native.cast_ray(ray_start,ray_end)
+		theta_regions = Array(result)
+	else: # INTERSECT_CIRCLE
+		var result: Array = native.intersect_circle(ray_start,(ray_end-ray_start).length())
+		theta_regions = result
 	print('result: '+str(theta_regions))
+	update()
 
 func make_arc_polygon(r_inner: float, r_outer: float, center: Vector2, thetas: Vector2, full_circle_lines: int) -> PoolVector2Array:
 	var a: PoolVector2Array = PoolVector2Array()
@@ -105,13 +110,18 @@ func _draw():
 			w.center_pixels, theta_region, 100)
 		draw_colored_polygon(arc,theta_arc_color)
 	
+	var pixel_start = w.world_to_pixels(ray_start)
+	var start_poly = make_circle_polygon(0.1*w.world_scale,pixel_start,20)
+	draw_colored_polygon(start_poly,ray_color)
+	
+	var pixel_end = w.world_to_pixels(ray_end)
+	var end_poly = make_circle_polygon(0.04*w.world_scale,pixel_end,20)
+	draw_colored_polygon(end_poly,ray_color)
+	
+	assert(mode==INTERSECT_CIRCLE)
+	
 	if mode==CAST_RAY:
-		var pixel_start = w.world_to_pixels(ray_start)
-		var start_poly = make_circle_polygon(0.1*w.world_scale,pixel_start,20)
-		draw_colored_polygon(start_poly,ray_color)
-		
-		var pixel_end = w.world_to_pixels(ray_end)
-		var end_poly = make_circle_polygon(0.04*w.world_scale,pixel_end,20)
-		draw_colored_polygon(end_poly,ray_color)
-		
 		draw_line(pixel_start,pixel_end,ray_color,line_thickness,false)
+	elif mode==INTERSECT_CIRCLE:
+		var cpoly = make_circle_polygon((pixel_end-pixel_start).length(),pixel_start,100);
+		draw_polyline(cpoly,ray_color,line_thickness,false)

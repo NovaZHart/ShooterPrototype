@@ -12,6 +12,7 @@ namespace godot {
     static void _register_methods();
     void set_annulus(real_t inner,real_t outer);
     Array cast_ray(Vector2 start, Vector2 end);
+    Array intersect_circle(Vector2 center, real_t radius);
     
   private:
     real_t inner_radius, outer_radius;
