@@ -5,13 +5,27 @@ export var ray_color: Color = Color(0,0,0.7,1.0)
 export var theta_arc_color: Color = Color(0.8,0.6,0.1,1.0)
 export var asteroid_color: Color = Color(0.3,0.3,0.6,1.0)
 export var hit_color: Color = Color(0.9,0.3,0.3,1.0)
-export var inner_radius: float = 450
-export var outer_radius: float = 650
 export var line_thickness: float = 4.0
 export var asteroid_line_thickness: float = 2.0
 export var world_size: Vector2 = Vector2(1500,1500)
-export var orbit_period: float = 100.0
-export var spacing: float = 4
+
+export var inner_radius: float = 450
+export var outer_radius: float = 650
+
+export var layer_data: Array = [
+	{
+		"orbit_period": 100.0,
+		"inner_radius": inner_radius,
+		"thickness": outer_radius-inner_radius,
+		"spacing": 10.0
+	},
+	{
+		"orbit_period": 300.0,
+		"inner_radius": inner_radius+30,
+		"thickness": outer_radius-inner_radius-60,
+		"spacing": 4.0
+	},
+]
 
 var NativeIntersectionTest = preload("res://bin/IntersectionTest.gdns")
 var native
@@ -72,7 +86,7 @@ func _process(delta):
 		#asteroids = native.get_asteroids()
 		asteroids_mutex.unlock()
 		update()
-		print(Engine.get_frames_per_second())
+		print("FPS: "+str(Engine.get_frames_per_second())+" asteroids="+str(asteroids.size()))
 
 func _input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index==BUTTON_RIGHT and !event.pressed:
@@ -99,15 +113,8 @@ func _ready():
 	print('initialize native')
 	native = NativeIntersectionTest.new()
 	native.set_annulus(inner_radius,outer_radius)
-	var layer_dict: Dictionary = {
-		"orbit_period": orbit_period,
-		"inner_radius": inner_radius,
-		"thickness": outer_radius-inner_radius,
-		"spacing": spacing
-	}
-	var field_array: Array = [ layer_dict ]
-	print("Generate asteroids with data: "+str(field_array))
-	native.set_asteroid_field(field_array)
+	print("Generate asteroids with data: "+str(layer_data))
+	native.set_asteroid_field(layer_data)
 	run_native()
 
 # func get_rect_at_0(xray_start,xray_end):
