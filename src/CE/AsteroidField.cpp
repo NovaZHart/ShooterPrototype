@@ -210,8 +210,6 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
       Vector2 inner[2];
       intersect_inner = line_segment_intersect_circle(inner_radius,line,inner);
       if(intersect_inner and intersect_outer) {
-        //Godot::print("slen<inner elen>outer inner="+str(inner[0])+" outer="+str(outer[0]));
-
         return result(shortest_theta_from(inner[0],outer[0]),no_match);
       }
      
@@ -238,7 +236,6 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
       Vector2 outer[2];
       intersect_outer = line_segment_intersect_circle(outer_radius,line,outer);
       if(intersect_outer<2) {
-        //Godot::print("slen outer elen outer intersect_outer="+str(intersect_outer)+" so NO MATCH");
         // Ray is entirely outside the outer circle. No match.
         return result(no_match,no_match);
       }
@@ -246,7 +243,6 @@ AsteroidSearchResult::theta_ranges_of_ray(Vector2 start,Vector2 end,real_t inner
       Vector2 inner[2];
       intersect_inner = line_segment_intersect_circle(inner_radius,line,inner);
       if(intersect_inner<2) {
-        //Godot::print("slen outer elen outer intersect_inner="+str(intersect_inner)+" so match "+str(outer[0])+"..."+str(outer[1]));
         // Ray passes within annulus, but not through inner circle.
         // Match the range between the outer matches.
         return result(shortest_theta_from(outer[0],outer[1]),no_match);
@@ -324,22 +320,18 @@ AsteroidSearchResult AsteroidSearchResult::theta_range_of_circle(Vector2 center,
   // Circle is entirely within inner circle or beyond outer circle.
   if(search_radius+clen<inner_radius or clen-search_radius>outer_radius) {
     // Special case 1: circle lies entirely inside the inner circle of the annulus (no intersection)
-    // Godot::print("Search circle entirely inside inner circle; no match");
     return no_match;
   }
   if(search_radius-clen>=inner_radius and search_radius+clen<=outer_radius) {
     // Special case 2: circle lies entirely within the annulus and contains origin (all points match)
-    // Godot::print("Search circle entirely within annulus and contains origin; all match");
     return all_match;
   }
   if(search_radius-clen>=inner_radius) {
     // Special case 3: circle entirely encloses annulus (all points match)
-    // Godot::print("Search circle entirely encloses annulus; all match");
     return all_match;
   }
   if(clen-search_radius>=inner_radius and clen+search_radius<=outer_radius) {
     // Special case 2: circle lies entirely within the annulus but does not contain origin (all points match)
-    // Godot::print("Search circle entirely within annulus but does not contain origin");
     real_t theta_halfwidth = atanf(search_radius/center.length());
     real_t mid_theta = angle_from_unit(center);
     return AsteroidSearchResult(mid_theta-theta_halfwidth,mid_theta+theta_halfwidth);
@@ -445,7 +437,8 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
     real_t or2 = outer_radius*outer_radius;
     int within_inner=0, outside_outer=0, segment_outside_inner=0;
     for(int i=0;i<4;i++) {
-      if(fabsf(points[i].x)>inner_radius or fabsf(points[i].y)>inner_radius)
+      if((xdir[i] && fabsf(points[i].y)>inner_radius) or
+         (ydir[i] && fabsf(points[i].y)>inner_radius))
         segment_outside_inner++;
       if(points[i].length_squared()<ir2)
         within_inner++;
@@ -455,7 +448,6 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         within_annulus++;
     }
     if(within_inner==4) {
-      //Godot::print("All points inside");
       // Rectangle is entirely inside the inner circle, so overlap is impossible.
       results.push_back(no_match);
       return false;
@@ -471,7 +463,6 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         quadrant[i] = copysignf(1,points[i].x) + copysignf(2,points[i].y);
       
       if(outside_outer==4 && quadrant[0]==quadrant[1] and quadrant[1]==quadrant[2] and quadrant[2]==quadrant[3]) {
-        //Godot::print("All points outside, within same quadrant");
         // All points of the rectangle are outside the outer circle
         // and in the same quadrant, so overlap is impossible.
         results.push_back(no_match);
@@ -513,32 +504,23 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
     Vector2 *side_points=points+side;
     
     real_t dr;
-
-    // Godot::print("Side "+str(side)+" line="+str(side_points[0])+"..."+str(side_points[1]));
-
     real_t dir;
     Vector2 flip(1,1);
     if(ydir[side]) {
       //flip.y=ydir[side];
       dir=ydir[side];
       dr=-dir*side_points[0].y;
-      // Godot::print("   is ydir "+str(ydir[side])+" side with dr="+str(dr));
     } else {
       //flip.x=xdir[side];
       dir=xdir[side];
       dr=-dir*side_points[0].x;
-      // Godot::print("   is xdir "+str(xdir[side])+" side with dr="+str(dr));
     }
     
-    //Godot::print("   flip="+str(flip));
-    
     if(dr>outer_radius) { // Case F
-      // Godot::print("   Case F: entire annulus was removed.");
       // Entire annulus was removed.
       results.push_back(no_match);
       return false;
     } else if(dr<-inner_radius) { // Cases A & B
-      // Godot::print("   Case AB: remove nothing");
       continue;
     } else if(fabsf(dr)<1e-5) {
       Vector2 intersection[2];
@@ -552,11 +534,8 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         intersection[1]*=flip;
         if(dir<0)
           swap(intersection[0],intersection[1]);
-        // Godot::print("   Case DE with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
         work1.push_back(longest_theta_from(intersection[0],intersection[1]));
-        // Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
-      } // else
-        // Godot::print("   Case DE no intersection.");
+      }
     } else { // Case C
       Vector2 intersection[2];
       int n=line_intersect_circle(inner_radius,side_points,intersection);
@@ -565,11 +544,8 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         intersection[1]*=flip;
         if(dir<0)
           swap(intersection[0],intersection[1]);
-        // Godot::print("   Case C with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
         work1.push_back(shortest_theta_from(intersection[0],intersection[1]));
-        // Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
-      } // else
-        // Godot::print("   Case C no intersection");
+      }
     }
   }
 
@@ -578,22 +554,11 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
   if(!work1.empty()) {
     // At least one region was removed. What is left?
     results.push_back(all_match);
-
-    // Godot::print("START");
-    // Godot::print("Remove:");
-    // dump_ranges(work1);
-    // Godot::print("From:");
-    // dump_ranges(results);
     
     for(auto &r : work1) {
-      // dump_range("-- REMOVAL STEP ",r);
-      // dump_ranges(results);
       for(auto it=results.begin();it!=results.end();) {
-        // dump_range("Remove from ",*it);
         pair<AsteroidSearchResult,AsteroidSearchResult> minused=it->minus(r);
-        // Godot::print(str(*it)+"-"+str(r)+" = ( "+str(minused.first)+", "+str(minused.second)+" )");
         if(!minused.first.get_any_intersect()) {
-          // Godot::print("Eliminated range");
           // Entirely eliminated this range.
           it=results.erase(it);
           continue;
@@ -601,13 +566,10 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         *it = minused.first;
         if(!minused.second.get_any_intersect()) {
           // Reduce the size of this range.
-          // dump_range("Reduced size to: ",*it);
           it++;
           continue;
         }
         // Range was split in two. Push to the front so we don't loop over this new location.
-        // dump_range("Split range 1: ",*it);
-        // dump_range("Split range 2: ",minused.second);
         results.push_front(minused.second);
         it++;
       }
@@ -633,10 +595,14 @@ AsteroidLayer::AsteroidLayer(const Dictionary &d):
   orbit_period(get<real_t>(d,"orbit_period")),
   orbit_mult(orbit_period ? TAUf/orbit_period : 1),
   inner_radius(max(0.0f,get<real_t>(d,"inner_radius"))),
-  thickness(max(Asteroid::max_scale*3,get<real_t>(d,"thickness"))),
-  outer_radius(inner_radius+thickness),
-  spacing(max(Asteroid::min_scale,get<real_t>(d,"spacing",Asteroid::max_scale*2))),
   y(asteroid_height),
+  max_rotation_speed(max(0.0f,get<real_t>(d,"max_rotation_speed",TAUf/4))),
+  min_scale(max(0.01f,get<real_t>(d,"min_scale",0.4))),
+  max_scale(max(min_scale,get<real_t>(d,"max_scale",1.4))),
+  scale_range(max_scale-min_scale),
+  thickness(max(max_scale*3,get<real_t>(d,"thickness"))),
+  outer_radius(inner_radius+thickness),
+  spacing(max(min_scale,get<real_t>(d,"spacing",max_scale*2))),
   asteroids(),
   state()
 {}
@@ -695,10 +661,10 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
   asteroids.clear();
   state.clear();
   
-  real_t trimmed_thickness = thickness-2*Asteroid::max_scale;
+  real_t trimmed_thickness = thickness-2*max_scale;
   real_t theta_step = spacing/outer_radius/4;
     
-  real_t radius_step = max(0.2f,Asteroid::max_scale*0.1f);
+  real_t radius_step = max(0.2f,max_scale*0.1f);
   int radius_count = max(1,int(ceilf(trimmed_thickness/radius_step)));
   vector<real_t> last_theta_used(radius_count,-9e9f);
   vector<real_t> radius_of_bin(radius_count,0);
@@ -706,11 +672,8 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
   int asteroid_tries=max(1,radius_count/5);
   int radii_to_check = ceilf(spacing/(radius_step*2))*2;
   
-  // Godot::print("Generate field with radius_step="+str(radius_step)+" radius_count="+str(radius_count)
-  //              +" trimmed_thickness="+str(trimmed_thickness));
-  
   {
-    real_t radius = inner_radius+Asteroid::max_scale;
+    real_t radius = inner_radius+max_scale;
     for(int i=0;i<radius_count;i++,radius+=radius_step)
       radius_of_bin[i]=radius;
   }
@@ -747,7 +710,6 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
         for(int check_bin=first_check;check_bin<=last_check;check_bin++)
           last_theta_used[check_bin] = next_theta_used[check_bin];
 
-        // Godot::print("Make an asteroid at theta="+str(theta)+" r="+str(radius)+" stored as r="+str(radius-inner_radius));
         asteroids.emplace_back(theta,radius-inner_radius,y+rand.randf()-0.5,palette.random_choice(rand));
         break;
       }
@@ -759,7 +721,6 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
         maxlast=max(maxlast,t);
         minlast=min(minlast,t);
       }
-      // Godot::print("Could not put an asteroid at "+str(theta)+" because last_theta_used="+str(minlast)+"..."+str(maxlast));
     }
     theta += theta_step;
   } while(theta<TAUf);
@@ -794,18 +755,20 @@ AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalet
   if(layers.size()) {
     inner_radius=numeric_limits<real_t>::infinity();
     outer_radius=-numeric_limits<real_t>::infinity();
+    max_scale=-numeric_limits<real_t>::infinity();
     for(auto &layer : layers) {
       inner_radius = min(inner_radius,layer.get_inner_radius());
       outer_radius = max(outer_radius,layer.get_outer_radius());
+      max_scale = max(max_scale,layer.get_max_scale());
     }
-    thickness = outer_radius-inner_radius;
   } else {
     Godot::print_error("No asteroid layers in AsteroidField!",
                        __FUNCTION__,__FILE__,__LINE__);
     inner_radius = 100;
     outer_radius = 100.1;
-    thickness = 0.1;
+    max_scale = 1;
   }
+  thickness = outer_radius-inner_radius;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -907,7 +870,7 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
   now+=delta;
   real_t rnow = now;
 
-  Rect2 search_region = visible_region.grow(Asteroid::max_scale+1);
+  Rect2 search_region = visible_region.grow(max_scale+1);
 
   for(auto it=dead_asteroids.begin();it!=dead_asteroids.end();) {
     object_id id = *it;
@@ -948,7 +911,7 @@ void AsteroidField::send_meshes(MultiMeshManager &mmm) {
 void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
   FAST_PROFILING_FUNCTION;
   // Search a slightly larger region due to asteroid scaling.
-  Rect2 search_region = visible_region.grow(Asteroid::max_scale+1);
+  Rect2 search_region = visible_region.grow(max_scale+1);
 
   if(AsteroidSearchResult::rect_entirely_outside_annulus(search_region,inner_radius,outer_radius)) {
     return;
@@ -980,8 +943,8 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
           const Asteroid *a = a_s.first;
           const AsteroidState *s = a_s.second;
           shared_ptr<const AsteroidTemplate> t = a->get_template();
-          real_t r=a->calculate_scale(*s);
-          real_t dd=rect_distance_squared_to(search_region,a->get_xz(*s));
+          real_t r=s->get_scale();
+          real_t dd=rect_distance_squared_to(visible_region,a->get_xz(*s));
 
           if(dd<r*r) {
           // Calculate the transform, and put everything in a new InstanceEffect
@@ -1001,7 +964,7 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
 std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object_id> &results) const {
   FAST_PROFILING_FUNCTION;
   // Search a slightly larger region due to asteroid scaling.
-  Rect2 search_region = rect.grow(Asteroid::max_scale+1);
+  Rect2 search_region = rect.grow(max_scale+1);
 
   if(AsteroidSearchResult::rect_entirely_outside_annulus(search_region,inner_radius,outer_radius)) {
     return 0;
@@ -1014,17 +977,22 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
 
   for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
     const AsteroidLayer &layer = layers[ilayer];
+    assert(layer.min_scale>0);
+    assert(layer.max_scale>0);
+    assert(layer.inner_radius>=inner_radius);
+    assert(layer.outer_radius<=outer_radius);
+    assert(layer.scale_range>0);
     if(AsteroidSearchResult::theta_ranges_of_rect(search_region,found,work,layer.inner_radius,layer.outer_radius)) {
       for(auto &range : found) {
-        if(!range.get_any_intersect())
-          continue; 
+        if(!range.get_any_intersect()) {
+          continue;
+        }
 
         // What range of indices do we search?
         pair<object_id,object_id> itheta_range = layer.find_theta_range(range,valid_time);
         object_id itheta1=itheta_range.first, itheta2=itheta_range.second;
 
-        //Godot::print("Layer "+str(ilayer)+" range "+str(range)+" itheta="+str(itheta1)+".."+str(itheta2)+" of "+str(layer.size()));
-      
+        size_t matches = 0;
         // Search all indices within the range.
         int itheta = itheta1-1;
         do {
@@ -1035,15 +1003,14 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
           pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
           const Asteroid *a = a_s.first;
           const AsteroidState *s = a_s.second;
-          real_t r=a->calculate_scale(*s);
-          real_t d=rect_distance_to(search_region,a->get_xz(*s));
+          real_t r=s->get_scale();
+          real_t d=rect_distance_to(rect,a->get_xz(*s));
 
           if(d<r) {
-            //Godot::print("ACCEPT itheta="+str(itheta)+" in ilayer="+str(ilayer)+" loc="+str(loc)+" scale "+str(r)+" vs "+str(d)+" in "+str(search_region));
             results.insert(combined_id(ilayer,itheta));
             count++;
-          } // else
-            // Godot::print("REJECT itheta="+str(itheta)+" in ilayer="+str(ilayer));
+            matches++;
+          }
         } while(itheta!=itheta2);
       }
     }
@@ -1056,7 +1023,7 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
 std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::unordered_set<object_id> &results) const {
   FAST_PROFILING_FUNCTION;
   size_t count=0;
-  real_t expanded_radius = radius+Asteroid::max_scale+1;
+  real_t expanded_radius = radius+max_scale+1;
   real_t valid_time = now;
   real_t clen = center.length();
   
@@ -1085,7 +1052,7 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
       pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
       const Asteroid *a = a_s.first;
       const AsteroidState *s = a_s.second;
-      real_t r=a->calculate_scale(*s);
+      real_t r=s->get_scale();
       Vector2 loc=a->get_xz(*s);
       real_t combined_radius = r+radius;
 
@@ -1102,7 +1069,7 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
 
 object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
   FAST_PROFILING_FUNCTION;
-  real_t expanded_radius = radius+Asteroid::max_scale+1;
+  real_t expanded_radius = radius+max_scale+1;
   real_t valid_time = now;
   real_t clen = center.length();
   
@@ -1131,7 +1098,7 @@ object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
       pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
       const Asteroid *a = a_s.first;
       const AsteroidState *s = a_s.second;
-      real_t r=a->calculate_scale(*s);
+      real_t r=s->get_scale();
       Vector2 loc=a->get_xz(*s);
       real_t combined_radius = r+radius;
 
@@ -1195,7 +1162,7 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
 
     // Find the asteroid closest to the beginning of the ray.
     for(size_t irange=loop_start;irange<=loop_end;irange++) {
-      AsteroidSearchResult range = ranges[irange].expanded_by(Asteroid::max_scale/layer.inner_radius);
+      AsteroidSearchResult range = ranges[irange].expanded_by(layer.max_scale/layer.inner_radius);
 
       if(!range.get_any_intersect())
         continue;
@@ -1212,7 +1179,7 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
         const Asteroid *a = a_s.first;
         const AsteroidState *s = a_s.second;
         Vector2 location = a->get_xz(*s);
-        real_t radius=a->calculate_scale(*s);
+        real_t radius=s->get_scale();
 
         Vector2 relative_location = location-start;
         real_t along = relative_location.dot(direction);

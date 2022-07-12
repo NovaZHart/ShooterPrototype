@@ -8,13 +8,6 @@ using namespace std;
 using namespace godot;
 using namespace godot::CE;
 
-const real_t Asteroid::max_rotation_speed = TAUf/4;
-const real_t Asteroid::min_scale = 0.4;
-const real_t Asteroid::max_scale = 1.4;
-const real_t Asteroid::scale_range = fabsf(Asteroid::max_scale-Asteroid::min_scale);
-
-////////////////////////////////////////////////////////////////////////
-
 AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   mesh(get<Ref<Mesh>>(dict,"mesh")),
   mesh_id(mesh_id),
@@ -57,7 +50,7 @@ void Asteroid::set_template(shared_ptr<const AsteroidTemplate> temp) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,bool initialize) const {
+void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const {
   FAST_PROFILING_FUNCTION;
   static const std::hash<String> salvage_hash;
   static const std::hash<real_t> time_hash;
@@ -96,7 +89,8 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
 
   state.x = r_now*cosf(theta_now);
   state.z = -r_now*sinf(theta_now);
-
+  state.rotation_speed = state.random_numbers.r*max_rotation_speed;
+  state.scale = state.random_numbers.b*scale_range + min_scale;
   state.set_valid_time(when);
 }
 
@@ -104,11 +98,11 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
 
 Transform Asteroid::calculate_transform(const AsteroidState &state) const {
   FAST_PROFILING_FUNCTION;
-  real_t rotation_speed = calculate_rotation_speed(state);
+  real_t rotation_speed = state.get_rotation_speed();
   real_t rotation_phase = calculate_rotation_phase(state);
   real_t rotation_angle = rotation_phase + rotation_speed*state.get_valid_time();
   
-  real_t scale_xyz = calculate_scale(state);
+  real_t scale_xyz = state.get_scale();
   
   Vector3 rotation_axis(state.random_numbers.r,state.random_numbers.g,state.random_numbers.a);
   rotation_axis.normalize();

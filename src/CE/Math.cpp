@@ -59,11 +59,9 @@ namespace godot {
     // Output: intersection[2] will receive the zero, one, or two points of intersection
     int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
       FAST_PROFILING_FUNCTION;
-      // Godot::print("line_segment_intersect_circle radius="+str(radius)+" line = "+str(line[0])+"..."+str(line[1]));
       Vector2 d = line[1]-line[0];
       real_t dr2=d.length_squared();
       if(!dr2) {
-        // Godot::print("Line segment is a point. No match.");
         return 0;
       }
       real_t dr = sqrtf(dr2);
@@ -72,7 +70,6 @@ namespace godot {
       real_t dcross=line[0].cross(line[1]);
       real_t Q2 = radius*radius*dr2-dcross*dcross;
       if(Q2<0) {
-        // Godot::print("Negative Q2="+str(Q2)+" so no match");
         return 0;
       }
       
@@ -83,7 +80,6 @@ namespace godot {
         intersection[0].y=y0/dr2;
         real_t along = intersection[0].dot(dn);
         int count = (along>=0 and along<=dr) ? 1 : 0;
-        // Godot::print("Intersection "+str(intersection[0])+" along="+str(along)+" count="+str(count));
         return count;
       }
 
@@ -98,22 +94,16 @@ namespace godot {
       real_t along0 = (p0-line[0]).dot(dn);
       if(along0>=0 and along0<=dr) {
         intersection[count++] = p0;
-        // Godot::print("Point 0 "+str(p0)+" along0="+str(along0)+" dr="+str(dr)+" so match.");
-      } // else
-        // Godot::print("Point 0 "+str(p0)+" along0="+str(along0)+" dr="+str(dr)+" so NO match.");
+      }
       real_t along1 = (p1-line[0]).dot(dn);
       if(along1>=0 and along1<=dr) {
         intersection[count++] = p1;
-        // Godot::print("Point 1 "+str(p1)+" along1="+str(along1)+" dr="+str(dr)+" so match.");
-      } // else
-        // Godot::print("Point 1 "+str(p1)+" along1="+str(along1)+" dr="+str(dr)+" so NO match.");
+      }
       
       if(count==2 and along1<along0) {
-        // Godot::print("Swap point 0 & 1");
         std::swap(intersection[0],intersection[1]);
       }
       
-      // Godot::print("Final result: count="+str(count));
       return count;
     }
 

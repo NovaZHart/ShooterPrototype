@@ -34,6 +34,9 @@ namespace godot {
       // Location of the asteroid.
       real_t x,z;
 
+      // Other derived quantities
+      real_t rotation_speed, scale;
+
       // Four random numbers generated from a relatively-expensive hash calculation:
       Color random_numbers;
 
@@ -42,6 +45,13 @@ namespace godot {
       real_t valid_time;
 
     public:
+      PROP_GET_VAL(real_t,rotation_speed);
+      PROP_GET_VAL(real_t,scale);
+      PROP_GET_VAL(real_t,x);
+      PROP_GET_VAL(real_t,z);
+      PROP_GETSET_REF(Color,random_numbers);
+      PROP_GETSET_VAL(real_t,valid_time);
+      
       inline const Color &get_instance_data() const {
         return random_numbers;
       }
@@ -54,26 +64,10 @@ namespace godot {
       inline Vector2 get_xz() const {
         return Vector2(x,z);
       }
-
-      inline const Color &get_random_numbers() const {
-        return random_numbers;
-      }
-
-      inline void set_random_numbers(const Color &c) {
-        random_numbers=c;
-      }
       
       // Does the state have valid data?
       inline bool is_valid() const {
         return valid_time!=invalid_time;
-      }
-
-      inline real_t get_valid_time() const {
-        return valid_time;
-      }
-
-      inline void set_valid_time(real_t when) {
-        valid_time=when;
       }
       
       // Pretend the state has invalid data so the next call to update_state will calculate it.
@@ -142,18 +136,6 @@ namespace godot {
     
     class Asteroid {
     public:
-      // Maximum speed an asteroid can rotate around its randomly-chosen axis
-      static const real_t max_rotation_speed;
-      
-      // Minimum x,y,z scale of asteroid
-      static const real_t min_scale;
-      
-      // Maximum x,y,z scale of asteroid
-      static const real_t max_scale;
-      
-      // max_scale-min_scale
-      static const real_t scale_range;
-
       std::shared_ptr<const AsteroidTemplate> templ;
       
       // Location of the asteroid in a cylindrical coordinate system at time 0
@@ -176,22 +158,31 @@ namespace godot {
       
       ~Asteroid() {}
 
-      inline real_t calculate_rotation_speed(const AsteroidState &state) const {
-        return state.random_numbers.r * max_rotation_speed;
+      inline real_t get_rotation_speed(const AsteroidState &state) const {
+        return state.rotation_speed;
       }
+
+      inline real_t get_scale(const AsteroidState &state) const {
+        return state.scale;
+      }
+      
+      // inline real_t calculate_rotation_speed(const AsteroidState &state) const {
+      //   return state.random_numbers.r * max_rotation_speed;
+      // }
 
       inline real_t calculate_rotation_phase(const AsteroidState &state) const {
         return state.random_numbers.g * TAUf;
       }
 
-      inline real_t calculate_scale(const AsteroidState &state) const {
-        return state.random_numbers.b*scale_range + min_scale;
-      }
+      // inline real_t calculate_scale(const AsteroidState &state) const {
+      //   return state.random_numbers.b*scale_range + min_scale;
+      // }
 
       // Updates the location of the asteroid. If the state is
       // invalid, this will also initialize the hash and random
       // colors.
-      void update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,bool initialize) const;
+      void update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,
+                        real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const;
 
       // Calculate the full transform for a multimesh instance based
       // on cached information in the asteroid state.

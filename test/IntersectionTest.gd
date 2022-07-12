@@ -14,21 +14,67 @@ export var outer_radius: float = 650
 
 export var layer_data: Array = [
 	{
-		"orbit_period": 100.0,
-		"inner_radius": inner_radius,
-		"thickness": outer_radius-inner_radius,
-		"spacing": 10.0
+		"orbit_period": 300.0,
+		"inner_radius": 500,
+		"thickness": 100,
+		"spacing": 10.0,
+		"min_scale": 0.8,
+		"max_scale": 2.0,
 	},
 	{
-		"orbit_period": 300.0,
-		"inner_radius": inner_radius+30,
-		"thickness": outer_radius-inner_radius-60,
-		"spacing": 4.0
+		"orbit_period": 225.0,
+		"inner_radius": 480,
+		"thickness": 71,
+		"spacing": 7.0,
+		"min_scale": 0.7,
+		"max_scale": 1.6,
+	},
+	{
+		"orbit_period": 225.0,
+		"inner_radius": 550,
+		"thickness": 70,
+		"spacing": 7.0,
+		"min_scale": 0.7,
+		"max_scale": 1.6,
+	},
+	{
+		"orbit_period": 150.0,
+		"inner_radius": 460,
+		"thickness": 91,
+		"spacing": 4.0,
+		"min_scale": 0.5,
+		"max_scale": 1.3,
+	},
+	{
+		"orbit_period": 150.0,
+		"inner_radius": 550,
+		"thickness": 90,
+		"spacing": 4.0,
+		"min_scale": 0.5,
+		"max_scale": 1.3,
+	},
+	{
+		"orbit_period": 75.0,
+		"inner_radius": 450,
+		"thickness": 101,
+		"spacing": 3.5,
+		"min_scale": 0.5,
+		"max_scale": 0.9,
+	},
+	{
+		"orbit_period": 75.0,
+		"inner_radius": 550,
+		"thickness": 100,
+		"spacing": 3.5,
+		"min_scale": 0.5,
+		"max_scale": 0.9,
 	},
 ]
 
 var NativeIntersectionTest = preload("res://bin/IntersectionTest.gdns")
 var native
+
+var step: int = 0
 
 var ray_start: Vector2 = Vector2(-400,0)
 var ray_end: Vector2 = Vector2(-650,250)
@@ -44,7 +90,6 @@ var asteroids_mutex: Mutex = Mutex.new()
 const CAST_RAY: int = 1
 const INTERSECT_CIRCLE: int = 2
 const INTERSECT_RECT: int = 3
-#const INTERSECT_RECT_AT_0: int = 4
 const MAX_MODE: int = 3
 var mode = INTERSECT_RECT
 
@@ -70,6 +115,7 @@ class WorldInfo:
 		return Vector2(q.x,2*center_pixels.y-q.y)
 
 func _process(delta):
+	step=step+1
 	if native:
 		var visible_region: Rect2 = Rect2(-world_size/2,world_size);
 		native.step_time(delta,visible_region)
@@ -83,10 +129,10 @@ func _process(delta):
 		elif mode==CAST_RAY:
 			asteroids=native.overlapping_rect(Rect2(ray_start,ray_end-ray_start).abs())
 			hit=native.cast_ray_first_hit(ray_start,ray_end)
-		#asteroids = native.get_asteroids()
 		asteroids_mutex.unlock()
 		update()
-		print("FPS: "+str(Engine.get_frames_per_second())+" asteroids="+str(asteroids.size()))
+		if step%60==0:
+			print("FPS: "+str(Engine.get_frames_per_second())+" asteroids="+str(asteroids.size()))
 
 func _input(event: InputEvent):
 	if event is InputEventMouseButton and event.button_index==BUTTON_RIGHT and !event.pressed:
@@ -117,22 +163,7 @@ func _ready():
 	native.set_asteroid_field(layer_data)
 	run_native()
 
-# func get_rect_at_0(xray_start,xray_end):
-# 		var xrect: Rect2 = Rect2()
-# 		if xray_start.y>0 and xray_end.y>0:
-# 			xrect = Rect2(xray_start,Vector2(xray_end.x-xray_start.x,xray_start.y)).abs()
-# 		elif xray_start.y<0 and xray_end.y<0:
-# 			xrect = Rect2(Vector2(xray_start,Vector2(xray_end.x-xray_start.x,-xray_start.y)).abs()
-# 		elif xray_start.x>0 and xray_end.x>0:
-# 			xrect = Rect2(xray_start,Vector2(-xray_start.x,xray_end.y-xray_start.y)).abs()
-# 		elif xray_start.x<0 and xray_end.x<0:
-# 			xrect = Rect2(xray_start,Vector2(xray_start.x,xray_end.y-xray_start.y)).abs()
-# 		else:
-# 			xrect = Rect2(xray_start,xray_end-xray_start).abs()
-# 		return xrect
-
 func run_native():
-	print('run_native')
 	if mode==CAST_RAY:
 		var result: Array = native.cast_ray(ray_start,ray_end)
 		theta_regions = Array(result)
@@ -143,11 +174,6 @@ func run_native():
 		var rect: Rect2 = Rect2(ray_start,ray_end-ray_start).abs()
 		var result: Array = native.intersect_rect(rect);
 		theta_regions = result
-	# else: # INTERSECT_RECT_AT_0
-	# 	var result: Array = native.intersect_rect(get_rect_at_0(ray_start,ray_end))
-	# 	theta_regions = result
-
-	print('result: '+str(theta_regions))
 	update()
 
 func make_arc_polygon(r_inner: float, r_outer: float, center: Vector2, thetas: Vector2, full_circle_lines: int) -> PoolVector2Array:
@@ -244,15 +270,6 @@ func _draw():
 		draw_line(Vector2(pixel_start.x,pixel_end.y),pixel_end,ray_color,line_thickness,false)
 		draw_line(pixel_end,Vector2(pixel_end.x,pixel_start.y),ray_color,line_thickness,false)
 		draw_line(Vector2(pixel_end.x,pixel_start.y),pixel_start,ray_color,line_thickness,false)
-	# elif mode==INTERSECT_RECT_AT_0:
-	# 	var r=get_rect_at_0(pixel_start-w.center_pixels,pixel_end-w.center_pixels).abs()
-	# 	r.position += w.center_pixels
-	# 	var ps=r.position
-	# 	var pe=r.position+r.size
-	# 	draw_line(ps,Vector2(ps.x,pe.y),ray_color,line_thickness,false)
-	# 	draw_line(Vector2(ps.x,pe.y),pe,ray_color,line_thickness,false)
-	# 	draw_line(pe,Vector2(pe.x,ps.y),ray_color,line_thickness,false)
-	# 	draw_line(Vector2(pe.x,ps.y),ps,ray_color,line_thickness,false)
 	if (mode==CAST_RAY or mode==INTERSECT_CIRCLE) and hit.size()>0:
 		var hit_location: Vector2 = w.world_to_pixels(Vector2(hit[0].x,hit[0].y))
 		var cpoly = make_circle_polygon(start_point_radius,hit_location,20)

@@ -156,6 +156,21 @@ namespace godot {
       // Radius of the inner circle of the annulus
       const real_t inner_radius;
 
+      // Average y location of asteroids (will vary by +/-1)
+      const real_t y;
+
+      // Maximum speed an asteroid can rotate around its randomly-chosen axis
+      const real_t max_rotation_speed;
+      
+      // Minimum x,y,z scale of asteroid
+      const real_t min_scale;
+      
+      // Maximum x,y,z scale of asteroid
+      const real_t max_scale;
+      
+      // max_scale-min_scale
+      const real_t scale_range;
+
       // Difference between the outer and inner circles of the annulus
       const real_t thickness;
       
@@ -164,9 +179,6 @@ namespace godot {
 
       // Target mean distance between asteroids.
       const real_t spacing;
-
-      // Average y location of asteroids (will vary by +/-1)
-      const real_t y;
 
       // All asteroids, sorted by angle and radius
       std::vector<Asteroid> asteroids;
@@ -187,6 +199,10 @@ namespace godot {
       PROP_GET_VAL(real_t,thickness);
       PROP_GET_VAL(real_t,outer_radius);
       PROP_GET_VAL(real_t,spacing);
+      PROP_GET_VAL(real_t,max_rotation_speed);
+      PROP_GET_VAL(real_t,min_scale);
+      PROP_GET_VAL(real_t,max_scale);
+      PROP_GET_VAL(real_t,scale_range);
       PROP_GET_VAL(real_t,y);
       
       inline size_t size() const {
@@ -205,13 +221,13 @@ namespace godot {
       inline AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) {
         AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
-          a->update_state(*s,time,orbit_period,inner_radius,!s->is_valid());
+          a->update_state(*s,time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range,!s->is_valid());
         return s;
       }
       inline const AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) const {
         AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
-          a->update_state(*s,time,orbit_period,inner_radius,!s->is_valid());
+          a->update_state(*s,time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range,!s->is_valid());
         return s;
       }
 
@@ -282,6 +298,7 @@ namespace godot {
       real_t inner_radius;
       real_t outer_radius;
       real_t thickness;
+      real_t max_scale;
     public:
 
       // Read asteroid layer descriptions (data) and generate asteroid layers using the specified palettes.
@@ -290,6 +307,7 @@ namespace godot {
 
       ~AsteroidField();
 
+      PROP_GET_VAL(real_t,max_scale);
       PROP_GET_VAL(real_t,inner_radius);
       PROP_GET_VAL(real_t,outer_radius);
       PROP_GET_VAL(real_t,thickness);
