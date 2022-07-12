@@ -19,6 +19,7 @@
 #include "CE/Constants.hpp"
 #include "CE/MultiMeshManager.hpp"
 #include "CE/ObjectIdGenerator.hpp"
+#include "CE/Utils.hpp"
 
 namespace godot {
   namespace CE {
@@ -119,7 +120,20 @@ namespace godot {
       // If there are any, they'll be in the results.
       static bool theta_ranges_of_rect(Rect2 rect,std::deque<AsteroidSearchResult> &results,std::deque<AsteroidSearchResult> &work1,real_t inner_radius,real_t outer_radius);
     };
+    
+  }
+  
+  template<>
+  inline String str(const CE::AsteroidSearchResult &range) {
+    if(range.get_all_intersect())
+      return "[all match]";
+    else if(!range.get_any_intersect())
+      return "[no match]";
+    else
+      return "["+str(range.get_start_theta())+"..."+str(range.get_end_theta())+"]";
+  }
 
+  namespace CE {
     ////////////////////////////////////////////////////////////////////
            
     struct AsteroidLayer {

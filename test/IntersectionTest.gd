@@ -4,13 +4,13 @@ export var annulus_line_color: Color = Color(0,0,0,1.0)
 export var ray_color: Color = Color(0,0,0.7,1.0)
 export var theta_arc_color: Color = Color(0.8,0.6,0.1,1.0)
 export var asteroid_color: Color = Color(0.3,0.3,0.6,1.0)
-export var inner_radius: float = 50
+export var inner_radius: float = 30
 export var outer_radius: float = 70
 export var line_thickness: float = 4.0
 export var asteroid_line_thickness: float = 2.0
 export var world_size: Vector2 = Vector2(200,200)
 export var orbit_period: float = 100.0
-export var spacing: float = 1.5
+export var spacing: float = 3
 
 var NativeIntersectionTest = preload("res://bin/IntersectionTest.gdns")
 var native

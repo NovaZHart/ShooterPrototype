@@ -61,11 +61,16 @@ AsteroidSearchResult::minus(const AsteroidSearchResult &region) const {
   if(contains(region.start_theta)) {
     // Subtract a region which begins within this.
     
-    if(contains(region.end_theta))
-      // Subtract a region entirely within this. Two regions match.
-      return result(AsteroidSearchResult(start_theta,region.start_theta),
-                    AsteroidSearchResult(region.end_theta,end_theta));
-    else
+    if(contains(region.end_theta)) {
+      if(region.contains(start_theta))
+        // Subtract a region that contains the edges of this. Return
+        // negation of result.
+        return result(region.negation(),no_match);
+      else
+        // Subtract a region entirely within this. Two regions match.
+        return result(AsteroidSearchResult(start_theta,region.start_theta),
+                      AsteroidSearchResult(region.end_theta,end_theta));
+    } else
       // Subtract later part of this.
       return result(AsteroidSearchResult(start_theta,region.start_theta),
                     no_match);
@@ -375,7 +380,9 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
   static const int ydir[4] = { -1, 0, 1, 0 };
 
   results.clear();
-  
+
+  int within_annulus=0; // How many points are between the inner and outer radii?
+    
   // Check for common special cases:
   //   - rectangle is entirely within the inner circle.
   //   - rectangle is entirely outside the outer_circle.
@@ -386,8 +393,10 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
     for(int i=0;i<4;i++) {
       if(points[i].length_squared()<ir2)
         within_inner++;
-      if(points[i].length_squared()>or2)
+      else if(points[i].length_squared()>or2)
         outside_outer++;
+      else
+        within_annulus++;
     }
     if(within_inner==4) {
       //Godot::print("All points inside");
@@ -413,8 +422,27 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         return false;
       }
     }
+
   }
 
+  if(within_annulus==4) {
+    // All points are within the annulus. Are all line segments within the annulus?
+    int segments_within=0;
+    for(int i=0;i<4;i++) {
+      Vector2 intersection[2];
+      if(!line_segment_intersect_circle(inner_radius,points+i,intersection))
+        segments_within++;
+    }
+    if(segments_within>=3) {
+      // Easy special case. All segments are in the annulus, so we
+      // look at the segment theta ranges.
+      for(int i=0;i<4;i++)
+        results.push_back(shortest_theta_from(points[i],points[i+1]));
+      AsteroidSearchResult::merge_set(results);
+      return true;
+    }
+  }
+  
   // Find all regions that should NOT be in the intersection, and put them in the work1 array.
   work1.clear();
   for(int side=0;side<4;side++) {
@@ -422,7 +450,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
     
     real_t dr;
 
-    //Godot::print("Side "+str(side)+" line="+str(side_points[0])+"..."+str(side_points[1]));
+    Godot::print("Side "+str(side)+" line="+str(side_points[0])+"..."+str(side_points[1]));
 
     real_t dir;
     Vector2 flip(1,1);
@@ -430,23 +458,23 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
       //flip.y=ydir[side];
       dir=ydir[side];
       dr=-dir*side_points[0].y;
-      //Godot::print("   is ydir "+str(ydir[side])+" side with dr="+str(dr));
+      Godot::print("   is ydir "+str(ydir[side])+" side with dr="+str(dr));
     } else {
       //flip.x=xdir[side];
       dir=xdir[side];
       dr=-dir*side_points[0].x;
-      //Godot::print("   is xdir "+str(xdir[side])+" side with dr="+str(dr));
+      Godot::print("   is xdir "+str(xdir[side])+" side with dr="+str(dr));
     }
     
     //Godot::print("   flip="+str(flip));
     
     if(dr>outer_radius) { // Case F
-      //Godot::print("   Case F: entire annulus was removed.");
+      Godot::print("   Case F: entire annulus was removed.");
       // Entire annulus was removed.
       results.push_back(no_match);
       return false;
     } else if(dr<-inner_radius) { // Cases A & B
-      //Godot::print("   Case AB: remove nothing");
+      Godot::print("   Case AB: remove nothing");
       continue;
     } else if(fabsf(dr)<1e-5) {
       Vector2 intersection[2];
@@ -460,11 +488,11 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         intersection[1]*=flip;
         if(dir<0)
           swap(intersection[0],intersection[1]);
-        //Godot::print("   Case DE with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
+        Godot::print("   Case DE with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
         work1.push_back(longest_theta_from(intersection[0],intersection[1]));
-        //Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
-      } // else
-        // Godot::print("   Case DE no intersection.");
+        Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
+      } else
+        Godot::print("   Case DE no intersection.");
     } else { // Case C
       Vector2 intersection[2];
       int n=line_intersect_circle(inner_radius,side_points,intersection);
@@ -473,11 +501,11 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         intersection[1]*=flip;
         if(dir<0)
           swap(intersection[0],intersection[1]);
-        //Godot::print("   Case C with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
+        Godot::print("   Case C with intersection: "+str(intersection[0])+"..."+str(intersection[1]));
         work1.push_back(shortest_theta_from(intersection[0],intersection[1]));
-        //Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
-      } // else
-        //Godot::print("   Case C no intersection");
+        Godot::print("                angle: "+str(work1.back().get_start_theta())+"..."+str(work1.back().get_end_theta()));
+      } else
+        Godot::print("   Case C no intersection");
     }
   }
 
@@ -499,6 +527,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
       for(auto it=results.begin();it!=results.end();) {
         // dump_range("Remove from ",*it);
         pair<AsteroidSearchResult,AsteroidSearchResult> minused=it->minus(r);
+        Godot::print(str(*it)+"-"+str(r)+" = ( "+str(minused.first)+", "+str(minused.second)+" )");
         if(!minused.first.get_any_intersect()) {
           // Godot::print("Eliminated range");
           // Entirely eliminated this range.
@@ -519,7 +548,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
         it++;
       }
     }
-
+    
     AsteroidSearchResult::merge_set(results);
     switch(results.size()) {
     case 0:
@@ -577,12 +606,12 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
     
   real_t radius_step = max(0.2f,Asteroid::max_scale*0.1f);
   int radius_count = max(1,int(ceilf(trimmed_thickness/radius_step)));
-  int radii_to_check = ceilf(spacing/radius_step);
   vector<real_t> last_theta_used(radius_count,-9e9f);
   vector<real_t> radius_of_bin(radius_count,0);
   vector<real_t> next_theta_used(radius_count,0);
-  real_t diamond_halfwidth = spacing*sqrtf(2);
-
+  int asteroid_tries=max(1,radius_count/5);
+  int radii_to_check = ceilf(spacing/(radius_step*2))*2;
+  
   Godot::print("Generate field with radius_step="+str(radius_step)+" radius_count="+str(radius_count)
                +" trimmed_thickness="+str(trimmed_thickness));
   
@@ -594,38 +623,51 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
 
   real_t theta = 0;
   do {
-    // Randomly choose a radius bin to try to place an asteroid.
-    int bin = rand.randi()%radius_count;
-    real_t radius = radius_of_bin[bin];
+    int placed = 0;
+    for(int tries=0;tries<asteroid_tries;tries++) {
+      // Randomly choose a radius bin to try to place an asteroid.
+      int bin = rand.randi()%radius_count;
+      real_t radius = radius_of_bin[bin];
 
-    // Will it fit?
-    bool too_big = false;
-    int first_check = max(0,bin-radii_to_check);
-    int last_check = min(radius_count-1,bin+radii_to_check);
-    for(int check_bin=first_check;check_bin<=last_check;check_bin++) {
-      real_t check_radius = radius_of_bin[check_bin];
-      real_t y = radius-check_radius;
-      real_t check_width = max(0.0f,diamond_halfwidth-fabsf(y));
-      real_t theta_needed_here = check_width/check_radius * TAUf;
-      if(theta-last_theta_used[check_bin]<theta_needed_here) {
-        too_big=true;
+      // Will it fit?
+      bool too_big = false;
+      int first_check = max(0,bin-radii_to_check/2);
+      int last_check = min(radius_count-1,bin+radii_to_check/2);
+      for(int check_bin=first_check;check_bin<=last_check;check_bin++) {
+        real_t check_radius = radius_of_bin[check_bin];
+        real_t y = radius-check_radius;
+        real_t check_width = sqrtf(spacing*spacing-y*y);
+        real_t theta_needed_here = atanf(check_width/check_radius);
+        if(theta-last_theta_used[check_bin]<theta_needed_here) {
+          too_big=true;
+          break;
+        }
+        // This part of the asteroid fits, so record the next value for
+        // theta_used in case we decide to use this asteroid.
+        next_theta_used[check_bin] = theta_needed_here+theta;
+      }
+
+      if(!too_big) {
+        placed++;
+        // The asteroid fits. Update the last_theta_used and insert a new asteroid.
+        for(int check_bin=first_check;check_bin<=last_check;check_bin++)
+          last_theta_used[check_bin] = next_theta_used[check_bin];
+
+        Godot::print("Make an asteroid at theta="+str(theta)+" r="+str(radius)+" stored as r="+str(radius-inner_radius));
+        asteroids.emplace_back(theta,radius-inner_radius,y+rand.randf()-0.5,palette.random_choice(rand));
         break;
       }
-      // This part of the asteroid fits, so record the next value for
-      // theta_used in case we decide to use this asteroid.
-      next_theta_used[check_bin] = theta_needed_here+theta;
     }
-
-    if(!too_big) {
-      // The asteroid fits. Update the last_theta_used and insert a new asteroid.
-      for(int check_bin=first_check;check_bin<=last_check;check_bin++)
-        last_theta_used[check_bin] = next_theta_used[check_bin];
-
-      Godot::print("Make an asteroid at theta="+str(theta)+" r="+str(radius)+" stored as r="+str(radius-inner_radius));
-      asteroids.emplace_back(theta,radius-inner_radius,y+rand.randf()-0.5,palette.random_choice(rand));
-    } else
-      // The asteroid does not fit. Increment theta and try again.
-      theta += theta_step;
+    if(!placed) {
+      real_t maxlast=-9e9;
+      real_t minlast=9e9;
+      for(auto &t : last_theta_used) {
+        maxlast=max(maxlast,t);
+        minlast=min(minlast,t);
+      }
+      Godot::print("Could not put an asteroid at "+str(theta)+" because last_theta_used="+str(minlast)+"..."+str(maxlast));
+    }
+    theta += theta_step;
   } while(theta<TAUf);
 
   state.resize(asteroids.size());
