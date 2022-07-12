@@ -592,8 +592,6 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
 
 
 AsteroidLayer::AsteroidLayer(const Dictionary &d):
-  orbit_period(get<real_t>(d,"orbit_period")),
-  orbit_mult(orbit_period ? TAUf/orbit_period : 1),
   inner_radius(max(0.0f,get<real_t>(d,"inner_radius"))),
   y(asteroid_height),
   max_rotation_speed(max(0.0f,get<real_t>(d,"max_rotation_speed",TAUf/4))),
@@ -603,6 +601,9 @@ AsteroidLayer::AsteroidLayer(const Dictionary &d):
   thickness(max(max_scale*3,get<real_t>(d,"thickness"))),
   outer_radius(inner_radius+thickness),
   spacing(max(min_scale,get<real_t>(d,"spacing",max_scale*2))),
+  mean_velocity(get<real_t>(d,"mean_velocity")),
+  orbit_period(TAUf*(inner_radius+thickness/2)/mean_velocity),
+  orbit_mult(orbit_period ? TAUf/orbit_period : 1),
   asteroids(),
   state()
 {}

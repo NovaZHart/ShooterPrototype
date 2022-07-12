@@ -146,12 +146,6 @@ namespace godot {
       
       // Represents all asteroids with the same orbital speed and annulus.
       // Not intended to be used outside AsteroidField except for unit tests.
-
-      // Time it takes for an asteroid to go all the away around the circle.
-      const real_t orbit_period;
-      
-      // TAUf/orbit_period = dtheta/dtime
-      const real_t orbit_mult;
       
       // Radius of the inner circle of the annulus
       const real_t inner_radius;
@@ -180,6 +174,15 @@ namespace godot {
       // Target mean distance between asteroids.
       const real_t spacing;
 
+      // Tangential velocity of asteroids half way between the inner and outer radii
+      const real_t mean_velocity;
+
+      // Time it takes for an asteroid to go all the away around the circle.
+      const real_t orbit_period;
+      
+      // TAUf/orbit_period = dtheta/dtime
+      const real_t orbit_mult;
+
       // All asteroids, sorted by angle and radius
       std::vector<Asteroid> asteroids;
 
@@ -193,6 +196,7 @@ namespace godot {
       AsteroidLayer(const Dictionary &d);
       ~AsteroidLayer();
 
+      PROP_GET_VAL(real_t,mean_velocity);
       PROP_GET_VAL(real_t,orbit_period);
       PROP_GET_VAL(real_t,orbit_mult);
       PROP_GET_VAL(real_t,inner_radius);

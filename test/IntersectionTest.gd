@@ -14,7 +14,7 @@ export var outer_radius: float = 650
 
 export var layer_data: Array = [
 	{
-		"orbit_period": 300.0,
+		"mean_velocity": 9,
 		"inner_radius": 500,
 		"thickness": 100,
 		"spacing": 10.0,
@@ -22,7 +22,7 @@ export var layer_data: Array = [
 		"max_scale": 2.0,
 	},
 	{
-		"orbit_period": 225.0,
+		"mean_velocity": 12,
 		"inner_radius": 480,
 		"thickness": 71,
 		"spacing": 7.0,
@@ -30,7 +30,7 @@ export var layer_data: Array = [
 		"max_scale": 1.6,
 	},
 	{
-		"orbit_period": 225.0,
+		"mean_velocity": 12,
 		"inner_radius": 550,
 		"thickness": 70,
 		"spacing": 7.0,
@@ -38,7 +38,7 @@ export var layer_data: Array = [
 		"max_scale": 1.6,
 	},
 	{
-		"orbit_period": 150.0,
+		"mean_velocity": 15,
 		"inner_radius": 460,
 		"thickness": 91,
 		"spacing": 4.0,
@@ -46,7 +46,7 @@ export var layer_data: Array = [
 		"max_scale": 1.3,
 	},
 	{
-		"orbit_period": 150.0,
+		"mean_velocity": 15,
 		"inner_radius": 550,
 		"thickness": 90,
 		"spacing": 4.0,
@@ -54,7 +54,7 @@ export var layer_data: Array = [
 		"max_scale": 1.3,
 	},
 	{
-		"orbit_period": 75.0,
+		"mean_velocity": 18,
 		"inner_radius": 450,
 		"thickness": 101,
 		"spacing": 3.5,
@@ -62,7 +62,7 @@ export var layer_data: Array = [
 		"max_scale": 0.9,
 	},
 	{
-		"orbit_period": 75.0,
+		"mean_velocity": 18,
 		"inner_radius": 550,
 		"thickness": 100,
 		"spacing": 3.5,
