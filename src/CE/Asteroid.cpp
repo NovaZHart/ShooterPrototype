@@ -87,9 +87,6 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
   state.x = r_now*cosf(theta_now);
   state.z = -r_now*sinf(theta_now);
 
-  assert(fabsf(state.x)<200);
-  assert(fabsf(state.z)<200);
-
   state.set_valid_time(when);
 }
 
@@ -150,7 +147,6 @@ AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
   asteroids(a.asteroids),
   accumulated_weights(a.accumulated_weights)
 {
-  assert(&a);
   if(deep_copy && asteroids.size())
     for(auto & ptr : asteroids)
       ptr = make_shared<AsteroidTemplate>(*ptr);

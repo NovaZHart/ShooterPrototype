@@ -21,12 +21,11 @@ namespace godot {
     Array cast_ray(Vector2 start, Vector2 end);
     Array intersect_circle(Vector2 center, real_t radius);
     Array intersect_rect(Rect2 rect);
-    void step_time(real_t dt);
+    void step_time(real_t delta,Rect2 visible_region);
 
   private:
     real_t inner_radius, outer_radius;
     std::shared_ptr<CE::AsteroidField> field_ptr;
-    double now;
   };
 }
 

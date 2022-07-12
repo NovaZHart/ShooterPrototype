@@ -2,6 +2,7 @@
 #include "CE/AsteroidField.hpp"
 #include "CE/Salvage.hpp"
 #include "CE/Utils.hpp"
+#include "CE/Constants.hpp"
 
 using namespace std;
 using namespace godot;
@@ -18,7 +19,7 @@ void IntersectionTest::_register_methods() {
 }
 
 IntersectionTest::IntersectionTest():
-  inner_radius(1), outer_radius(2), field_ptr(), now(0)
+  inner_radius(1), outer_radius(2), field_ptr()
 {}
 
 IntersectionTest::~IntersectionTest()
@@ -35,8 +36,11 @@ void IntersectionTest::set_asteroid_field(Array a) {
   field_ptr->generate_field();
 }
 
-void IntersectionTest::step_time(real_t dt) {
-  now += dt;
+void IntersectionTest::step_time(real_t delta,Rect2 visible_region) {
+  if(field_ptr) {
+    int64_t idelta = delta*ticks_per_second;
+    field_ptr->step_time(idelta,delta,visible_region);
+  }
 }
 
 PoolVector3Array IntersectionTest::get_asteroids() {
@@ -54,8 +58,7 @@ PoolVector3Array IntersectionTest::get_asteroids() {
         const Asteroid *a = a_s.first;
         const AsteroidState *s = a_s.second;
         if(a&&s) {
-          found++;
-          if(found>size) {
+          if(found>=size) {
             Godot::print_error("More asteroids found ("+str(found)+") than purported size ("+str(size)+").",
                                __FUNCTION__,__FILE__,__LINE__);
             break;
@@ -67,6 +70,7 @@ PoolVector3Array IntersectionTest::get_asteroids() {
         } else
           Godot::print_error("Null asteroid data found in AsteroidField.",
                              __FUNCTION__,__FILE__,__LINE__);
+        found++;
       }
     }
 
