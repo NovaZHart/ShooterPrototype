@@ -79,6 +79,10 @@ namespace godot {
     int line_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
       Vector2 d = line[1]-line[0];
       real_t dr2=d.length_squared();
+      if(!dr2)
+        return 0;
+      real_t dr = sqrtf(dr2);
+      Vector2 dn = d/dr;
       real_t dcross=line[0].cross(line[1]);
       real_t Q2 = radius*radius*dr2-dcross*dcross;
       if(Q2<0)
@@ -102,6 +106,13 @@ namespace godot {
       
       intersection[1].x = (x0-xp)/dr2;
       intersection[1].y = (y0-yp)/dr2;
+
+      real_t along0 = (intersection[0]-line[0]).dot(dn);
+      real_t along1 = (intersection[1]-line[0]).dot(dn);
+      
+      if(along1<along0) {
+        std::swap(intersection[0],intersection[1]);
+      }
       
       return 2;
     }

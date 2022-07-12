@@ -46,7 +46,7 @@ void Asteroid::set_template(shared_ptr<const AsteroidTemplate> temp) {
   structure = templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS;
 }
 
-void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,real_t thickness,bool initialize) const {
+void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,bool initialize) const {
   static const std::hash<String> salvage_hash;
   static const std::hash<real_t> time_hash;
   if(state.get_valid_time()==when)
@@ -80,10 +80,13 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
   }
 
   real_t theta_now = when*TAUf/orbit_period+theta;
-  real_t r_now = inner_radius + r*thickness;
+  real_t r_now = inner_radius + r;
 
   state.x = r_now*cosf(theta_now);
   state.z = -r_now*sinf(theta_now);
+
+  assert(fabsf(state.x)<200);
+  assert(fabsf(state.z)<200);
 
   state.set_valid_time(when);
 }
@@ -149,6 +152,10 @@ AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
     for(auto & ptr : asteroids)
       ptr = make_shared<AsteroidTemplate>(*ptr);
 }
+
+AsteroidPalette::AsteroidPalette():
+  asteroids(), accumulated_weights()
+{}
 
 shared_ptr<const AsteroidTemplate> AsteroidPalette::default_asteroid;
 

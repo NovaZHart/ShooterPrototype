@@ -219,7 +219,7 @@ namespace godot {
       // Updates the location of the asteroid. If the state is
       // invalid, this will also initialize the hash and random
       // colors.
-      void update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,real_t thickness,bool initialize) const;
+      void update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,bool initialize) const;
 
       // Calculate the full transform for a multimesh instance based
       // on cached information in the asteroid state.
@@ -348,6 +348,7 @@ namespace godot {
       // The asteroid template used if asteroids.size()==0
       static std::shared_ptr<const AsteroidTemplate> default_asteroid;
     public:
+      AsteroidPalette();
       AsteroidPalette(Array selection);
       AsteroidPalette(const AsteroidPalette &a,bool deep_copy);
 

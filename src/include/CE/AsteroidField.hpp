@@ -176,13 +176,13 @@ namespace godot {
       inline AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) {
         AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
-          a->update_state(*s,time,orbit_period,inner_radius,thickness,!s->is_valid());
+          a->update_state(*s,time,orbit_period,inner_radius,!s->is_valid());
         return s;
       }
       inline const AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) const {
         AsteroidState *s = &state[index];
         if(s->needs_update_to(time))
-          a->update_state(*s,time,orbit_period,inner_radius,thickness,!s->is_valid());
+          a->update_state(*s,time,orbit_period,inner_radius,!s->is_valid());
         return s;
       }
 
@@ -270,6 +270,10 @@ namespace godot {
       
       // Update multimeshes for asteroids overlapping the visible region.
       void add_content(Rect2 visible_region,VisibleContent &content);
+
+      // Finds all asteroids overlapping the given rect.
+      // Adds all matches to results and returns the number of matches.
+      std::size_t overlapping_rect(Rect2 rect,std::unordered_set<object_id> &results) const;
 
       // Finds all asteroids overlapping the given circle.
       // Adds all matches to results and returns the number of matches.
