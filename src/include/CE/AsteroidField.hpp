@@ -25,6 +25,7 @@ namespace godot {
   namespace CE {
     class CombatEngine;
     class VisibleContent;
+    class AsteroidField;
     
     class AsteroidSearchResult {
       // Results from searching for a region of thetas matching a shape in an AsteroidLayer.
@@ -136,7 +137,11 @@ namespace godot {
   namespace CE {
     ////////////////////////////////////////////////////////////////////
            
-    struct AsteroidLayer {
+    class AsteroidLayer {
+      
+
+      friend class AsteroidField;
+      
       // Represents all asteroids with the same orbital speed and annulus.
       // Not intended to be used outside AsteroidField except for unit tests.
 
@@ -160,20 +165,28 @@ namespace godot {
 
       // Average y location of asteroids (will vary by +/-1)
       const real_t y;
-        
-      typedef std::vector<Asteroid> asteroid_storage;
-      typedef typename asteroid_storage::iterator asteroid_storage_iter;
-      typedef typename asteroid_storage::const_iterator asteroid_storage_citer;
-        
+
       // All asteroids, sorted by angle and radius
       std::vector<Asteroid> asteroids;
 
       // Cached state of each asteroid.
       mutable std::vector<AsteroidState> state;
+    public:
+      typedef std::vector<Asteroid> asteroid_storage;
+      typedef typename asteroid_storage::iterator asteroid_storage_iter;
+      typedef typename asteroid_storage::const_iterator asteroid_storage_citer;
 
       AsteroidLayer(const Dictionary &d);
       ~AsteroidLayer();
 
+      PROP_GET_VAL(real_t,orbit_period);
+      PROP_GET_VAL(real_t,orbit_mult);
+      PROP_GET_VAL(real_t,inner_radius);
+      PROP_GET_VAL(real_t,thickness);
+      PROP_GET_VAL(real_t,outer_radius);
+      PROP_GET_VAL(real_t,spacing);
+      PROP_GET_VAL(real_t,y);
+      
       inline size_t size() const {
         return asteroids.size();
       }
@@ -254,6 +267,11 @@ namespace godot {
 
       // Have we initialized the palette mesh_ids by sending the meshes to a MultiMeshManager?
       bool sent_meshes;
+
+      // Combined size of layers
+      real_t inner_radius;
+      real_t outer_radius;
+      real_t thickness;
     public:
 
       // Read asteroid layer descriptions (data) and generate asteroid layers using the specified palettes.
@@ -262,9 +280,63 @@ namespace godot {
 
       ~AsteroidField();
 
+      PROP_GET_VAL(real_t,inner_radius);
+      PROP_GET_VAL(real_t,outer_radius);
+      PROP_GET_VAL(real_t,thickness);
+      PROP_GET_VAL(double,now);
+      PROP_GET_CONST_REF(AsteroidPalette,palette);
+      PROP_GET_CONST_REF(std::unordered_set<object_id>,dead_asteroids);
+      PROP_HAVE_VAL(sent_meshes);
+      PROP_GET_REF(CheapRand32,rand);
+      
+      class const_iterator {
+        const AsteroidField *field;
+        object_id id;
+      public:
+        inline const_iterator(): field(nullptr), id(-1) {}
+        inline const_iterator(const AsteroidField *field,object_id id):
+          field(field), id(id)
+        {}
+        inline const_iterator &operator ++() {
+          id=field->id_after(id);
+          return *this;
+        }
+        inline const_iterator operator ++(int) {
+          const_iterator temp(*this);
+          ++*this;
+          return temp;
+        }
+        inline const_iterator &operator --() {
+          id=field->id_before(id);
+          return *this;
+        }
+        inline const_iterator operator --(int) {
+          const_iterator temp(*this);
+          --*this;
+          return temp;
+        }
+        std::pair<const Asteroid*,const AsteroidState *> operator *() const {
+          return field->get(id);
+        }
+        inline bool operator == (const const_iterator &b) const {
+          return id==b.id && field==b.field;
+        }
+        inline bool operator != (const const_iterator &b) const {
+          return id!=b.id || field!=b.field;
+        }
+      };
+
+      const_iterator find(object_id id) const;
+      inline const_iterator begin() const {
+        return const_iterator(this,0);
+      }
+      inline const_iterator end() const {
+        return const_iterator(this,-1);
+      }
+      
       // Clears the asteroid field and generates a new one.
       // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
-      void generate_field(CheapRand32 &rand);
+      void generate_field();
       
       // Return the asteroid and state for the given id, if it exists.
       // If a state is returned, it is up-to-date with the current time.
@@ -299,6 +371,22 @@ namespace godot {
         return overlapping_circle(point,0,results);
       }
 
+      inline bool empty() const {
+        if(!layers.size())
+          return true;
+        for(auto &layer : layers)
+          if(layer.size())
+            return false;
+        return true;
+      }
+      
+      inline std::size_t size() const {
+        std::size_t size=0;
+        for(auto &layer : layers)
+          size+=layer.size();
+        return size;
+      }
+      
       // Finds an asteroid overlapping the given circle and returns it.
       // If there are multiple matches, the first match found is returned.
       // Returns -1 if nothing matches.
@@ -314,7 +402,32 @@ namespace godot {
       // Return the id of the first asteroid that the given ray hits.
       object_id cast_ray(Vector2 start,Vector2 end) const;
 
-    private:
+      object_id id_before(object_id id) const {
+        if(id>=0) {
+          size_t layer = id>>asteroid_layer_number_bit_shift;
+          int index = id&index_layer_mask;
+          if(index>0)
+            return id-1;
+          if(layer>0)
+            return unsafe_combined_id(layer,index);
+        }
+        return -1;
+      }
+
+      object_id id_after(object_id id) const {
+        if(id>=0) {
+          size_t layer = id>>asteroid_layer_number_bit_shift;
+          int index = id&index_layer_mask;
+          if(layer<layers.size()) {
+            int size = layers[layer].size();
+            if(index<size-1)
+              return id+1;
+            else if(layer<layers.size()-1)
+              return unsafe_combined_id(layer+1,0);
+          }
+        }
+        return -1;
+      }
 
       // Return the layer number and asteroid index of the given object id,
       // or -1,-1 if nothing matches.
@@ -322,17 +435,25 @@ namespace godot {
         if(id<0)
           return std::pair<int,int>(-1,-1);
         else
-          return std::pair<int,int>(id>>asteroid_layer_number_bit_shift,id&index_layer_mask);
+          return unsafe_split_id(id);
       }
 
+      static inline std::pair<int,int> unsafe_split_id(object_id id) {
+        return std::pair<int,int>(id>>asteroid_layer_number_bit_shift,id&index_layer_mask);
+      }
+      
       // Given the layer number and asteroid index, returns the object id.
       // Will return -1 if either are <0
       static inline object_id combined_id(int layer,int index) {
         if(layer<0 or index<0)
           return -1;
         else
-          return (static_cast<uint64_t>(layer)<<asteroid_layer_number_bit_shift) |
-            (static_cast<uint64_t>(index)&index_layer_mask);
+          return unsafe_combined_id(layer,index);
+      }
+
+      static inline object_id unsafe_combined_id(int layer,int index) {
+        return (static_cast<uint64_t>(layer)<<asteroid_layer_number_bit_shift) |
+          (static_cast<uint64_t>(index)&index_layer_mask);
       }
     };
   }

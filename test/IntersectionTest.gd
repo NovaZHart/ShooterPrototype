@@ -92,8 +92,9 @@ func _ready():
 		"thickness": outer_radius-inner_radius,
 		"spacing": spacing
 	}
-	print("Generate asteroids with data: "+str(layer_dict))
-	native.set_asteroid_layer(layer_dict)
+	var field_array: Array = [ layer_dict ]
+	print("Generate asteroids with data: "+str(field_array))
+	native.set_asteroid_field(field_array)
 	run_native()
 
 # func get_rect_at_0(xray_start,xray_end):

@@ -1,3 +1,5 @@
+#include <assert.h>
+
 #include "CE/Asteroid.hpp"
 #include "CE/Utils.hpp"
 #include "hash_functions.hpp"
@@ -148,7 +150,8 @@ AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
   asteroids(a.asteroids),
   accumulated_weights(a.accumulated_weights)
 {
-  if(deep_copy)
+  assert(&a);
+  if(deep_copy && asteroids.size())
     for(auto & ptr : asteroids)
       ptr = make_shared<AsteroidTemplate>(*ptr);
 }

@@ -52,6 +52,12 @@ SalvagePalette::SalvagePalette(Dictionary from) {
   }
 }
 
+SalvagePalette::SalvagePalette():
+  salvage()
+{}
+
+SalvagePalette::~SalvagePalette() {}
+
 shared_ptr<Salvage> SalvagePalette::instance_salvage(const String &whut,CheapRand32 &rand) const {
   shared_ptr<const Salvage> original = get_salvage(whut);
   if(!original)

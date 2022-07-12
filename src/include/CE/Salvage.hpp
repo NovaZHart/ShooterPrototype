@@ -41,11 +41,13 @@ namespace godot {
       static constexpr real_t max_product_fraction = 1.0f;
       static constexpr real_t min_product_fraction = 0.3f;
       static constexpr real_t product_fraction_range = max_product_fraction-min_product_fraction;
-      
+
+      SalvagePalette();
+      ~SalvagePalette();
       SalvagePalette(Dictionary from);
+      
       std::shared_ptr<Salvage> instance_salvage(const String &whut,CheapRand32 &rand) const;
 
-      inline ~SalvagePalette() {};
       inline std::shared_ptr<const Salvage> get_salvage(const String &whut) const {
         auto found=salvage.find(whut);
         return (found==salvage.end()) ? nullptr : found->second;

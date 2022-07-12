@@ -1,5 +1,6 @@
 #include "IntersectionTest.hpp"
 #include "CE/AsteroidField.hpp"
+#include "CE/Salvage.hpp"
 #include "CE/Utils.hpp"
 
 using namespace std;
@@ -13,11 +14,11 @@ void IntersectionTest::_register_methods() {
   register_method("intersect_rect",&IntersectionTest::intersect_rect);
   register_method("step_time",&IntersectionTest::step_time);
   register_method("get_asteroids",&IntersectionTest::get_asteroids);
-  register_method("set_asteroid_layer",&IntersectionTest::set_asteroid_layer);
+  register_method("set_asteroid_field",&IntersectionTest::set_asteroid_field);
 }
 
 IntersectionTest::IntersectionTest():
-  inner_radius(1), outer_radius(2), layer_ptr(), now(0)
+  inner_radius(1), outer_radius(2), field_ptr(), now(0)
 {}
 
 IntersectionTest::~IntersectionTest()
@@ -25,11 +26,13 @@ IntersectionTest::~IntersectionTest()
 
 void IntersectionTest::_init() {}
 
-void IntersectionTest::set_asteroid_layer(Dictionary d) {
-  layer_ptr = make_shared<AsteroidLayer>(d);
+void IntersectionTest::set_asteroid_field(Array a) {
+  shared_ptr<AsteroidPalette> no_asteroids = make_shared<AsteroidPalette>();
+  shared_ptr<SalvagePalette> no_salvage = make_shared<SalvagePalette>();
+  field_ptr = make_shared<AsteroidField>(0,a,no_asteroids,no_salvage);
   AsteroidPalette empty;
   CheapRand32 rand;
-  layer_ptr->generate_field(empty,rand);
+  field_ptr->generate_field();
 }
 
 void IntersectionTest::step_time(real_t dt) {
@@ -38,24 +41,39 @@ void IntersectionTest::step_time(real_t dt) {
 
 PoolVector3Array IntersectionTest::get_asteroids() {
   PoolVector3Array asteroids;
-  if(layer_ptr) {
-    asteroids.resize(layer_ptr->size());
+  if(field_ptr) {
+    size_t size = field_ptr->size();
+    size_t found=0;
+    asteroids.resize(size);
 
-    PoolVector3Array::Write writer = asteroids.write();
-    Vector3 *dataptr = writer.ptr();
-
-    for(size_t index=0;index<layer_ptr->size();index++) {
-      Asteroid *a = layer_ptr->get_asteroid(index);
-      if(a) {
-        AsteroidState *s = layer_ptr->get_valid_state(index,a,now);
-        if(s) {
+    {
+      PoolVector3Array::Write writer = asteroids.write();
+      Vector3 *dataptr = writer.ptr();
+      
+      for(auto a_s : *field_ptr) {
+        const Asteroid *a = a_s.first;
+        const AsteroidState *s = a_s.second;
+        if(a&&s) {
+          found++;
+          if(found>size) {
+            Godot::print_error("More asteroids found ("+str(found)+") than purported size ("+str(size)+").",
+                               __FUNCTION__,__FILE__,__LINE__);
+            break;
+          }
+          
           Vector2 xz = s->get_xz();
           real_t scale = a->calculate_scale(*s);
-          dataptr[index] = Vector3(xz.x,xz.y,scale);
-          continue;
-        }
+          dataptr[found] = Vector3(xz.x,xz.y,scale);
+        } else
+          Godot::print_error("Null asteroid data found in AsteroidField.",
+                             __FUNCTION__,__FILE__,__LINE__);
       }
-      dataptr[index] = Vector3(0,0,0);
+    }
+
+    if(found<size) {
+      asteroids.resize(found);
+      Godot::print_error("Fewer asteroids found ("+str(found)+") than purported size ("+str(size)+").",
+                         __FUNCTION__,__FILE__,__LINE__);
     }
   }
   return asteroids;

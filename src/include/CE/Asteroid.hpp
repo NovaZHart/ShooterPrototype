@@ -15,6 +15,7 @@
 #include "Vector2.hpp"
 #include "Vector3.hpp"
 
+#include "PropertyMacros.hpp"
 #include "CE/CheapRand32.hpp"
 
 namespace godot {
@@ -126,40 +127,11 @@ namespace godot {
         return salvage;
       }
       
-      inline object_id get_mesh_id() const {
-        return mesh_id;
-      }
-      inline void set_mesh_id(object_id id) {
-        mesh_id=id;
-      }
-      
-      inline const Ref<Mesh> &get_mesh() const {
-        return mesh;
-      }
-      inline void set_mesh(const Ref<Mesh> &mesh) {
-        this->mesh = mesh;
-      }
-      
-      inline const Color &get_color_data() const {
-        return color_data;
-      }
-      inline void set_color_data(const Color &color_data) {
-        this->color_data = color_data;
-      }
-      
-      inline const String &get_salvage() const {
-        return salvage;
-      }
-      inline void set_salvage(const String &salvage) {
-        this->salvage = salvage;
-      }
-
-      inline real_t get_max_structure() const {
-        return max_structure;
-      }
-      inline void set_max_structure(real_t max_structure) {
-        this->max_structure = max_structure;
-      }
+      PROP_GETSET_VAL(object_id,mesh_id);
+      PROP_GETSET_REF(Ref<Mesh>,mesh);
+      PROP_GETSET_REF(Color,color_data);
+      PROP_GETSET_REF(String,salvage);
+      PROP_GETSET_VAL(real_t,max_structure);
 
       inline bool is_invincible() const {
         return max_structure == EFFECTIVELY_INFINITE_HITPOINTS;
@@ -297,28 +269,13 @@ namespace godot {
       }
 
       // Get/set current y location
-      inline real_t get_y() const {
-        return y;
-      }
-      inline void set_y(real_t y) {
-        this->y=y;
-      }
+      PROP_GETSET_VAL(real_t,y);
 
       // Get/set angle in cylindrical coordinate system.
-      inline real_t get_theta() const {
-        return theta;
-      }
-      inline void set_theta(real_t theta) {
-        this->theta = theta;
-      }
+      PROP_GETSET_VAL(real_t,theta);
 
       // Get/set radius in cylindrical coordinate system.
-      inline real_t get_r() const {
-        return r;
-      }
-      inline void set_r(real_t r) {
-        this->r=r;
-      }
+      PROP_GETSET_VAL(real_t,r);
 
       // Get/set mesh index within palette
       inline Ref<Mesh> get_mesh() const {

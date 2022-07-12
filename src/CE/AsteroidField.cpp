@@ -478,7 +478,7 @@ bool AsteroidSearchResult::theta_ranges_of_rect(Rect2 rect,deque<AsteroidSearchR
       continue;
     } else if(fabsf(dr)<1e-5) {
       Vector2 intersection[2];
-      int n=line_intersect_circle(inner_radius,side_points,intersection);
+      line_intersect_circle(inner_radius,side_points,intersection);
       work1.push_back(theta_from(intersection[1],intersection[0]));
     } else if(dr>0) { // Cases D & E
       Vector2 intersection[2];
@@ -705,17 +705,37 @@ AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalet
     }
     layers.emplace_back(static_cast<Dictionary>(v));
   }
-  if(!layers.size())
+
+  if(layers.size()) {
+    inner_radius=numeric_limits<real_t>::infinity();
+    outer_radius=-numeric_limits<real_t>::infinity();
+    for(auto &layer : layers) {
+      inner_radius = min(inner_radius,layer.get_inner_radius());
+      outer_radius = max(outer_radius,layer.get_outer_radius());
+    }
+    thickness = outer_radius-inner_radius;
+  } else {
     Godot::print_error("No asteroid layers in AsteroidField!",
                        __FUNCTION__,__FILE__,__LINE__);
+    inner_radius = 100;
+    outer_radius = 100.1;
+    thickness = 0.1;
+  }
 }
 
 AsteroidField::~AsteroidField()
 {}
 
-void AsteroidField::generate_field(CheapRand32 &rand) {
+void AsteroidField::generate_field() {
   for(auto &layer : layers)
     layer.generate_field(palette,rand);
+}
+
+AsteroidField::const_iterator AsteroidField::find(object_id id) const {
+  pair<int,int> split = split_id(id);
+  if(split.first<0 or static_cast<size_t>(split.first)>=layers.size())
+    return end();
+  return const_iterator(this,id);
 }
 
 pair<const Asteroid *,const AsteroidState*> AsteroidField::get(object_id id) const {
