@@ -116,6 +116,8 @@ namespace godot {
       // Find all thetas of an annulus that lie within the given circle.
       static AsteroidSearchResult theta_range_of_circle(Vector2 center,real_t radius,real_t inner_radius,real_t outer_radius);
 
+      static bool rect_entirely_outside_annulus(Rect2 rect,real_t inner_radius,real_t outer_radius);
+      
       // Find all thetas of an annulus that lie within the given rect.
       // If there are none, returns false and puts no_match in the results.
       // If there are any, they'll be in the results.

@@ -52,7 +52,7 @@ void IntersectionTest::step_time(real_t delta,Rect2 visible_region) {
 void IntersectionTest::matches_to_array(PoolVector3Array &data,const std::unordered_set<object_id> &matches) const {
   size_t size = matches.size();
   data.resize(size);
-  size_t found = 0;
+  int found = 0;
   
   {
     PoolVector3Array::Write writer = data.write();
@@ -83,7 +83,7 @@ PoolVector3Array IntersectionTest::overlapping_rect(Rect2 rect) const {
   PoolVector3Array results;
   if(field_ptr) {
     std::unordered_set<object_id> matches;
-    size_t count = field_ptr->overlapping_rect(rect,matches);
+    field_ptr->overlapping_rect(rect,matches);
     matches_to_array(results,matches);
     //Godot::print("overlapping rect count="+str(count)+" matches size="+str(matches.size())+" results size="+str(results.size()));
   }
@@ -94,7 +94,7 @@ PoolVector3Array IntersectionTest::overlapping_circle(Vector2 center,real_t radi
   PoolVector3Array results;
   if(field_ptr) {
     std::unordered_set<object_id> matches;
-    size_t count = field_ptr->overlapping_circle(center,radius,matches);
+    field_ptr->overlapping_circle(center,radius,matches);
     matches_to_array(results,matches);
   }
   return results;

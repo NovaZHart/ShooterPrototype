@@ -27,7 +27,7 @@ namespace godot {
     // Input: line[2] has two points on the line.
     // Output: intersection[2] will receive the zero, one, or two points of intersection
     //     ordered by increasing distance from line[0] along the line.
-    int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]);
+    int line_segment_intersect_circle(real_t radius,const Vector2 segment[2],Vector2 intersection[2]);
 
     // Intersection of a circle at the origin and a line.
     // Returns the number of points of intersection.
