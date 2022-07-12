@@ -13,6 +13,8 @@ const real_t Asteroid::min_scale = 0.4;
 const real_t Asteroid::max_scale = 1.4;
 const real_t Asteroid::scale_range = fabsf(Asteroid::max_scale-Asteroid::min_scale);
 
+////////////////////////////////////////////////////////////////////////
+
 AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   mesh(get<Ref<Mesh>>(dict,"mesh")),
   mesh_id(mesh_id),
@@ -21,14 +23,17 @@ AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   max_structure(get<real_t>(dict,"max_structure",EFFECTIVELY_INFINITE_HITPOINTS))
 {}
 
+////////////////////////////////////////////////////////////////////////
+
 AsteroidTemplate::AsteroidTemplate():
   mesh(), mesh_id(-1), color_data(0,0,0,0), 
   salvage(), max_structure(EFFECTIVELY_INFINITE_HITPOINTS)
 {}
 
-AsteroidTemplate::~AsteroidTemplate() {
+////////////////////////////////////////////////////////////////////////
 
-}
+AsteroidTemplate::~AsteroidTemplate()
+{}
 
 ////////////////////////////////////////////////////////////////////////
 
@@ -43,12 +48,17 @@ double Asteroid::take_damage(double damage) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////
+
 void Asteroid::set_template(shared_ptr<const AsteroidTemplate> temp) {
   this->templ = templ;
   structure = templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS;
 }
 
+////////////////////////////////////////////////////////////////////////
+
 void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,bool initialize) const {
+  FAST_PROFILING_FUNCTION;
   static const std::hash<String> salvage_hash;
   static const std::hash<real_t> time_hash;
   if(state.get_valid_time()==when)
@@ -90,7 +100,10 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
   state.set_valid_time(when);
 }
 
+////////////////////////////////////////////////////////////////////////
+
 Transform Asteroid::calculate_transform(const AsteroidState &state) const {
+  FAST_PROFILING_FUNCTION;
   real_t rotation_speed = calculate_rotation_speed(state);
   real_t rotation_phase = calculate_rotation_phase(state);
   real_t rotation_angle = rotation_phase + rotation_speed*state.get_valid_time();
@@ -112,6 +125,7 @@ Transform Asteroid::calculate_transform(const AsteroidState &state) const {
 ////////////////////////////////////////////////////////////////////////
 
 AsteroidPalette::AsteroidPalette(Array selection) {
+  FAST_PROFILING_FUNCTION;
   int size=selection.size();
   asteroids.reserve(size);
   accumulated_weights.reserve(size);
@@ -143,20 +157,29 @@ AsteroidPalette::AsteroidPalette(Array selection) {
   }
 }
 
+////////////////////////////////////////////////////////////////////////
+
 AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
   asteroids(a.asteroids),
   accumulated_weights(a.accumulated_weights)
 {
+  FAST_PROFILING_FUNCTION;
   if(deep_copy && asteroids.size())
     for(auto & ptr : asteroids)
       ptr = make_shared<AsteroidTemplate>(*ptr);
 }
 
+////////////////////////////////////////////////////////////////////////
+
 AsteroidPalette::AsteroidPalette():
   asteroids(), accumulated_weights()
 {}
 
+////////////////////////////////////////////////////////////////////////
+
 shared_ptr<const AsteroidTemplate> AsteroidPalette::default_asteroid;
+
+////////////////////////////////////////////////////////////////////////
 
 shared_ptr<const AsteroidTemplate> AsteroidPalette::random_choice(CheapRand32 &rand) const {
   if(!empty()) {

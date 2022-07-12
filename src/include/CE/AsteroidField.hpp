@@ -239,11 +239,6 @@ namespace godot {
       // Clears the asteroid layer and generates a new one from the given selection of asteroids.
       // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
       void generate_field(const AsteroidPalette &palette,CheapRand32 &rand);
-
-    private:
-      // Sort asteroids by increasing theta
-      // FIXME: This should not be necessary because they're generated in sorted order.
-      void sort_asteroids();
     };
 
     

@@ -12,6 +12,7 @@ namespace godot {
     using namespace std;
 
     real_t rect_distance_squared_to(const Rect2 &r,const Vector2 &p) {
+      FAST_PROFILING_FUNCTION;
       Vector2 UL=r.position, DR=UL+r.size;
 
       if(UL.x>DR.x)
@@ -49,12 +50,15 @@ namespace godot {
       }
     }
 
+    ////////////////////////////////////////////////////////////////////////
+
     // Intersection of a circle at the origin and a line segment
     // Returns the number of points of intersection.
     // Input: radius is the radius of the circle (center is the origin)
     // Input: line[2] has two points on the line.
     // Output: intersection[2] will receive the zero, one, or two points of intersection
     int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
+      FAST_PROFILING_FUNCTION;
       // Godot::print("line_segment_intersect_circle radius="+str(radius)+" line = "+str(line[0])+"..."+str(line[1]));
       Vector2 d = line[1]-line[0];
       real_t dr2=d.length_squared();
@@ -112,13 +116,16 @@ namespace godot {
       // Godot::print("Final result: count="+str(count));
       return count;
     }
-      
+
+    ////////////////////////////////////////////////////////////////////////
+
     // Intersection of a circle at the origin and a line.
     // Returns the number of points of intersection.
     // Input: radius is the radius of the circle (center is the origin)
     // Input: line[2] has two points on the line.
     // Output: intersection[2] will receive the zero, one, or two points of intersection
     int line_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
+      FAST_PROFILING_FUNCTION;
       Vector2 d = line[1]-line[0];
       real_t dr2=d.length_squared();
       if(!dr2)
@@ -158,13 +165,16 @@ namespace godot {
       
       return 2;
     }
-    
+
+    ////////////////////////////////////////////////////////////////////////
+
     // Intersection of a circle at the origin and a circle not at the origin.
     // Return value is yes/no: is there an intersection?
     // Point1 & point2 are the points of intersection if return value is true
     // Arc of circle 1 that resides in circle 2 is point1..point2
     bool circle_intersection(real_t radius1,Vector2 center2, real_t radius2,
                              Vector2 &point1, Vector2 &point2) {
+      FAST_PROFILING_FUNCTION;
       real_t len = center2.length();
 
       if(len+radius2<radius1)
@@ -202,6 +212,8 @@ namespace godot {
       return true;
     }
 
+    ////////////////////////////////////////////////////////////////////////
+
     using namespace std;
     double rendezvous_time(Vector3 target_location,Vector3 target_velocity,
                            double interception_speed) {
@@ -230,6 +242,8 @@ namespace godot {
         return mx;
       return NAN;
     }
+
+    ////////////////////////////////////////////////////////////////////////
 
     pair<DVector3,double> plot_collision_course(DVector3 relative_position,DVector3 target_velocity,double max_speed) {
       FAST_PROFILING_FUNCTION;
