@@ -1,8 +1,10 @@
 #ifndef INTERSECTIONTEST_HPP
 #define INTERSECTIONTEST_HPP
 
+#include <unordered_set>
 #include <memory>
 
+#include <PoolArrays.hpp>
 #include <Godot.hpp>
 #include "CE/AsteroidField.hpp"
 
@@ -23,7 +25,15 @@ namespace godot {
     Array intersect_rect(Rect2 rect);
     void step_time(real_t delta,Rect2 visible_region);
 
+    
+    PoolVector3Array overlapping_rect(Rect2 rect) const;
+    PoolVector3Array overlapping_circle(Vector2 center,real_t radius) const;
+    PoolVector3Array first_in_circle(Vector2 center,real_t radius) const;
+    PoolVector3Array cast_ray_first_hit(Vector2 start,Vector2 end) const;
+    
   private:
+    void matches_to_array(PoolVector3Array &data,const std::unordered_set<object_id> &matches) const;
+    
     real_t inner_radius, outer_radius;
     std::shared_ptr<CE::AsteroidField> field_ptr;
   };

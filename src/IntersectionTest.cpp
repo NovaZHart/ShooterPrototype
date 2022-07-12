@@ -1,3 +1,5 @@
+#include <unordered_set>
+
 #include "IntersectionTest.hpp"
 #include "CE/AsteroidField.hpp"
 #include "CE/Salvage.hpp"
@@ -16,6 +18,10 @@ void IntersectionTest::_register_methods() {
   register_method("step_time",&IntersectionTest::step_time);
   register_method("get_asteroids",&IntersectionTest::get_asteroids);
   register_method("set_asteroid_field",&IntersectionTest::set_asteroid_field);
+  register_method("overlapping_rect",&IntersectionTest::overlapping_rect);
+  register_method("overlapping_circle",&IntersectionTest::overlapping_circle);
+  register_method("first_in_circle",&IntersectionTest::first_in_circle);
+  register_method("cast_ray_first_hit",&IntersectionTest::cast_ray_first_hit);
 }
 
 IntersectionTest::IntersectionTest():
@@ -41,6 +47,80 @@ void IntersectionTest::step_time(real_t delta,Rect2 visible_region) {
     int64_t idelta = delta*ticks_per_second;
     field_ptr->step_time(idelta,delta,visible_region);
   }
+}
+
+void IntersectionTest::matches_to_array(PoolVector3Array &data,const std::unordered_set<object_id> &matches) const {
+  size_t size = matches.size();
+  data.resize(size);
+  size_t found = 0;
+  
+  {
+    PoolVector3Array::Write writer = data.write();
+    Vector3 *dataptr = writer.ptr();
+    
+    for(auto id : matches) {
+      auto a_s = field_ptr->get(id);
+      
+      if(a_s.first and a_s.second) {
+        const Asteroid *a = a_s.first;
+        const AsteroidState *s = a_s.second;
+        
+        Vector2 xz = s->get_xz();
+        real_t scale = a->calculate_scale(*s);
+        //if(matches.size()==1)
+          //Godot::print("Match at "+str(xz)+" radius "+str(scale));
+        dataptr[found] = Vector3(xz.x,xz.y,scale);
+        found++;
+      }
+    }
+  }
+
+  if(found!=data.size())
+    data.resize(found);
+}
+
+PoolVector3Array IntersectionTest::overlapping_rect(Rect2 rect) const {
+  PoolVector3Array results;
+  if(field_ptr) {
+    std::unordered_set<object_id> matches;
+    size_t count = field_ptr->overlapping_rect(rect,matches);
+    matches_to_array(results,matches);
+    //Godot::print("overlapping rect count="+str(count)+" matches size="+str(matches.size())+" results size="+str(results.size()));
+  }
+  return results;
+}
+
+PoolVector3Array IntersectionTest::overlapping_circle(Vector2 center,real_t radius) const {
+  PoolVector3Array results;
+  if(field_ptr) {
+    std::unordered_set<object_id> matches;
+    size_t count = field_ptr->overlapping_circle(center,radius,matches);
+    matches_to_array(results,matches);
+  }
+  return results;
+}
+
+PoolVector3Array IntersectionTest::first_in_circle(Vector2 center,real_t radius) const {
+  PoolVector3Array results;
+  if(field_ptr) {
+    std::unordered_set<object_id> matches;
+    matches.insert(field_ptr->first_in_circle(center,radius));
+    matches_to_array(results,matches);
+  }
+  return results;
+}
+
+PoolVector3Array IntersectionTest::cast_ray_first_hit(Vector2 start,Vector2 end) const {
+  PoolVector3Array results;
+  if(field_ptr) {
+    std::unordered_set<object_id> matches;
+    object_id id = field_ptr->cast_ray(start,end);
+    //Godot::print("closest id = "+str(id));
+    matches.insert(id);
+    matches_to_array(results,matches);
+    //Godot::print("   match count: "+str(results.size()));
+  }
+  return results;
 }
 
 PoolVector3Array IntersectionTest::get_asteroids() {
@@ -86,8 +166,8 @@ PoolVector3Array IntersectionTest::get_asteroids() {
 void IntersectionTest::set_annulus(real_t inner,real_t outer) {
   inner_radius = max(0.01f,inner);
   outer_radius = max(inner_radius+0.01f,outer);
-  Godot::print("Annulus request inner="+str(inner)+" outer="+str(outer));
-  Godot::print("Annulus actual inner="+str(inner_radius)+" outer="+str(outer_radius));
+  // Godot::print("Annulus request inner="+str(inner)+" outer="+str(outer));
+  // Godot::print("Annulus actual inner="+str(inner_radius)+" outer="+str(outer_radius));
 }
 
 Array IntersectionTest::intersect_circle(Vector2 center,real_t radius) {
@@ -118,7 +198,7 @@ Array IntersectionTest::intersect_rect(Rect2 rect) {
 }
 
 Array IntersectionTest::cast_ray(Vector2 start,Vector2 end) {
-  Godot::print("Cast ray start="+str(start)+" to end="+str(end));
+  // Godot::print("Cast ray start="+str(start)+" to end="+str(end));
   pair<AsteroidSearchResult,AsteroidSearchResult> ranges =
     AsteroidSearchResult::theta_ranges_of_ray(start,end,inner_radius,outer_radius);
   Array result;
@@ -126,14 +206,14 @@ Array IntersectionTest::cast_ray(Vector2 start,Vector2 end) {
     AsteroidSearchResult &range = i==0 ? ranges.first : ranges.second;
     if(range.get_any_intersect()) {
       if(range.get_all_intersect()) {
-        Godot::print("Range "+str(i)+" has get_all_intersect=true");
+        // Godot::print("Range "+str(i)+" has get_all_intersect=true");
         result.append(Vector2(0,TAUf-.001));
       } else {
-        Godot::print("Range "+str(i)+" has theta range start="+str(range.get_start_theta())+" end="+str(range.get_end_theta()));
+        // Godot::print("Range "+str(i)+" has theta range start="+str(range.get_start_theta())+" end="+str(range.get_end_theta()));
         result.append(Vector2(range.get_start_theta(),range.get_end_theta()));
       }
-    } else
-      Godot::print("Range "+str(i)+" has get_any_intersect=false");
+    } // else
+      // Godot::print("Range "+str(i)+" has get_any_intersect=false");
   }
   return result;
 }

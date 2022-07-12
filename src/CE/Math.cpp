@@ -1,4 +1,6 @@
 #include <algorithm>
+#include <limits>
+#include <cmath>
 
 #include "CE/Math.hpp"
 #include "CE/Utils.hpp"
@@ -7,17 +9,57 @@
 namespace godot {
   namespace CE {
 
+    using namespace std;
+
+    real_t rect_distance_squared_to(const Rect2 &r,const Vector2 &p) {
+      Vector2 UL=r.position, DR=UL+r.size;
+
+      if(UL.x>DR.x)
+        swap(UL.x,DR.x);
+
+      if(UL.y<DR.y)
+        swap(UL.y,DR.y);
+
+      real_t L = UL.x-p.x, R = p.x-DR.x;
+      real_t U = p.y-UL.y, D = DR.y-p.y;
+
+      if(L>0) {
+        if(U>0)
+          return UL.distance_squared_to(p);
+        else if(D>0) {
+          Vector2 DL(UL.x,DR.y);
+          return DL.distance_squared_to(p);
+        } else
+          return L*L;
+      } else if(R>0) {
+        if(U>0) {
+          Vector2 UR(DR.x,UL.y);
+          return UR.distance_squared_to(p);
+        } else if(D>0)
+          return DR.distance_squared_to(p);
+        else
+          return R*R;
+      } else {
+        if(U>0)
+          return U*U;
+        else if(D>0)
+          return D*D;
+        else
+          return 0;
+      }
+    }
+
     // Intersection of a circle at the origin and a line segment
     // Returns the number of points of intersection.
     // Input: radius is the radius of the circle (center is the origin)
     // Input: line[2] has two points on the line.
     // Output: intersection[2] will receive the zero, one, or two points of intersection
     int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
-      Godot::print("line_segment_intersect_circle radius="+str(radius)+" line = "+str(line[0])+"..."+str(line[1]));
+      // Godot::print("line_segment_intersect_circle radius="+str(radius)+" line = "+str(line[0])+"..."+str(line[1]));
       Vector2 d = line[1]-line[0];
       real_t dr2=d.length_squared();
       if(!dr2) {
-        Godot::print("Line segment is a point. No match.");
+        // Godot::print("Line segment is a point. No match.");
         return 0;
       }
       real_t dr = sqrtf(dr2);
@@ -26,7 +68,7 @@ namespace godot {
       real_t dcross=line[0].cross(line[1]);
       real_t Q2 = radius*radius*dr2-dcross*dcross;
       if(Q2<0) {
-        Godot::print("Negative Q2="+str(Q2)+" so no match");
+        // Godot::print("Negative Q2="+str(Q2)+" so no match");
         return 0;
       }
       
@@ -37,7 +79,7 @@ namespace godot {
         intersection[0].y=y0/dr2;
         real_t along = intersection[0].dot(dn);
         int count = (along>=0 and along<=dr) ? 1 : 0;
-        Godot::print("Intersection "+str(intersection[0])+" along="+str(along)+" count="+str(count));
+        // Godot::print("Intersection "+str(intersection[0])+" along="+str(along)+" count="+str(count));
         return count;
       }
 
@@ -52,22 +94,22 @@ namespace godot {
       real_t along0 = (p0-line[0]).dot(dn);
       if(along0>=0 and along0<=dr) {
         intersection[count++] = p0;
-        Godot::print("Point 0 "+str(p0)+" along0="+str(along0)+" dr="+str(dr)+" so match.");
-      } else
-        Godot::print("Point 0 "+str(p0)+" along0="+str(along0)+" dr="+str(dr)+" so NO match.");
+        // Godot::print("Point 0 "+str(p0)+" along0="+str(along0)+" dr="+str(dr)+" so match.");
+      } // else
+        // Godot::print("Point 0 "+str(p0)+" along0="+str(along0)+" dr="+str(dr)+" so NO match.");
       real_t along1 = (p1-line[0]).dot(dn);
       if(along1>=0 and along1<=dr) {
         intersection[count++] = p1;
-        Godot::print("Point 1 "+str(p1)+" along1="+str(along1)+" dr="+str(dr)+" so match.");
-      } else
-        Godot::print("Point 1 "+str(p1)+" along1="+str(along1)+" dr="+str(dr)+" so NO match.");
+        // Godot::print("Point 1 "+str(p1)+" along1="+str(along1)+" dr="+str(dr)+" so match.");
+      } // else
+        // Godot::print("Point 1 "+str(p1)+" along1="+str(along1)+" dr="+str(dr)+" so NO match.");
       
       if(count==2 and along1<along0) {
-        Godot::print("Swap point 0 & 1");
+        // Godot::print("Swap point 0 & 1");
         std::swap(intersection[0],intersection[1]);
       }
       
-      Godot::print("Final result: count="+str(count));
+      // Godot::print("Final result: count="+str(count));
       return count;
     }
       

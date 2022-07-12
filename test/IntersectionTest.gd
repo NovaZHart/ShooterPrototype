@@ -4,6 +4,7 @@ export var annulus_line_color: Color = Color(0,0,0,1.0)
 export var ray_color: Color = Color(0,0,0.7,1.0)
 export var theta_arc_color: Color = Color(0.8,0.6,0.1,1.0)
 export var asteroid_color: Color = Color(0.3,0.3,0.6,1.0)
+export var hit_color: Color = Color(0.9,0.3,0.3,1.0)
 export var inner_radius: float = 450
 export var outer_radius: float = 650
 export var line_thickness: float = 4.0
@@ -23,6 +24,7 @@ var end_point_radius = world_size.x/150
 var theta_regions: Array = [Vector2(0.2,0.6), Vector2(0.9,1.3)]
 
 var asteroids: PoolVector3Array = PoolVector3Array()
+var hit: PoolVector3Array = PoolVector3Array()
 var asteroids_mutex: Mutex = Mutex.new()
 
 const CAST_RAY: int = 1
@@ -58,7 +60,16 @@ func _process(delta):
 		var visible_region: Rect2 = Rect2(-world_size/2,world_size);
 		native.step_time(delta,visible_region)
 		asteroids_mutex.lock()
-		asteroids = native.get_asteroids()
+		if mode==INTERSECT_RECT:
+			asteroids=native.overlapping_rect(Rect2(ray_start,ray_end-ray_start).abs())
+		elif mode==INTERSECT_CIRCLE:
+			var radius: float = (ray_end-ray_start).length()
+			asteroids=native.overlapping_circle(ray_start,radius)
+			hit=native.first_in_circle(ray_start,radius)
+		elif mode==CAST_RAY:
+			asteroids=native.overlapping_rect(Rect2(ray_start,ray_end-ray_start).abs())
+			hit=native.cast_ray_first_hit(ray_start,ray_end)
+		#asteroids = native.get_asteroids()
 		asteroids_mutex.unlock()
 		update()
 		print(Engine.get_frames_per_second())
@@ -177,30 +188,35 @@ func _draw():
 	var show: PoolVector3Array = asteroids
 	asteroids_mutex.unlock()
 	if show.size():
-		if mode==INTERSECT_RECT:
-			var display_rect = Rect2(pixel_start,pixel_end-pixel_start).abs()
-			for asteroid in show:
-				var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
-				var asteroid_radius: float = w.world_scale*asteroid.z
-				if display_rect.grow(2*asteroid_radius).has_point(asteroid_loc):
-					var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
-					draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
-		elif mode==INTERSECT_CIRCLE:
-			var radius = (pixel_end-pixel_start).length()
-			for asteroid in show:
-				var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
-				var asteroid_radius: float = w.world_scale*asteroid.z
-				if asteroid_loc.distance_to(pixel_start)<=asteroid_radius+radius:
-					var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
-					draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
-		else:
-			for asteroid in show:
-				var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
-				var asteroid_radius: float = w.world_scale*asteroid.z
-				var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
-				draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
-	else:
-		push_warning("NO asteroids!")
+		# if mode==INTERSECT_RECT:
+		# 	var display_rect = Rect2(pixel_start,pixel_end-pixel_start).abs()
+		# 	for asteroid in show:
+		# 		var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
+		# 		var asteroid_radius: float = w.world_scale*asteroid.z
+		# 		if display_rect.grow(2*asteroid_radius).has_point(asteroid_loc):
+		# 			var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
+		# 			draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
+		# elif mode==INTERSECT_CIRCLE:
+		# 	var radius = (pixel_end-pixel_start).length()
+		# 	for asteroid in show:
+		# 		var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
+		# 		var asteroid_radius: float = w.world_scale*asteroid.z
+		# 		if asteroid_loc.distance_to(pixel_start)<=asteroid_radius+radius:
+		# 			var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
+		# 			draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
+		# else:
+		# 	for asteroid in show:
+		# 		var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
+		# 		var asteroid_radius: float = w.world_scale*asteroid.z
+		# 		var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
+		# 		draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
+		for asteroid in show:
+			var asteroid_loc: Vector2 = w.world_to_pixels(Vector2(asteroid.x,asteroid.y))
+			var asteroid_radius: float = w.world_scale*asteroid.z
+			var poly = make_circle_polygon(asteroid_radius,asteroid_loc,6)
+			draw_polyline(poly,asteroid_color,asteroid_line_thickness,false)
+	#else:
+	#	push_warning("NO asteroids!")
 
 	# Draw the selection start location	
 	var start_poly = make_circle_polygon(start_point_radius*w.world_scale,pixel_start,20)
@@ -230,3 +246,7 @@ func _draw():
 	# 	draw_line(Vector2(ps.x,pe.y),pe,ray_color,line_thickness,false)
 	# 	draw_line(pe,Vector2(pe.x,ps.y),ray_color,line_thickness,false)
 	# 	draw_line(Vector2(pe.x,ps.y),ps,ray_color,line_thickness,false)
+	if (mode==CAST_RAY or mode==INTERSECT_CIRCLE) and hit.size()>0:
+		var hit_location: Vector2 = w.world_to_pixels(Vector2(hit[0].x,hit[0].y))
+		var cpoly = make_circle_polygon(start_point_radius,hit_location,20)
+		draw_polyline(cpoly,hit_color,line_thickness,false)

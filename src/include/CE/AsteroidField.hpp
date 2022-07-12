@@ -213,8 +213,21 @@ namespace godot {
         return s;
       }
 
+      inline std::pair<const Asteroid*,const AsteroidState*> unsafe_get(object_id index, real_t time) const {
+        const Asteroid *a = &asteroids[index];
+        return std::pair<const Asteroid*,const AsteroidState*>(a,get_valid_state(index,a,time));
+      }
+
+      inline std::pair<Asteroid*,AsteroidState*> unsafe_get(object_id index, real_t time) {
+        Asteroid *a = &asteroids[index];
+        return std::pair<Asteroid*,AsteroidState*>(a,get_valid_state(index,a,time));
+      }
+
       // upper_bound of theta
       int find_theta(real_t theta) const;
+
+      // range of thetas to loop over
+      std::pair<object_id,object_id> find_theta_range(const AsteroidSearchResult &r,double when) const;
 
       // How much has the annulus rotated by this time?
       inline real_t theta_time_shift(double when) const {

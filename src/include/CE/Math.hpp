@@ -14,6 +14,12 @@ namespace godot {
     static const Vector3 x_axis(1,0,0);
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
+
+    // Distance between a point and a rect.
+    real_t rect_distance_squared_to(const Rect2 &rect,const Vector2 &point);
+    inline real_t rect_distance_to(const Rect2 &rect,const Vector2 &point) {
+      return sqrtf(rect_distance_squared_to(rect,point));
+    }
     
     // Intersection of a circle at the origin and a line segment
     // Returns the number of points of intersection.

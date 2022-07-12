@@ -81,7 +81,7 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
     state.set_random_numbers(CheapRand32(hash).rand_color());
   }
 
-  real_t theta_now = when*TAUf/orbit_period+theta;
+  real_t theta_now = theta-when*TAUf/orbit_period;
   real_t r_now = inner_radius + r;
 
   state.x = r_now*cosf(theta_now);
