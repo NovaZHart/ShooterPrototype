@@ -120,11 +120,11 @@ mount_type = "external equipment"
 mount_type_display = "external equipment"
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 0.8, 0.0117804, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 0.8, 0.0117804, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 0.8, 0.0117804, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 0.8, 0.0117804, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="UndeadShip" parent="." instance=ExtResource( 5 )]

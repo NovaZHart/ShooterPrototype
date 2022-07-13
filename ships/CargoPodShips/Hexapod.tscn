@@ -181,13 +181,13 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 2.12383, -9.28354e-08, -9.28354e-08 )
+transform = Transform( -4.37114e-08, 1, -4.37114e-09, 0, -4.37114e-08, -0.1, -1, -4.37114e-08, 1.91069e-16, 2.12383, -9.28354e-08, -9.28354e-08 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -4.37114e-08, 1, -4.37114e-08, 0, -4.37114e-08, -1, -1, -4.37114e-08, 1.91069e-15, 0.408204, -1.78431e-08, -1.78431e-08 )
+transform = Transform( -4.37114e-08, 1, -4.37114e-09, 0, -4.37114e-08, -0.1, -1, -4.37114e-08, 1.91069e-16, 0.408204, -1.78431e-08, -1.78431e-08 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape3" type="CollisionShape" parent="."]
-transform = Transform( -4.43685e-08, 1.16537, -4.37114e-08, 0, -5.09398e-08, -1, -1.01503, -5.09398e-08, 1.91069e-15, -1.57796, 6.89749e-08, 6.89749e-08 )
+transform = Transform( -4.43671e-08, 1.165, -4.37114e-09, 0, -5.09238e-08, -0.1, -1.015, -5.09238e-08, 1.91069e-16, -1.57796, 6.89749e-08, 6.89749e-08 )
 shape = SubResource( 1 )

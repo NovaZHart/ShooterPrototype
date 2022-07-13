@@ -24,8 +24,6 @@ base_shields = 3000.0
 base_armor = 4000.0
 base_structure = 1450.0
 base_fuel = 13.0
-heal_shields = -1.0
-heal_structure = -1.0
 heal_fuel = 25.0
 base_turn_drag = 0.4
 base_max_cargo = 25
@@ -41,11 +39,11 @@ material/1 = null
 material/2 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.349198, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.05, 0, 0, 0, 1, -0.349198, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -1.71067e-07, 0.94, -4.37114e-08, 0, -4.10887e-08, -1, -1.05, -1.53145e-07, 7.12149e-15, 0.150642, 0, 0 )
+transform = Transform( -1.71067e-07, 0.94, -4.37114e-09, 0, -4.10887e-08, -0.1, -1.05, -1.53145e-07, 7.12149e-16, 0.150642, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="SmallEquipment" type="Position3D" parent="."]

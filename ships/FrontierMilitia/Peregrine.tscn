@@ -37,11 +37,11 @@ material/0 = null
 material/1 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 0.315781, 0, 0.948832, 0, 1, 0, -0.948832, 0, 0.315781, 0.0339335, 0, -0.206156 )
+transform = Transform( 0.315781, 0, 0.948832, 0, 0.05, 0, -0.948832, 0, 0.315781, 0.0339335, 0, -0.206156 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( 0.315782, 8.82607e-05, -0.948832, -0.000122173, 1, 5.23598e-05, 0.948832, 9.93874e-05, 0.315782, 0.0339621, 0, 0.206 )
+transform = Transform( 0.315782, 4.41303e-06, -0.948832, -0.000122173, 0.05, 5.23598e-05, 0.948832, 4.96937e-06, 0.315782, 0.0339621, 0, 0.206 )
 shape = SubResource( 1 )
 
 [node name="PortGun" type="Position3D" parent="."]

@@ -38,7 +38,7 @@ transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.042, 0.72, 0 )
 script = ExtResource( 2 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -8.62665e-08, 1.49483, -4.37114e-08, 0, -6.53411e-08, -1, -1.97355, -6.53411e-08, 1.91069e-15, 0.398085, -1.74008e-08, -1.74008e-08 )
+transform = Transform( -8.62863e-08, 1.495, -4.37114e-09, 0, -6.53485e-08, -0.1, -1.974, -6.53485e-08, 1.91069e-16, 0.398085, -1.74008e-08, -1.74008e-08 )
 shape = SubResource( 1 )
 
 [node name="PortEngine" type="Position3D" parent="."]

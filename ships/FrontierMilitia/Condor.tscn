@@ -45,11 +45,11 @@ material/0 = null
 material/1 = null
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -3.13554e-08, 0, 0.717327, 0, 1, 0, -1, 0, -4.37114e-08, 2.0848, 0, 0 )
+transform = Transform( -4.37114e-08, 0, 0.717, 0, 0.1, 0, -1, 0, -3.13411e-08, 2.0848, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( -4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.323016, 0, 0 )
+transform = Transform( -4.37114e-08, 0, 1, 0, 0.1, 0, -1, 0, -4.37114e-08, -0.323016, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="PortLargeGun" type="Position3D" parent="."]
