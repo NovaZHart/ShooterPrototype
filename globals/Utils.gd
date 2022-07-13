@@ -1,9 +1,19 @@
 extends Node
 
+var ScriptUtilsNative = preload("res://bin/ScriptUtils.gdns")
+var native
+
+func noop():
+	native.noop()
+
+func string_join(string_list: Array,separator: String) -> String:
+	return native.string_join(string_list,separator)
+
 func _init():
 	var the_seed = OS.get_system_time_msecs()
 	print('Setting random seed to '+str(the_seed))
 	seed(the_seed)
+	native = ScriptUtilsNative.new()
 
 func get_viewport_scale() -> Vector2:
 	var window_size: Vector2 = get_tree().root.size
