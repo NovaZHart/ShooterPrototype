@@ -16,15 +16,13 @@ size_flags_horizontal = 3
 size_flags_vertical = 3
 stretch = true
 script = ExtResource( 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 
 [node name="Viewport" type="Viewport" parent="."]
 size = Vector2( 1600, 900 )
 own_world = true
 world = SubResource( 1 )
 handle_input_locally = false
+usage = 3
 render_target_update_mode = 3
 
 [node name="ShipLight" type="DirectionalLight" parent="Viewport"]
