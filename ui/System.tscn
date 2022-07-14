@@ -13,6 +13,9 @@ ambient_light_sky_contribution = 0.0
 [node name="System" type="Viewport"]
 size = Vector2( 1600, 900 )
 own_world = true
+fxaa = true
+sharpen_intensity = 0.5
+usage = 3
 script = ExtResource( 2 )
 label_font_data = ExtResource( 3 )
 
