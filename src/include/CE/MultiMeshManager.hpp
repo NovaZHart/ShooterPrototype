@@ -49,6 +49,7 @@ namespace godot {
       int instance_count, visible_instance_count, last_frame_used;
       bool invalid;
       PoolRealArray floats;
+      Transform visual_instance_transform;
       MeshInfo(object_id,const String &);
       MeshInfo(object_id,Ref<Mesh> mesh_ref);
       ~MeshInfo();
@@ -80,13 +81,17 @@ namespace godot {
       int v_frame;
       VisualServer *visual_server;
       std::unordered_map<object_id,MeshInfo> v_meshes;
+
+      // FIXME: these two should not have v_
       std::unordered_map<Ref<Mesh>,object_id> v_meshref2id;
       std::unordered_map<object_id,Ref<Mesh>> v_id2meshref;
+
       std::unordered_map<String,object_id> v_path2id;
       std::unordered_set<String> v_invalid_paths;
       std::unordered_map<String,object_id> path2mesh;
       std::unordered_map<object_id,String> mesh2path;
       ResourceLoader *loader;
+      std::unordered_map<object_id,Transform> requested_transforms;
    
       // For temporary use in some functions:
       instance_locations_t instance_locations;
@@ -117,6 +122,10 @@ namespace godot {
       //   return mesh2path.end();
       // }
 
+      inline void set_mesh_transform(object_id id,const Transform &trans) {
+        requested_transforms.emplace(id,trans);
+      }
+
       object_id add_preloaded_mesh(Ref<Mesh> mesh);
       inline bool has_mesh(Ref<Mesh> mesh) const {
         return v_meshref2id.find(mesh) != v_meshref2id.end();
@@ -125,7 +134,7 @@ namespace godot {
         std::unordered_map<Ref<Mesh>,object_id>::const_iterator it=v_meshref2id.find(mesh);
         return (it==v_meshref2id.end()) ? -1 : it->second;
       }
-    
+
       // All of these must be called from the visual thread:
       void time_passed(real_t delta);
       void send_meshes_to_visual_server(real_t projectile_scale,RID scenario,bool reset_scenario,bool loud=false);
@@ -139,7 +148,7 @@ namespace godot {
       bool allocate_multimesh(MeshInfo &mesh_info,int count);
       bool load_mesh(MeshInfo &mesh_info);
       bool update_visual_instance(MeshInfo &mesh_info,RID scenaro,bool reset_scenario);
-      void unused_multimesh(MeshInfo &mesh_info);
+      void unused_multimesh(MeshInfo &mesh_info,bool force);
       void pack_visuals(const std::pair<instlocs_iterator,instlocs_iterator> &projectiles,
                         const std::pair<insteff_iterator,insteff_iterator> &effects,
                         PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale);

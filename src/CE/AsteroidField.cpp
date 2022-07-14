@@ -679,6 +679,7 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
       radius_of_bin[i]=radius;
   }
 
+  bool warned = false;
   real_t theta = 0;
   do {
     int placed = 0;
@@ -711,7 +712,9 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
         for(int check_bin=first_check;check_bin<=last_check;check_bin++)
           last_theta_used[check_bin] = next_theta_used[check_bin];
 
-        asteroids.emplace_back(theta,radius-inner_radius,y+rand.randf()-0.5,palette.random_choice(rand));
+        real_t ay = rand.randf()*30-40;
+
+        asteroids.emplace_back(theta,radius-inner_radius,ay,palette.random_choice(rand));
         break;
       }
     }
@@ -900,9 +903,23 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
 ////////////////////////////////////////////////////////////////////////
 
 void AsteroidField::send_meshes(MultiMeshManager &mmm) {
+  Transform trans;
   if(!sent_meshes) {
-    for(auto & pal : palette)
-      pal->set_mesh_id(mmm.add_preloaded_mesh(pal->get_mesh()));
+    for(auto & pal : palette) {
+      Ref<Mesh> m=pal->get_mesh();
+      if(!m.is_valid()) {
+        Godot::print_error("Null mesh found in AsteroidField.",__FUNCTION__,__FILE__,__LINE__);
+        continue;
+      }
+      object_id id=mmm.add_preloaded_mesh(m);
+      if(id<0) {
+        Godot::print_error("Negative mesh id from MultiMeshManager.",__FUNCTION__,__FILE__,__LINE__);
+        continue;
+      }
+      pal->set_mesh_id(id);
+      if(pal->get_mesh_id()!=id)
+        Godot::print_error("Unable to set mesh id in send_meshes.",__FUNCTION__,__FILE__,__LINE__);
+    }
     sent_meshes = true;
   }
 }
@@ -912,11 +929,10 @@ void AsteroidField::send_meshes(MultiMeshManager &mmm) {
 void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
   FAST_PROFILING_FUNCTION;
   // Search a slightly larger region due to asteroid scaling.
-  Rect2 search_region = visible_region.grow(max_scale+1);
+  Rect2 search_region = visible_region.grow(max_scale*2+1);
 
-  if(AsteroidSearchResult::rect_entirely_outside_annulus(search_region,inner_radius,outer_radius)) {
+  if(AsteroidSearchResult::rect_entirely_outside_annulus(search_region,inner_radius,outer_radius))
     return;
-  }
   
   deque<AsteroidSearchResult> found,work;
 
@@ -945,10 +961,11 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
           const AsteroidState *s = a_s.second;
           shared_ptr<const AsteroidTemplate> t = a->get_template();
           real_t r=s->get_scale();
-          real_t dd=rect_distance_squared_to(visible_region,a->get_xz(*s));
+          Vector2 loc = a->get_xz(*s);
+          real_t dd=rect_distance_squared_to(search_region,loc);
 
           if(dd<r*r) {
-          // Calculate the transform, and put everything in a new InstanceEffect
+            // Calculate the transform, and put everything in a new InstanceEffect
             content.instances.push_back(InstanceEffect {
                 t->get_mesh_id(), a->calculate_transform(*s),
                   t->get_color_data(), s->get_instance_data(),

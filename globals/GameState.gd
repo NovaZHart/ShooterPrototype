@@ -282,9 +282,9 @@ func set_stored_console(s: String): stored_console=s
 func get_stored_console() -> String: return stored_console
 
 
-func get_sphere_xyz(sphere):
+func get_sphere_xyz():
 	if not sphere_xyz:
-		var xyz_data: Image = sphere.make_lookup_tiles_c112()
+		var xyz_data: Image = utils.make_lookup_tiles_c112()
 		assert(xyz_data)
 		var xyz: ImageTexture = ImageTexture.new()
 		assert(xyz)

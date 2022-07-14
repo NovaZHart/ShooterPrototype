@@ -29,6 +29,7 @@
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
 
+#include "CE/AsteroidField.hpp"
 #include "CE/Minimap.hpp"
 #include "CE/Data.hpp"
 #include "CE/VisualEffects.hpp"
@@ -77,6 +78,7 @@ namespace godot {
       std::unordered_map<object_id,Planet> planets;
       std::unordered_map<object_id,Ship> ships;
       std::unordered_map<object_id,Projectile> projectiles;
+      std::vector<AsteroidField> asteroid_fields;
       std::unordered_map<object_id,PlayerOverrides> player_orders;
       std::unordered_multimap<object_id,std::shared_ptr<const Salvage>> salvaged_items;
       Dictionary weapon_rotations;
@@ -322,7 +324,7 @@ namespace godot {
       // These methods are visible to Godot:
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:
-      
+
       static void _register_methods();
       void _init();
       void clear_ai();
@@ -339,6 +341,7 @@ namespace godot {
       void draw_minimap_contents(RID new_canvas, Vector2 map_center, float map_radius,
                                  Vector2 minimap_center, float minimap_radius);
       void draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap);
+      void add_asteroid_field(Dictionary field_data);
 
     public: // FIXME: Some of these should be private
 
@@ -369,7 +372,15 @@ namespace godot {
       void update_player_orders(const Array &new_player_orders);
 
       void encode_salvaged_items_for_gdscript(Array result);
-    
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Asteroid methods:
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+
+      void step_asteroid_fields();
+      void send_asteroid_meshes();
+      void add_asteroid_content(VisibleContent &content);
+      
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Projectile methods:
       // // // // // // // // // // // // // // // // // // // // // // // // 

@@ -669,6 +669,9 @@ func clear() -> void: # must be called in visual thread
 	
 	combat_engine_mutex.unlock()
 
+func spawn_asteroid_field(field_data):
+	combat_engine.add_asteroid_field(field_data)
+
 func init_system(planet_time: float,ship_time: float,detail: float) -> void:
 	get_tree().paused=true
 	#Player.system.fill_system(self,planet_time,ship_time,detail)

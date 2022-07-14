@@ -141,6 +141,15 @@ func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	physics_mutex.unlock()
 	visual_mutex.unlock()
 
+func add_asteroid_field(data: Dictionary):
+	if not is_initialized():
+		return
+	# Call in _ready add asteroid fields.
+	physics_mutex.lock()
+	native_combat_engine.add_asteroid_field(data)
+	physics_mutex.unlock()
+		
+
 func clear_ai() -> void:
 	if not is_initialized():
 		return

@@ -98,7 +98,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		v_size = u_size/2
 	
 		sphere = SphereTool.new()
-		xyz = game_state.get_sphere_xyz(sphere)
+		xyz = game_state.get_sphere_xyz()
 		sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,subs)
 		var shade=ShaderMaterial.new()
 		shade.set_shader(sphere_shader)
@@ -110,7 +110,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		sphere.name='Sphere'
 		add_child(sphere)
 	else:
-		xyz = game_state.get_sphere_xyz(sphere)
+		xyz = game_state.get_sphere_xyz()
 	
 	view_shade=ShaderMaterial.new()
 	view_shade.set_shader(CubePlanetTiles)

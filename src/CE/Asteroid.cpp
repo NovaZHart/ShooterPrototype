@@ -109,9 +109,9 @@ Transform Asteroid::calculate_transform(const AsteroidState &state) const {
   
   Transform trans;
   
-  trans.rotate(rotation_axis,rotation_angle);
-  trans.scale(Vector3(scale_xyz,scale_xyz,scale_xyz));
-  trans.translate(get_xyz(state));
+  trans.basis.rotate(rotation_axis,rotation_angle);
+  trans.basis.scale(Vector3(scale_xyz,scale_xyz,scale_xyz));
+  trans.origin=get_xyz(state);
 
   return trans;
 }
@@ -121,11 +121,20 @@ Transform Asteroid::calculate_transform(const AsteroidState &state) const {
 AsteroidPalette::AsteroidPalette(Array selection) {
   FAST_PROFILING_FUNCTION;
   int size=selection.size();
+  if(!size)
+    Godot::print_error("Empty array sent to AsteroidPalette! Asteroids will be invisible.",
+                       __FUNCTION__,__FILE__,__LINE__);
   asteroids.reserve(size);
   accumulated_weights.reserve(size);
   real_t weight_accum=0;
   for(int i=0;i<size;i++) {
-    Array item=selection[i];
+    Variant vitem=selection[i];
+    if(vitem.get_type()!=Variant::ARRAY) {
+      Godot::print_error("Non-array sent as an asteroid palette item.",
+                         __FUNCTION__,__FILE__,__LINE__);
+      continue;
+    }
+    Array item = vitem;
     if(item.size()!=2) {
       Godot::print_warning("Asteroid palette list items must have 2 elements, not "+str(item.size()),
                            __FUNCTION__,__FILE__,__LINE__);
@@ -149,6 +158,9 @@ AsteroidPalette::AsteroidPalette(Array selection) {
     weight_accum += weight;
     accumulated_weights.push_back(weight_accum);
   }
+  if(!size)
+    Godot::print_error("No asteroids in palette! Asteroids will be invisible.",
+                       __FUNCTION__,__FILE__,__LINE__);
 }
 
 ////////////////////////////////////////////////////////////////////////

@@ -13,6 +13,13 @@ var system_fuel_recharge: float
 var center_fuel_recharge: float
 var locality_adjustments: Dictionary = {}
 
+var asteroid_fields: Array = []
+
+var SphereTool = preload('res://bin/spheretool.gdns')
+var SimpleAsteroidShader = preload('res://shaders/SimpleAsteroidShader.shader')
+var AsteroidTexture1 = preload('res://textures/metal_8133_lighter.jpg')
+var AsteroidTexture2 = preload('res://textures/cell-noise.jpg')
+
 var faction_goals: Array
 var active_factions: Dictionary
 
@@ -68,6 +75,7 @@ func encode() -> Dictionary:
 		'locality_adjustments':locality_adjustments.duplicate(true),
 		'faction_goals':faction_goals.duplicate(true),
 		'active_factions':active_factions.duplicate(true),
+		'asteroid_fields':asteroid_fields.duplicate(true),
 	}
 	return result
 
@@ -87,6 +95,7 @@ func decode(content: Dictionary):
 	locality_adjustments = getdict(content,'locality_adjustments',{})
 	faction_goals = getdict(content,'faction_goals',default_faction_goals)
 	active_factions = getdict(content,'active_factions',default_active_factions)
+	asteroid_fields = getdict(content,'asteroid_fields',[])
 	set_position(getdict(content,'position',Vector3()))
 
 func _init(the_name,content: Dictionary):
@@ -136,4 +145,57 @@ func fill_system(var system,planet_time: float,ship_time: float,detail: float,sh
 	for child in get_children():
 		if child.is_a_planet():
 			child.fill_system(system,planet_time,ship_time,detail,ships)
+	for field in asteroid_fields:
+		system.spawn_asteroid_field(generate_asteroid_field(
+			field.get("inner_radius",500), field.get("thickness",100) ))
 	return []
+
+func generate_asteroid_field(inner_radius: float,thickness: float) -> Dictionary:
+	return {
+		"asteroids": generate_asteroid_palette(),
+		"layers": generate_asteroid_layers(inner_radius,thickness),
+		"salvage": []
+	}
+
+func generate_asteroid_palette() -> Array:
+	var mesh: ArrayMesh = utils.native.make_cube_sphere_v2(1,5)
+	var shade=ShaderMaterial.new()
+	shade.set_shader(SimpleAsteroidShader)
+	shade.set_shader_param('tex1',AsteroidTexture1)
+	shade.set_shader_param('tex2',AsteroidTexture2)
+	for i in range(mesh.get_surface_count()):
+		mesh.surface_set_material(i,shade)
+	
+	assert(mesh)
+	return [ [ 1.0, {
+		"mesh": mesh,
+		"color_data": Color(0.1,0.3,0.5,0.7),
+		"salvage": "",
+		"max_structure": 10000,
+		} ] ]
+
+func generate_asteroid_layers(inner_radius: float,thickness: float) -> Array:
+	var result: Array = []
+	var nsizes = 7
+	var tfac = (inner_radius+0.75*thickness)/(inner_radius+0.25*thickness)
+	for i in range(nsizes):
+		var fac = max(0.5,1-0.09*i)
+		var spd = max(10,18-i*0.7)
+		var scl = 0.3*i + 1
+		result.append({
+			"mean_velocity": spd,
+			"inner_radius": inner_radius+thickness*0.5*(1-fac),
+			"thickness": thickness*0.51*fac,
+			"spacing": 7+i*scl,
+			"min_scale": 0.8*scl,
+			"max_scale": 1.2*scl
+		})
+		result.append({
+			"mean_velocity": spd*tfac,
+			"inner_radius": inner_radius+thickness*0.5,
+			"thickness": thickness*0.5*fac,
+			"spacing": 7+i*scl,
+			"min_scale": 0.8*scl,
+			"max_scale": 1.2*scl
+		})
+	return result

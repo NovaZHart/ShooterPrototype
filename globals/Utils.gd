@@ -22,6 +22,18 @@ func get_viewport_scale() -> Vector2:
 	var scale: Vector2 = window_size / Vector2(project_width,project_height)
 	return scale
 
+func make_icosphere(subs: int) -> ArrayMesh:
+	return native.make_icosphere(subs)
+
+func make_cube_sphere_v2(radius: float,subs: int) -> ArrayMesh:
+	return native.make_cube_sphere_v2(radius,subs)
+
+func make_lookup_tiles_c224() -> Image:
+	return native.make_lookup_tiles_c224()
+
+func make_lookup_tiles_c112() -> Image:
+	return native.make_lookup_tiles_c112()
+
 class WeightArraySorter extends Object:
 	var weights: Array
 	func _init(weights_: Array):

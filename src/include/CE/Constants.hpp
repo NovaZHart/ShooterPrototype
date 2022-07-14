@@ -60,13 +60,14 @@ namespace godot {
     constexpr real_t MAX_PASSTHRU = 1.0;
 
     constexpr real_t PROJECTILE_POINT_WIDTH = 0.001; // Width of bounding square for point projectiles
-
+    const int MAX_PROJECTILES_IN_MINIMAP = 300;
+    
     const real_t FLOTSAM_MASS = 10.0;
     const real_t EXPLOSION_FLOTSAM_INITIAL_SPEED = 50.0;
     
     enum visual_layers {
       below_planets=-30,
-      asteroid_height=-9,
+      asteroid_height=-15,
       flotsam_height=-7,
       below_ships=-5,
       ship_height=5,

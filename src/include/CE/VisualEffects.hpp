@@ -166,6 +166,13 @@ namespace godot {
       }
       void set_visible_content(VisibleContent *visible);
 
+      inline Rect2 get_visible_rect() {
+        return Rect2(Vector2(visible_area.position.x,
+                             visible_area.position.z),
+                     Vector2(visible_area.size.x,
+                             visible_area.size.z));
+      }
+      
       object_id add_hyperspacing_polygon(real_t duration, Vector3 position, real_t radius, bool reverse, object_id ship_id);
       object_id add_cargo_web_puff_MeshEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Texture> cargo_puff);
       object_id add_cargo_web_puff_MMIEffect(const godot::CE::Ship &ship,Vector3 relative_position,Vector3 relative_velocity,real_t length,real_t duration,Ref<Mesh> cargo_puff);

@@ -203,7 +203,10 @@ void Minimap::draw_minimap_contents(VisibleContent *visible_content, RID new_can
   // Draw only the projectiles within the minimap; skip outsiders.
   real_t outside=minimap_radius*0.95;
   real_t outside_squared = outside*outside;
+  int proj=0;
   for(auto &projectile : visible_content->effects) {
+    if(++proj>MAX_PROJECTILES_IN_MINIMAP)
+      break;
     Vector2 minimap_scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) /
       map_radius*minimap_radius;
     if(minimap_scaled.length_squared() > outside_squared)
@@ -257,7 +260,7 @@ void Minimap::draw_minimap_rect_contents(VisibleContent *visible_content,
   //real_t outside_squared = outside*outside;
   int proj=0;
   for(auto &projectile : visible_content->effects) {
-    if(++proj>200)
+    if(++proj>MAX_PROJECTILES_IN_MINIMAP)
       break;
     Vector2 scaled = (Vector2(projectile.center.y,-projectile.center.x)-map_center) *map_scale;
     if(scaled.x>minimap_half_size.x or scaled.x<-minimap_half_size.x or

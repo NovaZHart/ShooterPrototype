@@ -43,6 +43,7 @@ CombatEngine::CombatEngine():
   planets(),
   ships(),
   projectiles(),
+  asteroid_fields(),
   player_orders(),
   weapon_rotations(),
   dead_ships(),
@@ -116,6 +117,7 @@ void CombatEngine::_register_methods() {
   register_method("draw_minimap_rect_contents", &CombatEngine::draw_minimap_rect_contents);
   register_method("ai_step", &CombatEngine::ai_step);
   register_method("init_factions", &CombatEngine::init_factions);
+  register_method("add_asteroid_field", &CombatEngine::add_asteroid_field);
 }
 
 void CombatEngine::_init() {}
@@ -141,6 +143,7 @@ void CombatEngine::clear_ai() {
   planets.clear();
   ships.clear();
   projectiles.clear();
+  asteroid_fields.clear();
   player_orders.clear();
   dead_ships.clear();
   weapon_rotations.clear();
@@ -233,6 +236,9 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   
   // Update the faction-level AI:
   faction_ai_step();
+
+  // Update asteroids:
+  step_asteroid_fields();
   
   Array result;
   update_ship_list(update_request_rid,result);
@@ -300,6 +306,8 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   multimeshes.load_meshes();
   multimeshes.send_meshes_to_visual_server(projectile_scale,scenario,reset_scenario);
 
+  send_asteroid_meshes();
+
   visual_effects->set_combat_content(visible_content);
 }
 
@@ -313,13 +321,53 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
 }
 
 
-
 void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap) {
   FAST_PROFILING_FUNCTION;
   VisibleContent *visible_content=content.get_visible_content();
   this->minimap.draw_minimap_rect_contents(visible_content,new_canvas,map,minimap);
 }
 
+
+void CombatEngine::add_asteroid_field(Dictionary field_data) {
+  shared_ptr<AsteroidPalette> ap=make_shared<AsteroidPalette>(field_data["asteroids"]);
+  if(!ap->size()) {
+    Godot::print_error("AsteroidPalette is empty. Asteroids will be invisible!",
+                       __FUNCTION__,__FILE__,__LINE__);
+    assert(false);
+  }
+  shared_ptr<SalvagePalette> sp=make_shared<SalvagePalette>(field_data["salvage"]);
+  asteroid_fields.emplace_back(0,godot::CE::get<Array>(field_data,"layers"),ap,sp);
+  asteroid_fields.back().generate_field();
+}
+
+/**********************************************************************/
+
+/* Asteroids */
+
+/**********************************************************************/
+
+void CombatEngine::step_asteroid_fields() {
+  Rect2 visible_area(Vector2(-100,-100),Vector2(200,200));
+  if(visual_effects.is_valid())
+    visible_area = visual_effects->get_visible_rect();
+  for(auto &field : asteroid_fields)
+    field.step_time(idelta,delta,visible_area);
+}
+
+
+void CombatEngine::send_asteroid_meshes() {
+  for(auto &field : asteroid_fields)
+    field.send_meshes(multimeshes);
+}
+
+
+void CombatEngine::add_asteroid_content(VisibleContent &content) {
+  Rect2 visible_area(Vector2(-100,-100),Vector2(200,200));
+  if(visual_effects.is_valid())
+    visible_area = visual_effects->get_visible_rect();
+  for(auto &field : asteroid_fields)
+    field.add_content(visible_area,content);
+}
 
 /**********************************************************************/
 
@@ -403,37 +451,7 @@ void CombatEngine::update_all_faction_goals() {
 }
 
 void CombatEngine::faction_ai_step() {
-  // FIXME: Get this working.
-  //  if(ai_ticks<ticks_per_second/2)
-    update_all_faction_goals();
-  // if(p_frame % 2) {
-  //   // Update a planet on odd frames
-  //   planets_iter p_planet = planets.find(last_planet_updated);
-  //   if(p_planet!=planets.end())
-  //     p_planet++;
-  //   if(p_planet==planets.end())
-  //     p_planet=planets.begin();
-  //   if(p_planet!=planets.end()) {
-  //     p_planet->second.update_goal_data(ships);
-  //     last_planet_updated = p_planet->first;
-  //   } else
-  //     last_planet_updated = -1;
-  // } else {
-  //   // Update a faction on even frames
-  //   factions_iter p_faction = factions.find(last_faction_updated);
-  //   if(p_faction!=factions.end())
-  //     p_faction++;
-  //   if(p_faction==factions.end())
-  //     p_faction=factions.begin();
-  //   if(p_faction!=factions.end()) {
-  //     Faction &faction = p_faction->second;
-  //     faction.clear_target_advice(planets.size());
-  //     for(auto &goal : faction.get_goals())
-  //       update_one_faction_goal(faction,goal);
-  //     last_faction_updated = p_faction->first;
-  //   } else
-  //     last_faction_updated = FACTION_ARRAY_SIZE;
-  // }
+  update_all_faction_goals();
 }
 
 /**********************************************************************/
@@ -1023,6 +1041,9 @@ void CombatEngine::add_content() {
         next->mesh_paths.emplace(mesh_id,mesh_path);
     }
   }
+
+  add_asteroid_content(*next);
+
   // Prepend to linked list:
   content.push_content(next);
 }
