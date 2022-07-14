@@ -17,7 +17,7 @@ var asteroid_fields: Array = []
 
 var SphereTool = preload('res://bin/spheretool.gdns')
 var SimpleAsteroidShader = preload('res://shaders/SimpleAsteroidShader.shader')
-var AsteroidTexture1 = preload('res://textures/metal_8133_lighter.jpg')
+var AsteroidTexture1 = preload('res://textures/metal_8133_high_contrast.jpg')
 var AsteroidTexture2 = preload('res://textures/cell-noise.jpg')
 
 var faction_goals: Array
