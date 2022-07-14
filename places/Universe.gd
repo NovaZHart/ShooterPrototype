@@ -258,9 +258,12 @@ class Flotsam extends simple_tree.SimpleNode:
 					product[Commodities.Products.QUANTITY_INDEX] = count
 					products.append(product)
 					continue
-	
+
+	func uses_ship_cargo():
+		return not not cargo
+
 	func random_product(ship_cargo = null):
-		if ship_cargo: # and randf()<cargo:
+		if cargo and ship_cargo: # and randf()<cargo:
 			var keys = ship_cargo.all.keys()
 			if keys:
 				var id = keys[randi()%keys.size()]

@@ -458,9 +458,9 @@ func _physics_process(delta):
 			if not item:
 				continue
 			if item['ship_name'] == player_ship_name:
-#				print('Player salvaged ',item['count'], \
-#					' units of ',item['product_name'],' with unit mass ', \
-#					item['unit_mass'])
+				print('Player salvaged '+str(item['count'])+ \
+					' units of '+str(item['product_name'])+' with unit mass ' \
+					+str(item['unit_mass']))
 				if item['count']>0:
 					added_items = Player.add_cargo_to_hold(item['product_name'],item['count'])>0 \
 						or added_items

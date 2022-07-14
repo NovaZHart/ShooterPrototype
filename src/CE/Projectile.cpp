@@ -237,6 +237,19 @@ bool Projectile::collide_point_projectile(CombatEngine &ce) {
   if(!p_ship)
     return false;
 
+  if(salvage) {
+    if(!p_ship->fate==FATED_TO_FLY) {
+      //Godot::print("Ship is not salvaging because it is not fated to fly.");
+      return false;
+    } else if(!p_ship->cargo_web_active) {
+      //Godot::print("Ship is not salvaging because its cargo web is inactive.");
+      return false;
+    } else {
+      //Godot::print("Ship should salvage projectile.");
+      p_ship->salvage_projectile(ce,*this);
+    }
+  }
+
   if(get_damage())
     p_ship->take_damage(get_damage(),get_damage_type(),
                         get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
@@ -245,9 +258,6 @@ bool Projectile::collide_point_projectile(CombatEngine &ce) {
     if(impulse.length_squared())
       PhysicsServer::get_singleton()->body_apply_central_impulse(p_ship->rid,impulse);
   }
-
-  if(p_ship->fate==FATED_TO_FLY and salvage and p_ship->cargo_web_active)
-    p_ship->salvage_projectile(ce,*this);
   return true;
 }
 
@@ -308,6 +318,18 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
       }
     } else {
       Ship &ship = *closest;
+      if(salvage) {
+        if(!ship.fate==FATED_TO_FLY) {
+          //Godot::print("Ship is not salvaging because it is not fated to fly.");
+          return false;
+        } else if(!ship.cargo_web_active) {
+          //Godot::print("Ship is not salvaging because its cargo web is inactive.");
+          return false;
+        } else {
+          //Godot::print("Ship should salvage projectile.");
+          ship.salvage_projectile(ce,*this);
+        }
+      }
       if(get_damage())
         closest->take_damage(get_damage(),get_damage_type(),
                              get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
@@ -316,8 +338,6 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
         if(impulse.length_squared())
           physics_server->body_apply_central_impulse(ship.rid,impulse);
       }
-      if(ship.fate==FATED_TO_FLY and salvage and ship.cargo_web_active)
-        ship.salvage_projectile(ce,*this);
     }
     return true;
   } else

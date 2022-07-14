@@ -45,6 +45,7 @@ CombatEngine::CombatEngine():
   projectiles(),
   asteroid_fields(),
   player_orders(),
+  salvaged_items(),
   weapon_rotations(),
   dead_ships(),
   idgen(),
@@ -690,22 +691,8 @@ void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
   FAST_PROFILING_FUNCTION;
   result.clear();
   result.resize(salvaged_items.size());
-  int next_index=0;
-  for(auto &ship_id_salvage : salvaged_items) {
-    if(not ship_id_salvage.second)
-      continue;
-    const Salvage &salvage = *ship_id_salvage.second;
-
-    ships_iter ship_ptr = ships.find(ship_id_salvage.first);
-    if(ship_ptr==ships.end())
-      continue;
-    const Ship &ship = ship_ptr->second;
-
-    result[next_index++] = Dictionary::make("ship_name",ship.name,"product_name",salvage.cargo_name,
-                                            "count",salvage.cargo_count,
-                                            "unit_mass",salvage.cargo_unit_mass);
-  }
-  result.resize(next_index+1);
+  for(auto &dict : salvaged_items)
+    result.append(dict);
 }
 
 Dictionary CombatEngine::check_target_lock(Ship &target, Vector3 point1, Vector3 point2) {
@@ -989,8 +976,10 @@ Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int
   return ship_with_id(there->second);
 }
 
-void CombatEngine::add_salvaged_items(Ship &ship,const Projectile &projectile) {
-  salvaged_items.emplace(ship.id,projectile.get_salvage());
+void CombatEngine::add_salvaged_items(Ship &ship,const String &product_name,int count,real_t unit_mass) {
+  salvaged_items.push_back(Dictionary::make("ship_name",ship.name,"product_name",product_name,
+                                            "count",count,
+                                            "unit_mass",unit_mass));
 }
 
 

@@ -80,7 +80,7 @@ namespace godot {
       std::unordered_map<object_id,Projectile> projectiles;
       std::vector<AsteroidField> asteroid_fields;
       std::unordered_map<object_id,PlayerOverrides> player_orders;
-      std::unordered_multimap<object_id,std::shared_ptr<const Salvage>> salvaged_items;
+      std::vector<Dictionary> salvaged_items;
       Dictionary weapon_rotations;
       std::unordered_set<object_id> dead_ships;
       ObjectIdGenerator idgen;
@@ -386,7 +386,7 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
       void integrate_projectiles();
-      void add_salvaged_items(Ship &ship,const Projectile &projectile);
+      void add_salvaged_items(Ship &ship,const String &product_name,int count,real_t unit_mass);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Visual methods:
