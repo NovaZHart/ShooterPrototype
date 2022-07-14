@@ -104,6 +104,9 @@ namespace godot {
       inline faction_index_t get_faction() const {
         return faction;
       }
+      inline faction_mask_t get_faction_mask() const {
+        return static_cast<faction_mask_t>(1)<<faction;
+      }
       inline int get_damage_type() const {
         return weapon->damage_type;
       }

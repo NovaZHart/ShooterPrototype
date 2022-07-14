@@ -414,7 +414,7 @@ void CombatEngine::update_affinity_masks() {
     enemy_masks[i]=0;
     friend_masks[i]=0;
     for(int j=MIN_ALLOWED_FACTION;j<=MAX_ALLOWED_FACTION;j++) {
-      if(i==j)
+      if(i==j)        
         continue; // Ignore self-hatred and self-desire
       int key = Faction::affinity_key(i,j);
       unordered_map<int,float>::iterator it = affinities.find(key);

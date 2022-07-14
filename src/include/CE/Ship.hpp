@@ -29,6 +29,7 @@
 #include "CE/Projectile.hpp"
 #include "CE/Planet.hpp"
 #include "DVector3.hpp"
+#include "PropertyMacros.hpp"
 
 namespace godot {
   namespace CE {
@@ -161,6 +162,75 @@ namespace godot {
 
     public:
 
+      PROP_GET_VAL(faction_index_t,faction);
+      PROP_GET_VAL(faction_mask_t,faction_mask);
+      PROP_GETSET_VAL(real_t,energy);
+      PROP_GETSET_VAL(real_t,heat);
+      PROP_GETSET_VAL(real_t,power);
+      PROP_GETSET_VAL(real_t,cooling);
+      PROP_GETSET_VAL(real_t,thrust);
+      PROP_GETSET_VAL(real_t,reverse_thrust);
+      PROP_GETSET_VAL(real_t,turning_thrust);
+      PROP_GETSET_VAL(real_t,efficiency);
+      PROP_GETSET_VAL(real_t,cargo_mass);
+      PROP_GETSET_VAL(real_t,salvaged_value);
+      PROP_GETSET_VAL(real_t,forward_thrust_heat);
+      PROP_GETSET_VAL(real_t,reverse_thrust_heat);
+      PROP_GETSET_VAL(real_t,forward_thrust_energy);
+      PROP_GETSET_VAL(real_t,reverse_thrust_energy);
+      PROP_GETSET_VAL(double,thrust_loss);
+      PROP_GETSET_CONST_REF(Countdown,explosion_timer);
+      PROP_GETSET_VAL(fate_t,fate);
+      PROP_GETSET_VAL(ship_ai_t,ai_type);
+      PROP_GETSET_VAL(entry_t,entry_method);
+      PROP_GETSET_VAL(double,shields);
+      PROP_GETSET_VAL(double,armor);
+      PROP_GETSET_VAL(double,structure);
+      PROP_GETSET_VAL(real_t,fuel);
+      PROP_GETSET_VAL(int,ai_flags);
+      PROP_GETSET_VAL(goal_action_t,goal_action);
+      PROP_GETSET_VAL(object_id,goal_target);
+      PROP_GETSET_VAL(object_id,salvage_target);
+      PROP_GETSET_VAL(real_t,ai_work);
+      PROP_GETSET_VAL(object_id,shield_ellipse);
+      PROP_GETSET_VAL(object_id,cargo_web);
+      PROP_GET_VAL(std::vector<std::shared_ptr<const Salvage>>,salvage);
+      PROP_GETSET_CONST_REF(std::vector<std::shared_ptr<Weapon>>,weapons);
+      PROP_GETSET_VAL(ticks_t,tick);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second*3>,rift_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second*3>,no_target_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second*25>,range_check_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second*15>,shot_at_target_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second/12>,standoff_range_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second/4>,nearby_hostiles_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second/4>,salvage_timer);
+      PROP_GETSET_REF(PresetCountdown<ticks_per_second/60>,confusion_timer);
+      PROP_GETSET_VAL(ticks_t,tick_at_last_shot);
+      PROP_GETSET_VAL(ticks_t,ticks_since_targetting_change);
+      PROP_GETSET_VAL(ticks_t,ticks_since_ai_change);
+      PROP_GETSET_VAL(ticks_t,ticks_since_ai_check);
+      PROP_GETSET_VAL(real_t,damage_since_targetting_change);
+      PROP_GETSET_REF(Vector3,threat_vector);
+      PROP_GETSET_REF(ship_hit_list_t,nearby_objects);
+      PROP_GETSET_REF(ship_hit_list_t,nearby_enemies);
+      PROP_GETSET_VAL(ticks_t,nearby_enemies_tick);
+      PROP_GETSET_VAL(real_t,nearby_enemies_range);
+      PROP_GETSET_REF(CheapRand32,rand);
+      PROP_GETSET_REF(Vector3,destination);
+      PROP_GETSET_VAL(int,collision_layer);
+      PROP_GETSET_VAL(real_t,aim_multiplier);
+      PROP_GETSET_VAL(real_t,confusion_multiplier);
+      PROP_GETSET_VAL(real_t,max_speed);
+      PROP_GETSET_VAL(real_t,max_angular_velocity);
+      PROP_GETSET_VAL(real_t,turn_diameter_squared);
+      PROP_GETSET_REF(Vector3,drag_force);
+      PROP_GETSET_VAL(bool,updated_mass_stats);
+      PROP_GETSET_VAL(bool,immobile);
+      PROP_GETSET_VAL(bool,inactive);
+      PROP_GETSET_VAL(real_t,damage_multiplier);
+      PROP_GETSET_VAL(bool,should_autotarget);
+      PROP_GETSET_VAL(bool,at_first_tick);
+      
       inline Vector3 get_position() const {
         return position;
       }

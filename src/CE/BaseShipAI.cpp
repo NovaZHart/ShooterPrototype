@@ -213,17 +213,18 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
       continue; // Projectile does not exist.
     }
     Projectile &proj = *proj_it;
-    if(proj.is_direct_fire() or not proj.is_missile() or not proj.is_alive()) {
+    if(proj.get_faction()==ship.get_faction()
+       or proj.get_structure()<=0
+       or !(proj.get_faction_mask()&enemy_mask)
+       or !proj.is_alive()) {
+      // Only enemy projectiles that are alive are valid targets.
       iter = objects_found.erase(iter);
-      continue; // Projectile is not a valid target.
+      continue;
     }
-    if( not ( (1<<proj.get_faction()) & enemy_mask )) {
+    if(proj.is_direct_fire() or not proj.is_missile()) {
+      // Should never get here. These should not be in the missile_locations.
       iter = objects_found.erase(iter);
-      continue; // Projectile is not an enemy.
-    }
-    if(proj.get_structure()<=0) {
-      iter = objects_found.erase(iter);
-      continue; // Projectile is already dead.
+      continue;
     }
     iter++;
   }

@@ -679,7 +679,6 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
       radius_of_bin[i]=radius;
   }
 
-  bool warned = false;
   real_t theta = 0;
   do {
     int placed = 0;
