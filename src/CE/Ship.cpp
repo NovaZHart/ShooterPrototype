@@ -420,7 +420,7 @@ bool Ship::move_to_intercept(const CombatEngine &ce,double close, double slow,
   FAST_PROFILING_FUNCTION;
   if(immobile)
     return false;
-  const double big_dot_product = 0.95;
+  const double big_dot_product = 0.99;
   DVector3 position = this->position;
   DVector3 heading = get_heading_d(*this);
   DVector3 dp = tgt_pos - position;
@@ -636,8 +636,8 @@ bool Ship::should_update_targetting(Ship &other) {
   } else if(range_check_timer.alarmed()) {
     // Every 25 seconds reevaluate target if target is out of range
     range_check_timer.reset();
-    real_t target_distance = position.distance_to(other.position);
-    return target_distance > 1.5*range.all;
+    real_t target_distance = distance2(position,other.position);
+    return target_distance > 1.5*range.all+10;
   }
   real_t hp = armor+shields+structure;
   return hp/4<damage_since_targetting_change;
@@ -735,42 +735,44 @@ real_t Ship::get_standoff_range(const Ship &target) {
   
   standoff_range_timer.reset();
   
-  real_t standoff_range = numeric_limits<real_t>::infinity();
+  real_t standoff_range = NAN;
   
   if(not weapons.size()) {
     // No weapons means no standoff range
     //Godot::print("Unarmed ship "+name+" cannot have a standoff range.");
-    return cached_standoff_range = standoff_range;
+    return cached_standoff_range = NAN;
   }
-  
-  Vector3 dp_ships = godot::CE::get_position(target) - godot::CE::get_position(*this);
-  real_t distance = dp_ships.length();
   
   for(auto &weapon_ptr : weapons) {
     Weapon &weapon = *weapon_ptr;
-    Vector3 dp_weapon = dp_ships - godot::CE::get_position(weapon).rotated(y_axis,rotation.y);
 
-    // The weapon may be closer to the target than the ship. Consider
-    // this when deciding the standoff range.
-    real_t untraveled_distance = dp_weapon.length() - distance;
+    if(weapon.antimissile)
+      continue;
+    
+    Vector3 weapon_position=CE::get_position(weapon);
 
+    real_t range=weapon_position.x;
+    
     if(weapon.guided) {
       // Guided weapon range depends on turn time.
       if(weapon.get_ammo() or weapon.reload_delay) {
         real_t turn_time = weapon.is_turret ? 0 : PI/weapon.projectile_turn_rate;
-        real_t travel = max(0.0f,weapon.projectile_range-weapon.terminal_velocity*turn_time);
-        standoff_range = min(standoff_range,travel+untraveled_distance);
+        range += max(0.0f,weapon.projectile_range-weapon.terminal_velocity*turn_time);
       }
     } else
-      standoff_range = min(standoff_range,weapon.projectile_range-untraveled_distance);
+      range += weapon.projectile_range;
+
+    // if(range<1)
+    //   Godot::print_warning(str(weapon.node_path)+" range is implausibly small: "+str(range),
+    //                        __FUNCTION__,__FILE__,__LINE__);
+
+    if(isfinite(standoff_range))
+      standoff_range = min(standoff_range,range);
+    else
+      standoff_range = range;
   }
 
-  if(standoff_range<2) {
-    Godot::print_warning(name+" standoff range is implausibly small: "+str(standoff_range),
-                         __FUNCTION__,__FILE__,__LINE__);
-  }
-  
-  //Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
+  // Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
   
   return cached_standoff_range = max(0.0f,standoff_range);
 }

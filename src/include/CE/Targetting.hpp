@@ -20,7 +20,7 @@ namespace godot {
     
     template<class F,class C>
     object_id select_target(const typename C::key_type &start,const F &selection_function,
-                            const C&container, bool first) {
+                            const C&container, bool first, real_t start_weight=1.0f) {
       typename C::const_iterator start_p = container.find(start);
       typename C::const_iterator best = start_p;
       typename C::const_iterator next = best;
@@ -39,6 +39,8 @@ namespace godot {
           it=container.begin();
         else {
           real_t result = selection_function(it);
+          if(it==start_p)
+            result *= start_weight;
           if(result>best_score) {
             best_score=result;
             best=it;
@@ -66,16 +68,18 @@ namespace godot {
     class select_nearest {
       const Vector3 to;
       mutable real_t closest;
-      const real_t max_range_squared;
+      const real_t max_range_squared, near_range;
     public:
-      select_nearest(const Vector3 &to,real_t max_range = std::numeric_limits<real_t>::infinity()):
+      select_nearest(const Vector3 &to,real_t max_range = std::numeric_limits<real_t>::infinity(),real_t near_range = 10.0f):
         to(to),
         closest(std::numeric_limits<real_t>::infinity()),
-        max_range_squared(max_range*max_range)
+        max_range_squared(max_range*max_range),
+        near_range(std::max(1.0e-5f,near_range))
       {}
       select_nearest(const select_nearest &other):
         to(other.to), closest(other.closest),
-        max_range_squared(other.max_range_squared)
+        max_range_squared(other.max_range_squared),
+        near_range(other.near_range)
       {}
       template<class I>
       real_t operator () (I iter) const {
@@ -83,7 +87,7 @@ namespace godot {
         if(distance_squared>max_range_squared)
           return 0;
         else
-          return 1/(1+distance_squared);
+          return 1/(near_range+sqrtf(distance_squared));
       }
     };
 

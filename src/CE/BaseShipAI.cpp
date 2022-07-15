@@ -25,11 +25,15 @@ void BaseShipAI::do_land(CombatEngine &ce,Ship &ship) {
     target = ce.planet_with_id(target_id);
     ship.new_target(target_id);
   }
-  if(!target)
+  if(!target) {
     // Nowhere to land!
     do_patrol(ce,ship);
-  else if(ship.move_to_intercept(ce,target->radius, 5.0, target->position,
-                                 Vector3(0,0,0), true)) {
+    return;
+  }
+
+  real_t landing_speed = max(ship.get_max_speed()*0.25f,5.0f);
+ if(ship.move_to_intercept(ce,target->radius*0.9, landing_speed, target->position,
+                           Vector3(0,0,0), true)) {
     // Reached planet.
     // FIXME: implement factions, etc.:
     // if(target->can_land(ship))
@@ -655,7 +659,7 @@ Ship *BaseShipAI::update_targetting(CombatEngine &ce,Ship &ship) {
   
   if(pick_new_target) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    object_id found=select_target(-1,select_three(select_mask(ce.get_enemy_mask(ship.faction)),select_flying(),select_nearest(ship.position,200.0f)),ce.get_ships(),false);
+    object_id found=select_target(ship.get_target(),select_three(select_mask(ce.get_enemy_mask(ship.faction)),select_flying(),select_nearest(ship.position,200.0f,ship.get_max_speed())),ce.get_ships(),false,2.0f);
     target_ptr = ce.ship_with_id(found);
   }
   return target_ptr;
