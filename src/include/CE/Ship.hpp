@@ -28,6 +28,7 @@
 #include "CE/Weapon.hpp"
 #include "CE/Projectile.hpp"
 #include "CE/Planet.hpp"
+#include "CE/CelestialObject.hpp"
 #include "DVector3.hpp"
 #include "PropertyMacros.hpp"
 
@@ -39,7 +40,7 @@ namespace godot {
     typedef std::vector<std::pair<RID,object_id>>::iterator ship_hit_list_iter;
     typedef std::vector<std::pair<RID,object_id>>::const_iterator ship_hit_list_const_iter;
 
-    class Ship {
+    class Ship: public CelestialObject {
     public:
       typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
       
@@ -161,6 +162,12 @@ namespace godot {
       const Rect2 location_rect; // for SpaceHashes
 
     public:
+
+      void get_object_info(CelestialInfo &info) const override;
+      object_id get_object_id() const override;
+      real_t get_object_radius() const override;
+      Vector3 get_object_xyz() const override;
+      Vector2 get_object_xz() const override;
 
       PROP_GET_VAL(faction_index_t,faction);
       PROP_GET_VAL(faction_mask_t,faction_mask);

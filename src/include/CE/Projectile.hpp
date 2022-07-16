@@ -11,6 +11,7 @@
 #include "DVector3.hpp"
 #include "CE/ObjectIdGenerator.hpp"
 #include "CE/Weapon.hpp"
+#include "CE/CelestialObject.hpp"
 
 namespace godot {
   namespace CE {
@@ -20,7 +21,7 @@ namespace godot {
     struct MultiMeshManager;
     class CombatEngine;
   
-    class Projectile {
+    class Projectile: public CelestialObject {
       const object_id id;
       const std::shared_ptr<const Weapon> weapon;
       const object_id source;
@@ -35,6 +36,13 @@ namespace godot {
       bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
     public:
+
+      void get_object_info(CelestialInfo &info) const override;
+      object_id get_object_id() const override;
+      real_t get_object_radius() const override;
+      Vector3 get_object_xyz() const override;
+      Vector2 get_object_xz() const override;
+
       inline object_id get_id() const {
         return id;
       }

@@ -617,7 +617,7 @@ AsteroidLayer::~AsteroidLayer()
 int AsteroidLayer::find_theta(real_t theta) const {
   FAST_PROFILING_FUNCTION;
   real_t modded = fmod(theta+20*TAU,TAU);
-  Asteroid findme(modded,0,0,0);
+  Asteroid findme(0,modded,0,0,0);
   struct compare {
     bool operator () (const Asteroid &a,const Asteroid &b) {
       return a.theta<b.theta;
@@ -652,7 +652,7 @@ std::pair<object_id,object_id> AsteroidLayer::find_theta_range(const AsteroidSea
 
 ////////////////////////////////////////////////////////////////////////
 
-void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &rand) {
+void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &rand,object_id asteroid_id_mask) {
   FAST_PROFILING_FUNCTION;
   real_t annulus_area = PIf*(outer_radius*outer_radius-inner_radius*inner_radius);
   real_t spacing_area = PIf*spacing*spacing;
@@ -711,7 +711,8 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
 
         real_t ay = rand.randf()*30-40;
 
-        asteroids.emplace_back(theta,radius-inner_radius,ay,palette.random_choice(rand));
+        object_id id = asteroids.size() | asteroid_id_mask;
+        asteroids.emplace_back(id,theta,radius-inner_radius,ay,palette.random_choice(rand));
         break;
       }
     }
@@ -779,8 +780,12 @@ AsteroidField::~AsteroidField()
 ////////////////////////////////////////////////////////////////////////
 
 void AsteroidField::generate_field() {
-  for(auto &layer : layers)
-    layer.generate_field(palette,rand);
+  object_id layer_increment = 1<<asteroid_layer_number_bit_shift;
+  object_id layer_id = 0;
+  for(auto &layer : layers) {
+    layer.generate_field(palette,rand,layer_id);
+    layer_id += layer_increment;
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////

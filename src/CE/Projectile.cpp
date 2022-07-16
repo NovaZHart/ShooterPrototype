@@ -22,6 +22,7 @@ using namespace godot::CE;
 using namespace std;
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> weapon,object_id alternative_target):
+  CelestialObject(PROJECTILE),
   id(id),
   weapon(weapon),
   source(ship.id),
@@ -70,6 +71,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
 
 // Create an anti-missile projectile
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation):
+  CelestialObject(PROJECTILE),
   id(id),
   weapon(weapon),
   source(ship.id),
@@ -98,6 +100,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
 {}
 
 Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> weapon,Vector3 position,real_t scale,real_t rotation,object_id target):
+  CelestialObject(PROJECTILE),
   id(id),
   weapon(weapon),
   source(ship.id),
@@ -132,6 +135,7 @@ Projectile::Projectile(object_id id,const Ship &ship,shared_ptr<const Weapon> we
 }
 
 Projectile::Projectile(object_id id,const Ship *ship,shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,shared_ptr<const Weapon> weapon_placeholder):
+  CelestialObject(PROJECTILE),
   id(id),
   weapon(weapon_placeholder),
   source(ship ? ship->id : -1),
@@ -168,6 +172,22 @@ Projectile::Projectile(object_id id,const Ship *ship,shared_ptr<const Salvage> s
 }
 
 Projectile::~Projectile() {}
+
+void Projectile::get_object_info(CelestialInfo &info) const {
+  info = { id, position, 1e-5 };
+}
+object_id Projectile::get_object_id() const {
+  return id;
+}
+real_t Projectile::get_object_radius() const {
+  return 1e-5;
+}
+Vector3 Projectile::get_object_xyz() const {
+  return position;
+}
+Vector2 Projectile::get_object_xz() const {
+  return Vector2(position.x,position.z);
+}
 
 real_t Projectile::take_damage(real_t amount) {
   if(not is_missile())

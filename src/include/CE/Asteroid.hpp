@@ -17,6 +17,7 @@
 
 #include "PropertyMacros.hpp"
 #include "CE/CheapRand32.hpp"
+#include "CE/CelestialObject.hpp"
 
 namespace godot {
   namespace CE {
@@ -138,10 +139,12 @@ namespace godot {
 
     ////////////////////////////////////////////////////////////////////
     
-    class Asteroid {
+    class Asteroid: public CelestialObject {
       friend class AsteroidLayer;
       friend class AsteroidField;
       
+      object_id id;
+
       std::shared_ptr<const AsteroidTemplate> templ;
       
       // Location of the asteroid in a cylindrical coordinate system at time 0
@@ -156,18 +159,29 @@ namespace godot {
     public:
 
       // Make a fully-healed copy of the given asteroid, with a different location.
-      Asteroid(real_t theta,real_t r,real_t y,std::shared_ptr<const AsteroidTemplate> templ):
-        templ(templ), theta(theta), r(r), y(y),
+      Asteroid(object_id id,real_t theta,real_t r,real_t y,std::shared_ptr<const AsteroidTemplate> templ):
+        CelestialObject(ASTEROID),
+        id(id), templ(templ), theta(theta), r(r), y(y),
         structure(templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS),
         state()
       {}
 
       // Make an effectively invincible asteroid at location 0 with no mesh
       Asteroid():
-        templ(), theta(0), r(0), y(0), structure(EFFECTIVELY_INFINITE_HITPOINTS), state()
+        CelestialObject(ASTEROID),
+        id(-1), templ(), theta(0), r(0), y(0), 
+        structure(EFFECTIVELY_INFINITE_HITPOINTS), state()
       {}
       
       ~Asteroid() {}
+
+      PROP_GET_VAL(object_id,id);
+
+      void get_object_info(CelestialInfo &info) const override;
+      object_id get_object_id() const override;
+      real_t get_object_radius() const override;
+      Vector3 get_object_xyz() const override;
+      Vector2 get_object_xz() const override;
 
       inline const Color &get_instance_data() const {
         return state.get_instance_data();

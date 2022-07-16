@@ -65,6 +65,7 @@ Rect2 location_rect_for_aabb(const AABB &aabb,real_t expand) {
 }
 
 Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
+  CelestialObject(CelestialObject::SHIP),
   id(id),
   name(get<String>(dict,"name")),
   rid(get<RID>(dict,"rid")),
@@ -281,6 +282,22 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
 
 Ship::~Ship()
 {}
+
+void Ship::get_object_info(CelestialInfo &info) const {
+  info = { id, position, radius };
+}
+object_id Ship::get_object_id() const {
+  return id;
+}
+real_t Ship::get_object_radius() const {
+  return radius;
+}
+Vector3 Ship::get_object_xyz() const {
+  return position;
+}
+Vector2 Ship::get_object_xz() const {
+  return Vector2(position.x,position.z);
+}
 
 
 bool Ship::pull_back_to_standoff_range(const CombatEngine &ce,Ship &target,Vector3 &aim) {

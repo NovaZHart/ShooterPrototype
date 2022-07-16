@@ -16,19 +16,37 @@ AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   max_structure(get<real_t>(dict,"max_structure",EFFECTIVELY_INFINITE_HITPOINTS))
 {}
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 AsteroidTemplate::AsteroidTemplate():
   mesh(), mesh_id(-1), color_data(0,0,0,0), 
   salvage(), max_structure(EFFECTIVELY_INFINITE_HITPOINTS)
 {}
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 AsteroidTemplate::~AsteroidTemplate()
 {}
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
+
+void Asteroid::get_object_info(CelestialInfo &info) const {
+  info = { id, get_xyz(), get_scale() };
+}
+object_id Asteroid::get_object_id() const {
+  return id;
+}
+real_t Asteroid::get_object_radius() const {
+  return get_scale();
+}
+Vector3 Asteroid::get_object_xyz() const {
+  return get_xyz();
+}
+Vector2 Asteroid::get_object_xz() const {
+  return get_xz();
+}
+
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 double Asteroid::take_damage(double damage) {
   double overkill = damage-structure;
@@ -41,14 +59,14 @@ double Asteroid::take_damage(double damage) {
   }
 }
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void Asteroid::set_template(shared_ptr<const AsteroidTemplate> temp) {
   this->templ = templ;
   structure = templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS;
 }
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const {
   FAST_PROFILING_FUNCTION;
@@ -94,7 +112,7 @@ void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,
   state.set_valid_time(when);
 }
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 Transform Asteroid::calculate_transform() const {
   FAST_PROFILING_FUNCTION;
@@ -116,7 +134,7 @@ Transform Asteroid::calculate_transform() const {
   return trans;
 }
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 AsteroidPalette::AsteroidPalette(Array selection) {
   FAST_PROFILING_FUNCTION;
@@ -163,7 +181,7 @@ AsteroidPalette::AsteroidPalette(Array selection) {
                        __FUNCTION__,__FILE__,__LINE__);
 }
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
   asteroids(a.asteroids),
@@ -175,17 +193,17 @@ AsteroidPalette::AsteroidPalette(const AsteroidPalette &a,bool deep_copy):
       ptr = make_shared<AsteroidTemplate>(*ptr);
 }
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 AsteroidPalette::AsteroidPalette():
   asteroids(), accumulated_weights()
 {}
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 shared_ptr<const AsteroidTemplate> AsteroidPalette::default_asteroid;
 
-////////////////////////////////////////////////////////////////////////
+/* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
 shared_ptr<const AsteroidTemplate> AsteroidPalette::random_choice(CheapRand32 &rand) const {
   if(!empty()) {

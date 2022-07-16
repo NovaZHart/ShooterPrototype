@@ -270,7 +270,7 @@ namespace godot {
 
       // Clears the asteroid layer and generates a new one from the given selection of asteroids.
       // WARNING: Asteroid pointers are invalid after this call.
-      void generate_field(const AsteroidPalette &palette,CheapRand32 &rand);
+      void generate_field(const AsteroidPalette &palette,CheapRand32 &rand,object_id asteroid_id_mask);
     };
 
     
