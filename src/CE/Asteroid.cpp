@@ -50,7 +50,7 @@ void Asteroid::set_template(shared_ptr<const AsteroidTemplate> temp) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const {
+void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const {
   FAST_PROFILING_FUNCTION;
   static const std::hash<String> salvage_hash;
   static const std::hash<real_t> time_hash;
@@ -96,10 +96,10 @@ void Asteroid::update_state(AsteroidState &state,real_t when,real_t orbit_period
 
 ////////////////////////////////////////////////////////////////////////
 
-Transform Asteroid::calculate_transform(const AsteroidState &state) const {
+Transform Asteroid::calculate_transform() const {
   FAST_PROFILING_FUNCTION;
   real_t rotation_speed = state.get_rotation_speed();
-  real_t rotation_phase = calculate_rotation_phase(state);
+  real_t rotation_phase = calculate_rotation_phase();
   real_t rotation_angle = rotation_phase + rotation_speed*state.get_valid_time();
   
   real_t scale_xyz = state.get_scale();
@@ -111,7 +111,7 @@ Transform Asteroid::calculate_transform(const AsteroidState &state) const {
   
   trans.basis.rotate(rotation_axis,rotation_angle);
   trans.basis.scale(Vector3(scale_xyz,scale_xyz,scale_xyz));
-  trans.origin=get_xyz(state);
+  trans.origin=get_xyz();
 
   return trans;
 }

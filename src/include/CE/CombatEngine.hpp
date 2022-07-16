@@ -46,6 +46,12 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
     public:
+      static const object_id id_category_shift = 48;
+      static const object_id ship_id_mask = static_cast<object_id>(1)<<id_category_shift;
+      static const object_id planet_id_mask = static_cast<object_id>(2)<<id_category_shift;
+      static const object_id projectile_id_mask = static_cast<object_id>(3)<<id_category_shift;
+      static const object_id first_asteroid_field_id_mask = static_cast<object_id>(4)<<id_category_shift;
+      
       static constexpr float position_box_size = 10.0f;
       static const int max_ships_hit_per_projectile_blast = 100;
       static constexpr float search_cylinder_radius = 30.0f;

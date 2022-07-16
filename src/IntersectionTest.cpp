@@ -36,7 +36,7 @@ void IntersectionTest::_init() {}
 void IntersectionTest::set_asteroid_field(Array a) {
   shared_ptr<AsteroidPalette> no_asteroids = make_shared<AsteroidPalette>();
   shared_ptr<SalvagePalette> no_salvage = make_shared<SalvagePalette>();
-  field_ptr = make_shared<AsteroidField>(0,a,no_asteroids,no_salvage);
+  field_ptr = make_shared<AsteroidField>(0,a,no_asteroids,no_salvage,0);
   AsteroidPalette empty;
   CheapRand32 rand;
   field_ptr->generate_field();
@@ -59,13 +59,11 @@ void IntersectionTest::matches_to_array(PoolVector3Array &data,const std::unorde
     Vector3 *dataptr = writer.ptr();
     
     for(auto id : matches) {
-      auto a_s = field_ptr->get(id);
+      auto a = field_ptr->get(id);
       
-      if(a_s.first and a_s.second) {
-        const AsteroidState *s = a_s.second;
-        
-        Vector2 xz = s->get_xz();
-        real_t scale = s->get_scale();
+      if(a) {
+        Vector2 xz = a->get_xz();
+        real_t scale = a->get_scale();
         dataptr[found] = Vector3(xz.x,xz.y,scale);
         found++;
       }
@@ -128,18 +126,16 @@ PoolVector3Array IntersectionTest::get_asteroids() {
       PoolVector3Array::Write writer = asteroids.write();
       Vector3 *dataptr = writer.ptr();
       
-      for(auto a_s : *field_ptr) {
-        const Asteroid *a = a_s.first;
-        const AsteroidState *s = a_s.second;
-        if(a&&s) {
+      for(const Asteroid *a : *field_ptr) {
+        if(a) {
           if(found>=size) {
             Godot::print_error("More asteroids found ("+str(found)+") than purported size ("+str(size)+").",
                                __FUNCTION__,__FILE__,__LINE__);
             break;
           }
           
-          Vector2 xz = s->get_xz();
-          real_t scale = s->get_scale();
+          Vector2 xz = a->get_xz();
+          real_t scale = a->get_scale();
           dataptr[found] = Vector3(xz.x,xz.y,scale);
         } else
           Godot::print_error("Null asteroid data found in AsteroidField.",

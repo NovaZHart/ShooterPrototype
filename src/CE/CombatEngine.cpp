@@ -331,13 +331,13 @@ void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 min
 
 void CombatEngine::add_asteroid_field(Dictionary field_data) {
   shared_ptr<AsteroidPalette> ap=make_shared<AsteroidPalette>(field_data["asteroids"]);
-  if(!ap->size()) {
+  if(!ap->size())
     Godot::print_error("AsteroidPalette is empty. Asteroids will be invisible!",
                        __FUNCTION__,__FILE__,__LINE__);
-    assert(false);
-  }
+  object_id id = (static_cast<object_id>(asteroid_fields.size())<<id_category_shift)
+                 + first_asteroid_field_id_mask;
   shared_ptr<SalvagePalette> sp=make_shared<SalvagePalette>(field_data["salvage"]);
-  asteroid_fields.emplace_back(0,godot::CE::get<Array>(field_data,"layers"),ap,sp);
+  asteroid_fields.emplace_back(0,godot::CE::get<Array>(field_data,"layers"),ap,sp,id);
   asteroid_fields.back().generate_field();
 }
 

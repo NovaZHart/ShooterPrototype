@@ -22,8 +22,12 @@ namespace godot {
   namespace CE {
     class MultiMeshManager;
     class SalvagePalette;
+    class Asteroid;
+    class AsteroidLayer;
     
-    struct AsteroidState {
+    class AsteroidState {
+      friend class Asteroid;
+      
       // Stores the time-varying state and expensive calculations for one asteroid.
       // Updated as needed by Asteroid::update_state
 
@@ -71,7 +75,7 @@ namespace godot {
       }
       
       // Pretend the state has invalid data so the next call to update_state will calculate it.
-      inline void reset() {
+      inline void invalidate() {
         valid_time=invalid_time;
       }
 
@@ -135,7 +139,9 @@ namespace godot {
     ////////////////////////////////////////////////////////////////////
     
     class Asteroid {
-    public:
+      friend class AsteroidLayer;
+      friend class AsteroidField;
+      
       std::shared_ptr<const AsteroidTemplate> templ;
       
       // Location of the asteroid in a cylindrical coordinate system at time 0
@@ -143,53 +149,69 @@ namespace godot {
 
       // Current structure of the asteroid, between 0 and max_structure.
       double structure;
+
+      // Cached values of time-varying state of asteroid, updated as needed.
+      mutable AsteroidState state;
+      
     public:
 
       // Make a fully-healed copy of the given asteroid, with a different location.
       Asteroid(real_t theta,real_t r,real_t y,std::shared_ptr<const AsteroidTemplate> templ):
         templ(templ), theta(theta), r(r), y(y),
-        structure(templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS)
+        structure(templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS),
+        state()
       {}
 
       // Make an effectively invincible asteroid at location 0 with no mesh
       Asteroid():
-        templ(), theta(0), r(0), y(0), structure(EFFECTIVELY_INFINITE_HITPOINTS)
+        templ(), theta(0), r(0), y(0), structure(EFFECTIVELY_INFINITE_HITPOINTS), state()
       {}
       
       ~Asteroid() {}
 
-      inline real_t get_rotation_speed(const AsteroidState &state) const {
+      inline const Color &get_instance_data() const {
+        return state.get_instance_data();
+      }
+
+      inline real_t get_rotation_speed() const {
         return state.rotation_speed;
       }
 
-      inline real_t get_scale(const AsteroidState &state) const {
+      // Marks the cached state information as infinitely old, so it
+      // will be updated next time an automatic update check happens.
+      inline void invalidate_state() {
+        state.invalidate();
+      }
+
+      inline real_t get_scale() const {
         return state.scale;
+      }
+      
+      inline bool is_state_valid() const {
+        return state.is_valid();
       }
       
       // inline real_t calculate_rotation_speed(const AsteroidState &state) const {
       //   return state.random_numbers.r * max_rotation_speed;
       // }
 
-      inline real_t calculate_rotation_phase(const AsteroidState &state) const {
+      inline real_t calculate_rotation_phase() const {
         return state.random_numbers.g * TAUf;
       }
 
-      // inline real_t calculate_scale(const AsteroidState &state) const {
+      // inline real_t calculate_scale() const {
       //   return state.random_numbers.b*scale_range + min_scale;
       // }
 
       // Updates the location of the asteroid. If the state is
       // invalid, this will also initialize the hash and random
       // colors.
-      void update_state(AsteroidState &state,real_t when,real_t orbit_period,real_t inner_radius,
+      void update_state(real_t when,real_t orbit_period,real_t inner_radius,
                         real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const;
 
       // Calculate the full transform for a multimesh instance based
       // on cached information in the asteroid state.
-      Transform calculate_transform(const AsteroidState &state) const;
-
-      // Receive a specified amount of damage:
-      double take_damage(double damage);
+      Transform calculate_transform() const;
       
       inline std::shared_ptr<const AsteroidTemplate> get_template() const {
         return templ;
@@ -201,16 +223,6 @@ namespace godot {
 
       inline real_t get_max_structure() const {
         return templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS;
-      }
-      
-      // Asteroid heals some amount of damage.
-      inline void heal_asteroid(double amount) {
-        structure = std::min(double(get_max_structure()),structure+amount);
-      }
-
-      // Fully heal asteroid
-      inline void heal_asteroid() {
-        structure = get_max_structure();
       }
 
       // How much structure is left?
@@ -245,17 +257,17 @@ namespace godot {
       }
 
       // 2D location x-z
-      inline Vector2 get_xz(const AsteroidState &state) const {
+      inline Vector2 get_xz() const {
         return Vector2(state.x,state.z);
       }
       
       // Full 3D location
-      inline Vector3 get_xyz(const AsteroidState &state) const {
+      inline Vector3 get_xyz() const {
         return Vector3(state.x,y,state.z);
       }
 
       // 3D location with y=0
-      inline Vector3 get_x0z(const AsteroidState &state) const {
+      inline Vector3 get_x0z() const {
         return Vector3(state.x,0,state.z);
       }
 
@@ -278,6 +290,22 @@ namespace godot {
         static const String empty_string="";
         return templ ? templ->get_salvage() : empty_string;
       }
+
+    private:
+      // Damage must be private so only AsteroidField can apply it.
+      
+      // Asteroid heals some amount of damage.
+      inline void heal_asteroid(double amount) {
+        structure = std::min(double(get_max_structure()),structure+amount);
+      }
+
+      // Fully heal asteroid
+      inline void heal_asteroid() {
+        structure = get_max_structure();
+      }
+
+      // Receive a specified amount of damage:
+      double take_damage(double damage);
     };
     
     ////////////////////////////////////////////////////////////////////////

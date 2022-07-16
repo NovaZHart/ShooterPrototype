@@ -604,8 +604,7 @@ AsteroidLayer::AsteroidLayer(const Dictionary &d):
   mean_velocity(get<real_t>(d,"mean_velocity")),
   orbit_period(TAUf*(inner_radius+thickness/2)/mean_velocity),
   orbit_mult(orbit_period ? TAUf/orbit_period : 1),
-  asteroids(),
-  state()
+  asteroids()
 {}
 
 ////////////////////////////////////////////////////////////////////////
@@ -660,7 +659,6 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
   asteroids.reserve(max(1.0f,ceilf(annulus_area/spacing_area)));
   
   asteroids.clear();
-  state.clear();
   
   real_t trimmed_thickness = thickness-2*max_scale;
   real_t theta_step = spacing/outer_radius/4;
@@ -727,21 +725,20 @@ void AsteroidLayer::generate_field(const AsteroidPalette &palette,CheapRand32 &r
     }
     theta += theta_step;
   } while(theta<TAUf);
-
-  state.resize(asteroids.size());
 }
 
 ////////////////////////////////////////////////////////////////////////
 
 AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalette> asteroids,
-                             std::shared_ptr<SalvagePalette> salvage):
+                             std::shared_ptr<SalvagePalette> salvage,object_id field_id):
   palette(*asteroids,true),
   rand(),
   salvage(salvage),
   layers(),
   now(now),
   dead_asteroids(),
-  sent_meshes(false)
+  sent_meshes(false),
+  field_id(field_id)
 {
   FAST_PROFILING_FUNCTION;
   layers.reserve(data.size());
@@ -767,8 +764,8 @@ AsteroidField::AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalet
   } else {
     Godot::print_error("No asteroid layers in AsteroidField!",
                        __FUNCTION__,__FILE__,__LINE__);
-    inner_radius = 100;
-    outer_radius = 100.1;
+    inner_radius = 10000;
+    outer_radius = 10001;
     max_scale = 1;
   }
   thickness = outer_radius-inner_radius;
@@ -797,21 +794,36 @@ AsteroidField::const_iterator AsteroidField::find(object_id id) const {
 
 ////////////////////////////////////////////////////////////////////////
 
-pair<const Asteroid *,const AsteroidState*> AsteroidField::get(object_id id) const {
+const Asteroid *AsteroidField::get(object_id id) const {
   FAST_PROFILING_FUNCTION;
-  static const pair<const Asteroid*,const AsteroidState*> no_match(nullptr,nullptr);
-  
+
   pair<int,int> split = split_id(id);
   if(split.first<0 or static_cast<size_t>(split.first)>=layers.size())
-    return no_match;
+    return nullptr;
 
-  const Asteroid *asteroid = layers[split.first].get_asteroid(split.second);
-  if(!asteroid)
-    return no_match;
+  const AsteroidLayer &layer = layers[split.first];
+  const Asteroid *a = layer.get_asteroid(split.second);
 
-  const AsteroidState *state = layers[split.first].get_valid_state(split.second,asteroid,now);
+  if(a)
+    layer.update_state(*a,now);
+  return a;
+}
 
-  return pair(asteroid,state);
+////////////////////////////////////////////////////////////////////////
+
+Asteroid *AsteroidField::get(object_id id) {
+  FAST_PROFILING_FUNCTION;
+
+  pair<int,int> split = split_id(id);
+  if(split.first<0 or static_cast<size_t>(split.first)>=layers.size())
+    return nullptr;
+
+  AsteroidLayer &layer = layers[split.first];
+  Asteroid *a = layer.get_asteroid(split.second);
+
+  if(a)
+    layer.update_state(*a,now);
+  return a;
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -836,15 +848,13 @@ double AsteroidField::damage_asteroid(CombatEngine &ce,object_id id,double damag
     // If the asteroid had cargo, make flotsam.
     std::shared_ptr<const Salvage> salvage_ptr = salvage->get_salvage(asteroid->get_cargo());
     if(salvage_ptr) {
-      AsteroidState *state = layer.get_valid_state(split.second,asteroid,now);
-      if(state) {
-        real_t r = asteroid->get_r()+layer.inner_radius;
-        real_t speed = r*layer.orbit_mult;
-        Vector3 position = asteroid->get_x0z(*state);
-        Vector3 pnorm = position.normalized();
-        Vector3 velocity(-pnorm.z*speed,0,pnorm.x*speed);
-        ce.create_flotsam_projectile(nullptr,salvage_ptr,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
-      }
+      layer.update_state(*asteroid,now);
+      real_t r = asteroid->get_r()+layer.inner_radius;
+      real_t speed = r*layer.orbit_mult;
+      Vector3 position = asteroid->get_x0z();
+      Vector3 pnorm = position.normalized();
+      Vector3 velocity(-pnorm.z*speed,0,pnorm.x*speed);
+      ce.create_flotsam_projectile(nullptr,salvage_ptr,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
     }
     return remaining;
   } else
@@ -886,15 +896,15 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
         continue;
 
       // Only spawn a new asteroid if this one is off screen.
-      AsteroidState *state = layer.get_valid_state(split.second,asteroid,rnow);
-      if(!state or search_region.has_point(asteroid->get_xz(*state)))
+      layer.update_state(*asteroid,rnow);
+      if(search_region.has_point(asteroid->get_xz()))
         continue;
 
       // Replace the asteroid's stats
       asteroid->set_template(palette.random_choice(rand));
 
       // Ensure the state is reinitialized next time it is needed.
-      state->reset();
+      asteroid->invalidate_state();
     }
   }
 }
@@ -955,20 +965,18 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
           itheta = (itheta+1)%layer.size();
         
           // Get the asteroid and its up-to-date state.
-          pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
-          const Asteroid *a = a_s.first;
-          const AsteroidState *s = a_s.second;
-          shared_ptr<const AsteroidTemplate> t = a->get_template();
-          real_t r=s->get_scale();
-          Vector2 loc = a->get_xz(*s);
-          real_t dd=rect_distance_squared_to(search_region,loc);
+          const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+          shared_ptr<const AsteroidTemplate> templ = asteroid.get_template();
+          real_t asteroid_radius=asteroid.get_scale();
+          Vector2 asteroid_loc = asteroid.get_xz();
+          real_t search_distsq=rect_distance_squared_to(search_region,asteroid_loc);
 
-          if(dd<r*r) {
+          if(search_distsq<asteroid_radius*asteroid_radius) {
             // Calculate the transform, and put everything in a new InstanceEffect
             content.instances.push_back(InstanceEffect {
-                t->get_mesh_id(), a->calculate_transform(*s),
-                  t->get_color_data(), s->get_instance_data(),
-                  Vector2(r,r) });
+                templ->get_mesh_id(), asteroid.calculate_transform(),
+                  templ->get_color_data(), asteroid.get_instance_data(),
+                Vector2(asteroid_radius,asteroid_radius) });
           }
         } while(itheta!=itheta2);
       }
@@ -994,11 +1002,6 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
 
   for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
     const AsteroidLayer &layer = layers[ilayer];
-    assert(layer.min_scale>0);
-    assert(layer.max_scale>0);
-    assert(layer.inner_radius>=inner_radius);
-    assert(layer.outer_radius<=outer_radius);
-    assert(layer.scale_range>0);
     if(AsteroidSearchResult::theta_ranges_of_rect(search_region,found,work,layer.inner_radius,layer.outer_radius)) {
       for(auto &range : found) {
         if(!range.get_any_intersect()) {
@@ -1017,13 +1020,11 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
           itheta = (itheta+1)%layer.size();
         
           // Get the asteroid and its up-to-date state.
-          pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
-          const Asteroid *a = a_s.first;
-          const AsteroidState *s = a_s.second;
-          real_t r=s->get_scale();
-          real_t d=rect_distance_to(rect,a->get_xz(*s));
+          const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+          real_t asteroid_radius=asteroid.get_scale();
+          real_t search_dist=rect_distance_to(rect,asteroid.get_xz());
 
-          if(d<r) {
+          if(search_dist<asteroid_radius) {
             results.insert(combined_id(ilayer,itheta));
             count++;
             matches++;
@@ -1066,14 +1067,12 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
       itheta = (itheta+1)%layer.size();
       
       // Get the asteroid and its up-to-date state.
-      pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
-      const Asteroid *a = a_s.first;
-      const AsteroidState *s = a_s.second;
-      real_t r=s->get_scale();
-      Vector2 loc=a->get_xz(*s);
-      real_t combined_radius = r+radius;
+      const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+      real_t asteroid_radius = asteroid.get_scale();
+      Vector2 asteroid_loc=asteroid.get_xz();
+      real_t combined_radius = asteroid_radius+radius;
 
-      if(center.distance_squared_to(loc)<=combined_radius*combined_radius) {
+      if(center.distance_squared_to(asteroid_loc)<=combined_radius*combined_radius) {
         results.insert(combined_id(ilayer,itheta));
         count++;
       }
@@ -1112,14 +1111,12 @@ object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
       itheta = (itheta+1)%layer.size();
       
       // Get the asteroid and its up-to-date state.
-      pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
-      const Asteroid *a = a_s.first;
-      const AsteroidState *s = a_s.second;
-      real_t r=s->get_scale();
-      Vector2 loc=a->get_xz(*s);
-      real_t combined_radius = r+radius;
+      const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+      real_t asteroid_radius = asteroid.get_scale();
+      Vector2 asteroid_loc = asteroid.get_xz();
+      real_t combined_radius = asteroid_radius+radius;
 
-      if(center.distance_squared_to(loc)<=combined_radius*combined_radius)
+      if(center.distance_squared_to(asteroid_loc)<=combined_radius*combined_radius)
         return combined_id(ilayer,itheta);
     } while(itheta!=itheta2);
   }
@@ -1192,11 +1189,9 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
         itheta = (itheta+1)%layer.size();
 
         // Get the asteroid and its up-to-date state.
-        pair<const Asteroid*,const AsteroidState *> a_s = layer.unsafe_get(itheta,valid_time);
-        const Asteroid *a = a_s.first;
-        const AsteroidState *s = a_s.second;
-        Vector2 location = a->get_xz(*s);
-        real_t radius=s->get_scale();
+        const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+        Vector2 location = asteroid.get_xz();
+        real_t radius=asteroid.get_scale();
 
         Vector2 relative_location = location-start;
         real_t along = relative_location.dot(direction);

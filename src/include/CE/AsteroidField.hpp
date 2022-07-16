@@ -185,9 +185,6 @@ namespace godot {
 
       // All asteroids, sorted by angle and radius
       std::vector<Asteroid> asteroids;
-
-      // Cached state of each asteroid.
-      mutable std::vector<AsteroidState> state;
     public:
       typedef std::vector<Asteroid> asteroid_storage;
       typedef typename asteroid_storage::iterator asteroid_storage_iter;
@@ -220,29 +217,44 @@ namespace godot {
       inline const Asteroid *get_asteroid(object_id index) const {
         return (index<0 or static_cast<size_t>(index)>=asteroids.size()) ? nullptr : &asteroids[index];
       }
-
-      // Get, make, or update an AstroidState, assuming the index is a valid index and a is non-null
-      inline AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) {
-        AsteroidState *s = &state[index];
-        if(s->needs_update_to(time))
-          a->update_state(*s,time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range,!s->is_valid());
-        return s;
+      inline Asteroid *get_asteroid(object_id index,real_t time) {
+        Asteroid *a = get_asteroid(index);
+        if(a)
+          update_state(*a,time);
+        return a;
       }
-      inline const AsteroidState *get_valid_state(object_id index, const Asteroid *a, real_t time) const {
-        AsteroidState *s = &state[index];
-        if(s->needs_update_to(time))
-          a->update_state(*s,time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range,!s->is_valid());
-        return s;
+      inline const Asteroid *get_asteroid(object_id index,real_t time) const {
+        const Asteroid *a = get_asteroid(index);
+        if(a)
+          update_state(*a,time);
+        return a;
       }
 
-      inline std::pair<const Asteroid*,const AsteroidState*> unsafe_get(object_id index, real_t time) const {
-        const Asteroid *a = &asteroids[index];
-        return std::pair<const Asteroid*,const AsteroidState*>(a,get_valid_state(index,a,time));
+      // Ensure the asteroid has up-to-date knowledge of its state.
+      inline bool update_state(const Asteroid &a,real_t time) const {
+        if(a.state.needs_update_to(time)) {
+          a.update_state(time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range,!a.is_state_valid());
+          return true;
+        }
+        return false;
       }
 
-      inline std::pair<Asteroid*,AsteroidState*> unsafe_get(object_id index, real_t time) {
-        Asteroid *a = &asteroids[index];
-        return std::pair<Asteroid*,AsteroidState*>(a,get_valid_state(index,a,time));
+      inline const Asteroid &unsafe_get(object_id index) const {
+        return asteroids[index];
+      }
+      inline Asteroid &unsafe_get(object_id index) {
+        return asteroids[index];
+      }
+
+      inline const Asteroid &unsafe_get(object_id index, real_t time) const {
+        const Asteroid &a = unsafe_get(index);
+        update_state(a,time);
+        return a;
+      }
+      inline Asteroid &unsafe_get(object_id index, real_t time) {
+        Asteroid &a = unsafe_get(index);
+        update_state(a,time);
+        return a;
       }
 
       // upper_bound of theta
@@ -257,7 +269,7 @@ namespace godot {
       }
 
       // Clears the asteroid layer and generates a new one from the given selection of asteroids.
-      // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
+      // WARNING: Asteroid pointers are invalid after this call.
       void generate_field(const AsteroidPalette &palette,CheapRand32 &rand);
     };
 
@@ -271,10 +283,10 @@ namespace godot {
       // filled with an asteroid when the "slot" goes off screen.
       
       // Constants for conversion from (layer number, asteroid index) pair to object_id and back again.
-      static const unsigned asteroid_layer_number_bit_shift = 32;
+      static const unsigned asteroid_layer_number_bit_shift = 28;
       static const uint64_t max_asteroids_per_layer = 1ULL << asteroid_layer_number_bit_shift;
-      static const uint64_t asteroid_layer_mask = 0xffffffff00000000ULL;
-      static const uint64_t index_layer_mask = 0xffffffffULL;
+      static const uint64_t asteroid_layer_mask = 0xfff0000000ULL;
+      static const uint64_t index_layer_mask =    0xfffffffULL;
 
       // The selection of asteroids to choose from. These will be
       // instanced as needed throughout the asteroid layers.
@@ -298,6 +310,9 @@ namespace godot {
       // Have we initialized the palette mesh_ids by sending the meshes to a MultiMeshManager?
       bool sent_meshes;
 
+      // A number to bitwise-or with the object ids. Must only use the upper 24 bits.
+      object_id field_id;
+
       // Combined size of layers
       real_t inner_radius;
       real_t outer_radius;
@@ -307,7 +322,7 @@ namespace godot {
 
       // Read asteroid layer descriptions (data) and generate asteroid layers using the specified palettes.
       AsteroidField(double now,Array data,std::shared_ptr<AsteroidPalette> asteroids,
-                    std::shared_ptr<SalvagePalette> salvege);
+                    std::shared_ptr<SalvagePalette> salvege,object_id field_id);
 
       ~AsteroidField();
 
@@ -347,7 +362,7 @@ namespace godot {
           --*this;
           return temp;
         }
-        std::pair<const Asteroid*,const AsteroidState *> operator *() const {
+        const Asteroid *operator *() const {
           return field->get(id);
         }
         inline bool operator == (const const_iterator &b) const {
@@ -367,12 +382,13 @@ namespace godot {
       }
       
       // Clears the asteroid field and generates a new one.
-      // WARNING: Asteroid and AsteroidState pointers are invalid after this call.
+      // WARNING: Asteroid pointers are invalid after this call.
       void generate_field();
       
       // Return the asteroid and state for the given id, if it exists.
       // If a state is returned, it is up-to-date with the current time.
-      std::pair<const Asteroid*,const AsteroidState *> get(object_id id) const;
+      Asteroid *get(object_id id);
+      const Asteroid *get(object_id id) const;
 
       // Somebody shot that asteroid. Return the amount of overkill damage. Create flotsam if needed
       double damage_asteroid(CombatEngine &ce,object_id id,double amount);
@@ -436,7 +452,7 @@ namespace godot {
 
       object_id id_before(object_id id) const {
         if(id>=0) {
-          size_t layer = id>>asteroid_layer_number_bit_shift;
+          size_t layer = (id&asteroid_layer_mask)>>asteroid_layer_number_bit_shift;
           int index = id&index_layer_mask;
           if(index>0)
             return id-1;
@@ -448,7 +464,7 @@ namespace godot {
 
       object_id id_after(object_id id) const {
         if(id>=0) {
-          size_t layer = id>>asteroid_layer_number_bit_shift;
+          size_t layer = (id&asteroid_layer_mask)>>asteroid_layer_number_bit_shift;
           int index = id&index_layer_mask;
           if(layer<layers.size()) {
             int size = layers[layer].size();
@@ -463,29 +479,30 @@ namespace godot {
 
       // Return the layer number and asteroid index of the given object id,
       // or -1,-1 if nothing matches.
-      static inline std::pair<int,int> split_id(object_id id) {
+      inline std::pair<int,int> split_id(object_id id) const {
         if(id<0)
           return std::pair<int,int>(-1,-1);
         else
           return unsafe_split_id(id);
       }
-
-      static inline std::pair<int,int> unsafe_split_id(object_id id) {
-        return std::pair<int,int>(id>>asteroid_layer_number_bit_shift,id&index_layer_mask);
+      
+      inline std::pair<int,int> unsafe_split_id(object_id id) const {
+        return std::pair<int,int>((id&asteroid_layer_mask)>>asteroid_layer_number_bit_shift,
+                                  id&index_layer_mask);
       }
       
       // Given the layer number and asteroid index, returns the object id.
       // Will return -1 if either are <0
-      static inline object_id combined_id(int layer,int index) {
+      inline object_id combined_id(int layer,int index) const {
         if(layer<0 or index<0)
           return -1;
         else
           return unsafe_combined_id(layer,index);
       }
-
-      static inline object_id unsafe_combined_id(int layer,int index) {
-        return (static_cast<uint64_t>(layer)<<asteroid_layer_number_bit_shift) |
-          (static_cast<uint64_t>(index)&index_layer_mask);
+      
+      inline object_id unsafe_combined_id(int layer,int index) const {
+        return (static_cast<object_id>(layer)<<asteroid_layer_number_bit_shift) |
+          (static_cast<object_id>(index)&index_layer_mask) | field_id;
       }
     };
   }
