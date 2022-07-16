@@ -287,7 +287,7 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
   
   Vector3 collision_location;
   faction_mask_t collision_mask=ce.get_enemy_mask(faction);
-  projectile_hit_list_t hits = ce.find_projectile_collisions(position,old_position,collision_mask,detonation_range,true,collision_location,ce.max_ships_searched_for_detonation_range);
+  hit_list_t hits = ce.find_projectile_collisions(position,old_position,collision_mask,detonation_range,true,collision_location,ce.max_ships_searched_for_detonation_range);
   
   if(hits.empty())
     return false;
@@ -298,13 +298,14 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
   bool hit_something = false;
 
   for(auto &hit : hits) {
-    Ship &ship = hit.second->second;
+    if(!hit.hit->is_ship())
+      continue;
+    Ship &ship = hit.hit->as_ship();
     if(ship.fate<=0) {
-      real_t dist = ship.position.distance_to(position);
-      if(dist<min_dist) {
+      if(hit.distance<min_dist) {
         closest = &ship;
-        closest_pos = hit.first;
-        min_dist = dist;
+        closest_pos = hit.get_x0z();
+        min_dist = hit.distance;
       }
       hit_something = true;
     }
@@ -316,10 +317,12 @@ bool Projectile::collide_projectile(CombatEngine &ce) {
     bool have_impulse = get_impulse()>1e-5;
     if(not salvage and get_blast_radius()>1e-5) {
       Vector3 discard;
-      projectile_hit_list_t blasted = ce.find_projectile_collisions(collision_location,collision_location,collision_mask,get_blast_radius(),false,discard,ce.max_ships_hit_per_projectile_blast);
+      hit_list_t blasted = ce.find_projectile_collisions(collision_location,collision_location,collision_mask,get_blast_radius(),false,discard,ce.max_ships_hit_per_projectile_blast);
 
       for(auto &blastee : blasted) {
-        Ship &ship = blastee.second->second;
+        if(!blastee.hit->is_ship())
+          continue;
+        Ship &ship = blastee.hit->as_ship();
         if(ship.fate<=0) {
           real_t distance = max(0.0f,ship.position.distance_to(position)-ship.radius);
           real_t dropoff = 1.0 - distance/get_blast_radius();

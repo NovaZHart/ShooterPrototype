@@ -132,7 +132,6 @@ namespace godot {
 
       // For temporary use in some functions:
       std::unordered_set<object_id> objects_found;
-      std::vector<std::pair<real_t,std::pair<RID,object_id>>> search_results;
     
       // Sending data from physics to visual thread:
       VisibleContentManager content;
@@ -170,9 +169,6 @@ namespace godot {
       
       std::unordered_set<object_id> &get_objects_found() {
         return objects_found;
-      }
-      std::vector<std::pair<real_t,std::pair<RID,object_id>>> get_search_results() {
-        return search_results;
       }
 
       PhysicsDirectSpaceState *get_space_state() {
@@ -296,7 +292,7 @@ namespace godot {
         return self_masks[faction];
       }
 
-      void find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
+      void find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,hit_id_list_t &results);
 
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
@@ -305,10 +301,10 @@ namespace godot {
     public:      
       
       Dictionary check_target_lock(Ship &target, Vector3 point1, Vector3 point2);
-      const ship_hit_list_t &get_ships_within_range(Ship &ship, real_t desired_range);
-      const ship_hit_list_t &get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor);
-      const ship_hit_list_t &get_ships_within_weapon_range(Ship &ship,real_t fudge_factor);
-      const ship_hit_list_t &get_ships_within_turret_range(Ship &ship, real_t fudge_factor);
+      const hit_id_list_t &get_ships_within_range(Ship &ship, real_t desired_range);
+      const hit_id_list_t &get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor);
+      const hit_id_list_t &get_ships_within_weapon_range(Ship &ship,real_t fudge_factor);
+      const hit_id_list_t &get_ships_within_turret_range(Ship &ship, real_t fudge_factor);
       ships_iter ship_for_rid(const RID &rid);
       ships_iter ship_for_rid(int rid_id);
       Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
@@ -323,7 +319,7 @@ namespace godot {
       void create_flotsam_projectile(Ship *ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
       void create_antimissile_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length);
       void create_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,object_id target=-1);
-      projectile_hit_list_t find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results);
+      hit_list_t find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results);
   //projectile_hit_list_t find_projectile_collisions(Projectile &projectile,real_t radius,bool consider_motion,int max_results);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 

@@ -36,10 +36,6 @@ namespace godot {
   namespace CE {
     class CombatEngine;
 
-    typedef std::vector<std::pair<RID,object_id>> ship_hit_list_t;
-    typedef std::vector<std::pair<RID,object_id>>::iterator ship_hit_list_iter;
-    typedef std::vector<std::pair<RID,object_id>>::const_iterator ship_hit_list_const_iter;
-
     class Ship: public CelestialObject {
     public:
       typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
@@ -121,8 +117,8 @@ namespace godot {
       ticks_t tick_at_last_shot, ticks_since_targetting_change, ticks_since_ai_change, ticks_since_ai_check;
       real_t damage_since_targetting_change;
       Vector3 threat_vector;
-      ship_hit_list_t nearby_objects;
-      ship_hit_list_t nearby_enemies;
+      hit_id_list_t nearby_objects;
+      hit_id_list_t nearby_enemies;
       ticks_t nearby_enemies_tick;
       real_t nearby_enemies_range;
 
@@ -169,6 +165,7 @@ namespace godot {
       Vector3 get_object_xyz() const override;
       Vector2 get_object_xz() const override;
 
+      PROP_GET_VAL(object_id,id);
       PROP_GET_VAL(faction_index_t,faction);
       PROP_GET_VAL(faction_mask_t,faction_mask);
       PROP_GETSET_VAL(real_t,energy);
@@ -218,8 +215,8 @@ namespace godot {
       PROP_GETSET_VAL(ticks_t,ticks_since_ai_check);
       PROP_GETSET_VAL(real_t,damage_since_targetting_change);
       PROP_GETSET_REF(Vector3,threat_vector);
-      PROP_GETSET_REF(ship_hit_list_t,nearby_objects);
-      PROP_GETSET_REF(ship_hit_list_t,nearby_enemies);
+      PROP_GETSET_REF(hit_id_list_t,nearby_objects);
+      PROP_GETSET_REF(hit_id_list_t,nearby_enemies);
       PROP_GETSET_VAL(ticks_t,nearby_enemies_tick);
       PROP_GETSET_VAL(real_t,nearby_enemies_range);
       PROP_GETSET_REF(CheapRand32,rand);
@@ -238,6 +235,16 @@ namespace godot {
       PROP_GETSET_VAL(bool,should_autotarget);
       PROP_GETSET_VAL(bool,at_first_tick);
       
+      inline Vector2 get_xz() const {
+        return Vector2(position.x,position.z);
+      }
+      inline Vector3 get_x0z() const {
+        return Vector3(position.x,0,position.z);
+      }
+      inline Vector3 get_xyz() const {
+        return Vector3(position.x,visual_height,position.z);
+      }
+
       inline Vector3 get_position() const {
         return position;
       }
@@ -394,7 +401,6 @@ namespace godot {
 
     typedef std::unordered_map<object_id,::godot::CE::Ship>::iterator ships_iter;
     typedef std::unordered_map<object_id,::godot::CE::Ship>::const_iterator ships_const_iter;
-    typedef std::vector<std::pair<Vector3,ships_iter>> projectile_hit_list_t;
   }
 }
 

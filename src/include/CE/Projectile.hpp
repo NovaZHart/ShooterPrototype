@@ -43,6 +43,16 @@ namespace godot {
       Vector3 get_object_xyz() const override;
       Vector2 get_object_xz() const override;
 
+      inline Vector2 get_xz() const {
+        return Vector2(position.x,position.z);
+      }
+      inline Vector3 get_x0z() const {
+        return Vector3(position.x,0,position.z);
+      }
+      inline Vector3 get_xyz() const {
+        return Vector3(position.x,visual_height,position.z);
+      }
+
       inline object_id get_id() const {
         return id;
       }

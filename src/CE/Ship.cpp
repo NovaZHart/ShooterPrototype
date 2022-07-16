@@ -1082,12 +1082,8 @@ void Ship::update_near_objects(CombatEngine &ce) {
 
   nearby_hostiles_timer.reset();
 
-  vector<pair<real_t,pair<RID,object_id>>> search_results = ce.get_search_results();
-  search_results.clear();
-  ce.find_ships_in_radius(godot::CE::get_position(*this),100,ce.get_enemy_mask(faction),search_results);
   nearby_objects.clear();
-  for(auto & r : search_results)
-    nearby_objects.push_back(r.second);
+  ce.find_ships_in_radius(godot::CE::get_position(*this),100,ce.get_enemy_mask(faction),nearby_objects);
 }
 
 void Ship::create_flotsam(CombatEngine &ce) {

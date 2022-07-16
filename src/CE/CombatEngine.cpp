@@ -84,7 +84,6 @@ CombatEngine::CombatEngine():
   reset_scenario(false),
 
   objects_found(),
-  search_results(),
 
   content()
 
@@ -99,7 +98,6 @@ CombatEngine::CombatEngine():
   ships.reserve(max_ships);
   projectiles.reserve(max_ships*50);
   player_orders.reserve(50);
-  search_results.reserve(100);
   dead_ships.reserve(max_ships/2);
 
   ship_locations.reserve(max_ships*1.5,max_ships*5*1.5);
@@ -661,7 +659,7 @@ void CombatEngine::explode_ship(Ship &ship) {
 }
 
 
-void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,vector<pair<real_t,pair<RID,object_id>>> &results) {
+void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,hit_id_list_t &results) {
   FAST_PROFILING_FUNCTION;
   results.clear();
   objects_found.clear();
@@ -671,20 +669,15 @@ void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_m
   }
 
   for(auto &id : objects_found) {
-    ships_iter ship_ptr = ships.find(id);
-    if(ship_ptr!=ships.end()) {
-      Ship &target = ship_ptr->second;
-      if( (target.faction_mask&faction_mask) ) {
-        real_t distance = (get_position(target)-position).length()-target.radius*0.707;
-        if(distance<radius) {
-          pair<RID,object_id> rid_id(target.rid,target.id);
-          pair<real_t,pair<RID,object_id>> dist_rid_id(distance,rid_id);
-          results.push_back(dist_rid_id);
-        }
-      }
+    Ship *ship_ptr = ship_with_id(id);
+    if(ship_ptr && (ship_ptr->faction_mask&faction_mask) ) {
+      // FIXME: Should the 0.707 be here?
+      real_t distance = distance2(ship_ptr->position,position)-ship_ptr->radius*0.707f;
+      if(distance<radius)
+        results.emplace_back(ship_ptr,ship_ptr->get_xz(),distance);
     }
   }
-  sort(results.begin(),results.end(),compare_distance);
+  sort(results.begin(),results.end());
 }
 
 void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
@@ -706,21 +699,7 @@ Dictionary CombatEngine::check_target_lock(Ship &target, Vector3 point1, Vector3
   return result;
 }
 
-struct ship_cmp_by_range {
-  const Vector3 &center;
-  const std::unordered_map<object_id,Ship> &ships;
-  ship_cmp_by_range(const Vector3 &center,const std::unordered_map<object_id,Ship> &ships):
-    center(center),ships(ships)
-  {}
-  template<class T>
-  bool operator () (const T &a, const T &b) const {
-    std::unordered_map<object_id,Ship>::const_iterator aship = ships.find(a.second);
-    std::unordered_map<object_id,Ship>::const_iterator bship = ships.find(b.second);
-    return distsq(aship->second.position,center) < distsq(bship->second.position,center);
-  }
-};
-
-const ship_hit_list_t &CombatEngine::get_ships_within_range(Ship &ship, real_t desired_range) {
+const hit_id_list_t &CombatEngine::get_ships_within_range(Ship &ship, real_t desired_range) {
   FAST_PROFILING_FUNCTION;
   real_t nearby_enemies_range=ship.nearby_enemies_range;
   int nearby_enemies_tick = ship.nearby_enemies_tick;
@@ -734,28 +713,29 @@ const ship_hit_list_t &CombatEngine::get_ships_within_range(Ship &ship, real_t d
         continue; // not an enemy
       if(other.second.id==ship.id)
         continue; // do not target self
-      if(ship.position.distance_to(other.second.position)>desired_range)
+      real_t distance = ship.position.distance_to(other.second.position);
+      if(distance>desired_range)
         continue; // out of range
-      ship.nearby_enemies.emplace_back(other.second.rid,other.second.id);
+      ship.nearby_enemies.emplace_back(&other.second,other.second.get_xz(),distance);
     }
-    sort(ship.nearby_enemies.begin(),ship.nearby_enemies.end(),ship_cmp_by_range(ship.position,ships));
+    sort(ship.nearby_enemies.begin(),ship.nearby_enemies.end());
   }
   return ship.nearby_enemies;
 }
     
-const ship_hit_list_t &
+const hit_id_list_t &
 CombatEngine::get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor) {
   FAST_PROFILING_FUNCTION;
   return get_ships_within_range(ship,ship.range.unguided*fudge_factor);
 }
     
-const ship_hit_list_t &
+const hit_id_list_t &
 CombatEngine::get_ships_within_weapon_range(Ship &ship,real_t fudge_factor) {
   FAST_PROFILING_FUNCTION;
   return get_ships_within_range(ship,ship.range.all*fudge_factor);
 }
     
-const ship_hit_list_t &
+const hit_id_list_t &
 CombatEngine::get_ships_within_turret_range(Ship &ship, real_t fudge_factor) {
   FAST_PROFILING_FUNCTION;
   return get_ships_within_range(ship,ship.range.turrets*fudge_factor);
@@ -865,9 +845,9 @@ ships_iter CombatEngine::ship_for_rid(int rid_id) {
   return ships.find(p_id->second);
 }
 
-projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results) {
+hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results) {
   FAST_PROFILING_FUNCTION;
-  projectile_hit_list_t result;
+  hit_list_t result;
 
   consider_motion = false;
   
@@ -913,7 +893,8 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectil
         if(!hit.empty()) {
           ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
           if(p_ship!=ships.end())
-            result.emplace_back(p_ship->second.position,p_ship);
+            result.emplace_back(&p_ship->second,p_ship->second.get_xz(),
+                                distance2(p_ship->second.position,projectile_position));
         }
       }
 
@@ -946,13 +927,16 @@ projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectil
     Dictionary hit = space->intersect_ray(point1, point2, Array(), collision_mask);
     if(!hit.empty()) {
       ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
-      if(p_ship!=ships.end())
-        result.emplace_back(static_cast<Vector3>(hit["position"]),p_ship);
+      if(p_ship!=ships.end()) {
+        Vector3 there = static_cast<Vector3>(hit["position"]);
+        result.emplace_back(&p_ship->second,Vector2(there.x,there.z),
+                            distance2(there,projectile_position));
+      }
     }
   }
   return result;
 }
-
+  
 Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask) {
   FAST_PROFILING_FUNCTION;
 

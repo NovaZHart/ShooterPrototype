@@ -345,11 +345,11 @@ Vector3 BaseShipAI::make_threat_vector(CombatEngine &ce,Ship &ship, real_t t) {
   Vector2 threat_vector;
   real_t dw_div = 0;
   int checked=0;
-  for(auto &rid_id : ship.nearby_objects) {
-    Ship * object_iter = ce.ship_with_id(rid_id.second);
-    if(!object_iter)
+  for(auto &obj : ship.nearby_objects) {
+    Ship * object_ptr = ce.ship_with_id(obj.hit);
+    if(!object_ptr)
       continue;
-    Ship &object = *object_iter;
+    Ship &object = *object_ptr;
     Vector3 obj_pos = object.position + t*object.linear_velocity;
     Vector2 position(obj_pos[0] - my_position[0], obj_pos[2] - my_position[2]);
     real_t distance = position.length();
@@ -391,7 +391,7 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
       continue;
 
     if(!got_enemies) {
-      const ship_hit_list_t &enemies = ce.get_ships_within_turret_range(ship, 1.5);
+      const hit_id_list_t &enemies = ce.get_ships_within_turret_range(ship, 1.5);
       have_a_target = !!target;
       
       if(have_a_target) {
@@ -399,14 +399,12 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
         have_a_target = dp*dp<max_distsq and have_a_target;
         eptrs[num_eptrs++] = target;
       }
-      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
-        Ship *enemy_iter = ce.ship_with_id(it->second);
-        if(!enemy_iter)
-          continue;
-        if(distsq(enemy_iter->position,ship.position)>max_distsq)
-          break;
-        eptrs[num_eptrs++] = enemy_iter;
-      }
+      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++)
+        if(it->hit>=0) {
+          Ship *enemy_ptr = ce.ship_with_id(it->hit);
+          if(enemy_ptr && distsq(enemy_ptr->position,ship.position)<=max_distsq)
+            eptrs[num_eptrs++] = enemy_ptr;
+        }
       got_enemies = true;
     }
     
@@ -557,7 +555,7 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
     return;
-  const ship_hit_list_t &enemies = ce.get_ships_within_weapon_range(ship,1.5);
+  const hit_id_list_t &enemies = ce.get_ships_within_weapon_range(ship,1.5);
   Vector3 p_ship = ship.position;
   real_t max_distsq = ship.range.all;
 
@@ -598,14 +596,12 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
         eptrs[num_eptrs++] = target;
         ships_in_range = (distsq(target->position,ship.position) <= max_distsq);
       }
-      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
-        Ship *enemy_iter = ce.ship_with_id(it->second);
-        if(!enemy_iter)
-          continue;
-        if(distsq(enemy_iter->position,ship.position)>max_distsq)
-          break;
-        eptrs[num_eptrs++] = enemy_iter;
-      }
+      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++)
+        if(it->hit>=0) {
+          Ship *enemy_ptr = ce.ship_with_id(it->hit);
+          if(enemy_ptr and distsq(enemy_ptr->position,ship.position)<=max_distsq)
+            eptrs[num_eptrs++] = enemy_ptr;
+        }
       have_enemies=true;
       ships_in_range = ships_in_range or num_eptrs;
     }

@@ -48,10 +48,10 @@ real_t Planet::get_object_radius() const {
   return radius;
 }
 Vector3 Planet::get_object_xyz() const {
-  return position;
+  return get_position();
 }
 Vector2 Planet::get_object_xz() const {
-  return Vector2(position.x,position.z);
+  return get_xz();
 }
 
 Dictionary Planet::update_status() const {
