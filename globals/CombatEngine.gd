@@ -88,6 +88,8 @@ const MIN_RESIST: float = -222.0
 const MIN_PASSTHRU: float = 0.0
 const MAX_PASSTHRU: float = 1.0
 
+const PLANET_COLLISION_MASK: int = 268435456 # 1<<28
+
 var combat_state = null
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()

@@ -46,6 +46,12 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
     public:
+
+      static const int FIND_MISSILES = 1;
+      static const int FIND_SHIPS = 2;
+      static const int FIND_PLANETS = 4;
+      static const int FIND_ASTEROIDS = 8;
+
       static const object_id id_category_shift = 48;
       static const object_id ship_id_mask = static_cast<object_id>(1)<<id_category_shift;
       static const object_id planet_id_mask = static_cast<object_id>(2)<<id_category_shift;
@@ -114,7 +120,9 @@ namespace godot {
       SpaceHash<object_id> flotsam_locations;
       SpaceHash<object_id> ship_locations;
       SpaceHash<object_id> missile_locations;
-    
+
+      Array empty_array;
+      
       // For temporary use in some functions:
       std::unordered_set<object_id> update_request_id;
       mutable CheapRand32 rand;
@@ -132,7 +140,8 @@ namespace godot {
 
       // For temporary use in some functions:
       std::unordered_set<object_id> objects_found;
-    
+      hit_list_t objects_hit;
+      
       // Sending data from physics to visual thread:
       VisibleContentManager content;
     public:
@@ -169,6 +178,9 @@ namespace godot {
       
       std::unordered_set<object_id> &get_objects_found() {
         return objects_found;
+      }
+      hit_list_t &get_objects_hit() {
+        return objects_hit;
       }
 
       PhysicsDirectSpaceState *get_space_state() {
@@ -292,35 +304,45 @@ namespace godot {
         return self_masks[faction];
       }
 
-      void find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,hit_id_list_t &results);
 
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Collision detection
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+    public:      
+
+      size_t overlapping_circle(Vector2 center,real_t radius,faction_mask_t collision_mask,int find_what,hit_list_t &list,size_t max_hits);
+      size_t overlapping_point(Vector2 point,faction_mask_t collision_mask,int find_what,hit_list_t &list,size_t max_hits);
+
+
+      CelestialHit first_at_point(Vector2 point,faction_mask_t collision_mask,int find_what);
+      CelestialHit first_in_circle(Vector2 start,real_t radius,faction_mask_t collision_mask,int find_what);
+
+      CelestialHit cast_ray(Vector2 start,Vector2 end,faction_mask_t collision_mask,int find_what);
+
+      // FIXME: Cannot implement cast_circle yet due to godot physics slowness
+      // CelestialHit cast_circle(Vector2 start,Vector2 end,real_t radius,faction_mask_t collision_mask,int find_what);
+
+    private:
+      Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,faction_mask_t mask);
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Ship utilities for other classes
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
-      
-      Dictionary check_target_lock(Ship &target, Vector3 point1, Vector3 point2);
-      const hit_id_list_t &get_ships_within_range(Ship &ship, real_t desired_range);
-      const hit_id_list_t &get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor);
-      const hit_id_list_t &get_ships_within_weapon_range(Ship &ship,real_t fudge_factor);
-      const hit_id_list_t &get_ships_within_turret_range(Ship &ship, real_t fudge_factor);
+
       ships_iter ship_for_rid(const RID &rid);
       ships_iter ship_for_rid(int rid_id);
-      Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
-      Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
       void explode_ship(Ship &ship);
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
-      // Projectile utilities for other classes
+      // Projectile creation
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
       void create_direct_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
       void create_flotsam_projectile(Ship *ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
       void create_antimissile_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length);
       void create_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,object_id target=-1);
-      hit_list_t find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results);
-  //projectile_hit_list_t find_projectile_collisions(Projectile &projectile,real_t radius,bool consider_motion,int max_results);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:
@@ -379,6 +401,7 @@ namespace godot {
       // Asteroid methods:
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
+      void damage_asteroid(Asteroid &asteroid,double damage,int damage_type);
       void step_asteroid_fields();
       void send_asteroid_meshes();
       void add_asteroid_content(VisibleContent &content);

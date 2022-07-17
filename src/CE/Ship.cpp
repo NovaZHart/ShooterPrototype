@@ -47,18 +47,6 @@ Ship::WeaponRanges Ship::make_ranges(const vector<shared_ptr<Weapon>> &weapons) 
   return r;
 }
 
-static inline Ship::damage_array to_damage_array(Variant var,real_t clamp_min,real_t clamp_max) {
-  PoolRealArray a = static_cast<PoolRealArray>(var);
-  PoolRealArray::Read reader = a.read();
-  const real_t *reals = reader.ptr();
-  Ship::damage_array d;
-  int a_size=a.size(), d_size=d.size();
-  for(int i=0;i<d_size;i++)
-    d[i] = (i<a_size) ? clamp(reals[i],clamp_min,clamp_max) : 0;
-  d[DAMAGE_TYPELESS]=0; // typeless ignores resistances and passthrus
-  return d;
-}
-
 Rect2 location_rect_for_aabb(const AABB &aabb,real_t expand) {
   real_t xsize=aabb.size.x*expand, zsize=aabb.size.z*expand;
   return Rect2(Vector2(-xsize/2,-zsize/2),Vector2(xsize,zsize));
@@ -102,11 +90,11 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   explosion_delay(max(0,get<int>(dict,"explosion_delay",0))),
   explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_EXPLOSIVE),0,NUM_DAMAGE_TYPES-1)),
 
-  shield_resist(to_damage_array(dict["shield_resist"],MIN_RESIST,MAX_RESIST)),
-  shield_passthru(to_damage_array(dict["shield_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
-  armor_resist(to_damage_array(dict["armor_resist"],MIN_RESIST,MAX_RESIST)),
-  armor_passthru(to_damage_array(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
-  structure_resist(to_damage_array(dict["structure_resist"],MIN_RESIST,MAX_RESIST)),
+  shield_resist(dict["shield_resist"],MIN_RESIST,MAX_RESIST),
+  shield_passthru(dict["shield_passthru"],MIN_PASSTHRU,MAX_PASSTHRU),
+  armor_resist(dict["armor_resist"],MIN_RESIST,MAX_RESIST),
+  armor_passthru(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU),
+  structure_resist(dict["structure_resist"],MIN_RESIST,MAX_RESIST),
 
   max_cooling(get<real_t>(dict,"cooling")),
   max_energy(max(1e-5f,get<real_t>(dict,"battery"))),
@@ -299,6 +287,42 @@ Vector2 Ship::get_object_xz() const {
   return Vector2(position.x,position.z);
 }
 
+
+const hit_id_list_t &Ship::get_ships_within_range(CombatEngine &ce, real_t desired_range) {
+  FAST_PROFILING_FUNCTION;
+  if(nearby_enemies_range<desired_range || nearby_enemies_tick + ticks_per_second/6 < tick) {
+    nearby_enemies_tick = tick;
+    nearby_enemies_range = desired_range;
+    nearby_enemies.clear();
+
+    hit_list_t &object_hits = ce.get_objects_hit();
+    object_hits.clear();
+    ce.overlapping_circle(get_xz(),desired_range,ce.get_enemy_mask(faction),CombatEngine::FIND_SHIPS,object_hits,NEARBY_ENEMIES_MAX_HITS);
+    for(auto &hit : object_hits)
+      nearby_enemies.push_back(hit);
+
+    sort(nearby_enemies.begin(),nearby_enemies.end());
+  }
+  return nearby_enemies;
+}
+    
+const hit_id_list_t &
+Ship::get_ships_within_unguided_weapon_range(CombatEngine &ce,real_t fudge_factor) {
+  FAST_PROFILING_FUNCTION;
+  return get_ships_within_range(ce,range.unguided*fudge_factor);
+}
+    
+const hit_id_list_t &
+Ship::get_ships_within_weapon_range(CombatEngine &ce,real_t fudge_factor) {
+  FAST_PROFILING_FUNCTION;
+  return get_ships_within_range(ce,range.all*fudge_factor);
+}
+    
+const hit_id_list_t &
+Ship::get_ships_within_turret_range(CombatEngine &ce, real_t fudge_factor) {
+  FAST_PROFILING_FUNCTION;
+  return get_ships_within_range(ce,range.turrets*fudge_factor);
+}
 
 bool Ship::pull_back_to_standoff_range(const CombatEngine &ce,Ship &target,Vector3 &aim) {
   FAST_PROFILING_FUNCTION;
@@ -864,52 +888,6 @@ void Ship::update_confusion() {
   confusion = 0.999*(confusion+confusion_velocity*(confusion_multiplier*aim_multiplier));
 }
 
-static real_t apply_damage(real_t &damage,double &life,int type,
-                           const Ship::damage_array &resists,
-                           const Ship::damage_array &passthrus,bool allow_passthru) {
-  // Apply damage of the given type to life (shields, armor, or structure) based on
-  // resistances (resist) and optionally passthru (if non-null)
-  // On return:
-  //   damage = amount of damage not applied
-  //   life = life remaining after damage is applied
-
-  // Assumes 0<=type<NUM_DAMAGE_TYPES
-
-  if(life<=0 or damage<=0)
-    return 0.0f;
-
-  real_t applied = 1.0 - resists[type];
-  if(applied<1e-5)
-    return 0.0f;
-
-  real_t passed = 0.0f;
-  real_t taken = damage;
-
-  if(allow_passthru) {
-    real_t passthru = passthrus[type];
-    if(passthru>=1.0)
-      return 0.0f; // All damage is passed, so we have no more to do.
-    if(passthru>0) {
-      taken = (1.0-passthru)*damage;
-      passed = passthru*damage;
-    }
-  }
-
-  // Apply resistance to damage:
-  taken *= applied;
-
-  if(taken>life) {
-    // Too much damage for life.
-    // Pass remaining damage, after reversing resistances:
-    passed += (taken-life)/applied;
-    life = 0;
-  } else
-    life -= taken;
-
-  damage = passed;
-  return taken;
-}
-
 real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction) {
   // Applies damage of the given type to the ship, considering fate,
   // resistances, and passthru. If structure becomes 0, marks the ship
@@ -930,11 +908,11 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
   real_t shield_damage=0, armor_damage=0, structure_damage=0;
   
   if(remaining>0) {
-    shield_damage = cargo_web_active ? 0 : apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
+    shield_damage = cargo_web_active ? 0 : apply_damage(remaining,shields,type,shield_resist,shield_passthru);
     if(remaining>0) {
-      armor_damage = apply_damage(remaining,armor,type,armor_resist,armor_passthru,true);
+      armor_damage = apply_damage(remaining,armor,type,armor_resist,armor_passthru);
       if(remaining>0)
-        structure_damage = apply_damage(remaining,structure,type,structure_resist,armor_passthru,false);
+        structure_damage = apply_damage(remaining,structure,type,structure_resist);
     }
   }
 
@@ -1083,7 +1061,12 @@ void Ship::update_near_objects(CombatEngine &ce) {
   nearby_hostiles_timer.reset();
 
   nearby_objects.clear();
-  ce.find_ships_in_radius(godot::CE::get_position(*this),100,ce.get_enemy_mask(faction),nearby_objects);
+
+  hit_list_t &object_hits = ce.get_objects_hit();
+  object_hits.clear();
+  ce.overlapping_circle(get_xz(),NEAR_OBJECTS_RANGE,ce.get_enemy_mask(faction),CombatEngine::FIND_SHIPS,object_hits,NEAR_OBJECTS_MAX_HITS);
+  for(auto &hit : object_hits)
+    nearby_objects.push_back(hit);
 }
 
 void Ship::create_flotsam(CombatEngine &ce) {

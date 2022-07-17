@@ -44,6 +44,9 @@ namespace godot {
       inline Vector3 get_rotation() const {
         return rotation;
       }
+      inline real_t get_radius() const {
+        return radius;
+      }
 
       void get_object_info(CelestialInfo &info) const override;
       object_id get_object_id() const override;

@@ -1,6 +1,7 @@
 #ifndef CELESTIALOBJECT_HPP
 #define CELESTIALOBJECT_HPP
 
+#include <limits>
 #include <vector>
 #include "CE/ObjectIdGenerator.hpp"
 #include "PropertyMacros.hpp"
@@ -63,10 +64,10 @@ namespace godot {
       inline ClassName &function_name () { \
         return reinterpret_cast<ClassName &>(*this); \
       } \
-      inline const ClassName *function_name##ptr () const { \
+      inline const ClassName *function_name##_ptr () const { \
         return reinterpret_cast<const ClassName *>(this); \
       } \
-      inline ClassName *function_name##ptr () { \
+      inline ClassName *function_name##_ptr () { \
         return reinterpret_cast<ClassName *>(this); \
       }
 
@@ -90,6 +91,9 @@ namespace godot {
       CelestialObject *hit;
       Vector2 xz;
       real_t distance;
+      CelestialHit():
+        hit(nullptr), xz(), distance(std::numeric_limits<real_t>::infinity())
+      {}
       CelestialHit(CelestialObject *hit,Vector2 xz,real_t distance):
         hit(hit),xz(xz),distance(distance)
       {}
@@ -126,6 +130,10 @@ namespace godot {
       real_t distance;
       CelestialObject::Type type;
       
+      CelestialIdHit():
+        hit(-1), xz(), distance(std::numeric_limits<real_t>::infinity()),
+        type(CelestialObject::NOTHING)
+      {}
       CelestialIdHit(CelestialObject *hit,Vector2 xz,real_t distance):
         hit(hit ? hit->get_object_id() : -1),xz(xz),distance(distance),
         type(hit ? hit->get_type() : CelestialObject::NOTHING)

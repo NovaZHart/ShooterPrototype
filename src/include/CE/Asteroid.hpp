@@ -18,6 +18,7 @@
 #include "PropertyMacros.hpp"
 #include "CE/CheapRand32.hpp"
 #include "CE/CelestialObject.hpp"
+#include "CE/DamageArray.hpp"
 
 namespace godot {
   namespace CE {
@@ -107,7 +108,12 @@ namespace godot {
       // Structure of asteroid when totally undamaged.
       real_t max_structure;
 
+      // Resistance of asteroid to various damage types;
+      DamageArray resistances;
+
     public:
+
+      static const DamageArray default_resistances;
 
       AsteroidTemplate(const Dictionary &dict,object_id mesh_id=-1);
       AsteroidTemplate();
@@ -131,7 +137,8 @@ namespace godot {
       PROP_GETSET_REF(Color,color_data);
       PROP_GETSET_REF(String,salvage);
       PROP_GETSET_VAL(real_t,max_structure);
-
+      PROP_GET_REF(DamageArray,resistances);
+      
       inline bool is_invincible() const {
         return max_structure == EFFECTIVELY_INFINITE_HITPOINTS;
       }
@@ -191,7 +198,7 @@ namespace godot {
         return state.rotation_speed;
       }
 
-      // Marks the cached state information as infinitely old, so it
+      // Marks the cached state information as extremely old, so it
       // will be updated next time an automatic update check happens.
       inline void invalidate_state() {
         state.invalidate();
@@ -200,9 +207,16 @@ namespace godot {
       inline real_t get_scale() const {
         return state.scale;
       }
+      inline real_t get_radius() const {
+        return get_scale();
+      }
       
       inline bool is_state_valid() const {
         return state.is_valid();
+      }
+
+      inline const DamageArray &get_resistances() const {
+        return templ ? templ->get_resistances() : AsteroidTemplate::default_resistances;
       }
       
       // inline real_t calculate_rotation_speed(const AsteroidState &state) const {
@@ -257,7 +271,7 @@ namespace godot {
       
       // Does the asteroid have any structure left?
       inline bool is_alive() const {
-        return structure;
+        return structure>0;
       }
 
       // When it explodes, should this asteroid generate flotsam?
@@ -319,7 +333,7 @@ namespace godot {
       }
 
       // Receive a specified amount of damage:
-      double take_damage(double damage);
+      real_t take_damage(real_t damage,int type);
     };
     
     ////////////////////////////////////////////////////////////////////////

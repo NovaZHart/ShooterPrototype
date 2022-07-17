@@ -7,6 +7,7 @@
 #include <PoolArrays.hpp>
 #include <Godot.hpp>
 #include "CE/AsteroidField.hpp"
+#include "CE/CelestialObject.hpp"
 
 namespace godot {
   class IntersectionTest: public Reference {
@@ -32,7 +33,7 @@ namespace godot {
     PoolVector3Array cast_ray_first_hit(Vector2 start,Vector2 end) const;
     
   private:
-    void matches_to_array(PoolVector3Array &data,const std::unordered_set<object_id> &matches) const;
+    void matches_to_array(PoolVector3Array &data,const CE::hit_list_t &matches) const;
     
     real_t inner_radius, outer_radius;
     std::shared_ptr<CE::AsteroidField> field_ptr;

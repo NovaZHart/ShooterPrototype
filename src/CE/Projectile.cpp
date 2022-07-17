@@ -251,12 +251,21 @@ void Projectile::integrate_projectile_forces(real_t thrust_fraction,bool drag,re
 
 bool Projectile::collide_point_projectile(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
-  Vector3 point1(position.x,ship_height,position.z);
-  Vector3 point2(old_position.x,ship_height,old_position.z);
-  Ship * p_ship = ce.space_intersect_ray_p_ship(point1,point2,ce.get_enemy_mask(faction));
-  if(!p_ship)
+  Vector2 point1(position.x,position.z);
+  Vector2 point2(old_position.x,old_position.z);
+  CelestialHit hit = ce.cast_ray(point1,point2,ce.get_enemy_mask(faction),
+                                 CombatEngine::FIND_SHIPS|CombatEngine::FIND_ASTEROIDS);
+  if(!hit.hit)
     return false;
 
+  if(hit.hit->is_asteroid()) {
+    if(get_damage())
+      ce.damage_asteroid(hit.hit->as_asteroid(),get_damage(),get_damage_type());
+    return true;
+  }
+
+  Ship *p_ship = hit.hit->as_ship_ptr();
+  
   if(salvage) {
     if(!p_ship->fate==FATED_TO_FLY) {
       //Godot::print("Ship is not salvaging because it is not fated to fly.");
@@ -281,90 +290,96 @@ bool Projectile::collide_point_projectile(CombatEngine &ce) {
   return true;
 }
 
-
 bool Projectile::collide_projectile(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
   
   Vector3 collision_location;
   faction_mask_t collision_mask=ce.get_enemy_mask(faction);
-  hit_list_t hits = ce.find_projectile_collisions(position,old_position,collision_mask,detonation_range,true,collision_location,ce.max_ships_searched_for_detonation_range);
+
+  real_t detonation_range=max(1e-5f,get_detonation_range());
+  int find_types=CombatEngine::FIND_SHIPS;
   
-  if(hits.empty())
+  if(not salvage)
+    find_types|=CombatEngine::FIND_ASTEROIDS;
+  
+  CelestialHit hit=ce.first_in_circle(get_xz(),detonation_range,collision_mask,find_types);
+
+  if(!hit.hit)
     return false;
 
-  real_t min_dist = numeric_limits<real_t>::infinity();
-  Ship *closest = nullptr;
-  Vector3 closest_pos(0,0,0);
-  bool hit_something = false;
-
-  for(auto &hit : hits) {
-    if(!hit.hit->is_ship())
-      continue;
-    Ship &ship = hit.hit->as_ship();
-    if(ship.fate<=0) {
-      if(hit.distance<min_dist) {
-        closest = &ship;
-        closest_pos = hit.get_x0z();
-        min_dist = hit.distance;
-      }
-      hit_something = true;
-    }
-  }
-
-  PhysicsServer * physics_server = PhysicsServer::get_singleton();
+  bool have_impulse = get_impulse()>1e-5;
+  hit_list_t &objects_hit=ce.get_objects_hit();
+  objects_hit.clear();
   
-  if(hit_something) {
-    bool have_impulse = get_impulse()>1e-5;
-    if(not salvage and get_blast_radius()>1e-5) {
-      Vector3 discard;
-      hit_list_t blasted = ce.find_projectile_collisions(collision_location,collision_location,collision_mask,get_blast_radius(),false,discard,ce.max_ships_hit_per_projectile_blast);
+  if(not salvage) {
+    if(!get_damage() and !have_impulse)
+      return true;
 
-      for(auto &blastee : blasted) {
-        if(!blastee.hit->is_ship())
-          continue;
+    real_t blast_radius = max(1e-5f,get_blast_radius());
+    size_t blasted_count = ce.overlapping_circle(get_xz(),blast_radius,collision_mask,CombatEngine::FIND_SHIPS|CombatEngine::FIND_ASTEROIDS,objects_hit,BLAST_RADIUS_MAX_HITS);
+
+    if(!blasted_count)
+      return true;
+
+    real_t dropoff_denom = (1-BLAST_DAMAGE_AT_FULL_RADIUS)/(blast_radius*blast_radius);
+    Vector3 impulse1 = linear_velocity.normalized();
+
+    for(auto &blastee : objects_hit) {
+      if(blastee.hit->is_ship()) {
         Ship &ship = blastee.hit->as_ship();
         if(ship.fate<=0) {
-          real_t distance = max(0.0f,ship.position.distance_to(position)-ship.radius);
-          real_t dropoff = 1.0 - distance/get_blast_radius();
-          dropoff*=dropoff;
+          real_t distance = max(0.0f,distance2(ship.get_position(),position)-ship.radius);
+          real_t dropoff = (1 - distance*distance*dropoff_denom);
           if(get_damage())
             ship.take_damage(get_damage()*dropoff,get_damage_type(),
                              get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
           if(have_impulse and not ship.immobile) {
-            Vector3 impulse1 = linear_velocity.normalized();
             Vector3 impulse2 = (ship.position-position).normalized();
-            Vector3 combined = get_impulse()*(impulse1+impulse2)*dropoff/2;
+            Vector3 combined = get_impulse()*(impulse1+impulse2)*0.5*dropoff;
             if(combined.length_squared())
-              physics_server->body_apply_central_impulse(ship.rid,combined);
+              PhysicsServer::get_singleton()->body_apply_central_impulse(ship.rid,combined);
           }
         }
-      }
-    } else {
-      Ship &ship = *closest;
-      if(salvage) {
-        if(!ship.fate==FATED_TO_FLY) {
-          //Godot::print("Ship is not salvaging because it is not fated to fly.");
-          return false;
-        } else if(!ship.cargo_web_active) {
-          //Godot::print("Ship is not salvaging because its cargo web is inactive.");
-          return false;
-        } else {
-          //Godot::print("Ship should salvage projectile.");
-          ship.salvage_projectile(ce,*this);
-        }
-      }
-      if(get_damage())
-        closest->take_damage(get_damage(),get_damage_type(),
-                             get_heat_fraction(),get_energy_fraction(),get_thrust_fraction());
-      if(have_impulse and not ship.immobile) {
-        Vector3 impulse = get_impulse()*linear_velocity.normalized();
-        if(impulse.length_squared())
-          physics_server->body_apply_central_impulse(ship.rid,impulse);
+      } else if(blastee.hit->is_asteroid() and get_damage()) {
+        Asteroid &asteroid = blastee.hit->as_asteroid();
+        real_t distance = max(0.0f,blastee.xz.distance_to(get_xz())-asteroid.get_radius());
+        real_t dropoff = (1 - distance*distance*dropoff_denom);
+        ce.damage_asteroid(asteroid,get_damage()*dropoff,get_damage_type());
       }
     }
     return true;
-  } else
-    return false;
+  }
+
+  // We get here if this projectile should be salvaged.
+
+  if(salvage) {
+    objects_hit.clear();
+    size_t web_count = ce.overlapping_circle(get_xz(),detonation_range,collision_mask,CombatEngine::FIND_SHIPS,objects_hit,DETONATION_RANGE_MAX_HITS);
+
+    if(!web_count)
+      return false;
+
+    sort(objects_hit.begin(),objects_hit.end());
+    
+    for(auto &hit : objects_hit) {
+      if(hit.hit->is_ship()) {
+        Ship &ship = hit.hit->as_ship();
+        if(!ship.fate==FATED_TO_FLY) {
+          //Godot::print("Ship is not salvaging because it is not fated to fly.");
+          continue;
+        } else if(!ship.cargo_web_active) {
+          //Godot::print("Ship is not salvaging because its cargo web is inactive.");
+          continue;
+        } else {
+          //Godot::print("Ship should salvage projectile.");
+          ship.salvage_projectile(ce,*this);
+          return true;
+        }
+      }
+    }
+  }
+  
+  return false;
 }
 
 Ship * Projectile::get_projectile_target(CombatEngine &ce) {

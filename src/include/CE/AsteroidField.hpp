@@ -391,7 +391,7 @@ namespace godot {
       const Asteroid *get(object_id id) const;
 
       // Somebody shot that asteroid. Return the amount of overkill damage. Create flotsam if needed
-      double damage_asteroid(CombatEngine &ce,object_id id,double amount);
+      real_t damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t amount,int damage_type);
 
       // Is this asteroid still alive?
       bool is_alive(object_id id) const;
@@ -407,16 +407,16 @@ namespace godot {
 
       // Finds all asteroids overlapping the given rect.
       // Adds all matches to results and returns the number of matches.
-      std::size_t overlapping_rect(Rect2 rect,std::unordered_set<object_id> &results) const;
+      std::size_t overlapping_rect(Rect2 rect,hit_list_t &results,size_t max_matches);
 
       // Finds all asteroids overlapping the given circle.
       // Adds all matches to results and returns the number of matches.
-      std::size_t overlapping_circle(Vector2 center,real_t radius,std::unordered_set<object_id> &results) const;
+      std::size_t overlapping_circle(Vector2 center,real_t radius,hit_list_t &results,size_t max_matches);
 
       // Finds all asteroids that contain the given point.
       // Adds all matches to results and returns the number of matches.
-      inline std::size_t overlapping_point(Vector2 point,std::unordered_set<object_id> &results) const {
-        return overlapping_circle(point,0,results);
+      inline std::size_t overlapping_point(Vector2 point,hit_list_t &results,size_t max_matches) {
+        return overlapping_circle(point,0,results,max_matches);
       }
 
       inline bool empty() const {
@@ -438,17 +438,17 @@ namespace godot {
       // Finds an asteroid overlapping the given circle and returns it.
       // If there are multiple matches, the first match found is returned.
       // Returns -1 if nothing matches.
-      object_id first_in_circle(Vector2 center,real_t radius) const;
+      CelestialHit first_in_circle(Vector2 center,real_t radius);
 
       // Finds an asteroid overlapping the given point and returns it.
       // If there are multiple matches, the first match found is returned.
       // Returns -1 if nothing matches.
-      inline object_id first_at_point(Vector2 point) const {
+      inline CelestialHit first_at_point(Vector2 point) {
         return first_in_circle(point,0);
       }
 
       // Return the id of the first asteroid that the given ray hits.
-      object_id cast_ray(Vector2 start,Vector2 end) const;
+      CelestialHit cast_ray(Vector2 start,Vector2 end);
 
       object_id id_before(object_id id) const {
         if(id>=0) {

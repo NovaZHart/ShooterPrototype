@@ -645,9 +645,9 @@ std::pair<object_id,object_id> AsteroidLayer::find_theta_range(const AsteroidSea
   }
   
   if(itheta1==itheta2)
-    itheta1 = (itheta2+1)%size();
+    itheta1 = (itheta2+1)%asteroids.size();
 
-  return std::pair<object_id,object_id>(itheta1,itheta2);
+  return std::pair<object_id,object_id>(itheta1%asteroids.size(),itheta2%asteroids.size());
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -833,30 +833,28 @@ Asteroid *AsteroidField::get(object_id id) {
 
 ////////////////////////////////////////////////////////////////////////
 
-double AsteroidField::damage_asteroid(CombatEngine &ce,object_id id,double damage) {
+real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t damage,int type) {
   FAST_PROFILING_FUNCTION;
+  object_id id = asteroid.get_id();
   pair<int,int> split = split_id(id);
   if(split.first<0 or static_cast<size_t>(split.first)>=layers.size())
     return damage;
 
   AsteroidLayer &layer = layers[split.first];
-  Asteroid *asteroid = layer.get_asteroid(split.second);
-  if(!asteroid)
-    return damage;
 
-  double remaining = asteroid->take_damage(damage);
+  real_t remaining = asteroid.take_damage(damage,type);
 
-  if(!asteroid->is_alive()) {
+  if(!asteroid.is_alive()) {
     // Mark the asteroid as dead so we make a new one later.
     dead_asteroids.insert(id);
 
     // If the asteroid had cargo, make flotsam.
-    std::shared_ptr<const Salvage> salvage_ptr = salvage->get_salvage(asteroid->get_cargo());
+    std::shared_ptr<const Salvage> salvage_ptr = salvage->get_salvage(asteroid.get_cargo());
     if(salvage_ptr) {
-      layer.update_state(*asteroid,now);
-      real_t r = asteroid->get_r()+layer.inner_radius;
+      layer.update_state(asteroid,now);
+      real_t r = asteroid.get_r()+layer.inner_radius;
       real_t speed = r*layer.orbit_mult;
-      Vector3 position = asteroid->get_x0z();
+      Vector3 position = asteroid.get_x0z();
       Vector3 pnorm = position.normalized();
       Vector3 velocity(-pnorm.z*speed,0,pnorm.x*speed);
       ce.create_flotsam_projectile(nullptr,salvage_ptr,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
@@ -897,19 +895,25 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
       AsteroidLayer &layer = layers[split.first];
       Asteroid *asteroid = layer.get_asteroid(split.second);
       
-      if(!asteroid or asteroid->is_alive())
+      if(!asteroid or asteroid->is_alive()) {
+        it++;
         continue;
+      }
 
       // Only spawn a new asteroid if this one is off screen.
       layer.update_state(*asteroid,rnow);
-      if(search_region.has_point(asteroid->get_xz()))
+      if(search_region.has_point(asteroid->get_xz())) {
+        it++;
         continue;
+      }
 
       // Replace the asteroid's stats
       asteroid->set_template(palette.random_choice(rand));
 
       // Ensure the state is reinitialized next time it is needed.
       asteroid->invalidate_state();
+
+      it=dead_asteroids.erase(it);
     }
   }
 }
@@ -971,17 +975,19 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
         
           // Get the asteroid and its up-to-date state.
           const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
-          shared_ptr<const AsteroidTemplate> templ = asteroid.get_template();
-          real_t asteroid_radius=asteroid.get_scale();
-          Vector2 asteroid_loc = asteroid.get_xz();
-          real_t search_distsq=rect_distance_squared_to(search_region,asteroid_loc);
-
-          if(search_distsq<asteroid_radius*asteroid_radius) {
-            // Calculate the transform, and put everything in a new InstanceEffect
-            content.instances.push_back(InstanceEffect {
-                templ->get_mesh_id(), asteroid.calculate_transform(),
-                  templ->get_color_data(), asteroid.get_instance_data(),
-                Vector2(asteroid_radius,asteroid_radius) });
+          if(asteroid.is_visible()) {
+            shared_ptr<const AsteroidTemplate> templ = asteroid.get_template();
+            real_t asteroid_radius=asteroid.get_scale();
+            Vector2 asteroid_loc = asteroid.get_xz();
+            real_t search_distsq=rect_distance_squared_to(search_region,asteroid_loc);
+            
+            if(search_distsq<asteroid_radius*asteroid_radius) {
+              // Calculate the transform, and put everything in a new InstanceEffect
+              content.instances.push_back(InstanceEffect {
+                  templ->get_mesh_id(), asteroid.calculate_transform(),
+                    templ->get_color_data(), asteroid.get_instance_data(),
+                  Vector2(asteroid_radius,asteroid_radius) });
+            }
           }
         } while(itheta!=itheta2);
       }
@@ -991,7 +997,7 @@ void AsteroidField::add_content(Rect2 visible_region,VisibleContent &content) {
 
 ////////////////////////////////////////////////////////////////////////
 
-std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object_id> &results) const {
+std::size_t AsteroidField::overlapping_rect(Rect2 rect,hit_list_t &results,size_t max_hits) {
   FAST_PROFILING_FUNCTION;
   // Search a slightly larger region due to asteroid scaling.
   Rect2 search_region = rect.grow(max_scale+1);
@@ -1006,7 +1012,7 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
   size_t count=0;
 
   for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
-    const AsteroidLayer &layer = layers[ilayer];
+    AsteroidLayer &layer = layers[ilayer];
     if(AsteroidSearchResult::theta_ranges_of_rect(search_region,found,work,layer.inner_radius,layer.outer_radius)) {
       for(auto &range : found) {
         if(!range.get_any_intersect()) {
@@ -1025,14 +1031,17 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
           itheta = (itheta+1)%layer.size();
         
           // Get the asteroid and its up-to-date state.
-          const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
-          real_t asteroid_radius=asteroid.get_scale();
-          real_t search_dist=rect_distance_to(rect,asteroid.get_xz());
-
-          if(search_dist<asteroid_radius) {
-            results.insert(combined_id(ilayer,itheta));
-            count++;
-            matches++;
+          Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+          if(asteroid.is_visible()) {
+            real_t asteroid_radius=asteroid.get_scale();
+            real_t search_dist=rect_distance_to(rect,asteroid.get_xz());
+            
+            if(search_dist<asteroid_radius) {
+              results.emplace_back(&asteroid,asteroid.get_xz(),search_dist);
+              matches++;
+              if(++count>=max_hits)
+                return count;
+            }
           }
         } while(itheta!=itheta2);
       }
@@ -1043,7 +1052,7 @@ std::size_t AsteroidField::overlapping_rect(Rect2 rect,std::unordered_set<object
 
 ////////////////////////////////////////////////////////////////////////
 
-std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::unordered_set<object_id> &results) const {
+std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,hit_list_t &results,size_t max_hits) {
   FAST_PROFILING_FUNCTION;
   size_t count=0;
   real_t expanded_radius = radius+max_scale+1;
@@ -1056,7 +1065,7 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
   }
 
   for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
-    const AsteroidLayer &layer = layers[ilayer];
+    AsteroidLayer &layer = layers[ilayer];
     AsteroidSearchResult range = AsteroidSearchResult::theta_range_of_circle(center,expanded_radius,layer.inner_radius,layer.outer_radius);
     if(!range.get_any_intersect())
       continue;
@@ -1072,14 +1081,18 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
       itheta = (itheta+1)%layer.size();
       
       // Get the asteroid and its up-to-date state.
-      const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
-      real_t asteroid_radius = asteroid.get_scale();
-      Vector2 asteroid_loc=asteroid.get_xz();
-      real_t combined_radius = asteroid_radius+radius;
-
-      if(center.distance_squared_to(asteroid_loc)<=combined_radius*combined_radius) {
-        results.insert(combined_id(ilayer,itheta));
-        count++;
+      Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+      if(asteroid.is_visible()) {
+        real_t asteroid_radius = asteroid.get_scale();
+        Vector2 asteroid_loc=asteroid.get_xz();
+        real_t combined_radius = asteroid_radius+radius;
+        real_t dist2 = center.distance_squared_to(asteroid_loc);
+        
+        if(dist2<=combined_radius*combined_radius) {
+          results.emplace_back(&asteroid,asteroid_loc,sqrtf(dist2));
+          if(++count>=max_hits)
+            return count;
+        }
       }
     } while(itheta!=itheta2);
   }
@@ -1088,7 +1101,7 @@ std::size_t AsteroidField::overlapping_circle(Vector2 center,real_t radius,std::
 
 ////////////////////////////////////////////////////////////////////////
 
-object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
+CelestialHit AsteroidField::first_in_circle(Vector2 center,real_t radius) {
   FAST_PROFILING_FUNCTION;
   real_t expanded_radius = radius+max_scale+1;
   real_t valid_time = now;
@@ -1096,11 +1109,11 @@ object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
   
   if(expanded_radius+clen<inner_radius or clen-expanded_radius>outer_radius) {
     // Circle does not overlap asteroid field at all.
-    return -1;
+    return CelestialHit();
   }
   
   for(size_t ilayer = 0;ilayer<layers.size();ilayer++) {
-    const AsteroidLayer &layer = layers[ilayer];
+    AsteroidLayer &layer = layers[ilayer];
     AsteroidSearchResult range = AsteroidSearchResult::theta_range_of_circle(center,expanded_radius,layer.inner_radius,layer.outer_radius);
     if(!range.get_any_intersect())
       continue;
@@ -1116,27 +1129,30 @@ object_id AsteroidField::first_in_circle(Vector2 center,real_t radius) const {
       itheta = (itheta+1)%layer.size();
       
       // Get the asteroid and its up-to-date state.
-      const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
-      real_t asteroid_radius = asteroid.get_scale();
-      Vector2 asteroid_loc = asteroid.get_xz();
-      real_t combined_radius = asteroid_radius+radius;
-
-      if(center.distance_squared_to(asteroid_loc)<=combined_radius*combined_radius)
-        return combined_id(ilayer,itheta);
+      Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+      if(asteroid.is_visible()) {
+        real_t asteroid_radius = asteroid.get_scale();
+        Vector2 asteroid_loc = asteroid.get_xz();
+        real_t combined_radius = asteroid_radius+radius;
+        real_t dist2 = center.distance_squared_to(asteroid_loc);
+        
+        if(dist2<=combined_radius*combined_radius)
+          return CelestialHit(&asteroid,asteroid_loc,sqrtf(dist2));
+      }
     } while(itheta!=itheta2);
   }
-  return -1;
+  return CelestialHit();
 }
 
 ////////////////////////////////////////////////////////////////////////
 
-object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
+CelestialHit AsteroidField::cast_ray(Vector2 start,Vector2 end) {
   FAST_PROFILING_FUNCTION;
   real_t slen=start.length(), elen=end.length();
   
   if(slen<inner_radius && elen<inner_radius) {
     // Segment is inside innermost inner radius, so no possible match.
-    return -1;
+    return CelestialHit();
   }
 
   if(slen>outer_radius && elen>outer_radius) {
@@ -1144,12 +1160,11 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
     Vector2 intersection[2];
     if(line_segment_intersect_circle(outer_radius,segment,intersection)<2) {
       // Segment is outside outermost outer radius, so no possible match.
-      return -1;
+      return CelestialHit();
     }
   }
-  
-  real_t closest_approach = numeric_limits<real_t>::infinity();
-  object_id closest_id = -1;
+
+  CelestialHit closest;
   real_t valid_time = now;
 
   Vector2 diff = end-start;
@@ -1158,7 +1173,7 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
   Vector2 normal(-direction.y,direction.x);
   
   for(size_t ilayer=0;ilayer<layers.size();ilayer++) {
-    const AsteroidLayer &layer = layers[ilayer];
+    AsteroidLayer &layer = layers[ilayer];
     if(!layer.asteroids.size())
       continue; // Layer is empty. Should never happen.
 
@@ -1189,39 +1204,45 @@ object_id AsteroidField::cast_ray(Vector2 start,Vector2 end) const {
       pair<object_id,object_id> itheta_range = layer.find_theta_range(range,valid_time);
       object_id itheta1=itheta_range.first, itheta2=itheta_range.second;
 
+      int count=0;
       int itheta=itheta1-1;
       do {
+        count++;
+        if(count==100000) {
+          Godot::print_warning("Tested 100000 asteroids in a single layer in cast_ray",
+                               __FUNCTION__,__FILE__,__LINE__);
+        }
         itheta = (itheta+1)%layer.size();
 
         // Get the asteroid and its up-to-date state.
-        const Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
-        Vector2 location = asteroid.get_xz();
-        real_t radius=asteroid.get_scale();
+        Asteroid &asteroid = layer.unsafe_get(itheta,valid_time);
+        if(asteroid.is_visible()) {
+          Vector2 location = asteroid.get_xz();
+          real_t radius=asteroid.get_scale();
 
-        Vector2 relative_location = location-start;
-        real_t along = relative_location.dot(direction);
-        real_t approach = along-radius;
-        if(approach>length or along+radius<0)
-          // Asteroid is before or after ray
-          continue;
-        real_t across = fabsf(relative_location.dot(normal));
-        if(across>radius)
-          // Ray does not pass through asteroid
-          continue;
-
-        if(approach<=0)
-          // Start point is within asteroid, so this is a final match.
-          return combined_id(ilayer,itheta);
-        
-        if(approach<closest_approach) {
-          // This is closer than the next best match, so record it.
-          closest_approach = approach;
-          closest_id = combined_id(ilayer,itheta);
+          Vector2 relative_location = location-start;
+          real_t across = fabsf(relative_location.dot(normal));
+          if(across<radius) {
+            real_t along = relative_location.dot(direction);
+            if(along>-radius) {
+              if(along<radius) {
+                // Ray starts inside asteroid.
+                return CelestialHit(&asteroid,start,0);             
+              }
+              if(along<length+radius) {
+                real_t delta = sqrtf(radius*radius-across*across);
+                real_t intersection = along-delta;
+                if(intersection<0)
+                  intersection = along+delta;
+                if(intersection>0 and intersection<closest.distance)
+                  closest =  CelestialHit(&asteroid,start+direction*intersection,intersection);
+              }
+            }
+          }
         }
-        itheta++;
       } while(itheta!=itheta2);
     }
   }
   
-  return closest_id;
+  return closest;
 }

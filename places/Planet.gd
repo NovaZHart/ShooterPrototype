@@ -152,7 +152,7 @@ func get_combined_aabb():
 
 func _init():
 	collision_mask = 0
-	collision_layer = 1<<28
+	collision_layer = combat_engine.PLANET_COLLISION_MASK
 	pause_mode = PAUSE_MODE_PROCESS
 
 func copy_data_to_image(data) -> ImageTexture:

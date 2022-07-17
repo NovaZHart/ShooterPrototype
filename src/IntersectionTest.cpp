@@ -49,7 +49,7 @@ void IntersectionTest::step_time(real_t delta,Rect2 visible_region) {
   }
 }
 
-void IntersectionTest::matches_to_array(PoolVector3Array &data,const std::unordered_set<object_id> &matches) const {
+void IntersectionTest::matches_to_array(PoolVector3Array &data,const hit_list_t &matches) const {
   size_t size = matches.size();
   data.resize(size);
   int found = 0;
@@ -58,15 +58,18 @@ void IntersectionTest::matches_to_array(PoolVector3Array &data,const std::unorde
     PoolVector3Array::Write writer = data.write();
     Vector3 *dataptr = writer.ptr();
     
-    for(auto id : matches) {
-      auto a = field_ptr->get(id);
-      
-      if(a) {
-        Vector2 xz = a->get_xz();
-        real_t scale = a->get_scale();
+    for(auto hit : matches) {
+      if(!hit.hit)
+        continue;
+      if(hit.hit->is_asteroid()) {
+        Asteroid &asteroid = hit.hit->as_asteroid();
+        Vector2 xz = hit.xz;
+        real_t scale = asteroid.get_scale();
         dataptr[found] = Vector3(xz.x,xz.y,scale);
         found++;
-      }
+      } else
+        Godot::print_error("Non-asteroid found in asteroid hit list.",
+                           __FUNCTION__,__FILE__,__LINE__);
     }
   }
 
@@ -77,8 +80,8 @@ void IntersectionTest::matches_to_array(PoolVector3Array &data,const std::unorde
 PoolVector3Array IntersectionTest::overlapping_rect(Rect2 rect) const {
   PoolVector3Array results;
   if(field_ptr) {
-    std::unordered_set<object_id> matches;
-    field_ptr->overlapping_rect(rect,matches);
+    hit_list_t matches;
+    field_ptr->overlapping_rect(rect,matches,1000000);
     matches_to_array(results,matches);
   }
   return results;
@@ -87,8 +90,8 @@ PoolVector3Array IntersectionTest::overlapping_rect(Rect2 rect) const {
 PoolVector3Array IntersectionTest::overlapping_circle(Vector2 center,real_t radius) const {
   PoolVector3Array results;
   if(field_ptr) {
-    std::unordered_set<object_id> matches;
-    field_ptr->overlapping_circle(center,radius,matches);
+    hit_list_t matches;
+    field_ptr->overlapping_circle(center,radius,matches,1000000);
     matches_to_array(results,matches);
   }
   return results;
@@ -97,8 +100,8 @@ PoolVector3Array IntersectionTest::overlapping_circle(Vector2 center,real_t radi
 PoolVector3Array IntersectionTest::first_in_circle(Vector2 center,real_t radius) const {
   PoolVector3Array results;
   if(field_ptr) {
-    std::unordered_set<object_id> matches;
-    matches.insert(field_ptr->first_in_circle(center,radius));
+    hit_list_t matches;
+    matches.push_back(field_ptr->first_in_circle(center,radius));
     matches_to_array(results,matches);
   }
   return results;
@@ -107,9 +110,9 @@ PoolVector3Array IntersectionTest::first_in_circle(Vector2 center,real_t radius)
 PoolVector3Array IntersectionTest::cast_ray_first_hit(Vector2 start,Vector2 end) const {
   PoolVector3Array results;
   if(field_ptr) {
-    std::unordered_set<object_id> matches;
-    object_id id = field_ptr->cast_ray(start,end);
-    matches.insert(id);
+    hit_list_t matches;
+    CelestialHit hit = field_ptr->cast_ray(start,end);
+    matches.push_back(hit);
     matches_to_array(results,matches);
   }
   return results;

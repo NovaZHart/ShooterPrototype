@@ -8,12 +8,29 @@ using namespace std;
 using namespace godot;
 using namespace godot::CE;
 
+const DamageArray AsteroidTemplate::default_resistances {
+  // Typeless, light, he particle:
+  0.0f, 0.0f, 0.0f,
+  // Piercing, impact:
+  -0.2, -0.3,
+  // EM field, gravity:
+  0.0f, 0.0f,
+  // Antimatter:
+  -1.0f,
+  // Explosive, psionic, plasma, charge, spacetime:
+  -0.1f, 0.0f, 0.0f, 0.0f, 0.0f
+};
+  
 AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   mesh(get<Ref<Mesh>>(dict,"mesh")),
   mesh_id(mesh_id),
   color_data(get<Color>(dict,"color_data")),
   salvage(get<String>(dict,"salvage")),
-  max_structure(get<real_t>(dict,"max_structure",EFFECTIVELY_INFINITE_HITPOINTS))
+  max_structure(get<real_t>(dict,"max_structure",EFFECTIVELY_INFINITE_HITPOINTS)),
+  resistances(dict.has("resistances")
+              ? DamageArray(dict["resistances"],MIN_ASTEROID_RESISTANCE,
+                            MAX_ASTEROID_RESISTANCE)
+              : default_resistances)
 {}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -48,15 +65,10 @@ Vector2 Asteroid::get_object_xz() const {
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-double Asteroid::take_damage(double damage) {
-  double overkill = damage-structure;
-  if(overkill>=0) {
-    structure = 0;
-    return overkill;
-  } else {
-    structure = -overkill;
-    return 0;
-  }
+real_t Asteroid::take_damage(real_t damage,int type) {
+  const DamageArray &resistances = get_resistances();
+  apply_damage(damage,structure,type,resistances);
+  return damage;
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */

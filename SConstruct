@@ -125,6 +125,7 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/CE/Salvage.cpp",
     "src/CE/Asteroid.cpp",
     "src/CE/AsteroidField.cpp",
+    "src/CE/DamageArray.cpp",
     "src/ScriptUtils.cpp",
     "src/ShooterNativeLibrary.cpp"
 ])

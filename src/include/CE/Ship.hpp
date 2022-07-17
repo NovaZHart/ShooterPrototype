@@ -29,6 +29,7 @@
 #include "CE/Projectile.hpp"
 #include "CE/Planet.hpp"
 #include "CE/CelestialObject.hpp"
+#include "CE/DamageArray.hpp"
 #include "DVector3.hpp"
 #include "PropertyMacros.hpp"
 
@@ -38,8 +39,6 @@ namespace godot {
 
     class Ship: public CelestialObject {
     public:
-      typedef std::array<real_t,NUM_DAMAGE_TYPES> damage_array;
-      
       struct WeaponRanges {
         real_t guns, turrets, guided, unguided, antimissile, all;
       };
@@ -62,8 +61,8 @@ namespace godot {
       const real_t explosion_damage, explosion_radius, explosion_impulse;
       const int explosion_delay;
       const int explosion_type; // damage type of explosion
-      const damage_array shield_resist, shield_passthru, armor_resist, armor_passthru;
-      const damage_array structure_resist;
+      const DamageArray shield_resist, shield_passthru, armor_resist, armor_passthru;
+      const DamageArray structure_resist;
       const real_t max_cooling, max_energy, max_power, max_heat;
       const real_t shield_repair_heat, armor_repair_heat, structure_repair_heat;
       const real_t shield_repair_energy, armor_repair_energy, structure_repair_energy;
@@ -265,7 +264,12 @@ namespace godot {
         if(ai)
           ai->ai_step(ce,*this);
       }
-      
+
+      const hit_id_list_t &get_ships_within_range(CombatEngine &ce, real_t desired_range);
+      const hit_id_list_t &get_ships_within_unguided_weapon_range(CombatEngine &ce,real_t fudge_factor);
+      const hit_id_list_t &get_ships_within_weapon_range(CombatEngine &ce,real_t fudge_factor);
+      const hit_id_list_t &get_ships_within_turret_range(CombatEngine &ce, real_t fudge_factor);
+
       bool pull_back_to_standoff_range(const CombatEngine &ce,Ship &target,Vector3 &aim);
       bool request_stop(const CombatEngine &ce,Vector3 desired_heading,real_t max_speed);
       Vector3 aim_forward(const CombatEngine &ce,Ship &target,bool &in_range);

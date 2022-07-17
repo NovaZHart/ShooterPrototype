@@ -162,9 +162,6 @@ void HUDStatDisplay::_draw() {
   else if(y_justify==0)
     draw_region.position.y = 0.5*(me.size.y-draw_region.size.y);
 	
-  assert(draw_region.position.y>=0);
-  assert(draw_region.position.x>=0);
-	
   draw_rect(draw_region,background_color,true);
   //draw_rect(draw_region,outline_color,false,2,true)
 	

@@ -57,7 +57,7 @@ namespace godot {
     // Input: radius is the radius of the circle (center is the origin)
     // Input: line[2] has two points on the line.
     // Output: intersection[2] will receive the zero, one, or two points of intersection
-    int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]) {
+    int line_segment_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2],real_t *distances) {
       FAST_PROFILING_FUNCTION;
       Vector2 d = line[1]-line[0];
       real_t dr2=d.length_squared();
@@ -80,6 +80,8 @@ namespace godot {
         intersection[0].y=y0/dr2;
         real_t along = intersection[0].dot(dn);
         int count = (along>=0 and along<=dr) ? 1 : 0;
+        if(distances)
+          distances[0]=along;
         return count;
       }
 
@@ -102,6 +104,13 @@ namespace godot {
       
       if(count==2 and along1<along0) {
         std::swap(intersection[0],intersection[1]);
+        if(distances) {
+          distances[0]=along1;
+          distances[1]=along0;
+        }
+      } else if(distances) {
+        distances[0]=along0;
+        distances[1]=along1;
       }
       
       return count;

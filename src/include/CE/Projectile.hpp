@@ -140,6 +140,9 @@ namespace godot {
       inline Vector3 get_old_position() const {
         return old_position;
       }
+      inline Vector2 get_old_xz() const {
+        return Vector2(old_position.x,old_position.z);
+      }
       inline Vector3 get_linear_velocity() const {
         return linear_velocity;
       }

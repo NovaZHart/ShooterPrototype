@@ -44,6 +44,13 @@ namespace godot {
 
   namespace CE {
 
+    inline Vector2 to_xz(const Vector3 &v) {
+      return Vector2(v.x,v.z);
+    }
+    inline Vector3 to_xyz(const Vector2 &xz,real_t y) {
+      return Vector3(xz.x,y,xz.y);
+    }
+
     inline object_id rid2id_default(const rid2id_t &rid2id,const RID &rid,object_id default_id=-1) {
       auto it = rid2id.find(rid.get_id());
       return (it==rid2id.end()) ? default_id : it->second;
