@@ -144,6 +144,11 @@ inline void swap32(uint32_t *data, int n) {
               (data[i]&0x000000ff << 24);
 }
 
+static inline Vector2 normal_to_uv2(Vector3 n) {
+  return Vector2(atan2(n.z,n.x),
+                 atan2(n.y,sqrtf(n.x*n.x+n.z*n.z)));
+}
+  
 Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   FAST_PROFILING_FUNCTION;
   const double pi = 3.14159265358979323846;
@@ -194,7 +199,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
         vertex.normalize();
         verts[ivert] = vertex*radius;
         normals[ivert] = vertex;
-        uv2s[ivert] = Vector2(atan2(normals[ivert].z,normals[ivert].x),normals[ivert].y);
+        uv2s[ivert] = normal_to_uv2(normals[ivert]);
       }
     }
 
@@ -204,7 +209,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[1]-v_start[0]);
     normals[ivert] = Vector3(-normals[n].x, normals[n].y,-normals[n].z);
     verts[ivert] = Vector3(-verts[n].x, verts[n].y,-verts[n].z);
-    uv2s[ivert] = Vector2(atan2(normals[ivert].z,normals[ivert].x),normals[ivert].y);
+    uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
   for(int n=0;n<6*subs*subs;n++,ivert++) {
@@ -212,7 +217,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[2]-v_start[0]);
     normals[ivert] = Vector3( normals[n].z, normals[n].y,-normals[n].x);
     verts[ivert] = Vector3( verts[n].z, verts[n].y,-verts[n].x);
-    uv2s[ivert] = Vector2(atan2(normals[ivert].z,normals[ivert].x),normals[ivert].y);
+    uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
     
   for(int n=0;n<6*subs*subs;n++,ivert++) {
@@ -220,7 +225,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[3]-v_start[0]);
     normals[ivert] = Vector3(-normals[n].z, normals[n].y, normals[n].x);
     verts[ivert] = Vector3(-verts[n].z, verts[n].y, verts[n].x);
-    uv2s[ivert] = Vector2(atan2(normals[ivert].z,normals[ivert].x),normals[ivert].y);
+    uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
   for(int n=0;n<6*subs*subs;n++,ivert++) {
@@ -228,7 +233,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[4]-v_start[0]);
     normals[ivert] = Vector3( normals[n].y,-normals[n].x, normals[n].z);
     verts[ivert] = Vector3( verts[n].y,-verts[n].x, verts[n].z);
-    uv2s[ivert] = Vector2(atan2(normals[ivert].z,normals[ivert].x),normals[ivert].y);
+    uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
   for(int n=0;n<6*subs*subs;n++,ivert++) {
@@ -236,7 +241,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[5]-v_start[0]);
     normals[ivert] = Vector3(-normals[n].y, normals[n].x, normals[n].z);
     verts[ivert] = Vector3(-verts[n].y, verts[n].x, verts[n].z);
-    uv2s[ivert] = Vector2(atan2(normals[ivert].z,normals[ivert].x),normals[ivert].y);
+    uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
   Array content;
