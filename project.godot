@@ -194,6 +194,8 @@ common/enable_object_picking=false
 
 [rendering]
 
+quality/intended_usage/framebuffer_allocation=0
+quality/intended_usage/framebuffer_allocation.mobile=0
 threads/thread_model=2
 quality/directional_shadow/size=1024
 quality/directional_shadow/size.mobile=1024

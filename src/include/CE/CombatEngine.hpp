@@ -29,6 +29,7 @@
 #include <Transform.hpp>
 #include <PoolArrays.hpp>
 
+#include "CE/AsteroidField.hpp"
 #include "CE/Minimap.hpp"
 #include "CE/Data.hpp"
 #include "CE/VisualEffects.hpp"
@@ -45,6 +46,18 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
     public:
+
+      static const int FIND_MISSILES = 1;
+      static const int FIND_SHIPS = 2;
+      static const int FIND_PLANETS = 4;
+      static const int FIND_ASTEROIDS = 8;
+
+      static const object_id id_category_shift = 48;
+      static const object_id ship_id_mask = static_cast<object_id>(1)<<id_category_shift;
+      static const object_id planet_id_mask = static_cast<object_id>(2)<<id_category_shift;
+      static const object_id projectile_id_mask = static_cast<object_id>(3)<<id_category_shift;
+      static const object_id first_asteroid_field_id_mask = static_cast<object_id>(4)<<id_category_shift;
+      
       static constexpr float position_box_size = 10.0f;
       static const int max_ships_hit_per_projectile_blast = 100;
       static constexpr float search_cylinder_radius = 30.0f;
@@ -77,8 +90,9 @@ namespace godot {
       std::unordered_map<object_id,Planet> planets;
       std::unordered_map<object_id,Ship> ships;
       std::unordered_map<object_id,Projectile> projectiles;
+      std::vector<AsteroidField> asteroid_fields;
       std::unordered_map<object_id,PlayerOverrides> player_orders;
-      std::unordered_multimap<object_id,std::shared_ptr<const Salvage>> salvaged_items;
+      std::vector<Dictionary> salvaged_items;
       Dictionary weapon_rotations;
       std::unordered_set<object_id> dead_ships;
       ObjectIdGenerator idgen;
@@ -106,7 +120,9 @@ namespace godot {
       SpaceHash<object_id> flotsam_locations;
       SpaceHash<object_id> ship_locations;
       SpaceHash<object_id> missile_locations;
-    
+
+      Array empty_array;
+      
       // For temporary use in some functions:
       std::unordered_set<object_id> update_request_id;
       mutable CheapRand32 rand;
@@ -124,8 +140,8 @@ namespace godot {
 
       // For temporary use in some functions:
       std::unordered_set<object_id> objects_found;
-      std::vector<std::pair<real_t,std::pair<RID,object_id>>> search_results;
-    
+      hit_list_t objects_hit;
+      
       // Sending data from physics to visual thread:
       VisibleContentManager content;
     public:
@@ -138,6 +154,21 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:
 
+      // Allow const access to generate random numbers
+      inline uint32_t randi() const {
+        return rand.randi();
+      }
+      inline float randf() const {
+        // Random float in [0..1), uniformly distributed.
+        return rand.randf();
+      }
+      inline float rand_angle() const {
+        return rand.rand_angle();
+      }
+      inline Color rand_color() const {
+        return rand.rand_color();
+      }
+      
       faction_index_t get_player_faction_index() const {
         return player_faction_index;
       }
@@ -148,8 +179,8 @@ namespace godot {
       std::unordered_set<object_id> &get_objects_found() {
         return objects_found;
       }
-      std::vector<std::pair<real_t,std::pair<RID,object_id>>> get_search_results() {
-        return search_results;
+      hit_list_t &get_objects_hit() {
+        return objects_hit;
       }
 
       PhysicsDirectSpaceState *get_space_state() {
@@ -273,41 +304,51 @@ namespace godot {
         return self_masks[faction];
       }
 
-      void find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,std::vector<std::pair<real_t,std::pair<RID,object_id>>> &results);
 
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Collision detection
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+    public:      
+
+      size_t overlapping_circle(Vector2 center,real_t radius,faction_mask_t collision_mask,int find_what,hit_list_t &list,size_t max_hits);
+      size_t overlapping_point(Vector2 point,faction_mask_t collision_mask,int find_what,hit_list_t &list,size_t max_hits);
+
+
+      CelestialHit first_at_point(Vector2 point,faction_mask_t collision_mask,int find_what);
+      CelestialHit first_in_circle(Vector2 start,real_t radius,faction_mask_t collision_mask,int find_what);
+
+      CelestialHit cast_ray(Vector2 start,Vector2 end,faction_mask_t collision_mask,int find_what);
+
+      // FIXME: Cannot implement cast_circle yet due to godot physics slowness
+      // CelestialHit cast_circle(Vector2 start,Vector2 end,real_t radius,faction_mask_t collision_mask,int find_what);
+
+    private:
+      Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,faction_mask_t mask);
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Ship utilities for other classes
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
-      
-      Dictionary check_target_lock(Ship &target, Vector3 point1, Vector3 point2);
-      const ship_hit_list_t &get_ships_within_range(Ship &ship, real_t desired_range);
-      const ship_hit_list_t &get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor);
-      const ship_hit_list_t &get_ships_within_weapon_range(Ship &ship,real_t fudge_factor);
-      const ship_hit_list_t &get_ships_within_turret_range(Ship &ship, real_t fudge_factor);
+
       ships_iter ship_for_rid(const RID &rid);
       ships_iter ship_for_rid(int rid_id);
-      Ship *space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask);
-      Dictionary space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask);
       void explode_ship(Ship &ship);
 
       // // // // // // // // // // // // // // // // // // // // // // // // 
-      // Projectile utilities for other classes
+      // Projectile creation
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:      
       void create_direct_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Vector3 position,real_t length,Vector3 rotation,object_id target);
-      void create_flotsam_projectile(Ship &ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
+      void create_flotsam_projectile(Ship *ship,std::shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass);
       void create_antimissile_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,Projectile &target,Vector3 position,real_t rotation,real_t length);
       void create_projectile(Ship &ship,std::shared_ptr<Weapon> weapon,object_id target=-1);
-      projectile_hit_list_t find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results);
-  //projectile_hit_list_t find_projectile_collisions(Projectile &projectile,real_t radius,bool consider_motion,int max_results);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // These methods are visible to Godot:
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:
-      
+
       static void _register_methods();
       void _init();
       void clear_ai();
@@ -324,6 +365,7 @@ namespace godot {
       void draw_minimap_contents(RID new_canvas, Vector2 map_center, float map_radius,
                                  Vector2 minimap_center, float minimap_radius);
       void draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap);
+      void add_asteroid_field(Dictionary field_data);
 
     public: // FIXME: Some of these should be private
 
@@ -354,13 +396,22 @@ namespace godot {
       void update_player_orders(const Array &new_player_orders);
 
       void encode_salvaged_items_for_gdscript(Array result);
-    
+
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+      // Asteroid methods:
+      // // // // // // // // // // // // // // // // // // // // // // // // 
+
+      void damage_asteroid(Asteroid &asteroid,double damage,int damage_type);
+      void step_asteroid_fields();
+      void send_asteroid_meshes();
+      void add_asteroid_content(VisibleContent &content);
+      
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Projectile methods:
       // // // // // // // // // // // // // // // // // // // // // // // // 
 
       void integrate_projectiles();
-      void add_salvaged_items(Ship &ship,const Projectile &projectile);
+      void add_salvaged_items(Ship &ship,const String &product_name,int count,real_t unit_mass);
       
       // // // // // // // // // // // // // // // // // // // // // // // // 
       // Visual methods:

@@ -50,6 +50,7 @@ var fleets
 var ui
 var factions
 var flotsam
+var asteroids
 
 const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
 
@@ -282,9 +283,9 @@ func set_stored_console(s: String): stored_console=s
 func get_stored_console() -> String: return stored_console
 
 
-func get_sphere_xyz(sphere):
+func get_sphere_xyz():
 	if not sphere_xyz:
-		var xyz_data: Image = sphere.make_lookup_tiles_c112()
+		var xyz_data: Image = utils.make_lookup_tiles_c112()
 		assert(xyz_data)
 		var xyz: ImageTexture = ImageTexture.new()
 		assert(xyz)
@@ -342,6 +343,7 @@ func load_universe():
 	flotsam = universe.flotsam
 	ui = universe.ui
 	factions = universe.factions
+	asteroids = universe.asteroids
 	
 	# More basic checks:
 	assert(ship_designs)

@@ -45,11 +45,11 @@ material/0 = null
 material/1 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 0.763206, 0, -0.646155, 0, 1, 0, 0.646155, 0, 0.763206, 0.0542973, 0, 0 )
+transform = Transform( 0.763206, 0, -0.646155, 0, 0.1, 0, 0.646155, 0, 0.763206, 0.0542973, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, -0.799977, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, -0.799977, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="MainGun" type="Position3D" parent="."]

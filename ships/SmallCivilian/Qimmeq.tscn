@@ -42,12 +42,15 @@ material/4 = null
 material/5 = null
 
 [node name="CollisionFront" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionMiddle" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="CollisionBack" type="CollisionShape" parent="."]
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0, 0, 0 )
 shape = SubResource( 3 )
 
 [node name="AftEquipment" type="Position3D" parent="."]

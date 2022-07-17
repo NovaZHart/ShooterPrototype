@@ -123,7 +123,7 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 	var max_cargo_mass: float = player_ship_design.cached_stats["max_cargo"]
 	var available_mass: float = max(0,max_cargo_mass-cargo_mass_before)
 	available_mass *= 1000 # convert tons -> kg
-	var unit_mass: int = player_product[Commodities.Products.MASS_INDEX]
+	var unit_mass: int = player_product[Commodities.Products.MASS_INDEX]/1000.0
 	var allowed_items: int = count
 	if unit_mass>0:
 		allowed_items = int(floor(available_mass/unit_mass))

@@ -25,11 +25,15 @@ void BaseShipAI::do_land(CombatEngine &ce,Ship &ship) {
     target = ce.planet_with_id(target_id);
     ship.new_target(target_id);
   }
-  if(!target)
+  if(!target) {
     // Nowhere to land!
     do_patrol(ce,ship);
-  else if(ship.move_to_intercept(ce,target->radius, 5.0, target->position,
-                                 Vector3(0,0,0), true)) {
+    return;
+  }
+
+  real_t landing_speed = max(ship.get_max_speed()*0.25f,5.0f);
+ if(ship.move_to_intercept(ce,target->radius*0.9, landing_speed, target->position,
+                           Vector3(0,0,0), true)) {
     // Reached planet.
     // FIXME: implement factions, etc.:
     // if(target->can_land(ship))
@@ -196,37 +200,11 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
     return; // No anti-missile weapons are ready to fire.
   
   real_t range = ship.radius + antimissile_range;
-  Vector2 center = Vector2(ship.position.x,ship.position.z);
-  std::unordered_set<object_id> &objects_found = ce.get_objects_found();
-  objects_found.clear();
-  if(not ce.get_missile_locations().overlapping_circle(center,range,objects_found))
-    return; // No projectiles in range
 
-  // Delete any projectiles that are not viable targets.
-  for(auto iter=objects_found.begin();iter!=objects_found.end();) {
-    object_id id = *iter;
-    Projectile *proj_it = ce.projectile_with_id(id);
-    if(!proj_it) {
-      iter = objects_found.erase(iter);
-      Godot::print_warning("Found projectile "+str(id)+" in missile_locations that is not in projectiles hash",
-                           __FUNCTION__,__FILE__,__LINE__);
-      continue; // Projectile does not exist.
-    }
-    Projectile &proj = *proj_it;
-    if(proj.is_direct_fire() or not proj.is_missile() or not proj.is_alive()) {
-      iter = objects_found.erase(iter);
-      continue; // Projectile is not a valid target.
-    }
-    if( not ( (1<<proj.get_faction()) & enemy_mask )) {
-      iter = objects_found.erase(iter);
-      continue; // Projectile is not an enemy.
-    }
-    if(proj.get_structure()<=0) {
-      iter = objects_found.erase(iter);
-      continue; // Projectile is already dead.
-    }
-    iter++;
-  }
+  hit_list_t &objects_hit = ce.get_objects_hit();
+  faction_mask_t collision_mask=ce.get_enemy_mask(ship.faction);
+  if(!ce.overlapping_circle(ship.get_xz(),range,collision_mask,CombatEngine::FIND_MISSILES,objects_hit,ANTIMISSILE_SEARCH_MAX_HITS))
+    return; // no projectiles in range
 
   //Godot::print(ship.name+": retained "+str(objects_found.size())+" potential targets for anti-missile systems.");
   
@@ -238,9 +216,10 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
       Vector3 start = ship.position + weapon.get_position().rotated(y_axis,ship.rotation.y);
       Projectile * best = nullptr;
       real_t best_score = -numeric_limits<real_t>::infinity();
-      for(auto &id : objects_found) {
-        Projectile * proj_it = ce.projectile_with_id(id);
-        Projectile &proj = *proj_it;
+      for(auto &hit : objects_hit) {
+        Projectile &proj = hit.hit->as_projectile();
+        if(!proj.is_alive() or proj.get_faction()==ship.get_faction())
+          continue;
         real_t distance = distance2(get_position(proj),start);
         if(distance<=weapon.projectile_range) {
           within_range++;
@@ -253,7 +232,7 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
           if(proj.get_target()!=ship.id)
             score/=2;
           if(score>best_score) {
-            best = proj_it;
+            best = &proj;
             best_score = score;
           }
         } // end if distance<=weapon.projectile_range
@@ -276,8 +255,6 @@ void BaseShipAI::fire_antimissile_turrets(CombatEngine &ce,Ship &ship) {
         
         ce.create_antimissile_projectile(ship,weapon_ptr,*best,projectile_position,projectile_length,projectile_rotation);
         best->take_damage(weapon.damage);
-        if(not best->is_alive())
-          objects_found.erase(best->get_id());
       }
     }
   } // end weapons loop
@@ -340,11 +317,11 @@ Vector3 BaseShipAI::make_threat_vector(CombatEngine &ce,Ship &ship, real_t t) {
   Vector2 threat_vector;
   real_t dw_div = 0;
   int checked=0;
-  for(auto &rid_id : ship.nearby_objects) {
-    Ship * object_iter = ce.ship_with_id(rid_id.second);
-    if(!object_iter)
+  for(auto &obj : ship.nearby_objects) {
+    Ship * object_ptr = ce.ship_with_id(obj.hit);
+    if(!object_ptr)
       continue;
-    Ship &object = *object_iter;
+    Ship &object = *object_ptr;
     Vector3 obj_pos = object.position + t*object.linear_velocity;
     Vector2 position(obj_pos[0] - my_position[0], obj_pos[2] - my_position[2]);
     real_t distance = position.length();
@@ -386,7 +363,7 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
       continue;
 
     if(!got_enemies) {
-      const ship_hit_list_t &enemies = ce.get_ships_within_turret_range(ship, 1.5);
+      const hit_id_list_t &enemies = ship.get_ships_within_turret_range(ce, 1.5);
       have_a_target = !!target;
       
       if(have_a_target) {
@@ -394,14 +371,12 @@ void BaseShipAI::aim_turrets(CombatEngine &ce,Ship &ship,Ship *target) {
         have_a_target = dp*dp<max_distsq and have_a_target;
         eptrs[num_eptrs++] = target;
       }
-      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
-        Ship *enemy_iter = ce.ship_with_id(it->second);
-        if(!enemy_iter)
-          continue;
-        if(distsq(enemy_iter->position,ship.position)>max_distsq)
-          break;
-        eptrs[num_eptrs++] = enemy_iter;
-      }
+      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++)
+        if(it->hit>=0) {
+          Ship *enemy_ptr = ce.ship_with_id(it->hit);
+          if(enemy_ptr && distsq(enemy_ptr->position,ship.position)<=max_distsq)
+            eptrs[num_eptrs++] = enemy_ptr;
+        }
       got_enemies = true;
     }
     
@@ -504,47 +479,50 @@ bool BaseShipAI::fire_direct_weapon(CombatEngine &ce,Ship &ship,shared_ptr<Weapo
   Vector3 projectile_heading = unit_from_angle(weapon_rotation);
   Vector3 point1 = p_weapon+ship.position;
   Vector3 point2 = point1 + projectile_heading*weapon_range;
-  point1.y=5;
-  point2.y=5;
-  Dictionary result = ce.space_intersect_ray(ce.get_space_state(),point1,point2,ce.get_enemy_mask(ship.faction));
-  const real_t delta = ce.get_delta();      
-
-  Vector3 hit_position=Vector3(0,0,0);
-  object_id hit_target=-1;
+  Vector2 point1xz(point1.x,point1.z), point2xz(point2.x,point2.z);
+  point1.y=point2.y=0;
   
-  if(not result.empty()) {
-    hit_position = get<Vector3>(result,"position");
-    Ship * hit_ptr = ce.ship_with_id(rid2id_default(ce.get_rid2id(),get<RID>(result,"rid")));
-    if(hit_ptr) {
-      hit_target=hit_ptr->id;
+  CelestialHit hit=ce.cast_ray(point1xz,point2xz,ce.get_enemy_mask(ship.faction),
+                               CombatEngine::FIND_SHIPS|CombatEngine::FIND_ASTEROIDS);
+  object_id target=-1;
+  if(hit.hit) {
+    if(hit.hit->is_ship()) {
+      Ship *hit_ptr = hit.hit->as_ship_ptr();
+      target = hit_ptr->get_id();
+
       // Direct fire projectiles do damage when launched.
       if(weapon.damage)
-        hit_ptr->take_damage(weapon.damage*delta*ship.efficiency,weapon.damage_type,
+        hit_ptr->take_damage(weapon.damage*ce.get_delta()*ship.efficiency,weapon.damage_type,
                              weapon.heat_fraction,weapon.energy_fraction,weapon.thrust_fraction);
       if(not hit_ptr->immobile and weapon.impulse) {
-        Vector3 impulse = weapon.impulse*projectile_heading*delta*ship.efficiency;
+        Vector3 impulse = weapon.impulse*projectile_heading*ce.get_delta()*ship.efficiency;
         PhysicsServer::get_singleton()->body_apply_central_impulse(hit_ptr->rid,impulse);
       }
-      if(not hit_position.length_squared())
-        hit_position = hit_ptr->position;
-    }
-  }
-
-  if(hit_target<0) {
+    } else if(hit.hit->is_asteroid()) {
+      Asteroid &asteroid = hit.hit->as_asteroid();
+      target = asteroid.get_id();
+      ce.damage_asteroid(asteroid,weapon.damage*ce.get_delta()*ship.efficiency,weapon.damage_type);
+    } else
+      hit.xz=point2xz;
+  } else {
     if(not allow_untargeted)
       return false;
-    hit_position=point2;
+
+    // The projectile will "hit" the point at its maximum range.
+    hit.xz = point2xz;
   }
 
-  ship.heat += weapon.firing_heat*ship.efficiency*delta;
-  ship.energy -= weapon.firing_energy*ship.efficiency*delta;
-  
-  hit_position[1]=0;
-  point1[1]=0;
-  Vector3 projectile_position = (point1+hit_position)*0.5;
-  real_t projectile_length = (hit_position-point1).length();
-  ce.create_direct_projectile(ship,weapon_ptr,projectile_position,projectile_length,
-                              Vector3(0,weapon_rotation,0),hit_target);
+  ship.heat += weapon.firing_heat*ship.efficiency*ce.get_delta();
+  ship.energy -= weapon.firing_energy*ship.efficiency*ce.get_delta();
+
+  real_t projectile_length = hit.xz.distance_to(point1xz);
+  if(projectile_length>0 and isfinite(projectile_length)) {
+    Vector3 projectile_position((point1.x+hit.xz.x)*0.5,
+                                projectile_height,
+                                (point1.z+hit.xz.y)*0.5);
+    ce.create_direct_projectile(ship,weapon_ptr,projectile_position,projectile_length,
+                                Vector3(0,weapon_rotation,0),target);
+  }
   return true;
 }
 
@@ -552,7 +530,7 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
   FAST_PROFILING_FUNCTION;
   if(ship.inactive)
     return;
-  const ship_hit_list_t &enemies = ce.get_ships_within_weapon_range(ship,1.5);
+  const hit_id_list_t &enemies = ship.get_ships_within_weapon_range(ce,1.5);
   Vector3 p_ship = ship.position;
   real_t max_distsq = ship.range.all;
 
@@ -593,14 +571,12 @@ void BaseShipAI::auto_fire(CombatEngine &ce,Ship &ship,Ship *target) {
         eptrs[num_eptrs++] = target;
         ships_in_range = (distsq(target->position,ship.position) <= max_distsq);
       }
-      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++) {
-        Ship *enemy_iter = ce.ship_with_id(it->second);
-        if(!enemy_iter)
-          continue;
-        if(distsq(enemy_iter->position,ship.position)>max_distsq)
-          break;
-        eptrs[num_eptrs++] = enemy_iter;
-      }
+      for(auto it=enemies.begin();it<enemies.end() && num_eptrs<11;it++)
+        if(it->hit>=0) {
+          Ship *enemy_ptr = ce.ship_with_id(it->hit);
+          if(enemy_ptr and distsq(enemy_ptr->position,ship.position)<=max_distsq)
+            eptrs[num_eptrs++] = enemy_ptr;
+        }
       have_enemies=true;
       ships_in_range = ships_in_range or num_eptrs;
     }
@@ -654,7 +630,7 @@ Ship *BaseShipAI::update_targetting(CombatEngine &ce,Ship &ship) {
   
   if(pick_new_target) {
     //FIXME: REPLACE THIS WITH PROPER TARGET SELECTION LOGIC
-    object_id found=select_target(-1,select_three(select_mask(ce.get_enemy_mask(ship.faction)),select_flying(),select_nearest(ship.position,200.0f)),ce.get_ships(),false);
+    object_id found=select_target(ship.get_target(),select_three(select_mask(ce.get_enemy_mask(ship.faction)),select_flying(),select_nearest(ship.position,200.0f,ship.get_max_speed())),ce.get_ships(),false,2.0f);
     target_ptr = ce.ship_with_id(found);
   }
   return target_ptr;

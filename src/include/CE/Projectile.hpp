@@ -11,6 +11,7 @@
 #include "DVector3.hpp"
 #include "CE/ObjectIdGenerator.hpp"
 #include "CE/Weapon.hpp"
+#include "CE/CelestialObject.hpp"
 
 namespace godot {
   namespace CE {
@@ -19,25 +20,8 @@ namespace godot {
     struct Salvage;
     struct MultiMeshManager;
     class CombatEngine;
-    
-    struct Salvage {
-      const Ref<Mesh> flotsam_mesh;
-      const float flotsam_scale;
-      const String cargo_name;
-      const int cargo_count;
-      const float cargo_unit_mass;
-      const float cargo_unit_value;
-      const float armor_repair;
-      const float structure_repair;
-      const float fuel;
-      const float spawn_duration;
-      const float grab_radius;
-
-      Salvage(Dictionary dict);
-      ~Salvage();
-    };
   
-    class Projectile {
+    class Projectile: public CelestialObject {
       const object_id id;
       const std::shared_ptr<const Weapon> weapon;
       const object_id source;
@@ -52,6 +36,23 @@ namespace godot {
       bool alive, direct_fire, possible_hit, integrate_forces;
       const std::shared_ptr<const Salvage> salvage;
     public:
+
+      void get_object_info(CelestialInfo &info) const override;
+      object_id get_object_id() const override;
+      real_t get_object_radius() const override;
+      Vector3 get_object_xyz() const override;
+      Vector2 get_object_xz() const override;
+
+      inline Vector2 get_xz() const {
+        return Vector2(position.x,position.z);
+      }
+      inline Vector3 get_x0z() const {
+        return Vector3(position.x,0,position.z);
+      }
+      inline Vector3 get_xyz() const {
+        return Vector3(position.x,visual_height,position.z);
+      }
+
       inline object_id get_id() const {
         return id;
       }
@@ -121,6 +122,9 @@ namespace godot {
       inline faction_index_t get_faction() const {
         return faction;
       }
+      inline faction_mask_t get_faction_mask() const {
+        return static_cast<faction_mask_t>(1)<<faction;
+      }
       inline int get_damage_type() const {
         return weapon->damage_type;
       }
@@ -135,6 +139,9 @@ namespace godot {
       }
       inline Vector3 get_old_position() const {
         return old_position;
+      }
+      inline Vector2 get_old_xz() const {
+        return Vector2(old_position.x,old_position.z);
       }
       inline Vector3 get_linear_velocity() const {
         return linear_velocity;
@@ -200,7 +207,7 @@ namespace godot {
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Weapon> weapon,object_id alternative_target);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Weapon> weapon,Projectile &target,Vector3 position,real_t scale,real_t rotation);
       Projectile(object_id id,const Ship &ship,std::shared_ptr<const Weapon> weapon,Vector3 position,real_t scale,real_t rotation,object_id target);
-      Projectile(object_id id,const Ship &ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,std::shared_ptr<const Weapon> weapon_placeholder);
+      Projectile(object_id id,const Ship *ship,std::shared_ptr<const Salvage> salvage,Vector3 position,real_t rotation,Vector3 velocity,real_t mass,MultiMeshManager &multimeshes,std::shared_ptr<const Weapon> weapon_placeholder);
       
       ~Projectile();
 

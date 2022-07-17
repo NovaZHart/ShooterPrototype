@@ -84,7 +84,7 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.163682, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0.163682, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="HuskyArmor" parent="." instance=ExtResource( 5 )]

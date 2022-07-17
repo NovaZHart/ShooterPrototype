@@ -15,6 +15,35 @@ namespace godot {
     static const Vector3 y_axis(0,1,0);
     static const Vector3 z_axis(0,0,1);
 
+    // Distance between a point and a rect.
+    real_t rect_distance_squared_to(const Rect2 &rect,const Vector2 &point);
+    inline real_t rect_distance_to(const Rect2 &rect,const Vector2 &point) {
+      return sqrtf(rect_distance_squared_to(rect,point));
+    }
+    
+    // Intersection of a circle at the origin and a line segment
+    // Returns the number of points of intersection.
+    // Input: radius is the radius of the circle (center is the origin)
+    // Input: line[2] has two points on the line.
+    // Output: intersection[2] will receive the zero, one, or two points of intersection
+    //     ordered by increasing distance from line[0] along the line.
+    int line_segment_intersect_circle(real_t radius,const Vector2 segment[2],Vector2 intersection[2],real_t *distances=nullptr);
+
+    // Intersection of a circle at the origin and a line.
+    // Returns the number of points of intersection.
+    // Input: radius is the radius of the circle (center is the origin)
+    // Input: line[2] has two points on the line.
+    // Output: intersection[2] will receive the zero, one, or two points of intersection
+    int line_intersect_circle(real_t radius,const Vector2 line[2],Vector2 intersection[2]);
+
+    // Intersection of a circle at the origin and a circle not at the origin.
+    // Return value is yes/no: is there an intersection?
+    // Point1 & point2 are the points of intersection if return value is true
+    // Arc of circle 1 that resides in circle 2 is point1..point2
+    bool circle_intersection(real_t radius1,Vector2 center2, real_t radius2,
+                             Vector2 &point1, Vector2 &point2);
+                             
+    
     double rendezvous_time(Vector3 target_location,Vector3 target_velocity,
                            double interception_speed);
 
@@ -55,6 +84,10 @@ namespace godot {
 
     inline double angle_from_unit_d(DVector3 angle) {
       return atan2(-angle.z,angle.x);
+    }
+
+    inline real_t angle_from_unit(Vector2 angle) {
+      return atan2f(-angle.y,angle.x);
     }
 
     template<class T>

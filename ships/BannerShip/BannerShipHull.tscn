@@ -143,15 +143,15 @@ mesh = SubResource( 5 )
 material/0 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1.807, 0, 0, 0, 10, 0, 0, 0, 1.449, -0.254676, 0, 0 )
+transform = Transform( 1.807, 0, 0, 0, 1, 0, 0, 0, 1.449, -0.254676, 0, 0 )
 shape = SubResource( 6 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( 0.707107, 0, -0.707107, 0, 10, 0, 0.707107, 0, 0.707107, 1.71571, 0, 0 )
+transform = Transform( 0.707107, 0, -0.707107, 0, 1, 0, 0.707107, 0, 0.707107, 1.71571, 0, 0 )
 shape = SubResource( 7 )
 
 [node name="CollisionShape3" type="CollisionShape" parent="."]
-transform = Transform( 0.763675, 0, -0.763675, 0, 10, 0, 0.989949, 0, 0.989949, -1.96032, 0, 0 )
+transform = Transform( 0.763504, 0, -0.989728, 0, 1, 0, 0.989728, 0, 0.763504, -1.96032, 0, 0 )
 shape = SubResource( 8 )
 
 [node name="AdvertismentPanels" type="MeshInstance" parent="."]

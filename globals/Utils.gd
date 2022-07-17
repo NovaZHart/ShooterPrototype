@@ -1,9 +1,24 @@
 extends Node
 
+var ScriptUtilsNative = preload("res://bin/ScriptUtils.gdns")
+var native
+
+func noop():
+	native.noop()
+
+func string_join(string_list: Array,separator: String) -> String:
+	return native.string_join(string_list,separator)
+
+func update_dict(dest: Dictionary, src: Dictionary) -> Dictionary:
+	for key in src:
+		dest[key] = src[key]
+	return dest
+
 func _init():
 	var the_seed = OS.get_system_time_msecs()
 	print('Setting random seed to '+str(the_seed))
 	seed(the_seed)
+	native = ScriptUtilsNative.new()
 
 func get_viewport_scale() -> Vector2:
 	var window_size: Vector2 = get_tree().root.size
@@ -11,6 +26,18 @@ func get_viewport_scale() -> Vector2:
 	var project_width: int = ProjectSettings.get_setting("display/window/size/width")
 	var scale: Vector2 = window_size / Vector2(project_width,project_height)
 	return scale
+
+func make_icosphere(subs: int) -> ArrayMesh:
+	return native.make_icosphere(subs)
+
+func make_cube_sphere_v2(radius: float,subs: int) -> ArrayMesh:
+	return native.make_cube_sphere_v2(radius,subs)
+
+func make_lookup_tiles_c224() -> Image:
+	return native.make_lookup_tiles_c224()
+
+func make_lookup_tiles_c112() -> Image:
+	return native.make_lookup_tiles_c112()
 
 class WeightArraySorter extends Object:
 	var weights: Array

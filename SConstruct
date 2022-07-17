@@ -7,7 +7,7 @@ opts = Variables([], ARGUMENTS)
 env = DefaultEnvironment()
 
 # Define our options
-opts.Add(EnumVariable('target', "Compilation target", 'debug', ['d', 'debug', 'r', 'release']))
+opts.Add(EnumVariable('target', "Compilation target", 'release', ['d', 'debug', 'r', 'release']))
 opts.Add(EnumVariable('platform', "Compilation platform", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(EnumVariable('p', "Compilation target, alias for 'platform'", '', ['', 'windows', 'x11', 'linux', 'osx']))
 opts.Add(BoolVariable('use_llvm', "Use the LLVM / Clang compiler", 'no'))
@@ -108,8 +108,9 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/CE/CombatEngine.cpp",
     "src/SphereTool.cpp",
     "src/Starmap.cpp",
-    "src/CE/VisualEffects.cpp",
+    "src/IntersectionTest.cpp",
     "src/HUDStatDisplay.cpp",
+    "src/CE/VisualEffects.cpp",
     "src/CE/Math.cpp",
     "src/CE/VisibleContent.cpp",
     "src/CE/BaseShipAI.cpp",
@@ -121,6 +122,11 @@ ShooterNative_library = env.SharedLibrary(target=env['target_path'] + env['Shoot
     "src/CE/Ship.cpp",
     "src/CE/Weapon.cpp",
     "src/CE/Minimap.cpp",
+    "src/CE/Salvage.cpp",
+    "src/CE/Asteroid.cpp",
+    "src/CE/AsteroidField.cpp",
+    "src/CE/DamageArray.cpp",
+    "src/ScriptUtils.cpp",
     "src/ShooterNativeLibrary.cpp"
 ])
 

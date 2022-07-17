@@ -23,8 +23,6 @@ base_shields = 1300.0
 base_armor = 1300.0
 base_structure = 800.0
 base_fuel = 5.0
-heal_shields = -1.0
-heal_structure = -1.0
 heal_fuel = 20.0
 base_drag = 0.95
 base_turn_drag = 0.33
@@ -41,11 +39,11 @@ material/1 = null
 material/2 = null
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 0.805908, -0.592041, 9.64558e-08, 0, -1.62921e-07, -1, 0.592041, 0.805908, -1.31299e-07, -0.195372, -0.0868796, -0.246713 )
+transform = Transform( 0.805908, -0.592041, 2.58789e-09, 0, -4.37114e-08, -0.1, 0.592041, 0.805908, -3.52274e-09, -0.195372, -0.0868796, -0.246713 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( -0.803306, -0.595566, 2.6033e-08, 0, -4.37114e-08, -1, 0.595566, -0.803306, 3.51136e-08, -0.180765, -0.0868796, 0.257787 )
+transform = Transform( -0.803306, -0.595566, 2.6033e-09, 0, -4.37114e-08, -0.1, 0.595566, -0.803306, 3.51136e-09, -0.180765, -0.0868796, 0.257787 )
 shape = SubResource( 2 )
 
 [node name="StarboardGun" type="Position3D" parent="."]

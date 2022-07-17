@@ -18,6 +18,8 @@ using namespace godot::CE;
 using namespace std;
 
 Planet::Planet(Dictionary dict,object_id id):
+  CelestialObject(PLANET),
+  goal_data(),
   id(id),
   rotation(get<Vector3>(dict,"rotation")),
   position(get<Vector3>(dict,"position")),
@@ -27,8 +29,7 @@ Planet::Planet(Dictionary dict,object_id id):
   rid(get<RID>(dict,"rid")),
   radius(get<real_t>(dict,"radius")),
   population(get<real_t>(dict,"population")),
-  industry(get<real_t>(dict,"industry")),
-  goal_data()
+  industry(get<real_t>(dict,"industry"))
 {
   if(scene_tree_path.is_empty())
     Godot::print_warning(name+": planet has no scene tree path",__FUNCTION__,__FILE__,__LINE__);
@@ -36,6 +37,22 @@ Planet::Planet(Dictionary dict,object_id id):
 
 Planet::~Planet()
 {}
+
+void Planet::get_object_info(CelestialInfo &info) const {
+  info = { id, position, radius };
+}
+object_id Planet::get_object_id() const {
+  return id;
+}
+real_t Planet::get_object_radius() const {
+  return radius;
+}
+Vector3 Planet::get_object_xyz() const {
+  return get_position();
+}
+Vector2 Planet::get_object_xz() const {
+  return get_xz();
+}
 
 Dictionary Planet::update_status() const {
   Dictionary s;

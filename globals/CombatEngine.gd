@@ -88,6 +88,8 @@ const MIN_RESIST: float = -222.0
 const MIN_PASSTHRU: float = 0.0
 const MAX_PASSTHRU: float = 1.0
 
+const PLANET_COLLISION_MASK: int = 268435456 # 1<<28
+
 var combat_state = null
 var visual_mutex: Mutex = Mutex.new()
 var physics_mutex: Mutex = Mutex.new()
@@ -140,6 +142,15 @@ func init_combat_state(system_info,system,immediate_entry: bool) -> void:
 	native_combat_engine.init_factions(data_for_native)
 	physics_mutex.unlock()
 	visual_mutex.unlock()
+
+func add_asteroid_field(data: Dictionary):
+	if not is_initialized():
+		return
+	# Call in _ready add asteroid fields.
+	physics_mutex.lock()
+	native_combat_engine.add_asteroid_field(data)
+	physics_mutex.unlock()
+		
 
 func clear_ai() -> void:
 	if not is_initialized():

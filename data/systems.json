@@ -6,6 +6,9 @@
         "SystemData",
         {
           "display_name": "Seti-α",
+          "asteroid_fields": [
+              "Array", { "inner_radius": 500, "thickness": 200 }
+          ],
           "position": [
             "Vector3",
             4.825001,
@@ -235,6 +238,9 @@
         "SystemData",
         {
           "display_name": "א-93",
+          "asteroid_fields": [
+              "Array", { "inner_radius":500, "thickness":200 }
+          ],
           "position": [
             "Vector3",
             16.150005,
@@ -597,6 +603,9 @@
         "SystemData",
         {
           "display_name": "Seti-β",
+          "asteroid_fields": [
+              "Array", { "inner_radius": 500, "thickness": 200 }
+          ],
           "position": [
             "Vector3",
             2.250004,
@@ -971,6 +980,9 @@
         "SystemData",
         {
           "display_name": "Seti-ɣ",
+          "asteroid_fields": [
+              "Array", { "inner_radius":450, "thickness":400 }
+          ],
           "position": [
             "Vector3",
             7.650002,
@@ -1392,6 +1404,9 @@
         "SystemData",
         {
           "display_name": "א-85",
+          "asteroid_fields": [
+              "Array", { "inner_radius": 500, "thickness": 200 }
+          ],
           "position": [
             "Vector3",
             11.175005,
@@ -1674,6 +1689,9 @@
         "SystemData",
         {
           "display_name": "Interstellar Space",
+          "asteroid_fields": [
+              "Array", { "inner_radius":200, "thickness":300 }
+          ],
           "position": [
             "Vector3",
             -4.083333,
@@ -1770,6 +1788,9 @@
         "SystemData",
         {
           "display_name": "Interstellar Space",
+          "asteroid_fields": [
+              "Array", { "inner_radius": 200, "thickness": 300 }
+          ],
           "position": [
             "Vector3",
             0.075,

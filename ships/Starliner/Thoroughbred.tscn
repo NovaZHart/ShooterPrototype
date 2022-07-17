@@ -129,11 +129,11 @@ mount_type = "external gun"
 mount_type_display = "gun"
 
 [node name="CollisionShape2" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.441375, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0.441375, 0, 0 )
 shape = SubResource( 1 )
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0.441375, 0, 0 )
+transform = Transform( 1, 0, 0, 0, 0.1, 0, 0, 0, 1, 0.441375, 0, 0 )
 shape = SubResource( 2 )
 
 [node name="HuskyArmor" parent="." instance=ExtResource( 5 )]

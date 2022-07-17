@@ -59,6 +59,7 @@ VisibleContent::VisibleContent():
   ships_and_planets(),
   effects(),
   mesh_paths(),
+  instances(),
   next(nullptr)
 {}
 
@@ -86,7 +87,10 @@ MultiMeshManager::MultiMeshManager():
   mesh2path.reserve(max_meshes);
 }
 
-MultiMeshManager::~MultiMeshManager() {}
+MultiMeshManager::~MultiMeshManager() {
+  for(auto &it : v_meshes)
+    unused_multimesh(it.second,true);
+}
 
 void MultiMeshManager::time_passed(real_t delta) {
   v_frame++;
@@ -127,7 +131,9 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
     if(loud)
       Godot::print("Got a mesh.");
     MeshInfo &mesh_info = vit.second;
-    int count = instance_locations.count(vit.first);
+    int lcount=instance_locations.count(vit.first);
+    int icount=instance_effects.count(vit.first);
+    int count = icount+lcount;
     
     if(!count) {
       if(loud) {
@@ -136,12 +142,14 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
         else
           Godot::print("Unused mesh found with resource path \""+mesh_info.resource_path+"\"");
       }
-      unused_multimesh(mesh_info);
+      unused_multimesh(mesh_info,false);
       continue;
     }
-
-    pair<instlocs_iterator,instlocs_iterator> instances =
+    
+    pair<instlocs_iterator,instlocs_iterator> instlocs =
       instance_locations.equal_range(vit.first);
+    pair<insteff_iterator,insteff_iterator> insteffs =
+      instance_effects.equal_range(vit.first);
 
     mesh_info.last_frame_used=v_frame;
 
@@ -159,7 +167,16 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
       continue;
     }
     
-    pack_visuals(instances,mesh_info.floats,mesh_info,projectile_scale);
+    pack_visuals(instlocs,insteffs,mesh_info.floats,mesh_info,projectile_scale);
+
+    auto titer = requested_transforms.find(vit.first);
+    if(titer!=requested_transforms.end()) {
+      Transform t = titer->second;
+      requested_transforms.erase(titer);
+      mesh_info.visual_instance_transform = t;
+      visual_server->instance_set_transform(mesh_info.visual_rid,t);
+      Godot::print("Set transform for mesh "+str(vit.first)+" as "+str(t));
+    }
     
     // Send the instance data.
     visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
@@ -214,17 +231,17 @@ bool MultiMeshManager::allocate_multimesh(MeshInfo &mesh_info,int count) {
     }
     visual_server->multimesh_set_mesh(mesh_info.multimesh_rid,mesh_info.mesh_rid);
     mesh_info.instance_count = max(count,8);
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
+    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
   }
 
   if(mesh_info.instance_count < count) {
     mesh_info.instance_count = count*1.3;
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
+    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
   } else if(mesh_info.instance_count > count*2.6) {
     int new_count = max(static_cast<int>(count*1.3),8);
     if(new_count<mesh_info.instance_count) {
       mesh_info.instance_count = new_count;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
+      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
     }
   }
 
@@ -243,6 +260,7 @@ bool MultiMeshManager::update_visual_instance(MeshInfo &mesh_info,RID scenario,b
     visual_server->instance_set_layer_mask(mesh_info.visual_rid,EFFECTS_LIGHT_LAYER_MASK);
     visual_server->instance_set_visible(mesh_info.visual_rid,true);
     visual_server->instance_geometry_set_cast_shadows_setting(mesh_info.visual_rid,0);
+    visual_server->instance_set_transform(mesh_info.visual_rid,mesh_info.visual_instance_transform);
   } else if(reset_scenario)
     visual_server->instance_set_scenario(mesh_info.visual_rid,scenario);
   return true;
@@ -276,16 +294,16 @@ bool MultiMeshManager::load_mesh(MeshInfo &mesh_info) {
 void MultiMeshManager::clear_all_multimeshes() {
   FAST_PROFILING_FUNCTION;
   for(auto &it : v_meshes)
-    unused_multimesh(it.second);
+    unused_multimesh(it.second,true);
 }
 
-void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info) {
+void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info,bool force) {
   FAST_PROFILING_FUNCTION;
   // No instances in this multimesh. Should we delete it?
   if(!mesh_info.visual_rid.is_valid() and !mesh_info.multimesh_rid.is_valid())
     return;
   
-  if(v_frame > mesh_info.last_frame_used+1200) {
+  if(force or v_frame > mesh_info.last_frame_used+1200) {
     //Godot::print("Freeing a multimesh");
     if(mesh_info.visual_rid.is_valid())
       visual_server->free_rid(mesh_info.visual_rid);
@@ -308,16 +326,18 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info) {
 
 
 void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterator> &visuals,
+                                    const pair<insteff_iterator,insteff_iterator> &effects,
                                     PoolRealArray &floats,MeshInfo &mesh_info,real_t projectile_scale) {
   FAST_PROFILING_FUNCTION;
+  
   // Change the float array so it is exactly as large as we need
-  const int nfloat=16;
+  const int nfloat=20;
   floats.resize(mesh_info.instance_count*nfloat);
   int stop = mesh_info.instance_count*nfloat;
   PoolRealArray::Write writer = floats.write();
   real_t *dataptr = writer.ptr();
 
-  // Fill in the transformations:
+  // Calculate transforms for VisibleEffects
   int i=0;
   for(instlocs_iterator p_instance = visuals.first;
       p_instance!=visuals.second && i<stop;  p_instance++, i+=nfloat) {
@@ -339,12 +359,48 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
     dataptr[i + 9] = 0.0;
     dataptr[i + 10] = cos_ry*scale_z;
     dataptr[i + 11] = info.z;
-    dataptr[i + 12] = info.data[0];
-    dataptr[i + 13] = info.data[1];
-    dataptr[i + 14] = info.data[2];
-    dataptr[i + 15] = info.data[3];
+    dataptr[i + 12] = 0;
+    dataptr[i + 13] = 0;
+    dataptr[i + 14] = 0;
+    dataptr[i + 15] = 0;
+    dataptr[i + 16] = info.data[0];
+    dataptr[i + 17] = info.data[1];
+    dataptr[i + 18] = info.data[2];
+    dataptr[i + 19] = info.data[3];
+  }
+
+  // Copy the transforms for InstanceEffects
+  for(insteff_iterator p_instance = effects.first;
+      p_instance!=effects.second && i<stop;  p_instance++, i+=nfloat) {
+    InstanceEffect &instance = p_instance->second;
+    const Basis &b = instance.transform.basis;
+    //Basis b;
+    const Vector3 &o = instance.transform.origin;
+    const Color &c = instance.color_data;
+    const Color &d = instance.instance_data;
+    dataptr[i + 0] = b[0][0];
+    dataptr[i + 1] = b[0][1];
+    dataptr[i + 2] = b[0][2];
+    dataptr[i + 3] = o.x;
+    dataptr[i + 4] = b[1][0];
+    dataptr[i + 5] = b[1][1];
+    dataptr[i + 6] = b[1][2];
+    dataptr[i + 7] = o.y;
+    dataptr[i + 8] = b[2][0];
+    dataptr[i + 9] = b[2][1];
+    dataptr[i + 10] = b[2][2];
+    dataptr[i + 11] = o.z;
+    dataptr[i + 12] = c.r;
+    dataptr[i + 13] = c.g;
+    dataptr[i + 14] = c.b;
+    dataptr[i + 15] = c.a;
+    dataptr[i + 16] = d.r;
+    dataptr[i + 17] = d.g;
+    dataptr[i + 18] = d.b;
+    dataptr[i + 19] = d.a;
   }
   
+  // Use identity transforms for unused instances.
   // Use identity transforms for unused instances.
   for(;i<stop;i+=nfloat) {
     dataptr[i + 0] = 1.0;
@@ -363,6 +419,10 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
     dataptr[i + 13] = 0.0;
     dataptr[i + 14] = 0.0;
     dataptr[i + 15] = 0.0;
+    dataptr[i + 16] = 0.0;
+    dataptr[i + 17] = 0.0;
+    dataptr[i + 18] = 0.0;
+    dataptr[i + 19] = 0.0;
   }
 }
 
@@ -370,6 +430,7 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
                                       const Vector3 &location,const Vector3 &size) {
   FAST_PROFILING_FUNCTION;
   instance_locations.clear();
+  instance_effects.clear();
   need_new_meshes.clear();
   
   real_t loc_min_x = min(location.x-size.x/2,location.x+size.x/2);
@@ -379,7 +440,6 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
 
   for(auto &effect : visible_content.effects) {
     object_id mesh_id = effect.mesh_id;
-
     if(effect.center.x-effect.half_size.x > loc_max_x or
        effect.center.x+effect.half_size.x < loc_min_x or
        effect.center.y-effect.half_size.y > loc_max_y or
@@ -396,27 +456,45 @@ void MultiMeshManager::update_content(VisibleContent &visible_content,
         effect.scale_z,    // .scale_z
         effect.data        // .data
       };
-    instance_locations.emplace(mesh_id,instance_info);
 
-    v_meshes_iter mit = v_meshes.find(mesh_id);
-    if(mit==v_meshes.end()) {
-      mesh_paths_iter pit = visible_content.mesh_paths.find(mesh_id);
+    instance_locations.emplace(mesh_id,instance_info);
+    add_instance_mesh_id(visible_content,mesh_id);
+  }
+
+  for(auto &instance : visible_content.instances) {
+    Vector2 center(instance.transform.origin.x,instance.transform.origin.z);
+    
+    if(center.x-instance.half_size.x > loc_max_x or
+       center.x+instance.half_size.x < loc_min_x or
+       center.y-instance.half_size.y > loc_max_y or
+       center.y+instance.half_size.y < loc_min_y)
+      continue; // projectile is off-screen
+
+    object_id mesh_id = instance.mesh_id;
+    instance_effects.emplace(mesh_id,instance);
+    add_instance_mesh_id(visible_content,mesh_id);
+  }
+}
+
+void MultiMeshManager::add_instance_mesh_id(VisibleContent &visible_content,object_id mesh_id) {
+  v_meshes_iter mit = v_meshes.find(mesh_id);
+  if(mit==v_meshes.end()) {
+    mesh_paths_iter pit = visible_content.mesh_paths.find(mesh_id);
       
-      if(pit==visible_content.mesh_paths.end() or pit->second.empty()) {
-        auto id_meshref=v_id2meshref.find(mesh_id);
-        //preloaded_meshes_iter pmi = visible_content.preloaded_meshes.find(mesh_id);
-        if(id_meshref==v_id2meshref.end() or not id_meshref->second.is_valid()) {
-          // Should never get here. This means the physics thread
-          // generated an effect without sending its mesh resource path.
-          pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));
-          warn_invalid_mesh(emplaced.first->second,"internal error: no mesh path or preloaded mesh sent from physics thread.");
-          continue;
-        }
-        v_meshes.emplace(mesh_id,MeshInfo(mesh_id,id_meshref->second));
-      } else {
-        v_meshes.emplace(mesh_id,MeshInfo(mesh_id,pit->second));
-        need_new_meshes.insert(mesh_id);
+    if(pit==visible_content.mesh_paths.end() or pit->second.empty()) {
+      auto id_meshref=v_id2meshref.find(mesh_id);
+      //preloaded_meshes_iter pmi = visible_content.preloaded_meshes.find(mesh_id);
+      if(id_meshref==v_id2meshref.end() or not id_meshref->second.is_valid()) {
+        // Should never get here. This means the physics thread
+        // generated an effect without sending its mesh resource path.
+        pair<v_meshes_iter,bool> emplaced = v_meshes.emplace(mesh_id,MeshInfo(mesh_id,"(*unspecified resource*)"));
+        warn_invalid_mesh(emplaced.first->second,"internal error: no mesh path or preloaded mesh sent from physics thread.");
+        return;
       }
+      v_meshes.emplace(mesh_id,MeshInfo(mesh_id,id_meshref->second));
+    } else {
+      v_meshes.emplace(mesh_id,MeshInfo(mesh_id,pit->second));
+      need_new_meshes.insert(mesh_id);
     }
   }
 }

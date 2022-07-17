@@ -9,7 +9,8 @@
 namespace godot {
  
   namespace CE {
-    constexpr double PI = 3.141592653589793;
+    constexpr double PI = 3.141592653589793, TAU = 2*PI;
+    constexpr real_t PIf = PI, TAUf = TAU;
 
     // All constants MUST match CombatEngine.gd
 
@@ -18,7 +19,7 @@ namespace godot {
     const ticks_t FAST = 9999999; /* faster than any object should move */
     const ticks_t FAR = 9999999; /* farther than any distance that should be considered */
     const ticks_t BIG = 9999999; /* bigger than any object should be */
-    const ticks_t SALVAGE_TIME_LIMIT = 60;
+    const ticks_t SALVAGE_TIME_LIMIT = 60; // How long flotsam remains before vanishing
 
     const int EFFECTS_LIGHT_LAYER_MASK = 2;
 
@@ -51,17 +52,25 @@ namespace godot {
       DAMAGE_PSIONIC = 9,     /* Mind over matter */
       DAMAGE_PLASMA = 10,     /* Super-heated matter */
       DAMAGE_CHARGE = 11,     /* Electric charge */
-      DAMAGE_SPACETIME = 12  /* Tear open rifts in the fabric of spacetimeo */
+      DAMAGE_SPACETIME = 12   /* Tear open rifts in the fabric of spacetime */
     };
-    constexpr real_t MAX_RESIST = 0.75;
-    constexpr real_t MIN_RESIST = -2.0;
+    constexpr real_t MAX_RESIST = 0.75; // Lowest allowed resistance (fraction)
+    constexpr real_t MIN_RESIST = -2.0; // Highest allowed resistance (fraction)
     constexpr real_t MIN_PASSTHRU = 0.0;
     constexpr real_t MAX_PASSTHRU = 1.0;
 
-    constexpr real_t PROJECTILE_POINT_WIDTH = 0.001;
-  
+    const real_t MIN_ASTEROID_RESISTANCE = -9.0;
+    const real_t MAX_ASTEROID_RESISTANCE = 1.0;
+
+    constexpr real_t PROJECTILE_POINT_WIDTH = 0.001; // Width of bounding square for point projectiles
+    const int MAX_PROJECTILES_IN_MINIMAP = 300;
+    
+    const real_t FLOTSAM_MASS = 10.0;
+    const real_t EXPLOSION_FLOTSAM_INITIAL_SPEED = 50.0;
+    
     enum visual_layers {
       below_planets=-30,
+      asteroid_height=-15,
       flotsam_height=-7,
       below_ships=-5,
       ship_height=5,
@@ -70,17 +79,19 @@ namespace godot {
       above_projectiles=29
     };
     
-    const int max_meshes=50;
-    const int max_ships=700;
-    const int max_planets=300;
+    const int max_meshes=50; // For pre-allocating data, expected max meshes (not actual limit)
+    const int max_ships=700; // For pre-allocating data, expected max ships (not actual_limit)
+    const int max_planets=300; // For pre-allocating data, expected max planets or system entrances (not actual limit)
 
     const ticks_t ticks_per_second = 10800;
-    const ticks_t ticks_per_minute = 648000;
+    const ticks_t ticks_per_minute = static_cast<ticks_t>(60)*ticks_per_second;
     const ticks_t zero_ticks = 0;
     const ticks_t inactive_ticks = -1;
     const double thrust_loss_heal = 0.5;
 
-    static constexpr real_t hyperspace_display_ratio = 20.0f;
+    const double EFFECTIVELY_INFINITE_HITPOINTS = 1e20;
+    
+    constexpr real_t hyperspace_display_ratio = 20.0f;
   
     enum goal_action_t {
       goal_patrol = 0,  // equal or surpass enemy threat; kill enemies
@@ -104,39 +115,51 @@ namespace godot {
     const float SPATIAL_RIFT_LIFETIME_SECS = 3.0f;
     const ticks_t SPATIAL_RIFT_LIFETIME_TICKS = roundf(SPATIAL_RIFT_LIFETIME_SECS*ticks_per_second);
 
-    static const int PLAYER_GOAL_ATTACKER_AI = 1;
-    static const int PLAYER_GOAL_LANDING_AI = 2;
-    static const int PLAYER_GOAL_ARRIVING_MERCHANT_AI = 3;
-    static const int PLAYER_GOAL_INTERCEPT = 4;
-    static const int PLAYER_GOAL_RIFT = 5;
+    const int PLAYER_GOAL_ATTACKER_AI = 1;
+    const int PLAYER_GOAL_LANDING_AI = 2;
+    const int PLAYER_GOAL_ARRIVING_MERCHANT_AI = 3;
+    const int PLAYER_GOAL_INTERCEPT = 4;
+    const int PLAYER_GOAL_RIFT = 5;
     
-    static const int PLAYER_ORDERS_MAX_GOALS = 3;
+    const int PLAYER_ORDERS_MAX_GOALS = 3;
 
-    static const int PLAYER_ORDER_FIRE_PRIMARIES   = 0x0001;
-    static const int PLAYER_ORDER_STOP_SHIP        = 0x0002;
-    static const int PLAYER_ORDER_MAINTAIN_SPEED   = 0x0004;
-    static const int PLAYER_ORDER_AUTO_TARGET      = 0x0008;
-    static const int PLAYER_ORDER_TOGGLE_CARGO_WEB = 0x0010;
+    const int PLAYER_ORDER_FIRE_PRIMARIES   = 0x0001;
+    const int PLAYER_ORDER_STOP_SHIP        = 0x0002;
+    const int PLAYER_ORDER_MAINTAIN_SPEED   = 0x0004;
+    const int PLAYER_ORDER_AUTO_TARGET      = 0x0008;
+    const int PLAYER_ORDER_TOGGLE_CARGO_WEB = 0x0010;
     
-    static const int PLAYER_TARGET_CONDITION       = 0xF000;
-    static const int PLAYER_TARGET_NEXT            = 0x1000;
-    static const int PLAYER_TARGET_NEAREST         = 0x2000;
+    const int PLAYER_TARGET_CONDITION       = 0xF000;
+    const int PLAYER_TARGET_NEXT            = 0x1000;
+    const int PLAYER_TARGET_NEAREST         = 0x2000;
 
-    static const int PLAYER_TARGET_SELECTION       = 0x0F00;
-    static const int PLAYER_TARGET_ENEMY           = 0x0100;
-    static const int PLAYER_TARGET_FRIEND          = 0x0200;
-    static const int PLAYER_TARGET_PLANET          = 0x0400;
-    static const int PLAYER_TARGET_OVERRIDE        = 0x0800;
-    static const int PLAYER_TARGET_NOTHING         = 0x0F00;
+    const int PLAYER_TARGET_SELECTION       = 0x0F00;
+    const int PLAYER_TARGET_ENEMY           = 0x0100;
+    const int PLAYER_TARGET_FRIEND          = 0x0200;
+    const int PLAYER_TARGET_PLANET          = 0x0400;
+    const int PLAYER_TARGET_OVERRIDE        = 0x0800;
+    const int PLAYER_TARGET_NOTHING         = 0x0F00;
 
   
-    static const int VISIBLE_OBJECT_PROJECTILE = 0;
-    static const int VISIBLE_OBJECT_PLANET = 1;
-    static const int VISIBLE_OBJECT_SHIP = 2;
-    static const int VISIBLE_OBJECT_HOSTILE = 4;
-    static const int VISIBLE_OBJECT_PLAYER_TARGET = 8;
-    static const int VISIBLE_OBJECT_PLAYER = 16;
+    const int VISIBLE_OBJECT_PROJECTILE = 0;
+    const int VISIBLE_OBJECT_PLANET = 1;
+    const int VISIBLE_OBJECT_SHIP = 2;
+    const int VISIBLE_OBJECT_HOSTILE = 4;
+    const int VISIBLE_OBJECT_PLAYER_TARGET = 8;
+    const int VISIBLE_OBJECT_PLAYER = 16;
 
+    const faction_mask_t MASK_ALL_FACTIONS = 0x7ffffff;
+    const faction_mask_t PLANET_COLLISION_MASK = 1<<28;
+    const size_t NEAR_OBJECTS_MAX_HITS = 100;
+    const size_t NEARBY_ENEMIES_MAX_HITS = 100;
+    constexpr real_t NEAR_OBJECTS_RANGE = 100.0f;
+    const size_t BLAST_RADIUS_MAX_HITS = 100;
+    const size_t DETONATION_RANGE_MAX_HITS = 32;
+    const size_t ANTIMISSILE_SEARCH_MAX_HITS = 100;
+    const size_t SHIP_EXPLOSION_MAX_HITS = 100;
+    
+    constexpr real_t BLAST_DAMAGE_AT_FULL_RADIUS = 0.25;
+    
     // FIXME: Implement this:
     const int VISIBLE_OBJECT_GOAL = 32;
 

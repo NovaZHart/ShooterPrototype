@@ -12,6 +12,7 @@
 #include "CE/Planet.hpp"
 #include "CE/MultiMeshManager.hpp"
 #include "CE/Projectile.hpp"
+#include "CE/InstanceEffect.hpp"
 
 namespace godot {
   namespace CE {
@@ -25,7 +26,7 @@ namespace godot {
       VisibleObject(const Ship &,bool hostile);
       VisibleObject(const Planet &);
     };
-
+    
     // A projectile or passive visual effect:
     struct VisibleEffect {
       const real_t rotation_y, scale_x, scale_z, y;
@@ -54,6 +55,7 @@ namespace godot {
       ships_and_planets_t ships_and_planets;
       std::vector<VisibleEffect> effects;
       std::unordered_map<object_id,String> mesh_paths;
+      std::vector<InstanceEffect> instances;
       //std::unordered_map<object_id,object_id> preloaded_meshes;
       VisibleContent *next;
       VisibleContent();

@@ -9,6 +9,7 @@
 #include <NodePath.hpp>
 #include <RID.hpp>
 
+#include "CE/Salvage.hpp"
 #include "CE/CombatEngine.hpp"
 #include "CE/Utils.hpp"
 #include "CE/Data.hpp"
@@ -16,14 +17,6 @@
 using namespace godot;
 using namespace godot::CE;
 using namespace std;
-
-Dictionary CombatEngine::space_intersect_ray(PhysicsDirectSpaceState *space,Vector3 point1,Vector3 point2,int mask) {
-  FAST_PROFILING_FUNCTION;
-  if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),Vector2(point2.x,point2.z)))
-    return Dictionary();
-  static Array empty = Array();
-  return space->intersect_ray(point1,point2,empty,mask);
-}
 
 CombatEngine::CombatEngine():
   system_fuel_recharge(0),
@@ -42,7 +35,9 @@ CombatEngine::CombatEngine():
   planets(),
   ships(),
   projectiles(),
+  asteroid_fields(),
   player_orders(),
+  salvaged_items(),
   weapon_rotations(),
   dead_ships(),
   idgen(),
@@ -81,7 +76,6 @@ CombatEngine::CombatEngine():
   reset_scenario(false),
 
   objects_found(),
-  search_results(),
 
   content()
 
@@ -96,7 +90,6 @@ CombatEngine::CombatEngine():
   ships.reserve(max_ships);
   projectiles.reserve(max_ships*50);
   player_orders.reserve(50);
-  search_results.reserve(100);
   dead_ships.reserve(max_ships/2);
 
   ship_locations.reserve(max_ships*1.5,max_ships*5*1.5);
@@ -115,6 +108,7 @@ void CombatEngine::_register_methods() {
   register_method("draw_minimap_rect_contents", &CombatEngine::draw_minimap_rect_contents);
   register_method("ai_step", &CombatEngine::ai_step);
   register_method("init_factions", &CombatEngine::init_factions);
+  register_method("add_asteroid_field", &CombatEngine::add_asteroid_field);
 }
 
 void CombatEngine::_init() {}
@@ -140,6 +134,7 @@ void CombatEngine::clear_ai() {
   planets.clear();
   ships.clear();
   projectiles.clear();
+  asteroid_fields.clear();
   player_orders.clear();
   dead_ships.clear();
   weapon_rotations.clear();
@@ -232,6 +227,9 @@ Array CombatEngine::ai_step(real_t new_delta,Array new_ships,Array new_planets,
   
   // Update the faction-level AI:
   faction_ai_step();
+
+  // Update asteroids:
+  step_asteroid_fields();
   
   Array result;
   update_ship_list(update_request_rid,result);
@@ -299,6 +297,8 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   multimeshes.load_meshes();
   multimeshes.send_meshes_to_visual_server(projectile_scale,scenario,reset_scenario);
 
+  send_asteroid_meshes();
+
   visual_effects->set_combat_content(visible_content);
 }
 
@@ -312,13 +312,62 @@ void CombatEngine::draw_minimap_contents(RID new_canvas,
 }
 
 
-
 void CombatEngine::draw_minimap_rect_contents(RID new_canvas,Rect2 map,Rect2 minimap) {
   FAST_PROFILING_FUNCTION;
   VisibleContent *visible_content=content.get_visible_content();
   this->minimap.draw_minimap_rect_contents(visible_content,new_canvas,map,minimap);
 }
 
+
+void CombatEngine::add_asteroid_field(Dictionary field_data) {
+  shared_ptr<AsteroidPalette> ap=make_shared<AsteroidPalette>(field_data["asteroids"]);
+  if(!ap->size())
+    Godot::print_error("AsteroidPalette is empty. Asteroids will be invisible!",
+                       __FUNCTION__,__FILE__,__LINE__);
+  object_id id = (static_cast<object_id>(asteroid_fields.size())<<id_category_shift)
+                 + first_asteroid_field_id_mask;
+  shared_ptr<SalvagePalette> sp=make_shared<SalvagePalette>(field_data["salvage"]);
+  asteroid_fields.emplace_back(0,godot::CE::get<Array>(field_data,"layers"),ap,sp,id);
+  asteroid_fields.back().generate_field();
+}
+
+/**********************************************************************/
+
+/* Asteroids */
+
+/**********************************************************************/
+
+void CombatEngine::damage_asteroid(Asteroid &asteroid,double damage,int damage_type) {
+  object_id field_id = asteroid.get_id()>>id_category_shift;
+  if(field_id<0 or static_cast<size_t>(field_id)>=asteroid_fields.size())
+    Godot::print_error("Tried to damage an asteroid from invalid field number "+str(field_id),
+                       __FUNCTION__,__FILE__,__LINE__);
+  else
+    asteroid_fields[field_id].damage_asteroid(*this,asteroid,damage,damage_type);
+}
+
+void CombatEngine::step_asteroid_fields() {
+  Rect2 visible_area(Vector2(-100,-100),Vector2(200,200));
+  if(visual_effects.is_valid())
+    visible_area = visual_effects->get_visible_rect();
+  for(auto &field : asteroid_fields)
+    field.step_time(idelta,delta,visible_area);
+}
+
+
+void CombatEngine::send_asteroid_meshes() {
+  for(auto &field : asteroid_fields)
+    field.send_meshes(multimeshes);
+}
+
+
+void CombatEngine::add_asteroid_content(VisibleContent &content) {
+  Rect2 visible_area(Vector2(-100,-100),Vector2(200,200));
+  if(visual_effects.is_valid())
+    visible_area = visual_effects->get_visible_rect();
+  for(auto &field : asteroid_fields)
+    field.add_content(visible_area,content);
+}
 
 /**********************************************************************/
 
@@ -365,7 +414,7 @@ void CombatEngine::update_affinity_masks() {
     enemy_masks[i]=0;
     friend_masks[i]=0;
     for(int j=MIN_ALLOWED_FACTION;j<=MAX_ALLOWED_FACTION;j++) {
-      if(i==j)
+      if(i==j)        
         continue; // Ignore self-hatred and self-desire
       int key = Faction::affinity_key(i,j);
       unordered_map<int,float>::iterator it = affinities.find(key);
@@ -402,37 +451,7 @@ void CombatEngine::update_all_faction_goals() {
 }
 
 void CombatEngine::faction_ai_step() {
-  // FIXME: Get this working.
-  //  if(ai_ticks<ticks_per_second/2)
-    update_all_faction_goals();
-  // if(p_frame % 2) {
-  //   // Update a planet on odd frames
-  //   planets_iter p_planet = planets.find(last_planet_updated);
-  //   if(p_planet!=planets.end())
-  //     p_planet++;
-  //   if(p_planet==planets.end())
-  //     p_planet=planets.begin();
-  //   if(p_planet!=planets.end()) {
-  //     p_planet->second.update_goal_data(ships);
-  //     last_planet_updated = p_planet->first;
-  //   } else
-  //     last_planet_updated = -1;
-  // } else {
-  //   // Update a faction on even frames
-  //   factions_iter p_faction = factions.find(last_faction_updated);
-  //   if(p_faction!=factions.end())
-  //     p_faction++;
-  //   if(p_faction==factions.end())
-  //     p_faction=factions.begin();
-  //   if(p_faction!=factions.end()) {
-  //     Faction &faction = p_faction->second;
-  //     faction.clear_target_advice(planets.size());
-  //     for(auto &goal : faction.get_goals())
-  //       update_one_faction_goal(faction,goal);
-  //     last_faction_updated = p_faction->first;
-  //   } else
-  //     last_faction_updated = FACTION_ARRAY_SIZE;
-  // }
+  update_all_faction_goals();
 }
 
 /**********************************************************************/
@@ -601,38 +620,32 @@ void CombatEngine::explode_ship(Ship &ship) {
   if(ship.explosion_timer.alarmed()) {
     ship.fate=FATED_TO_DIE;
     if(ship.explosion_radius>0 and (ship.explosion_damage>0 or ship.explosion_impulse!=0)) {
-      Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
-      query->set_shape(search_cylinder);
-      Transform trans;
-      real_t scale = ship.explosion_radius / search_cylinder_radius;
-      if(not ship_locations.circle_is_nonempty(Vector2(ship.position.x,ship.position.z),ship.explosion_radius))
-        return;
-      trans.scale(Vector3(scale,1,scale));
-      trans.origin = Vector3(ship.position.x,5,ship.position.z);
-      //query->set_transform(Transform(scale,0,0, 0,1,0, 0,0,scale, trans_x,5,trans_z));
-      query->set_transform(trans);
-      Array hits = space->intersect_shape(query,100);
-      for(int i=0,size=hits.size();i<size;i++) {
-        Dictionary hit=static_cast<Dictionary>(hits[i]);
-        if(hit.empty())
-          continue;
-        ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
-        if(p_ship==ships.end())
-          continue;
-        Ship &other = p_ship->second;
-        if(other.id==ship.id)
-          continue;
-        real_t distance = max(0.0f,other.position.distance_to(ship.position)-other.radius);
-        real_t dropoff = 1.0 - distance/ship.explosion_radius;
-        dropoff*=dropoff;
-        other.take_damage(ship.explosion_damage*dropoff,ship.explosion_type,0.1,0,0);
-        if(other.immobile)
-          continue;
-        if(not ship.immobile and ship.explosion_impulse!=0) {
-          Vector3 impulse = ship.explosion_impulse * dropoff *
-            (other.position-ship.position).normalized();
-          if(impulse.length_squared())
-            physics_server->body_apply_central_impulse(other.rid,impulse);
+      objects_hit.clear();
+      if(overlapping_circle(ship.get_xz(),ship.explosion_radius,MASK_ALL_FACTIONS,FIND_SHIPS|FIND_ASTEROIDS,objects_hit,SHIP_EXPLOSION_MAX_HITS)) {
+        real_t blast_radius=ship.explosion_radius;
+        real_t dropoff_denom = (1-BLAST_DAMAGE_AT_FULL_RADIUS)/(blast_radius*blast_radius);
+        faction_mask_t enemy_mask = enemy_masks[ship.faction];
+        for(auto &hit : objects_hit) {
+          if(hit.hit->is_ship()) {
+            Ship &other = hit.hit->as_ship();
+            if(other.id==ship.id)
+              continue;
+            real_t distance = max(0.0f,other.position.distance_to(ship.position)-other.radius);
+            real_t dropoff = 1-distance*distance*dropoff_denom;
+            if( (other.faction_mask&enemy_mask) )
+              other.take_damage(ship.explosion_damage*dropoff,ship.explosion_type,0.1,0,0);
+            if(not other.immobile and ship.explosion_impulse!=0) {
+              Vector3 impulse = ship.explosion_impulse * dropoff *
+                (other.position-ship.position).normalized();
+              if(impulse.length_squared())
+                physics_server->body_apply_central_impulse(other.rid,impulse);
+            }
+          } else if(hit.hit->is_asteroid()) {
+            Asteroid &asteroid = hit.hit->as_asteroid();
+            real_t distance = max(0.0f,hit.xz.distance_to(ship.get_xz())-asteroid.get_radius());
+            real_t dropoff = (1 - distance*distance*dropoff_denom);
+            damage_asteroid(asteroid,ship.explosion_damage*dropoff,ship.explosion_type);
+          }
         }
       }
     }
@@ -640,119 +653,17 @@ void CombatEngine::explode_ship(Ship &ship) {
   }
 }
 
-
-void CombatEngine::find_ships_in_radius(Vector3 position,real_t radius,faction_mask_t faction_mask,vector<pair<real_t,pair<RID,object_id>>> &results) {
-  FAST_PROFILING_FUNCTION;
-  results.clear();
-  objects_found.clear();
-  if(!ship_locations.overlapping_circle(Vector2(position.x,position.z),radius,objects_found)) {
-    //Godot::print("No ships found in radius="+str(radius)+" of "+str(position));
-    return;
-  }
-
-  for(auto &id : objects_found) {
-    ships_iter ship_ptr = ships.find(id);
-    if(ship_ptr!=ships.end()) {
-      Ship &target = ship_ptr->second;
-      if( (target.faction_mask&faction_mask) ) {
-        real_t distance = (get_position(target)-position).length()-target.radius*0.707;
-        if(distance<radius) {
-          pair<RID,object_id> rid_id(target.rid,target.id);
-          pair<real_t,pair<RID,object_id>> dist_rid_id(distance,rid_id);
-          results.push_back(dist_rid_id);
-        }
-      }
-    }
-  }
-  sort(results.begin(),results.end(),compare_distance);
-}
-
 void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
   FAST_PROFILING_FUNCTION;
   result.clear();
   result.resize(salvaged_items.size());
-  int next_index=0;
-  for(auto &ship_id_salvage : salvaged_items) {
-    if(not ship_id_salvage.second)
-      continue;
-    const Salvage &salvage = *ship_id_salvage.second;
-
-    ships_iter ship_ptr = ships.find(ship_id_salvage.first);
-    if(ship_ptr==ships.end())
-      continue;
-    const Ship &ship = ship_ptr->second;
-
-    result[next_index++] = Dictionary::make("ship_name",ship.name,"product_name",salvage.cargo_name,
-                                            "count",salvage.cargo_count,
-                                            "unit_mass",salvage.cargo_unit_mass);
+  int i=0;
+  for(auto &dict : salvaged_items) {
+    if(!dict.size())
+      Godot::print_warning("Empty dict seen in salvaged_items",
+                           __FUNCTION__,__FILE__,__LINE__);
+    result[i++]=dict;
   }
-  result.resize(next_index+1);
-}
-
-Dictionary CombatEngine::check_target_lock(Ship &target, Vector3 point1, Vector3 point2) {
-  FAST_PROFILING_FUNCTION;
-  if(not ship_locations.ray_is_nonempty(Vector2(point1.x,point1.z),Vector2(point2.x,point2.z)))
-    return Dictionary(); // no possibility of collisions
-  int mask = physics_server->body_get_collision_mask(target.rid);
-  physics_server->body_set_collision_mask(target.rid, mask | (1<<30));
-  Dictionary result = space->intersect_ray(point1, point2, Array());
-  physics_server->body_set_collision_mask(target.rid,mask);
-  return result;
-}
-
-struct ship_cmp_by_range {
-  const Vector3 &center;
-  const std::unordered_map<object_id,Ship> &ships;
-  ship_cmp_by_range(const Vector3 &center,const std::unordered_map<object_id,Ship> &ships):
-    center(center),ships(ships)
-  {}
-  template<class T>
-  bool operator () (const T &a, const T &b) const {
-    std::unordered_map<object_id,Ship>::const_iterator aship = ships.find(a.second);
-    std::unordered_map<object_id,Ship>::const_iterator bship = ships.find(b.second);
-    return distsq(aship->second.position,center) < distsq(bship->second.position,center);
-  }
-};
-
-const ship_hit_list_t &CombatEngine::get_ships_within_range(Ship &ship, real_t desired_range) {
-  FAST_PROFILING_FUNCTION;
-  real_t nearby_enemies_range=ship.nearby_enemies_range;
-  int nearby_enemies_tick = ship.nearby_enemies_tick;
-  int tick=ship.tick;
-  if(nearby_enemies_range<desired_range || nearby_enemies_tick + ticks_per_second/6 < tick) {
-    ship.nearby_enemies_tick = ship.tick;
-    ship.nearby_enemies_range = desired_range;
-    ship.nearby_enemies.clear();
-    for(auto &other : ships) {
-      if(!(other.second.faction_mask&enemy_masks[ship.faction]))
-        continue; // not an enemy
-      if(other.second.id==ship.id)
-        continue; // do not target self
-      if(ship.position.distance_to(other.second.position)>desired_range)
-        continue; // out of range
-      ship.nearby_enemies.emplace_back(other.second.rid,other.second.id);
-    }
-    sort(ship.nearby_enemies.begin(),ship.nearby_enemies.end(),ship_cmp_by_range(ship.position,ships));
-  }
-  return ship.nearby_enemies;
-}
-    
-const ship_hit_list_t &
-CombatEngine::get_ships_within_unguided_weapon_range(Ship &ship,real_t fudge_factor) {
-  FAST_PROFILING_FUNCTION;
-  return get_ships_within_range(ship,ship.range.unguided*fudge_factor);
-}
-    
-const ship_hit_list_t &
-CombatEngine::get_ships_within_weapon_range(Ship &ship,real_t fudge_factor) {
-  FAST_PROFILING_FUNCTION;
-  return get_ships_within_range(ship,ship.range.all*fudge_factor);
-}
-    
-const ship_hit_list_t &
-CombatEngine::get_ships_within_turret_range(Ship &ship, real_t fudge_factor) {
-  FAST_PROFILING_FUNCTION;
-  return get_ships_within_range(ship,ship.range.turrets*fudge_factor);
 }
 
 
@@ -803,9 +714,9 @@ void CombatEngine::create_direct_projectile(Ship &ship,shared_ptr<Weapon> weapon
   projectiles.emplace(new_id,Projectile(new_id,ship,weapon,position,length,rotation.y,target));
 }
 
-void CombatEngine::create_flotsam_projectile(Ship &ship,shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass) {
+void CombatEngine::create_flotsam_projectile(Ship *ship_ptr,shared_ptr<const Salvage> salvage_ptr,Vector3 position,real_t angle,Vector3 velocity,real_t flotsam_mass) {
   object_id new_id=idgen.next();
-  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes,flotsam_weapon));
+  std::pair<projectiles_iter,bool> emplaced = projectiles.emplace(new_id,Projectile(new_id,ship_ptr,salvage_ptr,position,angle,velocity,flotsam_mass,multimeshes,flotsam_weapon));
   real_t radius = max(1e-5f,emplaced.first->second.get_detonation_range());
   flotsam_locations.set_rect(new_id,rect_for_circle(emplaced.first->second.get_position(),radius));
   emplaced.first->second.set_possible_hit(false);
@@ -859,95 +770,359 @@ ships_iter CombatEngine::ship_for_rid(int rid_id) {
   return ships.find(p_id->second);
 }
 
-projectile_hit_list_t CombatEngine::find_projectile_collisions(Vector3 projectile_position,Vector3 projectile_old_position,faction_mask_t collision_mask,real_t radius,bool consider_motion,Vector3 &collision_location,int max_results) {
-  FAST_PROFILING_FUNCTION;
-  projectile_hit_list_t result;
+/**********************************************************************/
 
-  consider_motion = false;
+size_t CombatEngine::overlapping_circle(Vector2 center,real_t radius,faction_mask_t collision_mask,int find_what,hit_list_t &result,size_t max_hits) {
+  if(!collision_mask)
+    return 0;
+  if(radius<=0)
+    return overlapping_point(center,collision_mask,find_what,result,max_hits);
+
+  size_t count=0;
   
-  Vector3 search_pos = projectile_position;
-  Vector3 midpoint = projectile_position;
-  real_t search_radius = radius;
-  int max_tries=1;
-  if(consider_motion) {
-    max_tries = 2;
-    midpoint = (projectile_position+projectile_old_position)/2;
-    real_t distance_traveled = distance2(projectile_position,projectile_old_position);
-    search_radius = radius+distance_traveled;
-    search_pos = projectile_old_position;
+  if( (find_what&FIND_MISSILES) ) {
+    objects_found.clear();
+    if(missile_locations.overlapping_circle(center,radius,objects_found))
+      for(auto &id : objects_found) {
+        Projectile *proj = projectile_with_id(id);
+        if( (proj->get_faction_mask()&collision_mask) and proj->is_alive() and proj->is_missile()) {
+          result.emplace_back(proj,proj->get_xz(),proj->get_xz().distance_to(center));
+          if(++count>=max_hits)
+            return count;
+        }
+      }
   }
 
-  collision_location = projectile_position;
-  
-  if(not ship_locations.circle_is_nonempty(Vector2(midpoint.x,midpoint.z),search_radius)) {
-    // No possibility of any hits.
-    return result;
-  }
-  
-  // FIXME: first pass with a boost r*tree
-  if(radius>1e-5) {
-    real_t trans_x(search_pos.x), trans_z(search_pos.z);
-    real_t scale = radius / search_cylinder_radius;
-    Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
-    query->set_collision_mask(collision_mask);
-    query->set_shape(search_cylinder);
-    if(not ship_locations.circle_is_nonempty(Vector2(trans_x,trans_z),search_radius))
-      return result; // No possibility of collision
-    Transform trans;
-    trans.scale(Vector3(scale,1,scale));
-    trans.origin = Vector3(trans_x,ship_height,trans_z);
-
-    // First, check if the initial projectile location overlaps with something.
-    //query->set_transform(Transform(scale,0,0, 0,1,0, 0,0,scale, trans_x,5,trans_z));
-    query->set_transform(trans);
-    for(int tries=0;tries<max_tries;tries++) {
-      Array hits = space->intersect_shape(query,max_results);
+  if( (find_what&FIND_SHIPS) ) {
+    objects_found.clear();
+    if(ship_locations.overlapping_circle(center,radius,objects_found)) {
+      real_t scale = radius / search_cylinder_radius;
+      Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
+      query->set_collision_mask(collision_mask);
+      query->set_shape(search_cylinder);
+      Transform trans;
+      trans.scale(Vector3(scale,1,scale));
+      trans.origin = to_xyz(center,ship_height);
+      query->set_transform(trans);
+      Array hits = space->intersect_shape(query,max_hits-count);
       for(int i=0,size=hits.size();i<size;i++) {
-        Dictionary hit=static_cast<Dictionary>(hits[i]);
+        Dictionary hit=hits[i];
+        if(!hit.empty()) {
+          ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
+          if(p_ship!=ships.end()) {
+            result.emplace_back(&p_ship->second,p_ship->second.get_xz(),
+                                p_ship->second.get_xz().distance_to(center));
+            if(++count>=max_hits)
+              return count;
+          }
+        }
+      }
+    }
+  }
+
+  if( (find_what&FIND_PLANETS) ) {
+    for(auto &id_planet : planets) {
+      Vector2 xz=id_planet.second.get_xz();
+      real_t dist = xz.distance_to(center);
+      if(dist<id_planet.second.get_radius()+radius) {
+        result.emplace_back(&id_planet.second,xz,dist);
+        if(++count>=max_hits)
+          return count;
+      }
+    }
+  }
+
+  if( (find_what&FIND_ASTEROIDS) ) {
+    for(auto &field : asteroid_fields) {
+      count+=field.overlapping_circle(center,radius,result,max_hits-count);
+      if(count>=max_hits)
+        return count;
+    }
+  }
+
+  return count;
+}
+
+/**********************************************************************/
+
+size_t CombatEngine::overlapping_point(Vector2 point,faction_mask_t collision_mask,int find_what,hit_list_t &result,size_t max_hits) {
+  if(!collision_mask)
+    return 0;
+
+  size_t count=0;
+  
+  if( (find_what&FIND_MISSILES) ) {
+    objects_found.clear();
+    if(missile_locations.overlapping_point(point,objects_found))
+      for(auto &id : objects_found) {
+        Projectile *proj = projectile_with_id(id);
+        if( (proj->get_faction_mask()&collision_mask) and proj->is_alive() and proj->is_missile()) {
+          result.emplace_back(proj,proj->get_xz(),proj->get_xz().distance_to(point));
+          if(++count>=max_hits)
+            return count;
+        }
+      }
+  }
+
+  if( (find_what&FIND_SHIPS) ) {
+    objects_found.clear();
+    if(ship_locations.overlapping_point(point,objects_found)) {
+      Array hits = space->intersect_point(Vector3(point.x,ship_height,point.y),max_hits-count,Array(),collision_mask,true,false);
+      for(int i=0,size=hits.size();i<size;i++) {
+        Dictionary hit=hits[i];
+        if(!hit.empty()) {
+          ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
+          if(p_ship!=ships.end()) {
+            result.emplace_back(&p_ship->second,p_ship->second.get_xz(),
+                                p_ship->second.get_xz().distance_to(point));
+            if(++count>=max_hits)
+              return count;
+          }
+        }
+      }
+    }
+  }
+
+  if( (find_what&FIND_PLANETS) ) {
+    for(auto &id_planet : planets) {
+      Vector2 xz=id_planet.second.get_xz();
+      real_t dist = xz.distance_to(point);
+      if(dist<id_planet.second.get_radius()) {
+        result.emplace_back(&id_planet.second,xz,dist);
+        if(++count>=max_hits)
+          return count;
+      }
+    }
+  }
+
+  if( (find_what&FIND_ASTEROIDS) ) {
+    for(auto &field : asteroid_fields) {
+      count+=field.overlapping_point(point,result,max_hits-count);
+      if(count>=max_hits)
+        return count;
+    }
+  }
+
+  return count;
+}
+
+/**********************************************************************/
+
+CelestialHit CombatEngine::first_in_circle(Vector2 center,real_t radius,faction_mask_t collision_mask,int find_what) {
+  if(!collision_mask)
+    return CelestialHit();
+  if(radius<=0)
+    return first_at_point(center,collision_mask,find_what);
+
+  if( (find_what&FIND_MISSILES) ) {
+    objects_found.clear();
+    if(missile_locations.overlapping_circle(center,radius,objects_found))
+      for(auto &id : objects_found) {
+        Projectile *proj = projectile_with_id(id);
+        if( (proj->get_faction_mask()&collision_mask) and proj->is_alive() and proj->is_missile())
+          return CelestialHit(proj,proj->get_xz(),proj->get_xz().distance_to(center));
+      }
+  }
+
+  if( (find_what&FIND_SHIPS) ) {
+    objects_found.clear();
+    if(ship_locations.overlapping_circle(center,radius,objects_found)) {
+      real_t scale = radius / search_cylinder_radius;
+      Ref<PhysicsShapeQueryParameters> query(PhysicsShapeQueryParameters::_new());
+      query->set_collision_mask(collision_mask);
+      query->set_shape(search_cylinder);
+      Transform trans;
+      trans.scale(Vector3(scale,1,scale));
+      trans.origin = to_xyz(center,ship_height);
+      query->set_transform(trans);
+      Array hits = space->intersect_shape(query,10);
+      for(int i=0,size=hits.size();i<size;i++) {
+        Dictionary hit=hits[i];
         if(!hit.empty()) {
           ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
           if(p_ship!=ships.end())
-            result.emplace_back(p_ship->second.position,p_ship);
+            return CelestialHit(&p_ship->second,p_ship->second.get_xz(),
+                                p_ship->second.get_xz().distance_to(center));
+        }
+      }
+    }
+  }
+
+  if( (find_what&FIND_PLANETS) ) {
+    for(auto &id_planet : planets) {
+      Vector2 xz=id_planet.second.get_xz();
+      real_t dist = xz.distance_to(center);
+      if(dist<id_planet.second.get_radius()+radius)
+        return CelestialHit(&id_planet.second,xz,dist);
+    }
+  }
+
+  if( (find_what&FIND_ASTEROIDS) ) {
+    for(auto &field : asteroid_fields) {
+      CelestialHit hit = field.first_in_circle(center,radius);
+      if(hit.hit)
+        return hit;
+    }
+  }
+
+  return CelestialHit();
+}
+
+/**********************************************************************/
+
+CelestialHit CombatEngine::first_at_point(Vector2 point,faction_mask_t collision_mask,int find_what) {
+  if(!collision_mask)
+    return CelestialHit();
+  
+  if( (find_what&FIND_MISSILES) ) {
+    objects_found.clear();
+    if(missile_locations.overlapping_point(point,objects_found))
+      for(auto &id : objects_found) {
+        Projectile *proj = projectile_with_id(id);
+        if( (proj->get_faction_mask()&collision_mask) and proj->is_alive() and proj->is_missile())
+          return CelestialHit(proj,proj->get_xz(),proj->get_xz().distance_to(point));
+      }
+  }
+
+  if( (find_what&FIND_SHIPS) ) {
+    objects_found.clear();
+    if(ship_locations.rect_is_nonempty(Rect2(point-Vector2(0.5,0.5),point+Vector2(1,1)))) {
+      Array hits = space->intersect_point(Vector3(point.x,ship_height,point.y),10,Array(),collision_mask,true,false);
+      for(int i=0,size=hits.size();i<size;i++) {
+        Dictionary hit=hits[i];
+        if(!hit.empty()) {
+          ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
+          if(p_ship!=ships.end())
+            return CelestialHit(&p_ship->second,p_ship->second.get_xz(),
+                                p_ship->second.get_xz().distance_to(point));
+        }
+      }
+    }
+  }
+  
+  if( (find_what&FIND_PLANETS) ) {
+    for(auto &id_planet : planets) {
+      Vector2 xz=id_planet.second.get_xz();
+      real_t dist = xz.distance_to(point);
+      if(dist<id_planet.second.get_radius())
+        return CelestialHit(&id_planet.second,xz,dist);
+    }
+  }
+  
+  if( (find_what&FIND_ASTEROIDS) ) {
+    for(auto &field : asteroid_fields) {
+      CelestialHit hit = field.first_at_point(point);
+      if(hit.hit)
+        return hit;
+    }
+  }
+
+  return CelestialHit();
+}
+
+/**********************************************************************/
+
+CelestialHit CombatEngine::cast_ray(Vector2 start,Vector2 end,faction_mask_t collision_mask,int find_what) {
+  if(!collision_mask)
+    return CelestialHit();
+  
+  CelestialHit closest;
+  
+  if( (find_what&FIND_MISSILES) ) {
+    Vector2 along=(end-start).normalized();
+    Vector2 across(-along.y,along.x);
+    objects_found.clear();
+    if(missile_locations.overlapping_circle((start+end)*0.5f,start.distance_to(end)*0.5f+0.5f,objects_found))
+      for(auto &id : objects_found) {
+        Projectile *proj = projectile_with_id(id);
+        if( (proj->get_faction_mask()&collision_mask) and proj->is_alive() and proj->is_missile()) {
+          Vector2 xz=proj->get_xz();
+          Vector2 to_proj=xz-start;
+          real_t dist=to_proj.dot(along);
+          real_t pretend_radius=0.25f;
+          if(dist<closest.distance
+             and to_proj.dot(across)<pretend_radius) {
+            closest = CelestialHit(proj,xz,dist);
+            if(closest.distance<pretend_radius)
+              // We started "on top of" the missile
+              return closest;
+          }
+        }
+      }
+  }
+  
+  if( (find_what&FIND_SHIPS) ) {
+    Vector2 center = (start+end)*0.5f;
+    real_t radius = start.distance_to(end)*0.5f;
+    
+    if(ship_locations.circle_is_nonempty(center,radius+1)) {
+      // Does the ray start inside a ship?
+      Array a=space->intersect_point(to_xyz(start,ship_height),1,empty_array,collision_mask);
+      if(a.size()) {
+        Dictionary d=a[0];
+        rid2id_iter there=rid2id.find(static_cast<RID>(d["rid"]).get_id());
+        if(there!=rid2id.end()) {
+          Ship *ship=ship_with_id(there->second);
+          if(ship) {
+            // Projectile starts inside the ship.
+            return CelestialHit(ship,start,0);
+          }
         }
       }
 
-      if(result.size())
-        break;
-      
-      // If the projectile did not hit anything at time 0, try later times.
-      if(tries==0) {
-        Vector3 motion = projectile_position-projectile_old_position;
-        motion.y=0;
-        Array cast_motion = space->cast_motion(query,motion);
-        real_t safe = cast_motion[0];
-        real_t unsafe = cast_motion[1];
-        real_t frac = min(safe,unsafe);
-        if(frac>=0 and frac<.99999) {
-          //Godot::print("Detected collision at frac="+str(frac));
-          collision_location = projectile_old_position+motion*frac;
-          trans.origin = Vector3(collision_location.x,ship_height,collision_location.z);
-          query->set_transform(trans);
-        } else
-          // No hits at all.
-          break;
+      // Does the ray hit a ship?
+      Dictionary d=space->intersect_ray(to_xyz(start,ship_height),to_xyz(end,ship_height),empty_array,collision_mask);
+      rid2id_iter there=rid2id.find(static_cast<RID>(d["rid"]).get_id());
+      if(there!=rid2id.end()) {
+        Ship *ship=ship_with_id(there->second);
+        if(ship) {
+          Vector3 hit_location = static_cast<Vector3>(d["position"]);
+          Vector2 hit_xz = to_xz(hit_location);
+          real_t dist=start.distance_to(hit_xz);
+          if(dist<closest.distance)
+            closest = CelestialHit(ship,hit_xz,dist);
+        }
       }
     }
-  } else {
-    if(not ship_locations.point_is_nonempty(Vector2(projectile_position.x,projectile_position.z)))
-      return result; // no possibility of collision
-    Vector3 point1(projectile_position.x,ship_height,projectile_position.z);
-    Vector3 point2(projectile_old_position.x,ship_height,projectile_old_position.z);
-    Dictionary hit = space->intersect_ray(point1, point2, Array(), collision_mask);
-    if(!hit.empty()) {
-      ships_iter p_ship = ship_for_rid(static_cast<RID>(hit["rid"]).get_id());
-      if(p_ship!=ships.end())
-        result.emplace_back(static_cast<Vector3>(hit["position"]),p_ship);
+  }
+
+  if( (find_what&FIND_PLANETS) ) {
+    for(auto &id_planet : planets) {
+      // WARNING: UNTESTED!
+      Planet &planet = id_planet.second;
+
+      // Does the ray start inside a planet?
+      real_t sdistsq=(start-planet.get_xz()).length_squared();
+      real_t edistsq=(end-planet.get_xz()).length_squared();
+      real_t radsq = planet.get_radius();
+      radsq*=radsq;
+      if(sdistsq<radsq and edistsq<radsq)
+        return CelestialHit(&planet,start,0);
+
+      // Does the ray intersect a planet?
+      Vector2 segment[2] = { start,end };
+      Vector2 intersection[2];
+      real_t distances[2];
+      int intersections=line_segment_intersect_circle(planet.get_radius(),segment,intersection,distances);
+      if(intersections and distances[0]<closest.distance)
+        closest=CelestialHit(&planet,intersection[0],distances[0]);
     }
   }
-  return result;
-}
 
-Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int mask) {
+  if( (find_what&FIND_ASTEROIDS) ) {
+    for(auto &field : asteroid_fields) {
+      CelestialHit hit=field.cast_ray(start,end);
+      if(!hit.distance)
+        return hit;
+      if(hit.distance<closest.distance)
+        closest=hit;
+    }
+  }
+  
+  return closest;
+}
+  
+Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,faction_mask_t mask) {
   FAST_PROFILING_FUNCTION;
 
   Vector3 center = (point1+point2)/2;
@@ -970,8 +1145,10 @@ Ship *CombatEngine::space_intersect_ray_p_ship(Vector3 point1,Vector3 point2,int
   return ship_with_id(there->second);
 }
 
-void CombatEngine::add_salvaged_items(Ship &ship,const Projectile &projectile) {
-  salvaged_items.emplace(ship.id,projectile.get_salvage());
+void CombatEngine::add_salvaged_items(Ship &ship,const String &product_name,int count,real_t unit_mass) {
+  salvaged_items.push_back(Dictionary::make("ship_name",ship.name,"product_name",product_name,
+                                            "count",count,
+                                            "unit_mass",unit_mass));
 }
 
 
@@ -1022,6 +1199,9 @@ void CombatEngine::add_content() {
         next->mesh_paths.emplace(mesh_id,mesh_path);
     }
   }
+
+  add_asteroid_content(*next);
+
   // Prepend to linked list:
   content.push_content(next);
 }

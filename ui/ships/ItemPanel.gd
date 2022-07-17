@@ -439,13 +439,14 @@ func input():
 					if click_tick - last_click_tick<400 and show_ships:
 						_on_Open_pressed()
 				elif collider:
+					last_click_tick = click_tick
 					var _discard = select(collider)
 					emit_signal('select_item',collider)
 					selection_click = mouse_pos
-				last_click_tick = click_tick
-			selection_dragging=false
-		elif not show_ships and  selection and Input.is_action_pressed('ui_location_select'):
-			if not selection_dragging and mouse_pos.distance_to(selection_click)>3:
+				call_deferred('drag_selection')
+
+func drag_selection():
+			if not show_ships:
 				var selected_node = get_node_or_null(selection)
 				if selected_node:
 					if selected_node.scene:
@@ -458,6 +459,9 @@ func input():
 								return
 					selection_dragging=true
 					emit_signal('drag_selection',selected_node.scene)
+					selection_dragging=true
+					return
+			selection_dragging=false
 
 func _process(delta):
 	items_mutex.lock()

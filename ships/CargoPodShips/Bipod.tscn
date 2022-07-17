@@ -130,5 +130,5 @@ mount_type = "external engine"
 mount_type_display = "engine"
 
 [node name="CollisionShape" type="CollisionShape" parent="."]
-transform = Transform( 2.08855, 0, 0, 0, 1, 0, 0, 0, 1.58486, -0.0273015, 0, 0 )
+transform = Transform( 2.089, 0, 0, 0, 0.1, 0, 0, 0, 1.585, -0.0273015, 0, 0 )
 shape = SubResource( 1 )

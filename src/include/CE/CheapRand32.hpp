@@ -4,7 +4,8 @@
 #include <cstdint>
 #include <algorithm>
 
-#include "OS.hpp"
+#include <OS.hpp>
+#include <Color.hpp>
 
 #include "CE/Constants.hpp"
 
@@ -18,27 +19,43 @@ namespace godot {
       uint32_t state;
     public:
       CheapRand32():
-        state(bob_full_avalanche(static_cast<uint32_t>(OS::get_singleton()->get_ticks_msec()/10)))
+        state(make_seed())
       {};
-      CheapRand32(uint32_t state): state(state) {}
+      CheapRand32(uint32_t seed):
+        state(hash(seed))
+      {}
       inline uint32_t randi() {
         // Random 32-bit integer, uniformly distributed.
-        return state=bob_full_avalanche(state);
+        return state=hash(state);
       }
       inline float randf() {
         // Random float in [0..1), uniformly distributed.
-        return int2float(state=bob_full_avalanche(state));
+        return int2float(state=hash(state));
       }
       inline float rand_angle() {
-        return randf()*2*PI;
+        return randf()*TAUf;
       }
-
-      static inline uint32_t bob_full_avalanche(uint32_t a) {
+      inline void seed(uint32_t s) {
+        state = hash(hash(hash(s)));
+      }
+      inline void seed() {
+        state = make_seed();
+      }
+      inline Color rand_color() {
+        real_t r=randf(), g=randf(), b=randf(), a=randf();
+        return Color(r,g,b,a);
+      }
+      
+      static inline uint32_t make_seed() {
+        uint64_t s=OS::get_singleton()->get_ticks_usec();
+        return hash( (s>>32) ^ s );
+      }
+      static inline uint32_t hash(uint32_t a) {
         // Generator magic from https://burtleburtle.net/bob/hash/integer.html
-        // Calls to this routine are why the class is not thread-safe.
         // There is no protection against updating the state twice at the same time.
         // That means the state will be valid, but two threads may see the same
         // state if they update it at the same time.
+        // Hence, calls to this routine are why the class is not thread-safe.
         a = (a+0x7ed55d16) + (a<<12);
         a = (a^0xc761c23c) ^ (a>>19);
         a = (a+0x165667b1) + (a<<5);

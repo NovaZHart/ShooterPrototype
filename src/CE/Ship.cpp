@@ -16,6 +16,7 @@
 #include "CE/Utils.hpp"
 #include "CE/MultiMeshManager.hpp"
 #include "CE/Math.hpp"
+#include "CE/Salvage.hpp"
 
 using namespace godot;
 using namespace godot::CE;
@@ -46,24 +47,13 @@ Ship::WeaponRanges Ship::make_ranges(const vector<shared_ptr<Weapon>> &weapons) 
   return r;
 }
 
-static inline Ship::damage_array to_damage_array(Variant var,real_t clamp_min,real_t clamp_max) {
-  PoolRealArray a = static_cast<PoolRealArray>(var);
-  PoolRealArray::Read reader = a.read();
-  const real_t *reals = reader.ptr();
-  Ship::damage_array d;
-  int a_size=a.size(), d_size=d.size();
-  for(int i=0;i<d_size;i++)
-    d[i] = (i<a_size) ? clamp(reals[i],clamp_min,clamp_max) : 0;
-  d[DAMAGE_TYPELESS]=0; // typeless ignores resistances and passthrus
-  return d;
-}
-
 Rect2 location_rect_for_aabb(const AABB &aabb,real_t expand) {
   real_t xsize=aabb.size.x*expand, zsize=aabb.size.z*expand;
   return Rect2(Vector2(-xsize/2,-zsize/2),Vector2(xsize,zsize));
 }
 
 Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
+  CelestialObject(CelestialObject::SHIP),
   id(id),
   name(get<String>(dict,"name")),
   rid(get<RID>(dict,"rid")),
@@ -100,11 +90,11 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
   explosion_delay(max(0,get<int>(dict,"explosion_delay",0))),
   explosion_type(clamp(get<int>(dict,"explosion_type",DAMAGE_EXPLOSIVE),0,NUM_DAMAGE_TYPES-1)),
 
-  shield_resist(to_damage_array(dict["shield_resist"],MIN_RESIST,MAX_RESIST)),
-  shield_passthru(to_damage_array(dict["shield_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
-  armor_resist(to_damage_array(dict["armor_resist"],MIN_RESIST,MAX_RESIST)),
-  armor_passthru(to_damage_array(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU)),
-  structure_resist(to_damage_array(dict["structure_resist"],MIN_RESIST,MAX_RESIST)),
+  shield_resist(dict["shield_resist"],MIN_RESIST,MAX_RESIST),
+  shield_passthru(dict["shield_passthru"],MIN_PASSTHRU,MAX_PASSTHRU),
+  armor_resist(dict["armor_resist"],MIN_RESIST,MAX_RESIST),
+  armor_passthru(dict["armor_passthru"],MIN_PASSTHRU,MAX_PASSTHRU),
+  structure_resist(dict["structure_resist"],MIN_RESIST,MAX_RESIST),
 
   max_cooling(get<real_t>(dict,"cooling")),
   max_energy(max(1e-5f,get<real_t>(dict,"battery"))),
@@ -281,6 +271,58 @@ Ship::Ship(Dictionary dict, object_id id, MultiMeshManager &multimeshes):
 Ship::~Ship()
 {}
 
+void Ship::get_object_info(CelestialInfo &info) const {
+  info = { id, position, radius };
+}
+object_id Ship::get_object_id() const {
+  return id;
+}
+real_t Ship::get_object_radius() const {
+  return radius;
+}
+Vector3 Ship::get_object_xyz() const {
+  return position;
+}
+Vector2 Ship::get_object_xz() const {
+  return Vector2(position.x,position.z);
+}
+
+
+const hit_id_list_t &Ship::get_ships_within_range(CombatEngine &ce, real_t desired_range) {
+  FAST_PROFILING_FUNCTION;
+  if(nearby_enemies_range<desired_range || nearby_enemies_tick + ticks_per_second/6 < tick) {
+    nearby_enemies_tick = tick;
+    nearby_enemies_range = desired_range;
+    nearby_enemies.clear();
+
+    hit_list_t &object_hits = ce.get_objects_hit();
+    object_hits.clear();
+    ce.overlapping_circle(get_xz(),desired_range,ce.get_enemy_mask(faction),CombatEngine::FIND_SHIPS,object_hits,NEARBY_ENEMIES_MAX_HITS);
+    for(auto &hit : object_hits)
+      nearby_enemies.push_back(hit);
+
+    sort(nearby_enemies.begin(),nearby_enemies.end());
+  }
+  return nearby_enemies;
+}
+    
+const hit_id_list_t &
+Ship::get_ships_within_unguided_weapon_range(CombatEngine &ce,real_t fudge_factor) {
+  FAST_PROFILING_FUNCTION;
+  return get_ships_within_range(ce,range.unguided*fudge_factor);
+}
+    
+const hit_id_list_t &
+Ship::get_ships_within_weapon_range(CombatEngine &ce,real_t fudge_factor) {
+  FAST_PROFILING_FUNCTION;
+  return get_ships_within_range(ce,range.all*fudge_factor);
+}
+    
+const hit_id_list_t &
+Ship::get_ships_within_turret_range(CombatEngine &ce, real_t fudge_factor) {
+  FAST_PROFILING_FUNCTION;
+  return get_ships_within_range(ce,range.turrets*fudge_factor);
+}
 
 bool Ship::pull_back_to_standoff_range(const CombatEngine &ce,Ship &target,Vector3 &aim) {
   FAST_PROFILING_FUNCTION;
@@ -419,7 +461,7 @@ bool Ship::move_to_intercept(const CombatEngine &ce,double close, double slow,
   FAST_PROFILING_FUNCTION;
   if(immobile)
     return false;
-  const double big_dot_product = 0.95;
+  const double big_dot_product = 0.99;
   DVector3 position = this->position;
   DVector3 heading = get_heading_d(*this);
   DVector3 dp = tgt_pos - position;
@@ -620,8 +662,8 @@ void Ship::salvage_projectile(CombatEngine &ce,const Projectile &projectile) {
       cargo_mass = min(original_max_mass,old_mass+pickup*unit_mass);
       salvaged_value += pickup*salvage.cargo_unit_value;
       //Godot::print(name+" gained "+str(pickup*unit_mass)+"tn (of "+str(max_cargo_mass)+" max) and "+str(pickup*salvage.cargo_unit_value)+" (tot "+str(salvaged_value)+") by picking up "+str(pickup)+" units of "+str(salvage.cargo_name)+" ship cost "+str(cost));
+      ce.add_salvaged_items(*this,salvage.cargo_name,pickup,unit_mass);
     }
-    ce.add_salvaged_items(*this,projectile);
   }
 }
 
@@ -635,8 +677,8 @@ bool Ship::should_update_targetting(Ship &other) {
   } else if(range_check_timer.alarmed()) {
     // Every 25 seconds reevaluate target if target is out of range
     range_check_timer.reset();
-    real_t target_distance = position.distance_to(other.position);
-    return target_distance > 1.5*range.all;
+    real_t target_distance = distance2(position,other.position);
+    return target_distance > 1.5*range.all+10;
   }
   real_t hp = armor+shields+structure;
   return hp/4<damage_since_targetting_change;
@@ -734,42 +776,44 @@ real_t Ship::get_standoff_range(const Ship &target) {
   
   standoff_range_timer.reset();
   
-  real_t standoff_range = numeric_limits<real_t>::infinity();
+  real_t standoff_range = NAN;
   
   if(not weapons.size()) {
     // No weapons means no standoff range
     //Godot::print("Unarmed ship "+name+" cannot have a standoff range.");
-    return cached_standoff_range = standoff_range;
+    return cached_standoff_range = NAN;
   }
-  
-  Vector3 dp_ships = godot::CE::get_position(target) - godot::CE::get_position(*this);
-  real_t distance = dp_ships.length();
   
   for(auto &weapon_ptr : weapons) {
     Weapon &weapon = *weapon_ptr;
-    Vector3 dp_weapon = dp_ships - godot::CE::get_position(weapon).rotated(y_axis,rotation.y);
 
-    // The weapon may be closer to the target than the ship. Consider
-    // this when deciding the standoff range.
-    real_t untraveled_distance = dp_weapon.length() - distance;
+    if(weapon.antimissile)
+      continue;
+    
+    Vector3 weapon_position=CE::get_position(weapon);
 
+    real_t range=weapon_position.x;
+    
     if(weapon.guided) {
       // Guided weapon range depends on turn time.
       if(weapon.get_ammo() or weapon.reload_delay) {
         real_t turn_time = weapon.is_turret ? 0 : PI/weapon.projectile_turn_rate;
-        real_t travel = max(0.0f,weapon.projectile_range-weapon.terminal_velocity*turn_time);
-        standoff_range = min(standoff_range,travel+untraveled_distance);
+        range += max(0.0f,weapon.projectile_range-weapon.terminal_velocity*turn_time);
       }
     } else
-      standoff_range = min(standoff_range,weapon.projectile_range-untraveled_distance);
+      range += weapon.projectile_range;
+
+    // if(range<1)
+    //   Godot::print_warning(str(weapon.node_path)+" range is implausibly small: "+str(range),
+    //                        __FUNCTION__,__FILE__,__LINE__);
+
+    if(isfinite(standoff_range))
+      standoff_range = min(standoff_range,range);
+    else
+      standoff_range = range;
   }
 
-  if(standoff_range<2) {
-    Godot::print_warning(name+" standoff range is implausibly small: "+str(standoff_range),
-                         __FUNCTION__,__FILE__,__LINE__);
-  }
-  
-  //Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
+  // Godot::print("Ship "+name+" standoff range to "+target.name+" is "+str(standoff_range));
   
   return cached_standoff_range = max(0.0f,standoff_range);
 }
@@ -844,52 +888,6 @@ void Ship::update_confusion() {
   confusion = 0.999*(confusion+confusion_velocity*(confusion_multiplier*aim_multiplier));
 }
 
-static real_t apply_damage(real_t &damage,double &life,int type,
-                           const Ship::damage_array &resists,
-                           const Ship::damage_array &passthrus,bool allow_passthru) {
-  // Apply damage of the given type to life (shields, armor, or structure) based on
-  // resistances (resist) and optionally passthru (if non-null)
-  // On return:
-  //   damage = amount of damage not applied
-  //   life = life remaining after damage is applied
-
-  // Assumes 0<=type<NUM_DAMAGE_TYPES
-
-  if(life<=0 or damage<=0)
-    return 0.0f;
-
-  real_t applied = 1.0 - resists[type];
-  if(applied<1e-5)
-    return 0.0f;
-
-  real_t passed = 0.0f;
-  real_t taken = damage;
-
-  if(allow_passthru) {
-    real_t passthru = passthrus[type];
-    if(passthru>=1.0)
-      return 0.0f; // All damage is passed, so we have no more to do.
-    if(passthru>0) {
-      taken = (1.0-passthru)*damage;
-      passed = passthru*damage;
-    }
-  }
-
-  // Apply resistance to damage:
-  taken *= applied;
-
-  if(taken>life) {
-    // Too much damage for life.
-    // Pass remaining damage, after reversing resistances:
-    passed += (taken-life)/applied;
-    life = 0;
-  } else
-    life -= taken;
-
-  damage = passed;
-  return taken;
-}
-
 real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t energy_fraction,real_t thrust_fraction) {
   // Applies damage of the given type to the ship, considering fate,
   // resistances, and passthru. If structure becomes 0, marks the ship
@@ -910,11 +908,11 @@ real_t Ship::take_damage(real_t damage,int type,real_t heat_fraction,real_t ener
   real_t shield_damage=0, armor_damage=0, structure_damage=0;
   
   if(remaining>0) {
-    shield_damage = cargo_web_active ? 0 : apply_damage(remaining,shields,type,shield_resist,shield_passthru,true);
+    shield_damage = cargo_web_active ? 0 : apply_damage(remaining,shields,type,shield_resist,shield_passthru);
     if(remaining>0) {
-      armor_damage = apply_damage(remaining,armor,type,armor_resist,armor_passthru,true);
+      armor_damage = apply_damage(remaining,armor,type,armor_resist,armor_passthru);
       if(remaining>0)
-        structure_damage = apply_damage(remaining,structure,type,structure_resist,armor_passthru,false);
+        structure_damage = apply_damage(remaining,structure,type,structure_resist);
     }
   }
 
@@ -1062,20 +1060,21 @@ void Ship::update_near_objects(CombatEngine &ce) {
 
   nearby_hostiles_timer.reset();
 
-  vector<pair<real_t,pair<RID,object_id>>> search_results = ce.get_search_results();
-  search_results.clear();
-  ce.find_ships_in_radius(godot::CE::get_position(*this),100,ce.get_enemy_mask(faction),search_results);
   nearby_objects.clear();
-  for(auto & r : search_results)
-    nearby_objects.push_back(r.second);
+
+  hit_list_t &object_hits = ce.get_objects_hit();
+  object_hits.clear();
+  ce.overlapping_circle(get_xz(),NEAR_OBJECTS_RANGE,ce.get_enemy_mask(faction),CombatEngine::FIND_SHIPS,object_hits,NEAR_OBJECTS_MAX_HITS);
+  for(auto &hit : object_hits)
+    nearby_objects.push_back(hit);
 }
 
 void Ship::create_flotsam(CombatEngine &ce) {
   FAST_PROFILING_FUNCTION;
   for(auto & salvage_ptr : salvage) {
     Vector3 v = linear_velocity;
-    real_t flotsam_mass = 10.0f;
-    real_t speed = 50.0; //clamp(ship.explosion_impulse/flotsam_mass,10.0f,40.0f);
+    real_t flotsam_mass = FLOTSAM_MASS;
+    real_t speed = EXPLOSION_FLOTSAM_INITIAL_SPEED;
     speed = speed*(1+rand.randf())/2;
     real_t angle = rand.rand_angle();
     Vector3 heading = unit_from_angle(angle);
@@ -1084,6 +1083,6 @@ void Ship::create_flotsam(CombatEngine &ce) {
       Godot::print_warning(name+": has a salvage with no flotsam mesh",__FUNCTION__,__FILE__,__LINE__);
       return;
     }
-    ce.create_flotsam_projectile(*this,salvage_ptr,position,angle,v,flotsam_mass);
+    ce.create_flotsam_projectile(this,salvage_ptr,position,angle,v,flotsam_mass);
   }
 }
