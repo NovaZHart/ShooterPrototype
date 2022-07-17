@@ -38,7 +38,7 @@ namespace godot {
     const int PLAYER_FACTION = 0;
     const int FLOTSAM_FACTION = 1;
 
-    const int NUM_DAMAGE_TYPES = 13;
+    const int NUM_DAMAGE_TYPES = 17;
     enum damage_type {
       DAMAGE_TYPELESS = 0,    /* Damage that ignores resist and passthru (only for story scripts) */
       DAMAGE_LIGHT = 1,       /* Non-standing electromagnetic fields (ie. lasers) */
@@ -52,7 +52,11 @@ namespace godot {
       DAMAGE_PSIONIC = 9,     /* Mind over matter */
       DAMAGE_PLASMA = 10,     /* Super-heated matter */
       DAMAGE_CHARGE = 11,     /* Electric charge */
-      DAMAGE_SPACETIME = 12   /* Tear open rifts in the fabric of spacetime */
+      DAMAGE_RIFT = 12,       /* Tear open rifts in the fabric of spacetime (like a hyperspace rift) */
+      DAMAGE_TEMPORAL = 13,   /* Suddenly, half of your ship is running an hour before the other half */
+      DAMAGE_BIO = 14,        /* Damage that specifically attacks living things (infections, parasites, etc.) */
+      DAMAGE_LIFEFORCE = 15,  /* Directly harms the lifeforce, or soul, of the ship, if it has one */
+      DAMAGE_UNREALITY = 16   /* The ultimate damage type: rewriting reality to suit your whims. */
     };
     constexpr real_t MAX_RESIST = 0.75; // Lowest allowed resistance (fraction)
     constexpr real_t MIN_RESIST = -2.0; // Highest allowed resistance (fraction)

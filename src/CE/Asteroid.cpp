@@ -17,8 +17,12 @@ const DamageArray AsteroidTemplate::default_resistances {
   0.0f, 0.0f,
   // Antimatter:
   -1.0f,
-  // Explosive, psionic, plasma, charge, spacetime:
-  -0.1f, 0.0f, 0.0f, 0.0f, 0.0f
+  // Explosive, psionic, plasma, charge:
+  -0.1f, 0.0f, 0.0f, 0.0f,
+  // Rift, temporal, bio, lifeforce:
+  -0.3f, 0.0f, 0.5f, 0.75f,
+  // Unreality
+  0.0f
 };
   
 AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):

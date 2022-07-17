@@ -15,7 +15,7 @@ var fade_out_texture = preload('res://shaders/FadeOutTexture.shader')
 var shield_ellipse_texture = hyperspacing_texture
 var cargo_web_texture = preload('res://textures/cell-noise.jpg')
 
-# All constants MUST match src/CombatEngineData.hpp
+# All constants MUST match src/include/CE/Constants.hpp
 
 const FATED_TO_FLY: int = 0
 const FATED_TO_DIE: int = 1
@@ -56,7 +56,7 @@ const DEPARTING_MERCHANT_AI: int = 4
 
 const SALVAGE_TIME_LIMIT: float = 60.0
 
-const NUM_DAMAGE_TYPES: int = 13
+const NUM_DAMAGE_TYPES: int = 17
 const DAMAGE_TYPELESS: int = 0    # Damage that ignores resist and passthru (do not use)
 const DAMAGE_LIGHT: int = 1       # Non-standing electromagnetic fields (light, photons)
 const DAMAGE_HE_PARTICLE: int = 2 # Particles of matter with high kinetic energy (particle beam)
@@ -69,7 +69,12 @@ const DAMAGE_EXPLOSIVE: int = 8   # Ka-boom!
 const DAMAGE_PSIONIC: int = 9     # Power of mind over matter
 const DAMAGE_PLASMA: int = 10     # Super-heated matter
 const DAMAGE_CHARGE: int = 11     # Electric charge
-const DAMAGE_SPACETIME: int = 12  # Tear open rifts in the fabric of spacetime
+const DAMAGE_RIFT: int = 12       # Tear open rifts in the fabric of spacetime (like a hyperspace rift)
+const DAMAGE_TEMPORAL = 13        # Suddenly, half of your ship is running an hour before the other half
+const DAMAGE_BIO = 14             # Damage that specifically attacks living things (infections, parasites, etc.)
+const DAMAGE_LIFEFORCE = 15       # Directly harms the lifeforce, or soul, of the ship, if it has one
+const DAMAGE_UNREALITY = 16       # The ultimate damage type: rewriting reality to suit your whims.
+
 
 const DAMAGE_HELP_PAGES: PoolStringArray = PoolStringArray([
 	"rules/damage/typeless", # Typeless damage should never show up

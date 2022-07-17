@@ -10,5 +10,4 @@ item_size_y = 0
 hidden = true
 mount_type_display = "hidden"
 mount_type_all = "hidden"
-add_armor_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.2 )
-add_structure_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.4 )
+add_structure_resist = PoolRealArray( 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.4, 0, 0, 0, 0, -0.60828, -0.85 )
