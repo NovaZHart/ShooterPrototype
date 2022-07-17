@@ -928,11 +928,10 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
         continue;
       }
 
-      // Replace the asteroid's stats
+      // Replace the asteroid's stats and invalidate the state.  This
+      // ensures the asteroid will be regenerated with new stats next
+      // time it is needed.
       asteroid->set_template(palette.random_choice(rand));
-
-      // Ensure the state is reinitialized next time it is needed.
-      asteroid->invalidate_state();
 
       it=dead_asteroids.erase(it);
     }

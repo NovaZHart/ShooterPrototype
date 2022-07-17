@@ -41,7 +41,8 @@ namespace godot {
       real_t x,z;
 
       // Other derived quantities
-      real_t rotation_speed, scale;
+      real_t rotation_speed, scale, max_structure;
+      double structure;
 
       // Four random numbers generated from a relatively-expensive hash calculation:
       Color random_numbers;
@@ -55,6 +56,8 @@ namespace godot {
       PROP_GET_VAL(real_t,scale);
       PROP_GET_VAL(real_t,x);
       PROP_GET_VAL(real_t,z);
+      PROP_GET_VAL(real_t,max_structure);
+      PROP_GET_VAL(double,structure);
       PROP_GETSET_REF(Color,random_numbers);
       PROP_GETSET_VAL(real_t,valid_time);
       
@@ -83,9 +86,11 @@ namespace godot {
 
       // Create a new AsteroidState with an invalid state.
       AsteroidState():
-        x(0),z(0),random_numbers(0,0,0,0),valid_time(invalid_time)
+        x(0),z(0),rotation_speed(0),scale(1),
+        max_structure(EFFECTIVELY_INFINITE_HITPOINTS),structure(max_structure),
+        random_numbers(0,0,0,0),valid_time(invalid_time)
       {}
-      ~AsteroidState() {}
+      inline ~AsteroidState() {}
     };
 
     ////////////////////////////////////////////////////////////////////
@@ -105,7 +110,7 @@ namespace godot {
       // Name of the flotsam from the SalvagePalette for when this asteroid is destroyed
       String salvage;
 
-      // Structure of asteroid when totally undamaged.
+      // Structure of asteroid of unit radius when totally undamaged.
       real_t max_structure;
 
       // Resistance of asteroid to various damage types;
@@ -157,9 +162,6 @@ namespace godot {
       // Location of the asteroid in a cylindrical coordinate system at time 0
       real_t theta, r, y;
 
-      // Current structure of the asteroid, between 0 and max_structure.
-      double structure;
-
       // Cached values of time-varying state of asteroid, updated as needed.
       mutable AsteroidState state;
       
@@ -169,15 +171,13 @@ namespace godot {
       Asteroid(object_id id,real_t theta,real_t r,real_t y,std::shared_ptr<const AsteroidTemplate> templ):
         CelestialObject(ASTEROID),
         id(id), templ(templ), theta(theta), r(r), y(y),
-        structure(templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS),
         state()
       {}
 
       // Make an effectively invincible asteroid at location 0 with no mesh
       Asteroid():
         CelestialObject(ASTEROID),
-        id(-1), templ(), theta(0), r(0), y(0), 
-        structure(EFFECTIVELY_INFINITE_HITPOINTS), state()
+        id(-1), templ(), theta(0), r(0), y(0), state()
       {}
       
       ~Asteroid() {}
@@ -235,7 +235,7 @@ namespace godot {
       // invalid, this will also initialize the hash and random
       // colors.
       void update_state(real_t when,real_t orbit_period,real_t inner_radius,
-                        real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const;
+                        real_t max_rotation_speed,real_t min_scale,real_t scale_range) const;
 
       // Calculate the full transform for a multimesh instance based
       // on cached information in the asteroid state.
@@ -250,12 +250,12 @@ namespace godot {
       void set_template(std::shared_ptr<const AsteroidTemplate> reference);
 
       inline real_t get_max_structure() const {
-        return templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS;
+        return templ ? templ->get_max_structure()*get_radius() : EFFECTIVELY_INFINITE_HITPOINTS;
       }
 
       // How much structure is left?
       inline double get_structure() const {
-        return structure;
+        return state.structure;
       }
 
       // What is the name in the SalvagePalette of the flotsam that
@@ -271,7 +271,7 @@ namespace godot {
       
       // Does the asteroid have any structure left?
       inline bool is_alive() const {
-        return structure>0;
+        return state.structure>0;
       }
 
       // When it explodes, should this asteroid generate flotsam?
@@ -323,13 +323,13 @@ namespace godot {
       // Damage must be private so only AsteroidField can apply it.
       
       // Asteroid heals some amount of damage.
-      inline void heal_asteroid(double amount) {
-        structure = std::min(double(get_max_structure()),structure+amount);
+      inline void heal_asteroid(real_t amount) {
+        state.structure = std::min(double(get_max_structure()),state.structure+amount);
       }
 
       // Fully heal asteroid
       inline void heal_asteroid() {
-        structure = get_max_structure();
+        state.structure = get_max_structure();
       }
 
       // Receive a specified amount of damage:

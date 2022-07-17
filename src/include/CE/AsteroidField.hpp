@@ -233,7 +233,7 @@ namespace godot {
       // Ensure the asteroid has up-to-date knowledge of its state.
       inline bool update_state(const Asteroid &a,real_t time) const {
         if(a.state.needs_update_to(time)) {
-          a.update_state(time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range,!a.is_state_valid());
+          a.update_state(time,orbit_period,inner_radius,max_rotation_speed,min_scale,scale_range);
           return true;
         }
         return false;

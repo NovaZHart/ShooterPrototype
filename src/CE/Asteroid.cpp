@@ -67,7 +67,7 @@ Vector2 Asteroid::get_object_xz() const {
 
 real_t Asteroid::take_damage(real_t damage,int type) {
   const DamageArray &resistances = get_resistances();
-  apply_damage(damage,structure,type,resistances);
+  apply_damage(damage,state.structure,type,resistances);
   return damage;
 }
 
@@ -75,19 +75,27 @@ real_t Asteroid::take_damage(real_t damage,int type) {
 
 void Asteroid::set_template(shared_ptr<const AsteroidTemplate> temp) {
   this->templ = templ;
-  structure = templ ? templ->get_max_structure() : EFFECTIVELY_INFINITE_HITPOINTS;
+  invalidate_state();
 }
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 
-void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,real_t max_rotation_speed,real_t min_scale,real_t scale_range,bool initialize) const {
+void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,real_t max_rotation_speed,real_t min_scale,real_t scale_range) const {
   FAST_PROFILING_FUNCTION;
   static const std::hash<String> salvage_hash;
   static const std::hash<real_t> time_hash;
-  if(state.get_valid_time()==when)
-    return;
   
-  if(!state.is_valid()) {
+  if(state.get_valid_time()==when)
+    // State is valid and up to date, so there's nothing to do.
+    return;
+
+  // If flag initialize is true, the asteroid has not yet been
+  // generated, or died and is being regenerated. That means we need
+  // new random numbers, a new shape, new rotation, and new
+  // max_structure.
+  bool initialize = !state.is_valid();
+  
+  if(initialize) {
     // Get a decent hash.
     static const real_t angle_to_int = (1<<30)/TAUf;
     uint32_t hash = fmodf(theta,TAUf) * angle_to_int;
@@ -98,8 +106,6 @@ void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,
     hash = CheapRand32::hash(hash);
     hash ^= static_cast<uint32_t>(fmodf(orbit_period*1024,1048576.0f)*(1<<20));
     hash = CheapRand32::hash(hash);
-    hash ^= static_cast<uint32_t>(fmodf(get_max_structure()*1024,1048576.0f));
-    hash = CheapRand32::hash(hash);
     if(templ) {
       size_t sh = salvage_hash(templ->get_cargo());
       hash ^= sh;
@@ -108,7 +114,6 @@ void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,
     }
     hash = CheapRand32::hash(hash);
     hash ^= time_hash(when);
-    //hash = CheapRand32::hash(hash);  // constructor will hash one more time for us
 
     // Use the hash to generate some random numbers.
     state.set_random_numbers(CheapRand32(hash).rand_color());
@@ -119,8 +124,17 @@ void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,
 
   state.x = r_now*cosf(theta_now);
   state.z = -r_now*sinf(theta_now);
-  state.rotation_speed = state.random_numbers.r*max_rotation_speed;
-  state.scale = state.random_numbers.b*scale_range + min_scale;
+  
+  if(initialize) {
+    state.rotation_speed = state.random_numbers.r*max_rotation_speed;
+    state.scale = state.random_numbers.b*scale_range + min_scale;
+    if(templ)
+      state.max_structure = state.scale*state.scale*templ->get_max_structure();
+    else
+      state.max_structure = EFFECTIVELY_INFINITE_HITPOINTS;
+    state.structure = state.max_structure;
+  }
+
   state.set_valid_time(when);
 }
 
