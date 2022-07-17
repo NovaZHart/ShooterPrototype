@@ -228,6 +228,24 @@ class Flotsam extends simple_tree.SimpleNode:
 	var cargo: float = 0.0
 	const default_grab_radius: float = 0.25
 	var grab_radius: float = default_grab_radius
+	var mesh_path: String = ''
+	var loaded_mesh: Mesh = null
+	var tried_to_load_mesh: bool =false
+	
+	func load_mesh():
+		if tried_to_load_mesh:
+			return loaded_mesh
+		var loaded = null
+		if mesh_path:
+			loaded = load(mesh_path)
+		if not loaded:
+			loaded_mesh = null
+		elif not ( loaded is Mesh ):
+			push_warning('Non-mesh at flotsam mesh resource path '+str(mesh_path))
+			loaded_mesh = null
+		else:
+			loaded_mesh = loaded
+		tried_to_load_mesh = true
 	
 	func _init(content: Dictionary):
 		display_name=content.get('display_name','(Unnamed)')
@@ -236,6 +254,8 @@ class Flotsam extends simple_tree.SimpleNode:
 		fuel=content.get('fuel',0.0)
 		grab_radius=content.get('grab_radius',default_grab_radius)
 		cargo = content.get('cargo',0.0)
+		mesh_path = content.get('mesh_path','')
+		loaded_mesh = null
 		#flotsam_scale=content.get('flotsam_scale',default_flotsam_scale)
 		#var flotsam_mesh_path=content.get('flotsam_mesh_path')
 		#if flotsam_mesh_path:
@@ -262,12 +282,14 @@ class Flotsam extends simple_tree.SimpleNode:
 	func uses_ship_cargo():
 		return not not cargo
 		
-	func encode_for_native(mesh: Mesh,max_armor: float = 2000.0,
+	func encode_for_native(mesh: Mesh = null, max_armor: float = 2000.0,
 			max_fuel: float = 20, ship_cargo=null,
 			random_fraction: bool=true) -> Dictionary:
 		var product = random_product(ship_cargo,random_fraction)
 		if not product:
 			product = [ '',0,0,0,0 ]
+		if not mesh:
+			mesh = load_mesh()
 		return {
 			'flotsam_mesh': mesh,
 			'flotsam_scale': 1.0,
