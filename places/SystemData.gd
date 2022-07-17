@@ -154,8 +154,17 @@ func generate_asteroid_field(inner_radius: float,thickness: float) -> Dictionary
 	return {
 		"asteroids": generate_asteroid_palette(),
 		"layers": generate_asteroid_layers(inner_radius,thickness),
-		"salvage": []
+		"salvage": generate_salvage_palette()
 	}
+
+func generate_salvage_palette() -> Dictionary:
+	var scrap_metal = game_state.universe.flotsam.get_child_with_name("scrap_metal")
+	var salvage_palette: Dictionary = {}
+	if scrap_metal:
+		salvage_palette["scrap_metal"] = scrap_metal.encode_for_native(
+			preload('res://equipment/engines/IonEngine4x4.mesh'),0,0,null,false)
+	print("asteroid salvage palette is "+str(salvage_palette))
+	return salvage_palette
 
 func generate_asteroid_palette() -> Array:
 	var mesh: ArrayMesh = utils.native.make_cube_sphere_v2(1,5)
@@ -166,12 +175,11 @@ func generate_asteroid_palette() -> Array:
 	for i in range(mesh.get_surface_count()):
 		mesh.surface_set_material(i,shade)
 	
-	assert(mesh)
 	return [ [ 1.0, {
 		"mesh": mesh,
 		"color_data": Color(0.1,0.3,0.5,0.7),
-		"salvage": "",
-		"max_structure": 10000,
+		"salvage": "scrap_metal",
+		"max_structure": 2000,
 		} ] ]
 
 func generate_asteroid_layers(inner_radius: float,thickness: float) -> Array:

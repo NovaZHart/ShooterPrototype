@@ -851,13 +851,34 @@ real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t
     // If the asteroid had cargo, make flotsam.
     std::shared_ptr<const Salvage> salvage_ptr = salvage->get_salvage(asteroid.get_cargo());
     if(salvage_ptr) {
+      // Area as a fraction of an unscaled asteroid (radius 1)
+      real_t area = asteroid.get_scale()*asteroid.get_scale();
+
+      // Flotsam count is the square root of the area:
+      int flotsam_count = clamp(int(ceilf(sqrtf(area))),1,6);
+
+      // Total product count is proportional to the area, and divided
+      // evenly among all asteroids.
+      real_t quantity_multiplier = clamp(area/flotsam_count,0.2f,8.0f);
+      
       layer.update_state(asteroid,now);
+
+      // Flotsam flies in the direction of the asteroid, plus a random component,
+      // at much higher than the velocity of the asteroid
       real_t r = asteroid.get_r()+layer.inner_radius;
-      real_t speed = r*layer.orbit_mult;
+      real_t speed = r*layer.orbit_mult*2;
       Vector3 position = asteroid.get_x0z();
       Vector3 pnorm = position.normalized();
-      Vector3 velocity(-pnorm.z*speed,0,pnorm.x*speed);
-      ce.create_flotsam_projectile(nullptr,salvage_ptr,position,ce.rand_angle(),velocity,FLOTSAM_MASS);
+      Vector3 asteroid_velocity(-pnorm.z*speed,0,pnorm.x*speed);
+
+      for(int i=0;i<flotsam_count;i++) {
+        real_t rand_angle = rand.rand_angle();
+        Vector3 velocity = velocity + unit_from_angle(rand_angle)*30;
+        int max_count = salvage_ptr->cargo_count;
+        int count = max(1,int(max_count*quantity_multiplier));
+        std::shared_ptr<const Salvage> actualized = make_shared<const Salvage>(*salvage_ptr,count);
+        ce.create_flotsam_projectile(nullptr,actualized,position,rand_angle,velocity,FLOTSAM_MASS);
+      }
     }
     return remaining;
   } else

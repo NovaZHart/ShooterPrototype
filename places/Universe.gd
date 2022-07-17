@@ -261,8 +261,28 @@ class Flotsam extends simple_tree.SimpleNode:
 
 	func uses_ship_cargo():
 		return not not cargo
-
-	func random_product(ship_cargo = null):
+		
+	func encode_for_native(mesh: Mesh,max_armor: float = 2000.0,
+			max_fuel: float = 20, ship_cargo=null,
+			random_fraction: bool=true) -> Dictionary:
+		var product = random_product(ship_cargo,random_fraction)
+		if not product:
+			product = [ '',0,0,0,0 ]
+		return {
+			'flotsam_mesh': mesh,
+			'flotsam_scale': 1.0,
+			'cargo_name': product[Commodities.Products.NAME_INDEX],
+			'cargo_count': product[Commodities.Products.QUANTITY_INDEX],
+			'cargo_unit_mass': product[Commodities.Products.MASS_INDEX],
+			'cargo_unit_value': product[Commodities.Products.VALUE_INDEX],
+			'armor_repair': armor_repair*max_armor,
+			'structure_repair': structure_repair,
+			'fuel': fuel*max_fuel,
+			"spawn_duration": combat_engine.SALVAGE_TIME_LIMIT,
+			'grab_radius': utils.mesh_radius(mesh),
+		}
+	
+	func random_product(ship_cargo = null, random_fraction: bool = true):
 		if cargo and ship_cargo: # and randf()<cargo:
 			var keys = ship_cargo.all.keys()
 			if keys:
@@ -272,17 +292,19 @@ class Flotsam extends simple_tree.SimpleNode:
 					var quantity =  product[Commodities.Products.QUANTITY_INDEX]
 					if quantity:
 						product = Array(product)
-						product[Commodities.Products.QUANTITY_INDEX] = int(max(1,ceil(randf()*quantity)))
+						if random_fraction:
+							quantity = int(max(1,ceil(randf()*quantity)))
+						product[Commodities.Products.QUANTITY_INDEX] = quantity
 						return product
 		if not products:
 			return null
 		else:
 			var index = randi()%products.size()
 			var product: Array = products[index].duplicate(true)
-			var count: int = int(ceil(product[Commodities.Products.QUANTITY_INDEX]))
+			var count: int = int(max(1,ceil(product[Commodities.Products.QUANTITY_INDEX])))
 			var original = products[index][Commodities.Products.QUANTITY_INDEX]
-			if count>1:
-				var selected = 1+randi()%(count-1)
+			if random_fraction:
+				var selected = 1+randi()%count
 				#print("Randomly selecting "+str(selected)+" of "+str(count)+" "+str(product[Commodities.Products.NAME_INDEX]));
 				count = selected
 			product[Commodities.Products.QUANTITY_INDEX] = count

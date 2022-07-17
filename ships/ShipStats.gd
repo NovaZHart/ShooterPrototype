@@ -166,6 +166,8 @@ func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 	if not flotsam_meshes or not flotsam:
 		return result
 	var keys_left: Array
+	var max_armor = combined_stats.get('max_armor',2000.0)
+	var max_fuel = combined_stats.get('max_fuel',20.0)
 	for mesh in flotsam_meshes:
 		if not keys_left:
 			keys_left = flotsam.keys()
@@ -179,24 +181,7 @@ func add_salvage(result: Array,flotsam_meshes: Array,flotsam: Dictionary):
 				continue
 			if flotsam_node.uses_ship_cargo() and not cargo:
 				continue
-			var product = flotsam_node.random_product(cargo)
-			if not product:
-				product=['',0,0,0,0]
-			var entry = {
-				'flotsam_mesh': mesh,
-				'flotsam_scale': 1.0,
-				'cargo_name': product[Commodities.Products.NAME_INDEX],
-				'cargo_count': product[Commodities.Products.QUANTITY_INDEX],
-				'cargo_unit_mass': product[Commodities.Products.MASS_INDEX],
-				'cargo_unit_value': product[Commodities.Products.VALUE_INDEX],
-				'armor_repair': flotsam_node.armor_repair*combined_stats.get('max_armor',2000),
-				'structure_repair': flotsam_node.structure_repair,
-				'fuel': flotsam_node.fuel*combined_stats.get('max_fuel',20),
-				"spawn_duration": combat_engine.SALVAGE_TIME_LIMIT,
-				'grab_radius': utils.mesh_radius(mesh),
-			}
-	#		print(get_name()+' flotsam '+str(mesh.resource_path)+' product '+str(entry['cargo_name'])+' * '+str(entry['cargo_count'])+' @ '+str(entry['cargo_unit_mass']))
-			result.append(entry)
+			result.append(flotsam_node.encode_for_native(mesh,max_armor,max_fuel,cargo,true))
 			break
 
 func select_salvage():
