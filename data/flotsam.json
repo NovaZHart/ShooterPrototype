@@ -166,7 +166,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "iron": 15000.0
+                        "iron": 3000.0
                     }
                 }
             ],
@@ -176,7 +176,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "copper": 15000.0
+                        "copper": 3000.0
                     }
                 }
             ],
@@ -186,7 +186,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "nickel": 15000.0
+                        "nickel": 3000.0
                     }
                 }
             ],
@@ -196,7 +196,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "aluminum": 15000.0
+                        "aluminum": 3000.0
                     }
                 }
             ],
@@ -206,7 +206,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "zinc": 15000.0
+                        "zinc": 3000.0
                     }
                 }
             ],
@@ -216,7 +216,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "lead": 15000.0
+                        "lead": 3000.0
                     }
                 }
             ],
@@ -296,7 +296,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "palladium": 100.0
+                        "palladium": 150.0
                     }
                 }
             ],
@@ -306,7 +306,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "ruthenium": 100.0
+                        "ruthenium": 150.0
                     }
                 }
             ],
@@ -316,7 +316,7 @@
                     "armor_repair": 0,
                     "fuel": 0,
                     "products": {
-                        "plutonium": 100.0
+                        "plutonium": 150.0
                     }
                 }
             ],

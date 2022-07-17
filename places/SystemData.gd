@@ -14,6 +14,7 @@ var center_fuel_recharge: float
 var locality_adjustments: Dictionary = {}
 
 var asteroid_fields: Array = []
+var oort_clouds: Array = [ { 'thickness':2000, 'inner_radius':1500, 'asteroids':[ 'simple_metals' ] } ]
 
 var SphereTool = preload('res://bin/spheretool.gdns')
 var SimpleAsteroidShader = preload('res://shaders/SimpleAsteroidShader.shader')
@@ -148,18 +149,30 @@ func fill_system(var system,planet_time: float,ship_time: float,detail: float,sh
 	for field in asteroid_fields:
 		system.spawn_asteroid_field(generate_asteroid_field(
 			field.get("inner_radius",500), field.get("thickness",100),
-			field.get('asteroids',['simple_metals']) ))
+			field.get('asteroids',['simple_metals']),false))
+	for field in oort_clouds:
+		system.spawn_asteroid_field(generate_asteroid_field(
+			field.get("inner_radius",500), field.get("thickness",100),
+			field.get('asteroids',['simple_metals']),true))
 	return []
 
-func generate_asteroid_field(inner_radius: float,thickness: float,asteroids: Array) -> Dictionary:
+func generate_asteroid_field(inner_radius: float,thickness: float,asteroids: Array,oort_cloud: bool = false) -> Dictionary:
+	var spacing_multiplier = 1
+	var scale_multiplier = 1
+	var iterations = 7
+	if oort_cloud:
+		spacing_multiplier = 20
+		scale_multiplier = 3
+		iterations = 10
 	var result = {
 		"asteroids": [],
-		"layers": generate_asteroid_layers(inner_radius,thickness),
+		"layers": generate_asteroid_layers(inner_radius,thickness,spacing_multiplier,scale_multiplier,iterations),
 		"salvage": {}
 	}
+
 	for ast in asteroids:
-		var aparent = game_state.asteroids
-		var astnode = aparent.get_child_with_name(ast)
+		var astparent = game_state.asteroids
+		var astnode = astparent.get_child_with_name(ast)
 		assert(astnode)
 		if not astnode:
 			push_warning('Ignoring invalid asteroid palette name "'+str(ast)+'"')
@@ -182,7 +195,7 @@ func generate_asteroid_field(inner_radius: float,thickness: float,asteroids: Arr
 		if not ast[1].get('mesh',null):
 			if not default_asteroid_mesh:
 				push_warning('Using default asteroid mesh.')
-				default_asteroid_mesh = generate_default_asteroid_mesh()
+				default_asteroid_mesh = generate_default_asteroid_mesh(oort_cloud)
 			ast[1]['mesh'] = default_asteroid_mesh
 		assert(ast[1]['mesh'])
 	
@@ -205,8 +218,12 @@ func generate_salvage_palette() -> Dictionary:
 			preload('res://equipment/engines/IonEngine4x4.mesh'),0,0,null,false)
 	return salvage_palette
 
-func generate_default_asteroid_mesh() -> Mesh:
-	var mesh: ArrayMesh = utils.native.make_cube_sphere_v2(1,5)
+func generate_default_asteroid_mesh(oort_cloud: bool = false) -> Mesh:
+	var mesh: ArrayMesh
+	if oort_cloud:
+		mesh = utils.native.make_cube_sphere_v2(1,9)
+	else:
+		mesh = utils.native.make_cube_sphere_v2(1,5)
 	var shade=ShaderMaterial.new()
 	shade.set_shader(SimpleAsteroidShader)
 	shade.set_shader_param('tex1',AsteroidTexture1)
@@ -224,28 +241,28 @@ func generate_asteroid_palette() -> Array:
 		"max_structure": 2000,
 		} ] ]
 
-func generate_asteroid_layers(inner_radius: float,thickness: float) -> Array:
+func generate_asteroid_layers(inner_radius: float,thickness: float,spacing_multiplier: float,scale_multiplier,iterations) -> Array:
 	var result: Array = []
-	var nsizes = 7
 	var tfac = (inner_radius+0.75*thickness)/(inner_radius+0.25*thickness)
-	for i in range(nsizes):
-		var fac = max(0.5,1-0.09*i)
-		var spd = max(6,10-i*0.6)
-		var scl = 0.3*i + 1
+	for i in range(iterations):
+		var f = i/(iterations+1.0)
+		var fac = max(0.5,1-0.42*f)
+		var spd = max(6,10-f*4.2)
+		var scl = 2.1*f + 1
 		result.append({
 			"mean_velocity": spd,
 			"inner_radius": inner_radius+thickness*0.5*(1-fac),
 			"thickness": thickness*0.51*fac,
-			"spacing": 7+i*scl,
-			"min_scale": 0.8*scl,
-			"max_scale": 1.2*scl
+			"spacing": 7*(1+f*scl)*spacing_multiplier,
+			"min_scale": 0.8*scl*scale_multiplier,
+			"max_scale": 1.2*scl*scale_multiplier
 		})
 		result.append({
 			"mean_velocity": spd*tfac,
 			"inner_radius": inner_radius+thickness*0.5,
 			"thickness": thickness*0.5*fac,
-			"spacing": 7+i*scl,
-			"min_scale": 0.8*scl,
-			"max_scale": 1.2*scl
+			"spacing": 7*(1+f*scl)*spacing_multiplier,
+			"min_scale": 0.8*scl*scale_multiplier,
+			"max_scale": 1.2*scl*scale_multiplier
 		})
 	return result
