@@ -132,7 +132,7 @@
                     }
                 }
             ],
-
+           
             "scrap_metal": [
                 "Flotsam", {
                     "display_name": "Scrap Metal",
@@ -157,7 +157,170 @@
                         "plutonium": 100.0
                     }
                 }
-            ]
+            ],
+
+
+            "iron": [
+                "Flotsam", {
+                    "display_name": "iron",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "iron": 15000.0
+                    }
+                }
+            ],
+            "copper": [
+                "Flotsam", {
+                    "display_name": "copper",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "copper": 15000.0
+                    }
+                }
+            ],
+            "nickel": [
+                "Flotsam", {
+                    "display_name": "nickel",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "nickel": 15000.0
+                    }
+                }
+            ],
+            "aluminum": [
+                "Flotsam", {
+                    "display_name": "aluminum",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "aluminum": 15000.0
+                    }
+                }
+            ],
+            "zinc": [
+                "Flotsam", {
+                    "display_name": "zinc",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "zinc": 15000.0
+                    }
+                }
+            ],
+            "lead": [
+                "Flotsam", {
+                    "display_name": "lead",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "lead": 15000.0
+                    }
+                }
+            ],
+            "cobalt": [
+                "Flotsam", {
+                    "display_name": "cobalt",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "cobalt": 500.0
+                    }
+                }
+            ],
+            "titanium": [
+                "Flotsam", {
+                    "display_name": "titanium",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "titanium": 500.0
+                    }
+                }
+            ],
+            "silver": [
+                "Flotsam", {
+                    "display_name": "silver",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "silver": 500.0
+                    }
+                }
+            ],
+            "gold": [
+                "Flotsam", {
+                    "display_name": "gold",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "gold": 500.0
+                    }
+                }
+            ],
+            "platinum": [
+                "Flotsam", {
+                    "display_name": "platinum",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "platinum": 500.0
+                    }
+                }
+            ],
+            "iridium": [
+                "Flotsam", {
+                    "display_name": "iridium",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "iridium": 500.0
+                    }
+                }
+            ],
+            "rhodium": [
+                "Flotsam", {
+                    "display_name": "rhodium",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "rhodium": 500.0
+                    }
+                }
+            ],
+            "palladium": [
+                "Flotsam", {
+                    "display_name": "palladium",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "palladium": 100.0
+                    }
+                }
+            ],
+            "ruthenium": [
+                "Flotsam", {
+                    "display_name": "ruthenium",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "ruthenium": 100.0
+                    }
+                }
+            ],
+            "plutonium": [
+                "Flotsam", {
+                    "display_name": "plutonium",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "plutonium": 100.0
+                    }
+                }
+            ],
+            
 
         }
     ]

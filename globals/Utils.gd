@@ -9,6 +9,11 @@ func noop():
 func string_join(string_list: Array,separator: String) -> String:
 	return native.string_join(string_list,separator)
 
+func update_dict(dest: Dictionary, src: Dictionary) -> Dictionary:
+	for key in src:
+		dest[key] = src[key]
+	return dest
+
 func _init():
 	var the_seed = OS.get_system_time_msecs()
 	print('Setting random seed to '+str(the_seed))

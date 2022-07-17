@@ -657,8 +657,13 @@ void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
   FAST_PROFILING_FUNCTION;
   result.clear();
   result.resize(salvaged_items.size());
-  for(auto &dict : salvaged_items)
-    result.append(dict);
+  int i=0;
+  for(auto &dict : salvaged_items) {
+    if(!dict.size())
+      Godot::print_warning("Empty dict seen in salvaged_items",
+                           __FUNCTION__,__FILE__,__LINE__);
+    result[i++]=dict;
+  }
 }
 
 

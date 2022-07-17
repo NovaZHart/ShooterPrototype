@@ -1,0 +1,87 @@
+{
+    "asteroids": [ "SimpleNode", {
+        "simple_metals": [
+            "AsteroidPalette",
+            [ "Array", 10.0, {
+                "color_data": [ "Color", 0.71, 0.31, 0.18, 1.0 ],
+                "salvage": "iron",
+                "max_structure": 1000.0
+            } ],
+            [ "Array", 10.0, {
+                "color_data": [ "Color", 0.74, 0.7, 0.54, 0.8 ],
+                "salvage": "copper",
+                "max_structure": 900.0
+            } ],
+            [ "Array", 10.0, {
+                "color_data": [ "Color", 0.76, 0.88, 0.9, 1.0 ],
+                "salvage": "nickel",
+                "max_structure": 800.0
+            } ],
+            [ "Array", 10.0, {
+                "color_data": [ "Color", 0.69, 0.75, 0.81, 0.7 ],
+                "salvage": "aluminum",
+                "max_structure": 800.0
+            } ],
+            [ "Array", 10.0, {
+                "color_data": [ "Color", 0.69, 0.81, 0.80, 0.7 ],
+                "salvage": "zinc",
+                "max_structure": 700.0
+            } ],
+            [ "Array", 10.0, {
+                "color_data": [ "Color", 0.66, 0.56, 0.57, 0.4 ],
+                "salvage": "lead",
+                "max_structure": 600.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.58, 0.57, 0.74, 0.3 ],
+                "salvage": "cobalt",
+                "max_structure": 1000.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.85, 0.82, 0.75, 0.5 ],
+                "salvage": "titanium",
+                "max_structure": 1600.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.94, 0.84, 0.71, 0.7 ],
+                "salvage": "silver",
+                "max_structure": 1100.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.92, 0.9, 0.61, 0.2 ],
+                "salvage": "gold",
+                "max_structure": 900.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.95, 0.81, 0.62, 0.3 ],
+                "salvage": "platinum",
+                "max_structure": 1200.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.95, 0.62, 0.74, 0.4 ],
+                "salvage": "iridium",
+                "max_structure": 1100.0
+            } ],
+            [ "Array", 3.0, {
+                "color_data": [ "Color", 0.98, 0.83, 0.62, 0.8 ],
+                "salvage": "rhodium",
+                "max_structure": 1100.0
+            } ],
+            [ "Array", 1.0, {
+                "color_data": [ "Color", 0.98, 0.97, 0.62, 0.0 ],
+                "salvage": "palladium",
+                "max_structure": 3000.0
+            } ],
+            [ "Array", 1.0, {
+                "color_data": [ "Color", 0.92, 0.98, 0.62, 0.0 ],
+                "salvage": "ruthenium",
+                "max_structure": 3000.0
+            } ],
+            [ "Array", 1.0, {
+                "color_data": [ "Color", 0.62, 0.98, 0.62, 0.0 ],
+                "salvage": "plutonium",
+                "max_structure": 3000.0
+            } ]
+        ]
+    }]
+}

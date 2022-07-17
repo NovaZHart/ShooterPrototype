@@ -10,6 +10,7 @@ var fleets: simple_tree.SimpleNode
 var factions: Factions.FactionList
 var ui: simple_tree.SimpleNode
 var flotsam: simple_tree.SimpleNode
+var asteroids: simple_tree.SimpleNode
 var links: Dictionary = {}
 var data_mutex: Mutex = Mutex.new() # control access to children, links, selection, last_id
 var cached_parts: Dictionary
@@ -57,6 +58,9 @@ func _init():
 	
 	flotsam = simple_tree.SimpleNode.new()
 	mandatory_add_child(flotsam,'flotsam')
+	
+	asteroids = simple_tree.SimpleNode.new()
+	mandatory_add_child(asteroids,'asteroids')
 
 func is_a_system() -> bool: return false
 func is_a_planet() -> bool: return false
@@ -107,7 +111,9 @@ static func decode_children(parent, children):
 		return
 	for child_name in children:
 		var decoded = decode_helper(children[child_name])
-		if not decoded.has_method('set_name'):
+		if not decoded:
+			push_error('null child "'+str(child_name)+'"')
+		elif not decoded.has_method('set_name'):
 			push_error('invalid child')
 		else:
 			decoded.set_name(child_name)
@@ -219,6 +225,54 @@ static func decode_MultiMount(v):
 static func encode_MultiMount(m: MultiMount):
 	return [ 'MultiMount', encode_children(m) ]
 
+class AsteroidPalette extends simple_tree.SimpleNode:
+	var contents: Array = []
+	var palettes = null
+	func _init(content_in: Array):
+		for c in content_in:
+			if c is Array and len(c)==2 and c[0]>0 and c[1] is Dictionary:
+				contents.append(c)
+			else:
+				push_error('Invalid item in AsteroidPalette: '+str(c))
+	func get_palettes(flotsam) -> Array:
+		if palettes:
+			return palettes
+		var asteroids: Array = []
+		var salvage: Dictionary = {}
+		for weight_asteroid in contents:
+			var asteroid = weight_asteroid[1]
+			var asteroid_salvage = asteroid.get('salvage',null)
+			if not asteroid_salvage:
+				push_warning('Ignoring asteroid without a salvage name: '+str(asteroid))
+				continue
+			if not salvage.has(asteroid_salvage):
+				var flot = flotsam.get_child_with_name(asteroid_salvage)
+				if not flot:
+					push_warning('Ignoring asteroid with invalid salvage name "'+str(asteroid_salvage)+'"')
+					continue
+				salvage[asteroid_salvage] = flot.encode_for_native(null,0,0,null,false)
+			asteroids.append(weight_asteroid)
+		palettes = [asteroids, salvage]
+		return palettes
+	func encode_for_native() -> Array:
+		return contents
+
+static func encode_AsteroidPalette(m: AsteroidPalette):
+	var result: Array = [ "AsteroidPalette" ]
+	result.append_array(m.contents)
+	return result
+
+static func decode_AsteroidPalette(v):
+	if not v is Array or not len(v)>0 or not v[0]=='AsteroidPalette':
+		push_error('Invalid input to decode_AsteroidPalette')
+		return null
+	var entries = []
+	for i in range(1,len(v)):
+		entries.append(decode_helper(v[i]))
+	var ap = AsteroidPalette.new(entries)
+	assert(ap.contents)
+	return ap
+
 class Flotsam extends simple_tree.SimpleNode:
 	var display_name: String
 	var products: Array = []
@@ -231,21 +285,6 @@ class Flotsam extends simple_tree.SimpleNode:
 	var mesh_path: String = ''
 	var loaded_mesh: Mesh = null
 	var tried_to_load_mesh: bool =false
-	
-	func load_mesh():
-		if tried_to_load_mesh:
-			return loaded_mesh
-		var loaded = null
-		if mesh_path:
-			loaded = load(mesh_path)
-		if not loaded:
-			loaded_mesh = null
-		elif not ( loaded is Mesh ):
-			push_warning('Non-mesh at flotsam mesh resource path '+str(mesh_path))
-			loaded_mesh = null
-		else:
-			loaded_mesh = loaded
-		tried_to_load_mesh = true
 	
 	func _init(content: Dictionary):
 		display_name=content.get('display_name','(Unnamed)')
@@ -278,7 +317,22 @@ class Flotsam extends simple_tree.SimpleNode:
 					product[Commodities.Products.QUANTITY_INDEX] = count
 					products.append(product)
 					continue
-
+	
+	func load_mesh():
+		if tried_to_load_mesh:
+			return loaded_mesh
+		var loaded = null
+		if mesh_path:
+			loaded = load(mesh_path)
+		if not loaded:
+			loaded_mesh = null
+		elif not ( loaded is Mesh ):
+			push_warning('Non-mesh at flotsam mesh resource path '+str(mesh_path))
+			loaded_mesh = null
+		else:
+			loaded_mesh = loaded
+		tried_to_load_mesh = true
+	
 	func uses_ship_cargo():
 		return not not cargo
 		
@@ -843,7 +897,7 @@ func load_places_from_json(prefix: String) -> bool:
 	assert(children_.has('ship_designs'))
 	assert(children_.has('fleets'))
 	var all_encoded: Array = []
-	var input_keys: Array = [ "factions", "fleets", "ship_designs", "systems", "ui", "flotsam" ]
+	var input_keys: Array = [ "factions", "fleets", "ship_designs", "systems", "ui", "flotsam", 'asteroids' ]
 	var context = prefix+"*.json"
 	for input_key in input_keys:
 		var filename: String = prefix+str(input_key)+".json"
@@ -872,6 +926,7 @@ func decode_places(json_strings,context) -> bool:
 	assert(children_.has('fleets'))
 	assert(children_.has('ship_designs'))
 	assert(children_.has('flotsam'))
+	assert(children_.has('asteroids'))
 	var content: Dictionary = {}
 	for json_string_context in json_strings:
 		var json_string: String = json_string_context[0]
@@ -892,13 +947,18 @@ func decode_places(json_strings,context) -> bool:
 			content[key] = entry[key]
 	links.clear()
 
-	var content_flotsam = content['flotsam']
-	if content_flotsam:
-		content_flotsam.set_name('flotsam')
-		var a = add_child(content_flotsam)
-		assert(a)
-		flotsam = get_child_with_name('flotsam')
-
+	
+	for x in [ 'flotsam', 'asteroids' ]:
+		var content_x = content[x]
+		if content_x:
+			content_x.set_name(x)
+			var a = add_child(content_x)
+			assert(a)
+	flotsam = get_child_with_name('flotsam')
+	assert(flotsam)
+	asteroids = get_child_with_name('asteroids')
+	assert(asteroids)
+	
 	var content_designs = content['ship_designs']
 	if content_designs or not content_designs is simple_tree.SimpleNode:
 		for design_name in ship_designs.get_child_names():
@@ -1016,6 +1076,8 @@ static func decode_helper(what,key=null):
 			return decode_ProductsNode(what)
 		elif what[0] == 'Flotsam':
 			return decode_Flotsam(what)
+		elif what[0] == 'AsteroidPalette':
+			return decode_AsteroidPalette(what)
 		elif what[0] == 'SimpleNode':
 			if len(what)>1:
 				var result = simple_tree.SimpleNode.new()
@@ -1026,7 +1088,12 @@ static func decode_helper(what,key=null):
 			else:
 				push_error('Empty SimpleNode declaration')
 		elif what[0]=='Resource' and len(what)>1:
-			return ResourceLoader.load(str(what[1]))
+			var loadme = str(what[1])
+			if ResourceLoader.exists(loadme):
+				return ResourceLoader.load(loadme)
+			else:
+				push_warning('No such resource: "'+loadme+'"')
+				return null
 	elif [TYPE_INT,TYPE_REAL,TYPE_STRING,TYPE_BOOL].has(typeof(what)):
 		return what
 	elif what==null:
@@ -1078,6 +1145,8 @@ static func encode_helper(what):
 		return encode_ShipDesign(what)
 	elif what is Flotsam:
 		return encode_Flotsam(what)
+	elif what is AsteroidPalette:
+		return encode_AsteroidPalette(what)
 	elif what is Commodities.ProductsNode:
 		return encode_ProductsNode(what)
 	elif what is Resource:

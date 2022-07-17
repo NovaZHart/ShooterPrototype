@@ -50,6 +50,7 @@ var fleets
 var ui
 var factions
 var flotsam
+var asteroids
 
 const SHIP_HEIGHT: float = 5.0 # FIXME: move this somewhere sensible
 
@@ -342,6 +343,7 @@ func load_universe():
 	flotsam = universe.flotsam
 	ui = universe.ui
 	factions = universe.factions
+	asteroids = universe.asteroids
 	
 	# More basic checks:
 	assert(ship_designs)
