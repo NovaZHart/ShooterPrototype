@@ -13,9 +13,12 @@ var current_service: NodePath
 
 signal jump_complete
 
-func _ready():
+var system_name
+var planet_name
+
+func _enter_tree():
 	combat_engine.clear_visuals()
-	var system_name = Player.system.display_name
+	system_name = Player.system.display_name
 	planet_info = Player.get_space_object_or_null()
 	if planet_info==null:
 		# Cannot land here
@@ -23,9 +26,11 @@ func _ready():
 		game_state.change_scene('res://ui/SpaceScreen.tscn')
 		return
 	planet=planet_info.make_planet(600,0)
-	var planet_name = planet.display_name
+	planet_name = planet.display_name
 	planet.translation = Vector3(0,0,0)
 	add_child(planet)
+
+func _ready():
 	camera_and_label(system_name,planet_name)
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
 	$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
@@ -70,6 +75,8 @@ func activate_service(service_name: String,var service):
 	else:
 		current_service = NodePath()
 
+# warning-ignore:shadowed_variable
+# warning-ignore:shadowed_variable
 func camera_and_label(system_name: String,planet_name: String):
 	if system_name == planet_name:
 		$Labels/LocationLabel.text=system_name
