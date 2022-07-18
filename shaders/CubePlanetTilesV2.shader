@@ -5,19 +5,6 @@ uniform sampler2D xyz;
 
 uniform int perlin_cubes=8;
 
-uniform float normal_scale=0.10;
-
-// White/red sun:
-//uniform int perlin_type=1;
-//uniform int perlin_seed=56574;
-//uniform vec3 color_scaling=vec3(0.920588,0.853922,0.583333);
-//uniform vec3 color_addition=vec3(0.289216,-0.173529,-0.156471);
-//uniform int color_scheme=2;
-//uniform float weight_power = 0.373333;
-//uniform float scale_power = 0.3077;
-//uniform float scale_start = 3.9;
-//uniform float perlin_bias = 0.5;
-
 // blue planet
 uniform int perlin_type=0;
 uniform int perlin_seed=18492;
@@ -28,17 +15,6 @@ uniform float weight_power = 0.373333;
 uniform float scale_power = 0.3577;
 uniform float scale_start = 3.9;
 uniform float perlin_bias = 0.5;
-
-// yellow/black/red planet
-// uniform int perlin_type=3;
-// uniform int perlin_seed=58199;
-// uniform vec3 color_scaling=vec3(0.988235,0.741176,0.741176);
-// uniform vec3 color_addition=vec3(-0.35098,-0.454902,-0.817647);
-// uniform int color_scheme=1;
-// uniform float weight_power = 0.353333;
-// uniform float scale_power = 0.2877;
-// uniform float scale_start = 3.9;
-// uniform float perlin_bias = 0.0;
 
 float interp_order5_scalar(float t) {
 	// fifth-order interpolant for improved perlin noise
@@ -54,17 +30,6 @@ int bob_hash(int k) {
 	a = (a+4251993797) + (a<<3);
 	a = (a^3042594569) ^ (a>>16);
 	return a;
-}
-
-ivec2 iuv2d(ivec3 iuv) { // convert 3d spatial coords to 2d texture coords
-	//return ivec2(iuv.x&63 | ((iuv.z&7)<<6), iuv.y&63 | ((iuv.z&56)<<3));
-	int z=iuv.z%64;
-	return ivec2(iuv.x%64 + (z/8)*64,(iuv.y%64+(z%8)*64)%512);
-}
-
-vec2 fuv2d(ivec3 uv) { // convert 3d spatial coords to 2d texture coords
-	//return ivec2(iuv.x&63 | ((iuv.z&7)<<6), iuv.y&63 | ((iuv.z&56)<<3));
-	return vec2(iuv2d(uv))/512.0;
 }
 
 float perlin_grad1(int hash,float x,float y,float z) {
