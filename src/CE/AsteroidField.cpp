@@ -908,7 +908,6 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
   real_t rnow = now;
 
   Rect2 search_region = visible_region.grow(max_scale+1);
-
   for(auto it=dead_asteroids.begin();it!=dead_asteroids.end();) {
     object_id id = it->first;
     pair<int,int> split = split_id(id);
@@ -916,7 +915,12 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
       AsteroidLayer &layer = layers[split.first];
       Asteroid *asteroid = layer.get_asteroid(split.second);
       
-      if(!asteroid or asteroid->is_alive()) {
+      if(!asteroid) {
+        it=dead_asteroids.erase(it);
+        continue;
+      }
+
+      if(asteroid->is_alive()) {
         it=dead_asteroids.erase(it);
         continue;
       }
@@ -932,7 +936,7 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
         continue;
       }
 
-      if(it->second < ASTEROID_RESPAWN_DELAY+now) {
+      if(it->second+ASTEROID_RESPAWN_DELAY>now) {
         // Too soon to respawn.
         it++;
         continue;
