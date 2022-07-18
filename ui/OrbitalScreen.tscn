@@ -44,6 +44,7 @@ __meta__ = {
 [node name="Port" type="Viewport" parent="View"]
 size = Vector2( 1600, 900 )
 handle_input_locally = false
+usage = 3
 render_target_update_mode = 3
 
 [node name="Camera" type="Camera" parent="View/Port"]
