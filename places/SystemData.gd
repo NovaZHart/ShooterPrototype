@@ -194,7 +194,6 @@ func generate_asteroid_field(inner_radius: float,thickness: float,asteroids: Arr
 	for ast in result['asteroids']:
 		if not ast[1].get('mesh',null):
 			if not default_asteroid_mesh:
-				push_warning('Using default asteroid mesh.')
 				default_asteroid_mesh = generate_default_asteroid_mesh(oort_cloud)
 			ast[1]['mesh'] = default_asteroid_mesh
 		assert(ast[1]['mesh'])
@@ -204,7 +203,6 @@ func generate_asteroid_field(inner_radius: float,thickness: float,asteroids: Arr
 	for salname in result['salvage']:
 		if not result['salvage'][salname].get('flotsam_mesh',null):
 			if not default_salvage_mesh:
-				push_warning('Using default salvage mesh')
 				default_salvage_mesh = preload('res://equipment/engines/IonEngine4x4.mesh')
 			result['salvage'][salname]['flotsam_mesh'] = default_salvage_mesh
 	
