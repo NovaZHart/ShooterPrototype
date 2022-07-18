@@ -15,11 +15,13 @@
 #include "DVector3.hpp"
 #include "FastProfilier.hpp"
 #include "ScriptUtils.hpp"
-
-using namespace godot;
-using namespace std;
+#include "CE/CheapRand32.hpp"
+#include "CE/Utils.hpp"
 
 namespace godot {
+
+using namespace ::std;
+using namespace ::godot::CE;
   
 void SphereTool::_register_methods() {
   register_method("make_icosphere", &SphereTool::make_icosphere);
@@ -451,5 +453,98 @@ Ref<Image> make_lookup_tiles_c112() {
   FAST_PROFILING_FUNCTION;
   return make_lookup_tiles<112,8>();
 }
-  
+
+template<size_t cubelen>
+class HashCube {
+public:
+  vector<uint8_t> hashed;
+  uint32_t seed;
+  HashCube(uint32_t seed):
+    hashed(cubelen*cubelen*cubelen,0),
+    seed(seed)
+  {}
+  ~HashCube() {}
+
+  inline void randomize() {
+    uint32_t h = CheapRand32::hash(seed);
+    for(uint32_t k=0;k<cubelen;k++)
+      for(uint32_t j=0;j<cubelen;j++)
+        for(uint32_t i=0;i<cubelen;i++) {
+          uint32_t h0 = CheapRand32::hash(h^i);
+          uint32_t h00 = CheapRand32::hash(h0^j);
+          uint32_t h000 = CheapRand32::hash(h00^k);
+          hashed[i+cubelen*(j+cubelen*k)] = h000&15;
+        }
+  }    
+
+  inline uint8_t at(uint32_t i,uint32_t j,uint32_t k) const {
+    return hashed[i+cubelen*(j+cubelen*k)];
+  }
+
+  inline uint32_t get_cube_bits(size_t i0,size_t j0,size_t k0) const {
+    size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
+    uint32_t val = at(i1,j1,k1); // alpha high
+    val=(val<<4) | at(i0,j1,k1); // alpha low
+    val=(val<<4) | at(i1,j0,k1); // blue high
+    val=(val<<4) | at(i0,j0,k1); // blue low
+    val=(val<<4) | at(i1,j1,k0); // green high
+    val=(val<<4) | at(i0,j1,k0); // green low
+    val=(val<<4) | at(i1,j0,k0); // red high
+    val=(val<<4) | at(i0,j0,k0); // red low
+    return val;
+  }
+
+  inline uint32_t cube_bits_v2(size_t i0,size_t j0,size_t k0) const {
+    size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
+    uint32_t h=CheapRand32::hash(seed);
+    uint32_t h0=CheapRand32::hash(h^i0),h1=CheapRand32::hash(h^i1);
+    uint32_t h00=CheapRand32::hash(h0^j0),h01=CheapRand32::hash(h1^j0);
+    uint32_t h10=CheapRand32::hash(h0^j1),h11=CheapRand32::hash(h1^j1);
+    uint32_t h000=CheapRand32::hash(h00^k0),h001=CheapRand32::hash(h01^k0);
+    uint32_t h010=CheapRand32::hash(h10^k0),h011=CheapRand32::hash(h11^k0);
+    uint32_t h100=CheapRand32::hash(h00^k1),h101=CheapRand32::hash(h01^k1);
+    uint32_t h110=CheapRand32::hash(h10^k1),h111=CheapRand32::hash(h11^k1);
+
+    uint32_t val = (h111&15);
+    val=(val<<4) | (h110&15);
+    val=(val<<4) | (h101&15);
+    val=(val<<4) | (h100&15);
+    val=(val<<4) | (h011&15);
+    val=(val<<4) | (h010&15);
+    val=(val<<4) | (h001&15);
+    val=(val<<4) | (h000&15);
+    return val;
+  }
+};
+
+Ref<Image> make_hash_cube(uint32_t hash) {
+  static const size_t cubelen=16;
+  static const size_t image_x = cubelen*cubelen, image_y = cubelen;
+  HashCube<cubelen> cube(hash);
+  cube.randomize();
+
+  PoolByteArray texture_data;
+  texture_data.resize(cubelen*cubelen*cubelen*4*sizeof(real_t));
+  {
+    PoolByteArray::Write write_texture_data = texture_data.write();
+    real_t *data = reinterpret_cast<real_t*>(write_texture_data.ptr());
+
+    for(size_t k=0;k<cubelen;k++)
+      for(size_t j=0;j<cubelen;j++)
+        for(size_t i=0;i<cubelen;i++,data+=4) {
+          uint32_t udata = cube.get_cube_bits(i,j,k);
+          data[0] = (udata&255) / 1024.0f;
+          data[1] = ((udata>>8)&255) / 1024.0f;
+          data[2] = ((udata>>16)&255) / 1024.0f;
+          data[3] = ((udata>>24)&255) / 1024.0f;
+        }
+  }
+
+  Ref<Image> image = Image::_new();
+  image->create_from_data(image_x,image_y,false,Image::FORMAT_RGBAF,texture_data);
+  image->convert(Image::FORMAT_RGBAH);
+  return image;
+}
+
+
 }

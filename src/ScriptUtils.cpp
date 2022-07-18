@@ -18,6 +18,7 @@ void ScriptUtils::_register_methods() {
   register_method("make_cube_sphere_v2", &ScriptUtils::make_cube_sphere_v2);
   register_method("make_lookup_tiles_c112", &ScriptUtils::make_lookup_tiles_c112);
   register_method("make_lookup_tiles_c224", &ScriptUtils::make_lookup_tiles_c224);
+  register_method("make_hash_cube", &ScriptUtils::make_hash_cube);
 }
 
 void ScriptUtils::_init() {}
@@ -76,5 +77,8 @@ Ref<Image> ScriptUtils::make_lookup_tiles_c224() const {
 }
 Ref<Image> ScriptUtils::make_lookup_tiles_c112() const {
   return godot::make_lookup_tiles_c112();
+}
+Ref<Image> ScriptUtils::make_hash_cube(uint32_t hash) const {
+  return godot::make_hash_cube(hash);
 }
 }

@@ -36,7 +36,7 @@ namespace godot {
         return randf()*TAUf;
       }
       inline void seed(uint32_t s) {
-        state = hash(hash(hash(s)));
+        state = hash(s);
       }
       inline void seed() {
         state = make_seed();

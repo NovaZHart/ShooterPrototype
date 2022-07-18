@@ -5,9 +5,12 @@ const allowed_texture_sizes = [ 128, 256, 512, 1024] #, 2048 ]
 
 var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
-var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV2.shader")
+#var CubePlanetTilesV2 = preload("res://shaders/CubePlanetTilesV2.shader")
+var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
+
+var hash_cube: ImageTexture
 
 var commodities: Commodities.ManyProducts = Commodities.ManyProducts.new()
 var u_size: int
@@ -88,6 +91,10 @@ func choose_texture_size(x,y) -> int:
 
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
+	var hash_cube_image: Image = utils.native.make_hash_cube(int(random_seed))
+	hash_cube = ImageTexture.new()
+	hash_cube.create_from_image(hash_cube_image)
+
 	var xyz: ImageTexture
 	if not sphere:
 # warning-ignore:narrowing_conversion
@@ -105,6 +112,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		sphere.cast_shadow=false
 		sphere_material = sphere.material_override
 	#	sphere_material.set_shader_param('xyz',xyz)
+	#	sphere_material.set_shader_param('hash_cube',hash_cube)
 		sphere.set_layer_mask(4)
 		sphere.name='Sphere'
 		add_child(sphere)
@@ -114,8 +122,9 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	view_shade=ShaderMaterial.new()
 	view_shade.set_shader(CubePlanetTiles)
 	view=make_viewport(u_size,v_size,view_shade)
-	view_shade.set_shader_param('perlin_seed',int(random_seed))
+	#view_shade.set_shader_param('perlin_seed',int(random_seed))
 	view_shade.set_shader_param('perlin_type',int(noise_type))
+	view_shade.set_shader_param('hash_cube',hash_cube)
 	view_shade.set_shader_param('xyz',xyz)
 	view.name='View'
 	tile_material = view_shade
