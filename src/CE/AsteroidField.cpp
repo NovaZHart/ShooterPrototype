@@ -846,7 +846,7 @@ real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t
 
   if(!asteroid.is_alive()) {
     // Mark the asteroid as dead so we make a new one later.
-    dead_asteroids.insert(id);
+    dead_asteroids.emplace(id,now);
 
     // If the asteroid had cargo, make flotsam.
     std::shared_ptr<const Salvage> salvage_ptr = salvage->get_salvage(asteroid.get_cargo());
@@ -910,31 +910,43 @@ void AsteroidField::step_time(int64_t idelta,real_t delta,Rect2 visible_region) 
   Rect2 search_region = visible_region.grow(max_scale+1);
 
   for(auto it=dead_asteroids.begin();it!=dead_asteroids.end();) {
-    object_id id = *it;
+    object_id id = it->first;
     pair<int,int> split = split_id(id);
     if(split.first>=0 and static_cast<size_t>(split.first)<layers.size()) {
       AsteroidLayer &layer = layers[split.first];
       Asteroid *asteroid = layer.get_asteroid(split.second);
       
       if(!asteroid or asteroid->is_alive()) {
-        it++;
+        it=dead_asteroids.erase(it);
         continue;
       }
 
       // Only spawn a new asteroid if this one is off screen.
       layer.update_state(*asteroid,rnow);
       if(search_region.has_point(asteroid->get_xz())) {
+        // Reset the respawn timer because the player could see the asteroid.
+        it->second = now;
+        
+        // Go to next asteroid
         it++;
         continue;
       }
 
+      if(it->second < ASTEROID_RESPAWN_DELAY+now) {
+        // Too soon to respawn.
+        it++;
+        continue;
+      }
+      
       // Replace the asteroid's stats and invalidate the state.  This
       // ensures the asteroid will be regenerated with new stats next
       // time it is needed.
       asteroid->set_template(palette.random_choice(rand));
-
-      it=dead_asteroids.erase(it);
     }
+
+    // Either the asteroid is invalid or we just respawned it,
+    // so remove it from the dead_asteroids list.
+    it=dead_asteroids.erase(it);
   }
 }
 

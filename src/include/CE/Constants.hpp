@@ -66,6 +66,8 @@ namespace godot {
     const real_t MIN_ASTEROID_RESISTANCE = -9.0;
     const real_t MAX_ASTEROID_RESISTANCE = 1.0;
 
+    const real_t ASTEROID_RESPAWN_DELAY = 30.0f;
+    
     constexpr real_t PROJECTILE_POINT_WIDTH = 0.001; // Width of bounding square for point projectiles
     const int MAX_PROJECTILES_IN_MINIMAP = 300;
     

@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <vector>
-#include <unordered_set>
+#include <unordered_map>
 #include <memory>
 #include <deque>
 
@@ -20,6 +20,7 @@
 #include "CE/MultiMeshManager.hpp"
 #include "CE/ObjectIdGenerator.hpp"
 #include "CE/Utils.hpp"
+#include "hash_functions.hpp"
 
 namespace godot {
   namespace CE {
@@ -305,7 +306,8 @@ namespace godot {
 
       // All asteroids that have been destroyed. New ones will be
       // generated in the same place after they're off-screen.
-      std::unordered_set<object_id> dead_asteroids;
+      typedef std::unordered_map<object_id,real_t> dead_asteroids_t;
+      dead_asteroids_t dead_asteroids;
 
       // Have we initialized the palette mesh_ids by sending the meshes to a MultiMeshManager?
       bool sent_meshes;
@@ -332,7 +334,7 @@ namespace godot {
       PROP_GET_VAL(real_t,thickness);
       PROP_GET_VAL(double,now);
       PROP_GET_CONST_REF(AsteroidPalette,palette);
-      PROP_GET_CONST_REF(std::unordered_set<object_id>,dead_asteroids);
+      PROP_GET_CONST_REF(dead_asteroids_t,dead_asteroids);
       PROP_HAVE_VAL(sent_meshes);
       PROP_GET_REF(CheapRand32,rand);
       
