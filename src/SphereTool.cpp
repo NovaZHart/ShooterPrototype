@@ -17,6 +17,7 @@
 #include "ScriptUtils.hpp"
 #include "CE/CheapRand32.hpp"
 #include "CE/Utils.hpp"
+#include "CE/Constants.hpp"
 
 namespace godot {
 
@@ -531,7 +532,7 @@ Ref<Image> make_hash_cube16(uint32_t hash) {
 template<size_t width>
 class HashSquare {
 public:
-  vector<uint8_t> hashed;
+  vector<float> hashed;
   uint32_t seed;
   HashSquare(uint32_t seed):
     hashed(width*width,0),
@@ -545,20 +546,20 @@ public:
       for(uint32_t i=0;i<width;i++) {
         uint32_t h0 = CheapRand32::hash(h^i);
         uint32_t h00 = CheapRand32::hash(h0^j);
-        hashed[i+width*j] = h00&15;
+        hashed[i+width*j] = CheapRand32::int2float(h00);
       }
   }
   
-  inline uint8_t at(uint32_t i,uint32_t j) const {
-    return hashed[i+width*j]%15;
+  inline float at(uint32_t i,uint32_t j) const {
+    return hashed[i+width*j];
   }
 
   inline void get_data(size_t i0,size_t j0,float *f) const {
     size_t i1=(i0+1)%width, j1=(j0+1)%width;
-    f[0] = at(i0,j0)/32.0f;
-    f[1] = at(i0,j1)/32.0f;
-    f[2] = at(i1,j0)/32.0f;
-    f[3] = at(i1,j1)/32.0f;
+    f[0] = at(i0,j0);
+    f[1] = at(i0,j1);
+    f[2] = at(i1,j0);
+    f[3] = at(i1,j1);
   }
 };
 
@@ -572,19 +573,25 @@ Ref<Image> make_hash_square32(uint32_t seed) {
   CheapRand32 seeder(seed);
   
   PoolByteArray texture_data;
-  texture_data.resize(width*width*4*sizeof(float)*csq*csq);
+  //texture_data.resize(width*width*4*sizeof(float)*csq*csq);
+  texture_data.resize(1024*1024*4*sizeof(float));
   {
     PoolByteArray::Write write_texture_data = texture_data.write();
     float *data = reinterpret_cast<float*>(write_texture_data.ptr());
+
+    memset(data,0,1024*1024*4*sizeof(float));
     
-    for(size_t square=0,end_square=csq*csq;square<end_square;square++)
+    for(size_t sq=0,last=csq*csq;sq<last;sq++) {
+      HashSquare<width> square(seeder.randi());
+      square.randomize();
       for(size_t j=0;j<width;j++)
         for(size_t i=0;i<width;i++,data+=4)
           square.get_data(i,j,data);
+    }
   }
   
   Ref<Image> image = Image::_new();
-  image->create_from_data(width*width,csq*csq,false,Image::FORMAT_RGBAF,texture_data);
+  image->create_from_data(1024,1024,false,Image::FORMAT_RGBAF,texture_data);
   image->convert(Image::FORMAT_RGBAH);
   return image;
 }

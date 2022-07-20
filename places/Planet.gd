@@ -175,6 +175,7 @@ func get_tex_data(tex):
 
 func get_planet_texture():
 	var tex = view.get_texture()
+	tex.flags = Texture.FLAGS_DEFAULT
 	return tex
 
 func remove_view():
