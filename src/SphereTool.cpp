@@ -17,6 +17,7 @@
 #include "ScriptUtils.hpp"
 #include "CE/CheapRand32.hpp"
 #include "CE/Utils.hpp"
+#include "CE/Constants.hpp"
 
 namespace godot {
 
@@ -481,63 +482,44 @@ public:
     return hashed[i+cubelen*(j+cubelen*k)];
   }
 
-  inline uint32_t get_cube_bits(size_t i0,size_t j0,size_t k0) const {
-    size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
-    uint32_t val = at(i1,j1,k1); // alpha high
-    val=(val<<4) | at(i0,j1,k1); // alpha low
-    val=(val<<4) | at(i1,j0,k1); // blue high
-    val=(val<<4) | at(i0,j0,k1); // blue low
-    val=(val<<4) | at(i1,j1,k0); // green high
-    val=(val<<4) | at(i0,j1,k0); // green low
-    val=(val<<4) | at(i1,j0,k0); // red high
-    val=(val<<4) | at(i0,j0,k0); // red low
-    return val;
-  }
+  // inline uint32_t get_cube_bits(size_t i0,size_t j0,size_t k0) const {
+  //   size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
+  //   uint32_t val = at(i1,j1,k1); // alpha high
+  //   val=(val<<4) | at(i0,j1,k1); // alpha low
+  //   val=(val<<4) | at(i1,j0,k1); // blue high
+  //   val=(val<<4) | at(i0,j0,k1); // blue low
+  //   val=(val<<4) | at(i1,j1,k0); // green high
+  //   val=(val<<4) | at(i0,j1,k0); // green low
+  //   val=(val<<4) | at(i1,j0,k0); // red high
+  //   val=(val<<4) | at(i0,j0,k0); // red low
+  //   return val;
+  // }
 
-  inline uint32_t cube_bits_v2(size_t i0,size_t j0,size_t k0) const {
+  inline void get_data(size_t i0,size_t j0,size_t k0,float *data) const {
     size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
-    uint32_t h=CheapRand32::hash(seed);
-    uint32_t h0=CheapRand32::hash(h^i0),h1=CheapRand32::hash(h^i1);
-    uint32_t h00=CheapRand32::hash(h0^j0),h01=CheapRand32::hash(h1^j0);
-    uint32_t h10=CheapRand32::hash(h0^j1),h11=CheapRand32::hash(h1^j1);
-    uint32_t h000=CheapRand32::hash(h00^k0),h001=CheapRand32::hash(h01^k0);
-    uint32_t h010=CheapRand32::hash(h10^k0),h011=CheapRand32::hash(h11^k0);
-    uint32_t h100=CheapRand32::hash(h00^k1),h101=CheapRand32::hash(h01^k1);
-    uint32_t h110=CheapRand32::hash(h10^k1),h111=CheapRand32::hash(h11^k1);
-
-    uint32_t val = (h111&15);
-    val=(val<<4) | (h110&15);
-    val=(val<<4) | (h101&15);
-    val=(val<<4) | (h100&15);
-    val=(val<<4) | (h011&15);
-    val=(val<<4) | (h010&15);
-    val=(val<<4) | (h001&15);
-    val=(val<<4) | (h000&15);
-    return val;
+    data[0] = ((at(i1,j0,k0)<<4) | at(i0,j0,k0)) / 1024.0f;
+    data[1] = ((at(i1,j1,k0)<<4) | at(i0,j1,k0)) / 1024.0f;
+    data[2] = ((at(i1,j0,k1)<<4) | at(i0,j0,k1)) / 1024.0f;
+    data[3] = ((at(i1,j1,k1)<<4) | at(i0,j1,k1)) / 1024.0f;
   }
 };
 
-Ref<Image> make_hash_cube(uint32_t hash) {
-  static const size_t cubelen=16;
+Ref<Image> make_hash_cube16(uint32_t hash) {
+  static const size_t cubelen = HASH_CUBE_LENGTH;
   static const size_t image_x = cubelen*cubelen, image_y = cubelen;
   HashCube<cubelen> cube(hash);
   cube.randomize();
 
   PoolByteArray texture_data;
-  texture_data.resize(cubelen*cubelen*cubelen*4*sizeof(real_t));
+  texture_data.resize(cubelen*cubelen*cubelen*4*sizeof(float));
   {
     PoolByteArray::Write write_texture_data = texture_data.write();
-    real_t *data = reinterpret_cast<real_t*>(write_texture_data.ptr());
+    float *data = reinterpret_cast<float*>(write_texture_data.ptr());
 
     for(size_t k=0;k<cubelen;k++)
       for(size_t j=0;j<cubelen;j++)
-        for(size_t i=0;i<cubelen;i++,data+=4) {
-          uint32_t udata = cube.get_cube_bits(i,j,k);
-          data[0] = (udata&255) / 1024.0f;
-          data[1] = ((udata>>8)&255) / 1024.0f;
-          data[2] = ((udata>>16)&255) / 1024.0f;
-          data[3] = ((udata>>24)&255) / 1024.0f;
-        }
+        for(size_t i=0;i<cubelen;i++,data+=4)
+          cube.get_data(i,j,k,data);
   }
 
   Ref<Image> image = Image::_new();
@@ -546,5 +528,72 @@ Ref<Image> make_hash_cube(uint32_t hash) {
   return image;
 }
 
+  
+template<size_t width>
+class HashSquare {
+public:
+  vector<float> hashed;
+  uint32_t seed;
+  HashSquare(uint32_t seed):
+    hashed(width*width,0),
+    seed(seed)
+  {}
+  ~HashSquare() {}
+
+  inline void randomize() {
+    uint32_t h = CheapRand32::hash(seed);
+    for(uint32_t j=0;j<width;j++)
+      for(uint32_t i=0;i<width;i++) {
+        uint32_t h0 = CheapRand32::hash(h^i);
+        uint32_t h00 = CheapRand32::hash(h0^j);
+        hashed[i+width*j] = CheapRand32::int2float(h00);
+      }
+  }
+  
+  inline float at(uint32_t i,uint32_t j) const {
+    return hashed[i+width*j];
+  }
+
+  inline void get_data(size_t i0,size_t j0,float *f) const {
+    size_t i1=(i0+1)%width, j1=(j0+1)%width;
+    f[0] = at(i0,j0);
+    f[1] = at(i0,j1);
+    f[2] = at(i1,j0);
+    f[3] = at(i1,j1);
+  }
+};
+
+Ref<Image> make_hash_square32(uint32_t seed) {
+  // Makes a csq by csq big grid of width by width small grids of
+  // random 4-bit integers encoded in 32-bit floating point.  Each
+  // width by width grid is toroidally tiled. This is to give a
+  // toroidally tiled shader several sets (csq*csq) of random numbers.
+  static const size_t width = HASH_SQUARE_LENGTH;
+  static const size_t csq = HASH_SQUARE_COUNT_SQRT;
+  CheapRand32 seeder(seed);
+  
+  PoolByteArray texture_data;
+  //texture_data.resize(width*width*4*sizeof(float)*csq*csq);
+  texture_data.resize(1024*1024*4*sizeof(float));
+  {
+    PoolByteArray::Write write_texture_data = texture_data.write();
+    float *data = reinterpret_cast<float*>(write_texture_data.ptr());
+
+    memset(data,0,1024*1024*4*sizeof(float));
+    
+    for(size_t sq=0,last=csq*csq;sq<last;sq++) {
+      HashSquare<width> square(seeder.randi());
+      square.randomize();
+      for(size_t j=0;j<width;j++)
+        for(size_t i=0;i<width;i++,data+=4)
+          square.get_data(i,j,data);
+    }
+  }
+  
+  Ref<Image> image = Image::_new();
+  image->create_from_data(1024,1024,false,Image::FORMAT_RGBAF,texture_data);
+  image->convert(Image::FORMAT_RGBAH);
+  return image;
+}
 
 }

@@ -11,31 +11,31 @@ var uv2_offset: Vector2 = Vector2(0.0,0.0)
 
 var ticks = -1
 
-var cached_background_texture = null
-var cached_starfield_texture = null
+var hash_square: ImageTexture
+var background_viewport: Viewport
 var background_texture: ViewportTexture
-var starfield: ViewportTexture
+var background_shader: ShaderMaterial
+var starfield_viewport: Viewport
+var starfield_texture: ViewportTexture
+var starfield_shader: ShaderMaterial
 var background: MeshInstance
 const background_pixels: float = 2048.0
-const background_size: float = 512.0
-const background_uv2: float = 8.0
+const background_size: float = 611.0
+const background_uv2: float = 16.0
 var have_sent_texture: Dictionary = {}
 
 onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
+#onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackgroundV3.shader")
 onready var TiledImageShader = preload("res://shaders/TiledImage.shader")
 onready var HyperspaceShader = preload("res://shaders/Hyperspace.shader")
 onready var StarFieldGenerator = preload("res://shaders/StarFieldGenerator.shader")
 
-func send_viewport_texture(cached, viewport: Viewport, shader_param: String,
-		tex: ViewportTexture, object: MeshInstance, flags: int = -1) -> ViewportTexture:
-	if tex:
-		return tex
-	var use = cached if cached else viewport.get_texture()
-	if use:
-		if flags>=0:
-			use.flags = flags
-		object.material_override.set_shader_param(shader_param,use)
-	return use
+func _ready():
+	var _sf: Viewport = make_starfield_viewport()
+	var _bg: Viewport = make_background_viewport()
+	var _sb = make_background()
+	set_process(false)
+	set_physics_process(false)
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
 	var view: Viewport = Viewport.new()
@@ -44,7 +44,7 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
 	view.keep_3d_linear=true
-	#view.usage=Viewport.USAGE_2D
+	view.usage=Viewport.USAGE_2D
 	rect.rect_size=Vector2(nx,ny)
 	rect.set_material(shader)
 	rect.name='Content'
@@ -92,97 +92,45 @@ func _enter_tree():
 			starfield_seed=system_data.starfield_seed
 
 func regenerate() -> bool:
-	assert(false)
-	if not hyperspace and cached_starfield_texture:
-		background.material_override.set_shader_param('texture_starfield',$StarFieldGenerator.get_texture())
-		cached_starfield_texture=null
-		make_starfield_viewport()
-	if cached_background_texture:
-		background.material_override.set_shader_param('texture_albedo',$CloudViewport.get_texture())
-		cached_background_texture=null
-		make_background_viewport()
-	
-	var success: bool = true
-	var plasma_view: Viewport = get_node_or_null('CloudViewport')
-	var plasma_rect: ColorRect = get_node_or_null('CloudViewport/Content')
-	if plasma_rect and plasma_view:
-		plasma_rect.get_material().set_shader_param('plasma_seed',int(plasma_seed))
-		plasma_rect.get_material().set_shader_param('color',Color(plasma_color))
-		plasma_view.render_target_update_mode=Viewport.UPDATE_ONCE
-		background_texture = null
-	else:
-		push_error('plasma generator nodes are missing')
-		success=false
-	
-	var star_view: Viewport = get_node_or_null('StarFieldGenerator')
-	var star_rect: ColorRect = get_node_or_null('StarFieldGenerator/Content')
-	if star_rect and star_view:
-		star_rect.get_material().set_shader_param('seed',int(starfield_seed))
-		star_view.render_target_update_mode=Viewport.UPDATE_ONCE
-		starfield = null
-	else:
-		push_error('starfield generator nodes are missing')
-		success=false
-	
-	ticks=-999
-	set_process(true)
-	return success
+	var hash_square_image: Image = utils.native.make_hash_square32(int(plasma_seed))
+	hash_square = ImageTexture.new()
+	hash_square.create_from_image(hash_square_image)
+	background_shader.set_shader_param('color',Color(plasma_color))
+	background_shader.set_shader_param('hash_square',hash_square)
+	starfield_shader.set_shader_param('seed',int(starfield_seed))
+	background_viewport.update_mode = Viewport.UPDATE_ONCE
+	starfield_viewport.update_mode = Viewport.UPDATE_ONCE
+	return false
 
-func get_textures_from_cache():
-	var bg_cache = game_state.get_background_cache()
-	var bg_okay = false
-	var sf_okay = hyperspace
-		
-	if bg_cache and bg_cache.bg_color==plasma_color and bg_cache.bg_seed==plasma_seed \
-			and bg_cache.hyperspace==hyperspace and bg_cache.bg_texture:
-		bg_okay = true
-
-	if not hyperspace:
-		var sf_cache = game_state.get_starfield_cache()
-		sf_okay = false
-		if sf_cache and sf_cache.bg_seed==starfield_seed and sf_cache.hyperspace==hyperspace \
-				and sf_cache.bg_texture:
-			sf_okay = true
-		if sf_okay and bg_okay:
-			cached_starfield_texture = sf_cache.bg_texture
-	
-	if bg_okay and sf_okay:
-		cached_background_texture = bg_cache.bg_texture
-
-func _ready():
-	get_textures_from_cache()
-	if not cached_background_texture:
-#		print('make background viewport')
-		make_background_viewport()
-	if not cached_starfield_texture:
-#		print('make starfield viewport')
-		make_starfield_viewport()
-	make_background()
-	
 func make_background_viewport():
 	if get_node_or_null('CloudViewport'):
 		return
-	var shade=ShaderMaterial.new()
-	shade.set_shader(SpaceBackgroundShader)
-	var view=make_viewport(background_pixels,background_pixels,shade)
-	shade.set_shader_param('make_stars',false)
-	shade.set_shader_param('make_plasma',true)
-	shade.set_shader_param('plasma_seed',int(plasma_seed))
-	shade.set_shader_param('color',Color(plasma_color))
-	shade.set_shader_param('view_size_x',background_pixels)
-	shade.set_shader_param('view_size_y',background_pixels)
+	background_shader=ShaderMaterial.new()
+	var hash_square_image: Image = utils.native.make_hash_square32(int(plasma_seed))
+	hash_square = ImageTexture.new()
+	hash_square.create_from_image(hash_square_image)
+	background_shader.set_shader(SpaceBackgroundShader)
+	var view=make_viewport(background_pixels,background_pixels,background_shader)
+	background_shader.set_shader_param('color',Color(plasma_color))
+	background_shader.set_shader_param('hash_square',hash_square)
 	view.name='CloudViewport'
+	background_texture = view.get_texture()
+	background_texture.flags = Texture.FLAGS_DEFAULT
 	add_child(view)
+	return view
 	
 func make_starfield_viewport():
 	if get_node_or_null('StarFieldGenerator'):
 		return
-	var shade=ShaderMaterial.new()
-	shade.set_shader(StarFieldGenerator)
-	shade.set_shader_param('seed',int(starfield_seed))
-	var view=make_viewport(background_pixels,background_pixels,shade)
+	starfield_shader=ShaderMaterial.new()
+	starfield_shader.set_shader(StarFieldGenerator)
+	starfield_shader.set_shader_param('seed',int(starfield_seed))
+	var view=make_viewport(background_pixels,background_pixels,starfield_shader)
 	view.name='StarFieldGenerator'
+	starfield_texture = view.get_texture()
+	starfield_texture.flags = 0
 	add_child(view)
+	return view
 
 func make_background():
 	background=make_background_square(background_size,background_size,
@@ -195,20 +143,15 @@ func make_background():
 		view_mat.set_shader(TiledImageShader)
 		view_mat.set_shader_param('uv_whole',Vector2(1.0,1.0))
 		view_mat.set_shader_param('uv2_whole',Vector2(background_uv2,background_uv2))
-		if cached_starfield_texture:
-			view_mat.set_shader_param('texture_starfield',cached_starfield_texture)
-		else:
-			view_mat.set_shader_param('texture_starfield',$StarFieldGenerator.get_texture())
-	if cached_background_texture:
-		view_mat.set_shader_param('texture_albedo',cached_background_texture)
-	else:
-		view_mat.set_shader_param('texture_albedo',$CloudViewport.get_texture())
+		view_mat.set_shader_param('texture_starfield',starfield_texture)
+	view_mat.set_shader_param('texture_albedo',$CloudViewport.get_texture())
 	view_mat.set_shader_param('texture_size',Vector2(float(background_pixels),float(background_pixels)))
 	view_mat.set_shader_param('uv_offset',uv_offset)
 	view_mat.set_shader_param('uv2_offset',uv2_offset)
 	background.material_override=view_mat
 	background.set_layer_mask_bit(1,true)
 	add_child(background)
+	return background
 
 func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height: float) -> void:
 	background.rotation = Vector3(0,0,0)
@@ -225,59 +168,6 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	var margin: float=(background_size-camera_size)/2.0
 	var margins: Vector2 = Vector2(margin,background_size-margin)/background_size
 	var uv2_range: Vector2 = margins*background_uv2
-	view_mat.set_shader_param('uv_range',margins)
+	view_mat.set_shader_param('uv_range',margins.y-margins.x)
 	view_mat.set_shader_param('uv2_range',uv2_range)
 
-func send_cached_textures():
-	var start: float = OS.get_ticks_msec()
-#	print('Maybe send cached textures?')
-	if background_texture and not cached_background_texture:
-#		print('send background')
-		game_state.set_background_cache(game_state.CachedImage.new(
-			plasma_seed, plasma_color, texture_from_viewport(background_texture),
-			hyperspace))
-		if starfield and not cached_starfield_texture:
-#			print('send starfield')
-			game_state.set_starfield_cache(game_state.CachedImage.new(
-				starfield_seed, Color(), texture_from_viewport(starfield),
-				hyperspace))
-#		else:
-#			print('no new starfield to send')
-#	else:
-#		print('no new background to send')
-	var duration = OS.get_ticks_msec()-start
-	if duration>1:
-		print("send_cached_textures took "+str(duration)+"ms")
-
-func texture_from_viewport(viewport_texture: ViewportTexture):
-	var img = viewport_texture.get_data()
-	assert(img)
-	var tex = ImageTexture.new()
-	assert(tex)
-	tex.create_from_image(img)
-	return tex
-
-func _physics_process(var _delta):
-	background_texture=send_viewport_texture(cached_background_texture,
-		get_node_or_null('CloudViewport'),'texture_albedo',background_texture,background,Texture.FLAG_FILTER)
-	if background_texture and not cached_background_texture:
-		game_state.set_background_cache(game_state.CachedImage.new(
-			plasma_seed, plasma_color, background_texture, hyperspace))
-	
-	if not hyperspace:
-		starfield=send_viewport_texture(cached_starfield_texture,
-			get_node_or_null('StarFieldGenerator'),'texture_starfield',starfield,background)
-
-	var have_background: bool = not not background_texture
-	var have_starfield: bool = not not starfield
-	var done = have_background and (hyperspace or have_starfield)
-	if done:
-		if ticks<0:
-#			print('start ticking')
-			ticks=0
-		else:
-			ticks += 1
-			if ticks==10:
-#				print('defer call and stop processing')
-				#call_deferred('send_cached_textures')
-				set_process(not done)

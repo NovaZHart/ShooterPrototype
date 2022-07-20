@@ -8,8 +8,7 @@ uniform vec2 uv_offset;
 uniform vec2 uv2_offset;
 uniform vec2 uv_whole=vec2(1.0,1.0);
 uniform vec2 uv2_whole=vec2(1.0,1.0);
-uniform vec2 uv_range=vec2(0.0,1.0);
-uniform vec2 uv2_range=vec2(0.0,100.0);
+uniform float uv_range=100.0;
 uniform vec2 star_patch_size=vec2(16.0,16.0);
 //uniform int seed=12332;
 //uniform vec2 uv_scale;
@@ -49,7 +48,7 @@ vec3 kelvin_to_rgb(float kelvin) {
 }
 
 vec3 star_overlay(vec2 uv) {
-	float uv_scale=(uv_range[1]-uv_range[0])/uv_whole.y;
+	float uv_scale=uv_range/uv_whole.y;
 	float scale=clamp(uv_scale/5.0,0.02,0.2);
 	vec2 uvs=uv/7.0, uvos=uv_offset/7.0, uvws=uv_whole;
 	vec2 uv_base = mod(uvs+uvos,uvws);
@@ -70,6 +69,6 @@ void fragment() {
 	vec3 star=star_overlay(UV);
 	vec3 hires = texture(texture_albedo,mod(UV+uv_offset,1.0)).rgb;
 	vec3 lores = texture(texture_albedo,mod(UV2+uv2_offset,1.0)).rgb;
-	vec3 lohi = mix(lores,hires,0.3);
-	ALBEDO=max(lohi,star.rgb);
+	vec3 lohi = 0.5*lores + 0.5*hires;
+	ALBEDO=max(lohi.rgb,star.rgb);
 }
