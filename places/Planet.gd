@@ -91,7 +91,7 @@ func choose_texture_size(x,y) -> int:
 
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		noise_type=1, texture_size=1024):
-	var hash_cube_image: Image = utils.native.make_hash_cube(int(random_seed))
+	var hash_cube_image: Image = utils.native.make_hash_cube16(int(random_seed))
 	hash_cube = ImageTexture.new()
 	hash_cube.create_from_image(hash_cube_image)
 

@@ -1,14 +1,11 @@
 shader_type canvas_item;
 render_mode unshaded;
 
-uniform int view_size_x;
-uniform int view_size_y;
 uniform int plasma_seed=12332;
 uniform int plasma_min=2;
 uniform int plasma_max=12;
 uniform float plasma_exponent=1.1;
 uniform vec4 color = vec4(0.4,0.4,1.0,1.0);
-uniform bool make_plasma = true;
 
 // 32-bit integer hash from https://burtleburtle.net/bob/hash/integer.html
 // which is public domain as of this writing (September 2020)

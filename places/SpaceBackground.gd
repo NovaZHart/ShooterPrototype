@@ -11,6 +11,8 @@ var uv2_offset: Vector2 = Vector2(0.0,0.0)
 
 var ticks = -1
 
+var hash_square: ImageTexture
+
 var cached_background_texture = null
 var cached_starfield_texture = null
 var background_texture: ViewportTexture
@@ -21,7 +23,8 @@ const background_size: float = 512.0
 const background_uv2: float = 8.0
 var have_sent_texture: Dictionary = {}
 
-onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
+#onready var OldSpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
+onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackgroundV3.shader")
 onready var TiledImageShader = preload("res://shaders/TiledImage.shader")
 onready var HyperspaceShader = preload("res://shaders/Hyperspace.shader")
 onready var StarFieldGenerator = preload("res://shaders/StarFieldGenerator.shader")
@@ -163,14 +166,18 @@ func make_background_viewport():
 	if get_node_or_null('CloudViewport'):
 		return
 	var shade=ShaderMaterial.new()
+	var hash_square_image: Image = utils.native.make_hash_square32(int(plasma_seed))
+	hash_square = ImageTexture.new()
+	hash_square.create_from_image(hash_square_image)
 	shade.set_shader(SpaceBackgroundShader)
 	var view=make_viewport(background_pixels,background_pixels,shade)
-	shade.set_shader_param('make_stars',false)
-	shade.set_shader_param('make_plasma',true)
+#	shade.set_shader_param('make_stars',false)
+#	shade.set_shader_param('make_plasma',true)
 	shade.set_shader_param('plasma_seed',int(plasma_seed))
 	shade.set_shader_param('color',Color(plasma_color))
-	shade.set_shader_param('view_size_x',background_pixels)
-	shade.set_shader_param('view_size_y',background_pixels)
+	shade.set_shader_param('hash_square',hash_square)
+#	shade.set_shader_param('view_size_x',background_pixels)
+#	shade.set_shader_param('view_size_y',background_pixels)
 	view.name='CloudViewport'
 	add_child(view)
 	
