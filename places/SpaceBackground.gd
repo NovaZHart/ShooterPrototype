@@ -20,12 +20,12 @@ var starfield_texture: ViewportTexture
 var starfield_shader: ShaderMaterial
 var background: MeshInstance
 const background_pixels: float = 2048.0
-const background_size: float = 512.0
-const background_uv2: float = 8.0
+const background_size: float = 611.0
+const background_uv2: float = 16.0
 var have_sent_texture: Dictionary = {}
 
-#onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
-onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackgroundV3.shader")
+onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
+#onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackgroundV3.shader")
 onready var TiledImageShader = preload("res://shaders/TiledImage.shader")
 onready var HyperspaceShader = preload("res://shaders/Hyperspace.shader")
 onready var StarFieldGenerator = preload("res://shaders/StarFieldGenerator.shader")

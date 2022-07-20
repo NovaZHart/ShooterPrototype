@@ -68,8 +68,7 @@ vec3 star_overlay(vec2 uv) {
 void fragment() {
 	vec3 star=star_overlay(UV);
 	vec3 hires = texture(texture_albedo,mod(UV+uv_offset,1.0)).rgb;
-	//vec3 hires2 = texture(texture_albedo,mod(4.0*(UV+uv_offset),1.0)).rgb;
 	vec3 lores = texture(texture_albedo,mod(UV2+uv2_offset,1.0)).rgb;
-	vec3 lohi = 0.25*lores + 0.35*hires; // + 0.4*hires2;
+	vec3 lohi = 0.5*lores + 0.5*hires;
 	ALBEDO=max(lohi.rgb,star.rgb);
 }

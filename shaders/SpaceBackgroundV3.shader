@@ -6,10 +6,10 @@ uniform sampler2D hash_square;
 
 uniform vec4 color = vec4(0.4,0.4,1.0,1.0);
 
-uniform float weight_power = 0.9;
-uniform float scale_power = 2;
-uniform float scale_start = 1;
-uniform int perlin_type = 2;
+uniform float weight_power = 0.53;
+uniform float scale_power = 1.7;
+uniform float scale_start = 1.0;
+uniform int perlin_type = 10;
 
 vec2 interp_order5(vec2 t) {
 	// fifth-order interpolant for improved perlin noise
@@ -42,12 +42,16 @@ float improved_perlin(float scale,vec2 new_normal,int layer) {
 	return mix(px.x,px.y,weight.y);
 }
 
-float apply_perlin_type(float scale,vec2 new_normal,int layer) {
+float apply_perlin_type(float scale,vec2 new_normal,int layer,int type) {
 	float c=improved_perlin(scale,new_normal,layer); // -1 to 1
-	if(perlin_type==1)
-		return abs(c);
-	else if(perlin_type==10) // mix of types 1 and 0
-		return 1.6667*(0.3*c + 0.7*abs(c) - 0.4);
+	if(type==4)
+		return sqrt(abs(c));
+	else if(type==1)
+		return abs(c)*4.0;
+	else if(type==10) {// mix of types 1 and 0
+		float a=c*4.0;
+		return 1.6667*(0.3*a + 0.7*abs(a) - 0.4);
+	}
 	return 0.5*(c+1.0);
 }
 
@@ -55,10 +59,13 @@ void fragment() {
 //	COLOR=test(scale_start,UV,11);
 	float result = 0.0;
 	float weight=1.0;
-	float scale=scale_start;
+	float scale=1.0;
 	float weight_sum = 0.0;
-	for(int i=0;i<7;i++) {
-		result += apply_perlin_type(scale,UV,i)*weight;
+	for(int i=0;i<9;i++) {
+		if(i>5)
+			result += apply_perlin_type(scale,UV,i,10)*weight;
+		else
+			result += apply_perlin_type(scale,UV,i,0)*weight;
 		weight_sum+=weight;
 		weight*=weight_power;
 		scale*=scale_power;
