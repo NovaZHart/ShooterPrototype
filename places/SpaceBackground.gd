@@ -115,7 +115,7 @@ func make_background_viewport():
 	background_shader.set_shader_param('hash_square',hash_square)
 	view.name='CloudViewport'
 	background_texture = view.get_texture()
-	background_texture.flags = 0 #Texture.FLAGS_DEFAULT
+	background_texture.flags = Texture.FLAGS_DEFAULT
 	add_child(view)
 	return view
 	
@@ -168,6 +168,6 @@ func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height
 	var margin: float=(background_size-camera_size)/2.0
 	var margins: Vector2 = Vector2(margin,background_size-margin)/background_size
 	var uv2_range: Vector2 = margins*background_uv2
-	view_mat.set_shader_param('uv_range',margins)
+	view_mat.set_shader_param('uv_range',margins.y-margins.x)
 	view_mat.set_shader_param('uv2_range',uv2_range)
 

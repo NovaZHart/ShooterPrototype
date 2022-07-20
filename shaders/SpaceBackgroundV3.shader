@@ -6,21 +6,10 @@ uniform sampler2D hash_square;
 
 uniform vec4 color = vec4(0.4,0.4,1.0,1.0);
 
-uniform float weight_power = 0.994;
-uniform float scale_power = 1.7;
+uniform float weight_power = 0.9;
+uniform float scale_power = 2;
 uniform float scale_start = 1;
 uniform int perlin_type = 2;
-
-float perlin_grad1(int hash,float x,float y) {
-	// Gradients for improved perlin noise.
-	// Get gradient at corner specified by p
-	int h=hash&15;
-	float u,v;
-	u = h<8 ? x : y;
-	// 3D version: v = (h<4) ? y : ((h==12||h==14) ? x : z);
-	v = (h<4) ? y : ((h==12||h==14) ? x : y);
-	return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
-}
 
 vec2 interp_order5(vec2 t) {
 	// fifth-order interpolant for improved perlin noise
