@@ -35,23 +35,32 @@ func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COM
 		selected_commodity_index = ship_parts.by_name.get(product_name,-1)
 		selected_commodity_type = MARKET_TYPE_SHIP_PARTS
 
+class Product extends Reference:
+	var name: String = "**MISSING*NAME**"
+	var quantity: float = 0.0
+	var value: float = 0.0
+	var fine: float = 0.0
+	var mass: float = 0.0
+	var tags: Array = []
+	def _init(name_: String,quantity_: int,value_: float,fine_: float,mass_: float,tags_)
+		name=name_
+		quantity=quantity_
+		value=value_
+		fine=fine_
+		mass=mass_
+		if tags_:
+			for tag in tags:
+				if tag:
+					tags.append(tag)
+
 class Products extends Reference:
-	var all: Dictionary = {} # mapping from ID to data for one product
-	var by_name: Dictionary = {} # lookup table of product_name -> list of IDs
-	var by_tag: Dictionary = {} # lookup table of tag -> list of IDs
-	const NAME_INDEX: int = 0 # Index in all[id] of the product name
-	const QUANTITY_INDEX: int = 1 # Index in all[id] of quantity
-	const VALUE_INDEX: int = 2 # Index in all[id] of value
-	const FINE_INDEX: int = 3 # Index in all[id] of fine
-	const MASS_INDEX: int = 4 # Index in all[id] of mass
-	const FIRST_TAG_INDEX: int = MASS_INDEX+1 # First index in all[id] of tags
-	const index_type: Array = [ 'name', 'value', 'fine', 'quantity', 'mass' ]
+	var by_name: Dictionary = {} # lookup table of product_name -> Product
+	var by_tag: Dictionary = {} # lookup table of tag -> array of Product with that tag
 	
 	func duplicate(_deep):
 		push_error('Subclass forgot to override duplicate()')
 	
 	func clear():
-		all={}
 		by_name={}
 		by_tag={}
 	
@@ -60,43 +69,34 @@ class Products extends Reference:
 	
 	# Duplicate the `all` array, for storing the products in compressed form:
 	func encode() -> Dictionary:
-		return all.duplicate(true)
+		return by_name.values()
 	
 	func has_quantity() -> bool:
-		for id in all:
-			var product = all.get(id,null)
-			if product and product[QUANTITY_INDEX]>0:
+		for name in by_name:
+			if by_name[name].quantity:
 				return true
 		return false
 	
-	# Return all IDs in the `include` set that are not in the `exclude` set
-	# The `include` and `exclude` can have string tag names or int IDs.
+	# Return all products in the `include` set that are not in the `exclude` set
+	# The `include` and `exclude` have string tag names.
 	# The `include` and `exclude` can be anything that returns tags during
 	# iteration. If they evaluate to false, they're unused.
 	# If include is false, include all IDs, except those in `exclude`
-	func ids_for_tags(_include, _exclude=null) -> PoolIntArray:
-		return PoolIntArray()
+	func products_for_tags(_include, _exclude=null) -> Array:
+		return Array()
 	
 	# Total value of all specified products. Takes a list of ids or null.
 	func get_value(ids=null):
 		var value: float = 0.0
-		if ids==null:
-			ids=all.keys()
-		for id in ids:
-			var product = all[id]
-			var product_value = product[QUANTITY_INDEX]*product[VALUE_INDEX]
-			value += max(0.0,product_value)
+		for name in by_name:
+			value += max(0.0,by_name[name].value)
 		return value
 	
 	# Total mass of all specified products. Takes a list of ids or null.
 	func get_mass(ids=null) -> float:
 		var mass: float = 0.0
-		if ids==null:
-			ids=all.keys()
-		for id in ids:
-			var product = all[id]
-			var product_mass = product[QUANTITY_INDEX]*product[MASS_INDEX]
-			mass += max(0.0,product_mass)
+		for name in by_name:
+			mass += max(0.0,by_name[name].mass)
 		return mass
 	
 	# Return a new Products object that contains only the specified IDs.
@@ -122,25 +122,21 @@ class Products extends Reference:
 		return false
 	
 	func remove_empty_products():
-		var ids = all.keys()
-		for id in ids:
-			var product = all[id]
-			if product[QUANTITY_INDEX]<= 0:
-				var _ignore = all.erase(id)
-				_ignore = by_name.erase(product[NAME_INDEX])
-				for itag in range(FIRST_TAG_INDEX,len(product)):
-					_ignore = by_tag[product[itag]].erase(id)
+		var names = by_name.keys()
+		for name in names:
+			var product = by_name[name]
+			if product.quantity<=0:
+				var  _ignore = by_name.erase(id)
+				for tag in product.tags:
+					_ignore = by_tag[tag].erase(name)
 	
 	func randomize_costs(randseed: int,time: float):
-		var ids=all.keys()
-		for id in ids:
-			var product = all.get(id,null)
-			if not product:
-				continue
-			var prod_hash: int = hash(product[NAME_INDEX])
-			var scale = max(1.0,product[VALUE_INDEX])/max(1.0,product[MASS_INDEX])
+		for name in by_name:
+			var product = by_name[name]
+			var prod_hash: int = hash(name)
+			var scale = max(1.0,product.value)/max(1.0,product.mass)
 			scale = clamp(scale,3.0,30.0)
-			for ivar in [ VALUE_INDEX, QUANTITY_INDEX ]:
+			for ivar in range(2): # 0=value, 1=quantity
 				seed(randseed+ivar*31337+prod_hash)
 				var f = 0.0
 				var w = 0.0
@@ -154,65 +150,58 @@ class Products extends Reference:
 				var w3 = randf()
 				var s = 0.08*pow(0.7,sqrt(w3))+0.15*pow(0.98,sqrt(w3))+0.02
 				var final = 1.0+s*f/w
-				if ivar==VALUE_INDEX:
+				if ivar==0:
 					final = final/(final+scale)+scale/(scale+1)
-				product[ivar] = int(ceil(product[ivar]*final))
+				final = int(ceil(product[ivar]*final))
+				if ivar==0:
+					product.value = final
+				else:
+					product.quantity = final
 	
 	func randomly_erase_products():
-		var ids=all.keys()
-		for id in ids:
-			var product = all.get(id,null)
+		for name in by_name.keys():
+			var product = by_name.get(name,null)
 			if product:
-				var present: float = max(0.1,1.0-pow(0.7,log(product[QUANTITY_INDEX])))
+				var present: float = max(0.1,1.0-pow(0.7,log(product.quantity)))
 				if randf()>present:
-					product[QUANTITY_INDEX] = 0
+					product.quantity = 0
 
 	func apply_multiplier_list(multipliers: Dictionary):
 		var scan_products: Dictionary = {}
 		for tag in multipliers:
 			if by_tag.has(tag):
-				for id in by_tag[tag]:
-					scan_products[id]=1
-		for id in scan_products:
-			var product = all.get(id,null)
+				for name in by_tag[tag]:
+					scan_products[name]=1
+		for name in scan_products:
+			var product = by_name.get(name,null)
 			if product:
 				var f_quantity=1.0
 				var f_value=1.0
 				var f_fine=1.0
-				for itag in range(FIRST_TAG_INDEX,len(product)):
-					var tag = product[itag]
+				for tag in product.tags:
 					var mul = multipliers.get(tag,null)
 					if mul:
 						if mul[0]>=0: f_quantity*=mul[0]
 						if mul[1]>=0: f_value*=mul[1]
 						if mul[2]>=0: f_fine*=mul[2]
-				var scale = max(1.0,product[VALUE_INDEX])/max(1.0,product[MASS_INDEX])
+				var scale = max(1.0,product.value)/max(1.0,product.mass)
 				scale = clamp(scale,3.0,30.0)
 				f_quantity = f_quantity/(f_quantity+1.0)+1.0/2.0
 				f_value = f_value/(f_value+scale)+scale/(scale+1)
 				f_fine = f_fine/(f_fine+scale)+scale/(scale+1)
-				product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*f_quantity)
-				product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*f_value)
-				product[FINE_INDEX] = ceil(product[FINE_INDEX]*f_fine)
-#		for tag in multipliers:
-#			if by_tag.has(tag):
-#				var quantity_value_fine = multipliers[tag]
-#				for id in by_tag[tag]:
-#					var product = all[id]
-#					if quantity_value_fine[0]>=0:
-#						product[QUANTITY_INDEX] = ceil(product[QUANTITY_INDEX]*quantity_value_fine[0])
-#					if quantity_value_fine[1]>=0:
-#						product[VALUE_INDEX] = ceil(product[VALUE_INDEX]*quantity_value_fine[1])
-#					if quantity_value_fine[2]>=0:
-#						product[FINE_INDEX] = ceil(product[FINE_INDEX]*quantity_value_fine[2])
+				product.quantity = ceil(product.quantity*f_quantity)
+				product.value = ceil(product.value*f_value)
+				product.fine = ceil(product.fine*f_fine)
 	
 	func apply_multipliers(quantity_multiplier,value_multiplier,fine_multiplier):
-		for id in all:
-			var product = all.get(id,null)
+		for name in by_name.keys():
+			var product = by_name.get(name,null)
 			if product:
 				_apply_multipliers(product,product,quantity_multiplier,
 					value_multiplier,fine_multiplier)
 	
+
+############ GOT HERE
 	func _apply_multipliers(old,new,quantity_multiplier,value_multiplier,
 			fine_multiplier):
 		if quantity_multiplier==null and value_multiplier==null and \
