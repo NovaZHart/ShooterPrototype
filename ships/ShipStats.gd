@@ -284,10 +284,10 @@ func set_cargo(products: Commodities.Products, _quiet: bool = false,
 #			push_warning('No stats in set_cargo! Making stats now.')
 		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},skip_runtime_stats)
 	cargo = Commodities.ManyProducts.new()
-	var _success = cargo.decode(products.all)
+	cargo.copy_from(products)
 	pack_cargo_stats(combined_stats)
-	if products.all:
-		assert(cargo.all)
+	if products.by_name:
+		assert(cargo.by_name)
 	return combined_stats
 
 

@@ -14,18 +14,16 @@ var selected_commodity_type: int = MARKET_TYPE_COMMODITIES
 # Maybwe move this to game data files?
 const population_names: Array = [ 'suvar', 'human', 'spiders' ]
 
-const no_commodity: Array = [ 'nothing', 0, 0, 0, 0 ]
-
 func select_no_commodity():
 	selected_commodity_index = -1
 	selected_commodity_type = MARKET_TYPE_COMMODITIES
 
-func get_selected_commodity() -> Array:
+func get_selected_commodity():
 	if selected_commodity_type==MARKET_TYPE_COMMODITIES and commodities:
-		return commodities.by_name.get(selected_commodity_index,no_commodity)
+		return commodities.by_name.get(selected_commodity_index,null)
 	if selected_commodity_type==MARKET_TYPE_SHIP_PARTS and ship_parts:
-		return ship_parts.by_name.get(selected_commodity_index,no_commodity)
-	return no_commodity
+		return ship_parts.by_name.get(selected_commodity_index,null)
+	return null
 
 func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COMMODITIES):
 	if market_type==MARKET_TYPE_COMMODITIES:
@@ -52,6 +50,8 @@ class Product extends Reference:
 		mass=mass_
 		for tag in tags_:
 			tags[str(tag)] = 1
+		if name=='vitamins':
+			assert(value>0)
 
 	func expand_tags():
 		for whole_tag in tags.keys():
@@ -64,7 +64,7 @@ class Product extends Reference:
 	func encode() -> Array:
 		return [ name,quantity,value,fine,mass ] + tags.keys()
 
-	func decode(from: Array) -> bool:
+	func decode(from) -> bool:
 		if(len(from)<5):
 			push_warning("Tried to decode a product from an array that was too small ("+str(len(from))+"<5)")
 			return false
@@ -145,7 +145,7 @@ class Product extends Reference:
 				value = max(value,new.value*value_multiplier)
 		if fine_multiplier!=null:
 			if abs(fine_multiplier)<1e-12:
-				value = 0
+				fine = 0
 			elif fine_multiplier<0:
 				fine = min(fine,-new.fine*fine_multiplier)
 			else:
@@ -157,6 +157,8 @@ class Product extends Reference:
 				quantity = min(quantity,-new.quantity*quantity_multiplier)
 			else:
 				quantity = max(quantity,new.quantity*quantity_multiplier)
+		if name=='vitamins':
+			assert(value>0)
 
 # ----------------------------------------------------------------------
 # ----------------------------------------------------------------------
@@ -395,9 +397,6 @@ class OneProduct extends Products:
 			_skip_checks: bool = true, keys_to_add = null):
 		# Checks are never skipped because we must ensure that only the
 		# selected product is processed
-		if not all_products.by_name:
-			return
-		
 		if keys_to_add==null:
 			if all_products is Products:
 				keys_to_add = all_products.by_name.keys()
@@ -448,6 +447,10 @@ class ManyProducts extends Products:
 	func clear():
 		by_name={}
 		by_tag={}
+	
+	func copy_from(p: Products):
+		for name in p.by_name:
+			var _ignore = _add_product(p.by_name[name])
 	
 	func copy():
 		var result = ManyProducts.new()
@@ -508,22 +511,22 @@ class ManyProducts extends Products:
 	
 	func add_products(all_products,  # : Dictionary or Products or Array
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
-			skip_checks: bool = true, keys_to_add = null, zero_quantity_if_missing = false):
+			skip_checks: bool = false, keys_to_add = null, zero_quantity_if_missing = false):
 		var have_multipliers = (quantity_multiplier!=null or \
 			value_multiplier!=null or fine_multiplier!=null)
 		if keys_to_add==null:
 			if all_products is Products:
-				keys_to_add = all_products.all.keys()
+				keys_to_add = all_products.by_name.keys()
 			elif all_products is Dictionary:
 				keys_to_add = all_products.keys()
 			elif all_products is Array:
 				keys_to_add = range(len(all_products))
 			else:
-				keys_to_add = all_products.all
+				keys_to_add = all_products.by_name
 		for key in keys_to_add:
 			var product
 			if all_products is Products:
-				product = all_products.all[key]
+				product = all_products.by_name[key]
 			else:
 				product = all_products[key]
 			var name = product.name
@@ -541,7 +544,7 @@ class ManyProducts extends Products:
 					push_error('In add_products, ignoring product with key "'+str(key)+'"')
 					continue
 
-			var myprod = by_name.get(name)			
+			var myprod = by_name.get(name)
 			# Do we already have this product?
 			var qm = quantity_multiplier
 			if myprod:

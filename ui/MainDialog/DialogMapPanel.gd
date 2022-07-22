@@ -62,7 +62,7 @@ func set_market(path):
 	var ship_parts = sale_info.get('ship_parts',null)
 	if not ship_parts:
 		ship_parts = Commodities.ship_parts.duplicate(true)
-	print('Ship part count '+str(len(ship_parts.all))+' at '+str(path))
+	print('Ship part count '+str(len(ship_parts.by_name))+' at '+str(path))
 	$All/Info/Bottom/Markets/Tabs/ShipParts.populate_list(
 		Commodities.ship_parts,ship_parts,ship_design)
 	

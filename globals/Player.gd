@@ -148,7 +148,7 @@ func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
 		if player_ship_design.cargo:
 			var unknown_cargo = player_ship_design.cargo.duplicate(true)
 			unknown_cargo.remove_absent_products()
-			if unknown_cargo.all:
+			if unknown_cargo.by_name:
 				result['unknown'] = unknown_cargo
 		
 		return result
@@ -187,7 +187,7 @@ func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
 		ship_parts_here = Commodities.ManyProducts.new()
 	
 	# If there is nothing in cargo, we're done:
-	if not cargo.all:
+	if not cargo.by_name:
 		return result
 	
 	# Find all cargo that cannot be sold as commodities or ship parts:
@@ -195,7 +195,7 @@ func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
 	unknown_player_cargo.remove_named_products(commodities_here)
 	unknown_player_cargo.remove_named_products(ship_parts_here)
 	unknown_player_cargo.remove_absent_products()
-	if unknown_player_cargo.all:
+	if unknown_player_cargo.by_name:
 		result['unknown'] = unknown_player_cargo
 	
 	return result
@@ -395,6 +395,9 @@ func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: 
 				if not next or next.update_time<game_state.epoch_time:
 					var local_products = Commodities.ManyProducts.new()
 					universe_node.list_products(Commodities.commodities, local_products)
+					var v = local_products.by_name.get('vitamins')
+					if v:
+						assert(v.value>0)
 					if next:
 						next.update(local_products,game_state.epoch_time,dropoff,scale)
 					else:

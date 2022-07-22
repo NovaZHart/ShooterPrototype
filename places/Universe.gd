@@ -360,7 +360,7 @@ class Flotsam extends simple_tree.SimpleNode:
 	
 	func random_product(ship_cargo = null, random_fraction: bool = true):
 		if cargo and ship_cargo: # and randf()<cargo:
-			var keys = ship_cargo.all.keys()
+			var keys = ship_cargo.by_name.keys()
 			if keys:
 				var id = keys[randi()%keys.size()]
 				var product = ship_cargo.by_name.get(id,null)
@@ -703,7 +703,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 
 static func encode_ShipDesign(d: ShipDesign):
 	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d),
-		( encode_helper(d.cargo.all) if d.cargo is Commodities.Products else null ) ]
+		( encode_helper(d.cargo.by_name) if d.cargo is Commodities.Products else null ) ]
 
 static func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':

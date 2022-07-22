@@ -128,12 +128,12 @@ func populate_list(all_known_products,products_here,ship_design):
 	apply_last_sort_method()
 
 func populate_product_named(product_name,root):
-		var norm_id: int = all_products.by_name.get(product_name,-1)
-		if norm_id<0:
+		var entry_norm = all_products.by_name.get(product_name,null)
+		if not entry_norm:
 			return # product is not of the correct type for this list
 		var entry_mine: Commodities.Product = mine.by_name.get(product_name,null)
 		var entry_here: Commodities.Product = here.by_name.get(product_name,null)
-		var entry_norm: Commodities.Product = all_products.by_name.get(product_name,null)
+		#var entry_norm: Commodities.Product = all_products.by_name.get(product_name,null)
 		var price: float = max(0.0,entry_here.value)
 		var norm_price: float
 		if entry_norm:

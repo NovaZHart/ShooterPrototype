@@ -273,7 +273,7 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 			price_stats_recurse(commodity,child,result,method)
 
 func price_stats(node: simple_tree.SimpleNode): # -> float or null
-	var commodity_data: Array = Commodities.get_selected_commodity()
+	var commodity_data = Commodities.get_selected_commodity()
 	var commodity = Commodities.OneProduct.new(commodity_data)
 	if not buy:
 		if Commodities.selected_commodity_type==Commodities.MARKET_TYPE_SHIP_PARTS:

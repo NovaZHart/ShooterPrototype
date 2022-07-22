@@ -94,7 +94,7 @@ func make_product_hover_info(item_name,mine,here,norm) -> String:
 	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
 	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
 	s+=make_row3('Price',here.value,norm.value)
-	s+=make_row3('Fine',here.fine,norm.fiine)
+	s+=make_row3('Fine',here.fine,norm.fine)
 	s+=make_row3('Mass per',here.mass,' ')
 	s+=make_row3('Available',here.quantity,' ')
 	s+=make_row3('In cargo',mine.quantity,' ')

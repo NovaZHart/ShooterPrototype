@@ -176,7 +176,7 @@ func price_products(result: Commodities.Products):
 	if system:
 		system.price_products(result)
 
-func list_products(commodities: Commodities.Products, result: Commodities.Products):
+func list_products(commodities: Reference, result: Commodities.Products):
 	for trade in trading:
 		var proc = Commodities.trading.get(trade,null)
 		if proc:
