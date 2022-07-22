@@ -88,8 +88,7 @@ func info_show_product(product_name):
 			$All/Info/Bottom/Console.clear()
 			return false
 	else:
-		var norm = trading_list.all_products.all.get(
-			trading_list.all_products.by_name.get(product_name,null),null)
+		var norm = trading_list.all_products.by_name.get(product_name,null)
 		if norm:
 			var pair = trading_list.get_product_named(product_name)
 			if pair and pair[0] and pair[1]:

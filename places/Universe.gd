@@ -363,7 +363,7 @@ class Flotsam extends simple_tree.SimpleNode:
 			var keys = ship_cargo.all.keys()
 			if keys:
 				var id = keys[randi()%keys.size()]
-				var product = ship_cargo.all.get(id,null)
+				var product = ship_cargo.by_name.get(id,null)
 				if product:
 					var quantity =  product.quantity
 					if quantity:
@@ -474,10 +474,10 @@ class ShipDesign extends simple_tree.SimpleNode:
 		# my_parts = return value from list_ship_parts
 		# all_parts = second argument to list_ship_parts
 		for part_name in my_parts.by_name:
-			var product = all_parts.all.get(all_parts.by_name.get(part_name,-1),null)
+			var product = all_parts.by_name.get(all_parts.by_name.get(part_name,-1),null)
 			if not product:
 				return false
-			var my_product = my_parts.all.get(my_parts.by_name.get(part_name,-1),null)
+			var my_product = my_parts.by_name.get(my_parts.by_name.get(part_name,-1),null)
 			if not my_product:
 				return false
 			if my_product.quantity>product.quantity:

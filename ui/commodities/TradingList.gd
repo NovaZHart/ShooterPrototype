@@ -258,8 +258,8 @@ func _on_Tree_item_edited():
 	var _discard = try_set_quantity(item,change)
 
 func get_product_named(item_name: String) -> Array:
-	var mine_product = mine.all.get(mine.by_name.get(item_name,null),null)
-	var here_product = here.all.get(here.by_name.get(item_name,null),null)
+	var mine_product = mine.by_name.get(item_name,null)
+	var here_product = here.by_name.get(item_name,null)
 	return [mine_product, here_product]
 
 func get_selected_product(): # -> String or null

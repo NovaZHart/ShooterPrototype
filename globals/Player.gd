@@ -102,7 +102,7 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 	else:
 		cargo = Commodities.ManyProducts.new()
 	
-	var player_product = cargo.all.get(product_name,null)
+	var player_product = cargo.by_name.get(product_name,null)
 	
 	if not player_product:
 		var product = Commodities.commodities.by_name.get(product_name,null)

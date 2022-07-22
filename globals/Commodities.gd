@@ -22,9 +22,9 @@ func select_no_commodity():
 
 func get_selected_commodity() -> Array:
 	if selected_commodity_type==MARKET_TYPE_COMMODITIES and commodities:
-		return commodities.all.get(selected_commodity_index,no_commodity)
+		return commodities.by_name.get(selected_commodity_index,no_commodity)
 	if selected_commodity_type==MARKET_TYPE_SHIP_PARTS and ship_parts:
-		return ship_parts.all.get(selected_commodity_index,no_commodity)
+		return ship_parts.by_name.get(selected_commodity_index,no_commodity)
 	return no_commodity
 
 func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COMMODITIES):
@@ -254,7 +254,7 @@ class Products extends Reference:
 		if by_name.has(product.name):
 			_remove_product(product.name)
 		var newprod = product.duplicate(true)
-		newprod.apply_multipliers(quantity_multiplier,value_multiplier,fine_multiplier)
+		newprod.apply_multipliers(newprod,quantity_multiplier,value_multiplier,fine_multiplier)
 		_add_product_without_duplicating(newprod)
 		return newprod
 

@@ -216,8 +216,7 @@ func update_hover_info(item_name,force_update):
 		else:
 			push_warning('no help page for scene '+str(item_name))
 	else:
-		var norm = trading_list.all_products.all.get(
-			trading_list.all_products.by_name.get(item_name,null),null)
+		var norm = trading_list.all_products.by_name.get(item_name,null)
 		if norm:
 			var pair = trading_list.get_product_named(item_name)
 			if pair and pair[0] and pair[1]:
@@ -250,9 +249,9 @@ func _on_StarmapPanel_hover_over_player_location(_system_name,_system_display_na
 func _on_StarmapPanel_hover_over_system(_system_name,system_display_name,system_price):
 	if hover_name and system_price and system_price>0:
 		var mine = trading_list.mine
-		var mine_item = mine.all.get(mine.by_name.get(hover_name,-1),null)
+		var mine_item = mine.by_name.get(hover_name,null)
 		var here = trading_list.here
-		var here_item = here.all.get(here.by_name.get(hover_name,-1),null)
+		var here_item = here.by_name.get(hover_name,null)
 		if here_item and mine_item:
 			var info: String = text_gen.make_system_product_hover_info(
 				hover_name,mine_item,here_item,system_display_name,system_price)
