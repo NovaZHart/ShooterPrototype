@@ -62,7 +62,6 @@ own_world = true
 world = SubResource( 3 )
 handle_input_locally = false
 usage = 3
-render_target_update_mode = 3
 
 [node name="SelectFront" type="OmniLight" parent="All/Top/View/Port"]
 transform = Transform( 0.707103, 1.40071e-06, -0.70711, 0.353558, 0.866022, 0.353557, 0.612374, -0.500006, 0.612367, -1000, 50, 1000 )

@@ -56,6 +56,7 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 	}
 
 func set_design(new_path: NodePath) -> bool:
+	$View/Port.render_target_update_mode = Viewport.UPDATE_ONCE
 	if old_path==new_path:
 		return true
 	var design = game_state.ship_designs.get_node_or_null(new_path)
