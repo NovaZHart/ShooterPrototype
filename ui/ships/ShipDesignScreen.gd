@@ -593,12 +593,12 @@ func get_edited_ship_parts():
 
 func price_ship_part(resource_path):
 	# FIXME: Need to modify this if varying part prices is implemented.
-	var id = all_ship_parts.by_name.get(resource_path,-1)
-	if id>=0:
-		return all_ship_parts.all[id][Commodities.Products.VALUE_INDEX]
-	id = Commodities.ship_parts.by_name.get(resource_path,-1)
-	if id>=0:
-		return Commodities.ship_parts.all[id][Commodities.Products.VALUE_INDEX]
+	var product = all_ship_parts.by_name.get(resource_path,null)
+	if product:
+		return product.value
+	product = Commodities.ship_parts.by_name.get(resource_path,null)
+	if product:
+		return product.value
 	return 0
 
 func price_ship_parts(parts):

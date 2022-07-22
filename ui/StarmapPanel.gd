@@ -258,18 +258,15 @@ func price_stats_recurse(commodity: Commodities.OneProduct, node: simple_tree.Si
 	if node.has_method(method):
 		var price = Commodities.OneProduct.new()
 		node.call(method,commodity,price)
-		if price.all:
-			var product = price.all[0]
-			var value = product[Commodities.Products.VALUE_INDEX]
-			var quantity = product[Commodities.Products.QUANTITY_INDEX]
-			if value and quantity:
-				result[1] += 1
-				if mode==MAX_PRICE:
-					result[0] = max(result[0],value)
-				elif mode==MIN_PRICE:
-					result[0] = min(result[0],value)
-				else:
-					result[0] += value
+		var product = price.get_product()
+		if product and product.value and product.quantity:
+			result[1] += 1
+			if mode==MAX_PRICE:
+				result[0] = max(result[0],product.value)
+			elif mode==MIN_PRICE:
+				result[0] = min(result[0],product.value)
+			else:
+				result[0] += product.value
 	for child_name in node.get_child_names():
 		var child = node.get_child_with_name(child_name)
 		if child:
@@ -283,7 +280,10 @@ func price_stats(node: simple_tree.SimpleNode): # -> float or null
 			node.price_ship_parts(commodity)
 		else:
 			node.price_products(commodity)
-		var value = commodity.all[0][Commodities.Products.VALUE_INDEX]
+		var product = commodity.get_product()
+		var value = null
+		if product:
+			value = product.value
 		return value if value else null
 	var result = [ 0.0, 0 ]
 	if mode==MIN_PRICE:

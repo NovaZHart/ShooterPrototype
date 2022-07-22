@@ -102,18 +102,15 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 	else:
 		cargo = Commodities.ManyProducts.new()
 	
-	var player_product_id = cargo.by_name.get(product_name,-1)
-	var player_product = cargo.all.get(player_product_id,[])
+	var player_product = cargo.all.get(product_name,null)
 	
 	if not player_product:
-		var product_id = Commodities.commodities.by_name.get(product_name,-1)
-		var product = Commodities.commodities.all.get(product_id,[])
+		var product = Commodities.commodities.by_name.get(product_name,null)
 		if not product:
 			push_warning('Product "'+str(product_name)+'" does not exist.')
 			return 0
-		cargo.add_products(Commodities.commodities,0,null,0,false,[product_id])
-		player_product_id = cargo.by_name.get(product_name,-1)
-		player_product = cargo.all.get(player_product_id,[])
+		cargo.add_products(Commodities.commodities,0,null,0,false,[product_name])
+		player_product = cargo.by_name.get(product_name,null)
 	
 	if not player_product:
 		push_error('Failed to add product "'+str(product_name)+'" to player ship cargo')
@@ -123,7 +120,7 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 	var max_cargo_mass: float = player_ship_design.cached_stats["max_cargo"]
 	var available_mass: float = max(0,max_cargo_mass-cargo_mass_before)
 	available_mass *= 1000 # convert tons -> kg
-	var unit_mass: int = player_product[Commodities.Products.MASS_INDEX]/1000.0
+	var unit_mass: int = player_product.mass/1000.0
 	var allowed_items: int = count
 	if unit_mass>0:
 		allowed_items = int(floor(available_mass/unit_mass))
@@ -132,7 +129,7 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 	
 	if added_items:
 		print('Loading '+str(added_items)+' "'+str(product_name)+'" into player cargo hold')
-		player_product[Commodities.Products.QUANTITY_INDEX] += added_items
+		player_product.quantity += added_items
 		player_ship_design.set_cargo(cargo)
 		player_ship_design.get_stats()['cargo_mass'] = cargo.get_mass()
 	

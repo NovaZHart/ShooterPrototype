@@ -231,8 +231,8 @@ func set_item_counts(counts):
 	for resource_path in scenes:
 		var product = counts.all.get(counts.by_name.get(resource_path,-1),null)
 		if product:
-			new_item_count[resource_path] = product[Commodities.Products.QUANTITY_INDEX]
-			new_item_costs[resource_path] = product[Commodities.Products.VALUE_INDEX]
+			new_item_count[resource_path] = product.quantity
+			new_item_costs[resource_path] = product.value
 		else:
 			new_item_count[resource_path] = 0
 			new_item_costs[resource_path] = 0
@@ -241,14 +241,18 @@ func set_item_counts(counts):
 	update_item_colors()
 
 func add_ship_parts(parts: Commodities.ManyProducts,include_tags: Array, exclude_tags=null):
-	var ids = parts.ids_for_tags(include_tags,exclude_tags)
-	for id in ids:
-		var product = parts.all.get(id,null)
+	for product in parts.products_for_tags(include_tags,exclude_tags):
 		if product:
-			var resource_path = product[Commodities.Products.NAME_INDEX]
+			var resource_path = product.name
+			if not ResourceLoader.exists(resource_path):
+				push_error('Ship part refers to invalid path "'+str(resource_path)+'"')
+				continue
 			var scene = load(resource_path)
+			if not scene:
+				push_error('Could not load ship part from path "'+str(resource_path)+'"')
+				continue
 			if add_mountable_part(scene):
-				item_count[resource_path] = product[Commodities.Products.QUANTITY_INDEX]
+				item_count[resource_path] = product.quantity
 	update_item_colors()
 
 # warning-ignore:shadowed_variable

@@ -131,23 +131,21 @@ func populate_product_named(product_name,root):
 		var norm_id: int = all_products.by_name.get(product_name,-1)
 		if norm_id<0:
 			return # product is not of the correct type for this list
-		var mine_id: int = mine.by_name[product_name]
-		var here_id: int = here.by_name[product_name]
-		var entry_mine: Array = mine.all[mine_id]
-		var entry_here: Array = here.all[here_id]
-		var entry_norm = all_products.all.get(norm_id,null)
-		var price: float = max(0.0,entry_here[Commodities.Products.VALUE_INDEX])
+		var entry_mine: Commodities.Product = mine.by_name.get(product_name,null)
+		var entry_here: Commodities.Product = here.by_name.get(product_name,null)
+		var entry_norm: Commodities.Product = all_products.by_name.get(product_name,null)
+		var price: float = max(0.0,entry_here.value)
 		var norm_price: float
 		if entry_norm:
-			norm_price = max(0.0,entry_norm[Commodities.Products.VALUE_INDEX])
+			norm_price = max(0.0,entry_norm.value)
 		else:
 			norm_price = price
 		var diff: float = norm_price-price
-		var mass: float = max(0.0,entry_here[Commodities.Products.MASS_INDEX])
+		var mass: float = max(0.0,entry_here.mass)
 # warning-ignore:narrowing_conversion
-		var count_mine: int = max(0,entry_mine[Commodities.Products.QUANTITY_INDEX])
+		var count_mine: int = max(0,entry_mine.quantity)
 # warning-ignore:narrowing_conversion
-		var count_here: int = max(0,entry_here[Commodities.Products.QUANTITY_INDEX])
+		var count_here: int = max(0,entry_here.quantity)
 #		if not show_all_products and not count_mine and not count_here:
 #			return # cannot buy or sell this
 		# FIXME: proper display name for products
@@ -167,8 +165,8 @@ func populate_product_named(product_name,root):
 		data[PRICE_ELEMENT] = price
 		data[MASS_ELEMENT] = mass
 		data[QUANTITY_ELEMENT] = count_here+count_mine
-		data[MINE_ID_ELEMENT] = mine_id
-		data[HERE_ID_ELEMENT] = here_id
+		data[MINE_ID_ELEMENT] = product_name
+		data[HERE_ID_ELEMENT] = product_name
 		if MASS_COLUMN>0:
 			item.set_text(MASS_COLUMN,str(mass))
 			item.set_metadata(MASS_COLUMN,mass)
@@ -204,15 +202,15 @@ func populate_product_named(product_name,root):
 func try_set_quantity(item: TreeItem, change: int) -> bool:
 	var count_mine = item.get_metadata(MINE_COLUMN)
 	var count_here = item.get_metadata(HERE_COLUMN)
-	var other_ids: Array = mine.all.keys()
+	var other_names: Array = mine.by_name.keys()
 	var etc = item.get_metadata(PRICE_COLUMN)
-	var mine_id = etc[MINE_ID_ELEMENT]
-	var here_id = etc[HERE_ID_ELEMENT]
-	other_ids.erase(mine_id)
+	var mine_name = etc[MINE_ID_ELEMENT]
+	var here_name = etc[HERE_ID_ELEMENT]
+	other_names.erase(mine_name)
 #	var price = etc[0]
 	var item_mass: float = max(1,etc[MASS_ELEMENT])
 	var item_value: float = max(1,etc[PRICE_ELEMENT])
-	var remaining_mass = max_cargo-int(round(mine.get_mass(other_ids)))
+	var remaining_mass = max_cargo-int(round(mine.get_mass(other_names)))
 	var remaining_value = Player.money + item_value*count_mine
 # warning-ignore:narrowing_conversion
 	change = min(change,remaining_mass/item_mass-count_mine)
@@ -223,11 +221,11 @@ func try_set_quantity(item: TreeItem, change: int) -> bool:
 	change = clamp(change,-count_mine,count_here)
 	# FIXME: Check cargo capacity
 	# FIXME: Check money
-	mine.all[mine_id][Commodities.Products.QUANTITY_INDEX] += change
-	here.all[here_id][Commodities.Products.QUANTITY_INDEX] -= change
+	mine.by_name[mine_name].quantity += change
+	here.by_name[here_name].quantity -= change
 # warning-ignore:narrowing_conversion
 	Player.money -= int(round(change*item_value))
-	emit_signal('product_data_changed',mine.all[mine_id][Commodities.Products.NAME_INDEX])
+	emit_signal('product_data_changed',mine_name)
 	item.set_text(MINE_COLUMN,str(count_mine+change))
 	item.set_metadata(MINE_COLUMN,count_mine+change)
 	item.set_text(HERE_COLUMN,str(count_here-change))
@@ -308,13 +306,14 @@ func _on_SellAll_pressed():
 		if norm_id<0:
 			continue
 		var etc = item.get_metadata(PRICE_COLUMN)
-		var mine_id = etc[MINE_ID_ELEMENT]
-		var here_id = etc[HERE_ID_ELEMENT]
-		var my_quantity = mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
-		var unit_mass = mine.all[mine_id][Commodities.Products.MASS_INDEX]
-		here.all[here_id][Commodities.Products.QUANTITY_INDEX] += \
-			mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]
-		mine.all[mine_id][Commodities.Products.QUANTITY_INDEX]=0
+		var mine_name: String = etc[MINE_ID_ELEMENT]
+		var here_name: String = etc[HERE_ID_ELEMENT]
+		var mine_prod: Commodities.Product = mine.by_name[mine_name]
+		var here_prod: Commodities.Product = here.by_name[here_name]
+		var my_quantity = mine_prod.quantity
+		var unit_mass = here_prod.mass
+		here_prod.quantity += mine_prod.quantity
+		mine_prod.quantity = 0
 		mass_lost += my_quantity * unit_mass
 		var sale: float = item.get_metadata(MINE_COLUMN)*etc[PRICE_ELEMENT]
 		assert(sale>=0 and sale<1e9)

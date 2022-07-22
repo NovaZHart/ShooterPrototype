@@ -128,7 +128,7 @@ static func encode_children(parent) -> Dictionary:
 
 static func encode_ProductsNode(p: Commodities.ProductsNode):
 	return [ 'ProductsNode', str(p.update_time),
-		encode_helper(p.products.encode() if p.products else {}),
+		encode_helper(p.products.encode() if p.products else []),
 		encode_children(p) ]
 
 static func decode_ProductsNode(v):
@@ -142,7 +142,7 @@ static func decode_ProductsNode(v):
 			push_error('Invalid value for encoded ProductsNode.update_time: '+str(v[1]))
 	if len(v)>2:
 		var two = decode_helper(v[2])
-		if two is Dictionary:
+		if two is Array:
 			result.decode_products(two)
 		elif two:
 			push_error('Invalid value for encoded ProductsNode.products: '+str(two).substr(0,100))
@@ -305,16 +305,16 @@ class Flotsam extends simple_tree.SimpleNode:
 				var count = prod[product_name]
 				if not count or count<0:
 					continue
-				var id = Commodities.commodities.by_name.get(product_name,-1)
-				if id>=0:
-					var product = Array(Commodities.commodities.all[id])
-					product[Commodities.Products.QUANTITY_INDEX] = count
+				var product = Commodities.commodities.by_name.get(product_name,null)
+				if product:
+					product = product.duplicate()
+					product.quantity = count
 					products.append(product)
 					continue
-				id = Commodities.ship_parts.by_name.get(product_name,-1)
-				if id>=0:
-					var product = Array(Commodities.ship_parts.all[id])
-					product[Commodities.Products.QUANTITY_INDEX] = count
+				product = Commodities.ship_parts.by_name.get(product_name,null)
+				if product:
+					product = product.duplicate()
+					product.quantity = count
 					products.append(product)
 					continue
 	
@@ -347,10 +347,10 @@ class Flotsam extends simple_tree.SimpleNode:
 		return {
 			'flotsam_mesh': mesh,
 			'flotsam_scale': 1.0,
-			'cargo_name': product[Commodities.Products.NAME_INDEX],
-			'cargo_count': product[Commodities.Products.QUANTITY_INDEX],
-			'cargo_unit_mass': product[Commodities.Products.MASS_INDEX],
-			'cargo_unit_value': product[Commodities.Products.VALUE_INDEX],
+			'cargo_name': product.name,
+			'cargo_count': product.quantity,
+			'cargo_unit_mass': product.mass,
+			'cargo_unit_value': product.value,
 			'armor_repair': armor_repair*max_armor,
 			'structure_repair': structure_repair,
 			'fuel': fuel*max_fuel,
@@ -365,26 +365,26 @@ class Flotsam extends simple_tree.SimpleNode:
 				var id = keys[randi()%keys.size()]
 				var product = ship_cargo.all.get(id,null)
 				if product:
-					var quantity =  product[Commodities.Products.QUANTITY_INDEX]
+					var quantity =  product.quantity
 					if quantity:
-						product = Array(product)
+						product = product.duplicate()
 						if random_fraction:
 							quantity = int(max(1,ceil(randf()*quantity)))
-						product[Commodities.Products.QUANTITY_INDEX] = quantity
+						product.quantity = quantity
 						return product
 		if not products:
 			return null
 		else:
 			var index = randi()%products.size()
-			var product: Array = products[index].duplicate(true)
-			var count: int = int(max(1,ceil(product[Commodities.Products.QUANTITY_INDEX])))
-			var original = products[index][Commodities.Products.QUANTITY_INDEX]
+			var product = products[index].duplicate(true)
+			var count: int = int(max(1,ceil(product.quantity)))
+			var original = products[index].quantity
 			if random_fraction:
 				var selected = 1+randi()%count
-				#print("Randomly selecting "+str(selected)+" of "+str(count)+" "+str(product[Commodities.Products.NAME_INDEX]));
+				#print("Randomly selecting "+str(selected)+" of "+str(count)+" "+str(product.name));
 				count = selected
-			product[Commodities.Products.QUANTITY_INDEX] = count
-			assert(products[index][Commodities.Products.QUANTITY_INDEX] == original)
+			product.quantity = count
+			assert(products[index].quantity == original)
 			return product
 	
 	func is_flotsam(): pass # For type detection. Never called, just needs to exist.
@@ -480,7 +480,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 			var my_product = my_parts.all.get(my_parts.by_name.get(part_name,-1),null)
 			if not my_product:
 				return false
-			if my_product[Commodities.Products.QUANTITY_INDEX]>product[Commodities.Products.QUANTITY_INDEX]:
+			if my_product.quantity>product.quantity:
 				return false
 		return true
 	
@@ -524,12 +524,11 @@ class ShipDesign extends simple_tree.SimpleNode:
 	
 	func cost_of(scene: PackedScene) -> float:
 		var resource_path = scene.resource_path
-		var id = Commodities.ship_parts.by_name.get(resource_path,-1)
-		if id<0:
+		var product = Commodities.ship_parts.by_name.get(resource_path,null)
+		if not product:
 			push_warning('No product for scene "'+str(resource_path)+'"')
 			return 0.0
-		var product = Commodities.ship_parts.all.get(id,null)
-		return float(product[Commodities.Products.VALUE_INDEX] if product else 0.0)
+		return float(product.value if product else 0.0)
 	
 	func assemble_part(body: Node, child: Node, skip_hidden: bool) -> bool:
 #		var start = OS.get_ticks_msec()

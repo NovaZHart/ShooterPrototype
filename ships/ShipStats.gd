@@ -119,39 +119,39 @@ func make_random_cargo(cargo_hold_spawn_fraction,from,_quiet: bool = false, skip
 		return
 	var max_cash = 1e4*max_mass + combined_stats.get('cost',1e5)
 	max_mass *= 1000*clamp(cargo_hold_spawn_fraction,0.0,1.0)
-	var ids_remaining = from.all.keys()
+	var names_remaining = from.by_name.keys()
 	var mass_remaining = max_mass
 	var cash_remaining = max_cash
 	var results = Array()
 	
 	var infinite_loop_guard = 0
 	
-	while ids_remaining and cash_remaining and mass_remaining and infinite_loop_guard<100:
+	while names_remaining and cash_remaining and mass_remaining and infinite_loop_guard<100:
 		infinite_loop_guard += 1
-		var index = randi()%ids_remaining.size()
-		var id = ids_remaining[index]
-		var product = from.all.get(id,null)
+		var index = randi()%names_remaining.size()
+		var product_name = names_remaining[index]
+		var product = from.by_name.get(product_name,null)
 		if product==null:
-			ids_remaining.pop_at(index)
+			names_remaining.pop_at(index)
 			continue
-		var unit_cost = product[Commodities.Products.VALUE_INDEX]
-		var unit_mass = product[Commodities.Products.MASS_INDEX]
-		var available = product[Commodities.Products.QUANTITY_INDEX]*100
+		var unit_cost = product.value
+		var unit_mass = product.mass
+		var available = product.quantity*100
 		if unit_cost<=0 or unit_mass<=0 or available<=0:
-			ids_remaining.pop_at(index)
+			names_remaining.pop_at(index)
 			continue
 		var max_items = int(min(available,min(floor(mass_remaining/unit_mass),floor(cash_remaining/unit_cost))))
 		if max_items<=0:
-			ids_remaining.pop_at(index)
+			names_remaining.pop_at(index)
 			continue
 		mass_remaining -= max_items*unit_mass
 		cash_remaining -= max_items*unit_cost
 		product = product.duplicate()
-		product[Commodities.Products.QUANTITY_INDEX] = max_items
+		product.quantity = max_items
 		results.append(product)
-#		print('   '+str(product[Commodities.Products.NAME_INDEX])+
+#		print('   '+str(product.name)+
 #			' '+str(max_items)+' @ '+str(unit_cost)+' & '+str(unit_mass)+'kg')
-		ids_remaining.pop_at(index)
+		names_remaining.pop_at(index)
 	
 	if results:
 		var products = Commodities.ManyProducts.new()

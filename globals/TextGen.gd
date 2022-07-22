@@ -76,41 +76,34 @@ func make_row4(one,two,three,four):
 		+'[cell]  [/cell][cell]'+str(four)+'[/cell]'
 
 func make_system_product_hover_info(item_name,mine,here,display_name,price) -> String:
-	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
-	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
-	var MASS_INDEX = Commodities.Products.MASS_INDEX
 	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=7]'
 	s+=make_row4('  ','[b]Here[/b]','[b]At '+display_name+'[/b]','[b]Difference[/b]')
-	s+=make_row4('Price',here[VALUE_INDEX],price,price-here[VALUE_INDEX])
-	s+=make_row4('Mass per',here[MASS_INDEX],' ',' ')
-	s+=make_row4('Available',here[QUANTITY_INDEX],' ',' ')
-	s+=make_row4('In cargo',mine[QUANTITY_INDEX],' ',' ')
-	s+=make_row4('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ',' ')
+	s+=make_row4('Price',here.value,price,price-here.value)
+	s+=make_row4('Mass per',here.mass,' ',' ')
+	s+=make_row4('Available',here.quantity,' ',' ')
+	s+=make_row4('In cargo',mine.quantity,' ',' ')
+	s+=make_row4('Cargo mass',mine.quantity*mine.mass,' ',' ')
 	s+='[/table]\n'
-	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+	if here.tags:
 		s+='\nTags:\n'
-		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
-			s+=' {*} '+here[itag]+'\n'
+		for tag in here.tags:
+			s+=' {*} '+str(tag)+'\n'
 	return s
 
 func make_product_hover_info(item_name,mine,here,norm) -> String:
-	var VALUE_INDEX = Commodities.Products.VALUE_INDEX
-	var FINE_INDEX = Commodities.Products.FINE_INDEX
-	var QUANTITY_INDEX = Commodities.Products.QUANTITY_INDEX
-	var MASS_INDEX = Commodities.Products.MASS_INDEX
 	var s: String = '[b]'+item_name.capitalize()+'[/b]\n[table=5]'
 	s+=make_row3('  ','[b]Here[/b]','[b]Typical[/b]')
-	s+=make_row3('Price',here[VALUE_INDEX],norm[VALUE_INDEX])
-	s+=make_row3('Fine',here[FINE_INDEX],norm[FINE_INDEX])
-	s+=make_row3('Mass per',here[MASS_INDEX],' ')
-	s+=make_row3('Available',here[QUANTITY_INDEX],' ')
-	s+=make_row3('In cargo',mine[QUANTITY_INDEX],' ')
-	s+=make_row3('Cargo mass',mine[QUANTITY_INDEX]*mine[MASS_INDEX],' ')
+	s+=make_row3('Price',here.value,norm.value)
+	s+=make_row3('Fine',here.fine,norm.fiine)
+	s+=make_row3('Mass per',here.mass,' ')
+	s+=make_row3('Available',here.quantity,' ')
+	s+=make_row3('In cargo',mine.quantity,' ')
+	s+=make_row3('Cargo mass',mine.quantity*mine.mass,' ')
 	s+='[/table]\n'
-	if len(here)>Commodities.Products.FIRST_TAG_INDEX:
+	if here.tags:
 		s+='\nTags:\n'
-		for itag in range(Commodities.Products.FIRST_TAG_INDEX,len(here)):
-			s+=' {*} '+here[itag]+'\n'
+		for tag in here.tags:
+			s+=' {*} '+str(tag)+'\n'
 	return s
 
 func make_fleet_bbcode(fleet_id, fleet_display_name, design_count: Dictionary) -> String:
