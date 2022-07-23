@@ -283,7 +283,7 @@ class Products extends Reference:
 	func _remove_product(name):
 		var product = by_name.get(name,null)
 		if product:
-			var _ignore = by_name.erase(product)
+			var _ignore = by_name.erase(product.name)
 			for tag in product.tags:
 				by_tag[tag].erase(product)
 
@@ -707,7 +707,7 @@ func products_for_market(all_known_products,market_products,ship_products,
 	var unpriced_names: Dictionary = {}
 	for product_name in ship_products.by_name:
 		var known_product = all_known_products.by_name.get(product_name,null)
-		if known_product==null:
+		if known_product != null:
 			var ship_product = ship_products.by_name.get(product_name,null)
 			if ship_product and ship_product.quantity:
 				unpriced_names[product_name]=1
