@@ -12,9 +12,6 @@ size_flags_vertical = 3
 columns = 6
 hide_root = true
 script = ExtResource( 1 )
-__meta__ = {
-"_edit_use_anchors_": false
-}
 increment_texture = ExtResource( 2 )
 decrement_texture = ExtResource( 3 )
 

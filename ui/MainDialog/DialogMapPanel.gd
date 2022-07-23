@@ -42,7 +42,6 @@ func set_market(path):
 	var planet_info = game_state.systems.get_node_or_null(path)
 	var ship_design = Player.player_ship_design
 	last_shown_market = path
-	print('market at '+str(planet_info)+' ship design '+str(ship_design))
 	
 	if planet_info:
 		var system_info = planet_info.get_system()
@@ -62,7 +61,6 @@ func set_market(path):
 	var ship_parts = sale_info.get('ship_parts',null)
 	if not ship_parts:
 		ship_parts = Commodities.ship_parts.duplicate(true)
-	print('Ship part count '+str(len(ship_parts.by_name))+' at '+str(path))
 	$All/Info/Bottom/Markets/Tabs/ShipParts.populate_list(
 		Commodities.ship_parts,ship_parts,ship_design)
 	
@@ -96,15 +94,15 @@ func info_show_product(product_name):
 					text_gen.make_product_hover_info(product_name,pair[0],pair[1],norm),true)
 				$All/Info/Bottom/Console.scroll_to_line(0)
 
-func starmap_show_product(index: int):
+func starmap_show_product(product_name: String):
 #	var bs = $All/Right/Content/Top/BuySell
-	if index==0:
+	if not product_name:
 		Commodities.select_no_commodity()
 		$All/StarmapPanel.mode = $All/StarmapPanel.NAVIGATIONAL
 #		bs.set_item_text(0,'Buying Map')
 #		bs.set_item_text(1,'Selling Map')
 	else:
-		var product_name = trading_list.product_names[index-1]
+		#var product_name = trading_list.product_names[index-1]
 		#var display_name = trading_list.display_name_for[product_name]
 		Commodities.select_commodity_with_name(product_name,trading_list.market_type)
 #		bs.set_item_text(0,'Purchase: '+display_name)
@@ -119,8 +117,8 @@ func _on_TradingList_product_selected(product_name):
 	if not trading_list:
 		return
 	queue.run(self,'info_show_product',[product_name])
-	var index = trading_list.product_names.find(product_name)+1
-	starmap_show_product(index)
+	#var index = trading_list.product_names.find(product_name)+1
+	starmap_show_product(product_name)
 
 func update_SalePrice_disabled():
 	$All/Info/Bottom/Markets/Middle/SalePrice.disabled = \
@@ -131,14 +129,14 @@ func _on_Tabs_tab_changed(tab):
 	var control = $All/Info/Bottom/Markets/Tabs.get_child(tab)
 	if not control.has_method('is_TradingList'):
 		trading_list = null
-		starmap_show_product(0)
+		starmap_show_product("")
 	else:
 		trading_list = control
 		var selected_product = trading_list.get_selected_product()
 		if selected_product:
 			queue.run(self,'info_show_product',[selected_product])
-			var index = trading_list.product_names.find(selected_product)+1
-			starmap_show_product(index)
+			#var index = trading_list.product_names.find(selected_product)+1
+			starmap_show_product(selected_product)
 
 func _on_SalePrice_toggled(_button_pressed):
 	set_market(last_shown_market)

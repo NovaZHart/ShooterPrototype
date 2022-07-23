@@ -19,11 +19,12 @@ func select_no_commodity():
 	selected_commodity_type = MARKET_TYPE_COMMODITIES
 
 func get_selected_commodity():
+	var result=null
 	if selected_commodity_type==MARKET_TYPE_COMMODITIES and commodities:
-		return commodities.by_name.get(selected_commodity_name,null)
+		result=commodities.by_name.get(selected_commodity_name,null)
 	if selected_commodity_type==MARKET_TYPE_SHIP_PARTS and ship_parts:
-		return ship_parts.by_name.get(selected_commodity_name,null)
-	return null
+		result=ship_parts.by_name.get(selected_commodity_name,null)
+	return result
 
 func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COMMODITIES):
 	if market_type==MARKET_TYPE_COMMODITIES:
@@ -51,8 +52,6 @@ class Product extends Reference:
 		if tags_:
 			for tag in tags_:
 				tags[str(tag)] = 1
-		if name=='vitamins':
-			assert(value>0)
 
 	func expand_tags():
 		for whole_tag in tags.keys():
@@ -161,8 +160,6 @@ class Product extends Reference:
 				quantity = min(quantity,-new.quantity*quantity_multiplier)
 			else:
 				quantity = max(quantity,new.quantity*quantity_multiplier)
-		if name=='vitamins':
-			assert(value>0)
 
 # ----------------------------------------------------------------------
 # ----------------------------------------------------------------------
@@ -322,10 +319,11 @@ class Products extends Reference:
 		var scan_products: Dictionary = {}
 		for tag in multipliers:
 			if by_tag.has(tag):
-				for name in by_tag[tag]:
-					scan_products[name]=1
-		for name in scan_products:
-			var product = by_name.get(name,null)
+				for product in by_tag[tag]:
+					scan_products[product]=1
+		if not scan_products:
+			pass
+		for product in scan_products:
 			if product:
 				product.apply_multiplier_list(multipliers)
 	
@@ -407,6 +405,7 @@ class OneProduct extends Products:
 			clear()
 		else:
 			var prod = product.duplicate()
+			product_name=prod.name
 			by_name[prod.name]=prod
 			for tag in prod.tags:
 				by_tag[tag]={prod:1}
@@ -430,19 +429,26 @@ class OneProduct extends Products:
 		if not by_name:
 			# No product yet.
 			var key = keys_to_add[0]
-			set_product(all_products.by_name[key])
-			by_name.values()[0].apply_multipliers(null, quantity_multiplier, value_multiplier, fine_multiplier)
-		elif not all_products.by_name.has(product_name):
+			var prod
+			if key is int:
+				prod=all_products[key]
+			else:
+				prod = all_products.by_name[key]
+			set_product(prod)
+			get_product().apply_multipliers(null, quantity_multiplier, value_multiplier, fine_multiplier)
+		elif product_name and all_products is Reference and not all_products.by_name.has(product_name):
 			push_warning('Product named "'+product_name+'" not in all_products')
 			return false
 		elif keys_to_add!=null:
 			var has: bool = false
 			for key in keys_to_add:
-				var name = key
-				if name is int:
-					name = keys_to_add[key].name
-				if name==product_name:
-					by_name.values()[0].apply_multipliers(all_products.by_name[name],
+				var product
+				if key is int:
+					product = all_products[key]
+				else:
+					product = all_products.by_name.get(key,null)
+				if product:
+					get_product().apply_multipliers(product,
 						quantity_multiplier, value_multiplier, fine_multiplier)
 					has=true
 					break
@@ -713,7 +719,6 @@ func products_for_market(all_known_products,market_products,ship_products,
 	
 	# If there aren't any new products in the ship, we're done:
 	if not unpriced_names.size():
-		print('NO UNPRICED IDS')
 		return priced_products
 	
 	# Get prices for all sellable products in the ship that are not for sale in market:

@@ -99,12 +99,7 @@ func set_window_location(_set_initial_rect):
 	var window_position: Vector2 = Vector2(
 		me.end.x-window_size.x, # -window_right_pad,
 		me.position.y) # +window_top_pad)
-	print('my position: '+str(me))
-	print('window size: '+str(window_size))
-	print('window position: '+str(window_position))
-	print('old position: '+str($Window.get_global_rect()))
 	$Window.set_initial_rect(window_position,window_size)
-	print('new position: '+str($Window.get_global_rect()))
 
 func _exit_tree():
 	get_tree().root.disconnect('size_changed',self,'_on_root_viewport_size_changed')
