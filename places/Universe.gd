@@ -703,7 +703,7 @@ class ShipDesign extends simple_tree.SimpleNode:
 
 static func encode_ShipDesign(d: ShipDesign):
 	return [ 'ShipDesign', d.display_name, encode_helper(d.hull), encode_children(d),
-		( encode_helper(d.cargo.by_name) if d.cargo is Commodities.Products else null ) ]
+		( d.cargo.encode() if d.cargo is Commodities.Products else null ) ]
 
 static func decode_ShipDesign(v):
 	if not v is Array or len(v)<3 or not v[0] is String or v[0]!='ShipDesign':
@@ -716,10 +716,7 @@ static func decode_ShipDesign(v):
 	if len(v)>3:
 		decode_children(result,v[3])
 	if len(v)>4:
-		var cargo_data = decode_helper(v[4])
-		if cargo_data is Dictionary:
-			result.cargo = Commodities.ManyProducts.new()
-			result.cargo.add_products(cargo_data)
+		result.cargo = decode_helper(v[4])
 	return result
 
 
@@ -1077,6 +1074,8 @@ static func decode_helper(what,key=null):
 			return decode_Flotsam(what)
 		elif what[0] == 'AsteroidPalette':
 			return decode_AsteroidPalette(what)
+		elif what[0] == 'ManyProducts':
+			return Commodities.decode_ManyProducts(what)
 		elif what[0] == 'SimpleNode':
 			if len(what)>1:
 				var result = simple_tree.SimpleNode.new()
@@ -1149,6 +1148,8 @@ static func encode_helper(what):
 	elif what is Commodities.ProductsNode:
 		return encode_ProductsNode(what)
 	elif what is Resource:
+		if what.has_method('is_ManyProducts'):
+			return what.encode()
 		return [ 'Resource', what.resource_path ]
 	elif what is simple_tree.SimpleNode and what.has_method('encode'):
 		var encoded = encode_helper(what.encode())

@@ -48,8 +48,9 @@ class Product extends Reference:
 		value=value_
 		fine=fine_
 		mass=mass_
-		for tag in tags_:
-			tags[str(tag)] = 1
+		if tags_:
+			for tag in tags_:
+				tags[str(tag)] = 1
 		if name=='vitamins':
 			assert(value>0)
 
@@ -62,18 +63,21 @@ class Product extends Reference:
 				tags[tag]=1
 
 	func encode() -> Array:
-		return [ name,quantity,value,fine,mass ] + tags.keys()
+		return [ 'Product',name,quantity,value,fine,mass ] + tags.keys()
 
 	func decode(from) -> bool:
-		if(len(from)<5):
-			push_warning("Tried to decode a product from an array that was too small ("+str(len(from))+"<5)")
+		if(len(from)<6):
+			push_error("Tried to decode a product from an array that was too small ("+str(len(from))+"<6)")
 			return false
-		name=str(from[0])
-		quantity=max(0.0,float(from[1]))
-		value=max(0.0,float(from[2]))
-		fine=max(0.0,float(from[3]))
-		mass=max(0.0,float(from[4]))
-		for i in range(5,len(from)):
+		if(from[0]!='Product'):
+			push_error('Tried to decode a Product whose encoded data does not begin with "Product"')
+			return false
+		name=str(from[1])
+		quantity=max(0.0,float(from[2]))
+		value=max(0.0,float(from[3]))
+		fine=max(0.0,float(from[4]))
+		mass=max(0.0,float(from[5]))
+		for i in range(6,len(from)):
 			tags[str(from[i])] = 1
 		return true
 
@@ -196,10 +200,11 @@ class Products extends Reference:
 		return by_name.empty()
 	
 	# Duplicate the `all` array, for storing the products in compressed form:
-	func encode() -> Array:
-		var result: Array = by_name.values()
-		for i in range(len(result)):
-			result[i] = by_name[i].encode()
+	func _encode(clazz) -> Array:
+		var result: Array = [ str(clazz) ]
+		result.append_array(by_name.values())
+		for i in range(1,len(result)):
+			result[i] = result[i].encode()
 		return result
 	
 	func has_quantity() -> bool:
@@ -651,15 +656,27 @@ class ManyProducts extends Products:
 			for name in names:
 				_remove_product(name)
 	
+	func encode():
+		return _encode('ManyProducts')
 	
 	# Given the output of encode(), replace all data in this Product.
-	func decode(from: Array):
+	func decode(from: Array) -> bool:
+		if from[0]!='ManyProducts':
+			push_error('Tried to decode a ManyProducts whose encoded data does not begin with "ManyProducts"')
+			return false
 		clear()
-		for encoded in from:
+		for i in range(1,len(from)):
 			var prod = Product.new()
-			if prod.decode(encoded):
+			if prod.decode(from[i]):
 				_add_product_without_duplicating(prod)
 		return true
+
+static func decode_ManyProducts(m):
+	var p = ManyProducts.new()
+	if p.decode(m):
+		return p
+	push_warning('Failed to decode a ManyProducts; returning null')
+	return null
 
 # ----------------------------------------------------------------------
 # ----------------------------------------------------------------------
