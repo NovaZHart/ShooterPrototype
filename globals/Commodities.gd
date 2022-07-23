@@ -82,13 +82,8 @@ class Product extends Reference:
 
 	func is_Product(): pass # Never called; must only exist
 
-	func duplicate(deep: bool = true):
-		if deep:
-			return Product.new(name,quantity,value,fine,mass,tags)
-		else:
-			var p = Product.new(name,quantity,value,fine,mass)
-			p.tags = tags
-			return p
+	func duplicate(_deep: bool = true):
+		return Product.new(name,quantity,value,fine,mass,tags)
 
 	func apply_multiplier_list(multipliers: Dictionary):
 		var f_quantity=1.0
@@ -712,7 +707,7 @@ func products_for_market(all_known_products,market_products,ship_products,
 	var unpriced_names: Dictionary = {}
 	for product_name in ship_products.by_name:
 		var known_product = all_known_products.by_name.get(product_name,null)
-		if known_product!=null:
+		if known_product==null:
 			var ship_product = ship_products.by_name.get(product_name,null)
 			if ship_product and ship_product.quantity:
 				unpriced_names[product_name]=1
@@ -859,7 +854,8 @@ class ProductsNode extends simple_tree.SimpleNode:
 			products = ManyProducts.new()
 		return products
 	func age(now: int, scale: float) -> float:
-		return scale*(update_time-now)
+		var the_age = scale*(update_time-now)
+		return the_age
 	func update(update: ManyProducts, now: int, dropoff: float, scale: float) -> void:
 		var weight = clamp(pow(dropoff,scale*float(now-update_time)),0.0,1.0)
 		var invweight = 1.0-weight
