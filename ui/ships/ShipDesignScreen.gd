@@ -31,8 +31,8 @@ func cancel_drag() -> bool:
 	return true
 
 func remove_part_from_store(resource_path: String):
-	var id = shop_parts.by_name.get(resource_path,-1)
-	if id<0:
+	var product = shop_parts.by_name.get(resource_path,null)
+	if not product:
 		push_error('Tried to remove more "'+str(resource_path)+'" than were available.')
 	else:
 		shop_parts.add_quantity_from(all_ship_parts,resource_path,-1)

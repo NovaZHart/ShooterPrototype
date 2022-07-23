@@ -8,29 +8,29 @@ var commodities: ManyProducts
 var trading: Dictionary
 var ship_parts: ManyProducts
 var shipyard: Dictionary
-var selected_commodity_index: int = -1
+var selected_commodity_name: String = ""
 var selected_commodity_type: int = MARKET_TYPE_COMMODITIES
 
 # Maybwe move this to game data files?
 const population_names: Array = [ 'suvar', 'human', 'spiders' ]
 
 func select_no_commodity():
-	selected_commodity_index = -1
+	selected_commodity_name = ""
 	selected_commodity_type = MARKET_TYPE_COMMODITIES
 
 func get_selected_commodity():
 	if selected_commodity_type==MARKET_TYPE_COMMODITIES and commodities:
-		return commodities.by_name.get(selected_commodity_index,null)
+		return commodities.by_name.get(selected_commodity_name,null)
 	if selected_commodity_type==MARKET_TYPE_SHIP_PARTS and ship_parts:
-		return ship_parts.by_name.get(selected_commodity_index,null)
+		return ship_parts.by_name.get(selected_commodity_name,null)
 	return null
 
 func select_commodity_with_name(product_name: String,market_type=MARKET_TYPE_COMMODITIES):
 	if market_type==MARKET_TYPE_COMMODITIES:
-		selected_commodity_index = commodities.by_name.get(product_name,-1)
+		selected_commodity_name = product_name
 		selected_commodity_type = MARKET_TYPE_COMMODITIES
 	if market_type==MARKET_TYPE_SHIP_PARTS:
-		selected_commodity_index = ship_parts.by_name.get(product_name,-1)
+		selected_commodity_name = product_name
 		selected_commodity_type = MARKET_TYPE_SHIP_PARTS
 
 class Product extends Reference:
@@ -224,10 +224,12 @@ class Products extends Reference:
 			for name in names:
 				var prod = by_name.get(name,null)
 				if prod:
-					mass += max(0.0,prod.mass)
+					mass += max(0.0,prod.mass*prod.quantity)
 		else:
 			for name in by_name:
-				mass += max(0.0,by_name[name].mass)
+				var prod = by_name.get(name,null)
+				if prod:
+					mass += max(0.0,prod.mass*prod.quantity)
 		return mass
 	
 	# Return a new Products object that contains only the specified IDs.
@@ -482,6 +484,7 @@ class ManyProducts extends Products:
 			_add_product_without_duplicating(product)
 	
 	func add_quantity_from(all_products,product_name: String,count = null,fallback=null):
+
 		assert(count==null or count is int)
 
 		var prod = by_name.get(product_name,null)
@@ -501,7 +504,9 @@ class ManyProducts extends Products:
 			push_warning('No product to add for name "'+str(product_name)+'"')
 			assert(false)
 		elif prod: # count is null at this point
-			prod.quantity = from_product.quantity
+			if product_name == 'res://equipment/repair/Shield3x3.tscn':
+				pass
+			prod.quantity = max(0,from_product.quantity+prod.quantity)
 		elif from_product:
 			prod = _add_product(from_product)
 			prod.quantity = max(0,count)

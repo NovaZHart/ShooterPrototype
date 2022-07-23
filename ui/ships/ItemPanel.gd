@@ -229,7 +229,7 @@ func set_item_counts(counts):
 	var new_item_count: Dictionary = {}
 	var new_item_costs: Dictionary = {}
 	for resource_path in scenes:
-		var product = counts.by_name.get(counts.by_name.get(resource_path,-1),null)
+		var product = counts.by_name.get(resource_path,null)
 		if product:
 			new_item_count[resource_path] = product.quantity
 			new_item_costs[resource_path] = product.value

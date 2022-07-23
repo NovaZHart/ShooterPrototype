@@ -341,7 +341,7 @@ class Flotsam extends simple_tree.SimpleNode:
 			random_fraction: bool=true) -> Dictionary:
 		var product = random_product(ship_cargo,random_fraction)
 		if not product:
-			product = [ '',0,0,0,0 ]
+			product = { 'name':'', 'quantity':0.0, 'mass':0.0, 'value':0.0 }
 		if not mesh:
 			mesh = load_mesh()
 		return {
@@ -474,10 +474,10 @@ class ShipDesign extends simple_tree.SimpleNode:
 		# my_parts = return value from list_ship_parts
 		# all_parts = second argument to list_ship_parts
 		for part_name in my_parts.by_name:
-			var product = all_parts.by_name.get(all_parts.by_name.get(part_name,-1),null)
+			var product = all_parts.by_name.get(part_name,null)
 			if not product:
 				return false
-			var my_product = my_parts.by_name.get(my_parts.by_name.get(part_name,-1),null)
+			var my_product = my_parts.by_name.get(part_name,null)
 			if not my_product:
 				return false
 			if my_product.quantity>product.quantity:

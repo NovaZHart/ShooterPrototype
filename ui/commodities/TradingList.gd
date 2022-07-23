@@ -302,8 +302,8 @@ func _on_SellAll_pressed():
 	var mass_lost = 0
 	while item:
 		var product_name = item.get_metadata(NAME_COLUMN)
-		var norm_id: int = all_products.by_name.get(product_name,-1)
-		if norm_id<0:
+		var norm_prod = all_products.by_name.get(product_name,null)
+		if not norm_prod:
 			continue
 		var etc = item.get_metadata(PRICE_COLUMN)
 		var mine_name: String = etc[MINE_ID_ELEMENT]
