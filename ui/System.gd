@@ -8,7 +8,7 @@ export var max_camera_size: float = 180
 export var max_new_ships_per_tick: int = 1
 export var max_new_ships_per_early_tick: int = 5
 export var number_of_early_ticks: int = 20
-export var game_time_ratio: float = 30
+export var game_time_ratio: float = 60
 export var make_labels: bool = false
 export var target_label_height: float = 32
 
