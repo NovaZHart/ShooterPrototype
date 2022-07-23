@@ -171,6 +171,18 @@ class Products extends Reference:
 	func duplicate(_deep):
 		push_error('Subclass forgot to override duplicate()')
 	
+	func _duplicate_products(deep):
+		by_tag.clear()
+		for name in by_name:
+			var newprod = by_name[name].duplicate(deep)
+			by_name[name] = newprod
+			for tag in newprod.tags():
+				var bt = by_tag.get(tag,null)
+				if bt:
+					bt[newprod]=1
+				else:
+					by_tag[tag] = { newprod:1 }
+	
 	func clear():
 		by_name={}
 		by_tag={}
@@ -438,10 +450,10 @@ class OneProduct extends Products:
 # ----------------------------------------------------------------------
 
 class ManyProducts extends Products:
-	func duplicate(deep = true):
+	func duplicate(_deep = true):
 		var p=ManyProducts.new()
-		p.by_name=by_name.duplicate(deep)
-		p.by_tag=by_tag.duplicate(deep)
+		for name in by_name:
+			p._add_product(by_name[name])
 		return p
 	
 	func is_ManyProducts(): pass # never called; must only exist
@@ -455,11 +467,7 @@ class ManyProducts extends Products:
 			var _ignore = _add_product(p.by_name[name])
 	
 	func copy():
-		var result = ManyProducts.new()
-		if by_name:
-			result.by_name = by_name.duplicate(true)
-			result.by_tag = by_tag.duplicate(true)
-		return result
+		return duplicate(true)
 
 	# Given an array of Product objects, insert them in this ManyProducts.
 	# This new ManyProducts owns those Product objects.
@@ -506,10 +514,11 @@ class ManyProducts extends Products:
 		elif prod: # count is null at this point
 			if product_name == 'res://equipment/repair/Shield3x3.tscn':
 				pass
-			prod.quantity = max(0,from_product.quantity+prod.quantity)
+			prod.quantity += from_product.quantity
 		elif from_product:
 			prod = _add_product(from_product)
-			prod.quantity = max(0,count)
+			if count!=null:
+				prod.quantity = max(0,count)
 		else:
 			push_warning('Could not find product "'+str(product_name)+'" in all_products, self, or fallback.')
 			assert(false)
