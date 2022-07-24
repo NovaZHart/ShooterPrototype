@@ -154,10 +154,7 @@ func make_random_cargo(cargo_hold_spawn_fraction,from,_quiet: bool = false, skip
 		names_remaining.pop_at(index)
 	
 	if results:
-		var products = Commodities.ManyProducts.new()
-		products.add_products(results)
-# warning-ignore:return_value_discarded
-		set_cargo(products)
+		var _ignore = set_cargo(Commodities.ManyProducts.new(results))
 	else:
 		clear_cargo()
 

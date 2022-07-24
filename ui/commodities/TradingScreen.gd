@@ -41,7 +41,7 @@ func _ready():
 				var all_products = child_list[2]
 				if all_products==null:
 					all_products = Commodities.commodities.duplicate(true)
-					all_products.add_products(Commodities.ship_parts,null,null,null)
+					all_products.merge_products(Commodities.ship_parts,null,null,null)
 					all_products.apply_multipliers(0,null,null)
 				child.populate_list(all_products,child_list[1],Player.player_ship_design)
 			else:

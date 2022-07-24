@@ -109,7 +109,8 @@ func add_cargo_to_hold(product_name: String,count: int) -> int:
 		if not product:
 			push_warning('Product "'+str(product_name)+'" does not exist.')
 			return 0
-		cargo.add_products(Commodities.commodities,0,null,0,false,[product_name])
+		cargo.add_product_list([Commodities.commodities.by_name.get(product_name,null)],
+			0,null,0,false)
 		player_product = cargo.by_name.get(product_name,null)
 	
 	if not player_product:

@@ -113,7 +113,7 @@ func populate_list(all_known_products,products_here,ship_design):
 	
 	# Ensure there are records in the cargo hold for all products for sale.
 	# Products not in the cargo hold will have quantity zero.
-	mine.add_products(here,null,null,null,true,null,true)
+	mine.merge_products(here,null,null,null,true,null,true)
 	
 	# Populate the tree:
 	var root: TreeItem = create_item()

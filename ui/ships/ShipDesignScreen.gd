@@ -610,7 +610,7 @@ func price_ship_parts(parts):
 #		planet_info.price_ship_parts(new_parts)
 #		var old_part_ids = parts.ids_within(shop_parts)
 #		parts = parts.make_subset(old_part_ids)
-#		parts.add_products(new_parts)
+#		parts.merge_products(new_parts)
 	return parts
 
 func _on_Designs_open(design_path):

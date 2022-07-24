@@ -253,14 +253,18 @@ class Products extends Reference:
 	func decode(_from: Array) -> bool:
 		return false
 	
-	func add_products_from(from,include,exclude,quantity_multiplier=null,
+	func merge_by_tag(from,include,exclude,quantity_multiplier=null,
 			value_multiplier=null,fine_multiplier=0):
-		add_products(from.products_for_tags(include,exclude),
+		add_product_list(from.products_for_tags(include,exclude),
 			quantity_multiplier,value_multiplier,fine_multiplier,true)
 	
-	func add_products(_all_products, 
+	func merge_products(_all_products, 
 			_quantity_multiplier = null, _value_multiplier = null, _fine_multiplier = 0, 
 			_skip_checks: bool = true, _keys_to_add = null):
+		return false
+
+	func add_product_list(_list, _quantity_multiplier = null, _value_multiplier = null,
+			_fine_multiplier = 0, _skip_checks: bool = true):
 		return false
 
 	func _add_product(product, quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0) -> Product:
@@ -365,7 +369,22 @@ class OneProduct extends Products:
 	
 	func get_product(): # -> Product or null
 		return by_name.values()[0] if by_name else null
-	
+
+	func add_product_list(list, quantity_multiplier = null, value_multiplier = null,
+			fine_multiplier = 0, _skip_checks: bool = true):
+		for item in list:
+			if not item or not item.has_method('is_Product'):
+				continue
+			if product_name:
+				if item.name==product_name:
+					var added = set_product(item)
+					added.apply_multipliers(added,quantity_multiplier,value_multiplier,fine_multiplier)
+					return
+			else:
+				var added = set_product(item)
+				added.apply_multipliers(added,quantity_multiplier,value_multiplier,fine_multiplier)
+				return
+
 	func products_for_tags(include, exclude=null) -> Array:
 		var product = by_name.get(product_name,null)
 		var found: bool = false
@@ -404,44 +423,30 @@ class OneProduct extends Products:
 			by_name[prod.name]=prod
 			for tag in prod.tags:
 				by_tag[tag]={prod:1}
+			return prod
+		return null
 
-	func add_products(all_products, 
+	func merge_products(all_products, 
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
 			_skip_checks: bool = true, keys_to_add = null):
+		assert(all_products.has_method('is_Product'))
 		# Checks are never skipped because we must ensure that only the
 		# selected product is processed
 		if keys_to_add==null:
-			if all_products is Products:
-				keys_to_add = all_products.by_name.keys()
-			elif all_products is Dictionary:
-				keys_to_add = all_products.keys()
-			elif all_products is Array:
-				keys_to_add = range(len(all_products))
-			else:
-				keys_to_add = all_products.by_name.keys()
+			keys_to_add = all_products.by_name.keys()
 		if not keys_to_add:
 			return
 		if not by_name:
 			# No product yet.
 			var key = keys_to_add[0]
-			var prod
-			if key is int:
-				prod=all_products[key]
-			else:
-				prod = all_products.by_name[key]
-			set_product(prod)
-			get_product().apply_multipliers(null, quantity_multiplier, value_multiplier, fine_multiplier)
-		elif product_name and all_products is Reference and not all_products.by_name.has(product_name):
+			set_product(all_products.by_name[key]).apply_multipliers(null, quantity_multiplier, value_multiplier, fine_multiplier)
+		elif product_name and not all_products.by_name.has(product_name):
 			push_warning('Product named "'+product_name+'" not in all_products')
 			return false
-		elif keys_to_add!=null:
+		else:
 			var has: bool = false
 			for key in keys_to_add:
-				var product
-				if key is int:
-					product = all_products[key]
-				else:
-					product = all_products.by_name.get(key,null)
+				var product = all_products.by_name.get(key,null)
 				if product:
 					get_product().apply_multipliers(product,
 						quantity_multiplier, value_multiplier, fine_multiplier)
@@ -497,6 +502,16 @@ class ManyProducts extends Products:
 				product.expand_tags()
 			_add_product_without_duplicating(product)
 	
+	func add_product_list(list, quantity_multiplier = null, value_multiplier = null,
+			fine_multiplier = 0, _skip_checks: bool = true):
+		var should_apply = quantity_multiplier!=null or value_multiplier!=null or fine_multiplier!=null
+		for item in list:
+			if not item or not item.has_method('is_Product'):
+				continue
+			var added = _add_product(item)
+			if should_apply:
+				added.apply_multipliers(added,quantity_multiplier,value_multiplier,fine_multiplier)
+	
 	func add_quantity_from(all_products,product_name: String,count = null,fallback=null):
 
 		assert(count==null or count is int)
@@ -528,50 +543,25 @@ class ManyProducts extends Products:
 		else:
 			push_warning('Could not find product "'+str(product_name)+'" in all_products, self, or fallback.')
 			assert(false)
-	
-	func add_products(all_products,  # : Dictionary or Products or Array
+			
+	func merge_products(all_products,
 			quantity_multiplier = null, value_multiplier = null, fine_multiplier = 0, 
 			skip_checks: bool = false, keys_to_add = null, zero_quantity_if_missing = false):
+		assert(all_products is Products)
 		var have_multipliers = (quantity_multiplier!=null or \
 			value_multiplier!=null or fine_multiplier!=null)
 		if keys_to_add==null:
-			if all_products is Products:
-				keys_to_add = all_products.by_name.keys()
-			elif all_products is Dictionary:
-				keys_to_add = all_products.keys()
-			elif all_products is Array:
-				keys_to_add = range(len(all_products))
-			else:
-				keys_to_add = all_products.by_name
+			keys_to_add = all_products.by_name.keys()
 		for key in keys_to_add:
-			var product
-			if all_products is Products:
-				product = all_products.by_name[key]
-			else:
-				product = all_products[key]
-			var name = product.name
-			if not skip_checks:
-				# Discard invalid products.
-				var bad: bool = false
-				if not product.has_method('is_Product'):
-					push_warning('In add_products, each array element must be a Product')
-					bad=true
-				if not product.name is String or not product.name:
-					push_warning('In add_products, names must be non-empty strings '
-						+'(bad name "'+str(product[0])+'")')
-					bad=true
-				if bad:
-					push_error('In add_products, ignoring product with key "'+str(key)+'"')
-					continue
-
-			var myprod = by_name.get(name)
+			var product = all_products.by_name[key]
+			var myprod = by_name.get(product.name)
 			# Do we already have this product?
 			var qm = quantity_multiplier
 			if myprod:
 				# Add information to existing product
 				for tag in product.tags:
 					if not skip_checks and (not tag is String or not tag):
-						push_warning('In add_products, tags must be non-empty '
+						push_warning('In merge_products, tags must be non-empty '
 							+'strings (Ignoring bad tag "'+str(tag)+'".)')
 					elif myprod.tags.has(tag):
 						pass # tag already added
@@ -706,8 +696,7 @@ func products_for_market(all_known_products,market_products,ship_products,
 	# Find all ship cargo that exists in the known set but is not for sale here:
 	var unpriced_names: Dictionary = {}
 	for product_name in ship_products.by_name:
-		var known_product = all_known_products.by_name.get(product_name,null)
-		if known_product != null:
+		if not priced_names.has(product_name):
 			var ship_product = ship_products.by_name.get(product_name,null)
 			if ship_product and ship_product.quantity:
 				unpriced_names[product_name]=1
@@ -730,12 +719,12 @@ func products_for_market(all_known_products,market_products,ship_products,
 	
 	# Add the sellable products from the ship that were not in the marketplace:
 	var allowed_products: ManyProducts = unpriced_products.make_subset(allowed_names)
-	priced_products.add_products(allowed_products,0,null,null,true,null,false)
+	priced_products.merge_products(allowed_products,0,null,null,true,null,false)
 	
 	if include_zero_value:
 		# We're told to include all products that are forbidden here.
 		unpriced_products.remove_named_products(allowed_products)
-		priced_products.add_products(unpriced_products,0,0,null,true)
+		priced_products.merge_products(unpriced_products,0,0,null,true)
 	
 	# Return the list of all products that can be sold at this planet, which have
 	# non-zero quantity in total between market and ship:
@@ -749,44 +738,44 @@ class ProducerConsumer extends Reference:
 
 class TerranGovernment extends ProducerConsumer:
 	func population(products: Products, result: Products, _population: Dictionary):
-		result.add_products_from(products,['dead/sentient','live/sentient'],[],0,0,1)
-		result.add_products_from(products,['taboo/house_cat'],[],0,0,1)
-		result.add_products_from(products,['deadly_drug/terran'],[],0,0,1)
+		result.merge_by_tag(products,['dead/sentient','live/sentient'],[],0,0,1)
+		result.merge_by_tag(products,['taboo/house_cat'],[],0,0,1)
+		result.merge_by_tag(products,['deadly_drug/terran'],[],0,0,1)
 
 class ForbidIntoxicants extends ProducerConsumer:
 	func population(products: Products, result: Products, _population: Dictionary):
-		result.add_products_from(products,['intoxicant/terran'],[],0,0,1)
+		result.merge_by_tag(products,['intoxicant/terran'],[],0,0,1)
 
 class AllowCats extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
-		result.add_products_from(products,['taboo/house_cat'],[],m)
+		result.merge_by_tag(products,['taboo/house_cat'],[],m)
 
 class SuvarConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0),0.333333)
 		if not m: return
-		result.add_products_from(products,['religous/terran/buddhism'],[],m*2)
-		result.add_products_from(products,
+		result.merge_by_tag(products,['religous/terran/buddhism'],[],m*2)
+		result.merge_by_tag(products,
 			['religious/terran','consumables/terran','durable/terran','pets/terran',
 			'manufactured/transport'],[],0)
-		result.add_products_from(products,['luxury/terran'],[],0,0.8)
-		result.add_products_from(products,['intoxicant/terran/suvar'],[],0)
+		result.merge_by_tag(products,['luxury/terran'],[],0,0.8)
+		result.merge_by_tag(products,['intoxicant/terran/suvar'],[],0)
 
 class HumanConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('human',0),0.333333)
 		if not m: return
-		result.add_products_from(products,
+		result.merge_by_tag(products,
 			['religious/terran','consumables/terran','luxury/terran','durable/terran',
 			'manufactured/transport'],[],0)
-		result.add_products_from(products,['intoxicant/terran/human'],[],0,1.2)
+		result.merge_by_tag(products,['intoxicant/terran/human'],[],0,1.2)
 
 class SpiderConsumers extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('spider',0),0.333333)
 		if not m: return
-		result.add_products_from(products,
+		result.merge_by_tag(products,
 			['religious/terran', 'consumables/food/terran/spider' ],[],0)
 
 class ManufacturingProcess extends ProducerConsumer:
@@ -800,46 +789,46 @@ class ManufacturingProcess extends ProducerConsumer:
 	func industry(products: Products, result: Products, industry: float):
 		var m = pow(industry,0.333333)
 		if not m: return
-		result.add_products_from(products,consumes_tags,exclude_tags,0)
-		result.add_products_from(products,produces_tags,exclude_tags,3*m)
+		result.merge_by_tag(products,consumes_tags,exclude_tags,0)
+		result.merge_by_tag(products,produces_tags,exclude_tags,3*m)
 
 class TerranEaterTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
-		result.add_products_from(products,['dead/sentient/terran','live/sentient/terran'],['slaves/rare'],m)
+		result.merge_by_tag(products,['dead/sentient/terran','live/sentient/terran'],['slaves/rare'],m)
 
 class TerranIllegalTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
-		result.add_products_from(products,
+		result.merge_by_tag(products,
 			['intoxicant/terran','slaves/terran','live/thinking/house_cat'],
 			['slaves/rare','dead/sentient'],m)
 
 class TerranSlaveTradeCenter extends ProducerConsumer:
 	func population(products: Products, result: Products, population: Dictionary):
 		var m = pow(population.get('suvar',0)+population.get('human',0)+population.get('spider',0),0.333333)
-		result.add_products_from(products,['slaves/terran'],['dead/sentient'],m)
+		result.merge_by_tag(products,['slaves/terran'],['dead/sentient'],m)
 
 class TerranTradeCenter extends ProducerConsumer:
 	func industry(products: Products, result: Products, industry: float):
 		var m = pow(industry,0.333333)
 		if not m: return
-		result.add_products_from(products,[
+		result.merge_by_tag(products,[
 			'religious/terran','consumables/terran','luxury/terran','durable/terran','pets/terran',
 			'intoxicant/terran','manufactured/terran','raw_materials/metal','pets/terran',
 			'raw_materials/gems'],['live/sentient','dead/sentient','danger/highly_radioactive','taboo/house_cat'],m)
 
 class SmallLaserTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
-		result.add_products_from(all_products,['terran'],['particle','kinetic','large','capital'])
+		result.merge_by_tag(all_products,['terran'],['particle','kinetic','large','capital'])
 
 class SmallParticleTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
-		result.add_products_from(all_products,['terran'],['laser','explosive','large','capital'])
+		result.merge_by_tag(all_products,['terran'],['laser','explosive','large','capital'])
 
 class LargeTerranShipyard extends ProducerConsumer:
 	func industry(all_products: Products, result: Products, _industrial_capacity: float):
-		result.add_products_from(all_products,['terran'],[])
+		result.merge_by_tag(all_products,['terran'],[])
 
 class ProductsNode extends simple_tree.SimpleNode:
 	var products setget ,get_products #: ManyProducts or null
@@ -879,7 +868,7 @@ class ProductsNode extends simple_tree.SimpleNode:
 				else:
 					to_add.append(new_product)
 		if to_add:
-			products.add_products(to_add,1,1,1,true)
+			products.add_product_list(to_add,1,1,1,true)
 		products.remove_empty_products()
 		update_time = now
 	func decode_products(p: Array):
