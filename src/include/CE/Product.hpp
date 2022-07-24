@@ -1,49 +1,51 @@
-#ifndef PRODUCT_HPP
-#define PRODUCT_HPP
+#ifndef PRODUCTVIEW_HPP
+#define PRODUCTVIEW_HPP
 
-#include <PoolArrays.hpp>
-#include <String.hpp>
-#include <Variant.hpp>
+#include <memory>
 
-#include "PropertyMacros.hpp"
-
+#include "Godot.hpp"
+#include "Reference.hpp"
+#include "String.hpp"
+#include "PoolArrays.hpp"
+#include "CProduct.hpp"
 namespace godot {
-  namespace CE {
-    class Product {
-      String name;
-      real_t quantity, value, fine, mass;
-      std::unordered_set<String> tags;
+    class Product: public Reference {
+      GODOT_CLASS(Product,Reference)
+
     public:
-      PROP_GET_REF(String,name);
-      PROP_GETSET_VAL(real_t,quantity);
-      PROP_GETSET_VAL(real_t,value);
-      PROP_GETSET_VAL(real_t,fine);
-      PROP_GETSET_VAL(real_t,mass);
-      PROP_GET_REF(std::unordered_set<String>,tags);
+      Product(const Product &p);
+      Product(const std::shared_ptr<CE::Product> &product);
 
-      Product(const String &name,real_t quantity,real_t value,real_t fine,real_t mass,const PoolStringArray &tags):
-        name(name), quantity(quantity), value(value), fine(fine),
-        mass(mass), tags(tags)
-      {}
-      Product(const Variant &v,int shift);
-      Product() {}
-      ~Product() {}
-      
-      void expand_tags();
-      Array encode() const;
-      void decode(Array from);
-      void apply_multiplier_list(Dictionary multiplier_list);
-      void randomize_costs(int randseed,float time);
-      void apply_multipliers(const Product *other,real_t quantity_multiplier,
-                             real_t value_multiplier,real_t fine_multiplier);
+      // Constructors intended for Godot:
+      Product(Variant from);
+      Product();
+
+      virtual ~Product();
+      virtual CE::Product *get_product();
+      virtual const CE::Product *get_product();
+
+      // Interface for godot:
+      void _init();
+      static void _register_methods();
+
+      void set_quantity(real_t q);
+      real_t get_quantity() const;
+
+      void set_value(real_t q);
+      real_t get_value() const;
+
+      void set_fine(real_t q);
+      real_t get_fine() const;
+
+      void set_mass(real_t q);
+      real_t get_mass() const;
+
+      void set_tags(Variant q);
+      PoolStringArray get_mass() const;
+
     private:
-      void fill_with_dictionary(const Dictionary &d);
-      void fill_with_array(const Array &d,int shift);
-
-      bool fill_tags(Variant &v);
-      void fill_tags_from_array(const Array &d);
+      std::shared_ptr<CE::CProduct> product;
     };
-  }
 }
 
 #endif

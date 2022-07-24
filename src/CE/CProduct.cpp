@@ -1,6 +1,6 @@
 #include <Godot.hpp>
 
-#include "CE/Product.hpp"
+#include "CE/CProduct.hpp"
 #include "CE/Utils.hpp"
 #include "CE/Constants.hpp"
 
@@ -8,7 +8,7 @@ using namespace godot;
 using namespace godot::CE;
 using namespace std;
 
-Product::Product(const Variant &v,int shift):
+CProduct::CProduct(const Variant &v,int shift):
   name(), quantity(0), value(0), fine(0), mass(0), tags()
 {
   Variant::Type type = v.get_type();
@@ -21,7 +21,7 @@ Product::Product(const Variant &v,int shift):
                        __FUNCTION__,__FILE__,__LINE__);
 }
 
-void Product::fill_with_dictionary(const Dictionary &d) {
+void CProduct::fill_with_dictionary(const Dictionary &d) {
   name=get<String>(d,"name","");
   quantity=get<real_t>(d,"quantity",0.0f);
   value=get<real_t>(d,"value",0.0f);
@@ -34,7 +34,7 @@ void Product::fill_with_dictionary(const Dictionary &d) {
 
 }
 
-void Product::fill_with_array(const Array &array,int shift) {
+void CProduct::fill_with_array(const Array &array,int shift) {
   name=array[shift++];
   quantity=array[shift++];
   value=array[shift++];
@@ -49,7 +49,7 @@ void Product::fill_with_array(const Array &array,int shift) {
   }
 }
 
-bool Product::fill_tags(const Variant &vtags) {
+bool CProduct::fill_tags(const Variant &vtags) {
   Variant::Type type = vtags.get_type();
   if(type==Variant::POOL_STRING_ARRAY)
     tags=vtags;
@@ -62,7 +62,7 @@ bool Product::fill_tags(const Variant &vtags) {
   return true;
 }
 
-void Product::fill_tags_from_array(const Array &a) {
+void CProduct::fill_tags_from_array(const Array &a) {
   for(int i=0,e=a.size();i<e;i++) {
     String s = a[i];
     if(!s.empty())
@@ -70,7 +70,7 @@ void Product::fill_tags_from_array(const Array &a) {
   }
 }
 
-void Product::expand_tags() {
+void CProduct::expand_tags() {
   std::unordered_set<String> more_tags;
   for(auto &whole_tag : tags) {
     Array split_tag = whole_tag.split("/",false);
@@ -87,7 +87,7 @@ void Product::expand_tags() {
       tags.add(tag);
 }
 
-Array Product::encode() const {
+Array CProduct::encode() const {
   Array result;
   result.resize(6+tags.size());
   result[0] = "Product";
@@ -108,8 +108,11 @@ void decode(Array from) {
 
 static inline void mul(real_t &factor,const Variant &variant) {
   Variant::Type type = variant.get_type();
-  if(variant.type==INT or variant.type==REAL)
-    factor *= static_cast<real_t>(type);
+  if(variant.type==INT or variant.type==REAL) {
+    real_t r = variant;
+    if(r>0)
+      factor *= r;
+  }
 }
 
 void apply_multiplier_list(Dictionary multipliers) {
@@ -160,7 +163,7 @@ void randomize_costs(uint32_t randseed,float time) {
   }
 }
 
-void apply_multipliers(const Product *other,real_t quantity_multiplier,
+void apply_multipliers(const CProduct *other,real_t quantity_multiplier,
                        real_t value_multiplier,real_t fine_multiplier) {
   if(!other)
     other=this;

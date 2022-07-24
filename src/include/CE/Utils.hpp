@@ -13,6 +13,7 @@
 
 #include <Dictionary.hpp>
 #include <RID.hpp>
+#include <PoolArrays.hpp>
 
 #include "FastProfilier.hpp"
 #include "DVector3.hpp"
@@ -24,6 +25,62 @@
 
 namespace godot {
 
+  template<class T>
+  struct pool_type {};
+
+  template<>
+  struct pool_type<PoolByteArray> {
+    typedef uint8_t type;
+  };
+
+  template<>
+  struct pool_type<PoolIntArray> {
+    typedef int type;
+  };
+
+  template<>
+  struct pool_type<PoolRealArray> {
+    typedef real_t type;
+  };
+
+  template<>
+  struct pool_type<PoolStringArray> {
+    typedef String type;
+  };
+
+  template<>
+  struct pool_type<PoolVector2Array> {
+    typedef Vector2 type;
+  };
+
+  template<>
+  struct pool_type<PoolVector3Array> {
+    typedef Vector3 type;
+  };
+
+  template<>
+  struct pool_type<PoolColorArray> {
+    typedef Color type;
+  };
+  
+  template<class Function,class Pool>
+  inline void pool_foreach_write(Pool &&pool, Function f) {
+    Pool::Write write = pool.write();
+    typename pool_type<Pool>::type *ptr = write.ptr();
+    for(int i=0,e=pool.size();i<e;i++)
+      if(f(*ptr[i]))
+        return;
+  }
+  
+  template<class Function,class Pool>
+  inline void pool_foreach_read(const Pool &&pool, Function f) {
+    Pool::Read read = pool.write();
+    const typename pool_type<Pool>::type *ptr = read.ptr();
+    for(int i=0,e=pool.size();i<e;i++)
+      if(f(*ptr[i]))
+        return;
+  }
+  
   template<class T>
   inline String str(const T &t) {
     return String(Variant(t));

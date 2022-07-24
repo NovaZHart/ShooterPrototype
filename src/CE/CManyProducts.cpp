@@ -1,14 +1,14 @@
-#include "ProductList.hpp"
+#include "CManyProducts.hpp"
 
 using namespace std;
 using namespace godot;
 using namespace godot::CE;
 
-ProductList::ProductList() {}
-ProductList::~ProductList() {}
+CManyProducts::CManyProducts() {}
+CManyProducts::~CManyProducts() {}
 
 pair<products_t::iterator,bool>
-ProductList::insert(const Product &product) {
+CManyProducts::insert(const Product &product) {
   typedef pair<products_t::iterator,bool> result;
   auto to_id = string2id.find(name);
   if(to_id==string2id.end()) {
@@ -22,14 +22,14 @@ ProductList::insert(const Product &product) {
   return iter_flag;
 }
 
-bool ProductList::has_quantity() const {
+bool CManyProducts::has_quantity() const {
   for(auto &id_product : products)
     if(products.second.quantity>0)
       return true;
   return false;
 }
 
-Array ProductList::encode() const {
+Array CManyProducts::encode() const {
   Array result;
   result.resize(1+products.size());
   result[0] = "ManyProducts";
@@ -39,7 +39,7 @@ Array ProductList::encode() const {
   return result;
 }
 
-real_t ProductList::get_value(const Array *names) const {
+real_t CManyProducts::get_value(const Array *names) const {
   real_t value=0;
   if(names)
     for(int i=0,e=names->size;i<e;i++) {
@@ -53,7 +53,7 @@ real_t ProductList::get_value(const Array *names) const {
   return value;
 }
 
-real_t ProductList::get_mass(const Array *names) const {
+real_t CManyProducts::get_mass(const Array *names) const {
   real_t mass=0;
   if(names)
     for(int i=0,e=names->size;i<e;i++) {
@@ -67,8 +67,8 @@ real_t ProductList::get_mass(const Array *names) const {
   return mass;
 }
 
-ProductList ProductList::make_subset(Array names) const {
-  ProductList result;
+CManyProducts CManyProducts::make_subset(Array names) const {
+  CManyProducts result;
   for(int i=0,e=names.size();i<e;i++) {
     auto it = find(names[i]);
     if(it!=products.end())
@@ -76,7 +76,7 @@ ProductList ProductList::make_subset(Array names) const {
   }
 }
 
-void ProductList::remove_named_products(Array names,bool negate) {
+void CManyProducts::remove_named_products(Array names,bool negate) {
   if(negate) {
     unordered_set<String> snames;
     for(int i=0,e=names.size();i<e;i++) {
@@ -99,7 +99,7 @@ void ProductList::remove_named_products(Array names,bool negate) {
     }
 }
 
-void add_product_list(const ProductList &pl,real_t quantity_multiplier,real_t value_multiplier,real_t fine_multiplier) {
+void add_product_list(const CManyProducts &pl,real_t quantity_multiplier,real_t value_multiplier,real_t fine_multiplier) {
   bool apply_multipliers = quantity_multiplier>=0 or value_multiplier>=0 or fine_multiplier>=0;
   for(auto &product : pl) {
     products_t::iterator it = insert(product);
@@ -108,7 +108,7 @@ void add_product_list(const ProductList &pl,real_t quantity_multiplier,real_t va
   }
 }
 
-void add_quantity_from(const ProductList &all_products,const String &product_name,int count,const ProductsList *fallback) {
+void add_quantity_from(const CManyProducts &all_products,const String &product_name,int count,const ProductsList *fallback) {
   auto prod_it = find(product_name);
   bool have_prod = prod_it!=products.end();
   if(count>=0 and have_prod) {
@@ -144,7 +144,7 @@ void add_quantity_from(const ProductList &all_products,const String &product_nam
                          __FUNCTION__,__FILE__,__LINE__)
 }
 
-void ProductList::merge_product(const Product &product,bool have_multipliers,real_t quantity_multiplier,real_t value_multiplier,real_t fine_multiplier,Variant keys_to_add,bool zero_quantity_if_missing) {
+void CManyProducts::merge_product(const Product &product,bool have_multipliers,real_t quantity_multiplier,real_t value_multiplier,real_t fine_multiplier,Variant keys_to_add,bool zero_quantity_if_missing) {
   auto myprod_it = find(product.name);
   // Do we already have this product?
   real_t qm = quantity_multiplier;
@@ -177,7 +177,7 @@ void ProductList::merge_product(const Product &product,bool have_multipliers,rea
   
 }
 
-void ProductList::merge_products(const ProductList &pl,real_t quantity_multiplier,real_t value_multiplier,real_t fine_multiplier,Variant keys_to_add,bool zero_quantity_if_missing) {
+void CManyProducts::merge_products(const CManyProducts &pl,real_t quantity_multiplier,real_t value_multiplier,real_t fine_multiplier,Variant keys_to_add,bool zero_quantity_if_missing) {
   bool have_multipliers = quantity_multiplier>=0 or value_multiplier>=0 or fine_multiplier>=0;
 
 		if keys_to_add==null:
@@ -186,5 +186,5 @@ void ProductList::merge_products(const ProductList &pl,real_t quantity_multiplie
 
 		return false
 }
-      void reduce_quantity_by(const ProductList &pl);
+      void reduce_quantity_by(const CManyProducts &pl);
       void remove_named_products(Variant names,bool negate);
