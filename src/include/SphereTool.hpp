@@ -13,6 +13,7 @@ namespace godot {
   Ref<ArrayMesh> make_cube_sphere_v2(float radius, int subs);
   Ref<Image> make_lookup_tiles_c224();
   Ref<Image> make_lookup_tiles_c112();
+  Ref<Image> make_hash_cube8(uint32_t hash);
   Ref<Image> make_hash_cube16(uint32_t hash);
   Ref<Image> make_hash_square32(uint32_t hash);
   

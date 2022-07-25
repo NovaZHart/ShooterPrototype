@@ -146,7 +146,6 @@ namespace godot {
     const int PLAYER_TARGET_OVERRIDE        = 0x0800;
     const int PLAYER_TARGET_NOTHING         = 0x0F00;
 
-    const size_t HASH_CUBE_LENGTH=16;
     const size_t HASH_SQUARE_LENGTH=32;
     const size_t HASH_SQUARE_COUNT_SQRT=4;
   

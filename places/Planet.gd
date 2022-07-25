@@ -7,10 +7,14 @@ var have_sent_texture: bool = false
 var SphereTool = preload('res://bin/spheretool.gdns')
 #var CubePlanetTilesV2 = preload("res://shaders/CubePlanetTilesV2.shader")
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
+var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
-var hash_cube: ImageTexture
+var default_colors = preload('res://textures/continents-terran.jpg')
+
+var hash_cube_8: ImageTexture
+var hash_cube_16: ImageTexture
 
 var commodities: Commodities.ManyProducts = Commodities.ManyProducts.new()
 var u_size: int
@@ -89,11 +93,25 @@ func choose_texture_size(x,y) -> int:
 			return allowed
 	return allowed_texture_sizes[len(allowed_texture_sizes)-1]
 
+func get_hash_cube_8(var random_seed: int) -> ImageTexture:
+	if not hash_cube_8:
+		var hash_cube_image: Image = utils.native.make_hash_cube8(int(random_seed))
+		var texture = ImageTexture.new()
+		texture.create_from_image(hash_cube_image)
+		hash_cube_8 = texture
+	return hash_cube_8
+
+func get_hash_cube_16(var random_seed: int) -> ImageTexture:
+	if not hash_cube_16:
+		var hash_cube_image: Image = utils.native.make_hash_cube16(int(random_seed))
+		var texture = ImageTexture.new()
+		texture.create_from_image(hash_cube_image)
+		hash_cube_16 = texture
+	return hash_cube_16
+
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
-		noise_type=1, texture_size=1024):
-	var hash_cube_image: Image = utils.native.make_hash_cube16(int(random_seed))
-	hash_cube = ImageTexture.new()
-	hash_cube.create_from_image(hash_cube_image)
+		texture_size=1024, shader_type: String = "old",
+		colors = null, noise_type=1):
 
 	var xyz: ImageTexture
 	if not sphere:
@@ -120,11 +138,23 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		xyz = game_state.get_sphere_xyz()
 	
 	view_shade=ShaderMaterial.new()
-	view_shade.set_shader(CubePlanetTiles)
+	if shader_type=='continents':
+		print("CONTINENTS")
+		view_shade.set_shader(ContinentTiles)
+		view_shade.set_shader_param('perlin_type',int(noise_type))
+		view_shade.set_shader_param('cube8',get_hash_cube_8(random_seed))
+		view_shade.set_shader_param('cube16',get_hash_cube_16(random_seed))
+		if not colors or not colors is Texture:
+			push_warning('Using default continent color texture')
+			colors = default_colors
+		view_shade.set_shader_param('colors',colors)
+	else: # shader_type=='old'
+		print('old shader')
+		view_shade.set_shader(CubePlanetTiles)
+		view_shade.set_shader_param('perlin_type',int(noise_type))
+		view_shade.set_shader_param('hash_cube',get_hash_cube_16(random_seed))
+
 	view=make_viewport(u_size,v_size,view_shade)
-	#view_shade.set_shader_param('perlin_seed',int(random_seed))
-	view_shade.set_shader_param('perlin_type',int(noise_type))
-	view_shade.set_shader_param('hash_cube',hash_cube)
 	view_shade.set_shader_param('xyz',xyz)
 	view.name='View'
 	tile_material = view_shade
@@ -139,12 +169,12 @@ func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
 	view_shade.set_shader_param('color_scheme',scheme)
 
 func make_planet(subdivisions: int,random_seed: int,texture_size: int = 2048,
-		noise_type: int = 0):
-	make_sphere(simple_planet_shader,subdivisions,random_seed,noise_type,texture_size)
+		shader_type='old', colors=null, noise_type: int = 0):
+	make_sphere(simple_planet_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
 
 func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
-		noise_type: int = 1):
-	make_sphere(simple_sun_shader,subdivisions,random_seed,noise_type,texture_size)
+		shader_type='old', colors=null, noise_type: int = 1):
+	make_sphere(simple_sun_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
 
 func place_sphere(sphere_scale: float, sphere_translation: Vector3,
 		sphere_rotation: Vector3=Vector3()):

@@ -1242,6 +1242,8 @@
                 "shipyard_locality_adjustments": {
 
                 },
+                "shader_type": "continents",
+                "shader_colors": "res://textures/continents-terran.jpg",
                 "object_type": 0,
                 "size": 9,
                 "color_scaling": [

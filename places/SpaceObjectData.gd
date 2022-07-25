@@ -28,6 +28,8 @@ const base_types = {
 	}
 }
 
+var shader_type: String = 'old'
+var shader_colors: Texture
 var object_type = PLANET setget set_object_type
 var size: float = 3.0 setget set_size
 var color_scaling: Color = Color(1,1,1,1)
@@ -135,6 +137,15 @@ func _init(node_name,me: Dictionary ={}):
 	var base = base_types.get(base_name,{})
 	if node_name:
 		set_name(node_name)
+	shader_type = get_it(me,base,'shader_type','old')
+	if me.has('shader_colors'):
+		var sc = me['shader_colors']
+		if sc is String and ResourceLoader.exists(sc):
+			shader_colors=load(sc)
+		else:
+			push_warning('shader_colors has invalid resource path '+str(sc))
+	if not shader_colors:
+		shader_colors = preload('res://textures/continents-terran.jpg')
 	object_type = get_it(me,base,'object_type',PLANET)
 	size = get_it(me,base,'size',5)
 	color_scaling = get_it(me,base,'color_scaling',Color(1,1,1,1))
@@ -276,10 +287,10 @@ func make_planet(detail: float=150, time: float=0, planet = null):
 		planet=Planet.instance()
 		place_sphere=true
 	if object_type==STAR:
-		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size)
+		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors)
 		planet.has_astral_gate = true
 	else:
-		planet.make_planet(1+detail*size/30.0,shader_seed,texture_size)
+		planet.make_planet(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors)
 	
 	planet.color_sphere(color_scaling,color_addition)
 	if place_sphere:

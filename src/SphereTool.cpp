@@ -455,6 +455,8 @@ Ref<Image> make_lookup_tiles_c112() {
   return make_lookup_tiles<112,8>();
 }
 
+/********************************************************************/
+
 template<size_t cubelen>
 class HashCube {
 public:
@@ -482,19 +484,6 @@ public:
     return hashed[i+cubelen*(j+cubelen*k)];
   }
 
-  // inline uint32_t get_cube_bits(size_t i0,size_t j0,size_t k0) const {
-  //   size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
-  //   uint32_t val = at(i1,j1,k1); // alpha high
-  //   val=(val<<4) | at(i0,j1,k1); // alpha low
-  //   val=(val<<4) | at(i1,j0,k1); // blue high
-  //   val=(val<<4) | at(i0,j0,k1); // blue low
-  //   val=(val<<4) | at(i1,j1,k0); // green high
-  //   val=(val<<4) | at(i0,j1,k0); // green low
-  //   val=(val<<4) | at(i1,j0,k0); // red high
-  //   val=(val<<4) | at(i0,j0,k0); // red low
-  //   return val;
-  // }
-
   inline void get_data(size_t i0,size_t j0,size_t k0,float *data) const {
     size_t i1=(i0+1)%cubelen, j1=(j0+1)%cubelen, k1=(k0+1)%cubelen;
     data[0] = ((at(i1,j0,k0)<<4) | at(i0,j0,k0)) / 1024.0f;
@@ -504,8 +493,10 @@ public:
   }
 };
 
-Ref<Image> make_hash_cube16(uint32_t hash) {
-  static const size_t cubelen = HASH_CUBE_LENGTH;
+/********************************************************************/
+
+template<size_t cubelen>
+static Ref<Image> make_hash_cube(uint32_t hash) {
   static const size_t image_x = cubelen*cubelen, image_y = cubelen;
   HashCube<cubelen> cube(hash);
   cube.randomize();
@@ -528,6 +519,19 @@ Ref<Image> make_hash_cube16(uint32_t hash) {
   return image;
 }
 
+/********************************************************************/
+
+Ref<Image> make_hash_cube16(uint32_t hash) {
+  return make_hash_cube<16>(hash);
+}
+
+/********************************************************************/
+
+Ref<Image> make_hash_cube8(uint32_t hash) {
+  return make_hash_cube<8>(hash);
+}
+
+/********************************************************************/
   
 template<size_t width>
 class HashSquare {
