@@ -15,7 +15,7 @@ namespace godot {
 
     //FIXME: NEED TO BE ABLE TO RETURN WEAK POINTIER TO THIS
     
-    class ProductList: public std::enable_shared_from_this<A> {
+    class ProductList: public std::enable_shared_from_this<ProductList> {
     public:
       virtual Array products_for_tags(const PoolStringArray &included,
                                       const PoolStringArray &excluded) const  = 0;

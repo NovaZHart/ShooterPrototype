@@ -13,13 +13,16 @@ namespace godot {
       String name;
       real_t quantity, value, fine, mass;
       std::unordered_set<String> tags;
+    private:
+      // Turn "a/b/c" tags into "a", "a/b", and "a/b/c"
+      void expand_tags();
     public:
       PROP_GET_CONST_REF(String,name);
       PROP_GETSET_VAL(real_t,quantity);
       PROP_GETSET_VAL(real_t,value);
       PROP_GETSET_VAL(real_t,fine);
       PROP_GETSET_VAL(real_t,mass);
-      PROP_GET_REF(std::unordered_set<String>,tags);
+      PROP_GET_CONST_REF(std::unordered_set<String>,tags);
 
       // Set everything except the name to constructor defaults.
       inline void clear() {
@@ -28,12 +31,6 @@ namespace godot {
       }
 
       // Iterate over tags.
-      inline std::unordered_set<String>::iterator begin_tag() {
-        return tags.begin();
-      }
-      inline std::unordered_set<String>::iterator end_tag() {
-        return tags.end();
-      }
       inline std::unordered_set<String>::const_iterator begin_tag() const {
         return tags.begin();
       }
@@ -42,9 +39,6 @@ namespace godot {
       }
 
       // Search for a tag
-      inline std::unordered_set<String>::iterator find_tag(const String &s) {
-        return tags.find(s);
-      }
       inline std::unordered_set<String>::const_iterator find_tag(const String &s) const {
         return tags.find(s);
       }
@@ -78,9 +72,6 @@ namespace godot {
       // Construct with default values
       CProduct() {}
       ~CProduct() {}
-      
-      // Turn "a/b/c" tags into "a", "a/b", and "a/b/c"
-      void expand_tags();
 
       // Encode into an array that decode() will understand
       Array encode() const;

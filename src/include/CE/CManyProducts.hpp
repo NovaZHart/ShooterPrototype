@@ -6,26 +6,24 @@
 #include "Godot.hpp"
 #include "String.hpp"
 
-#include "CE/ObjectIdGenerator.hpp"
 #include "hash_functions.hpp"
+#include "CE/CProduct.hpp"
 
 namespace godot {
   namespace CE {
 
     class ManyProducts {
     public:
-      typedef std::unordered_map<object_id,Product> products_t;
-      typedef std::unordered_map<String,object_id> string2id_t;
-      typedef std::unordered_multimap<String,object_id> tag2id_t;
+      typedef std::shared_ptr<CProduct> product_ptr_t
+      typedef std::unordered_map<String,product_ptr_t> by_name_t;
+      typedef std::unordered_multimap<String,product_ptr_t> by_tag_t;
     private:
-      ObjectIdGenerator idgen;
-      products_t products;
-      string2id_t string2id;
-      tag2id_t tag2id;
+      by_name_t by_name;
+      by_tag_t by_tag;
     public:
       ManyProducts();
       ~ManyProducts();
-      std::pair<products_t::iterator,bool> insert(const Product &product);
+      std::pair<by_name_t::iterator,bool> insert(shared_ptr<Product> product);
 
       bool has_quantity() const override;
       Array encode() const override;
@@ -41,25 +39,34 @@ namespace godot {
       void reduce_quantity_by(shared_ptr<const ProductList> pl) override;
       void remove_named_products(Variant names,bool negate) override;
       
-      inline products_t::iterator begin() { return products.begin(); }
-      inline products_t::const_iterator begin() const { return products.begin(); }
-      inline products_t::iterator end() { return products.end(); }
-      inline products_t::const_iterator end() const { return products.end(); }
+      inline products_t::iterator begin() { return by_name.begin(); }
+      inline products_t::const_iterator begin() const { return by_name.begin(); }
+      inline products_t::iterator end() { return by_name.end(); }
+      inline products_t::const_iterator end() const { return by_name.end(); }
 
-      products_t::iterator find(object_id id) {
+      products_t::iterator find(const String & id) {
         return products.find(id);
       }
-      products_t::const_iterator find(object_id id) const {
+      products_t::const_iterator find(const String & id) const {
         return products.find(id);
       }
 
-      products_t::iterator find(const String &name) {
-        string2id_t::const_iterator to_id = string2id.find(name);
-        return to_id==string2id.end() ? end() : find(to_id.second);
+      inline tags_t::iterator tags_begin() { return by_tag.begin(); }
+      inline tags_t::const_iterator tags_begin() const { return by_tag.begin(); }
+      inline tags_t::iterator tags_end() { return by_tag.end(); }
+      inline tags_t::const_iterator tags_end() const { return by_tag.end(); }
+
+      std::pair<tags_t::iterator,tags_t::iterator> equal_range_tag(const String &tag) {
+        return by_tag.equal_range(tag);
       }
-      products_t::const_iterator find(const String &name) const {
-        string2id_t::const_iterator to_id = string2id.find(name);
-        return to_id==string2id.end() ? end() : find(to_id.second);
+      std::pair<tags_t::const_iterator,tags_t::const_iterator> equal_range_tag(const String &tag) const {
+        return by_tag.equal_range(tag);
+      }
+      tags_t::iterator find_tag(const String & tag) {
+        return by_tag.find(tag);
+      }
+      tags_t::const_iterator find_tag(const String & tag) const {
+        return by_tag.find(tag);
       }
     };
     

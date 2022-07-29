@@ -7,19 +7,41 @@ using namespace godot::CE;
 CManyProducts::CManyProducts() {}
 CManyProducts::~CManyProducts() {}
 
-pair<products_t::iterator,bool>
-CManyProducts::insert(const Product &product) {
-  typedef pair<products_t::iterator,bool> result;
-  auto to_id = string2id.find(name);
-  if(to_id==string2id.end()) {
-    auto found = find(to_id.second);
-    if(found==products.end())
-      return result(found,false);
+pair<by_name_t::iterator,bool>
+CManyProducts::insert(shared_ptr<Product> product) {
+  typedef pair<by_name_t::iterator,bool> result;
+
+  if(!product)
+    return result(nullptr,false);
+  
+  // Do we already have the product?
+  const String &name=product->get_name();
+  auto named=by_name.find(name);
+  if(named!=by_name.end()) {
+    if(named.second==product)
+      return result(named,false);
+    else
+      remove_product(named);
   }
-  result iter_flag = products.insert(found);
-  if(!iter_flag.second and iter_flag.first!=products.end())
-    (*iter_flag.first) = product;
-  return iter_flag;
+
+  result inserted = by_name.insert(product);
+  for(auto tag_ptr=product->begin_tag();tag_ptr!=product->end_tag();tag_ptr++)
+      by_tag.emplace(*tag_ptr,product);
+
+  return inserted;
+}
+
+void CManyProducts::erase(shared_ptr<Product> product) {
+  if(!product)
+    return;
+  const String &name=product->get_name();
+  auto named = by_name.find(name);
+  if(named==by_name.end())
+    return;
+
+  Product &removeme = *named->second;
+  for(auto tag_ptr=removeme.begin_tag();tag_ptr!=removeme.end_tag();tag_ptr++) {
+    
 }
 
 bool CManyProducts::has_quantity() const {
