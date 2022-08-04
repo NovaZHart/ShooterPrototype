@@ -82,11 +82,12 @@ void fragment() {
 	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
 	COLOR=vec4(0.7,0.7,0.7,1.0);
 	if(UV.x<=0.75) {
-		float altitude = clamp(multi_perlin_scalar(normal,4,cube16,16),0.0,1.0);
+		float altitude = clamp(multi_perlin_scalar(normal,5,cube16,16),0.0,1.0);
 		float temperature_perturbation = clamp(multi_perlin_scalar(normal,1,cube8,8),0.0,1.0);
-		float mean_temperature = cos(normal.y*3.14159);
+		//temperature_perturbation = mix(altitude,temperature_perturbation,0.3);
+		float mean_temperature = cos(normal.y*1.5707963267948966);
 		//mean_temperature*=mean_temperature;
-		float temperature = mix(temperature_perturbation,mean_temperature,0.2);
+		float temperature = mix(temperature_perturbation,mean_temperature,0.5);
 		COLOR = texture(colors,vec2(temperature,altitude));
 	}
 }
