@@ -15,6 +15,7 @@ var default_colors = preload('res://textures/continents-terran.jpg')
 
 var hash_cube_8: ImageTexture
 var hash_cube_16: ImageTexture
+var hash_cube_16b: ImageTexture
 
 var commodities: Commodities.ManyProducts = Commodities.ManyProducts.new()
 var u_size: int
@@ -109,6 +110,14 @@ func get_hash_cube_16(var random_seed: int) -> ImageTexture:
 		hash_cube_16 = texture
 	return hash_cube_16
 
+func get_hash_cube_16b(var random_seed: int) -> ImageTexture:
+	if not hash_cube_16b:
+		var hash_cube_image: Image = utils.native.make_hash_cube16(int(random_seed+1))
+		var texture = ImageTexture.new()
+		texture.create_from_image(hash_cube_image)
+		hash_cube_16b = texture
+	return hash_cube_16b
+	
 func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		texture_size=1024, shader_type: String = "old",
 		colors = null, noise_type=1):
@@ -141,9 +150,9 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	if shader_type=='continents':
 		print("CONTINENTS")
 		view_shade.set_shader(ContinentTiles)
-		view_shade.set_shader_param('perlin_type',int(noise_type))
-		view_shade.set_shader_param('cube8',get_hash_cube_8(random_seed))
-		view_shade.set_shader_param('cube16',get_hash_cube_16(random_seed))
+		view_shade.set_shader_param('temperature_cube8',get_hash_cube_8(random_seed))
+		view_shade.set_shader_param('altitude_cube16',get_hash_cube_16(random_seed))
+		view_shade.set_shader_param('cloud_cube16',get_hash_cube_16b(random_seed+1))
 		if not colors or not colors is Texture:
 			push_warning('Using default continent color texture')
 			colors = default_colors

@@ -1,34 +1,41 @@
 shader_type canvas_item;
 render_mode skip_vertex_transform;
-//render_mode unshaded;
+render_mode unshaded;
 
 uniform sampler2D xyz;
-uniform sampler2D cube8;
-uniform sampler2D cube16;
+uniform sampler2D temperature_cube8;
+uniform sampler2D altitude_cube16;
+uniform sampler2D cloud_cube16;
 uniform sampler2D colors;
 
-// blue planet
-uniform vec3 color_scaling=vec3(0.909804,0.980392,0.980392);
-uniform vec3 color_addition=vec3(0.207843,0.631373,0.662745);
-uniform int color_scheme=2;
-uniform float weight_power = 0.373333;
-uniform float scale_power = 0.3577;
+uniform float altitude_weight_power = 0.473333;
+uniform float cloud_weight_power = 0.573333;
+uniform float cloud_weight_power_2 = 0.1;
+
+uniform float scale_power = 0.3077;
 uniform float scale_start = 3.9;
-uniform float perlin_bias = 0.5;
 
-float interp_order5_scalar(float t) {
-	// fifth-order interpolant for improved perlin noise
-	return t*t*t * (t * (t*6.0-15.0) + 10.0);
-}
-
-float perlin_grad1(int hash,float x,float y,float z) {
+float perlin_grad1c(int hash,float x,float y,float z) {
 	// Gradients for improved perlin noise.
 	// Get gradient at cube corner specified by p
-	int h=hash&15;
-	float u,v;
-	u = h<8 ? x : y;
-	v = (h<4) ? y : ((h==12||h==14) ? x : z);
-	return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
+	switch(hash&15) {
+		case 0: return  x +y;
+		case 1: return -x +y;
+		case 2: return  x -y;
+		case 3: return -x -y;
+		case 4: return  x +z;
+		case 5: return -x +z;
+		case 6: return  x -z;
+		case 7: return -x -z;
+		case 8: return  y +z;
+		case 9: return -y +z;
+		case 10:return  y -z;
+		case 11:return -y -z;
+		case 12:return  y +x;
+		case 13:return -y +z;
+		case 14:return  y -x;
+		case 15:return -y -z;
+	}
 }
 
 vec3 interp_order5(vec3 t) {
@@ -36,12 +43,11 @@ vec3 interp_order5(vec3 t) {
 	return t*t*t * (t * (t*6.0-15.0) + 10.0);
 }
 
-float improved_perlin(float scale,vec3 new_normal,sampler2D hash_cube,int perlin_cubes) {
+float improved_perlin(float scale,vec3 uvw,sampler2D hash_cube,int perlin_cubes) {
 	// Improved Perlin noise. References:
 	// https://mrl.nyu.edu/~perlin/paper445.pdf
 	// https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-5-implementing-improved-perlin-noise
 	// https://mrl.nyu.edu/~perlin/noise/
-	vec3 uvw=new_normal*0.5+0.5;
 	vec3 cube_xyz=mod(uvw/scale,1.0)*float(perlin_cubes);
 	vec3 p=fract(cube_xyz),q=p-1.0;
 	vec3 weight=interp_order5(p);
@@ -51,10 +57,10 @@ float improved_perlin(float scale,vec3 new_normal,sampler2D hash_cube,int perlin
 	vec4 rhash = texelFetch(hash_cube,iuv,0);
 	ivec4 ihash = ivec4(round(rhash*1024.0));
 
-	float p000=perlin_grad1(ihash.r,p.x,p.y,p.z),p001=perlin_grad1(ihash.r>>4,q.x,p.y,p.z);
-	float p010=perlin_grad1(ihash.g,p.x,q.y,p.z),p011=perlin_grad1(ihash.g>>4,q.x,q.y,p.z);
-	float p100=perlin_grad1(ihash.b,p.x,p.y,q.z),p101=perlin_grad1(ihash.b>>4,q.x,p.y,q.z);
-	float p110=perlin_grad1(ihash.a,p.x,q.y,q.z),p111=perlin_grad1(ihash.a>>4,q.x,q.y,q.z);
+	float p000=perlin_grad1c(ihash.r,p.x,p.y,p.z),p001=perlin_grad1c(ihash.r>>4,q.x,p.y,p.z);
+	float p010=perlin_grad1c(ihash.g,p.x,q.y,p.z),p011=perlin_grad1c(ihash.g>>4,q.x,q.y,p.z);
+	float p100=perlin_grad1c(ihash.b,p.x,p.y,q.z),p101=perlin_grad1c(ihash.b>>4,q.x,p.y,q.z);
+	float p110=perlin_grad1c(ihash.a,p.x,q.y,q.z),p111=perlin_grad1c(ihash.a>>4,q.x,q.y,q.z);
 	
 	vec4 px0 = vec4(p000,p010,p100,p110);
 	vec4 px1 = vec4(p001,p011,p101,p111);
@@ -63,31 +69,45 @@ float improved_perlin(float scale,vec3 new_normal,sampler2D hash_cube,int perlin
 	return mix(pz.x,pz.y,weight.z);
 }
 
-float multi_perlin_scalar(vec3 new_normal,int iterations,sampler2D hash_cube,int perlin_cubes) {
-	float result = 0.0;
-	float weight=1.0;
+vec3 perlin_linear(vec3 uvw,vec3 normal,int altitude_cloud_iterations) {
+	vec4 result = vec4(0.0,0.0,0.0,0.0);
+	vec3 weight=vec3(1.0,1.0,1.0);
 	float scale=scale_start;
-	float weight_sum = 0.0;
-	for(int i=0;i<iterations;i++) {
-		result += improved_perlin(scale,new_normal,hash_cube,perlin_cubes)*weight;
+	vec3 weight_sum = vec3(0.0,0.0,0.0);
+	for(int i=0;i<altitude_cloud_iterations;i++) {
+		float q = improved_perlin(scale,uvw,altitude_cube16,16);
+		float r = 0.0;
+		if(i<2) {
+			r = improved_perlin(scale,uvw,cloud_cube16,16);
+		} else {
+			r = q;
+		}
+		r = abs(r);
+		float s = sin(8.0*(normal.y+r));
+		result.xyz += vec3(q,r,s) * weight;
 		weight_sum+=weight;
-		weight*=weight_power;
+		weight*=vec3(altitude_weight_power,cloud_weight_power,cloud_weight_power_2);
 		scale*=scale_power;
 	}
-	result = result/weight_sum*2.0;
-	return (result+1.0)*0.5;
+	result.w = improved_perlin(scale_start,uvw,temperature_cube8,8);
+	return vec3(clamp(result.x/weight_sum.x +0.5,0.0,1.0),
+		clamp((result.z/weight_sum.z*0.5+0.5) * (result.y/weight_sum.y) * 2.0, 0.0,1.0),
+		clamp(result.w+0.5,0.0,1.0));
 }
 
 void fragment() {
 	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	COLOR=vec4(0.7,0.7,0.7,1.0);
+	vec3 uvw=normal*0.5+0.5;
 	if(UV.x<=0.75) {
-		float altitude = clamp(multi_perlin_scalar(normal,5,cube16,16),0.0,1.0);
-		float temperature_perturbation = clamp(multi_perlin_scalar(normal,1,cube8,8),0.0,1.0);
-		//temperature_perturbation = mix(altitude,temperature_perturbation,0.3);
+		vec3 altitude_cloud_tpert = perlin_linear(uvw,normal,4);
+		float altitude = altitude_cloud_tpert.x;
+		float cloud = altitude_cloud_tpert.y;
+		float temperature_perturbation = altitude_cloud_tpert.z;
+		//float temperature_perturbation = clamp(perlin_linear(uvw,1,temperature_cube8,8),0.0,1.0);
 		float mean_temperature = cos(normal.y*1.5707963267948966);
-		//mean_temperature*=mean_temperature;
-		float temperature = mix(temperature_perturbation,mean_temperature,0.5);
-		COLOR = texture(colors,vec2(temperature,altitude));
-	}
+		float temperature = min(temperature_perturbation,mean_temperature);
+		COLOR = mix(texture(colors,vec2(temperature,altitude)),vec4(1.0,1.0,1.0,1.0),cloud*cloud);
+		//COLOR = texture(colors,vec2(temperature,altitude));
+	} else
+		COLOR=vec4(0.7,0.7,0.7,1.0);
 }
