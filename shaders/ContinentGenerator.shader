@@ -9,8 +9,8 @@ uniform sampler2D cloud_cube16;
 uniform sampler2D colors;
 
 uniform float altitude_weight_power = 0.473333;
-uniform float cloud_weight_power = 0.573333;
-uniform float cloud_weight_power_2 = 0.1;
+uniform float cloud_mesoscale_weight_power = 0.573333;
+uniform float cloud_synoptic_weight_power = 0.1;
 
 uniform float scale_power = 0.3077;
 uniform float scale_start = 3.9;
@@ -86,7 +86,7 @@ vec3 perlin_linear(vec3 uvw,vec3 normal,int altitude_cloud_iterations) {
 		float s = sin(8.0*(normal.y+r));
 		result.xyz += vec3(q,r,s) * weight;
 		weight_sum+=weight;
-		weight*=vec3(altitude_weight_power,cloud_weight_power,cloud_weight_power_2);
+		weight*=vec3(altitude_weight_power,cloud_mesoscale_weight_power,cloud_synoptic_weight_power);
 		scale*=scale_power;
 	}
 	result.w = improved_perlin(scale_start,uvw,temperature_cube8,8);
