@@ -44,6 +44,7 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
 	view.keep_3d_linear=true
+	view.hdr=false
 	view.usage=Viewport.USAGE_2D
 	rect.rect_size=Vector2(nx,ny)
 	rect.set_material(shader)

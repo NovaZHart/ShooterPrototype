@@ -297,7 +297,7 @@ func make_planet(detail: float=150, time: float=0, planet = null):
 		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors)
 		planet.has_astral_gate = true
 	else:
-		planet.make_planet(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors)
+		planet.make_planet(1+detail*(10+size)/30.0,shader_seed,texture_size,shader_type,shader_colors)
 	
 	planet.color_sphere(color_scaling,color_addition)
 	if place_sphere:

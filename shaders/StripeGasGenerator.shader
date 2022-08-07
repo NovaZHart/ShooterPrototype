@@ -81,13 +81,29 @@ float perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 	return result/weight_sum;
 }
 
+float srgb_to_linear_scalar(float srgb) {
+	if(srgb<=0.04045)
+		return srgb/12.92;
+	else
+		return pow((srgb+0.055)/1.055,2.4);
+}
+
+vec4 srgb_to_linear(vec4 what) {
+	return vec4(
+		srgb_to_linear_scalar(what.r),
+		srgb_to_linear_scalar(what.g),
+		srgb_to_linear_scalar(what.b),
+		srgb_to_linear_scalar(what.a));
+}
+
 void fragment() {
 	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
 	vec3 uvw=normal*0.5+0.5;
 	if(UV.x<=0.75) {
 		float p = clamp(perlin_linear(uvw,normal,4),0.0,1.0);
 		//p*=p;
-		COLOR = vec4(texture(colors,vec2(0.5,p)).xyz,1.0);
+		// Trick Godot into keeping a linear colorspace:
+		COLOR = srgb_to_linear(vec4(texture(colors,vec2(0.5,p)).xyz,1.0));
 	} else
 		COLOR=vec4(0.7,0.7,0.7,1.0);
 }

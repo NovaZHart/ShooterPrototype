@@ -1,19 +1,15 @@
 shader_type canvas_item;
 render_mode skip_vertex_transform;
 render_mode unshaded;
+render_mode blend_disabled;
 
 uniform sampler2D xyz;
-uniform sampler2D temperature_cube8;
-uniform sampler2D altitude_cube16;
-uniform sampler2D cloud_cube16;
-uniform sampler2D colors:hint_albedo;
+uniform sampler2D texture_cube16;
+uniform sampler2D colors : hint_albedo;
 
-uniform float altitude_weight_power = 0.473333;
-uniform float cloud_mesoscale_weight_power = 0.573333;
-uniform float cloud_synoptic_weight_power = 0.1;
-
-uniform float scale_power = 0.3077;
-uniform float scale_start = 3.9;
+uniform float weight_power = 0.42;
+uniform float invscale_power = 3.0;
+uniform float invscale_start = 0.086;
 
 float perlin_grad1c(int hash,float x,float y,float z) {
 	// Gradients for improved perlin noise.
@@ -30,12 +26,17 @@ vec3 interp_order5(vec3 t) {
 	return t*t*t * (t * (t*6.0-15.0) + 10.0);
 }
 
-float improved_perlin(float scale,vec3 uvw,sampler2D hash_cube,int perlin_cubes) {
+float interp_order5_scalar(float t) {
+	// fifth-order interpolant for improved perlin noise
+	return t*t*t * (t * (t*6.0-15.0) + 10.0);
+}
+
+float improved_perlin(float invscale,vec3 uvw,sampler2D hash_cube,int perlin_cubes) {
 	// Improved Perlin noise. References:
 	// https://mrl.nyu.edu/~perlin/paper445.pdf
 	// https://developer.nvidia.com/gpugems/gpugems/part-i-natural-effects/chapter-5-implementing-improved-perlin-noise
 	// https://mrl.nyu.edu/~perlin/noise/
-	vec3 cube_xyz=mod(uvw/scale,1.0)*float(perlin_cubes);
+	vec3 cube_xyz=mod(uvw*invscale,1.0)*float(perlin_cubes);
 	vec3 p=fract(cube_xyz),q=p-1.0;
 	vec3 weight=interp_order5(p);
 
@@ -56,30 +57,23 @@ float improved_perlin(float scale,vec3 uvw,sampler2D hash_cube,int perlin_cubes)
 	return mix(pz.x,pz.y,weight.z);
 }
 
-vec3 perlin_linear(vec3 uvw,vec3 normal,int altitude_cloud_iterations) {
-	vec4 result = vec4(0.0,0.0,0.0,0.0);
-	vec3 weight=vec3(1.0,1.0,1.0);
-	float scale=scale_start;
-	vec3 weight_sum = vec3(0.0,0.0,0.0);
-	for(int i=0;i<altitude_cloud_iterations;i++) {
-		float q = improved_perlin(scale,uvw,altitude_cube16,16);
-		float r = 0.0;
-		if(i<2) {
-			r = improved_perlin(scale,uvw,cloud_cube16,16);
-		} else {
-			r = q;
-		}
-		r = abs(r);
-		float s = sin(8.0*(normal.y+r));
-		result.xyz += vec3(q,r,s) * weight;
-		weight_sum+=weight;
-		weight*=vec3(altitude_weight_power,cloud_mesoscale_weight_power,cloud_synoptic_weight_power);
-		scale*=scale_power;
+float perlin_linear(vec3 uvw,vec3 normal,int iterations) {
+	float result = 0.0;
+	float weight = 1.0;
+	float invscale = invscale_start;
+	float weight_sum = 0.0;
+	for(int i=0;i<iterations;i++) {
+		float f=improved_perlin(invscale,uvw,texture_cube16,16);
+		if(i<2)
+			f = abs(f)*2.0;
+		else
+			f = f+0.5;
+		result += f*weight;
+		weight_sum += weight;
+		weight *= weight_power;
+		invscale *= invscale_power;
 	}
-	result.w = improved_perlin(scale_start,uvw,temperature_cube8,8);
-	return vec3(clamp(result.x/weight_sum.x +0.5,0.0,1.0),
-		clamp((result.z/weight_sum.z*0.5+0.5) * (result.y/weight_sum.y) * 2.0, 0.0,1.0),
-		clamp(result.w+0.5,0.0,1.0));
+	return result/weight_sum;
 }
 
 float srgb_to_linear_scalar(float srgb) {
@@ -101,17 +95,9 @@ void fragment() {
 	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
 	vec3 uvw=normal*0.5+0.5;
 	if(UV.x<=0.75) {
-		vec3 altitude_cloud_tpert = perlin_linear(uvw,normal,4);
-		float altitude = altitude_cloud_tpert.x;
-		float cloud = altitude_cloud_tpert.y;
-		float temperature_perturbation = altitude_cloud_tpert.z;
-		//float temperature_perturbation = clamp(perlin_linear(uvw,1,temperature_cube8,8),0.0,1.0);
-		float mean_temperature = cos(normal.y*1.5707963267948966);
-		float temperature = mix(temperature_perturbation,mean_temperature,0.4);
-		temperature = min(temperature,mean_temperature);
+		float p = clamp(perlin_linear(uvw,normal,5),0.0,1.0);
 		// Trick Godot into keeping a linear colorspace:
-		COLOR = srgb_to_linear(mix(texture(colors,vec2(temperature,altitude)),vec4(1.0,1.0,1.0,1.0),cloud*cloud));
-		//COLOR = texture(colors,vec2(temperature,altitude));
+		COLOR = srgb_to_linear(vec4(texture(colors,vec2(0.5,p)).xyz,1.0));
 	} else
 		COLOR=vec4(0.7,0.7,0.7,1.0);
 }

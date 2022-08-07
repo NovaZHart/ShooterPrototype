@@ -249,7 +249,8 @@ Ref<Image> make_lookup_tiles() {
   float *floats = new float[num_floats];
   memset(floats,0,sizeof(float)*num_floats);
   //std::array<float, num_floats> floats = { 0.0f };
-
+  const float sqrt2 = sqrtf(2);
+  
   float sides[tile_size];
   {
     float angles[tile_size];
@@ -257,7 +258,7 @@ Ref<Image> make_lookup_tiles() {
     for(int i=0;i<tile_size;i++) {
       float m = i+0.5;
       angles[i]=pi/2 * (m-(tile_size/2.0))/tile_size;
-      sides[i]=tan(angles[i])/sqrt(2);
+      sides[i]=tanf(angles[i])/sqrt2;
     }
   }
 
@@ -441,7 +442,7 @@ Ref<Image> make_lookup_tiles() {
   
   Ref<Image> image = Image::_new();
   image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBF, data_pool);
-  image->convert(Image::FORMAT_RGBH);
+  //image->convert(Image::FORMAT_RGBH);
   return image;
 }
 

@@ -8,8 +8,10 @@ var SphereTool = preload('res://bin/spheretool.gdns')
 #var CubePlanetTilesV2 = preload("res://shaders/CubePlanetTilesV2.shader")
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
+var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
 var StripeGasTiles = preload("res://shaders/StripeGasGenerator.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
+var inferno_shader = preload('res://shaders/InfernoPlanet.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
 var default_colors = preload('res://textures/continents-terran.jpg')
@@ -66,12 +68,15 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	view.size=Vector2(nx,ny)
 	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
-	view.keep_3d_linear=true;
+	view.keep_3d_linear=true
+	view.disable_3d=true
+	view.usage=Viewport.USAGE_2D
 	rect.rect_size=Vector2(nx,ny)
+	rect.color=Color(0,0,0,0)
 	rect.set_material(shader)
 	rect.name='Content'
 	view.own_world=true
-	view.transparent_bg=true
+	view.hdr=false
 	view.add_child(rect)
 	return view
 
@@ -157,6 +162,16 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		if not colors or not colors is Texture:
 			push_warning('Using default continent color texture')
 			colors = default_colors
+		colors.flags=0
+		view_shade.set_shader_param('colors',colors)
+	elif shader_type=='inferno':
+		print('INFERNO')
+		view_shade.set_shader(InfernoTiles)
+		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
+		if not colors or not colors is Texture:
+			push_warning('Using default continent color texture')
+			colors = default_colors
+		colors.flags=0
 		view_shade.set_shader_param('colors',colors)
 	elif shader_type=='stripe_gas':
 		print('STRIPE GAS')
@@ -166,6 +181,7 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		if not colors or not colors is Texture:
 			push_warning('Using default continent color texture')
 			colors = default_colors
+		colors.flags=0
 		view_shade.set_shader_param('colors',colors)
 	else: # shader_type=='old'
 		print('old shader')
@@ -189,7 +205,10 @@ func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
 
 func make_planet(subdivisions: int,random_seed: int,texture_size: int = 2048,
 		shader_type='old', colors=null, noise_type: int = 0):
-	make_sphere(simple_planet_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
+	if shader_type=='inferno':
+		make_sphere(inferno_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
+	else:
+		make_sphere(simple_planet_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
 
 func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
 		shader_type='old', colors=null, noise_type: int = 1):

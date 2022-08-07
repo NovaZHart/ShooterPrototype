@@ -1199,6 +1199,74 @@
                 }
               }
             ],
+            "gondra": [
+              "SpaceObjectData",
+              {
+                "services": [
+                  "Array"
+                ],
+                "shipyard": [
+                  "Array"
+                ],
+                "display_name": "Gondra",
+                "description": "",
+                "base": "",
+                "population": {
+                  "suvar": 1600,
+                  "human": 18000
+                },
+                "trading": [
+                  "Array",
+                  "suvar",
+                  "human",
+                  "terran_government"
+                ],
+                "locality_adjustments": {
+                  "deadly_drug/terran/human": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ],
+                  "live/sentient": [
+                    "Array",
+                    0,
+                    1,
+                    1
+                  ]
+                },
+                "shipyard_locality_adjustments": {
+
+                },
+                "object_type": 0,
+                "size": 5,
+                "color_scaling": [
+                  "Color",
+                  0.894118,
+                  0.913725,
+                  0.294118,
+                  1
+                ],
+                "color_addition": [
+                  "Color",
+                  0.427451,
+                  -0.388235,
+                  -0.639216,
+                  1
+                ],
+                "shader_type": "inferno",
+                "shader_colors": "res://textures/inferno-orange-yellow-white.jpg",
+                "shader_seed": 65871,
+                "rotation_period": 14,
+                "orbit_radius": 90.982407,
+                "orbit_period": 7,
+                "orbit_start": 2.658626,
+                "has_astral_gate": false,
+                "objects": {
+
+                }
+              }
+            ],
             "kindra": [
               "SpaceObjectData",
               {
@@ -1333,7 +1401,7 @@
                 }
               }
             ],
-            "gondra": [
+            "ataya": [
               "SpaceObjectData",
               {
                 "services": [
