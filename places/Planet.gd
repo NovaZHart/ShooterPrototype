@@ -8,6 +8,7 @@ var SphereTool = preload('res://bin/spheretool.gdns')
 #var CubePlanetTilesV2 = preload("res://shaders/CubePlanetTilesV2.shader")
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
+var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
@@ -150,9 +151,18 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 	if shader_type=='continents':
 		print("CONTINENTS")
 		view_shade.set_shader(ContinentTiles)
-		view_shade.set_shader_param('temperature_cube8',get_hash_cube_8(random_seed))
+		view_shade.set_shader_param('temperature_cube8',get_hash_cube_8(random_seed+2))
 		view_shade.set_shader_param('altitude_cube16',get_hash_cube_16(random_seed))
 		view_shade.set_shader_param('cloud_cube16',get_hash_cube_16b(random_seed+1))
+		if not colors or not colors is Texture:
+			push_warning('Using default continent color texture')
+			colors = default_colors
+		view_shade.set_shader_param('colors',colors)
+	elif shader_type=='inferno':
+		print('INFERNO')
+		view_shade.set_shader(InfernoTiles)
+		view_shade.set_shader_param('inferno_cube8',get_hash_cube_8(random_seed))
+		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
 		if not colors or not colors is Texture:
 			push_warning('Using default continent color texture')
 			colors = default_colors

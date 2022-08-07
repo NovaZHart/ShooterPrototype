@@ -1343,6 +1343,7 @@
                   "Array"
                 ],
                 "display_name": "Gondra",
+                "shader_type": "inferno",
                 "description": "",
                 "base": "",
                 "population": {
@@ -1373,7 +1374,7 @@
 
                 },
                 "object_type": 0,
-                "size": 5,
+                "size": 12,
                 "color_scaling": [
                   "Color",
                   0.894118,
