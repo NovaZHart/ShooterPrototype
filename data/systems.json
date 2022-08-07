@@ -1343,7 +1343,8 @@
                   "Array"
                 ],
                 "display_name": "Gondra",
-                "shader_type": "inferno",
+                "shader_type": "stripe_gas",
+                "shader_colors": "res://textures/stripes-gas-blue-yellow.png",
                 "description": "",
                 "base": "",
                 "population": {

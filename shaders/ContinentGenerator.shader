@@ -18,24 +18,11 @@ uniform float scale_start = 3.9;
 float perlin_grad1c(int hash,float x,float y,float z) {
 	// Gradients for improved perlin noise.
 	// Get gradient at cube corner specified by p
-	switch(hash&15) {
-		case 0: return  x +y;
-		case 1: return -x +y;
-		case 2: return  x -y;
-		case 3: return -x -y;
-		case 4: return  x +z;
-		case 5: return -x +z;
-		case 6: return  x -z;
-		case 7: return -x -z;
-		case 8: return  y +z;
-		case 9: return -y +z;
-		case 10:return  y -z;
-		case 11:return -y -z;
-		case 12:return  y +x;
-		case 13:return -y +z;
-		case 14:return  y -x;
-		case 15:return -y -z;
-	}
+	int h=hash&15;
+	float u,v;
+	u = h<8 ? x : y;
+	v = (h<4) ? y : ((h==12||h==14) ? x : z);
+	return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);	
 }
 
 vec3 interp_order5(vec3 t) {

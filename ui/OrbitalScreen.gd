@@ -6,9 +6,11 @@ onready var ServiceSelector = preload('res://ui/ServiceSelector.tscn')
 const ButtonPanel = preload('res://ui/ButtonPanel.tscn')
 
 var tick: int = 0
-var planet = null
+var planet: KinematicBody
 var planet_info = null
 var current_service: NodePath
+var axial_tilt: float = 0.0
+var planet_rotation: float = 0.0
 #var old_msaa
 
 signal jump_complete
@@ -27,6 +29,7 @@ func _enter_tree():
 		return
 	planet=planet_info.make_planet(600,0)
 	planet_name = planet.display_name
+	axial_tilt = planet_info.axial_tilt
 	planet.translation = Vector3(0,0,0)
 	add_child(planet)
 
@@ -168,7 +171,15 @@ func _input(event):
 		deorbit()
 
 func _physics_process(delta):
-	planet.rotate_y(0.4*delta)
+	planet_rotation += 0.4*delta
+	var t: Transform = Transform()
+	t=t.rotated(Vector3(0,1,0),planet_rotation)
+	t=t.rotated(Vector3(0,0,1),axial_tilt)
+	planet.transform = t
+#	var rotation_axis: Vector3 = Vector3(0,1,0).rotated(Vector3(0,0,1),axial_tilt)
+#	planet.transform = planet.transform.rotated(rotation_axis,planet_rotation)
+#	planet.rotation = Vector3(0,1,0).rotated(rotation_axis,planet_rotation)
+#	print(planet.rotation)
 
 func _on_MainDialogTrigger_dialog_hidden():
 	get_tree().paused = false

@@ -8,7 +8,7 @@ var SphereTool = preload('res://bin/spheretool.gdns')
 #var CubePlanetTilesV2 = preload("res://shaders/CubePlanetTilesV2.shader")
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
-var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
+var StripeGasTiles = preload("res://shaders/StripeGasGenerator.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
@@ -158,10 +158,10 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 			push_warning('Using default continent color texture')
 			colors = default_colors
 		view_shade.set_shader_param('colors',colors)
-	elif shader_type=='inferno':
-		print('INFERNO')
-		view_shade.set_shader(InfernoTiles)
-		view_shade.set_shader_param('inferno_cube8',get_hash_cube_8(random_seed))
+	elif shader_type=='stripe_gas':
+		print('STRIPE GAS')
+		view_shade.set_shader(StripeGasTiles)
+		view_shade.set_shader_param('stripe_cube8',get_hash_cube_8(random_seed))
 		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
 		if not colors or not colors is Texture:
 			push_warning('Using default continent color texture')
@@ -196,11 +196,10 @@ func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
 	make_sphere(simple_sun_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
 
 func place_sphere(sphere_scale: float, sphere_translation: Vector3,
-		sphere_rotation: Vector3=Vector3()):
+		sphere_basis: Basis = Basis()):
+	transform = Transform(sphere_basis,sphere_translation)
 	sphere.scale = Vector3(sphere_scale,sphere_scale,sphere_scale)
 	$CollisionShape.scale = sphere.scale
-	translation = sphere_translation
-	rotation = sphere_rotation
 
 func get_combined_aabb():
 	if combined_aabb==null:

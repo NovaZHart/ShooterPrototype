@@ -4,35 +4,22 @@ render_mode unshaded;
 
 uniform sampler2D xyz;
 uniform sampler2D texture_cube16;
-uniform sampler2D inferno_cube8;
+uniform sampler2D stripe_cube8;
 uniform sampler2D colors;
 
-uniform float weight_power = 0.43333;
-uniform float invscale_power = 2.156388034665918;
-uniform float invscale_start = 0.48641025641025644;
-uniform float perlin_bias = 0.5;
+uniform float yscale = 7.75;
+uniform float weight_power = 0.273333;
+uniform float invscale_power = 3.156388034665918;
+uniform float invscale_start = 0.18641025641025644;
 
 float perlin_grad1c(int hash,float x,float y,float z) {
 	// Gradients for improved perlin noise.
 	// Get gradient at cube corner specified by p
-	switch(hash&15) {
-		case 0: return  x +y;
-		case 1: return -x +y;
-		case 2: return  x -y;
-		case 3: return -x -y;
-		case 4: return  x +z;
-		case 5: return -x +z;
-		case 6: return  x -z;
-		case 7: return -x -z;
-		case 8: return  y +z;
-		case 9: return -y +z;
-		case 10:return  y -z;
-		case 11:return -y -z;
-		case 12:return  y +x;
-		case 13:return -y +z;
-		case 14:return  y -x;
-		case 15:return -y -z;
-	}
+	int h=hash&15;
+	float u,v;
+	u = h<8 ? x : y;
+	v = (h<4) ? y : ((h==12||h==14) ? x : z);
+	return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);	
 }
 
 vec3 interp_order5(vec3 t) {
@@ -71,10 +58,6 @@ float improved_perlin(vec3 invscale,vec3 uvw,sampler2D hash_cube,int perlin_cube
 	return mix(pz.x,pz.y,weight.z);
 }
 
-float crabs(float f) {
-	return f>0.0 ? f : f*0.1;
-}
-
 float perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 	float result = 0.0;
 	float weight = 1.0;
@@ -82,12 +65,12 @@ float perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 	float weight_sum = 0.0;
 	for(int i=0;i<iterations;i++) {
 		if(i<3) {
-			vec3 invscale3 = vec3(invscale,3.0*invscale,invscale);
-			float f = improved_perlin(invscale3,uvw,inferno_cube8,8);
+			vec3 invscale3 = vec3(invscale,yscale*invscale,invscale);
+			float f = improved_perlin(invscale3,uvw,stripe_cube8,8);
 			result += (0.5*sin(7.0*(normal.y+f))+0.5) * weight;
 		} else {
 			vec3 invscale3 = vec3(invscale,invscale,invscale);
-			float f = min(1.0,abs(improved_perlin(invscale3,uvw,texture_cube16,16)));
+			float f = 0.75*abs(0.25*improved_perlin(invscale3,uvw,texture_cube16,16));
 			f = interp_order5_scalar(1.0-f);
 			result += f * weight;
 		}
@@ -102,9 +85,9 @@ void fragment() {
 	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
 	vec3 uvw=normal*0.5+0.5;
 	if(UV.x<=0.75) {
-		float p = clamp(perlin_linear(uvw,normal,5),0.0,1.0);
-		p*=p*p;
-		COLOR = vec4(p,p*0.5,p*0.5,1.0);
+		float p = clamp(perlin_linear(uvw,normal,4),0.0,1.0);
+		//p*=p;
+		COLOR = vec4(texture(colors,vec2(0.5,p)).xyz,1.0);
 	} else
 		COLOR=vec4(0.7,0.7,0.7,1.0);
 }
