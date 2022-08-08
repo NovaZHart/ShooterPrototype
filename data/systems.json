@@ -1410,7 +1410,7 @@
                 "shipyard": [
                   "Array"
                 ],
-                "display_name": "Gondra",
+                "display_name": "Ataya",
                 "shader_type": "stripe_gas",
                 "shader_colors": "res://textures/stripes-gas-blue-yellow.png",
                 "description": "",
