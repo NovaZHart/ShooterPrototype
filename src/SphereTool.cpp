@@ -144,22 +144,40 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   double radius = float_radius;
   PoolVector3Array vert_pool;
   PoolVector3Array normal_pool;
+  PoolRealArray tangent_pool;
   PoolVector2Array uv_pool;
   PoolVector2Array uv2_pool;
 
   int size = subs*subs*6*6;
   vert_pool.resize(size);
   normal_pool.resize(size);
+  tangent_pool.resize(size*4);
   uv_pool.resize(size);
   uv2_pool.resize(size);
   
   PoolVector3Array::Write vert_write = vert_pool.write();
   PoolVector3Array::Write normal_write = normal_pool.write();
+  PoolRealArray::Write tangents_write = tangent_pool.write();
   PoolVector2Array::Write uv_write = uv_pool.write();
   PoolVector2Array::Write uv2_write = uv2_pool.write();
 
+  union xyzw {
+    real_t reals[4];
+    struct {
+      real_t x, y, z, w;
+    };
+    xyzw(real_t x,real_t y,real_t z,real_t w):
+      x(x), y(y), z(z), w(w)
+    {}
+  };
+
+  // Make sure the union has no padding
+  assert(sizeof(xyzw) == sizeof(real_t)*4);
+
   Vector3 *verts = vert_write.ptr();
   Vector3 *normals = normal_write.ptr();
+  real_t *tangents_reals = tangents_write.ptr();
+  xyzw *tangents = reinterpret_cast<xyzw*>(tangents_reals);
   Vector2 *uvs = uv_write.ptr();
   Vector2 *uv2s = uv2_write.ptr();
 
@@ -181,6 +199,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
         DVector3 vertex = DVector3(-width,sides[j+j_add[k][t]],sides[i+i_add[k][t]]);
         vertex.normalize();
         verts[ivert] = vertex*radius;
+        tangents[ivert] = xyzw(vertex.z,vertex.y,-vertex.x,1);
         normals[ivert] = vertex;
         uv2s[ivert] = normal_to_uv2(normals[ivert]);
       }
@@ -192,6 +211,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[1]-v_start[0]);
     normals[ivert] = Vector3(-normals[n].x, normals[n].y,-normals[n].z);
     verts[ivert] = Vector3(-verts[n].x, verts[n].y,-verts[n].z);
+    tangents[ivert] = xyzw(-tangents[n].x, tangents[n].y,-tangents[n].z, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
@@ -200,6 +220,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[2]-v_start[0]);
     normals[ivert] = Vector3( normals[n].z, normals[n].y,-normals[n].x);
     verts[ivert] = Vector3( verts[n].z, verts[n].y,-verts[n].x);
+    tangents[ivert] = xyzw( tangents[n].z, tangents[n].y,-tangents[n].x, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
     
@@ -208,6 +229,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[3]-v_start[0]);
     normals[ivert] = Vector3(-normals[n].z, normals[n].y, normals[n].x);
     verts[ivert] = Vector3(-verts[n].z, verts[n].y, verts[n].x);
+    tangents[ivert] = xyzw(-tangents[n].z, tangents[n].y, tangents[n].x, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
@@ -216,6 +238,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[4]-v_start[0]);
     normals[ivert] = Vector3( normals[n].y,-normals[n].x, normals[n].z);
     verts[ivert] = Vector3( verts[n].y,-verts[n].x, verts[n].z);
+    tangents[ivert] = xyzw( tangents[n].y,-tangents[n].x, tangents[n].z, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
@@ -224,6 +247,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
     uvs[ivert].y = uvs[n].y + (v_start[5]-v_start[0]);
     normals[ivert] = Vector3(-normals[n].y, normals[n].x, normals[n].z);
     verts[ivert] = Vector3(-verts[n].y, verts[n].x, verts[n].z);
+    tangents[ivert] = xyzw(-tangents[n].y, tangents[n].x, tangents[n].z ,1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
@@ -233,8 +257,9 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   content[ArrayMesh::ARRAY_TEX_UV] = uv_pool;
   content[ArrayMesh::ARRAY_TEX_UV2] = uv2_pool;
   content[ArrayMesh::ARRAY_NORMAL] = normal_pool;
+  content[ArrayMesh::ARRAY_TANGENT] = tangent_pool;
   Ref<ArrayMesh> mesh = ArrayMesh::_new();
-  mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES,content,Array(),ArrayMesh::ARRAY_COMPRESS_VERTEX|ArrayMesh::ARRAY_COMPRESS_TEX_UV|ArrayMesh::ARRAY_COMPRESS_NORMAL|ArrayMesh::ARRAY_COMPRESS_TEX_UV2);
+  mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES,content,Array(),ArrayMesh::ARRAY_COMPRESS_VERTEX|ArrayMesh::ARRAY_COMPRESS_TEX_UV|ArrayMesh::ARRAY_COMPRESS_NORMAL|ArrayMesh::ARRAY_COMPRESS_TANGENT|ArrayMesh::ARRAY_COMPRESS_TEX_UV2);
   return mesh;
 }
 
@@ -383,7 +408,7 @@ Ref<Image> make_lookup_tiles() {
     }
   }
 
-  // Copy from tile 0 to 1-5, rotating as needed. Zero-out unused tiles 7&8.
+  // Copy from tile 0 to 1-5, rotating as needed. Zero-out unused tiles 6&7
 
   const int shift_size = tile_size+2*pad_size;
 
