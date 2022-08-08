@@ -7,11 +7,11 @@ uniform sampler2D texture_cube16;
 uniform sampler2D stripe_cube8;
 uniform sampler2D colors;
 
-uniform float sin_mult = 45.0;
+uniform float sin_mult = 60.0;
 uniform float yscale = 1.0; //6.7770534;
 uniform float starting_weight_power = 0.25;
-uniform float weight_power_power = 1.7;
-uniform float invscale_power = 2.8707;
+uniform float weight_power_power = 1.6;
+uniform float invscale_power = 3.1707;
 uniform float invscale_start = 0.307714;
 
 float perlin_grad1c(int hash,float x,float y,float z) {
@@ -71,9 +71,9 @@ float perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 		float w = clamp(weight,0.0,1.0);
 		vec3 invscale3 = vec3(invscale,yscale*invscale,invscale);
 		float perlin = improved_perlin(invscale3,uvw,texture_cube16,16);
-		float stripes = (0.5*sin(sin_mult*(mix(perlin,normal.y,0.9*w)))+0.5);
+		float stripes = (0.5*sin(sin_mult*(mix(perlin,normal.y,0.95*w)))+0.5);
 		float noise = clamp(interp_order5_scalar(abs(perlin)*2.0),0.0,1.0);
-		result += weight * mix(noise,stripes,w);
+		result += weight * mix(noise,stripes,pow(w,1.5));
 		weight*=weight_power;
 		weight_power*=weight_power_power;
 		invscale*=invscale_power;

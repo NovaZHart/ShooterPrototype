@@ -17,6 +17,5 @@ void fragment() {
 
 void light() {
 	float direction=clamp(dot(NORMAL, LIGHT),0.0,1.0);
-	//DIFFUSE_LIGHT = direction*ALBEDO;
 	DIFFUSE_LIGHT = mix(ALBEDO,ALBEDO*ALBEDO*0.15,1.0-direction);
 }
