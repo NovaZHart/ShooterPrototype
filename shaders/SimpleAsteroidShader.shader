@@ -18,10 +18,8 @@ void vertex() {
 	g += dot(vec4(0.5*sin(4.0*a),0.5*cos(4.0*a),0.3*sin(a*5.0),0.3*cos(a*5.0)),ic2);
 	
 	VERTEX *= clamp(0.5*f*g+0.55,0.2,1.5)*1.4;
-	
-	UV2 = vec2(mod(UV2.x,6.28319)/6.28319,UV2.y*0.5+0.5);
 }
 
 void fragment() {
-	ALBEDO = mix(texture(tex1, UV).rgb,texture(tex2,UV2).rgb,COLOR.a)*COLOR.rgb;
+	ALBEDO = mix(texture(tex1,UV).rgb,texture(tex2,UV).rgb,COLOR.a)*COLOR.rgb;
 }

@@ -9,9 +9,11 @@ var SphereTool = preload('res://bin/spheretool.gdns')
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
 var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
+var RockyTiles = preload("res://shaders/RockyGenerator.shader")
 var StripeGasTiles = preload("res://shaders/StripeGasGenerator.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
-var inferno_shader = preload('res://shaders/InfernoPlanet.shader')
+var rocky_planet_shader = preload('res://shaders/RockyPlanet.shader')
+var inferno_planet_shader = preload('res://shaders/InfernoPlanet.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
 var default_colors = preload('res://textures/continents-terran.jpg')
@@ -124,7 +126,7 @@ func get_hash_cube_16b(var random_seed: int) -> ImageTexture:
 		hash_cube_16b = texture
 	return hash_cube_16b
 	
-func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
+func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		texture_size=1024, shader_type: String = "old",
 		colors = null, noise_type=1):
 
@@ -140,11 +142,24 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 		xyz = game_state.get_sphere_xyz()
 		sphere.make_cube_sphere_v2('Sphere',Vector3(0,0,0),1,subs)
 		var shade=ShaderMaterial.new()
-		shade.set_shader(sphere_shader)
+		if shader_type=='inferno':
+			shade.set_shader(inferno_planet_shader)
+		elif shader_type=='rocky':
+			shade.set_shader(rocky_planet_shader)
+		elif object_type=='sun':
+			shade.set_shader(simple_sun_shader)
+		else:
+			shade.set_shader(simple_planet_shader)
 		sphere.material_override=shade
 		sphere.cast_shadow=false
 		sphere_material = sphere.material_override
-	#	sphere_material.set_shader_param('xyz',xyz)
+		if shader_type=='rocky':
+			if not colors or not colors is Texture:
+				push_warning('Using default continent color texture')
+				colors = default_colors
+			colors.flags=0
+			sphere_material.set_shader_param('colors',colors)
+			sphere_material.set_shader_param('xyz',xyz)
 	#	sphere_material.set_shader_param('hash_cube',hash_cube)
 		sphere.set_layer_mask(4)
 		sphere.name='Sphere'
@@ -173,6 +188,11 @@ func make_sphere(sphere_shader: Shader, subdivisions: int,random_seed: int,
 			colors = default_colors
 		colors.flags=0
 		view_shade.set_shader_param('colors',colors)
+	elif shader_type=='rocky':
+		print('ROCKY')
+		view_shade.set_shader(RockyTiles)
+		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
+		view_shade.set_shader_param('coloring_cube16',get_hash_cube_16b(random_seed))
 	elif shader_type=='stripe_gas':
 		print('STRIPE GAS')
 		view_shade.set_shader(StripeGasTiles)
@@ -205,14 +225,11 @@ func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
 
 func make_planet(subdivisions: int,random_seed: int,texture_size: int = 2048,
 		shader_type='old', colors=null, noise_type: int = 0):
-	if shader_type=='inferno':
-		make_sphere(inferno_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
-	else:
-		make_sphere(simple_planet_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
+	make_sphere('planet',subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
 
 func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
 		shader_type='old', colors=null, noise_type: int = 1):
-	make_sphere(simple_sun_shader,subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
+	make_sphere('sun',subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
 
 func place_sphere(sphere_scale: float, sphere_translation: Vector3,
 		sphere_basis: Basis = Basis()):

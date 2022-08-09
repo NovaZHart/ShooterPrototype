@@ -1,17 +1,19 @@
 shader_type spatial;
-render_mode skip_vertex_transform;
 
 uniform sampler2D precalculated : hint_albedo;
 
-varying vec3 saved_vertex;
+varying float vx;
+varying float vy;
+varying float vz;
 
 void vertex() {
-	saved_vertex=VERTEX;
-	VERTEX = (MODELVIEW_MATRIX*vec4(VERTEX,1.0)).xyz;
+	vx = VERTEX.x;
+	vy = VERTEX.y;
+	vz = VERTEX.z;
 }
 
 void fragment() {
-	NORMAL = (INV_CAMERA_MATRIX*(WORLD_MATRIX*vec4(normalize(saved_vertex),0.0))).xyz;
+	NORMAL = (INV_CAMERA_MATRIX*(WORLD_MATRIX*vec4(normalize(vec3(vx,vy,vz)),0.0))).xyz;
 	ALBEDO = texture(precalculated,UV).rgb;
 }
 

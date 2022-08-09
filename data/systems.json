@@ -1372,6 +1372,7 @@
 
                       },
                       "object_type": 0,
+                      "shader_type": "rocky",
                       "size": 5,
                       "color_scaling": [
                         "Color",

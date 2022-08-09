@@ -129,7 +129,7 @@ inline void swap32(uint32_t *data, int n) {
 
 static inline Vector2 normal_to_uv2(Vector3 n) {
   return Vector2(atan2(n.z,n.x),
-                 atan2(n.y,sqrtf(n.x*n.x+n.z*n.z)));
+                 clamp(atan2f(n.y,sqrtf(n.x*n.x+n.z*n.z)),-PIf/2,PIf/2));
 }
   
 Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
@@ -209,45 +209,55 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[1]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[1]-v_start[0]);
-    normals[ivert] = Vector3(-normals[n].x, normals[n].y,-normals[n].z);
-    verts[ivert] = Vector3(-verts[n].x, verts[n].y,-verts[n].z);
-    tangents[ivert] = xyzw(-tangents[n].x, tangents[n].y,-tangents[n].z, 1);
+    normals[ivert]  = Vector3( -normals[n].x,  normals[n].y, -normals[n].z);
+    verts[ivert]    = Vector3(   -verts[n].x,    verts[n].y,   -verts[n].z);
+    tangents[ivert] =    xyzw(-tangents[n].x, tangents[n].y,-tangents[n].z, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[2]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[2]-v_start[0]);
-    normals[ivert] = Vector3( normals[n].z, normals[n].y,-normals[n].x);
-    verts[ivert] = Vector3( verts[n].z, verts[n].y,-verts[n].x);
-    tangents[ivert] = xyzw( tangents[n].z, tangents[n].y,-tangents[n].x, 1);
+    normals[ivert]  = Vector3(  normals[n].z,  normals[n].y,  -normals[n].x);
+    verts[ivert]    = Vector3(    verts[n].z,    verts[n].y,    -verts[n].x);
+    tangents[ivert] =    xyzw( tangents[n].z, tangents[n].y, -tangents[n].x, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
     
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[3]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[3]-v_start[0]);
-    normals[ivert] = Vector3(-normals[n].z, normals[n].y, normals[n].x);
-    verts[ivert] = Vector3(-verts[n].z, verts[n].y, verts[n].x);
-    tangents[ivert] = xyzw(-tangents[n].z, tangents[n].y, tangents[n].x, 1);
+    normals[ivert]  = Vector3( -normals[n].z,  normals[n].y,  normals[n].x);
+    verts[ivert]    = Vector3(   -verts[n].z,    verts[n].y,    verts[n].x);
+    tangents[ivert] =    xyzw(-tangents[n].z, tangents[n].y, tangents[n].x, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
+// x,-y,z was right on one edge
+// x,z,-y has all colors right, but patterns match on only one edge
+// -y,z,x had no color match, but patterns matched on one edge
+// z,x,-y had a color match but not pattern, on one edge
+// -z,-x,-y had a color match but not pattern, on one edge
+// z,-y,x had a pattern match but not color, on one edge
+// z,-y,-x had a pattern match but not color, on one edge
+// -z,-y,-x had a pattern match but not color, on one edge
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[4]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[4]-v_start[0]);
-    normals[ivert] = Vector3( normals[n].y,-normals[n].x, normals[n].z);
-    verts[ivert] = Vector3( verts[n].y,-verts[n].x, verts[n].z);
-    tangents[ivert] = xyzw( tangents[n].y,-tangents[n].x, tangents[n].z, 1);
+    normals[ivert]  = Vector3(  normals[n].y,  -normals[n].x,  normals[n].z);
+    verts[ivert]    = Vector3(    verts[n].y,    -verts[n].x,    verts[n].z);
+    tangents[ivert] =    xyzw( tangents[n].y, -tangents[n].x, tangents[n].z, 1);
+    //tangents[ivert] =    xyzw( tangents[n].x,  tangents[n].z, -tangents[n].y, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
   for(int n=0;n<6*subs*subs;n++,ivert++) {
     uvs[ivert].x = uvs[n].x + (u_start[5]-u_start[0]);
     uvs[ivert].y = uvs[n].y + (v_start[5]-v_start[0]);
-    normals[ivert] = Vector3(-normals[n].y, normals[n].x, normals[n].z);
-    verts[ivert] = Vector3(-verts[n].y, verts[n].x, verts[n].z);
-    tangents[ivert] = xyzw(-tangents[n].y, tangents[n].x, tangents[n].z ,1);
+    normals[ivert]  = Vector3( -normals[n].y,  normals[n].x,  normals[n].z);
+    verts[ivert]    = Vector3(   -verts[n].y,    verts[n].x,    verts[n].z);
+    tangents[ivert] =    xyzw(-tangents[n].y, tangents[n].x, tangents[n].z, 1);
+//    tangents[ivert] =    xyzw( tangents[n].x,  -tangents[n].z, tangents[n].y, 1);
     uv2s[ivert] = normal_to_uv2(normals[ivert]);
   }
 
@@ -259,7 +269,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   content[ArrayMesh::ARRAY_NORMAL] = normal_pool;
   content[ArrayMesh::ARRAY_TANGENT] = tangent_pool;
   Ref<ArrayMesh> mesh = ArrayMesh::_new();
-  mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES,content,Array(),ArrayMesh::ARRAY_COMPRESS_VERTEX|ArrayMesh::ARRAY_COMPRESS_TEX_UV|ArrayMesh::ARRAY_COMPRESS_NORMAL|ArrayMesh::ARRAY_COMPRESS_TANGENT|ArrayMesh::ARRAY_COMPRESS_TEX_UV2);
+  mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES,content,Array(),ArrayMesh::ARRAY_COMPRESS_VERTEX|ArrayMesh::ARRAY_COMPRESS_TEX_UV|ArrayMesh::ARRAY_COMPRESS_NORMAL|ArrayMesh::ARRAY_COMPRESS_TANGENT);
   return mesh;
 }
 
@@ -468,6 +478,10 @@ Ref<Image> make_lookup_tiles() {
   Ref<Image> image = Image::_new();
   image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBF, data_pool);
   //image->convert(Image::FORMAT_RGBH);
+  Ref<Image> write_image = Image::_new();
+  write_image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBF, data_pool);
+  write_image->convert(Image::FORMAT_RGB8);
+  write_image->save_png("res://lookup.png");
   return image;
 }
 

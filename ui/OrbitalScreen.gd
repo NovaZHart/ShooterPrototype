@@ -11,6 +11,7 @@ var planet_info = null
 var current_service: NodePath
 var axial_tilt: float = 0.0
 var planet_rotation: float = 0.0
+export var angular_velocity: float = 0.5
 #var old_msaa
 
 signal jump_complete
@@ -172,7 +173,7 @@ func _input(event):
 		deorbit()
 
 func _process(delta):
-	planet_rotation += 0.4*delta
+	planet_rotation += angular_velocity*delta
 	var t: Transform = Transform()
 	t=t.rotated(Vector3(0,1,0),planet_rotation)
 	t=t.rotated(Vector3(0,0,1),axial_tilt)
