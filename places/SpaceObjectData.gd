@@ -28,7 +28,7 @@ const base_types = {
 	}
 }
 
-const default_axial_tilt: float = 200*PI/180
+const default_axial_tilt: float = 20*PI/180
 const default_height_map_scale: float = 0.35
 const default_planet_trading: Array = [ 'suvar', 'human' ]
 const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }

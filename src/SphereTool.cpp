@@ -183,9 +183,12 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
 
   double angles[subs+1];
   double sides[subs+1];
+  double sec2[subs+1];
   for(int i=0;i<=subs;i++) {
     angles[i]=pi/2 * (i-(subs/2.0))/subs;
-    sides[i]=tan(angles[i])/sqrt(2);
+    sides[i]=tan(angles[i])*width;
+    sec2[i]=1/cos(angles[i]);
+    sec2[i]*=sec2[i];
   }
 
   // Calculate everything for tile 0
@@ -196,10 +199,19 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
       for(int t=0;t<6;t++,ivert++) {
         uvs[ivert].x = u_start[0] + (i+i_add[k][t])*(u_scale/subs);
         uvs[ivert].y = v_start[0] + (j+j_add[k][t])*(v_scale/subs);
-        DVector3 vertex = DVector3(-width,sides[j+j_add[k][t]],sides[i+i_add[k][t]]);
+        
+        double tanu = sides[i+i_add[k][t]], tan2u=tanu*tanu;
+        double tanv = sides[j+j_add[k][t]], tan2v=tanv*tanv;
+
+        DVector3 vertex = DVector3(-width,tanv,tanu);
         vertex.normalize();
         verts[ivert] = vertex*radius;
-        tangents[ivert] = xyzw(vertex.z,vertex.y,-vertex.x,1);
+        
+        //DVector3 tangent = DVector3(-tan2u,tan2u*tanv,-1-tan2v);
+        DVector3 tangent = DVector3(tanu,tanv,-width);
+        tangent.normalize();
+        tangents[ivert] = xyzw(tangent.x,tangent.y,tangent.z,1);
+
         normals[ivert] = vertex;
         uv2s[ivert] = normal_to_uv2(normals[ivert]);
       }
