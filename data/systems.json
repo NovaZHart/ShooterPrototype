@@ -1373,6 +1373,8 @@
                       },
                       "object_type": 0,
                       "shader_type": "rocky",
+                      "shader_colors": "res://textures/rocky-gold.jpg",
+                      "height_map_scale": 0.2,
                       "size": 5,
                       "color_scaling": [
                         "Color",

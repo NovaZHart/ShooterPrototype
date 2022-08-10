@@ -54,28 +54,13 @@ vec3 perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 	float weight_sum = 0.0;
 	for(int i=0;i<iterations;i++) {
 		result.x += improved_perlin(invscale,uvw,texture_cube16,16)*weight;
-		result.y += abs(improved_perlin(invscale,uvw,coloring_cube16,16)*weight);
+		result.y += abs(improved_perlin(invscale,uvw,coloring_cube16,16)*1.414)*weight;
 		weight_sum += weight;
 		weight *= weight_power;
 		invscale *= invscale_power;
 	}
 	result /= weight_sum;
 	return vec3(clamp(result.x,-1.0,1.0)*0.5+0.5,clamp(result.y,0.0,1.0),result.z);
-}
-
-float srgb_to_linear_scalar(float srgb) {
-	if(srgb<=0.04045)
-		return srgb/12.92;
-	else
-	return pow((srgb+0.055)/1.055,2.4);
-}
-
-vec4 srgb_to_linear(vec4 what) {
-	return vec4(
-		srgb_to_linear_scalar(what.r),
-		srgb_to_linear_scalar(what.g),
-		srgb_to_linear_scalar(what.b),
-		srgb_to_linear_scalar(what.a));
 }
 
 void fragment() {

@@ -29,6 +29,7 @@ const base_types = {
 }
 
 const default_axial_tilt: float = 200*PI/180
+const default_height_map_scale: float = 0.35
 const default_planet_trading: Array = [ 'suvar', 'human' ]
 const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
 const default_planet_industry: float = 100000.0
@@ -46,6 +47,7 @@ var orbit_radius: float = 0.0 setget set_orbit_radius
 var orbit_period: float = 0.0
 var orbit_start: float = 0.0
 var axial_tilt: float = default_axial_tilt
+var height_map_scale: float = default_height_map_scale
 var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
@@ -124,6 +126,7 @@ func encode() -> Dictionary:
 	maybe_add(result,'shader_seed',shader_seed,base)
 	maybe_add(result,'rotation_period',rotation_period,base)
 	maybe_add(result,'axial_tilt',axial_tilt,base)
+	maybe_add(result,'default_height_map_scale',height_map_scale,base)
 	maybe_add(result,'orbit_radius',orbit_radius,base)
 	maybe_add(result,'orbit_period',orbit_period,base)
 	maybe_add(result,'orbit_start',orbit_start,base)
@@ -160,6 +163,7 @@ func _init(node_name,me: Dictionary ={}):
 	orbit_start = get_it(me,base,'orbit_start',0.0)
 	rotation_period = get_it(me,base,'rotation_period',0.0)
 	axial_tilt = get_it(me,base,'axial_tilt',default_axial_tilt)
+	height_map_scale = get_it(me,base,'height_map_scale',default_height_map_scale)
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
@@ -294,10 +298,10 @@ func make_planet(detail: float=150, time: float=0, planet = null):
 		planet=Planet.instance()
 		place_sphere=true
 	if object_type==STAR:
-		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors)
+		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors,height_map_scale)
 		planet.has_astral_gate = true
 	else:
-		planet.make_planet(1+detail*(10+size)/30.0,shader_seed,texture_size,shader_type,shader_colors)
+		planet.make_planet(1+detail*(10+size)/30.0,shader_seed,texture_size,shader_type,shader_colors,height_map_scale)
 	
 	planet.color_sphere(color_scaling,color_addition)
 	if place_sphere:

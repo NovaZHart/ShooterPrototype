@@ -128,7 +128,7 @@ func get_hash_cube_16b(var random_seed: int) -> ImageTexture:
 	
 func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		texture_size=1024, shader_type: String = "old",
-		colors = null, noise_type=1):
+		colors = null, noise_type=1, height_map_scale: float = 0.35):
 
 	var xyz: ImageTexture
 	if not sphere:
@@ -160,6 +160,7 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 			colors.flags=0
 			sphere_material.set_shader_param('colors',colors)
 			sphere_material.set_shader_param('xyz',xyz)
+			sphere_material.set_shader_param('height_map_scale',height_map_scale)
 	#	sphere_material.set_shader_param('hash_cube',hash_cube)
 		sphere.set_layer_mask(4)
 		sphere.name='Sphere'
@@ -224,12 +225,12 @@ func color_sphere(scaling: Color,addition: Color,scheme: int = 2):
 	view_shade.set_shader_param('color_scheme',scheme)
 
 func make_planet(subdivisions: int,random_seed: int,texture_size: int = 2048,
-		shader_type='old', colors=null, noise_type: int = 0):
-	make_sphere('planet',subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
+		shader_type='old', colors=null, height_map_scale: float = 0.35, noise_type: int = 0):
+	make_sphere('planet',subdivisions,random_seed,texture_size,shader_type,colors,noise_type,height_map_scale)
 
 func make_sun(subdivisions: int,random_seed: int,texture_size: int = 2048,
-		shader_type='old', colors=null, noise_type: int = 1):
-	make_sphere('sun',subdivisions,random_seed,texture_size,shader_type,colors,noise_type)
+		shader_type='old', colors=null, height_map_scale: float = 0.35, noise_type: int = 1):
+	make_sphere('sun',subdivisions,random_seed,texture_size,shader_type,colors,noise_type,height_map_scale)
 
 func place_sphere(sphere_scale: float, sphere_translation: Vector3,
 		sphere_basis: Basis = Basis()):
