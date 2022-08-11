@@ -30,6 +30,7 @@ namespace godot {
     Ref<Image> make_hash_cube8(uint32_t hash) const;
     Ref<Image> make_hash_cube16(uint32_t hash) const;
     Ref<Image> make_hash_square32(uint32_t hash) const;
+    Ref<Image> generate_impact_craters(real_t max_size,real_t min_size,int requested_count,uint32_t seed) const;
   };
 
 }

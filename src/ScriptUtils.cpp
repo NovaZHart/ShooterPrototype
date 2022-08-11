@@ -89,4 +89,7 @@ Ref<Image> ScriptUtils::make_hash_cube8(uint32_t hash) const {
 Ref<Image> ScriptUtils::make_hash_square32(uint32_t hash) const {
   return godot::make_hash_square32(hash);
 }
+Ref<Image> ScriptUtils::generate_impact_craters(real_t max_size,real_t min_size,int requested_count,uint32_t seed) const {
+  return godot::generate_impact_craters(max_size,min_size,requested_count,seed);
+}
 }

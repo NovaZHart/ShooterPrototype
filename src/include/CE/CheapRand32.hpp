@@ -45,7 +45,13 @@ namespace godot {
         real_t r=randf(), g=randf(), b=randf(), a=randf();
         return Color(r,g,b,a);
       }
-      
+      inline Vector3 rand_unit3() {
+        Vector3 v(randf(),randf(),randf());
+        if(!v.x && !v.y && !v.z)
+          // Extremely unlikely to happen, but make sure it doesn't crash.
+          v=Vector3(1,0,0);
+        return v.normalized();
+      }
       static inline uint32_t make_seed() {
         uint64_t s=OS::get_singleton()->get_ticks_usec();
         return hash( (s>>32) ^ s );

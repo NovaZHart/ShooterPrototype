@@ -652,4 +652,36 @@ Ref<Image> make_hash_square32(uint32_t seed) {
   return image;
 }
 
+Ref<Image> generate_impact_craters(real_t max_size,real_t min_size,int requested_count,uint32_t seed) {
+  const int width=16, height=16;
+  int actual_count = clamp(requested_count,1,width*height);
+  if(max_size<min_size)
+    swap(max_size,min_size);
+  CheapRand32 rand(seed);
+  
+  PoolByteArray texture_data;
+  texture_data.resize(width*height*4*sizeof(float));
+  {
+    PoolByteArray::Write write_texture_data = texture_data.write();
+    float *data=reinterpret_cast<float*>(write_texture_data.ptr());
+
+    memset(data,0,width*height*4*sizeof(float));
+
+    for(int i=0;i<actual_count;i++,data+=4) {
+      float f=rand.randf();
+      float size=min_size + (max_size-min_size)*(1-f*f);
+      Vector3 where=rand.rand_unit3();
+      data[0]=size;
+      data[1]=where.x;
+      data[2]=where.y;
+      data[3]=where.z;
+    }
+  }
+
+  Ref<Image> image = Image::_new();
+  image->create_from_data(width,height,false,Image::FORMAT_RGBAF,texture_data);
+  image->convert(Image::FORMAT_RGBAH);
+  return image;
+}
+  
 }
