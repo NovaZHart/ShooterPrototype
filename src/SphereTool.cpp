@@ -184,12 +184,15 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   double angles[subs+1];
   double sides[subs+1];
   double sec2[subs+1];
-  for(int i=0;i<=subs;i++) {
+  for(int i=0;i<subs;i++) {
     angles[i]=pi/2 * (i-(subs/2.0))/subs;
     sides[i]=tan(angles[i])*width;
     sec2[i]=1/cos(angles[i]);
     sec2[i]*=sec2[i];
   }
+  angles[subs]=-angles[0];
+  sides[subs]=-sides[0];
+  sec2[subs]=sec2[0];
 
   // Calculate everything for tile 0
   int ivert = 0;
