@@ -1507,7 +1507,7 @@
                       "object_type": 0,
                       "shader_type": "craters",
                       "shader_colors": "res://textures/rocky-gold.jpg",
-                      "height_map_scale": 0.3,
+                      "height_map_scale": 0.1,
                       "size": 5,
                       "shader_seed": 1111,
                       "rotation_period": 0,

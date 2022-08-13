@@ -7,13 +7,13 @@ uniform sampler2D xyz;
 
 uniform sampler2D texture_cube16;
 uniform sampler2D coloring_cube16;
-uniform float weight_power = 0.42;
+uniform float weight_power = 0.55;
 uniform float invscale_power = 2.5;
 uniform float invscale_start = 0.486;
 
 uniform sampler2D crater_data;
 uniform int crater_count;
-uniform float crater_scale = 0.2;
+uniform float crater_scale = 1.0;
 
 
 float apply_craters(float starting_height,vec3 xyz_norm) {
@@ -84,13 +84,21 @@ vec3 perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 		invscale *= invscale_power;
 	}
 	result /= weight_sum;
-	return vec3(clamp(result.x,-1.0,1.0)*0.5+0.5,clamp(result.y,0.0,1.0),result.z);
+	return vec3(clamp(result.x,-1.0,1.0),clamp(result.y,0.0,1.0),result.z);
 }
 
 void fragment() {
-	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	float height = apply_craters(0.0,normal);
-	COLOR = vec4(clamp(height,-1.0,1.0)*0.5+0.5,0.5,0.5,1.0);
+	if(UV.x<=0.75) {
+		vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
+		float height = apply_craters(0.0,normal);
+		vec3 uvw = 0.5*normal+0.5;
+		vec3 noise = vec3(0.0,0.7,0.7);
+		noise = perlin_linear(uvw,normal,5);
+		noise.x=mix(noise.x,height,sqrt(abs(height)));
+		noise.x=clamp(noise.x,-1.0,1.0)*0.5+0.5;
+		COLOR=vec4(noise,1.0);
+	} else
+		COLOR=vec4(0.5,0.5,0.5,1.0);
 }
 
 //void rocky_fragment() {

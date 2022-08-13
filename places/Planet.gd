@@ -19,7 +19,9 @@ var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
 var default_colors = preload('res://textures/continents-terran.jpg')
 
-const crater_count: int = 100
+const crater_count: int = 20
+const crater_min_size: float = 15*PI/180
+const crater_max_size: float = 25*PI/180
 var crater_list_image: ImageTexture
 var hash_cube_8: ImageTexture
 var hash_cube_16: ImageTexture
@@ -107,7 +109,7 @@ func choose_texture_size(x,y) -> int:
 
 func get_crater_list_image(var random_seed: int) -> ImageTexture:
 	if not crater_list_image:
-		var c: Image = utils.native.generate_impact_craters(25*PI/180,10*PI/180,crater_count,random_seed)
+		var c: Image = utils.native.generate_impact_craters(crater_max_size,crater_min_size,crater_count,random_seed)
 		var texture = ImageTexture.new()
 		texture.create_from_image(c)
 		crater_list_image=texture

@@ -29,6 +29,17 @@ float height_at(float u,float v) {
 	return texture(precalculated,vec2(u,v)).r*2.0-1.0;
 }
 
+void light() {
+	vec3 light=normalize(LIGHT);
+	float mag=length(light);
+	if(mag>0.0) {
+		float d=dot(normalize(NORMAL),light/mag);
+		if(d>0.0) {
+			DIFFUSE_LIGHT += mag*(d*d*d+d*d)*ALBEDO;
+		}
+	}
+}
+
 void vertex() {
 //	saved_vertex = VERTEX;
 //	float h = 0.2 * ( height_at(UV.x,UV.y)
