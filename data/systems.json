@@ -1468,6 +1468,58 @@
                 "orbit_start": 0.658626,
                 "has_astral_gate": false,
                 "objects": {
+                  "daemos": [
+                    "SpaceObjectData",
+                    {
+                      "services": [
+                        "Array",
+                        "info"
+                      ],
+                      "shipyard": [
+                        "Array",
+                        "small_laser_terran"
+                      ],
+                      "display_name": "Dæmos",
+                      "description": "",
+                      "base": "",
+                      "population": {
+                        "suvar": 14000,
+                        "human": 21000
+                      },
+                      "trading": [
+                        "Array",
+                        "suvar",
+                        "human",
+                        "terran_government",
+                        "terran_illegal"
+                      ],
+                      "locality_adjustments": {
+                        "dead/sentient": [
+                          "Array",
+                          0,
+                          0,
+                          1
+                        ]
+                      },
+                      "shipyard_locality_adjustments": {
+
+                      },
+                      "object_type": 0,
+                      "shader_type": "craters",
+                      "shader_colors": "res://textures/rocky-gold.jpg",
+                      "height_map_scale": 0.3,
+                      "size": 5,
+                      "shader_seed": 1111,
+                      "rotation_period": 0,
+                      "orbit_radius": 69.730415,
+                      "orbit_period": 9,
+                      "orbit_start": 0.601413,
+                      "has_astral_gate": false,
+                      "objects": {
+
+                      }
+                    }
+                  ]
 
                 }
               }

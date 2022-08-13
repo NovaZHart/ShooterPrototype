@@ -46,11 +46,11 @@ namespace godot {
         return Color(r,g,b,a);
       }
       inline Vector3 rand_unit3() {
-        Vector3 v(randf(),randf(),randf());
-        if(!v.x && !v.y && !v.z)
-          // Extremely unlikely to happen, but make sure it doesn't crash.
-          v=Vector3(1,0,0);
-        return v.normalized();
+        float z = randf()*2-1;
+        float lat = asin(std::clamp(z,-1.0f,1.0f));
+        float lon = TAU*randf();
+        float clat = cosf(lat);
+        return Vector3(clat*sinf(lon),clat*cosf(lon),sinf(lat));
       }
       static inline uint32_t make_seed() {
         uint64_t s=OS::get_singleton()->get_ticks_usec();

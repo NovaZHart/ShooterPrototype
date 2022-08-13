@@ -4,31 +4,33 @@ render_mode unshaded;
 render_mode blend_disabled;
 
 uniform sampler2D xyz;
+
 uniform sampler2D texture_cube16;
 uniform sampler2D coloring_cube16;
-uniform sampler2D crater_data;
-
 uniform float weight_power = 0.42;
 uniform float invscale_power = 2.5;
 uniform float invscale_start = 0.486;
 
-float apply_craters(float starting_height,float scale,int count,vec3 xyz_norm) {
+uniform sampler2D crater_data;
+uniform int crater_count;
+uniform float crater_scale = 0.2;
+
+
+float apply_craters(float starting_height,vec3 xyz_norm) {
 	float height = starting_height;
-	for(int i=0;i<count;i++) {
-		ivec2 iuv = ivec2(i&16,i>>4);
+	for(int i=0;i<crater_count;i++) {
+		ivec2 iuv = ivec2(i&15,i>>4);
 		vec4 data = texelFetch(crater_data,iuv,0);
-		float angular_size = data.x;
+		float angular_size = data.w;
 		if(angular_size<0.08726646259971647 || angular_size>1.4835298641951802)
 			continue;
-		vec3 center = data.yzw;
+		vec3 center = data.xyz*2.0-1.0;
 		float xyz_cos_angle = dot(xyz_norm,center);
-		float max_cos_angle = cos(angular_size);
-		if(xyz_cos_angle>max_cos_angle)
+		float min_cos_angle = cos(angular_size);
+		if(xyz_cos_angle<min_cos_angle)
 			continue;
-		float angle = acos(xyz_cos_angle);
-		float crater_depth = angular_size-angle;
-		crater_depth*=crater_depth;
-		height=0.3*height-0.7*crater_depth;
+		float crater_depth = (xyz_cos_angle-min_cos_angle)/(1.0-min_cos_angle);
+		height-=crater_scale*crater_depth;
 	}
 	return height;
 }
@@ -87,9 +89,15 @@ vec3 perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 
 void fragment() {
 	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	vec3 uvw = 0.5*normal+0.5;
-	vec3 noise = vec3(0.0,0.7,0.7);
-	if(UV.x<=0.75)
-		noise = perlin_linear(uvw,normal,5);
-	COLOR=vec4(noise,1.0);
+	float height = apply_craters(0.0,normal);
+	COLOR = vec4(clamp(height,-1.0,1.0)*0.5+0.5,0.5,0.5,1.0);
 }
+
+//void rocky_fragment() {
+//	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
+//	vec3 uvw = 0.5*normal+0.5;
+//	vec3 noise = vec3(0.0,0.7,0.7);
+//	if(UV.x<=0.75)
+//		noise = perlin_linear(uvw,normal,5);
+//	COLOR=vec4(noise,1.0);
+//}

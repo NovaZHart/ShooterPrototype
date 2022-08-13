@@ -10,6 +10,7 @@ var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
 var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
 var RockyTiles = preload("res://shaders/RockyGenerator.shader")
+var CraterTiles = preload("res://shaders/CraterGenerator.shader")
 var StripeGasTiles = preload("res://shaders/StripeGasGenerator.shader")
 var simple_planet_shader = preload('res://shaders/SimplePlanetV2.shader')
 var rocky_planet_shader = preload('res://shaders/RockyPlanet.shader')
@@ -18,6 +19,8 @@ var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
 var default_colors = preload('res://textures/continents-terran.jpg')
 
+const crater_count: int = 100
+var crater_list_image: ImageTexture
 var hash_cube_8: ImageTexture
 var hash_cube_16: ImageTexture
 var hash_cube_16b: ImageTexture
@@ -102,6 +105,14 @@ func choose_texture_size(x,y) -> int:
 			return allowed
 	return allowed_texture_sizes[len(allowed_texture_sizes)-1]
 
+func get_crater_list_image(var random_seed: int) -> ImageTexture:
+	if not crater_list_image:
+		var c: Image = utils.native.generate_impact_craters(25*PI/180,10*PI/180,crater_count,random_seed)
+		var texture = ImageTexture.new()
+		texture.create_from_image(c)
+		crater_list_image=texture
+	return crater_list_image
+
 func get_hash_cube_8(var random_seed: int) -> ImageTexture:
 	if not hash_cube_8:
 		var hash_cube_image: Image = utils.native.make_hash_cube8(int(random_seed))
@@ -144,7 +155,7 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		var shade=ShaderMaterial.new()
 		if shader_type=='inferno':
 			shade.set_shader(inferno_planet_shader)
-		elif shader_type=='rocky':
+		elif shader_type=='rocky' or shader_type=='craters':
 			shade.set_shader(rocky_planet_shader)
 		elif object_type=='sun':
 			shade.set_shader(simple_sun_shader)
@@ -153,7 +164,7 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		sphere.material_override=shade
 		sphere.cast_shadow=false
 		sphere_material = sphere.material_override
-		if shader_type=='rocky':
+		if shader_type=='rocky' or shader_type=='craters':
 			if not colors or not colors is Texture:
 				push_warning('Using default continent color texture')
 				colors = default_colors
@@ -193,7 +204,14 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		print('ROCKY')
 		view_shade.set_shader(RockyTiles)
 		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
-		view_shade.set_shader_param('coloring_cube16',get_hash_cube_16b(random_seed))
+		view_shade.set_shader_param('coloring_cube16',get_hash_cube_16b(random_seed+1))
+	elif shader_type=='craters':
+		print('CRATERS')
+		view_shade.set_shader(CraterTiles)
+		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
+		view_shade.set_shader_param('coloring_cube16',get_hash_cube_16b(random_seed+1))
+		view_shade.set_shader_param('crater_data',get_crater_list_image(random_seed+2))
+		view_shade.set_shader_param('crater_count',crater_count)
 	elif shader_type=='stripe_gas':
 		print('STRIPE GAS')
 		view_shade.set_shader(StripeGasTiles)

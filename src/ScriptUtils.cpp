@@ -21,6 +21,7 @@ void ScriptUtils::_register_methods() {
   register_method("make_hash_cube16", &ScriptUtils::make_hash_cube16);
   register_method("make_hash_cube8", &ScriptUtils::make_hash_cube8);
   register_method("make_hash_square32", &ScriptUtils::make_hash_square32);
+  register_method("generate_impact_craters", &ScriptUtils::generate_impact_craters);
 }
 
 void ScriptUtils::_init() {}

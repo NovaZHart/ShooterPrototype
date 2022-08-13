@@ -672,18 +672,20 @@ Ref<Image> generate_impact_craters(real_t max_size,real_t min_size,int requested
 
     for(int i=0;i<actual_count;i++,data+=4) {
       float f=rand.randf();
-      float size=min_size + (max_size-min_size)*(1-f*f);
+      f*=f;
+      float size=min_size + (max_size-min_size)*f;
       Vector3 where=rand.rand_unit3();
-      data[0]=size;
-      data[1]=where.x;
-      data[2]=where.y;
-      data[3]=where.z;
+      Godot::print("Crater "+str(i)+" at "+str(where)+" size "+str(size));
+      data[0]=0.5+0.5*where.x;
+      data[1]=0.5+0.5*where.y;
+      data[2]=0.5+0.5*where.z;
+      data[3]=size;
     }
   }
 
   Ref<Image> image = Image::_new();
   image->create_from_data(width,height,false,Image::FORMAT_RGBAF,texture_data);
-  image->convert(Image::FORMAT_RGBAH);
+  //image->convert(Image::FORMAT_RGBAH);
   return image;
 }
   
