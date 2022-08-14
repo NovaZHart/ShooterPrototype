@@ -16,8 +16,8 @@ void ScriptUtils::_register_methods() {
   register_method("string_join", &ScriptUtils::string_join);
   register_method("make_icosphere", &ScriptUtils::make_icosphere);
   register_method("make_cube_sphere_v2", &ScriptUtils::make_cube_sphere_v2);
-  register_method("make_lookup_tiles_c112", &ScriptUtils::make_lookup_tiles_c112);
-  register_method("make_lookup_tiles_c224", &ScriptUtils::make_lookup_tiles_c224);
+  register_method("make_lookup_tiles_c96", &ScriptUtils::make_lookup_tiles_c96);
+  register_method("make_lookup_tiles_c192", &ScriptUtils::make_lookup_tiles_c192);
   register_method("make_hash_cube16", &ScriptUtils::make_hash_cube16);
   register_method("make_hash_cube8", &ScriptUtils::make_hash_cube8);
   register_method("make_hash_square32", &ScriptUtils::make_hash_square32);
@@ -75,11 +75,11 @@ Ref<ArrayMesh> ScriptUtils::make_icosphere(float radius, int subs) const {
 Ref<ArrayMesh> ScriptUtils::make_cube_sphere_v2(float radius, int subs) const {
   return godot::make_cube_sphere_v2(radius,subs);
 }
-Ref<Image> ScriptUtils::make_lookup_tiles_c224() const {
-  return godot::make_lookup_tiles_c224();
+Ref<Image> ScriptUtils::make_lookup_tiles_c192() const {
+  return godot::make_lookup_tiles_c192();
 }
-Ref<Image> ScriptUtils::make_lookup_tiles_c112() const {
-  return godot::make_lookup_tiles_c112();
+Ref<Image> ScriptUtils::make_lookup_tiles_c96() const {
+  return godot::make_lookup_tiles_c96();
 }
 Ref<Image> ScriptUtils::make_hash_cube16(uint32_t hash) const {
   return godot::make_hash_cube16(hash);

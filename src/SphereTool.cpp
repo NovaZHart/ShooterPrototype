@@ -23,6 +23,22 @@ namespace godot {
 
 using namespace ::std;
 using namespace ::godot::CE;
+
+  union xyzw {
+    real_t reals[4];
+    struct {
+      real_t x, y, z, w;
+    };
+    inline xyzw(real_t x,real_t y,real_t z,real_t w):
+      x(x), y(y), z(z), w(w)
+    {}
+    inline xyzw(const Vector3 &xyz,real_t w):
+      x(xyz.x), y(xyz.y), z(xyz.z), w(w)
+    {}
+    inline xyzw(const DVector3 &xyz,real_t w):
+      x(xyz.x), y(xyz.y), z(xyz.z), w(w)
+    {}
+  };
   
 void SphereTool::_register_methods() {
   register_method("make_icosphere", &SphereTool::make_icosphere);
@@ -134,10 +150,10 @@ static inline Vector2 normal_to_uv2(Vector3 n) {
   
 Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   FAST_PROFILING_FUNCTION;
-  const double pi = 3.14159265358979323846;
-  const double u_start[6] = { 1/64.0, 1/64.0, 17/64.0, 17/64.0, 33/64.0, 33/64.0 };
-  const double v_start[6] = { 1/32.0, 17/32.0, 1/32.0, 17/32.0, 1/32.0, 17/32.0 };
-  const double width = 1.0/sqrt(2.0), u_scale=14/64.0, v_scale=14/32.0;
+
+  const double u_start[6] = { 4/64.0,  4/64.0, 24/64.0,24/64.0, 44/64.0, 44/64.0 };
+  const double v_start[6] = { 2/32.0, 18/32.0, 2/32.0, 18/32.0,  2/32.0, 18/32.0 };
+  const double width = 1.0/sqrt(2.0), u_scale=12/64.0, v_scale=12/32.0;
   const int i_add[2][6] = { {0,0,1,1,1,0}, {0,0,1,1,0,1} };
   const int j_add[2][6] = { {0,1,1,1,0,0}, {0,1,0,0,1,1} };
 
@@ -161,16 +177,6 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   PoolVector2Array::Write uv_write = uv_pool.write();
   PoolVector2Array::Write uv2_write = uv2_pool.write();
 
-  union xyzw {
-    real_t reals[4];
-    struct {
-      real_t x, y, z, w;
-    };
-    xyzw(real_t x,real_t y,real_t z,real_t w):
-      x(x), y(y), z(z), w(w)
-    {}
-  };
-
   // Make sure the union has no padding
   assert(sizeof(xyzw) == sizeof(real_t)*4);
 
@@ -185,7 +191,7 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   double sides[subs+1];
   double sec2[subs+1];
   for(int i=0;i<subs;i++) {
-    angles[i]=pi/2 * (i-(subs/2.0))/subs;
+    angles[i]=PI/2 * (i-(subs/2.0))/subs;
     sides[i]=tan(angles[i])*width;
     sec2[i]=1/cos(angles[i]);
     sec2[i]*=sec2[i];
@@ -288,226 +294,214 @@ Ref<ArrayMesh> make_cube_sphere_v2(float float_radius, int subs) {
   return mesh;
 }
 
-template<int tile_size, int pad_size>
+template<int tile_size, int u_pad_size, int v_pad_size, int i_width, int j_height>
 Ref<Image> make_lookup_tiles() {
   FAST_PROFILING_FUNCTION;
-  const float cube_width = 1.0/sqrt(2.0);
-  const int j_height = (tile_size+2*pad_size)*2;
-  const int i_width = (tile_size+2*pad_size)*4;
-  const int num_floats = i_width * j_height * 3;
-  const float pi = 3.141592653589793f;
-  float *floats = new float[num_floats];
-  memset(floats,0,sizeof(float)*num_floats);
-  //std::array<float, num_floats> floats = { 0.0f };
-  const float sqrt2 = sqrtf(2);
-  
-  float sides[tile_size];
-  {
-    float angles[tile_size];
+  const double cube_width = 1.0/sqrt(2.0);
+  const int num_floats = i_width * j_height * 4;
+  const double sqrt2 = sqrtf(2);
 
-    for(int i=0;i<tile_size;i++) {
-      float m = i+0.5;
-      angles[i]=pi/2 * (m-(tile_size/2.0))/tile_size;
-      sides[i]=tanf(angles[i])/sqrt2;
-    }
-  }
-
-  // Fill tile 0 middle.
-  for(int j=0;j<tile_size;j++) {
-    int j_storage = j + pad_size;
-    for(int i=0;i<tile_size;i++) {
-      int i_storage = i + pad_size;
-      Vector3 vertex = Vector3(-cube_width,sides[j],sides[i]);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Tile 0 top padding, which comes from bottom of tile 4.
-  for(int j=0;j<pad_size;j++) {
-    int j_storage = tile_size + pad_size + j;
-    for(int i=0;i<tile_size;i++) {
-      int i_storage = pad_size+i;
-      Vector3 vertex = Vector3(sides[j],cube_width,sides[i]);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Tile 0 bottom padding, which comes from top of tile 5.
-  for(int j=0;j<pad_size;j++) {
-    int j_storage = pad_size-1 - j;
-    for(int i=0;i<tile_size;i++) {
-      int i_storage = pad_size+i;
-      Vector3 vertex = Vector3(sides[j],-cube_width,sides[i]);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Tile 0 left padding, which comes from right edge of tile 3.
-  for(int j=0;j<tile_size;j++) {
-    int j_storage = pad_size+j;
-    for(int i=0;i<pad_size;i++) {
-      int i_storage = pad_size-1 - i;
-      Vector3 vertex = Vector3(sides[i],sides[j],-cube_width);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Tile 0 right padding, which comes from left edge of tile 2.
-  for(int j=0;j<tile_size;j++) {
-    int j_storage = pad_size + j;
-    for(int i=0;i<pad_size;i++) {
-      int i_storage = pad_size+tile_size + i;
-      Vector3 vertex = Vector3(sides[i],sides[j],cube_width);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Lower-right padding
-  for(int j=0;j<pad_size;j++) {
-    int j_storage = pad_size-1 - j;
-    for(int i=0;i<pad_size;i++) {
-      int i_storage = tile_size+pad_size + i;
-      int ij = i+j;
-      Vector3 vertex = Vector3(sides[ij],-cube_width,cube_width);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Upper-right padding
-  for(int j=0;j<pad_size;j++) {
-    int j_storage = tile_size+pad_size + j;
-    for(int i=0;i<pad_size;i++) {
-      int i_storage = tile_size+pad_size + i;
-      int ij = i+j;
-      Vector3 vertex = Vector3(sides[ij],cube_width,cube_width);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Lower-left padding
-  for(int j=0;j<pad_size;j++) {
-    int j_storage = pad_size-1 - j;
-    for(int i=0;i<pad_size;i++) {
-      int i_storage = pad_size-1 - i;
-      int ij = i+j;
-      Vector3 vertex = Vector3(sides[ij],-cube_width,-cube_width);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Upper-left padding
-  for(int j=0;j<pad_size;j++) {
-    int j_storage = tile_size+pad_size + j;
-    for(int i=0;i<pad_size;i++) {
-      int i_storage = pad_size-1 - i;
-      int ij = i+j;
-      Vector3 vertex = Vector3(sides[ij],cube_width,-cube_width);
-      vertex.normalize();
-      floats[3*(j_storage*i_width+i_storage)+0] = vertex.x;
-      floats[3*(j_storage*i_width+i_storage)+1] = vertex.y;
-      floats[3*(j_storage*i_width+i_storage)+2] = vertex.z;
-    }
-  }
-
-  // Copy from tile 0 to 1-5, rotating as needed. Zero-out unused tiles 6&7
-
-  const int shift_size = tile_size+2*pad_size;
-
-  for(int j=0;j<shift_size;j++) {
-    int dst=shift_size; // i index in destination tile; src is in tile 0
-    for(int src=0;dst<2*shift_size;dst++,src++) { // tile 2
-      floats[3*(j*i_width+dst)+0] =  floats[3*(j*i_width+src)+2]; // tile 2 x = 0's  z
-      floats[3*(j*i_width+dst)+1] =  floats[3*(j*i_width+src)+1]; // tile 2 y = 0's  y
-      floats[3*(j*i_width+dst)+2] = -floats[3*(j*i_width+src)+0]; // tile 2 z = 0's -x
-    }
-    for(int src=0;dst<3*shift_size;dst++,src++) { // tile 4
-      floats[3*(j*i_width+dst)+0] =  floats[3*(j*i_width+src)+1]; // tile 4 x = 0's  y
-      floats[3*(j*i_width+dst)+1] = -floats[3*(j*i_width+src)+0]; // tile 4 y = 0's -x
-      floats[3*(j*i_width+dst)+2] =  floats[3*(j*i_width+src)+2]; // tile 4 z = 0's  z
-    }
-    for(;dst<4*shift_size;dst++) { // unused tile 6
-      floats[3*(j*i_width+dst)+0] = 0;
-      floats[3*(j*i_width+dst)+1] = 0;
-      floats[3*(j*i_width+dst)+2] = 0;
-    }
-  }
-
-  for(int srcj=0,dstj=shift_size;srcj<shift_size;srcj++,dstj++) {
-    int dsti=0;
-    for(int srci=0;dsti<shift_size;dsti++,srci++) { // tile 1
-      floats[3*(dstj*i_width+dsti)+0] = -floats[3*(srcj*i_width+srci)+0]; // tile 1 x = 0's -x
-      floats[3*(dstj*i_width+dsti)+1] =  floats[3*(srcj*i_width+srci)+1]; // tile 1 y = 0's  y
-      floats[3*(dstj*i_width+dsti)+2] = -floats[3*(srcj*i_width+srci)+2]; // tile 1 z = 0's -z
-    }
-    for(int srci=0;dsti<2*shift_size;dsti++,srci++) { // tile 3
-      floats[3*(dstj*i_width+dsti)+0] = -floats[3*(srcj*i_width+srci)+2]; // tile 3 x = 0's -z
-      floats[3*(dstj*i_width+dsti)+1] =  floats[3*(srcj*i_width+srci)+1]; // tile 3 y = 0's  y
-      floats[3*(dstj*i_width+dsti)+2] =  floats[3*(srcj*i_width+srci)+0]; // tile 3 z = 0's  x
-    }
-    for(int srci=0;dsti<3*shift_size;dsti++,srci++) { // tile 5
-      floats[3*(dstj*i_width+dsti)+0] = -floats[3*(srcj*i_width+srci)+1]; // tile 5 x = 0's -y
-      floats[3*(dstj*i_width+dsti)+1] =  floats[3*(srcj*i_width+srci)+0]; // tile 5 y = 0's  x
-      floats[3*(dstj*i_width+dsti)+2] =  floats[3*(srcj*i_width+srci)+2]; // tile 5 z = 0's  z
-    }
-    for(;dsti<4*shift_size;dsti++) { // unused tile 7
-      floats[3*(dstj*i_width+dsti)+0] = 0;
-      floats[3*(dstj*i_width+dsti)+1] = 0;
-      floats[3*(dstj*i_width+dsti)+2] = 0;
-    }
-  }
-  
   PoolByteArray data_pool;
+  data_pool.resize(num_floats*sizeof(float));
   {
-    data_pool.resize(num_floats*sizeof(float));
     PoolByteArray::Write data_write = data_pool.write();
-    memcpy(data_write.ptr(), floats, num_floats*sizeof(float));
-  }
+    xyzw *floats = reinterpret_cast<xyzw*>(data_write.ptr());
 
-  delete[] floats;
-  floats = nullptr;
+    double sides[tile_size];
+    {
+      double angles[tile_size];
+
+      for(int i=0;i<tile_size;i++) {
+        double m = i+0.5;
+        angles[i]=PI/2 * (m-(tile_size/2.0))/tile_size;
+        sides[i]=tan(angles[i])/sqrt2;
+      }
+    }
+
+    // Fill tile 0 middle.
+    for(int j=0;j<tile_size;j++) {
+      int j_storage = j + v_pad_size;
+      for(int i=0;i<tile_size;i++) {
+        int i_storage = i + u_pad_size;
+        DVector3 vertex = Vector3(-cube_width,sides[j],sides[i]);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Tile 0 top padding, which comes from bottom of tile 4.
+    for(int j=0;j<v_pad_size;j++) {
+      int j_storage = tile_size + v_pad_size + j;
+      for(int i=0;i<tile_size;i++) {
+        int i_storage = u_pad_size+i;
+        DVector3 vertex = Vector3(sides[j],cube_width,sides[i]);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Tile 0 bottom padding, which comes from top of tile 5.
+    for(int j=0;j<v_pad_size;j++) {
+      int j_storage = v_pad_size-1 - j;
+      for(int i=0;i<tile_size;i++) {
+        int i_storage = u_pad_size+i;
+        DVector3 vertex = Vector3(sides[j],-cube_width,sides[i]);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Tile 0 left padding, which comes from right edge of tile 3.
+    for(int j=0;j<tile_size;j++) {
+      int j_storage = v_pad_size+j;
+      for(int i=0;i<u_pad_size;i++) {
+        int i_storage = u_pad_size-1 - i;
+        DVector3 vertex = Vector3(sides[i],sides[j],-cube_width);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Tile 0 right padding, which comes from left edge of tile 2.
+    for(int j=0;j<tile_size;j++) {
+      int j_storage = v_pad_size + j;
+      for(int i=0;i<u_pad_size;i++) {
+        int i_storage = u_pad_size+tile_size + i;
+        DVector3 vertex = Vector3(sides[i],sides[j],cube_width);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Lower-right padding
+    for(int j=0;j<v_pad_size;j++) {
+      int j_storage = v_pad_size-1 - j;
+      for(int i=0;i<u_pad_size;i++) {
+        int i_storage = tile_size+u_pad_size + i;
+        int ij = i+j;
+        DVector3 vertex = Vector3(sides[ij],-cube_width,cube_width);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Upper-right padding
+    for(int j=0;j<v_pad_size;j++) {
+      int j_storage = tile_size+v_pad_size + j;
+      for(int i=0;i<u_pad_size;i++) {
+        int i_storage = tile_size+u_pad_size + i;
+        int ij = i+j;
+        DVector3 vertex = Vector3(sides[ij],cube_width,cube_width);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Lower-left padding
+    for(int j=0;j<v_pad_size;j++) {
+      int j_storage = v_pad_size-1 - j;
+      for(int i=0;i<u_pad_size;i++) {
+        int i_storage = u_pad_size-1 - i;
+        int ij = i+j;
+        DVector3 vertex = Vector3(sides[ij],-cube_width,-cube_width);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Upper-left padding
+    for(int j=0;j<v_pad_size;j++) {
+      int j_storage = tile_size+v_pad_size + j;
+      for(int i=0;i<u_pad_size;i++) {
+        int i_storage = u_pad_size-1 - i;
+        int ij = i+j;
+        DVector3 vertex = Vector3(sides[ij],cube_width,-cube_width);
+        vertex.normalize();
+        floats[j_storage*i_width+i_storage] = xyzw(vertex,1.0f);
+      }
+    }
+
+    // Copy from tile 0 to 1-5, rotating as needed. Zero-out unused tiles 6&7
+
+    const int u_shift_size = tile_size+2*u_pad_size;
+    const int v_shift_size = tile_size+2*v_pad_size;
+
+    for(int j=0;j<v_shift_size;j++) {
+      int dst=u_shift_size; // i index in destination tile; src is in tile 0
+      for(int src=0;dst<2*u_shift_size;dst++,src++) { // tile 2
+        floats[j*i_width+dst].x =  floats[j*i_width+src].z;
+        floats[j*i_width+dst].y =  floats[j*i_width+src].y;
+        floats[j*i_width+dst].z = -floats[j*i_width+src].x;
+        floats[j*i_width+dst].w = 1.0f;
+        // floats[3*(j*i_width+dst)+0] =  floats[3*(j*i_width+src)+2]; // tile 2 x = 0's  z
+        // floats[3*(j*i_width+dst)+1] =  floats[3*(j*i_width+src)+1]; // tile 2 y = 0's  y
+        // floats[3*(j*i_width+dst)+2] = -floats[3*(j*i_width+src)+0]; // tile 2 z = 0's -x
+      }
+      for(int src=0;dst<3*u_shift_size;dst++,src++) { // tile 4
+        floats[j*i_width+dst].x =  floats[j*i_width+src].y;
+        floats[j*i_width+dst].y = -floats[j*i_width+src].x;
+        floats[j*i_width+dst].z =  floats[j*i_width+src].z;
+        floats[j*i_width+dst].w = 1.0f;
+        // floats[3*(j*i_width+dst)+0] =  floats[3*(j*i_width+src)+1]; // tile 4 x = 0's  y
+        // floats[3*(j*i_width+dst)+1] = -floats[3*(j*i_width+src)+0]; // tile 4 y = 0's -x
+        // floats[3*(j*i_width+dst)+2] =  floats[3*(j*i_width+src)+2]; // tile 4 z = 0's  z
+      }
+      for(;dst<i_width;dst++) // beyond
+        floats[j*i_width+dst] = xyzw(0,0,0,0);
+    }
+
+    for(int srcj=0,dstj=v_shift_size;srcj<v_shift_size;srcj++,dstj++) {
+      int dsti=0;
+      for(int srci=0;dsti<u_shift_size;dsti++,srci++) { // tile 1
+        floats[dstj*i_width+dsti].x = -floats[srcj*i_width+srci].x;
+        floats[dstj*i_width+dsti].y =  floats[srcj*i_width+srci].y;
+        floats[dstj*i_width+dsti].z = -floats[srcj*i_width+srci].z;
+        floats[dstj*i_width+dsti].w = 1.0f;
+        // floats[3*(dstj*i_width+dsti)+0] = -floats[3*(srcj*i_width+srci)+0]; // tile 1 x = 0's -x
+        // floats[3*(dstj*i_width+dsti)+1] =  floats[3*(srcj*i_width+srci)+1]; // tile 1 y = 0's  y
+        // floats[3*(dstj*i_width+dsti)+2] = -floats[3*(srcj*i_width+srci)+2]; // tile 1 z = 0's -z
+      }
+      for(int srci=0;dsti<2*u_shift_size;dsti++,srci++) { // tile 3
+        floats[dstj*i_width+dsti].x = -floats[srcj*i_width+srci].z;
+        floats[dstj*i_width+dsti].y =  floats[srcj*i_width+srci].y;
+        floats[dstj*i_width+dsti].z =  floats[srcj*i_width+srci].x;
+        floats[dstj*i_width+dsti].w = 1.0f;
+        // floats[3*(dstj*i_width+dsti)+0] = -floats[3*(srcj*i_width+srci)+2]; // tile 3 x = 0's -z
+        // floats[3*(dstj*i_width+dsti)+1] =  floats[3*(srcj*i_width+srci)+1]; // tile 3 y = 0's  y
+        // floats[3*(dstj*i_width+dsti)+2] =  floats[3*(srcj*i_width+srci)+0]; // tile 3 z = 0's  x
+      }
+      for(int srci=0;dsti<3*u_shift_size;dsti++,srci++) { // tile 5
+        floats[dstj*i_width+dsti].x = -floats[srcj*i_width+srci].y;
+        floats[dstj*i_width+dsti].y =  floats[srcj*i_width+srci].x;
+        floats[dstj*i_width+dsti].z =  floats[srcj*i_width+srci].z;
+        floats[dstj*i_width+dsti].w = 1.0f;
+        // floats[3*(dstj*i_width+dsti)+0] = -floats[3*(srcj*i_width+srci)+1]; // tile 5 x = 0's -y
+        // floats[3*(dstj*i_width+dsti)+1] =  floats[3*(srcj*i_width+srci)+0]; // tile 5 y = 0's  x
+        // floats[3*(dstj*i_width+dsti)+2] =  floats[3*(srcj*i_width+srci)+2]; // tile 5 z = 0's  z
+      }
+      for(;dsti<i_width;dsti++) // beyond
+        floats[dstj*i_width+dsti] = xyzw(0,0,0,0);
+    }
+  }  
   
   Ref<Image> image = Image::_new();
-  image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBF, data_pool);
+  image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBAF, data_pool);
   //image->convert(Image::FORMAT_RGBH);
   Ref<Image> write_image = Image::_new();
-  write_image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBF, data_pool);
+  write_image->create_from_data(i_width, j_height, false, Image::FORMAT_RGBAF, data_pool);
   write_image->convert(Image::FORMAT_RGB8);
   write_image->save_png("res://lookup.png");
   return image;
 }
 
-Ref<Image> make_lookup_tiles_c224() {
+Ref<Image> make_lookup_tiles_c192() {
   FAST_PROFILING_FUNCTION;
-  return make_lookup_tiles<224,16>();
+  return make_lookup_tiles<192,64,32,1024,512>();
 }
 
-Ref<Image> make_lookup_tiles_c112() {
+Ref<Image> make_lookup_tiles_c96() {
   FAST_PROFILING_FUNCTION;
-  return make_lookup_tiles<112,8>();
+  return make_lookup_tiles<96,32,16,512,256>();
 }
 
 /********************************************************************/

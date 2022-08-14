@@ -64,10 +64,14 @@ vec3 perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 }
 
 void fragment() {
-	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	vec3 uvw = 0.5*normal+0.5;
-	vec3 noise = vec3(0.0,0.7,0.7);
-	if(UV.x<=0.75)
-		noise = perlin_linear(uvw,normal,5);
-	COLOR=vec4(noise,1.0);
+	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
+	if(xyzw.w>0.5) {
+		vec3 normal = xyzw.xyz;
+		vec3 uvw=normal*0.5+0.5;
+		vec3 noise = vec3(0.0,0.7,0.7);
+		if(UV.x<=0.75)
+			noise = perlin_linear(uvw,normal,5);
+		COLOR=vec4(noise,1.0);
+	} else
+		COLOR=vec4(0.5,0.5,0.5,1.0);
 }

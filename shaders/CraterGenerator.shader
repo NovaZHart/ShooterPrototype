@@ -88,8 +88,9 @@ vec3 perlin_linear(vec3 uvw,vec3 normal,int iterations) {
 }
 
 void fragment() {
-	if(UV.x<=0.75) {
-		vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
+	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
+	if(xyzw.w>0.5) {
+		vec3 normal = xyzw.xyz;
 		float height = apply_craters(0.0,normal);
 		vec3 uvw = 0.5*normal+0.5;
 		vec3 noise = vec3(0.0,0.7,0.7);

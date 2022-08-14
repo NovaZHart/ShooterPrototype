@@ -1,6 +1,6 @@
 extends KinematicBody
 
-const allowed_subdivisions = [ 8, 12, 14, 28, 56] # , 112 ]
+const allowed_subdivisions = [ 6, 12, 24, 48 ]# , 96, 192 ]
 const allowed_texture_sizes = [ 128, 256, 512, 1024, 2048 ]
 
 var have_sent_texture: bool = false

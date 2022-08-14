@@ -109,10 +109,9 @@ float multi_perlin_scalar(int seed,int cubes,vec3 new_normal,float delta,int noi
 }
 
 void fragment() {
-	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	if(UV.x>0.75)
-		COLOR=vec4(0.0,0.0,0.0,0.0);
-	else {
+	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
+	if(xyzw.w>0.5) {
+		vec3 normal = xyzw.xyz;
 		float delta=0.03;
 		float w = multi_perlin_scalar(perlin_seed,perlin_cubes,normal,delta,perlin_type,true);
 		if(color_scheme==1)
@@ -120,5 +119,6 @@ void fragment() {
 		else
 			w*=w;
 		COLOR = vec4(w*color_scaling+color_addition,1.0);
-	}
+	} else
+		COLOR=vec4(0.0,0.0,0.0,0.0);
 }

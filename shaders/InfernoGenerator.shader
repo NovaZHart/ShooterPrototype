@@ -92,9 +92,10 @@ vec4 srgb_to_linear(vec4 what) {
 }
 
 void fragment() {
-	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	vec3 uvw=normal*0.5+0.5;
-	if(UV.x<=0.75) {
+	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
+	if(xyzw.w>0.5) {
+		vec3 normal = xyzw.xyz;
+		vec3 uvw=normal*0.5+0.5;
 		float p = clamp(perlin_linear(uvw,normal,5),0.0,1.0);
 		// Trick Godot into keeping a linear colorspace:
 		COLOR = srgb_to_linear(vec4(texture(colors,vec2(0.5,p)).xyz,1.0));

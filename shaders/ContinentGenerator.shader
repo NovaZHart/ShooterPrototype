@@ -98,9 +98,10 @@ vec4 srgb_to_linear(vec4 what) {
 }
 
 void fragment() {
-	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	vec3 uvw=normal*0.5+0.5;
-	if(UV.x<=0.75) {
+	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
+	if(xyzw.w>0.5) {
+		vec3 normal = xyzw.xyz;
+		vec3 uvw=normal*0.5+0.5;
 		vec3 altitude_cloud_tpert = perlin_linear(uvw,normal,4);
 		float altitude = altitude_cloud_tpert.x;
 		float cloud = altitude_cloud_tpert.y;
