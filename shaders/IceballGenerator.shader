@@ -13,29 +13,34 @@ uniform vec3 color_scaling=vec3(0.909804,0.980392,0.980392);
 uniform vec3 color_addition=vec3(0.207843,0.631373,0.662745);
 uniform int color_scheme=2;
 uniform float weight_power = 0.373333;
-uniform float scale_power = 0.3577;
-uniform float scale_start = 3.9;
+uniform float invscale_power = 2.796;
+uniform float invscale_start = 0.256;
 uniform float perlin_bias = 0.5;
-uniform float crack_threshold = 0.5;
+uniform float crack_threshold = 0.8;
+
+//uniform float weight_power = 0.373333;
+//uniform float scale_power = 0.3577;
+//uniform float scale_start = 3.9;
+//uniform float perlin_bias = 0.5;
 
 float interp_order5_scalar(float t) {
 	// fifth-order interpolant for improved perlin noise
 	return t*t*t * (t * (t*6.0-15.0) + 10.0);
 }
 
-float perlin_grad1(int hash,float x,float y,float z) {
+vec3 interp_order5(vec3 t) {
+	// fifth-order interpolant for improved perlin noise
+	return t*t*t * (t * (t*6.0-15.0) + 10.0);
+}
+
+float perlin_grad1c(int hash,float x,float y,float z) {
 	// Gradients for improved perlin noise.
 	// Get gradient at cube corner specified by p
 	int h=hash&15;
 	float u,v;
 	u = h<8 ? x : y;
 	v = (h<4) ? y : ((h==12||h==14) ? x : z);
-	return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);
-}
-
-vec3 interp_order5(vec3 t) {
-	// fifth-order interpolant for improved perlin noise
-	return t*t*t * (t * (t*6.0-15.0) + 10.0);
+	return ((h&1) == 0 ? u : -u) + ((h&2) == 0 ? v : -v);	
 }
 
 float improved_perlin(float invscale,vec3 uvw,sampler2D hash_cube,int perlin_cubes) {
@@ -64,44 +69,40 @@ float improved_perlin(float invscale,vec3 uvw,sampler2D hash_cube,int perlin_cub
 	return mix(pz.x,pz.y,weight.z);
 }
 
-vec2 multi_perlin_scalar(vec2 uvw) {
+vec2 multi_perlin_scalar(vec3 uvw) {
 	float weight=1.0;
-	float scale=scale_start;
+	float invscale=invscale_start;
 	float weight_sum = 0.0;
 	float crack=0.0;
 	float color=0.0;
 	for(int i=0;i<4;i++) {
-		crack += abs(improved_perlin(scale,uvw,crack_cube8,8))*weight;
-		color += improved_perlin(scale,uvw,color_cube16,16)*weight;
+		crack += abs(improved_perlin(invscale,uvw,crack_cube8,8))*weight;
+		color += improved_perlin(invscale,uvw,color_cube16,16)*weight;
 		weight_sum+=weight;
 		weight*=weight_power;
-		scale*=scale_power;
+		invscale*=invscale_power;
 	}
-	noise = noise/weight_sum;
-	crack = interp_order5_scalar(2.0*crack+perlin_bias);
-	color = clamp(color*0.5+0.5,0.0,1.0);
-	if(crack<crack_threshold)
-		return vec2(0.0,color);
-
+	crack = tanh((interp_order5_scalar(2.0*crack/weight_sum+perlin_bias)-crack_threshold)*20.0);
+	crack = crack*0.5+0.5;
+	color = clamp(color/weight_sum*0.5+0.5,0.0,1.0);
+	
 	float height=0.0;
 	weight=1.0;
-	scale=scale_start;
+	invscale=invscale_start;
 	weight_sum=0.0;
 	for(int i=0;i<4;i++) {
-		height += improved_perlin(scale,uvw,crack_cube8,8)*weight;
+		height += improved_perlin(invscale,uvw,rough_cube16,16)*1.414*weight;
 		weight_sum+=weight;
 		weight*=weight_power;
-		scale*=scale_power;
+		invscale*=invscale_power;
 	}
-	return vec2(clamp(height,-1.0,1.0)*0.35+0.65,color);
+	return vec2(clamp(height/weight_sum*crack,-1.0,1.0)*0.5+0.5,color);
 }
 
 void fragment() {
 	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
 	if(xyzw.w>0.5) {
-		vec3 normal = xyzw.xyz;
-		vec3 uvw=new_normal*0.5+0.5;
-		vec2 hc = multi_perlin_scalar(uvw);
+		vec2 hc = multi_perlin_scalar(xyzw.xyz*0.5+0.5);
 		COLOR = vec4(hc.x,hc.y,0.5,1.0);
 	} else
 		COLOR=vec4(0.7,0.7,0.7,1.0);

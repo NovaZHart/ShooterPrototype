@@ -1,7 +1,7 @@
 extends Node
 
 const PLAYER_START_SHIP_DESIGN: String = 'thoroughbred_haruspex'
-const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/ataya/daemos'
+const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/ataya/shiva'
 
 var player_ship_design
 var system setget set_system,get_system

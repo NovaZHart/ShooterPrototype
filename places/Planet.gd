@@ -9,6 +9,7 @@ var SphereTool = preload('res://bin/spheretool.gdns')
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
 var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
+var IceballTiles = preload("res://shaders/IceballGenerator.shader")
 var RockyTiles = preload("res://shaders/RockyGenerator.shader")
 var CraterTiles = preload("res://shaders/CraterGenerator.shader")
 var StripeGasTiles = preload("res://shaders/StripeGasGenerator.shader")
@@ -157,7 +158,7 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		var shade=ShaderMaterial.new()
 		if shader_type=='inferno':
 			shade.set_shader(inferno_planet_shader)
-		elif shader_type=='rocky' or shader_type=='craters':
+		elif shader_type=='rocky' or shader_type=='craters' or shader_type=='iceball':
 			shade.set_shader(rocky_planet_shader)
 		elif object_type=='sun':
 			shade.set_shader(simple_sun_shader)
@@ -166,7 +167,7 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		sphere.material_override=shade
 		sphere.cast_shadow=false
 		sphere_material = sphere.material_override
-		if shader_type=='rocky' or shader_type=='craters':
+		if shader_type=='rocky' or shader_type=='craters' or shader_type=='iceball':
 			if not colors or not colors is Texture:
 				push_warning('Using default continent color texture')
 				colors = default_colors
@@ -207,6 +208,12 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		view_shade.set_shader(RockyTiles)
 		view_shade.set_shader_param('texture_cube16',get_hash_cube_16(random_seed))
 		view_shade.set_shader_param('coloring_cube16',get_hash_cube_16b(random_seed+1))
+	elif shader_type=='iceball':
+		print('ICEBALL')
+		view_shade.set_shader(IceballTiles)
+		view_shade.set_shader_param('crack_cube8',get_hash_cube_8(random_seed))
+		view_shade.set_shader_param('color_cube16',get_hash_cube_16(random_seed+2))
+		view_shade.set_shader_param('rough_cube16',get_hash_cube_16b(random_seed+1))
 	elif shader_type=='craters':
 		print('CRATERS')
 		view_shade.set_shader(CraterTiles)
