@@ -1447,6 +1447,9 @@
                 },
                 "object_type": 0,
                 "size": 12,
+                "ring_inner_radius": 16,
+                "ring_thickness": 16,
+                "axial_tilt": 0.4,
                 "color_scaling": [
                   "Color",
                   0.894118,

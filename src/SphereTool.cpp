@@ -683,4 +683,107 @@ Ref<Image> generate_impact_craters(real_t max_size,real_t min_size,int requested
   return image;
 }
   
+Ref<Image> generate_planet_ring_noise(uint32_t log2,uint32_t seed,real_t weight_power) {
+  const int width=1<<log2, height=16, nfloats=height*width;
+  const int nbytes=nfloats*sizeof(real_t);
+  
+  CheapRand32 rand(seed);
+  
+  PoolByteArray bytes;
+  bytes.resize(nbytes);
+  {
+    PoolByteArray::Write write_bytes=bytes.write();
+    real_t *data=reinterpret_cast<real_t*>(write_bytes.ptr());
+
+    for(int i=0;i<=width;i++)
+      data[i]=0.0f;
+    
+    real_t weight=1.0f, weight_sum=0.0f;
+    for(int mag=log2-1;mag>=0;mag--) {
+      int step=1<<mag, step2=step<<1;
+      for(int i=0;i<width;i+=step2) {
+        data[i+step] = (data[i]+data[i+step2])*0.5;
+        data[i+step] += weight*rand.randf();
+        data[i]      += weight*rand.randf();
+      }
+      data[width]=data[0];
+      weight_sum+=weight;
+      weight*=weight_power;
+    }
+
+    for(int i=0;i<width;i++)
+      data[i] /= weight_sum;
+
+    for(int j=1;j<height;j++) {
+      real_t *jdata = data+j*width;
+      for(int i=0;i<width;i++)
+        jdata[i]=data[i];
+    }
+  }
+
+  Ref<Image> image = Image::_new();
+  image->create_from_data(width,height,false,Image::FORMAT_RF,bytes);
+  image->convert(Image::FORMAT_RGBH);
+  Ref<Image> write_image = Image::_new();
+  write_image->create_from_data(width, height, false, Image::FORMAT_RF, bytes);
+  write_image->convert(Image::FORMAT_RGB8);
+  write_image->save_png("res://ring_data.png");
+  return image;
+}
+
+Ref<ArrayMesh> make_annulus_mesh(real_t middle_radius, real_t thickness, int steps) {
+  PoolVector3Array vertices_pool;
+  PoolVector2Array uv_pool;
+  vertices_pool.resize(steps*6);
+  uv_pool.resize(steps*6);
+  
+  const real_t angle = 2*PI/steps;
+  const real_t half_angle = angle/2;
+  const real_t inner_radius = middle_radius-thickness/2;
+  const real_t outer_radius = middle_radius+thickness/2;
+  const real_t far_radius = outer_radius/cosf(half_angle);
+  const Vector2 uvhalf = Vector2(0.5,0.5);
+
+  {
+    PoolVector3Array::Write write_vertices=vertices_pool.write();
+    PoolVector2Array::Write write_uv=uv_pool.write();
+    Vector3 *vertices=write_vertices.ptr();
+    Vector2 *uv=write_uv.ptr();
+    
+    Vector3 prior_far_vertex = far_radius*Vector3(cosf((steps-1)*angle+half_angle),0,
+                                                  sinf((steps-1)*angle+half_angle));
+    Vector3 prior_inner_vertex = inner_radius*Vector3(cosf((steps-1)*angle),0,
+                                                      sinf((steps-1)*angle));
+    for(int i=0;i<steps;i++) {
+      Vector3 this_far_vertex = far_radius*Vector3(cosf(i*angle+half_angle),0.0,
+                                                   sinf(i*angle+half_angle));
+      Vector3 this_inner_vertex = inner_radius*Vector3(cosf(i*angle),0.0,sinf(i*angle));
+		
+      vertices[i*6 + 0] = this_inner_vertex;
+      uv      [i*6 + 0] = Vector2(this_inner_vertex.z,this_inner_vertex.x)/2.0+uvhalf;
+      vertices[i*6 + 1] = prior_far_vertex;
+      uv      [i*6 + 1] = Vector2(prior_far_vertex.z,prior_far_vertex.x)/2.0+uvhalf;
+      vertices[i*6 + 2] = this_far_vertex;
+      uv      [i*6 + 2] = Vector2(this_far_vertex.z,this_far_vertex.x)/2.0+uvhalf;
+
+      vertices[i*6 + 3] = this_inner_vertex;
+      uv      [i*6 + 3] = Vector2(this_inner_vertex.z,this_inner_vertex.x)/2.0+uvhalf;
+      vertices[i*6 + 4] = prior_inner_vertex;
+      uv      [i*6 + 4] = Vector2(prior_inner_vertex.z,prior_inner_vertex.x)/2.0+uvhalf;
+      vertices[i*6 + 5] = prior_far_vertex;
+      uv      [i*6 + 5] = Vector2(prior_far_vertex.z,prior_far_vertex.x)/2.0+uvhalf;
+		
+      prior_far_vertex = this_far_vertex;
+      prior_inner_vertex = this_inner_vertex;
+    }
+  }
+  
+  Ref<ArrayMesh> mesh = ArrayMesh::_new();
+  Array arrays;
+  arrays.resize(ArrayMesh::ARRAY_MAX);
+  arrays[ArrayMesh::ARRAY_VERTEX] = vertices_pool;
+  arrays[ArrayMesh::ARRAY_TEX_UV] = uv_pool;
+  mesh->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
+  return mesh;
+}
 }

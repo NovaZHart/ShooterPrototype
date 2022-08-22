@@ -19,6 +19,7 @@ var inferno_planet_shader = preload('res://shaders/InfernoPlanet.shader')
 var simple_sun_shader = preload('res://shaders/SimpleSunV2.shader')
 
 var default_colors = preload('res://textures/continents-terran.jpg')
+const GasGiantRingShader: Shader = preload('res://shaders/GasGiantRing.shader')
 
 const crater_count: int = 20
 const crater_min_size: float = 15*PI/180
@@ -68,6 +69,30 @@ func get_sphere_material(): return sphere_material
 func get_tile_material(): return tile_material
 func receive_damage(_f: float): pass
 func get_radius() -> float: return sphere.scale[0]
+
+func make_rings(planet_radius: float,inner_radius: float,thickness: float,random_seed: int):
+	inner_radius /= planet_radius
+	thickness /= planet_radius
+	var middle_radius: float = inner_radius+thickness/2
+	var outer_radius: float = inner_radius+thickness
+	var steps: float = clamp(2*PI*outer_radius/0.1,60,1440)
+	var mesh: ArrayMesh = utils.native.make_annulus_mesh(middle_radius,thickness,steps)
+	var material = ShaderMaterial.new()
+	material.shader = GasGiantRingShader
+	material.set_shader_param('color',Color(0.5,1.0,0.7,0.3))
+	material.set_shader_param('r_mid',float(middle_radius))
+	material.set_shader_param('thickness',float(thickness))
+	material.set_shader_param('scale',1.0)
+	var ring_noise: Image = utils.native.generate_planet_ring_noise(9,random_seed,0.7)
+	assert(ring_noise)
+	var texture = ImageTexture.new()
+	texture.create_from_image(ring_noise)
+	material.set_shader_param('ring_noise',texture)
+	mesh.surface_set_material(0,material)
+	var instance: MeshInstance = MeshInstance.new()
+	instance.mesh = mesh
+	instance.name = 'rings'
+	sphere.add_child(instance)
 
 func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> Viewport:
 # warning-ignore:shadowed_variable

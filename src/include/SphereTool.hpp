@@ -17,6 +17,8 @@ namespace godot {
   Ref<Image> make_hash_cube16(uint32_t hash);
   Ref<Image> make_hash_square32(uint32_t hash);
   Ref<Image> generate_impact_craters(real_t max_size,real_t min_size,int requested_count,uint32_t seed);
+  Ref<Image> generate_planet_ring_noise(uint32_t log2,uint32_t seed,real_t weight_power);
+  Ref<ArrayMesh> make_annulus_mesh(real_t middle_radius, real_t thickness, int steps);
   
   class SphereTool: public MeshInstance {
     GODOT_CLASS(SphereTool, MeshInstance)
