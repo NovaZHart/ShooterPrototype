@@ -70,6 +70,16 @@ func get_tile_material(): return tile_material
 func receive_damage(_f: float): pass
 func get_radius() -> float: return sphere.scale[0]
 
+func save_tile_image(to: String):
+	var v: Viewport = get_node_or_null("View")
+	assert(v)
+	v.render_target_update_mode = Viewport.UPDATE_ALWAYS
+	var vtex: ViewportTexture = v.get_texture()
+	yield(get_tree(),'idle_frame')
+	yield(get_tree(),'idle_frame')
+	var img: Image = vtex.get_data()
+	img.save_png(to)
+
 func update_ring_shading():
 	var rings: MeshInstance = sphere.get_node_or_null('rings')
 	if rings:
@@ -115,17 +125,17 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	var view=Viewport.new()
 	var rect=ColorRect.new()
 	view.size=Vector2(nx,ny)
-	view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
+	#view.render_target_clear_mode=Viewport.CLEAR_MODE_NEVER
 	view.render_target_update_mode=Viewport.UPDATE_ONCE
 	view.keep_3d_linear=true
-	view.disable_3d=true
-	view.usage=Viewport.USAGE_2D
+	#view.disable_3d=true
+	view.usage=Viewport.USAGE_3D_NO_EFFECTS
 	rect.rect_size=Vector2(nx,ny)
 	rect.color=Color(0,0,0,0)
 	rect.set_material(shader)
 	rect.name='Content'
 	view.own_world=true
-	view.hdr=false
+	view.hdr=true
 	view.add_child(rect)
 	return view
 
@@ -278,12 +288,13 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		view_shade.set_shader_param('perlin_type',int(noise_type))
 		view_shade.set_shader_param('hash_cube',get_hash_cube_16(random_seed))
 
-	view=make_viewport(u_size,v_size,view_shade)
+	self.view=make_viewport(u_size,v_size,view_shade)
 	view_shade.set_shader_param('xyz',xyz)
-	view.name='View'
+	self.view.name='View'
 	tile_material = view_shade
 	
-	add_child(view)
+	add_child(self.view)
+	assert(self.view)
 	tick=0
 	set_process(true)
 
@@ -346,8 +357,8 @@ func _process(var _delta) -> void:
 	sphere.material_override.set_shader_param('precalculated',tex)
 	have_valid_texture = true
 	
-	view=null
-	view_shade=null
+	#view=null
+	#view_shade=null
 	
 	set_process(false)
 

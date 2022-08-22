@@ -182,6 +182,9 @@ func _input(event):
 	if event.is_action_released('ui_depart'):
 		get_tree().set_input_as_handled()
 		deorbit()
+	elif event is InputEventKey and event.pressed and event.scancode==KEY_F12:
+		print('save tile image')
+		planet.save_tile_image('res://planet_tiles.png')
 
 func _process(delta):
 	planet_rotation += angular_velocity*delta
