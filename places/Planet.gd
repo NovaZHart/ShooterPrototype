@@ -95,7 +95,7 @@ func make_rings(planet_radius: float,inner_radius: float,thickness: float,random
 	var mesh: ArrayMesh = utils.native.make_annulus_mesh(middle_radius,thickness,steps)
 	var material = ShaderMaterial.new()
 	material.shader = GasGiantRingShader
-	material.set_shader_param('color',Color(0.5,1.0,0.7,0.3))
+	material.set_shader_param('color',Color(0.75,0.75,0.7,0.6))
 	material.set_shader_param('r_mid',float(middle_radius))
 	material.set_shader_param('thickness',float(thickness))
 	material.set_shader_param('scale',1.0)

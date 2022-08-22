@@ -27,7 +27,7 @@ void fragment() {
 	float weight = 1.0 - scaled*scaled;
 	float k = texture(ring_noise,vec2(scaled,scaled)).r;
 	ALBEDO = k*weight*color.rgb;
-	ALPHA = k*weight;
+	ALPHA = k*weight*color.a;
 	if(vertex_distance>shadow_start) {
 		vec3 vertex_world_norm = vertex_world/vertex_distance;
 		float cos_here = dot(vertex_world_norm,planet_world_norm);
