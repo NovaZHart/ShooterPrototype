@@ -285,11 +285,11 @@ func get_stored_console() -> String: return stored_console
 
 func get_sphere_xyz():
 	if not sphere_xyz:
-		var xyz_data: Image = utils.native.make_lookup_tiles_c96()
+		var xyz_data: Image = utils.native.make_lookup_tiles_c192()
 		assert(xyz_data)
 		var xyz: ImageTexture = ImageTexture.new()
 		assert(xyz)
-		xyz.create_from_image(xyz_data)
+		xyz.create_from_image(xyz_data,Texture.FLAG_FILTER)
 		sphere_xyz = xyz;
 	return sphere_xyz
 
