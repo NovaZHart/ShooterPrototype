@@ -11,6 +11,9 @@ var planet_info = null
 var current_service: NodePath
 var axial_tilt: float = 0.0
 var planet_rotation: float = 0.0
+const planet_translation: Vector3 = Vector3(50,0,-86.6)
+export var camera_distance_ratio: float = 7
+export var space_background_scale: float = 0.333
 export var angular_velocity: float = 0.5
 #var old_msaa
 
@@ -31,13 +34,13 @@ func _enter_tree():
 	planet=planet_info.make_planet(600,0)
 	planet_name = planet.display_name
 	axial_tilt = planet_info.axial_tilt
-	planet.translation = Vector3(0,0,0)
-	add_child(planet)
+	planet.translation = planet_translation
+	$View/Port.add_child(planet)
 
 func _ready():
 	camera_and_label(system_name,planet_name)
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
-	$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
+	#$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)
 	$View/Port/SpaceBackground.center_view(130,90,0,100,0)
 	#$View/Port/SpaceBackground.update_from(Player.system)
 	update_astral_gate()
@@ -88,11 +91,15 @@ func camera_and_label(system_name: String,planet_name: String):
 		$Labels/LocationLabel.text=system_name+' '+planet_name
 	var s: float = 4.5*max(min(2,log(planet.get_sphere().scale.x)*0.666),1)
 	planet.get_sphere().scale=Vector3(s,s,s)
-	$View/Port/Camera.set_identity()
-	$View/Port/Camera.rotate_x(-0.575959)
-	$View/Port/Camera.rotate_y(-0.14399)
-	$View/Port/Camera.size = 15
-	$View/Port/Camera.translate_object_local(Vector3(0.0,0.0,15.0))
+	var shift: float = camera_distance_ratio*sqrt(2)
+	$View/Port/Camera.transform.basis = Basis().rotated(Vector3(1,0,0),-PI/4)
+	$View/Port/Camera.transform.origin = Vector3(planet_translation.x,shift,planet_translation.z+shift)
+	#$View/Port/Camera.size = 15
+#	$View/Port/SpaceBackground.transform = Transform()
+	$View/Port/SpaceBackground.transform = Transform(Basis(Vector3(PI/4,0,0)),Vector3(planet_translation.x-shift,-shift,planet_translation.z-4*shift))
+	$View/Port/SpaceBackground.rotation.x = PI/4
+	$View/Port/SpaceBackground.scale=Vector3(space_background_scale,space_background_scale,space_background_scale)
+#	$View/Port/SpaceBackground.transform.basis = Basis().rotated(Vector3(1,0,0),PI/4)
 
 func check_cargo_mass() -> bool:
 	var design = Player.player_ship_design
@@ -144,7 +151,7 @@ func astral_jump(system_node_name: String,planet_location: NodePath):
 	yield(get_tree(),'idle_frame')
 	
 	planet=planet_info.make_planet(600,0,planet)
-	planet.translation = Vector3(0,0,0)
+	planet.translation = planet_translation
 	if system_info.display_name == planet_info.display_name:
 		$Labels/LocationLabel.text=system_info.display_name
 	else:
@@ -174,10 +181,10 @@ func _input(event):
 
 func _process(delta):
 	planet_rotation += angular_velocity*delta
-	var t: Transform = Transform()
+	var t: Basis = Basis()
 	t=t.rotated(Vector3(0,1,0),planet_rotation)
 	t=t.rotated(Vector3(0,0,1),axial_tilt)
-	planet.transform = t
+	planet.transform.basis = t
 #	var rotation_axis: Vector3 = Vector3(0,1,0).rotated(Vector3(0,0,1),axial_tilt)
 #	planet.transform = planet.transform.rotated(rotation_axis,planet_rotation)
 #	planet.rotation = Vector3(0,1,0).rotated(rotation_axis,planet_rotation)
