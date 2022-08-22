@@ -35,8 +35,9 @@ func _enter_tree():
 	planet_name = planet.display_name
 	axial_tilt = planet_info.axial_tilt
 	var d: float = planet_info.planet_translation(game_state.epoch_time*game_state.EPOCH_ONE_DAY).length()
-	planet_translation += Vector3(d,0,-d)
+	planet_translation = Vector3(d/sqrt(2),0,-d/sqrt(2))
 	planet.translation = planet_translation
+	planet.update_ring_shading()
 	$View/Port.add_child(planet)
 
 func _ready():

@@ -70,6 +70,22 @@ func get_tile_material(): return tile_material
 func receive_damage(_f: float): pass
 func get_radius() -> float: return sphere.scale[0]
 
+func update_ring_shading():
+	var rings: MeshInstance = sphere.get_node_or_null('rings')
+	if rings:
+		var material: ShaderMaterial = rings.mesh.surface_get_material(0)
+		if material:
+			var dp_vec: Vector3 = Vector3(translation.x,0,translation.z)
+			var dp2: float = dp_vec.length_squared()
+			var dp: float = sqrt(dp2)
+			var rp: float = sphere.scale.x
+			if dp>rp:
+				var rp_inner: float = max(rp-0.5,0.8*rp)
+				material.set_shader_param('planet_world_norm',dp_vec/dp)
+				material.set_shader_param('shadow_start',dp-rp/2)
+				material.set_shader_param('shadow_cos_inner',sqrt(1-rp_inner*rp_inner/dp2))
+				material.set_shader_param('shadow_cos_outer',sqrt(1-rp*rp/dp2))
+
 func make_rings(planet_radius: float,inner_radius: float,thickness: float,random_seed: int):
 	inner_radius /= planet_radius
 	thickness /= planet_radius

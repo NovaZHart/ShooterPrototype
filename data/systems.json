@@ -1467,7 +1467,7 @@
                 "shader_seed": 65871,
                 "rotation_period": 14,
                 "orbit_radius": 390.982407,
-                "orbit_period": 35,
+                "orbit_period": 350,
                 "orbit_start": 0.658626,
                 "has_astral_gate": false,
                 "objects": {

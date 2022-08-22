@@ -726,7 +726,7 @@ func unpause():
 			tree.paused = false
 
 func _ready() -> void:
-	init_system(game_state.epoch_time*game_state.EPOCH_ONE_DAY,600,150)
+	init_system(game_state.epoch_time/float(game_state.EPOCH_ONE_DAY*5),600,150)
 	combat_engine.set_world(get_world())
 	center_view()
 	combat_engine.set_visible_region(visible_region(),
