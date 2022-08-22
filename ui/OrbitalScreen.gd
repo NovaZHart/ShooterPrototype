@@ -103,6 +103,7 @@ func camera_and_label(system_name: String,planet_name: String):
 	$View/Port/SpaceBackground.rotation.x = PI/4
 	$View/Port/SpaceBackground.scale=Vector3(space_background_scale,space_background_scale,space_background_scale)
 #	$View/Port/SpaceBackground.transform.basis = Basis().rotated(Vector3(1,0,0),PI/4)
+	planet.update_ring_shading()
 
 func check_cargo_mass() -> bool:
 	var design = Player.player_ship_design
@@ -188,10 +189,6 @@ func _process(delta):
 	t=t.rotated(Vector3(0,1,0),planet_rotation)
 	t=t.rotated(Vector3(0,0,1),axial_tilt)
 	planet.transform.basis = t
-#	var rotation_axis: Vector3 = Vector3(0,1,0).rotated(Vector3(0,0,1),axial_tilt)
-#	planet.transform = planet.transform.rotated(rotation_axis,planet_rotation)
-#	planet.rotation = Vector3(0,1,0).rotated(rotation_axis,planet_rotation)
-#	print(planet.rotation)
 
 func _on_MainDialogTrigger_dialog_hidden():
 	get_tree().paused = false
