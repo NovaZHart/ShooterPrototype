@@ -11,7 +11,7 @@ var planet_info = null
 var current_service: NodePath
 var axial_tilt: float = 0.0
 var planet_rotation: float = 0.0
-const planet_translation: Vector3 = Vector3(50,0,-86.6)
+var planet_translation: Vector3 = Vector3(50,0,-86.6)
 export var camera_distance_ratio: float = 7
 export var space_background_scale: float = 0.333
 export var angular_velocity: float = 0.5
@@ -34,6 +34,8 @@ func _enter_tree():
 	planet=planet_info.make_planet(600,0)
 	planet_name = planet.display_name
 	axial_tilt = planet_info.axial_tilt
+	var d: float = planet_info.planet_translation(game_state.epoch_time*game_state.EPOCH_ONE_DAY).length()
+	planet_translation += Vector3(d,0,-d)
 	planet.translation = planet_translation
 	$View/Port.add_child(planet)
 
