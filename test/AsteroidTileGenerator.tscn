@@ -1,0 +1,169 @@
+[gd_scene load_steps=6 format=2]
+
+[ext_resource path="res://ui/OrbitalScreenEnvironment.tres" type="Environment" id=1]
+[ext_resource path="res://places/SpaceBackground.gd" type="Script" id=2]
+[ext_resource path="res://places/SpaceBackground.tscn" type="PackedScene" id=3]
+[ext_resource path="res://test/AsteroidTileGenerator.gd" type="Script" id=4]
+[ext_resource path="res://ui/skins/MainTheme.tres" type="Theme" id=5]
+
+[node name="Panel" type="Panel"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource( 4 )
+
+[node name="All" type="GridContainer" parent="."]
+anchor_right = 1.0
+anchor_bottom = 1.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme = ExtResource( 5 )
+
+[node name="Top" type="GridContainer" parent="All"]
+margin_right = 1600.0
+margin_bottom = 640.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 2
+
+[node name="AsteroidView" type="ViewportContainer" parent="All/Top"]
+margin_right = 1477.0
+margin_bottom = 640.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+stretch = true
+__meta__ = {
+"_edit_use_anchors_": false
+}
+
+[node name="AsteroidViewport" type="Viewport" parent="All/Top/AsteroidView"]
+size = Vector2( 1477, 640 )
+handle_input_locally = false
+fxaa = true
+sharpen_intensity = -3.0
+usage = 3
+render_target_update_mode = 3
+
+[node name="Camera" type="Camera" parent="All/Top/AsteroidView/AsteroidViewport"]
+transform = Transform( 1, 0, 0, 0, -4.37114e-08, 1, 0, -1, -4.37114e-08, 0, 30, 0 )
+projection = 1
+size = 30.0
+far = 200.0
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="All/Top/AsteroidView/AsteroidViewport"]
+environment = ExtResource( 1 )
+
+[node name="SpaceBackground" type="Spatial" parent="All/Top/AsteroidView/AsteroidViewport" instance=ExtResource( 3 )]
+pause_mode = 2
+transform = Transform( 0.3, 0, 0, 0, 0.3, 0, 0, 0, 0.3, 0, 0, 0 )
+script = ExtResource( 2 )
+
+[node name="DirectionalLight" type="DirectionalLight" parent="All/Top/AsteroidView/AsteroidViewport"]
+transform = Transform( 0.400204, 0.599457, -0.693173, -0.299729, 0.800407, 0.519145, 0.866025, 1.29048e-08, 0.5, 0, 0, 0 )
+light_color = Color( 1, 0.992157, 0.929412, 1 )
+light_energy = 0.7
+light_indirect_energy = 0.1
+light_specular = 0.0
+
+[node name="LineEdit" type="LineEdit" parent="All/Top"]
+margin_left = 1481.0
+margin_right = 1600.0
+margin_bottom = 640.0
+text = "STUFFNTHINGS"
+expand_to_text_length = true
+
+[node name="Bottom" type="GridContainer" parent="All"]
+margin_top = 644.0
+margin_right = 1600.0
+margin_bottom = 900.0
+columns = 3
+
+[node name="Left" type="ViewportContainer" parent="All/Bottom"]
+rect_min_size = Vector2( 512, 256 )
+
+[node name="Viewport" type="Viewport" parent="All/Bottom/Left"]
+size = Vector2( 512, 256 )
+render_target_clear_mode = 1
+render_target_update_mode = 3
+
+[node name="ColorRect" type="ColorRect" parent="All/Bottom/Left/Viewport"]
+rect_min_size = Vector2( 512, 256 )
+size_flags_horizontal = 0
+size_flags_vertical = 0
+color = Color( 0.109804, 0.352941, 0.129412, 1 )
+
+[node name="Controls" type="GridContainer" parent="All/Bottom"]
+margin_left = 516.0
+margin_right = 1084.0
+margin_bottom = 256.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+columns = 3
+
+[node name="RandomSeedLeft" type="LineEdit" parent="All/Bottom/Controls"]
+margin_right = 240.0
+margin_bottom = 27.0
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "123"
+
+[node name="RandomSeedLabel" type="Label" parent="All/Bottom/Controls"]
+margin_left = 244.0
+margin_top = 5.0
+margin_right = 324.0
+margin_bottom = 22.0
+text = "random seed"
+align = 1
+
+[node name="RandomSeedRight" type="LineEdit" parent="All/Bottom/Controls"]
+margin_left = 328.0
+margin_right = 568.0
+margin_bottom = 27.0
+grow_horizontal = 0
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "123"
+
+[node name="WeightPowerLeft" type="LineEdit" parent="All/Bottom/Controls"]
+margin_top = 31.0
+margin_right = 240.0
+margin_bottom = 58.0
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "0.7"
+
+[node name="WeightPowerLabel" type="Label" parent="All/Bottom/Controls"]
+margin_left = 244.0
+margin_top = 36.0
+margin_right = 324.0
+margin_bottom = 53.0
+text = "weight_power"
+valign = 1
+
+[node name="WeightPowerRight" type="LineEdit" parent="All/Bottom/Controls"]
+margin_left = 328.0
+margin_top = 31.0
+margin_right = 568.0
+margin_bottom = 58.0
+grow_horizontal = 0
+size_flags_horizontal = 3
+size_flags_vertical = 5
+text = "0.7"
+
+[node name="Right" type="ViewportContainer" parent="All/Bottom"]
+rect_min_size = Vector2( 512, 256 )
+
+[node name="Viewport" type="Viewport" parent="All/Bottom/Right"]
+size = Vector2( 512, 256 )
+render_target_update_mode = 3
+
+[node name="ColorRect" type="ColorRect" parent="All/Bottom/Right/Viewport"]
+margin_right = 512.0
+margin_bottom = 256.0
+rect_min_size = Vector2( 512, 256 )
+color = Color( 0.431373, 0.0784314, 0.0784314, 1 )
+
+[connection signal="resized" from="All/Top/AsteroidView" to="All" method="_on_AsteroidView_resized"]
+[connection signal="text_entered" from="All/Bottom/Controls/RandomSeedLeft" to="." method="_on_RandomSeedLeft_text_entered"]
+[connection signal="text_entered" from="All/Bottom/Controls/RandomSeedRight" to="." method="_on_RandomSeedRight_text_entered"]
+[connection signal="text_entered" from="All/Bottom/Controls/WeightPowerLeft" to="." method="_on_WeightPowerLeft_text_entered"]
+[connection signal="text_entered" from="All/Bottom/Controls/WeightPowerRight" to="." method="_on_WeightPowerRight_text_entered"]
