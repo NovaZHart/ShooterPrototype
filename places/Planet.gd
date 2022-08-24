@@ -78,7 +78,7 @@ func save_tile_image(to: String):
 	yield(get_tree(),'idle_frame')
 	yield(get_tree(),'idle_frame')
 	var img: Image = vtex.get_data()
-	img.save_png(to)
+	return img.save_png(to)
 
 func update_ring_shading():
 	var rings: MeshInstance = sphere.get_node_or_null('rings')
