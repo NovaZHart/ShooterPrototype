@@ -14,7 +14,7 @@ var center_fuel_recharge: float
 var locality_adjustments: Dictionary = {}
 
 var asteroid_fields: Array = []
-var oort_clouds: Array = [ { 'thickness':2000, 'inner_radius':1500, 'asteroids':[ 'simple_metals' ] } ]
+var oort_clouds: Array = [ { 'thickness':4000, 'inner_radius':2000, 'asteroids':[ 'simple_metals' ] } ]
 
 var SphereTool = preload('res://bin/spheretool.gdns')
 var SimpleAsteroidShader = preload('res://shaders/SimpleAsteroidShader.shader')

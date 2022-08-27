@@ -16,7 +16,7 @@ const Color Minimap::hostile_color(1,1,0,1);
 const Color Minimap::friendly_color(0.1,0.1,1,1);
 const Color Minimap::player_color(0,1,0,1);
 const Color Minimap::neutral_color(0.7,0.7,0.7);
-const Color Minimap::asteroid_field_color(0.6,0.6,0.4,0.2);
+const Color Minimap::asteroid_field_color(0.6,0.45,0.2,0.2);
 const Color Minimap::projectile_color = neutral_color;
 const Color Minimap::planet_color = neutral_color;
 
