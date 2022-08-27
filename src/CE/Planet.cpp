@@ -30,10 +30,7 @@ Planet::Planet(Dictionary dict,object_id id):
   radius(get<real_t>(dict,"radius")),
   population(get<real_t>(dict,"population")),
   industry(get<real_t>(dict,"industry"))
-{
-  if(scene_tree_path.is_empty())
-    Godot::print_warning(name+": planet has no scene tree path",__FUNCTION__,__FILE__,__LINE__);
-}
+{}
 
 Planet::~Planet()
 {}
