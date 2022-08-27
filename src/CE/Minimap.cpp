@@ -170,6 +170,81 @@ const Color &Minimap::pick_object_color(VisibleObject &object) {
   return friendly_color;
 }
 
+void Minimap::draw_asteroid_field_polygon(real_t r_min,real_t r_max,real_t start_theta,
+                                          real_t end_theta,real_t theta_width,real_t radius_scale,
+                                          Vector2 map_scale,Vector2 map_center,Vector2 minimap_center,
+                                          PoolVector2Array &rectpool) {
+
+  // Min & max allowed edges of the outer half of a polygon representing an arc of the annulus:
+  const int min_edges = 5;
+  const int max_edges = 200;
+    
+  Geometry * geo=godot::Geometry::get_singleton();
+  VisualServer *visual_server = VisualServer::get_singleton();
+
+  // Angle step of one pixel at distance r_max from the origin;
+  real_t dtheta=1.0/(r_max*radius_scale);
+  
+  // Number of edges of this arc along circle:
+  int nthetam1=roundf(theta_width/dtheta);
+
+  // Ensure there aren't too many or too few edges
+  if(nthetam1<min_edges) {
+    nthetam1=min_edges;
+    dtheta=theta_width/nthetam1;
+  } else if(nthetam1>max_edges) {
+    nthetam1=max_edges;
+    dtheta=theta_width/nthetam1;
+  }
+  
+  int vertices=2*(nthetam1+1);
+
+  PoolVector2Array polypool;
+  PoolColorArray colorpool;
+
+  // Find vertices for this polygon
+  polypool.resize(vertices);
+  {
+    PoolVector2Array::Write writer=polypool.write();
+    Vector2 *poly = writer.ptr();
+    for(int itheta=0;itheta<=nthetam1;itheta++) {
+      real_t theta;
+      if(itheta==nthetam1)
+        theta=end_theta;
+      else
+        theta=start_theta+dtheta*itheta;
+
+      Vector3 map_space_normal(cos(theta),0,-sin(theta));
+      Vector2 outer_map_space(map_space_normal.z*r_max,-map_space_normal.x*r_max);
+      Vector2 inner_map_space(map_space_normal.z*r_min,-map_space_normal.x*r_min);
+      Vector2 outer=(outer_map_space-map_center)*map_scale+minimap_center;
+      Vector2 inner=(inner_map_space-map_center)*map_scale+minimap_center;
+      
+      poly[itheta] = outer;
+      poly[vertices-itheta-1] = inner;
+    }
+  }
+  
+  // Find the intersection with the view rect
+  Array within = geo->intersect_polygons_2d(polypool,rectpool);
+  
+  // Draw the intersection
+  for(int i=0,e=within.size();i<e;i++) {
+    PoolVector2Array clipped=within[i];
+    if(clipped.size()>2) {
+      int nvert=clipped.size();
+      colorpool.resize(nvert);
+      {
+        PoolColorArray::Write writer = colorpool.write();
+        Color *colors = writer.ptr();
+        for(int j=0;j<nvert;j++)
+          colors[j]=asteroid_field_color;
+      }
+      visual_server->canvas_item_add_polygon(canvas,clipped,colorpool);
+    }
+  }
+}
+
 void Minimap::draw_asteroid_field(real_t inner_radius,real_t outer_radius,
                                   const Rect2 &map_region,const Rect2 &minimap,real_t radius_scale,
                                   const Vector2 &map_center,const Vector2 &map_scale,
@@ -177,19 +252,12 @@ void Minimap::draw_asteroid_field(real_t inner_radius,real_t outer_radius,
   // minimap = on-screen location in pixels
   // map_region = region of map that matches those pixels
 
-  // Min & max allowed edges of the outer half of a polygon representing an arc of the annulus:
-  const int min_edges = 5;
-  const int max_edges = 200;
-
   Rect2 asteroid_field_search_region(Vector2(-(map_region.position.y+map_region.size.y),map_region.position.x),
                                      Vector2(map_region.size.y,map_region.size.x));
   
   if(AsteroidSearchResult::rect_entirely_outside_annulus(asteroid_field_search_region,inner_radius,outer_radius))
     return;
 
-  Geometry * geo=godot::Geometry::get_singleton();
-  VisualServer *visual_server = VisualServer::get_singleton();
-  
   // Find the innermost and outermost radii from origin that the rect touches:
   real_t r_min_squared = rect_distance_squared_to(map_region,Vector2(0,0));
   real_t r_max_squared;
@@ -237,74 +305,20 @@ void Minimap::draw_asteroid_field(real_t inner_radius,real_t outer_radius,
   // if(!geo->is_polygon_clockwise(rectpool))
   //   Godot::print_error("Rect poly is not clockwise",__FUNCTION__,__FILE__,__LINE__);
   
-  PoolVector2Array polypool;
-  PoolColorArray colorpool;
-  
   // Draw polygons for the annulus
   for(auto &range : found) {
     if(not range.get_any_intersect())
       continue;
-    
-    // Angle step of one pixel at distance r_max from the origin;
-    real_t dtheta=1.0/(r_max*radius_scale);
-    real_t theta_width=range.get_theta_width();
 
-    // Number of edges of this arc along circle:
-    int nthetam1=roundf(theta_width/dtheta);
-
-    // Ensure there aren't too many or too few edges
-    if(nthetam1<min_edges) {
-      nthetam1=min_edges;
-      dtheta=theta_width/nthetam1;
-    } else if(nthetam1>max_edges) {
-      nthetam1=max_edges;
-      dtheta=theta_width/nthetam1;
-    }
-
-    int vertices=2*(nthetam1+1);
-
-    // Find vertices for this polygon
-    polypool.resize(vertices);
-    {
-      PoolVector2Array::Write writer=polypool.write();
-      Vector2 *poly = writer.ptr();
-      for(int itheta=0;itheta<=nthetam1;itheta++) {
-        real_t theta;
-        if(itheta==nthetam1)
-          theta=range.get_end_theta();
-        else
-          theta=range.get_start_theta()+dtheta*itheta;
-
-        Vector3 map_space_normal(cos(theta),0,-sin(theta));
-        Vector2 outer_map_space(map_space_normal.z*r_max,-map_space_normal.x*r_max);
-        Vector2 inner_map_space(map_space_normal.z*r_min,-map_space_normal.x*r_min);
-        Vector2 outer=(outer_map_space-map_center)*map_scale+minimap_center;
-        Vector2 inner=(inner_map_space-map_center)*map_scale+minimap_center;
-
-        poly[itheta] = outer;
-        poly[vertices-itheta-1] = inner;
-      }
-    }
-    // if(!geo->is_polygon_clockwise(polypool))
-    //   Godot::print_error("Annulus arc poly is not clockwise",__FUNCTION__,__FILE__,__LINE__);
-
-    // Find the intersection with the view rect
-    Array within = geo->intersect_polygons_2d(polypool,rectpool);
-
-    // Draw the intersection
-    for(int i=0,e=within.size();i<e;i++) {
-      PoolVector2Array clipped=within[i];
-      if(clipped.size()>2) {
-        int nvert=clipped.size();
-        colorpool.resize(nvert);
-        {
-          PoolColorArray::Write writer = colorpool.write();
-          Color *colors = writer.ptr();
-          for(int j=0;j<nvert;j++)
-            colors[j]=asteroid_field_color;
-        }
-        visual_server->canvas_item_add_polygon(canvas,clipped,colorpool);
-      }
+    if(range.get_all_intersect()) {
+      draw_asteroid_field_polygon(r_min,r_max,0,PIf,PIf,radius_scale,
+                                  map_scale,map_center,minimap_center,rectpool);
+      draw_asteroid_field_polygon(r_min,r_max,PIf,TAUf,PIf,radius_scale,
+                                  map_scale,map_center,minimap_center,rectpool);
+    } else {
+      draw_asteroid_field_polygon(r_min,r_max,range.get_start_theta(),range.get_end_theta(),
+                                  range.get_theta_width(),radius_scale,
+                                  map_scale,map_center,minimap_center,rectpool);
     }
   }
 }
