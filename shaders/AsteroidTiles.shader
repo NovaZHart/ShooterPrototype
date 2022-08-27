@@ -17,7 +17,7 @@ uniform float scale_start = 3.9;
 
 uniform sampler2D crater_data;
 uniform int crater_count;
-uniform float crater_scale = 0.3;
+const float crater_scale = 0.5;
 
 float apply_craters(float starting_height,vec3 xyz_norm) {
 	float height = starting_height;
@@ -127,13 +127,13 @@ void fragment() {
 		vec3 uvw=normal*0.5+0.5;
 		vec3 altitude_cloud_tpert = perlin_linear(uvw,normal,4);
 		float altitude = clamp(altitude_cloud_tpert.x,0.0,1.0);
-		//altitude = clamp(apply_craters(altitude*0.5+0.5,xyzw.xyz),0.0,1.0);
+		altitude = clamp(apply_craters(altitude*0.6+0.4,xyzw.xyz),0.0,1.0);
 		float cloud = altitude_cloud_tpert.y;
 		float temperature_perturbation = altitude_cloud_tpert.z;
 		//float temperature_perturbation = clamp(perlin_linear(uvw,1,temperature_cube8,8),0.0,1.0);
 		float mean_temperature = cos(normal.y*1.5707963267948966);
-		float temperature = temperature_perturbation; //mix(temperature_perturbation,mean_temperature,0.2);
-		temperature = 1.0-temperature;
+		float temperature = mix(temperature_perturbation,0.9*mean_temperature,0.4);
+		//temperature = 1.0-temperature;
 		//temperature = min(temperature,mean_temperature);
 		// Trick Godot into keeping a linear colorspace:
 		vec4 result = mix(texture(colors,vec2(temperature,altitude)),vec4(1.0,1.0,1.0,1.0),cloud*cloud);

@@ -734,7 +734,9 @@
           "asteroid_fields": [
               "Array",
               { "inner_radius":230, "thickness":170 },
-              { "inner_radius":750, "thickness":500 }
+              { "inner_radius":750, "thickness":500,
+                "asteroids": [ "Array", "planetoids", "comets" ],
+                "spacing_multiplier": 8, "iterations":8 }
           ],
           "position": [
             "Vector3",
@@ -1306,8 +1308,8 @@
                   1
                 ],
                 "shader_type": "asteroid_tiles",
-                "shader_colors": "res://textures/continents-bronze.jpg",
-                "shader_seed": 58719,
+                "shader_colors": "res://textures/continents-lavender-blue.jpg",
+                "shader_seed": 91929,
                 "rotation_period": 44,
                 "orbit_radius": 650.0,
                 "orbit_period": 71,

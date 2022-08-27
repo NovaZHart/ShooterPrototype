@@ -34,7 +34,8 @@ AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
   resistances(dict.has("resistances")
               ? DamageArray(dict["resistances"],MIN_ASTEROID_RESISTANCE,
                             MAX_ASTEROID_RESISTANCE)
-              : default_resistances)
+              : default_resistances),
+  scale_factor(clamp(get<real_t>(dict,"scale_factor",1.0f),0.1f,10.0f))
 {}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
@@ -132,9 +133,10 @@ void Asteroid::update_state(real_t when,real_t orbit_period,real_t inner_radius,
   if(initialize) {
     state.rotation_speed = state.random_numbers.r*max_rotation_speed;
     state.scale = state.random_numbers.b*scale_range + min_scale;
-    if(templ)
+    if(templ) {
+      state.scale *= templ->get_scale_factor();
       state.max_structure = state.scale*state.scale*templ->get_max_structure();
-    else
+    } else
       state.max_structure = EFFECTIVELY_INFINITE_HITPOINTS;
     state.structure = state.max_structure;
   }
