@@ -5,9 +5,6 @@
 
 [node name="BigMissileLauncher" type="MeshInstance"]
 mesh = ExtResource( 1 )
-material/0 = null
-material/1 = null
-material/2 = null
 script = ExtResource( 2 )
 help_page = "weapons/anthropomancer"
 mount_type_all = "internal gun"
@@ -15,7 +12,7 @@ mount_type_display = "spinal mount"
 item_size_x = 3
 item_size_y = 4
 damage = 1200.0
-damage_type = 8
+damage_type = 7
 impulse = 2500.0
 weapon_mass = 24.0
 weapon_structure = 480.0
