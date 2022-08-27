@@ -981,7 +981,9 @@
         {
           "display_name": "Seti-ɣ",
           "asteroid_fields": [
-              "Array", { "inner_radius":450, "thickness":400 }
+              "Array",
+              { "inner_radius":230, "thickness":170 },
+              { "inner_radius":600, "thickness":400 }
           ],
           "position": [
             "Vector3",
@@ -1466,7 +1468,7 @@
                 ],
                 "shader_seed": 65871,
                 "rotation_period": 14,
-                "orbit_radius": 390.982407,
+                "orbit_radius": 475.982407,
                 "orbit_period": 350,
                 "orbit_start": 0.658626,
                 "has_astral_gate": false,
@@ -1568,8 +1570,8 @@
                       "shader_seed": 11112,
                       "rotation_period": 0,
                       "orbit_radius": 39.730415,
-                      "orbit_period": 9,
-                      "orbit_start": 0.601413,
+                      "orbit_period": 11,
+                      "orbit_start": 1.601413,
                       "has_astral_gate": false,
                       "objects": {
 
