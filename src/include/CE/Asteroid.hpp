@@ -116,6 +116,9 @@ namespace godot {
       // Resistance of asteroid to various damage types;
       DamageArray resistances;
 
+      // Multiply the randomly-chosen scale of asteroid by this:
+      real_t scale_factor;
+
     public:
 
       static const DamageArray default_resistances;
@@ -142,6 +145,7 @@ namespace godot {
       PROP_GETSET_REF(Color,color_data);
       PROP_GETSET_REF(String,salvage);
       PROP_GETSET_VAL(real_t,max_structure);
+      PROP_GETSET_VAL(real_t,scale_factor);
       PROP_GET_REF(DamageArray,resistances);
       
       inline bool is_invincible() const {

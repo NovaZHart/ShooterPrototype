@@ -28,6 +28,17 @@ const base_types = {
 	}
 }
 
+const default_axial_tilt: float = 20*PI/180
+const default_height_map_scale: float = 0.35
+const default_planet_trading: Array = [ 'suvar', 'human' ]
+const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
+const default_planet_industry: float = 100000.0
+
+var ring_inner_radius: float = 0
+var ring_thickness: float = 0
+var ring_random_seed: int = 0
+var shader_type: String = 'old'
+var shader_colors: Texture
 var object_type = PLANET setget set_object_type
 var size: float = 3.0 setget set_size
 var color_scaling: Color = Color(1,1,1,1)
@@ -38,6 +49,8 @@ var rotation_period: float = 0.0 setget set_rotation_period
 var orbit_radius: float = 0.0 setget set_orbit_radius
 var orbit_period: float = 0.0
 var orbit_start: float = 0.0
+var axial_tilt: float = default_axial_tilt
+var height_map_scale: float = default_height_map_scale
 var has_astral_gate: bool = false
 var services: Array = []
 var description: String = ''
@@ -49,10 +62,6 @@ var industry: float = 0
 var locality_adjustments: Dictionary = {}
 var shipyard_locality_adjustments: Dictionary = {}
 var cached_unique_name: String
-
-const default_planet_trading: Array = [ 'suvar', 'human' ]
-const default_planet_population: Dictionary = { 'suvar':1e6, 'human':9e6 }
-const default_planet_industry: float = 100000.0
 
 func set_object_type(p: int):
 	assert(object_type==PLANET or object_type==STAR)
@@ -119,6 +128,8 @@ func encode() -> Dictionary:
 	maybe_add(result,'color_addition',color_addition,base)
 	maybe_add(result,'shader_seed',shader_seed,base)
 	maybe_add(result,'rotation_period',rotation_period,base)
+	maybe_add(result,'axial_tilt',axial_tilt,base)
+	maybe_add(result,'default_height_map_scale',height_map_scale,base)
 	maybe_add(result,'orbit_radius',orbit_radius,base)
 	maybe_add(result,'orbit_period',orbit_period,base)
 	maybe_add(result,'orbit_start',orbit_start,base)
@@ -135,8 +146,20 @@ func _init(node_name,me: Dictionary ={}):
 	var base = base_types.get(base_name,{})
 	if node_name:
 		set_name(node_name)
+	shader_type = get_it(me,base,'shader_type','old')
+	if me.has('shader_colors'):
+		var sc = me['shader_colors']
+		if sc is String and ResourceLoader.exists(sc):
+			shader_colors=load(sc)
+		else:
+			push_warning('shader_colors has invalid resource path '+str(sc))
+	if not shader_colors:
+		shader_colors = preload('res://textures/continents-terran.jpg')
 	object_type = get_it(me,base,'object_type',PLANET)
 	size = get_it(me,base,'size',5)
+	ring_inner_radius = get_it(me,base,'ring_inner_radius',0)
+	ring_thickness = get_it(me,base,'ring_thickness',0)
+	ring_random_seed = get_it(me,base,'ring_random_seed',0)
 	color_scaling = get_it(me,base,'color_scaling',Color(1,1,1,1))
 	color_addition = get_it(me,base,'color_addition',Color(0,0,0,1))
 	display_name = get_it(me,base,'display_name','Unnamed')
@@ -145,6 +168,8 @@ func _init(node_name,me: Dictionary ={}):
 	orbit_period = get_it(me,base,'orbit_period',20.0)
 	orbit_start = get_it(me,base,'orbit_start',0.0)
 	rotation_period = get_it(me,base,'rotation_period',0.0)
+	axial_tilt = get_it(me,base,'axial_tilt',default_axial_tilt)
+	height_map_scale = get_it(me,base,'height_map_scale',default_height_map_scale)
 	has_astral_gate = get_it(me,base,'has_astral_gate',object_type==STAR)
 	description = get_it(me,base,'description','')
 	services = me.get('services',[])
@@ -238,9 +263,12 @@ func full_display_name() -> String:
 		return parent.full_display_name() + ' ' + fp
 	return fp
 
-func planet_rotation(time: float) -> Vector3:
+func planet_basis(time: float) -> Basis:
 	var rotation_y = 2*PI*time/rotation_period if abs(rotation_period)>1e-6 else 0.0
-	return Vector3(0.0,rotation_y,0.0)
+	var b: Basis = Basis()
+	b=b.rotated(Vector3(0,1,0),rotation_y)
+	b=b.rotated(Vector3(0,0,1),axial_tilt)
+	return b
 
 func planet_translation(time: float) -> Vector3:
 	var angle = 2*PI*time/orbit_period if abs(orbit_period)>1e-6 else 0.0
@@ -272,19 +300,26 @@ func orbital_adjustments_to(time: float,new_location: Vector3,parent=null) -> Di
 func make_planet(detail: float=150, time: float=0, planet = null):
 	var texture_size: int = int(round(pow(2,max(7,min(11,int(log(detail*size)/log(2)))))))
 	var place_sphere: bool = false
+	var make_rings: bool = false
 	if not planet:
 		planet=Planet.instance()
 		place_sphere=true
+		make_rings=true
 	if object_type==STAR:
-		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size)
+		planet.make_sun(1+detail*size/30.0,shader_seed,texture_size,shader_type,shader_colors,height_map_scale)
 		planet.has_astral_gate = true
 	else:
-		planet.make_planet(1+detail*size/30.0,shader_seed,texture_size)
+		planet.make_planet(1+detail*(10+size)/30.0,shader_seed,texture_size,shader_type,shader_colors,height_map_scale)
+	
+	if make_rings and ring_inner_radius>size and ring_thickness>0.01:
+		planet.make_rings(size,ring_inner_radius,ring_thickness,ring_random_seed)
 	
 	planet.color_sphere(color_scaling,color_addition)
 	if place_sphere:
 		var x0z = planet_translation(time)
-		planet.place_sphere(size,Vector3(x0z[0],-20,x0z[2]),planet_rotation(time))
+		planet.place_sphere(size,Vector3(x0z[0],-20,x0z[2]),planet_basis(time))
+
+	planet.update_ring_shading()
 	
 	planet.name = make_unique_name()
 	planet.display_name = display_name

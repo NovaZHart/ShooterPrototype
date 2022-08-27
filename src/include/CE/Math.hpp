@@ -16,6 +16,10 @@ namespace godot {
     static const Vector3 z_axis(0,0,1);
 
     // Distance between a point and a rect.
+    real_t rect_distance_squared_to_origin(const Rect2 &r);
+    inline real_t rect_distance_to_origin(const Rect2 &r) {
+      return sqrtf(rect_distance_squared_to_origin(r));
+    }
     real_t rect_distance_squared_to(const Rect2 &rect,const Vector2 &point);
     inline real_t rect_distance_to(const Rect2 &rect,const Vector2 &point) {
       return sqrtf(rect_distance_squared_to(rect,point));

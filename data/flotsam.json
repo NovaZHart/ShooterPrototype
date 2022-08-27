@@ -159,6 +159,79 @@
                 }
             ],
 
+            "comet_metal": [
+                "Flotsam", {
+                    "display_name": "Metalic Comet Dust",
+                    "armor_repair": 0.01,
+                    "fuel": 0.01,
+                    "products": {
+                        "iron": 3000.0,
+                        "copper": 3000.0,
+                        "nickel": 3000.0,
+                        "aluminum": 3000.0,
+                        "zinc": 3000.0,
+                        "lead": 3000.0
+                    }
+                }
+            ],
+
+            "comet_rare_metal": [
+                "Flotsam", {
+                    "display_name": "Rare Metalic Comet Dust",
+                    "armor_repair": 0.01,
+                    "fuel": 0.01,
+                    "products": {
+                        "titanium": 500.0,
+                        "silver": 500.0,
+                        "gold": 500.0,
+                        "platinum": 500.0,
+                        "iridium": 500.0,
+                        "rhodium": 500.0,
+                        "cobalt": 500.0
+                    }
+                }
+            ],
+
+            "comet_dust_nonmetalic": [
+                "Flotsam", {
+                    "display_name": "Non-Metalic Comet Dust",
+                    "armor_repair": 0.01,
+                    "fuel": 0.01,
+                    "products": {
+                        "hydrogen": 7000.0,
+                        "oxygen": 7000.0,
+                        "carbon": 7000.0,
+                        "nitrogen": 7000.0,
+                        "mixed_silica": 7000.0,
+                        "mixed_hydrocarbons": 7000.0
+                    }
+                }
+            ],
+
+            "comet_ice_nonwater": [
+                "Flotsam", {
+                    "display_name": "Non-Water Comet Ice",
+                    "armor_repair": 0.01,
+                    "fuel": 0.01,
+                    "products": {
+                        "carbon_dioxide": 7000.0,
+                        "ammonia": 7000.0,
+                        "methane": 7000.0
+                    }
+                }
+            ],
+
+
+            "water": [
+                "Flotsam", {
+                    "display_name": "Pure Water",
+                    "armor_repair": 0,
+                    "fuel": 0,
+                    "products": {
+                        "pure_water": 10000.0
+                    }
+                }
+            ],
 
             "iron": [
                 "Flotsam", {

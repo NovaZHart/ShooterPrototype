@@ -31,10 +31,12 @@ namespace godot {
     class AsteroidSearchResult {
       // Results from searching for a region of thetas matching a shape in an AsteroidLayer.
       // Not intended for use outside AsteroidField, except for unit tests.
-      
+
       real_t start_theta, end_theta, theta_width;
       bool any_intersect, all_intersect;
 
+      static constexpr real_t epsilon = 1e-4;
+      
     public:
 
       inline real_t get_start_theta() const {
@@ -42,6 +44,9 @@ namespace godot {
       }
       inline real_t get_end_theta() const {
         return end_theta;
+      }
+      inline real_t get_theta_width() const {
+        return theta_width;
       }
       inline bool get_any_intersect() const {
         return any_intersect;
@@ -51,8 +56,8 @@ namespace godot {
       }
       
       AsteroidSearchResult(real_t start, real_t end):
-        start_theta(fmod(start+20*TAU,TAU)), end_theta(fmodf(end+20*TAU,TAU)),
-        theta_width(fmod(end_theta-start_theta+20*TAU,TAU)),
+        start_theta(fmod(start+4*TAU,TAU)), end_theta(fmod(end+2*TAU,TAU)),
+        theta_width(fmod(double(end_theta)-double(start_theta)+2*TAU,TAU)),
         any_intersect(true), all_intersect(false)
       {}
 
@@ -79,7 +84,7 @@ namespace godot {
           return any_intersect<o.any_intersect;
         if(all_intersect!=o.all_intersect)
           return all_intersect<o.all_intersect;
-        if(start_theta!=o.start_theta)
+        if(fabsf(start_theta-o.start_theta)>epsilon)
           return start_theta<o.start_theta;
         return end_theta<o.end_theta;
       }
@@ -91,9 +96,14 @@ namespace godot {
           return all_match;
         return AsteroidSearchResult(end_theta,start_theta);
       }
-        
-      inline real_t contains(real_t theta) const {
-        return any_intersect ? (fmod(theta-start_theta+20*TAU,TAU) <= theta_width) : false;
+
+      inline bool contains(double theta) const {
+        if(any_intersect) {
+          double dtheta = theta-double(start_theta);
+          dtheta = fmod(dtheta+2*TAU,TAU);
+          return dtheta < theta_width+epsilon;
+        }
+        return false;
       }
 
       // Creates a new AsteroidSearchResult where the range has been
@@ -101,7 +111,7 @@ namespace godot {
       AsteroidSearchResult expanded_by(real_t dtheta);
       
       // Merge multiple ranges into a smaller number of ranges that cover the same set.
-      static void merge_set(std::deque<AsteroidSearchResult> results);
+      static void merge_set(std::deque<AsteroidSearchResult> &results);
       
       // Remove the region, returning the zero, one, or two regions of remaining thetas:
       std::pair<AsteroidSearchResult,AsteroidSearchResult> minus(const AsteroidSearchResult &region) const;
@@ -327,7 +337,7 @@ namespace godot {
                     std::shared_ptr<SalvagePalette> salvege,object_id field_id);
 
       ~AsteroidField();
-
+      
       PROP_GET_VAL(real_t,max_scale);
       PROP_GET_VAL(real_t,inner_radius);
       PROP_GET_VAL(real_t,outer_radius);

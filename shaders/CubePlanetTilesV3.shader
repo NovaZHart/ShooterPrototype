@@ -92,14 +92,15 @@ float multi_perlin_scalar(vec3 new_normal) {
 }
 
 void fragment() {
-	vec3 normal = texture(xyz,vec2(UV.x,1.0-UV.y)).xyz;
-	COLOR=vec4(0.7,0.7,0.7,1.0);
-	if(UV.x<=0.75) {
+	vec4 xyzw = texture(xyz,vec2(UV.x,1.0-UV.y));
+	if(xyzw.w>0.5) {
+		vec3 normal = xyzw.xyz;
 		float w = multi_perlin_scalar(normal);
 		if(color_scheme==1)
 			w=interp_order5_scalar(w);
 		else
 			w*=w;
 		COLOR = vec4(w*color_scaling+color_addition,1.0);
-	}
+	} else
+		COLOR=vec4(0.7,0.7,0.7,1.0);
 }

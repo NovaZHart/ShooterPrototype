@@ -218,8 +218,9 @@ func update_planet_locations():
 	for planet in $Planets.get_children():
 		var data = game_state.systems.get_node_or_null(planet.game_state_path)
 		if data:
-			planet.translation = data.planet_translation(planet_time)
-			planet.rotation = data.planet_rotation(planet_time)
+			planet.transform = Transform(
+				data.planet_basis(planet_time),
+				data.planet_translation(planet_time))
 		else:
 			push_error('Planet data location ('+str(planet.game_state_path)+') does not exist.')
 			success=false

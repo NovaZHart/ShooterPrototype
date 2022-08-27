@@ -1,7 +1,7 @@
 shader_type spatial;
 render_mode unshaded;
 
-uniform sampler2D texture_albedo;
+uniform sampler2D texture_albedo : hint_albedo;
 uniform sampler2D texture_starfield;
 uniform vec2 texture_size;
 uniform vec2 uv_offset;
@@ -14,24 +14,6 @@ uniform vec2 star_patch_size=vec2(16.0,16.0);
 //uniform vec2 uv_scale;
 //uniform int samples;
 //uniform float star_density=3.0;
-
-// 32-bit integer hash from https://burtleburtle.net/bob/hash/integer.html
-// which is public domain as of this writing (September 2020)
-int bob_hash(int k) {
-	int a = k;
-	a = (a+2127912214) + (a<<12);
-	a = (a^3345072700) ^ (a>>19);
-	a = (a+374761393)  + (a<<5);
-	a = (a+3550635116) ^ (a<<9);
-	a = (a+4251993797) + (a<<3);
-	a = (a^3042594569) ^ (a>>16);
-	return a;
-}
-
-float h20float(int hash) {
-	const float denom=1.0/1048576.0;
-	return float(hash&1048575)*denom;
-}
 
 vec3 kelvin_to_rgb(float kelvin) {
 	if(kelvin<1000.0)

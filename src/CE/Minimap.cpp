@@ -1,5 +1,6 @@
 #include <PoolArrays.hpp>
 #include <VisualServer.hpp>
+#include <Geometry.hpp>
 
 #include "FastProfilier.hpp"
 #include "CE/Constants.hpp"
@@ -11,10 +12,11 @@ using namespace godot;
 using namespace godot::CE;
 
 const real_t Minimap::crosshairs_width = 1;
-const Color Minimap::hostile_color(1,0,0,1);
-const Color Minimap::friendly_color(0,0,1,1);
+const Color Minimap::hostile_color(1,1,0,1);
+const Color Minimap::friendly_color(0.1,0.1,1,1);
 const Color Minimap::player_color(0,1,0,1);
 const Color Minimap::neutral_color(0.7,0.7,0.7);
+const Color Minimap::asteroid_field_color(0.6,0.45,0.2,0.2);
 const Color Minimap::projectile_color = neutral_color;
 const Color Minimap::planet_color = neutral_color;
 
@@ -168,9 +170,165 @@ const Color &Minimap::pick_object_color(VisibleObject &object) {
   return friendly_color;
 }
 
+void Minimap::draw_asteroid_field_polygon(real_t r_min,real_t r_max,real_t start_theta,
+                                          real_t end_theta,real_t theta_width,real_t radius_scale,
+                                          Vector2 map_scale,Vector2 map_center,Vector2 minimap_center,
+                                          PoolVector2Array &rectpool) {
+
+  // Min & max allowed edges of the outer half of a polygon representing an arc of the annulus:
+  const int min_edges = 5;
+  const int max_edges = 200;
+    
+  Geometry * geo=godot::Geometry::get_singleton();
+  VisualServer *visual_server = VisualServer::get_singleton();
+
+  // Angle step of one pixel at distance r_max from the origin;
+  real_t dtheta=1.0/(r_max*radius_scale);
+  
+  // Number of edges of this arc along circle:
+  int nthetam1=roundf(theta_width/dtheta);
+
+  // Ensure there aren't too many or too few edges
+  if(nthetam1<min_edges) {
+    nthetam1=min_edges;
+    dtheta=theta_width/nthetam1;
+  } else if(nthetam1>max_edges) {
+    nthetam1=max_edges;
+    dtheta=theta_width/nthetam1;
+  }
+  
+  int vertices=2*(nthetam1+1);
+
+  PoolVector2Array polypool;
+  PoolColorArray colorpool;
+
+  // Find vertices for this polygon
+  polypool.resize(vertices);
+  {
+    PoolVector2Array::Write writer=polypool.write();
+    Vector2 *poly = writer.ptr();
+    for(int itheta=0;itheta<=nthetam1;itheta++) {
+      real_t theta;
+      if(itheta==nthetam1)
+        theta=end_theta;
+      else
+        theta=start_theta+dtheta*itheta;
+
+      Vector3 map_space_normal(cos(theta),0,-sin(theta));
+      Vector2 outer_map_space(map_space_normal.z*r_max,-map_space_normal.x*r_max);
+      Vector2 inner_map_space(map_space_normal.z*r_min,-map_space_normal.x*r_min);
+      Vector2 outer=(outer_map_space-map_center)*map_scale+minimap_center;
+      Vector2 inner=(inner_map_space-map_center)*map_scale+minimap_center;
+      
+      poly[itheta] = outer;
+      poly[vertices-itheta-1] = inner;
+    }
+  }
+  
+  // Find the intersection with the view rect
+  Array within = geo->intersect_polygons_2d(polypool,rectpool);
+  
+  // Draw the intersection
+  for(int i=0,e=within.size();i<e;i++) {
+    PoolVector2Array clipped=within[i];
+    if(clipped.size()>2) {
+      int nvert=clipped.size();
+      colorpool.resize(nvert);
+      {
+        PoolColorArray::Write writer = colorpool.write();
+        Color *colors = writer.ptr();
+        for(int j=0;j<nvert;j++)
+          colors[j]=asteroid_field_color;
+      }
+      visual_server->canvas_item_add_polygon(canvas,clipped,colorpool);
+    }
+  }
+}
+
+void Minimap::draw_asteroid_field(real_t inner_radius,real_t outer_radius,
+                                  const Rect2 &map_region,const Rect2 &minimap,real_t radius_scale,
+                                  const Vector2 &map_center,const Vector2 &map_scale,
+                                  const Vector2 &minimap_center,const Vector2 &minimap_half_size) {
+  // minimap = on-screen location in pixels
+  // map_region = region of map that matches those pixels
+
+  Rect2 asteroid_field_search_region(Vector2(-(map_region.position.y+map_region.size.y),map_region.position.x),
+                                     Vector2(map_region.size.y,map_region.size.x));
+  
+  if(AsteroidSearchResult::rect_entirely_outside_annulus(asteroid_field_search_region,inner_radius,outer_radius))
+    return;
+
+  // Find the innermost and outermost radii from origin that the rect touches:
+  real_t r_min_squared = rect_distance_squared_to(map_region,Vector2(0,0));
+  real_t r_max_squared;
+  {
+    Vector2 UL=map_region.position, DR=UL+map_region.size;
+    real_t LL = UL.x*UL.x, RR = DR.x*DR.x;
+    real_t UU = UL.y*UL.y, DD = DR.y*DR.y;
+    r_max_squared = max(UU,DD)+max(LL,RR);
+  }
+
+  // Need the radii, not squared, for next calculation:
+  real_t r_min=max(sqrtf(r_min_squared),inner_radius);
+  real_t r_max=min(sqrtf(r_max_squared),outer_radius);
+
+  deque<AsteroidSearchResult> found,work;
+    
+  if(not AsteroidSearchResult::theta_ranges_of_rect(asteroid_field_search_region,found,work,inner_radius,outer_radius))
+    return;
+  if(found.size()>1)
+    AsteroidSearchResult::merge_set(found);
+  // Make a polygon for the view rect
+  PoolVector2Array rectpool;
+  rectpool.resize(4);
+  {
+    PoolVector2Array::Write writer=rectpool.write();
+    Vector2 *rect=writer.ptr();
+    
+    Vector2 UL=minimap.position, DR=UL+minimap.size;
+
+    if(UL.x>DR.x)
+      swap(UL.x,DR.x);
+    
+    if(UL.y<DR.y)
+      swap(UL.y,DR.y);
+    
+    real_t L = UL.x, R = DR.x;
+    real_t U = UL.y, D = DR.y;
+
+    rect[0] = Vector2(L,U);
+    rect[1] = Vector2(R,U);
+    rect[2] = Vector2(R,D);
+    rect[3] = Vector2(L,D);
+  }
+
+  // if(!geo->is_polygon_clockwise(rectpool))
+  //   Godot::print_error("Rect poly is not clockwise",__FUNCTION__,__FILE__,__LINE__);
+  
+  // Draw polygons for the annulus
+  for(auto &range : found) {
+    if(not range.get_any_intersect())
+      continue;
+
+    if(range.get_all_intersect()) {
+      draw_asteroid_field_polygon(r_min,r_max,0,PIf,PIf,radius_scale,
+                                  map_scale,map_center,minimap_center,rectpool);
+      draw_asteroid_field_polygon(r_min,r_max,PIf,TAUf,PIf,radius_scale,
+                                  map_scale,map_center,minimap_center,rectpool);
+    } else {
+      draw_asteroid_field_polygon(r_min,r_max,range.get_start_theta(),range.get_end_theta(),
+                                  range.get_theta_width(),radius_scale,
+                                  map_scale,map_center,minimap_center,rectpool);
+    }
+  }
+}
+
 void Minimap::draw_minimap_contents(VisibleContent *visible_content, RID new_canvas,
                                          Vector2 map_center, real_t map_radius,
                                          Vector2 minimap_center, real_t minimap_radius) {
+  // FIXME: Add asteroid field to circular minimap, if I ever switch
+  // back to using a circular minimap.
+
   FAST_PROFILING_FUNCTION;
   canvas=new_canvas;
   
@@ -215,8 +373,6 @@ void Minimap::draw_minimap_contents(VisibleContent *visible_content, RID new_can
   }
 }
 
-
-
 void Minimap::draw_minimap_rect_contents(VisibleContent *visible_content,
                                               RID new_canvas,Rect2 map,Rect2 minimap) {
   FAST_PROFILING_FUNCTION;
@@ -234,10 +390,14 @@ void Minimap::draw_minimap_rect_contents(VisibleContent *visible_content,
   Vector2 map_scale(minimap_half_size.x/map_half_size.x,minimap_half_size.y/map_half_size.y);
   real_t radius_scale = map_scale.length();
 
+  // Draw asteroid fields under everything
+  for(auto &inner_outer : visible_content->asteroid_fields)
+    draw_asteroid_field(inner_outer.first,inner_outer.second,map,minimap,radius_scale,
+                        map_center,map_scale,minimap_center,minimap_half_size);
+  
   // Draw ships and planets.
   for(auto &id_object : visible_content->ships_and_planets) {
     VisibleObject &object = id_object.second;
-    Vector2 center(object.z,-object.x);
     const Color &color = pick_object_color(object);
     Vector2 loc = place_in_rect(Vector2(object.z,-object.x),
                                 map_center,map_scale,minimap_center,minimap_half_size);
@@ -256,8 +416,6 @@ void Minimap::draw_minimap_rect_contents(VisibleContent *visible_content,
   }
 
   // Draw only the projectiles within the minimap; skip outsiders.
-  //real_t outside=minimap_radius*0.95;
-  //real_t outside_squared = outside*outside;
   int proj=0;
   for(auto &projectile : visible_content->effects) {
     if(++proj>MAX_PROJECTILES_IN_MINIMAP)

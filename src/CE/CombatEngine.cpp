@@ -291,6 +291,10 @@ void CombatEngine::update_overhead_view(Vector3 location,Vector3 size,real_t pro
   v_camera_size = size;
 
   visual_effects->add_content();
+
+  visible_content->asteroid_fields.reserve(asteroid_fields.size());
+  for(auto &field : asteroid_fields)
+    visible_content->asteroid_fields.emplace_back(field.get_inner_radius(),field.get_outer_radius());
   
   // Catalog projectiles and make MeshInfos in v_meshes for mesh_ids we don't have yet
   multimeshes.update_content(*visible_content,location,size);

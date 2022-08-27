@@ -45,6 +45,12 @@ window/size/height=900
 
 theme/custom="res://ui/skins/MainTheme.tres"
 
+[importer_defaults]
+
+texture={
+"flags/srgb": 1
+}
+
 [input]
 
 ui_accept={
@@ -205,6 +211,12 @@ quality/shadow_atlas/cubemap_size=256
 quality/shadows/filter_mode=0
 quality/reflections/texture_array_reflections=false
 quality/reflections/high_quality_ggx=false
+gles3/shaders/shader_compilation_mode=2
+gles3/shaders/max_simultaneous_compiles=4
+limits/rendering/max_renderable_elements=8192
+limits/rendering/max_renderable_lights=16
+limits/rendering/max_lights_per_object=8
 quality/subsurface_scattering/quality=0
 quality/subsurface_scattering/weight_samples=false
+quality/depth/hdr=false
 environment/default_environment="res://default_env.tres"

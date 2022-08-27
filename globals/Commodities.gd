@@ -42,8 +42,12 @@ class Product extends Reference:
 	var mass: float = 0.0
 	var tags: Dictionary = {}
 	
-	func _init(name_: String="**MISSING*NAME**",quantity_: float=0,value_: float=0.0,
-			fine_: float=0.0,mass_: float=0.0,tags_=null):
+	func _init(name_: String="**MISSING*NAME**",
+			quantity_: float=0,
+			value_: float=0.0,
+			fine_: float=0.0,
+			mass_: float=0.0,
+			tags_=null):
 		name=name_
 		quantity=quantity_
 		value=value_
@@ -1060,7 +1064,18 @@ func commodity_data_tables() -> ManyProducts:
 
 		Product.new( 'refined_uranium', 30, 10254, 100, 1, [ 'raw_materials/metal/highly_radioactive', 'danger/highly_radioactive' ]),
 		Product.new( 'plutonium', 30, 19504, 100, 1, [ 'raw_materials/metal/highly_radioactive', 'danger/highly_radioactive' ]),
-		
+
+		Product.new( 'pure_water', 1000, 10, 10, 100, [ 'raw_materials/chemicals/water', 'consumables/food', 'consumables/medical' ] ),
+		Product.new( 'oxygen', 1000, 10, 10, 100, [ 'raw_materials/chemicals/oxygen', 'consumables/medical' ] ),
+		Product.new( 'ammonia', 1000, 7, 7, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'methane', 1000, 7, 7, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'carbon', 1000, 10, 10, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'carbon_dioxide', 1000, 10, 10, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'nitrogen', 1000, 7, 7, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'mixed_silica', 1000, 15, 15, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'mixed_hydrocarbons', 1000, 15, 15, 100, [ 'raw_materials/chemicals' ] ),
+		Product.new( 'hydrogen', 1000, 15, 15, 100, [ 'raw_materials/chemicals', 'combustable/hydrogen' ] ),
+
 		# Gems: 1kg, 300 fine. 
 		# Mass includes protective and security packaging.
 		# Price: max(200,real-world $/carat * 5)
@@ -1215,11 +1230,11 @@ func _init():
 			['pets/terran','consumables/pet_care/terran','durable/pet_care/terran','manufactured/pet_care/terran'],
 			['live/sentient','dead/sentient']),
 		'terran_weapons': ManufacturingProcess.new(
-			['raw_materials/metal','raw_materials/gems','manufactured/industrial/terran'],
+			['raw_materials','manufactured/industrial/terran'],
 			['manufactured/defense/terran'],
 			['live/sentient','dead/sentient']),
 		'terran_industrial': ManufacturingProcess.new(
-			['raw_materials/metal','raw_materials/gems'],
+			['raw_materials'],
 			['manufactured/terran'],
 			['live/sentient','dead/sentient']),
 		'terran_food': ManufacturingProcess.new(

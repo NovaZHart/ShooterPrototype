@@ -16,7 +16,7 @@ const EPOCH_ONE_MINUTE: int = EPOCH_ONE_SECOND*60
 const EPOCH_ONE_HOUR: int = EPOCH_ONE_MINUTE*60
 const EPOCH_ONE_DAY: int = EPOCH_ONE_HOUR*24
 
-const EPOCH_GAME_START: int = 0 # = January 1, 2770
+const EPOCH_GAME_START: int = 100*EPOCH_ONE_DAY+5*EPOCH_ONE_HOUR+31*EPOCH_ONE_MINUTE+30*EPOCH_ONE_SECOND
 
 const MOUNT_FLAG_INTERNAL: int = 1
 const MOUNT_FLAG_EXTERNAL: int = 2
@@ -285,11 +285,11 @@ func get_stored_console() -> String: return stored_console
 
 func get_sphere_xyz():
 	if not sphere_xyz:
-		var xyz_data: Image = utils.make_lookup_tiles_c112()
+		var xyz_data: Image = utils.native.make_lookup_tiles_c192()
 		assert(xyz_data)
 		var xyz: ImageTexture = ImageTexture.new()
 		assert(xyz)
-		xyz.create_from_image(xyz_data)
+		xyz.create_from_image(xyz_data,Texture.FLAG_FILTER)
 		sphere_xyz = xyz;
 	return sphere_xyz
 

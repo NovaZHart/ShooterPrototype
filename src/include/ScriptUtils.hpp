@@ -25,10 +25,14 @@ namespace godot {
 
     Ref<ArrayMesh> make_icosphere(float radius, int subs) const;
     Ref<ArrayMesh> make_cube_sphere_v2(float radius, int subs) const;
-    Ref<Image> make_lookup_tiles_c224() const;
-    Ref<Image> make_lookup_tiles_c112() const;
+    Ref<Image> make_lookup_tiles_c192() const;
+    Ref<Image> make_lookup_tiles_c96() const;
+    Ref<Image> make_hash_cube8(uint32_t hash) const;
     Ref<Image> make_hash_cube16(uint32_t hash) const;
     Ref<Image> make_hash_square32(uint32_t hash) const;
+    Ref<Image> generate_impact_craters(real_t max_size,real_t min_size,int requested_count,uint32_t seed) const;
+    Ref<Image> generate_planet_ring_noise(uint32_t log2,uint32_t seed,real_t weight_power) const;
+    Ref<ArrayMesh> make_annulus_mesh(real_t middle_radius, real_t thickness, int steps) const;
   };
 
 }
