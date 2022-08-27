@@ -56,6 +56,7 @@ namespace godot {
       std::vector<VisibleEffect> effects;
       std::unordered_map<object_id,String> mesh_paths;
       std::vector<InstanceEffect> instances;
+      std::vector<std::pair<real_t,real_t>> asteroid_fields; // inner,outer radius pairs
       //std::unordered_map<object_id,object_id> preloaded_meshes;
       VisibleContent *next;
       VisibleContent();

@@ -101,12 +101,11 @@ AsteroidSearchResult::merge(const AsteroidSearchResult &region) const {
   typedef pair<bool,AsteroidSearchResult> result;
   if(all_intersect or region.all_intersect) // merge with entire circle => entire circle
     return result(true,all_intersect);
-  if(!any_intersect) // merge with empty set => original set
+  else if(!any_intersect) // merge with empty set => original set
     return result(true,region);
-  if(!region.all_intersect) // merge with empty set => original set
+  else if(!region.any_intersect) // merge with empty set => original set
     return result(true,*this);
-  
-  if(contains(region.start_theta)) {
+  else if(contains(region.start_theta)) {
     // Merge a region which begins within this.
     
     if(contains(region.end_theta))
@@ -116,16 +115,15 @@ AsteroidSearchResult::merge(const AsteroidSearchResult &region) const {
       // Add to end of this.
       return result(true,AsteroidSearchResult(start_theta,region.end_theta));
   }
-  
-  if(region.contains(end_theta))
+  else if(region.contains(end_theta))
     // Add a region that is a superset of this; result is the other region.
     return result(true,region);
-  if(region.contains(start_theta))
+  else if(region.contains(start_theta))
     // Add a region that is the start half of this
     return result(true,AsteroidSearchResult(region.start_theta,end_theta));
-
-  // Cannot merge with a region that is entirely outside of this.
-  return result(false,no_match);
+  else
+    // Cannot merge with a region that is entirely outside of this.
+    return result(false,no_match);
 }
 
 ////////////////////////////////////////////////////////////////////////
@@ -136,9 +134,9 @@ AsteroidSearchResult AsteroidSearchResult::expanded_by(real_t dtheta) {
     return *this;
 
   real_t theta_sum = 2*dtheta+theta_width;
-  if(theta_sum>=TAUf) // expanded to full circle
+  if(theta_sum+epsilon>=TAUf) // expanded to full circle
     return all_match;
-  if(theta_sum<=0) // shrunk to null set
+  if(theta_sum<=epsilon) // shrunk to null set
     return no_match;
 
   return AsteroidSearchResult(start_theta-dtheta,end_theta+dtheta);
@@ -146,7 +144,7 @@ AsteroidSearchResult AsteroidSearchResult::expanded_by(real_t dtheta) {
 
 ////////////////////////////////////////////////////////////////////////
 
-void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results) {
+void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> &results) {
   FAST_PROFILING_FUNCTION;
   if(results.size()<2)
     return;
@@ -158,10 +156,10 @@ void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results) {
     results.pop_front();
 
     // Loop over all other elements of the deck. Check each one and remove it if we merged.
-    for(auto checkme=results.begin();checkme!=results.end();) {
+    for(deque<AsteroidSearchResult>::iterator checkme=results.begin();checkme!=results.end();) {
 
       // Can we merge these two elements?
-      pair<bool,AsteroidSearchResult> check=checkme->merge(mergeme);
+      pair<bool,AsteroidSearchResult> check=mergeme.merge(*checkme);
       if(check.first) {
         
         // Successful merge, so update our loop counter.
@@ -173,7 +171,8 @@ void AsteroidSearchResult::merge_set(deque<AsteroidSearchResult> results) {
         if(mergeme.all_intersect) {
           // The new range includes everything. We're done.
           results.clear();
-          break;
+          results.push_back(mergeme);
+          return;
         } else
           // The new range is not all-inclusive, so we may not be done.
           checkme = results.erase(checkme);
@@ -1282,3 +1281,6 @@ CelestialHit AsteroidField::cast_ray(Vector2 start,Vector2 end) {
   
   return closest;
 }
+
+/**********************************************************************/
+

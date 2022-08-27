@@ -5,6 +5,7 @@
 #include <Vector2.hpp>
 #include <Color.hpp>
 #include "CE/VisibleContent.hpp"
+#include "CE/AsteroidField.hpp"
 
 namespace godot {
   namespace CE {
@@ -12,7 +13,7 @@ namespace godot {
       RID canvas;
       static const real_t crosshairs_width;
       static const Color hostile_color, friendly_color, player_color, neutral_color,
-        projectile_color, planet_color;
+        projectile_color, planet_color, asteroid_field_color;
     public:
       Minimap();
       ~Minimap();
@@ -23,6 +24,10 @@ namespace godot {
       void draw_minimap_rect_contents(VisibleContent *visible_content,
                                       RID new_canvas,Rect2 map,Rect2 minimap);
     private:
+      void draw_asteroid_field(real_t inner_radius,real_t outer_radius,
+                               const Rect2 &map_region,const Rect2 &minimap,real_t radius_scale,
+                               const Vector2 &map_center,const Vector2 &map_scale,
+                               const Vector2 &minimap_center,const Vector2 &minimap_half_size);
       Vector2 place_center(const Vector2 &where,
                            const Vector2 &map_center,real_t map_radius,
                            const Vector2 &minimap_center,real_t minimap_radius);

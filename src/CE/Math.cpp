@@ -50,6 +50,45 @@ namespace godot {
       }
     }
 
+    real_t rect_distance_squared_to_origin(const Rect2 &r) {
+      FAST_PROFILING_FUNCTION;
+      Vector2 UL=r.position, DR=UL+r.size;
+
+      if(UL.x>DR.x)
+        swap(UL.x,DR.x);
+
+      if(UL.y<DR.y)
+        swap(UL.y,DR.y);
+
+      real_t L = UL.x, R = -DR.x;
+      real_t U = -UL.y, D = DR.y;
+
+      if(L>0) {
+        if(U>0)
+          return UL.length_squared();
+        else if(D>0) {
+          Vector2 DL(UL.x,DR.y);
+          return DL.length_squared();
+        } else
+          return L*L;
+      } else if(R>0) {
+        if(U>0) {
+          Vector2 UR(DR.x,UL.y);
+          return UR.length_squared();
+        } else if(D>0)
+          return DR.length_squared();
+        else
+          return R*R;
+      } else {
+        if(U>0)
+          return U*U;
+        else if(D>0)
+          return D*D;
+        else
+          return 0;
+      }
+    }
+
     ////////////////////////////////////////////////////////////////////////
 
     // Intersection of a circle at the origin and a line segment
