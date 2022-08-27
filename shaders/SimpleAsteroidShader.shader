@@ -3,6 +3,9 @@ render_mode shadows_disabled;
 
 uniform sampler2D tex1;
 uniform sampler2D tex2;
+uniform sampler2D tex3;
+uniform sampler2D tex4;
+uniform sampler2D tex5;
 
 void vertex() {
 	vec4 ic1 = INSTANCE_CUSTOM*2.0-1.0;
@@ -22,5 +25,16 @@ void vertex() {
 }
 
 void fragment() {
-	ALBEDO = mix(texture(tex1,UV).rgb,texture(tex2,UV).rgb,COLOR.a)*COLOR.rgb;
+	float t=COLOR.a;
+	if(t>0.5) {
+		if(t>0.75)
+			ALBEDO=mix(texture(tex4,UV).rgb,texture(tex5,UV).rgb,(t-0.75)*4.0).rgb;
+		else
+			ALBEDO=mix(texture(tex3,UV).rgb,texture(tex4,UV).rgb,(t-0.5)*4.0).rgb;
+	} else {
+		if(t>0.25)
+			ALBEDO=mix(texture(tex2,UV).rgb,texture(tex3,UV).rgb,(t-0.25)*4.0).rgb;
+		else
+			ALBEDO=mix(texture(tex1,UV).rgb,texture(tex2,UV).rgb,t*4.0).rgb;
+	}
 }

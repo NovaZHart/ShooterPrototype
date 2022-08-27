@@ -8,6 +8,7 @@ var SphereTool = preload('res://bin/spheretool.gdns')
 #var CubePlanetTilesV2 = preload("res://shaders/CubePlanetTilesV2.shader")
 var CubePlanetTiles = preload("res://shaders/CubePlanetTilesV3.shader")
 var ContinentTiles = preload("res://shaders/ContinentGenerator.shader")
+var AsteroidTiles = preload("res://shaders/AsteroidTiles.shader")
 var InfernoTiles = preload("res://shaders/InfernoGenerator.shader")
 var IceballTiles = preload("res://shaders/IceballGenerator.shader")
 var RockyTiles = preload("res://shaders/RockyGenerator.shader")
@@ -234,9 +235,15 @@ func make_sphere(object_type: String, subdivisions: int,random_seed: int,
 		xyz = game_state.get_sphere_xyz()
 	
 	view_shade=ShaderMaterial.new()
-	if shader_type=='continents':
-		print("CONTINENTS")
-		view_shade.set_shader(ContinentTiles)
+	if shader_type=='continents' or shader_type=='asteroid_tiles':
+		if shader_type=='continents':
+			print("CONTINENTS")
+			view_shade.set_shader(ContinentTiles)
+		else:
+			print("ASTEROID TILES")
+			view_shade.set_shader(AsteroidTiles)
+			view_shade.set_shader_param('crater_data',get_crater_list_image(random_seed+2))
+			view_shade.set_shader_param('crater_count',crater_count)
 		view_shade.set_shader_param('temperature_cube8',get_hash_cube_8(random_seed+2))
 		view_shade.set_shader_param('altitude_cube16',get_hash_cube_16(random_seed))
 		view_shade.set_shader_param('cloud_cube16',get_hash_cube_16b(random_seed+1))

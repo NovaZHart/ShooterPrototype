@@ -18,8 +18,13 @@ var oort_clouds: Array = [ { 'thickness':4000, 'inner_radius':2000, 'asteroids':
 
 var SphereTool = preload('res://bin/spheretool.gdns')
 var SimpleAsteroidShader = preload('res://shaders/SimpleAsteroidShader.shader')
-var AsteroidTexture1 = preload('res://textures/metal_8133_high_contrast.jpg')
-var AsteroidTexture2 = preload('res://textures/cell-noise.jpg')
+#var AsteroidTexture1 = preload('res://textures/metal_8133_high_contrast.jpg')
+#var AsteroidTexture2 = preload('res://textures/cell-noise.jpg')
+var AsteroidTexture1 = preload('res://textures/small-asteroid-continents-bronze.jpg')
+var AsteroidTexture2 = preload('res://textures/small-asteroid-rocky-orange.jpg')
+var AsteroidTexture3 = preload('res://textures/small-asteroid-red-veins.jpg')
+var AsteroidTexture4 = preload('res://textures/small-asteroid-noisy-bronze.jpg')
+var AsteroidTexture5 = preload('res://textures/small-asteroid-wobbly-patterns.jpg')
 
 var faction_goals: Array
 var active_factions: Dictionary
@@ -226,6 +231,9 @@ func generate_default_asteroid_mesh(oort_cloud: bool = false) -> Mesh:
 	shade.set_shader(SimpleAsteroidShader)
 	shade.set_shader_param('tex1',AsteroidTexture1)
 	shade.set_shader_param('tex2',AsteroidTexture2)
+	shade.set_shader_param('tex3',AsteroidTexture3)
+	shade.set_shader_param('tex4',AsteroidTexture4)
+	shade.set_shader_param('tex5',AsteroidTexture5)
 	for i in range(mesh.get_surface_count()):
 		mesh.surface_set_material(i,shade)
 	return mesh
