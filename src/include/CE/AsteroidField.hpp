@@ -337,7 +337,9 @@ namespace godot {
                     std::shared_ptr<SalvagePalette> salvege,object_id field_id);
 
       ~AsteroidField();
-      
+
+      PROP_GET_VAL(object_id,field_id);
+      PROP_GET_VAL(std::shared_ptr<const SalvagePalette>,salvage);
       PROP_GET_VAL(real_t,max_scale);
       PROP_GET_VAL(real_t,inner_radius);
       PROP_GET_VAL(real_t,outer_radius);

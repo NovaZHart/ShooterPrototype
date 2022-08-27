@@ -47,7 +47,7 @@ namespace godot {
       SalvagePalette(Dictionary from);
       
       std::shared_ptr<Salvage> instance_salvage(const String &whut,CheapRand32 &rand) const;
-
+      void dump() const;
       inline std::shared_ptr<const Salvage> get_salvage(const String &whut) const {
         auto found=salvage.find(whut);
         return (found==salvage.end()) ? nullptr : found->second;

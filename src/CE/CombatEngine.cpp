@@ -333,6 +333,9 @@ void CombatEngine::add_asteroid_field(Dictionary field_data) {
   shared_ptr<SalvagePalette> sp=make_shared<SalvagePalette>(field_data["salvage"]);
   asteroid_fields.emplace_back(0,godot::CE::get<Array>(field_data,"layers"),ap,sp,id);
   asteroid_fields.back().generate_field();
+  const AsteroidField &b=asteroid_fields.back();
+  Godot::print("Added asteroid field "+str(b.get_inner_radius())+".."+str(b.get_outer_radius())+" with salvage:");
+  b.get_salvage()->dump();
 }
 
 /**********************************************************************/
@@ -342,7 +345,7 @@ void CombatEngine::add_asteroid_field(Dictionary field_data) {
 /**********************************************************************/
 
 void CombatEngine::damage_asteroid(Asteroid &asteroid,double damage,int damage_type) {
-  object_id field_id = asteroid.get_id()>>id_category_shift;
+  object_id field_id = (asteroid.get_id()-first_asteroid_field_id_mask)>>id_category_shift;
   if(field_id<0 or static_cast<size_t>(field_id)>=asteroid_fields.size())
     Godot::print_error("Tried to damage an asteroid from invalid field number "+str(field_id),
                        __FUNCTION__,__FILE__,__LINE__);

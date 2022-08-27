@@ -36,7 +36,10 @@ AsteroidTemplate::AsteroidTemplate(const Dictionary &dict,object_id mesh_id):
                             MAX_ASTEROID_RESISTANCE)
               : default_resistances),
   scale_factor(clamp(get<real_t>(dict,"scale_factor",1.0f),0.1f,10.0f))
-{}
+{
+  if(salvage.empty())
+    Godot::print_warning("Empty salvage in asteroid "+str(get<String>(dict,"display_name","(Unnamed)")),__FUNCTION__,__FILE__,__LINE__);
+}
 
 /* * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * */
 

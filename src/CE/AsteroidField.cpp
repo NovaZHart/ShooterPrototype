@@ -780,7 +780,7 @@ AsteroidField::~AsteroidField()
 
 void AsteroidField::generate_field() {
   object_id layer_increment = 1<<asteroid_layer_number_bit_shift;
-  object_id layer_id = 0;
+  object_id layer_id = field_id;
   for(auto &layer : layers) {
     layer.generate_field(palette,rand,layer_id);
     layer_id += layer_increment;
@@ -870,6 +870,11 @@ real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t
       Vector3 pnorm = position.normalized();
       Vector3 asteroid_velocity(-pnorm.z*speed,0,pnorm.x*speed);
 
+      if(flotsam_count<1) {
+        Godot::print_warning("Asteroid flotsam count is "+str(flotsam_count)+"!",__FUNCTION__,__FILE__,__LINE__);
+      }
+
+      
       for(int i=0;i<flotsam_count;i++) {
         real_t rand_angle = rand.rand_angle();
         Vector3 velocity = velocity + unit_from_angle(rand_angle)*30;
@@ -877,6 +882,15 @@ real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t
         int count = max(1,int(max_count*quantity_multiplier));
         std::shared_ptr<const Salvage> actualized = make_shared<const Salvage>(*salvage_ptr,count);
         ce.create_flotsam_projectile(nullptr,actualized,position,rand_angle,velocity,FLOTSAM_MASS);
+      }
+    } else {
+      if(asteroid.get_cargo().empty())
+        Godot::print_warning("Asteroid has no cargo!",__FUNCTION__,__FILE__,__LINE__);
+      else {
+        Godot::print_warning("No salvage for \""+str(asteroid.get_cargo())+"\"",
+                             __FUNCTION__,__FILE__,__LINE__);
+        Godot::print("No salvage for \""+str(asteroid.get_cargo())+"\" in field "+str(inner_radius)+".."+str(outer_radius)+" id "+str(field_id));
+        salvage->dump();
       }
     }
     return remaining;

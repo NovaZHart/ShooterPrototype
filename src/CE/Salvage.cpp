@@ -57,7 +57,14 @@ SalvagePalette::SalvagePalette():
 {}
 
 SalvagePalette::~SalvagePalette() {}
+void SalvagePalette::dump() const {
+  for(auto &name_ptr : salvage)
+    if(name_ptr.second)
+      Godot::print("Salvage \""+str(name_ptr.first)+"\" => "+str(name_ptr.second->cargo_name)+" * "+str(name_ptr.second->cargo_count));
+    else
+      Godot::print("Salvage \""+str(name_ptr.first)+"\" => null");
 
+}
 shared_ptr<Salvage> SalvagePalette::instance_salvage(const String &whut,CheapRand32 &rand) const {
   shared_ptr<const Salvage> original = get_salvage(whut);
   if(!original)
