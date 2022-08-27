@@ -9,84 +9,130 @@
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
-                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.7 ],
-                "salvage": "water",
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.5 ],
+                "salvage": "ammonia",
+                "max_structure": 400.0,
+                "mesh_generator": "comet"
+                } ],
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.1 ],
+                "salvage": "carbon_dioxide",
                 "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
                 "color_data": [ "Color", 0.7, 0.85, 1.0, 0.15 ],
+                "salvage": "methane",
+                "max_structure": 400.0,
+                "mesh_generator": "comet"
+                } ],
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.20 ],
                 "salvage": "water",
                 "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
-                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.22 ],
-                "salvage": "water",
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.25 ],
+                "salvage": "ammonia",
                 "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
-                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.30 ],
-                "salvage": "comet_ice_nonwater",
-                "max_structure": 600.0,
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.30 ],
+                "salvage": "carbon_dioxide",
+                "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
-                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.37 ],
-                "salvage": "comet_ice_nonwater",
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.35 ],
+                "salvage": "methane",
+                "max_structure": 400.0,
+                "mesh_generator": "comet"
+                } ],
+
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.40 ],
+                "salvage": "hydrogen",
                 "max_structure": 600.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
                 "color_data": [ "Color", 0.85, 0.7, 1.0, 0.45 ],
-                "salvage": "comet_ice_nonwater",
+                "salvage": "oxygen",
                 "max_structure": 600.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
-                "color_data": [ "Color", 0.85, 0.85, 1.0, 0.52 ],
-                "salvage": "comet_dust_nonmetalic",
+                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.50 ],
+                "salvage": "carbon",
+                "max_structure": 600.0,
+                "mesh_generator": "comet"
+                } ],
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.55 ],
+                "salvage": "nitrogen",
                 "max_structure": 800.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 15.0, {
-                "color_data": [ "Color", 0.85, 0.85, 1.0, 0.60 ],
-                "salvage": "comet_dust_nonmetalic",
+                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.60 ],
+                "salvage": "mixed_silica",
                 "max_structure": 800.0,
                 "mesh_generator": "comet"
                 } ],
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.85, 0.7, 1.0, 0.65 ],
+                "salvage": "mixed_hydrocarbons",
+                "max_structure": 1000.0,
+                "mesh_generator": "comet"
+                } ],
+
             [ "Array", 10.0, {
-                "color_data": [ "Color", 1.0, 1.0, 0.95, 0.67 ],
-                "salvage": "comet_metal",
+                "color_data": [ "Color", 1.0, 1.0, 0.95, 0.70 ],
+                "salvage": "iron",
                 "max_structure": 1000.0,
                 "mesh_generator": "comet"
                 } ],
             [ "Array", 10.0, {
                 "color_data": [ "Color", 1.0, 1.0, 0.95, 0.75 ],
-                "salvage": "comet_metal",
+                "salvage": "nickel",
                 "max_structure": 1000.0,
                 "mesh_generator": "comet"
                 } ],
-            [ "Array", 10.0, {
-                "color_data": [ "Color", 1.0, 1.0, 0.95, 0.82 ],
-                "salvage": "comet_metal",
-                "max_structure": 1000.0,
+
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.80 ],
+                "salvage": "water",
+                "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ],
-            [ "Array", 5.0, {
-                "color_data": [ "Color", 1.0, 1.0, 0.95, 0.90 ],
-                "salvage": "comet_rare_metal",
-                "max_structure": 1500.0,
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.85 ],
+                "salvage": "ammonia",
+                "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ],
-            [ "Array", 5.0, {
-                "color_data": [ "Color", 1.0, 1.0, 0.95, 1.0 ],
-                "salvage": "comet_rare_metal",
-                "max_structure": 1500.0,
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.90 ],
+                "salvage": "carbon_dioxide",
+                "max_structure": 400.0,
+                "mesh_generator": "comet"
+                } ],
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 0.95 ],
+                "salvage": "methane",
+                "max_structure": 400.0,
+                "mesh_generator": "comet"
+                } ],
+            [ "Array", 15.0, {
+                "color_data": [ "Color", 0.7, 0.85, 1.0, 1.0 ],
+                "salvage": "water",
+                "max_structure": 400.0,
                 "mesh_generator": "comet"
                 } ]
         ],
+        
         "planetoids": [
             "AsteroidPalette",
             [ "Array", 3.0, {

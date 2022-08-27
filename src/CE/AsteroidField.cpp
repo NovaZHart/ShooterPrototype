@@ -886,12 +886,9 @@ real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t
     } else {
       if(asteroid.get_cargo().empty())
         Godot::print_warning("Asteroid has no cargo!",__FUNCTION__,__FILE__,__LINE__);
-      else {
+      else
         Godot::print_warning("No salvage for \""+str(asteroid.get_cargo())+"\"",
                              __FUNCTION__,__FILE__,__LINE__);
-        Godot::print("No salvage for \""+str(asteroid.get_cargo())+"\" in field "+str(inner_radius)+".."+str(outer_radius)+" id "+str(field_id));
-        salvage->dump();
-      }
     }
     return remaining;
   } else

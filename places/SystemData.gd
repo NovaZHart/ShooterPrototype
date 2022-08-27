@@ -3,6 +3,17 @@ extends simple_tree.SimpleNode
 var display_name: String = "Unnamed" setget ,get_display_name
 var counter: int = 0
 
+const default_resistances: Dictionary = {
+	'asteroid': PoolRealArray([
+		#TYP, LGT,  HEP,  PRC,  IMP,  EMF,  GRV,  ATM,  EXP,  PSI,  PLS,  CHG,  RFT,  TMP,  BIO,  LFC,  UNR
+		0.0,  0.0,  0.0, -0.2, -0.3,  0.0,  0.0, -1.0, -0.1,  0.0,  0.0,  0.0, -0.3,  0.0,  0.5, 0.75,  0.0
+	]),
+	'comet': PoolRealArray([
+		#TYP, LGT,  HEP,  PRC,  IMP,  EMF,  GRV,  ATM,  EXP,  PSI,  PLS,  CHG,  RFT,  TMP,  BIO,  LFC,  UNR
+		0.0,  0.1,  0.0, -0.2, -0.3,  0.0,  0.0, -1.0, -0.5,  0.0, -0.5,  0.0, -0.3,  0.0,  0.5, 0.75,  0.0
+	])
+	}
+
 var links: Dictionary
 var position: Vector3 setget set_position
 var plasma_seed: int
@@ -211,13 +222,24 @@ func generate_asteroid_field(inner_radius: float,thickness: float,asteroids: Arr
 	var default_asteroid_meshes: Dictionary = {}
 	
 	for ast in result['asteroids']:
+		var mesh_generator = ast[1].get('mesh_generator','asteroid')
 		if not ast[1].get('mesh',null):
-			var mesh_generator = ast[1].get('mesh_generator','asteroid')
 			var mesh = default_asteroid_meshes.get(mesh_generator,null)
 			if mesh==null:
 				mesh=generate_default_asteroid_mesh(scale_multiplier,mesh_generator)
 				default_asteroid_meshes[mesh_generator]=mesh
 			ast[1]['mesh'] = mesh
+		var resist = ast[1].get('resistances',null)
+		if resist:
+			if not resist is PoolRealArray:
+				resist = PoolRealArray(resist)
+		if not resist:
+			resist = default_resistances.get(mesh_generator,null)
+			if not resist:
+				resist = default_resistances['asteroid']
+			ast[1]['resistances'] = resist
+		
+		assert(ast[1]['resistances'] is PoolRealArray)
 		assert(ast[1]['mesh'])
 	
 	var default_salvage_mesh: Mesh

@@ -4670,137 +4670,144 @@
         ],
           
 
-      "divine_condor": [
-          "ShipDesign",
-          "Divine Raptor",
-          [
-              "Resource",
-              "res://ships/FrontierMilitia/Condor.tscn"
+          "divine_raptor": [
+              "ShipDesign",
+              "Divine Raptor",
+              [
+                  "Resource",
+                  "res://ships/FrontierMilitia/Condor.tscn"
+              ],
+              {
+                  "MainTurret": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/FrontierMilitia/MassDriverTurret.tscn"
+                      ]
+                  ],
+                  "NeckEquipment": [
+                      "MultiMount",
+                      {
+                          "NeckEquipment_at_x0_y0": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
+                              ],
+                              0,
+                              0
+                          ],
+                          "NeckEquipment_at_x0_y2": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/defense/GravityControlSystem.tscn"
+                              ],
+                              0,
+                              2
+                          ],
+                          "NeckEquipment_at_x0_y4": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/defense/EnvironmentalControlSystem.tscn"
+                              ],
+                              0,
+                              4
+                          ],
+                          "NeckEquipment_at_x0_y6": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/defense/EntertainmentNetwork.tscn"
+                              ],
+                              0,
+                              6
+                          ]
+                      }
+                  ],
+                  "AftPortTurret": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
+                      ]
+                  ],
+                  "CenterGun": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/FrontierMilitia/MassDriver.tscn"
+                      ]
+                  ],
+                  "StarboardLargeGun": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/Old/BigRedMissileLauncher.tscn"
+                      ]
+                  ],
+                  "StarboardEquipment": [
+                      "MultiMount",
+                      {
+                      }
+                  ],
+                  "PortEquipment": [
+                      "MultiMount",
+                      {
+                      }
+                  ],
+                  "ExternalEquipment": [
+                      "MultiMount",
+                      {
+                          "ExternalEquipment_at_x1_y2": [
+                              "MultiMounted",
+                              [
+                                  "Resource",
+                                  "res://equipment/divinity/DivinityOrb.tscn"
+                              ],
+                              1,
+                              2
+                          ]
+                      }
+                  ],
+                  "AftEquipment": [
+                      "MultiMount",
+                      {
+                      }
+                  ],
+                  "PortLargeGun": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/Old/BigRedMissileLauncher.tscn"
+                      ]
+                  ],
+                  "PortEngine": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://equipment/divinity/DivinityDrive.tscn"
+                      ]
+                  ],
+                  "AftStarboardTurret": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
+                      ]
+                  ],
+                  "StarbboardEngine": [
+                      "Mounted",
+                      [
+                          "Resource",
+                          "res://equipment/engines/FusionEngine.tscn"
+                      ]
+                  ]
+              },
+              null
           ],
-          {
-              "MainTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/FrontierMilitia/MassDriverTurret.tscn"
-                  ]
-              ],
-              "NeckEquipment": [
-                  "MultiMount",
-                  {
-                      "NeckEquipment_at_x0_y0": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/cooling/OrganicNanofluidCoolant.tscn"
-                          ],
-                          0,
-                          0
-                      ],
-                      "NeckEquipment_at_x0_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/GravityControlSystem.tscn"
-                          ],
-                          0,
-                          2
-                      ],
-                      "NeckEquipment_at_x0_y4": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/EnvironmentalControlSystem.tscn"
-                          ],
-                          0,
-                          4
-                      ],
-                      "NeckEquipment_at_x0_y6": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/defense/EntertainmentNetwork.tscn"
-                          ],
-                          0,
-                          6
-                      ]
-                  }
-              ],
-              "AftPortTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
-                  ]
-              ],
-              "CenterGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/FrontierMilitia/MassDriver.tscn"
-                  ]
-              ],
-              "StarboardLargeGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/Old/BigRedMissileLauncher.tscn"
-                  ]
-              ],
-              "StarboardEquipment": [
-                  "MultiMount",
-                  {
-                  }
-              ],
-              "PortEquipment": [
-                  "MultiMount",
-                  {
-                  }
-              ],
-              "ExternalEquipment": [
-                  "MultiMount",
-                  {
-                      "ExternalEquipment_at_x1_y2": [
-                          "MultiMounted",
-                          [
-                              "Resource",
-                              "res://equipment/divinity/DivinityOrb.tscn"
-                          ],
-                          1,
-                          2
-                      ]
-                  }
-              ],
-              "AftEquipment": [
-                  "MultiMount",
-                  {
-                  }
-              ],
-              "PortLargeGun": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/Old/BigRedMissileLauncher.tscn"
-                  ]
-              ],
-              "PortEngine": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://equipment/divinity/DivinityDrive.tscn"
-                  ]
-              ],
-              "AftStarboardTurret": [
-                  "Mounted",
-                  [
-                      "Resource",
-                      "res://weapons/FrontierMilitia/MagneticRailTurret.tscn"
-                  ]
-              ]
-          },
-          null
-      ],
-
+          
       "peregrine_rail_guns": [
           "ShipDesign",
           "Rail Gun Peregrine",

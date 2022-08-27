@@ -333,9 +333,6 @@ void CombatEngine::add_asteroid_field(Dictionary field_data) {
   shared_ptr<SalvagePalette> sp=make_shared<SalvagePalette>(field_data["salvage"]);
   asteroid_fields.emplace_back(0,godot::CE::get<Array>(field_data,"layers"),ap,sp,id);
   asteroid_fields.back().generate_field();
-  const AsteroidField &b=asteroid_fields.back();
-  Godot::print("Added asteroid field "+str(b.get_inner_radius())+".."+str(b.get_outer_radius())+" with salvage:");
-  b.get_salvage()->dump();
 }
 
 /**********************************************************************/
