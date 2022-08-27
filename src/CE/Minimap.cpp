@@ -294,7 +294,7 @@ void Minimap::draw_asteroid_field(real_t inner_radius,real_t outer_radius,
     // Draw the intersection
     for(int i=0,e=within.size();i<e;i++) {
       PoolVector2Array clipped=within[i];
-      if(clipped.size()>0) {
+      if(clipped.size()>2) {
         int nvert=clipped.size();
         colorpool.resize(nvert);
         {
