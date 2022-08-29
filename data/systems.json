@@ -736,7 +736,7 @@
               { "inner_radius":230, "thickness":170 },
               { "inner_radius":750, "thickness":500,
                 "asteroids": [ "Array", "planetoids", "comets" ],
-                "spacing_multiplier": 8, "iterations":8 }
+                "spacing_multiplier": 2, "iterations":8 }
           ],
           "position": [
             "Vector3",

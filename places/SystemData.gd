@@ -8,6 +8,10 @@ const default_resistances: Dictionary = {
 		#TYP, LGT,  HEP,  PRC,  IMP,  EMF,  GRV,  ATM,  EXP,  PSI,  PLS,  CHG,  RFT,  TMP,  BIO,  LFC,  UNR
 		0.0,  0.0,  0.0, -0.2, -0.3,  0.0,  0.0, -1.0, -0.1,  0.0,  0.0,  0.0, -0.3,  0.0,  0.5, 0.75,  0.0
 	]),
+	'planetoid': PoolRealArray([
+		#TYP, LGT,  HEP,  PRC,  IMP,  EMF,  GRV,  ATM,  EXP,  PSI,  PLS,  CHG,  RFT,  TMP,  BIO,  LFC,  UNR
+		0.0,  0.0,  0.0, -0.2, -0.3,  0.0,  0.0, -1.0, -0.1,  0.0,  0.0,  0.0, -1.0,  0.0,  0.5, 0.75,  0.0
+	]),
 	'comet': PoolRealArray([
 		#TYP, LGT,  HEP,  PRC,  IMP,  EMF,  GRV,  ATM,  EXP,  PSI,  PLS,  CHG,  RFT,  TMP,  BIO,  LFC,  UNR
 		0.0,  0.1,  0.0, -0.2, -0.3,  0.0,  0.0, -1.0, -0.5,  0.0, -0.5,  0.0, -0.3,  0.0,  0.5, 0.75,  0.0
@@ -31,6 +35,7 @@ var oort_clouds: Array = [
 
 var SphereTool = preload('res://bin/spheretool.gdns')
 var SimpleAsteroidShader = preload('res://shaders/SimpleAsteroidShader.shader')
+var SimplePlanetoidShader = preload('res://shaders/SimplePlanetoidShader.shader')
 var SimpleCometShader = preload('res://shaders/SimpleCometShader.shader')
 
 var AsteroidTexture1 = preload('res://textures/small-asteroid-continents-bronze.jpg')
@@ -270,8 +275,11 @@ func generate_default_asteroid_mesh(scale_multiplier: float = 1, generator: Stri
 		shade.set_shader_param('tex3',CometTexture3)
 		shade.set_shader_param('tex4',CometTexture4)
 		shade.set_shader_param('tex5',CometTexture5)
-	else: # asteroid
-		shade.set_shader(SimpleAsteroidShader)
+	else: # asteroid or planetoid
+		if generator=='planetoid':
+			shade.set_shader(SimplePlanetoidShader)
+		else:
+			shade.set_shader(SimpleAsteroidShader)
 		shade.set_shader_param('tex1',AsteroidTexture1)
 		shade.set_shader_param('tex2',AsteroidTexture2)
 		shade.set_shader_param('tex3',AsteroidTexture3)
