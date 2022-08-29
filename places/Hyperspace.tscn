@@ -67,7 +67,7 @@ size = 200.0
 environment = SubResource( 1 )
 
 [node name="Light" type="DirectionalLight" parent="View/System"]
-transform = Transform( 0.939693, 0.116978, -0.321394, 0, 0.939693, 0.34202, 0.34202, -0.321394, 0.883022, 0, 30, 0 )
+transform = Transform( 0.707107, -0.241845, 0.664463, 0, 0.939693, 0.34202, -0.707107, -0.241845, 0.664463, 0, 30, 0 )
 layers = 15
 light_cull_mask = 4293918735
 shadow_enabled = true

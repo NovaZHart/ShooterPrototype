@@ -27,9 +27,7 @@ const background_uv2: float = 16.0
 var have_sent_texture: Dictionary = {}
 
 onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
-#onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackgroundV3.shader")
 onready var TiledImageShader = preload("res://shaders/TiledImage.shader")
-onready var HyperspaceShader = preload("res://shaders/Hyperspace.shader")
 onready var StarFieldGenerator = preload("res://shaders/StarFieldGenerator.shader")
 
 func _ready():
@@ -161,17 +159,11 @@ func make_background():
 		[Vector2(0,0),Vector2(background_uv2,background_uv2)])
 	background.name='Space'
 	var view_mat=ShaderMaterial.new()
-	if hyperspace:
-		view_mat.set_shader(HyperspaceShader)
-	else:
-		view_mat.set_shader(TiledImageShader)
-		view_mat.set_shader_param('uv_whole',Vector2(1.0,1.0))
-		view_mat.set_shader_param('uv2_whole',Vector2(background_uv2,background_uv2))
+	view_mat.set_shader(TiledImageShader)
+	if not hyperspace:
 		view_mat.set_shader_param('texture_starfield',starfield_texture)
 	view_mat.set_shader_param('texture_albedo',$CloudViewport.get_texture())
 	view_mat.set_shader_param('texture_size',Vector2(float(background_pixels),float(background_pixels)))
-	view_mat.set_shader_param('uv_offset',uv_offset)
-	view_mat.set_shader_param('uv2_offset',uv2_offset)
 	background.material_override=view_mat
 	background.set_layer_mask_bit(1,true)
 	add_child(background)
@@ -188,9 +180,4 @@ func center_view(desired_x: float,desired_z: float,a: float,camera_size: float,c
 	var view_mat=background.material_override
 	if hyperspace:
 		return
-	var uvb = background_size/background_tiles
-	var margin: float=(uvb-camera_size)/2.0
-	var margins: Vector2 = Vector2(margin,uvb-margin)/uvb
-	view_mat.set_shader_param('uv_range',margins.y-margins.x)
-	view_mat.set_shader_param('projectile_scale',sqrt(camera_size/30.0))
 	view_mat.set_shader_param('star_scale',camera_size/background_shift + 0.02*sqrt(30.0/camera_size));

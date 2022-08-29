@@ -4,12 +4,9 @@ render_mode unshaded;
 uniform sampler2D texture_albedo : hint_albedo;
 uniform sampler2D texture_starfield;
 uniform vec2 texture_size;
-uniform vec2 uv_offset_scale = vec2(1.0,1.0);
-uniform vec2 uv_offset;
-uniform vec2 uv2_offset;
-uniform vec2 uv_whole=vec2(1.0,1.0);
 uniform float uv_range=100.0;
 uniform float star_scale=0.2;
+uniform bool show_stars = true;
 
 vec3 kelvin_to_rgb(float kelvin) {
 	if(kelvin<6600.0) {
@@ -38,16 +35,17 @@ vec3 star_overlay(vec2 uv) {
 	
 	if(dist>star_scale)
 		return vec3(0.0,0.0,0.0);
-	float kelvin=star.z*10000.0+cos(5.0*(star.x+star.y))*3000.0+500.0;
+	float kelvin=(1.0-star.z*star.z)*10000.0+cos(5.0*(star.x+star.y))*10000.0+2000.0;
 	float intensity=clamp((star_scale-dist)/star_scale*star.z,0.0,1.0);
 	return kelvin_to_rgb(kelvin)*intensity;
 }
 
 void fragment() {
-	vec3 star=star_overlay(fract(UV));
-	vec3 supalo = texture(texture_albedo,fract(UV*3.177)).rgb;
-	vec3 lores = texture(texture_albedo,fract(UV*25.0)).rgb;
-	vec3 hires = texture(texture_albedo,fract(UV*81.0)).rgb;
-	vec3 lohi = mix(mix(supalo,lores,0.313),hires,0.313);
-	ALBEDO=max(lohi.rgb,star.rgb);
+	vec3 supalo = texture(texture_albedo,fract(UV*4.0)).rgb;
+	vec3 lores = texture(texture_albedo,fract(UV*16.0)).rgb;
+	vec3 hires = texture(texture_albedo,fract(UV*64.0)).rgb;
+	vec3 albedo = mix(mix(supalo,lores,0.313),hires,0.313);
+	if(show_stars)
+		albedo = max(albedo,star_overlay(fract(UV)));
+	ALBEDO=albedo;
 }
