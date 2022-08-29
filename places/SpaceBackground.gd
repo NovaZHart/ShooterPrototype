@@ -19,8 +19,10 @@ var starfield_viewport: Viewport
 var starfield_texture: ViewportTexture
 var starfield_shader: ShaderMaterial
 var background: MeshInstance
-const background_pixels: float = 2048.0
-const background_size: float = 611.0
+const background_pixels: float = 1024.0
+const background_size: float = 3600.0
+const background_tiles: int = 2
+const background_shift: float = background_size*2.0/background_tiles
 const background_uv2: float = 16.0
 var have_sent_texture: Dictionary = {}
 
@@ -53,28 +55,49 @@ func make_viewport(var nx: float, var ny: float, var shader: ShaderMaterial) -> 
 	return view
 
 func make_background_square(nx: float,nz: float,uv2) -> MeshInstance:
+	var nvert: PoolVector3Array = PoolVector3Array()
+	var nuv: PoolVector2Array = PoolVector2Array()
+	var nuv2: PoolVector2Array = PoolVector2Array()
+	
+	nvert.resize(6)
+	nuv.resize(6)
+	nuv2.resize(6)
+	
+	nuv[0] = Vector2(0,background_tiles)
+	nuv2[0] = Vector2(0,1)
+	nvert[0] = Vector3(nx,0,-nz)
+	
+	nuv[1] = Vector2(0,0)
+	nuv2[1] = Vector2(0,0)
+	nvert[1] = Vector3(nx,0,nz)
+	
+	nuv[2] = Vector2(background_tiles,0)
+	nuv2[2] = Vector2(1,0)
+	nvert[2] = Vector3(-nx,0,nz)
+	
+	nuv[3] = Vector2(background_tiles,0)
+	nuv2[3] = Vector2(1,0)
+	nvert[3] = Vector3(-nx,0,nz)
+	
+	nuv[4] = Vector2(background_tiles,background_tiles)
+	nuv2[4] = Vector2(1,1)
+	nvert[4] = Vector3(-nx,0,-nz)
+	
+	nuv[5] = Vector2(0,background_tiles)
+	nuv2[5] = Vector2(0,1)
+	nvert[5] = Vector3(nx,0,-nz)
+	
+	var am: ArrayMesh = ArrayMesh.new()
+	var data: Array = []
+	data.resize(ArrayMesh.ARRAY_MAX)
+	data[ArrayMesh.ARRAY_VERTEX] = nvert
+	data[ArrayMesh.ARRAY_TEX_UV] = nuv
+	if uv2!=null: data[ArrayMesh.ARRAY_TEX_UV2] = nuv2
+	
+	am.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES, data, [])
+	
 	var bg=MeshInstance.new()
-	var st=SurfaceTool.new()
-	st.begin(Mesh.PRIMITIVE_TRIANGLES)
-	st.add_uv(Vector2(0,1))
-	if uv2!=null: st.add_uv2(Vector2(uv2[0][0],uv2[1][1]))
-	st.add_vertex(Vector3(nx,0,-nz))
-	st.add_uv(Vector2(0,0))
-	if uv2!=null: st.add_uv2(Vector2(uv2[0][0],uv2[0][1]))
-	st.add_vertex(Vector3(nx,0,nz))
-	st.add_uv(Vector2(1,0))
-	if uv2!=null: st.add_uv2(Vector2(uv2[1][0],uv2[0][1]))
-	st.add_vertex(Vector3(-nx,0,nz))
-	st.add_uv(Vector2(1,0))
-	if uv2!=null: st.add_uv2(Vector2(uv2[1][0],uv2[0][1]))
-	st.add_vertex(Vector3(-nx,0,nz))
-	st.add_uv(Vector2(1,1))
-	if uv2!=null: st.add_uv2(Vector2(uv2[1][0],uv2[1][1]))
-	st.add_vertex(Vector3(-nx,0,-nz))
-	st.add_uv(Vector2(0,1))
-	if uv2!=null: st.add_uv2(Vector2(uv2[0][0],uv2[1][1]))
-	st.add_vertex(Vector3(nx,0,-nz))
-	bg.mesh=st.commit()
+	bg.mesh = am
 	return bg
 
 func update_from(system_data) -> bool:
@@ -154,21 +177,20 @@ func make_background():
 	add_child(background)
 	return background
 
-func center_view(x: float,z: float,a: float,camera_size: float,camera_min_height: float) -> void:
+func center_view(desired_x: float,desired_z: float,a: float,camera_size: float,camera_min_height: float) -> void:
 	background.rotation = Vector3(0,0,0)
-	background.translation.x = x + (camera_min_height-background.translation.y)*tan(a)
+	var anticamera_x: float = desired_x + (camera_min_height-background.translation.y)*tan(a)
+	var anticamera_z: float = desired_z
+	var x: float = background_shift*round(anticamera_x/background_shift)
+	var z: float = background_shift*round(anticamera_z/background_shift)
+	background.translation.x = x
 	background.translation.z = z
 	var view_mat=background.material_override
-	uv_offset=Vector2(fmod(-x/background_size/2,1.0),
-					  fmod(-z/background_size/2,1.0))
-	uv2_offset=uv_offset*background_uv2
-	view_mat.set_shader_param('uv_offset',uv_offset)
-	view_mat.set_shader_param('uv2_offset',uv2_offset)
 	if hyperspace:
 		return
-	var margin: float=(background_size-camera_size)/2.0
-	var margins: Vector2 = Vector2(margin,background_size-margin)/background_size
-	var uv2_range: Vector2 = margins*background_uv2
+	var uvb = background_size/background_tiles
+	var margin: float=(uvb-camera_size)/2.0
+	var margins: Vector2 = Vector2(margin,uvb-margin)/uvb
 	view_mat.set_shader_param('uv_range',margins.y-margins.x)
-	view_mat.set_shader_param('uv2_range',uv2_range)
-
+	view_mat.set_shader_param('projectile_scale',sqrt(camera_size/30.0))
+	view_mat.set_shader_param('star_scale',camera_size/background_shift + 0.02*sqrt(30.0/camera_size));
