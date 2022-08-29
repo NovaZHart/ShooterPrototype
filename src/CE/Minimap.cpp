@@ -231,7 +231,7 @@ void Minimap::draw_asteroid_field_polygon(real_t r_min,real_t r_max,real_t start
   // Draw the intersection
   for(int i=0,e=within.size();i<e;i++) {
     PoolVector2Array clipped=within[i];
-    if(clipped.size()>2) {
+    if(clipped.size()>3) {
       int nvert=clipped.size();
       colorpool.resize(nvert);
       {
