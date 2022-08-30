@@ -21,6 +21,7 @@ using namespace std;
 CombatEngine::CombatEngine():
   system_fuel_recharge(0),
   center_fuel_recharge(0),
+  flotsam_lifespan(SALVAGE_TIME_LIMIT),
   hyperspace(false),
 
   minimap(),
@@ -680,6 +681,7 @@ void CombatEngine::encode_salvaged_items_for_gdscript(Array result) {
 void CombatEngine::integrate_projectiles() {
   FAST_PROFILING_FUNCTION;
   //vector<object_id> deleteme;
+  int flotsam_count=0;
   for(projectiles_iter it=projectiles.begin();it!=projectiles.end();) {
     Projectile &projectile = it->second;
 
@@ -700,12 +702,19 @@ void CombatEngine::integrate_projectiles() {
                       Vector2(PROJECTILE_POINT_WIDTH,PROJECTILE_POINT_WIDTH));
           missile_locations.set_rect(projectile.get_id(),there);
         }
-        if(projectile.is_flotsam())
+        if(projectile.is_flotsam()) {
           flotsam_locations.set_rect(projectile.get_id(),rect_for_circle(projectile.get_position(),projectile.radius()));
+          flotsam_count++;
+        }
       }
       it++;
     }
   }
+
+  if(flotsam_count>MAX_FLOTSAM)
+    flotsam_lifespan = max(5.0f,flotsam_lifespan-1.0f);
+  else
+    flotsam_lifespan = min(SALVAGE_TIME_LIMIT,flotsam_lifespan+1.0f);
 }
 
 void CombatEngine::create_direct_projectile(Ship &ship,shared_ptr<Weapon> weapon,Vector3 position,real_t length,Vector3 rotation,object_id target) {

@@ -499,4 +499,8 @@ void Projectile::step_projectile(CombatEngine &ce,bool &have_died,bool &have_col
   }
 
   have_died = have_collided or age > lifetime or (is_missile() and not structure);
+
+  // Special case: too much flotsam in system, so flotsam dies faster.
+  if(salvage and age>ce.get_flotsam_lifespan())
+    have_died=true;
 }

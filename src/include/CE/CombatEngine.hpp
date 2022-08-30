@@ -67,7 +67,7 @@ namespace godot {
       // Statistics for this solar system
       // // // // // // // // // // // // // // // // // // // // // // // // 
     private:
-      real_t system_fuel_recharge, center_fuel_recharge;
+      real_t system_fuel_recharge, center_fuel_recharge, flotsam_lifespan;
       bool hyperspace;
 
       Minimap minimap;
@@ -154,6 +154,10 @@ namespace godot {
       // // // // // // // // // // // // // // // // // // // // // // // // 
     public:
 
+      inline ticks_t get_flotsam_lifespan() const {
+        return flotsam_lifespan;
+      }
+      
       // Allow const access to generate random numbers
       inline uint32_t randi() const {
         return rand.randi();

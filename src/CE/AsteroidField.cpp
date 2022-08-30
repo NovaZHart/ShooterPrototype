@@ -853,8 +853,7 @@ real_t AsteroidField::damage_asteroid(CombatEngine &ce,Asteroid &asteroid,real_t
       // Area as a fraction of an unscaled asteroid (radius 1)
       real_t area = asteroid.get_scale()*asteroid.get_scale();
 
-      // Flotsam count is the square root of the area:
-      int flotsam_count = clamp(int(ceilf(sqrtf(area))),1,6);
+      int flotsam_count = ceil(area/30);
 
       // Total product count is proportional to the area, and divided
       // evenly among all asteroids.

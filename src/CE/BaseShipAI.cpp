@@ -140,7 +140,7 @@ bool BaseShipAI::should_salvage(CombatEngine &ce,Ship &ship,real_t *returned_bes
 
   ship.salvage_timer.reset();
 
-  real_t max_move = ship.max_speed*(SALVAGE_TIME_LIMIT-PI/ship.max_angular_velocity);
+  real_t max_move = ship.max_speed*(ce.get_flotsam_lifespan()-PI/ship.max_angular_velocity);
   if(max_move<0)
     return false;
 

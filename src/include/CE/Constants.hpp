@@ -19,7 +19,8 @@ namespace godot {
     const ticks_t FAST = 9999999; /* faster than any object should move */
     const ticks_t FAR = 9999999; /* farther than any distance that should be considered */
     const ticks_t BIG = 9999999; /* bigger than any object should be */
-    const ticks_t SALVAGE_TIME_LIMIT = 60; // How long flotsam remains before vanishing
+    const real_t SALVAGE_TIME_LIMIT = 60; // How long flotsam remains before vanishing (seconds)
+    const int MAX_FLOTSAM = 100; /* Flotsam will be destroyed if more than this many exist. */
 
     const int EFFECTS_LIGHT_LAYER_MASK = 2;
 
