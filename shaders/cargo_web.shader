@@ -13,8 +13,8 @@ void vertex() {
 		float v1 = fract(period*(TIME+float(ship_id)));
 		vec4 tex = texture(cargo_web_texture,vec2(UV.x,v1));
 		COLOR = tex;
-		VERTEX.x += NORMAL.x * tex.r * perturbation;
-		VERTEX.z += NORMAL.z * tex.r * perturbation;
+		VERTEX.x += UV2.x * tex.r * perturbation;
+		VERTEX.z += UV2.y * tex.r * perturbation;
 		if(time<0.125) {
 			VERTEX.x *= time*8.0;
 			VERTEX.z *= time*8.0;

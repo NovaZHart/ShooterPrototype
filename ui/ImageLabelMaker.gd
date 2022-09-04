@@ -4,7 +4,7 @@ const PIXEL_MARGIN = 4
 const MIN_WIDTH = 64
 const FONT_SIZE = MIN_WIDTH-2*PIXEL_MARGIN
 const MAX_WIDTH = 4096
-const DUMMY_TEXT = 'MMMM'
+const DUMMY_TEXT = 'Mj*#----M'
 
 const ImageLabelShader = preload('res://shaders/ImageLabel.shader')
 
@@ -66,7 +66,7 @@ func make_instance_from_image():
 	var s01 = Vector2(s00.x,s11.y)
 	var s10 = Vector2(s11.x,s00.y)
 	var H = 1.0
-	var W = H*string_rect.size.x/string_rect.size.y
+	var W = H*string_rect.size.x/string_rect.size.y*0.5
 	var data = []
 	data.resize(ArrayMesh.ARRAY_MAX)
 	data[ArrayMesh.ARRAY_VERTEX] = PoolVector3Array(
@@ -88,10 +88,9 @@ func prepare_viewport():
 	font = DynamicFont.new()
 	font.font_data = font_data
 	font.size = FONT_SIZE
-	var string_size: Vector2 = font.get_string_size(DUMMY_TEXT)
-	string_size.x+=PIXEL_MARGIN
+	var string_size: Vector2 = font.get_string_size(text)
 	var viewport_size_x: int = pow2_width(string_size.x + 2*PIXEL_MARGIN)
-	var viewport_size_y: int = pow2_width(FONT_SIZE + 2*PIXEL_MARGIN)
+	var viewport_size_y: int = pow2_width(string_size.y + 2*PIXEL_MARGIN)
 	viewport = VisualServer.viewport_create()
 	assert(viewport.get_id())
 	VisualServer.viewport_attach_canvas(viewport,canvas)
@@ -105,9 +104,9 @@ func prepare_viewport():
 
 func draw_text_on_canvas():
 	var string_size: Vector2 = font.get_string_size(text)
-	string_size.x+=PIXEL_MARGIN
+	#string_size.x+=PIXEL_MARGIN
 	var viewport_size_x: int = pow2_width(string_size.x + 2*PIXEL_MARGIN)
-	var viewport_size_y: int = pow2_width(FONT_SIZE + 2*PIXEL_MARGIN)
+	var viewport_size_y: int = pow2_width(string_size.y + 2*PIXEL_MARGIN)
 	string_rect = Rect2(Vector2(PIXEL_MARGIN,PIXEL_MARGIN),string_size)
 	string_uv = Rect2(
 		Vector2(PIXEL_MARGIN/float(viewport_size_x),PIXEL_MARGIN/float(viewport_size_y)),

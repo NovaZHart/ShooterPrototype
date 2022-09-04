@@ -23,6 +23,8 @@ namespace godot {
     String string_join(Array a,String sep) const;
     String string_join_no_sep(Array a) const;
 
+    Ref<ArrayMesh> make_circle(real_t radius,int polycount,bool angle_radius) const;
+    
     Ref<ArrayMesh> make_icosphere(float radius, int subs) const;
     Ref<ArrayMesh> make_cube_sphere_v2(float radius, int subs) const;
     Ref<Image> make_lookup_tiles_c192() const;

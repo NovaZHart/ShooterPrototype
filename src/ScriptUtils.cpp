@@ -1,8 +1,10 @@
 #include <SurfaceTool.hpp>
+#include <ArrayMesh.hpp>
 
 #include "ScriptUtils.hpp"
 #include "SphereTool.hpp"
 #include "CE/Utils.hpp"
+#include "CE/VisualEffects.hpp"
 
 namespace godot {
 
@@ -24,6 +26,7 @@ void ScriptUtils::_register_methods() {
   register_method("generate_impact_craters", &ScriptUtils::generate_impact_craters);
   register_method("generate_planet_ring_noise", &ScriptUtils::generate_planet_ring_noise);
   register_method("make_annulus_mesh", &ScriptUtils::make_annulus_mesh);
+  register_method("make_circle", &ScriptUtils::make_circle);
 }
 
 void ScriptUtils::_init() {}
@@ -102,4 +105,13 @@ Ref<Image> ScriptUtils::generate_planet_ring_noise(uint32_t log2,uint32_t seed,r
 Ref<ArrayMesh> ScriptUtils::make_annulus_mesh(real_t middle_radius, real_t thickness, int steps) const {
   return godot::make_annulus_mesh(middle_radius,thickness,steps);
 }
+
+Ref<ArrayMesh> ScriptUtils::make_circle(real_t radius,int polycount,bool angle_radius) const {
+  Ref<ArrayMesh> am = ArrayMesh::_new();
+  Array data = godot::CE::make_circle(radius,polycount,angle_radius);
+  am->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES,data,Array(),
+    ArrayMesh::ARRAY_VERTEX|ArrayMesh::ARRAY_TEX_UV|ArrayMesh::ARRAY_TEX_UV2);
+  return am;
 }
+
+} // End namespace.

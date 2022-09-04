@@ -511,20 +511,20 @@ bool VisualEffects::is_circle_visible(const Vector3 &position, real_t radius) co
   return true;
 }
 
-Array VisualEffects::make_circle(real_t radius,int polycount,bool angle_radius) {
+Array godot::CE::make_circle(real_t radius,int polycount,bool angle_radius) {
   real_t scaled_radius=radius/0.95;
   PoolVector3Array pool_vertices;
-  PoolVector3Array pool_normals;
+  PoolVector2Array pool_uv2;
   PoolVector2Array pool_uv;
   int nvert = polycount*3;
   pool_vertices.resize(nvert);
-  pool_normals.resize(nvert);
+  pool_uv2.resize(nvert);
   pool_uv.resize(nvert);
   PoolVector3Array::Write write_vertices = pool_vertices.write();
-  PoolVector3Array::Write write_normals = pool_normals.write();
+  PoolVector2Array::Write write_uv2 = pool_uv2.write();
   PoolVector2Array::Write write_uv = pool_uv.write();
   Vector3 *vertices = write_vertices.ptr();
-  Vector3 *normals = write_normals.ptr();
+  Vector2 *uv2 = write_uv2.ptr();
   Vector2 *uv = write_uv.ptr();
 
   Vector3 prior=Vector3(sinf(0),0,cosf(0));
@@ -533,33 +533,33 @@ Array VisualEffects::make_circle(real_t radius,int polycount,bool angle_radius) 
     Vector3 next = Vector3(sinf(next_angle),0,cosf(next_angle));
     
     vertices[i*3+0] = prior*scaled_radius;
-    normals[i*3+0] = prior;
+    uv2[i*3+0] = Vector2(prior.x,prior.z);
     if(angle_radius)
       uv[i*3+0] = Vector2(i/real_t(polycount),1);
     else
       uv[i*3+0] = Vector2((prior.z+1)/2,(prior.x+1)/2);
     
-    vertices[i*3+1] = Vector3();
-    normals[i*3+1] = -(next+prior)/2;
-    if(angle_radius)
-      uv[i*3+1] = Vector2((i+0.5f)/polycount,0);
-    else
-      uv[i*3+1] = Vector2(0.5,0.5);
-    
     vertices[i*3+2] = next*scaled_radius;
-    normals[i*3+2] = next;
+    uv2[i*3+2] = Vector2(next.x,next.z);
     if(angle_radius)
       uv[i*3+2] = Vector2((i+1)/real_t(polycount),1);
     else
       uv[i*3+2] = Vector2((next.z+1)/2,(next.x+1)/2);
 
+    vertices[i*3+1] = Vector3();
+    uv2[i*3+1] = -(uv2[i*3+0]+uv2[i*3+2])/2;
+    if(angle_radius)
+      uv[i*3+1] = Vector2((i+0.5f)/polycount,0);
+    else
+      uv[i*3+1] = Vector2(0.5,0.5);
+    
     prior=next;
   }
 
   Array data;
   data.resize(ArrayMesh::ARRAY_MAX);
   data[ArrayMesh::ARRAY_VERTEX] = pool_vertices;
-  data[ArrayMesh::ARRAY_NORMAL] = pool_normals;
+  data[ArrayMesh::ARRAY_TEX_UV2] = pool_uv2;
   data[ArrayMesh::ARRAY_TEX_UV] = pool_uv;
   
   return data;

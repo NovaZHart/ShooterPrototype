@@ -1,5 +1,6 @@
 extends game_state.HyperspaceStub
 
+export var label_color: Color = Color(0.5,1.0,1.0)
 export var label_font_data: DynamicFontData
 export var max_ticks_for_double_press: int = 30
 export var min_sun_height: float = 50.0
@@ -122,7 +123,7 @@ func label_hyperspace():
 		elif not label_being_made and not label and rel_pos.x<add.x and rel_pos.z<add.z:
 			label_being_made = system_name
 			var display_name = system.display_name
-			var color = Color($View/System/SpaceBackground.plasma_color)
+			var color = Color(label_color)
 			color.v = 0.7
 			if label_maker:
 				label_maker.reset(display_name,color)

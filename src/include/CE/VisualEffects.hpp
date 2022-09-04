@@ -24,6 +24,8 @@ namespace godot {
     class VisualEffects;
     class Ship;
 
+    Array make_circle(real_t radius,int polycount,bool angle_radius);
+    
     template<class T>
     struct FreeRID {
       RID rid;
@@ -192,8 +194,6 @@ namespace godot {
 
     private:
 
-      static Array make_circle(real_t radius,int polycount,bool angle_radius);
-    
       object_id new_mmi_effect_id() {
         return idgen.next()<<1;
       }
