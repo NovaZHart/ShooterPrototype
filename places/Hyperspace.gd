@@ -258,7 +258,7 @@ func make_player_orders(_delta: float) -> Dictionary:
 
 func _enter_tree() -> void:
 	universe_edits.push_editors(self)
-	combat_engine.change_worlds(get_viewport().world)
+	combat_engine.change_worlds(get_world())
 	combat_engine.set_system_stats(true,-1.0,0.0)
 	old_target_fps = Engine.target_fps
 	Engine.target_fps = Engine.iterations_per_second
@@ -293,8 +293,8 @@ func visible_region_expansion_rate() -> Vector3:
 	var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	if not player_ship:
 		return Vector3(0,0,0)
-	var rate: float = utils.ship_max_speed(player_ship.combined_stats,
-		ship_stats.get('mass',null))
+	var rate: float = abs(utils.ship_max_speed(player_ship.combined_stats,
+		ship_stats.get('mass',null)))
 	return Vector3(rate,0,rate)
 
 func _process(delta: float) -> void:
@@ -364,7 +364,8 @@ func pack_system_stats_if_not_sent() -> Array:
 	return new_planets_packed
 
 func get_world():
-	return get_viewport().get_world()
+	return $View/System.find_world()
+
 func get_player_rid() -> RID:
 	var player_ship = $View/System/Ships.get_node_or_null(player_ship_name)
 	return RID() if player_ship==null else player_ship.get_rid()
