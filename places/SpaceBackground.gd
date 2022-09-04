@@ -28,6 +28,7 @@ var have_sent_texture: Dictionary = {}
 
 onready var SpaceBackgroundShader = preload("res://shaders/SpaceBackground.shader")
 onready var TiledImageShader = preload("res://shaders/TiledImage.shader")
+onready var TiledHyperspaceShader = preload("res://shaders/TiledHyperspace.shader")
 onready var StarFieldGenerator = preload("res://shaders/StarFieldGenerator.shader")
 
 func _ready():
@@ -159,13 +160,14 @@ func make_background():
 		[Vector2(0,0),Vector2(background_uv2,background_uv2)])
 	background.name='Space'
 	var view_mat=ShaderMaterial.new()
-	view_mat.set_shader(TiledImageShader)
-	if not hyperspace:
-		view_mat.set_shader_param('texture_starfield',starfield_texture)
+	if hyperspace:
+		view_mat.set_shader(TiledHyperspaceShader)
+	else:
+		view_mat.set_shader(TiledImageShader)
+	view_mat.set_shader_param('texture_starfield',starfield_texture)
 	view_mat.set_shader_param('texture_albedo',$CloudViewport.get_texture())
 	view_mat.set_shader_param('texture_size',Vector2(float(background_pixels),float(background_pixels)))
 	view_mat.set_shader_param('nebula_thickness',clamp(15.0/max(plasma_color.r+plasma_color.g+plasma_color.b,0.01),5.0,100.0))
-	view_mat.set_shader_param('show_stars',not hyperspace)
 	background.material_override=view_mat
 	background.set_layer_mask_bit(1,true)
 	add_child(background)
@@ -180,6 +182,4 @@ func center_view(desired_x: float,desired_z: float,a: float,camera_size: float,c
 	background.translation.x = x
 	background.translation.z = z
 	var view_mat=background.material_override
-	if hyperspace:
-		return
 	view_mat.set_shader_param('star_scale',camera_size/background_shift + 0.02*sqrt(30.0/camera_size));
