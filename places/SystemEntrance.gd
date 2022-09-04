@@ -2,8 +2,8 @@ extends Area
 
 export var exit_shader: Shader = preload('res://shaders/HyperspaceExit.shader')
 export var thickness_texture: Texture = preload('res://textures/cell-noise.jpg')
-export var detail_texture: Texture = preload('res://textures/blue-squiggles.jpeg')
-export var exit_color_multiplier: Vector3 = Vector3(1.0,1.7,1.0)
+export var detail_texture: Texture = preload('res://textures/purple-squiggles.jpg')
+export var exit_color_multiplier: Vector3 = Vector3(1.0,1.0,1.0)
 
 var display_name: String
 var has_astral_gate: bool = false

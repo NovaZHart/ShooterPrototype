@@ -2,7 +2,7 @@ shader_type spatial;
 render_mode unshaded;
 
 uniform sampler2D thickness_texture;
-uniform sampler2D detail_texture;
+uniform sampler2D detail_texture: hint_albedo;
 uniform vec3 exit_color_multiplier = vec3(1.0,1.0,1.0);
 uniform float perturbation = 5;
 uniform float period = 0.05;
