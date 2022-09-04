@@ -6,7 +6,15 @@ uniform sampler2D texture_starfield;
 uniform vec2 texture_size;
 uniform float uv_range=100.0;
 uniform float star_scale=0.2;
+uniform float nebula_thickness=50.0;
+uniform float nebula_scale=0.313;
 uniform bool show_stars = true;
+
+varying vec4 clip_location;
+
+void vertex() {
+	clip_location=PROJECTION_MATRIX*(MODELVIEW_MATRIX*vec4(VERTEX,1.0));
+}
 
 vec3 kelvin_to_rgb(float kelvin) {
 	if(kelvin<6600.0) {
@@ -41,11 +49,16 @@ vec3 star_overlay(vec2 uv) {
 }
 
 void fragment() {
-	vec3 supalo = texture(texture_albedo,fract(UV*4.0)).rgb;
+	vec3 lower = texture(texture_albedo,fract(UV*4.0)).rgb;
 	vec3 lores = texture(texture_albedo,fract(UV*16.0)).rgb;
 	vec3 hires = texture(texture_albedo,fract(UV*64.0)).rgb;
-	vec3 albedo = mix(mix(supalo,lores,0.313),hires,0.313);
-	if(show_stars)
-		albedo = max(albedo,star_overlay(fract(UV)));
-	ALBEDO=albedo;
+	vec3 mixed = mix(mix(lower,lores,nebula_scale),hires,nebula_scale);
+	if(show_stars) {
+		float weight = clamp(nebula_thickness*(mixed.r+mixed.g+mixed.b),0.0,1.0);
+		if(weight<1.0) {
+			vec2 star_uv = 0.5*vec2(clip_location.x,clip_location.y)+0.5;
+			mixed = mix(star_overlay(fract(star_uv)),mixed,weight);
+		}
+	}
+	ALBEDO = mixed;
 }

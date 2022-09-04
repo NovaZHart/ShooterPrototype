@@ -164,6 +164,8 @@ func make_background():
 		view_mat.set_shader_param('texture_starfield',starfield_texture)
 	view_mat.set_shader_param('texture_albedo',$CloudViewport.get_texture())
 	view_mat.set_shader_param('texture_size',Vector2(float(background_pixels),float(background_pixels)))
+	view_mat.set_shader_param('nebula_thickness',clamp(15.0/max(plasma_color.r+plasma_color.g+plasma_color.b,0.01),5.0,100.0))
+	view_mat.set_shader_param('show_stars',not hyperspace)
 	background.material_override=view_mat
 	background.set_layer_mask_bit(1,true)
 	add_child(background)
