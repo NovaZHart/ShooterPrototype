@@ -92,9 +92,48 @@ var transforms: Dictionary = {}
 var retain_hidden_mounts: bool = false
 var cargo setget set_cargo
 
+var initial_fuel: float = -1.0
+var initial_armor: float = -1.0
+
 var skipped_runtime_stats: bool = true
 
 func is_ShipStats(): pass # for type detection; never called
+
+func set_stats_from_fleet(fleet_name: String) -> bool:
+	var fleet_node = game_state.fleets.get_child_with_name(fleet_name)
+	if fleet_node:
+		var stats_list: Array = fleet_node.get_ship_stats_list()
+		return set_stats_from_ship_list(stats_list)
+	return false
+
+func set_stats_from_ship_list(ship_stats_list: Array) -> bool:
+	if utils.native.update_base_stats_from_ships(self,ship_stats_list):
+		assert(initial_fuel>0)
+		assert(initial_armor>0)
+		combined_stats = make_stats(self,{'weapons':[],'equipment':[],'salvage':[]},true)
+		assert(initial_fuel>0)
+		assert(initial_armor>0)
+		assert(combined_stats['armor']==initial_armor)
+		assert(combined_stats['fuel']==initial_fuel)
+		update_stats()
+		assert(initial_fuel>0)
+		assert(initial_armor>0)
+		assert(combined_stats['armor']==initial_armor)
+		assert(combined_stats['fuel']==initial_fuel)
+		assert(combined_stats['thrust']>0)
+		assert(combined_stats['max_fuel']>0)
+		assert(combined_stats['fuel']>0)
+		assert(combined_stats['drag']>0)
+		assert(combined_stats['turn_drag']>0)
+		assert(combined_stats['empty_mass']>0)
+		var ad = combined_stats['armor_inverse_density']
+		assert(ad>0 and not is_nan(ad) and not is_inf(ad) and ad<1e6)
+		ad = combined_stats['fuel_inverse_density']
+		assert(ad>0 and not is_nan(ad) and not is_inf(ad) and ad<1e6)
+		set_physics_from_stats()
+		assert(mass>0)
+		return true
+	return false
 
 func set_height(new_height: float):
 	height=new_height
@@ -465,7 +504,14 @@ func add_stats(stats: Dictionary,skip_runtime_stats=false,ship_node=null) -> voi
 	
 	stats['flotsam_data'] = [ [flotsam_meshes,flotsam] ]
 	
+	if initial_fuel>=0:
+		stats['fuel'] = initial_fuel
+	if initial_armor>=0:
+		stats['armor'] = initial_armor
+	
 	skipped_runtime_stats = skip_runtime_stats
+	
+	assert(stats['empty_mass']>0)
 
 func update_stats():
 	combined_stats['faction_index']=faction_index
@@ -501,6 +547,17 @@ func max_and_repair(key,maxval,repairval) -> String:
 func get_bbcode(annotation: String = '') -> String:
 	return text_gen.make_ship_bbcode(pack_stats(true,true),true,annotation)
 
+func set_physics_from_stats():
+	var ship_mass = utils.ship_mass(combined_stats)
+	assert(ship_mass>0)
+	mass=ship_mass
+	linear_damp=combined_stats['drag']
+	gravity_scale=0
+	axis_lock_linear_y=true
+	axis_lock_angular_x=true
+	axis_lock_angular_z=true
+	can_sleep=false
+
 func _ready():
 	var must_update: bool = true
 	if not combined_stats.has('empty_mass'):
@@ -521,13 +578,7 @@ func _ready():
 		height = (randi()%11)*1.99 - 8.445
 	combined_stats['visual_height'] = height+game_state.SHIP_HEIGHT
 	collision_mask=0
-	mass=utils.ship_mass(combined_stats)
-	linear_damp=combined_stats['drag']
-	gravity_scale=0
-	axis_lock_linear_y=true
-	axis_lock_angular_x=true
-	axis_lock_angular_z=true
-	can_sleep=false
+	set_physics_from_stats()
 	
 	# Sometimes Godot trashes the CollisionShape transforms:
 	restore_transforms()

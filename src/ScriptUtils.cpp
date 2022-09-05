@@ -27,6 +27,8 @@ void ScriptUtils::_register_methods() {
   register_method("generate_planet_ring_noise", &ScriptUtils::generate_planet_ring_noise);
   register_method("make_annulus_mesh", &ScriptUtils::make_annulus_mesh);
   register_method("make_circle", &ScriptUtils::make_circle);
+  //ScriptUtils::update_base_stats_from_ships
+  register_method("update_base_stats_from_ships", &ScriptUtils::update_base_stats_from_ships);
 }
 
 void ScriptUtils::_init() {}
@@ -114,4 +116,119 @@ Ref<ArrayMesh> ScriptUtils::make_circle(real_t radius,int polycount,bool angle_r
   return am;
 }
 
+HyperspaceFleetStats::HyperspaceFleetStats() {
+  memset(this,0,sizeof(HyperspaceFleetStats));
+}
+HyperspaceFleetStats::~HyperspaceFleetStats() {}
+  
+void HyperspaceFleetStats::sum_ship(const Dictionary &ship) {
+  real_t ship_full_mass = get<real_t>(ship,"empty_mass",100.0f) + get<real_t>(ship,"cargo_mass");
+  real_t ship_fuel_invd = get<real_t>(ship,"fuel_inverse_density",10.0f);
+  real_t ship_fuel_efficiency = get<real_t>(ship,"fuel_efficiency",0.9f);
+  real_t ship_armor_invd = get<real_t>(ship,"armor_inverse_density",200.0f);
+  real_t ship_max_fuel = get<real_t>(ship,"max_fuel");
+  real_t ship_fuel = get<real_t>(ship,"fuel",ship_max_fuel);
+  real_t ship_max_armor = get<real_t>(ship,"max_armor");
+  real_t ship_armor = get<real_t>(ship,"armor",ship_max_armor);
+  real_t ship_total_mass = ship_full_mass + ship_armor*ship_armor_invd + ship_fuel*ship_fuel_invd;
+  real_t ship_forward_thrust = get<real_t>(ship,"thrust");
+  real_t ship_reverse_thrust = get<real_t>(ship,"reverse_thrust");
+  real_t ship_turning_thrust = get<real_t>(ship,"turning_thrust");
+  
+  full_mass_sum += ship_full_mass;
+  total_mass += ship_total_mass;
+  hyperthrust_weighted += ship_forward_thrust*get<real_t>(ship,"hyperthrust");
+  forward_thrust_sum += ship_forward_thrust;
+  reverse_thrust_sum += ship_reverse_thrust;
+  turning_thrust_sum += ship_turning_thrust;
+  max_shields_sum += get<real_t>(ship,"max_shields");
+  max_armor_sum += ship_max_armor;
+  max_structure_sum += get<real_t>(ship,"max_structure");
+  armor_sum += ship_armor;
+  max_fuel_sum += ship_max_fuel;
+  fuel_sum += ship_fuel;
+  fuel_efficiency_weighted += ship_fuel_efficiency*ship_fuel;
+  drag_weighted += get<real_t>(ship,"drag",0.5)*ship_total_mass;
+  turn_drag_weighted += get<real_t>(ship,"turn_drag",0.5)*ship_total_mass;
+  armor_inverse_density_weighted += ship_armor_invd*ship_armor;
+  fuel_inverse_density_weighted += ship_fuel_invd*ship_fuel;
+  heat_capacity_weighted += ship_total_mass*get<real_t>(ship,"heat_capacity");
+  cooling_sum += get<real_t>(ship,"cooling");
+  forward_thrust_heat_weighted += ship_forward_thrust*get<real_t>(ship,"forward_thrust_heat");
+  reverse_thrust_heat_weighted += ship_reverse_thrust*get<real_t>(ship,"reverse_thrust_heat");
+  turning_thrust_heat_weighted += ship_turning_thrust*get<real_t>(ship,"turning_thrust_heat");
+  forward_thrust_energy_weighted += ship_forward_thrust*get<real_t>(ship,"forward_thrust_energy");
+  reverse_thrust_energy_weighted += ship_reverse_thrust*get<real_t>(ship,"reverse_thrust_energy");
+  turning_thrust_energy_weighted += ship_turning_thrust*get<real_t>(ship,"turning_thrust_energy");
+  battery_sum += get<real_t>(ship,"battery");
+  power_sum += get<real_t>(ship,"power");
+}
+
+static inline real_t div_weight(real_t value_sum,real_t weight_sum) {
+  if(weight_sum)
+    return value_sum/weight_sum;
+  else
+    return value_sum;
+}
+  
+void HyperspaceFleetStats::apply_to_ship(Object &ship) const {
+  ship.set("base_mass",full_mass_sum);
+  if(not (full_mass_sum>0))
+    Godot::print_error("Total empty_mass+cargo_mass of fleet is zero in update_base_stats_from_ships.",
+                       __FUNCTION__,__FILE__,__LINE__);
+  ship.set("base_hyperthrust",div_weight(hyperthrust_weighted,forward_thrust_sum));
+  if(not (forward_thrust_sum>0))
+    Godot::print_error("No thrust found in any ships sent to update_base_stats_from_ships.",
+                       __FUNCTION__,__FILE__,__LINE__);
+  ship.set("base_thrust",forward_thrust_sum);
+  ship.set("base_reverse_thrust",reverse_thrust_sum);
+  ship.set("base_turning_thrust",turning_thrust_sum);
+  ship.set("base_shields",max_shields_sum);
+  ship.set("base_armor",max_armor_sum);
+  ship.set("initial_armor",armor_sum);
+  ship.set("base_structure",max_structure_sum);
+  ship.set("base_fuel",max_fuel_sum);
+  if(not (max_fuel_sum>0))
+    Godot::print_error("No max_fuel found in any ships sent to update_base_stats_from_ships.",
+                       __FUNCTION__,__FILE__,__LINE__);
+  ship.set("initial_fuel",fuel_sum);
+  if(not (fuel_sum>0))
+    Godot::print_error("No fuel found in any ships sent to update_base_stats_from_ships.",
+                       __FUNCTION__,__FILE__,__LINE__);
+  ship.set("fuel_efficiency",div_weight(fuel_efficiency_weighted,fuel_sum));
+  ship.set("base_drag",div_weight(drag_weighted,total_mass));
+  ship.set("base_turn_drag",div_weight(turn_drag_weighted,total_mass));
+  ship.set("armor_inverse_density",div_weight(armor_inverse_density_weighted,armor_sum));
+  ship.set("fuel_inverse_density",div_weight(fuel_inverse_density_weighted,fuel_sum));
+  ship.set("base_heat_capacity",div_weight(heat_capacity_weighted,total_mass));
+  ship.set("base_cooling",cooling_sum);
+  ship.set("base_forward_thrust_heat",div_weight(forward_thrust_heat_weighted,forward_thrust_sum));
+  ship.set("base_reverse_thrust_heat",div_weight(reverse_thrust_heat_weighted,reverse_thrust_sum));
+  ship.set("base_turning_thrust_heat",div_weight(turning_thrust_heat_weighted,turning_thrust_sum));
+  ship.set("base_forward_thrust_energy",div_weight(forward_thrust_energy_weighted,forward_thrust_sum));
+  ship.set("base_reverse_thrust_energy",div_weight(reverse_thrust_energy_weighted,reverse_thrust_sum));
+  ship.set("base_turning_thrust_energy",div_weight(turning_thrust_energy_weighted,turning_thrust_sum));
+  ship.set("base_battery",battery_sum);
+  ship.set("base_power",power_sum);
+}
+  
+bool ScriptUtils::update_base_stats_from_ships(Object *target, Array ships_array) const {
+  if(!target) {
+    Godot::print_error("Null target sent to update_base_stats_from_ship.",__FUNCTION__,__FILE__,__LINE__);
+    return false;
+  }
+  int ship_count = ships_array.size();
+  if(!ship_count) {
+    Godot::print_error("Empty ships_array sent to update_base_stats_from_ship.",__FUNCTION__,__FILE__,__LINE__);
+    return false;
+  }
+  
+  HyperspaceFleetStats stats;
+  for(int i=0;i<ship_count;i++)
+    stats.sum_ship(ships_array[i]);
+  stats.apply_to_ship(*target);
+
+  return true;
+}
+  
 } // End namespace.

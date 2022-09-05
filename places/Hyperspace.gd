@@ -19,8 +19,9 @@ const NEVER_HAPPENED: int = -999999
 
 # These must match src/CombatEngineData.hpp:
 
-const ImageLabelMaker = preload('res://ui/ImageLabelMaker.gd')
-const SystemEntrance = preload('res://places/SystemEntrance.tscn')
+const HyperspaceFleetScene: PackedScene = preload('res://ships/Hyperspace/HyperspaceFleet.tscn')
+const ImageLabelMaker: Script = preload('res://ui/ImageLabelMaker.gd')
+const SystemEntrance: PackedScene = preload('res://places/SystemEntrance.tscn')
 const player_ship_name: String = 'player_ship' # name of player's ship node
 
 var label_maker
@@ -317,12 +318,17 @@ func _process(delta: float) -> void:
 
 func _ready():
 	combat_engine.set_world(get_world())
-	var player_ship = Player.assemble_player_ship()
+	
+	var player_ship_from_design = Player.assemble_player_ship()
+	player_ship_from_design.restore_combat_stats(Player.ship_combat_stats)
+	var player_ship_stats = player_ship_from_design.combined_stats;
+	
+	var player_ship = HyperspaceFleetScene.instance()
+	player_ship.set_stats_from_ship_list([player_ship_stats])
 	player_ship.name = player_ship_name
 	player_ship.translation = Player.hyperspace_position*hyperspace_ratio
 	player_ship.set_height(0)
 	player_ship.translation.y = game_state.SHIP_HEIGHT
-	player_ship.restore_combat_stats(Player.ship_combat_stats)
 	player_ship.set_entry_method(combat_engine.ENTRY_FROM_RIFT_STATIONARY)
 	if OK!=Player.connect('destination_system_changed',self,'_on_destination_system_changed'):
 		push_error("Cannot connect to Player destination_system_changed signal.")
@@ -437,6 +443,7 @@ func _physics_process(delta):
 				game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 				return
 			elif fate==combat_engine.FATED_TO_RIFT:
+				store_player_ship_stats()
 				depart_hyperspace()
 		ship_node.call_deferred("queue_free")
 	if not player_died:

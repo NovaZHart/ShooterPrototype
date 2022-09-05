@@ -807,6 +807,23 @@ class Fleet extends simple_tree.SimpleNode:
 		return result
 	func as_dict() -> Dictionary:
 		return spawn_info.duplicate(true)
+	func get_ship_stats_list() -> Array:
+		var result: Array = []
+		for design in spawn_info:
+			var count = spawn_info[design]
+			if not count:
+				push_error("Zero of "+str(design)+" requested in fleet "+str(get_name()))
+				continue
+			var design_node = game_state.ship_designs.get_child_with_name(design)
+			if not design_node:
+				push_error("Unknown design "+str(design)+" in fleet "+str(get_name()))
+				continue
+			var design_stats: Dictionary = design_node.get_stats()
+			for _i in range(count):
+				result.append(design_stats)
+		if not result:
+			push_error("No ships created by fleet "+str(get_name()))
+		return result
 
 static func encode_Fleet(f: Fleet):
 	return [ 'Fleet', str(f.display_name), encode_helper(f.spawn_info) ]

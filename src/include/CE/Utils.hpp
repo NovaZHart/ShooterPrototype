@@ -67,6 +67,22 @@ namespace godot {
     }
 
     template<class T>
+    inline T get2(const Dictionary &dict,const char *key,const char *backup_key) {
+      if(dict.has(key))
+        return static_cast<T>(dict[key]);
+      return static_cast<T>(dict[backup_key]);
+    }
+
+    template<class T>
+    inline T get2(const Dictionary &dict,const char *key,const char *backup_key,const T &default_value) {
+      if(dict.has(key))
+        return static_cast<T>(dict[key]);
+      else if(dict.has(backup_key))
+        return static_cast<T>(dict[backup_key]);
+      return default_value;
+    }
+
+    template<class T>
     inline T get(const Dictionary &dict,const char *key,const T &default_value) {
       if(dict.has(key))
         return static_cast<T>(dict[key]);
