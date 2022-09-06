@@ -120,6 +120,13 @@ HyperspaceFleetStats::HyperspaceFleetStats() {
   memset(this,0,sizeof(HyperspaceFleetStats));
 }
 HyperspaceFleetStats::~HyperspaceFleetStats() {}
+
+static inline void accum_or_set(real_t &to,real_t weight,real_t value) {
+  if(weight)
+    to+=value*weight;
+  else if(!to)
+    to=value;
+}
   
 void HyperspaceFleetStats::sum_ship(const Dictionary &ship) {
   real_t ship_full_mass = get<real_t>(ship,"empty_mass",100.0f) + get<real_t>(ship,"cargo_mass");
@@ -134,10 +141,15 @@ void HyperspaceFleetStats::sum_ship(const Dictionary &ship) {
   real_t ship_forward_thrust = get<real_t>(ship,"thrust");
   real_t ship_reverse_thrust = get<real_t>(ship,"reverse_thrust");
   real_t ship_turning_thrust = get<real_t>(ship,"turning_thrust");
+
+  if(!ship_armor_invd) {
+    Godot::print_error("Zero armor_inverse_density in update_base_stats_from_ships",
+                       __FUNCTION__,__FILE__,__LINE__);
+  }
   
   full_mass_sum += ship_full_mass;
   total_mass += ship_total_mass;
-  hyperthrust_weighted += ship_forward_thrust*get<real_t>(ship,"hyperthrust");
+  accum_or_set(hyperthrust_weighted,ship_forward_thrust,get<real_t>(ship,"hyperthrust"));
   forward_thrust_sum += ship_forward_thrust;
   reverse_thrust_sum += ship_reverse_thrust;
   turning_thrust_sum += ship_turning_thrust;
@@ -147,21 +159,27 @@ void HyperspaceFleetStats::sum_ship(const Dictionary &ship) {
   armor_sum += ship_armor;
   max_fuel_sum += ship_max_fuel;
   fuel_sum += ship_fuel;
-  fuel_efficiency_weighted += ship_fuel_efficiency*ship_fuel;
+  accum_or_set(fuel_efficiency_weighted,ship_fuel,ship_fuel_efficiency);
   drag_weighted += get<real_t>(ship,"drag",0.5)*ship_total_mass;
   turn_drag_weighted += get<real_t>(ship,"turn_drag",0.5)*ship_total_mass;
-  armor_inverse_density_weighted += ship_armor_invd*ship_armor;
-  fuel_inverse_density_weighted += ship_fuel_invd*ship_fuel;
-  heat_capacity_weighted += ship_total_mass*get<real_t>(ship,"heat_capacity");
+  accum_or_set(armor_inverse_density_weighted,ship_armor,ship_armor_invd);
+  accum_or_set(fuel_inverse_density_weighted,ship_fuel,ship_fuel_invd);
+  accum_or_set(heat_capacity_weighted,ship_total_mass,get<real_t>(ship,"heat_capacity"));
   cooling_sum += get<real_t>(ship,"cooling");
-  forward_thrust_heat_weighted += ship_forward_thrust*get<real_t>(ship,"forward_thrust_heat");
-  reverse_thrust_heat_weighted += ship_reverse_thrust*get<real_t>(ship,"reverse_thrust_heat");
-  turning_thrust_heat_weighted += ship_turning_thrust*get<real_t>(ship,"turning_thrust_heat");
-  forward_thrust_energy_weighted += ship_forward_thrust*get<real_t>(ship,"forward_thrust_energy");
-  reverse_thrust_energy_weighted += ship_reverse_thrust*get<real_t>(ship,"reverse_thrust_energy");
-  turning_thrust_energy_weighted += ship_turning_thrust*get<real_t>(ship,"turning_thrust_energy");
+  accum_or_set(forward_thrust_heat_weighted,ship_forward_thrust,get<real_t>(ship,"forward_thrust_heat"));
+  accum_or_set(reverse_thrust_heat_weighted,ship_reverse_thrust,get<real_t>(ship,"reverse_thrust_heat"));
+  accum_or_set(turning_thrust_heat_weighted,ship_turning_thrust,get<real_t>(ship,"turning_thrust_heat"));
+  accum_or_set(forward_thrust_energy_weighted,ship_forward_thrust,get<real_t>(ship,"forward_thrust_energy"));
+  accum_or_set(reverse_thrust_energy_weighted,ship_reverse_thrust,get<real_t>(ship,"reverse_thrust_energy"));
+  accum_or_set(turning_thrust_energy_weighted,ship_turning_thrust,get<real_t>(ship,"turning_thrust_energy"));
   battery_sum += get<real_t>(ship,"battery");
   power_sum += get<real_t>(ship,"power");
+
+  if(!armor_inverse_density_weighted) {
+    Godot::print_error("Zero armor_inverse_density_weighted in update_base_stats_from_ships",
+                       __FUNCTION__,__FILE__,__LINE__);
+  }
+  
 }
 
 static inline real_t div_weight(real_t value_sum,real_t weight_sum) {
