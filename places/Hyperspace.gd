@@ -80,10 +80,22 @@ func depart_hyperspace():
 	Player.hyperspace_position = ship.translation/hyperspace_ratio
 	return game_state.call_deferred('change_scene','res://ui/SpaceScreen.tscn')
 
+func update_label_scale():
+	var labels = $View/System/Labels
+	if labels and labels.get_child_count():
+		var label_scale = get_label_scale()
+		var scale = Vector3(label_scale,label_scale,label_scale)
+		for label in labels.get_children():
+			label.scale = scale
+
 func get_label_scale() -> float:
-	var view_size = max(1,get_viewport().size.y)
-	var camera_size = $View/System/TopCamera.size
-	return target_label_height/view_size * camera_size
+	var view = $View/System
+	var camera = $View/System/TopCamera
+	var view_size = max(1,view.size.y)
+	var camera_size = camera.size
+	var scale: Vector2 = utils.get_viewport_scale()
+	var _discard = connect('size_changed',self,'update_label_scale')
+	return target_label_height/view_size * camera_size * max(scale.x,scale.y)
 
 func label_hyperspace():
 	# If we're in the middle of making a label, finish
@@ -485,6 +497,7 @@ func center_view(center=null) -> void:
 	$View/System/TopCamera.translation = Vector3(center.x, 50, center.z)
 	$View/System/SpaceBackground.center_view(center.x,center.z,0,size,30)
 	$View/System/Minimap.view_center_changed(Vector3(center.x,50,center.z),Vector3(size,0,size))
+	update_label_scale()
 	emit_signal('view_center_changed',Vector3(center.x,50,center.z),Vector3(size,0,size))
 
 func receive_player_orders(new_orders: Dictionary) -> void:

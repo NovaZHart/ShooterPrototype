@@ -65,10 +65,19 @@ func set_raise_sun(flag: bool):
 	else:
 		$PlanetLight.translation.y += 10000
 
+func update_label_scale():
+	if $Labels.get_child_count():
+		var label_scale = get_label_scale()
+		var scale = Vector3(label_scale,label_scale,label_scale)
+		for label in $Labels.get_children():
+			label.scale = scale
+
 func get_label_scale() -> float:
 	var view_size = max(1,size.y)
 	var camera_size = $TopCamera.size
-	return target_label_height/view_size * camera_size
+	var scale: Vector2 = utils.get_viewport_scale()
+	var _discard = connect('size_changed',self,'update_label_scale')
+	return target_label_height/view_size * camera_size * max(scale.x,scale.y)
 
 func make_more_labels():
 	# Delete any labels for removed planets:
@@ -742,11 +751,7 @@ func _ready() -> void:
 func set_zoom(zoom: float,original: float=-1) -> void:
 	var from: float = original if original>1 else $TopCamera.size
 	$TopCamera.size = clamp(zoom*from,min_camera_size,max_camera_size)
-	if $Labels.get_child_count():
-		var label_scale = get_label_scale()
-		var scale = Vector3(label_scale,label_scale,label_scale)
-		for label in $Labels.get_children():
-			label.scale = scale
+	update_label_scale()
 
 func center_view(center=null) -> void:
 	if center==null:
