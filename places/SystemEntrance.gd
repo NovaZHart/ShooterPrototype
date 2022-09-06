@@ -17,7 +17,7 @@ func is_a_planet() -> bool: return false
 
 func _ready():
 	var r: float = get_radius()
-	var mesh: ArrayMesh = utils.native.make_circle(r*1.4,120,true);
+	var mesh: ArrayMesh = utils.native.make_circle(r*1.4,240,true);
 	var mat: ShaderMaterial = ShaderMaterial.new()
 	mat.shader=exit_shader
 	mat.set_shader_param('thickness_texture',thickness_texture)

@@ -94,7 +94,6 @@ func get_label_scale() -> float:
 	var view_size = max(1,view.size.y)
 	var camera_size = camera.size
 	var scale: Vector2 = utils.get_viewport_scale()
-	var _discard = connect('size_changed',self,'update_label_scale')
 	return target_label_height/view_size * camera_size * max(scale.x,scale.y)
 
 func label_hyperspace():
@@ -329,6 +328,7 @@ func _process(delta: float) -> void:
 		label_hyperspace()
 
 func _ready():
+	var _discard = $View/System.connect('size_changed',self,'update_label_scale')
 	combat_engine.set_world(get_world())
 	
 	var player_ship_from_design = Player.assemble_player_ship()

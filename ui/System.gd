@@ -76,7 +76,6 @@ func get_label_scale() -> float:
 	var view_size = max(1,size.y)
 	var camera_size = $TopCamera.size
 	var scale: Vector2 = utils.get_viewport_scale()
-	var _discard = connect('size_changed',self,'update_label_scale')
 	return target_label_height/view_size * camera_size * max(scale.x,scale.y)
 
 func make_more_labels():
@@ -735,6 +734,7 @@ func unpause():
 			tree.paused = false
 
 func _ready() -> void:
+	var _discard = connect('size_changed',self,'update_label_scale')
 	init_system(game_state.epoch_time/float(game_state.EPOCH_ONE_DAY*5),600,150)
 	combat_engine.set_world(get_world())
 	center_view()

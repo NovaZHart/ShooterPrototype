@@ -6,6 +6,7 @@
 #include <vector>
 #include <algorithm>
 #include <utility>
+#include <memory>
 
 #include <Godot.hpp>
 
@@ -41,6 +42,10 @@ namespace godot {
     
     // Any Mesh from projectiles that may be in a multimesh
     struct MeshInfo {
+    private:
+      std::shared_ptr<PoolRealArray> floats;
+      std::shared_ptr<PoolRealArray> old_floats;
+    public:
       const object_id id;
       const String resource_path;
       Ref<Resource> mesh_resource;
@@ -48,8 +53,17 @@ namespace godot {
       RID mesh_rid, multimesh_rid, visual_rid;
       int instance_count, visible_instance_count, last_frame_used;
       bool invalid;
-      PoolRealArray floats;
       Transform visual_instance_transform;
+
+      inline PoolRealArray &get_floats() {
+        if(!floats)
+          floats=std::make_shared<PoolRealArray>();
+        return *floats;
+      }
+      inline void swap_floats() {
+        std::swap(floats,old_floats);
+      }
+      
       MeshInfo(object_id,const String &);
       MeshInfo(object_id,Ref<Mesh> mesh_ref);
       ~MeshInfo();

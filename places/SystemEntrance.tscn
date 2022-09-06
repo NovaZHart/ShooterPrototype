@@ -3,7 +3,7 @@
 [ext_resource path="res://places/SystemEntrance.gd" type="Script" id=1]
 
 [sub_resource type="CylinderShape" id=1]
-radius = 10.0
+radius = 20.0
 
 [node name="SystemEntrance" type="Area"]
 script = ExtResource( 1 )

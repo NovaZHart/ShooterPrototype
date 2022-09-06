@@ -19,6 +19,8 @@ using namespace godot::CE;
 using namespace std;
 
 MeshInfo::MeshInfo(object_id id, const String &resource_path):
+  floats(),
+  old_floats(),
   id(id),
   resource_path(resource_path),
   mesh_resource(),
@@ -26,11 +28,12 @@ MeshInfo::MeshInfo(object_id id, const String &resource_path):
   instance_count(0),
   visible_instance_count(0),
   last_frame_used(0),
-  invalid(false),
-  floats()
+  invalid(false)
 {}
 
 MeshInfo::MeshInfo(object_id id, Ref<Mesh> mesh):
+  floats(),
+  old_floats(),
   id(id),
   resource_path(mesh->get_path()),
   mesh_resource(mesh),
@@ -39,8 +42,7 @@ MeshInfo::MeshInfo(object_id id, Ref<Mesh> mesh):
   instance_count(0),
   visible_instance_count(0),
   last_frame_used(0),
-  invalid(false),
-  floats()
+  invalid(false)
 {}
 
 MeshInfo::~MeshInfo() {
@@ -166,8 +168,10 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
         Godot::print_warning("update_visual_instance failed",__FUNCTION__,__FILE__,__LINE__);
       continue;
     }
-    
-    pack_visuals(instlocs,insteffs,mesh_info.floats,mesh_info,projectile_scale);
+
+    mesh_info.swap_floats();
+    PoolRealArray &floats = mesh_info.get_floats();
+    pack_visuals(instlocs,insteffs,floats,mesh_info,projectile_scale);
 
     auto titer = requested_transforms.find(vit.first);
     if(titer!=requested_transforms.end()) {
@@ -177,13 +181,18 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
       visual_server->instance_set_transform(mesh_info.visual_rid,t);
       Godot::print("Set transform for mesh "+str(vit.first)+" as "+str(t));
     }
+
+    int reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
+    if(reported_count!=mesh_info.instance_count) {
+      Godot::print_warning("Multimesh instance count changed unexpectedly. Should be "+str(mesh_info.instance_count)+" but is "+str(reported_count)+".",__FUNCTION__,__FILE__,__LINE__);
+    }
     
     // Send the instance data.
     visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
     mesh_info.visible_instance_count = count;
     if(loud)
       Godot::print("          ... mesh count is "+str(count));
-    visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,mesh_info.floats);
+    visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,floats);
   }
   if(loud && !(v_frame%600)) {
     int instances=0, meshes=0, multimeshes=0, visuals=0;
@@ -223,6 +232,7 @@ void MultiMeshManager::warn_invalid_mesh(MeshInfo &mesh,const String &why) {
 bool MultiMeshManager::allocate_multimesh(MeshInfo &mesh_info,int count) {
   FAST_PROFILING_FUNCTION;
   if(not mesh_info.multimesh_rid.is_valid()) {
+    //Godot::print_warning("Creating a new multimesh",__FUNCTION__,__FILE__,__LINE__);
     mesh_info.multimesh_rid = visual_server->multimesh_create();
     if(not mesh_info.multimesh_rid.is_valid()) {
       // Could not create a multimesh, so do not display the mesh this frame.
@@ -234,15 +244,29 @@ bool MultiMeshManager::allocate_multimesh(MeshInfo &mesh_info,int count) {
     visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
   }
 
+  int reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
+  if(reported_count!=mesh_info.instance_count) {
+    Godot::print_warning("Multimesh allocated instance count changed unexpectedly ("+str(mesh_info.instance_count)+"->"+str(reported_count)+")",__FUNCTION__,__FILE__,__LINE__);
+    mesh_info.instance_count=reported_count;
+  }
+  
   if(mesh_info.instance_count < count) {
+    //Godot::print_warning("Enlarging a multimesh",__FUNCTION__,__FILE__,__LINE__);
     mesh_info.instance_count = count*1.3;
     visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
   } else if(mesh_info.instance_count > count*2.6) {
     int new_count = max(static_cast<int>(count*1.3),8);
     if(new_count<mesh_info.instance_count) {
+      //Godot::print_warning("Shrinking a multimesh",__FUNCTION__,__FILE__,__LINE__);
       mesh_info.instance_count = new_count;
       visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
     }
+  }
+
+  reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
+  if(reported_count!=mesh_info.instance_count) {
+    Godot::print_warning("Could not change multimesh allocated instance count. Requested "+str(mesh_info.instance_count)+" but got "+str(reported_count)+".",__FUNCTION__,__FILE__,__LINE__);
+    mesh_info.instance_count=reported_count;
   }
 
   return true;
@@ -304,7 +328,6 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info,bool force) {
     return;
   
   if(force or v_frame > mesh_info.last_frame_used+1200) {
-    //Godot::print("Freeing a multimesh");
     if(mesh_info.visual_rid.is_valid())
       visual_server->free_rid(mesh_info.visual_rid);
     if(mesh_info.multimesh_rid.is_valid())
@@ -312,14 +335,21 @@ void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info,bool force) {
     mesh_info.multimesh_rid = RID();
     mesh_info.visual_rid = RID();
   }
-  if(mesh_info.multimesh_rid.is_valid()) {
+  if(not force and mesh_info.multimesh_rid.is_valid()) {
     // Make sure unused multimeshes aren't too large.
     if(mesh_info.instance_count>16) {
+      //Godot::print_warning("Shrinking an unused multimesh to minimum size",__FUNCTION__,__FILE__,__LINE__);
       mesh_info.instance_count=8;
       visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
     }
     if(mesh_info.visible_instance_count)
       visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,0);
+
+    int reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
+    if(reported_count!=mesh_info.instance_count) {
+      Godot::print_warning("Could not change multimesh allocated instance count. Requested "+str(mesh_info.instance_count)+" but got "+str(reported_count)+".",__FUNCTION__,__FILE__,__LINE__);
+      mesh_info.instance_count=reported_count;
+    }
   }
   mesh_info.visible_instance_count=0;
 }
