@@ -234,8 +234,12 @@ void Minimap::draw_asteroid_field_polygon(real_t r_min,real_t r_max,real_t start
     PoolVector2Array clipped=within[i];
     if(clipped.size()>3) {
       int nvert=clipped.size();
-      // Workaround for Godot bug to prevent spurious error message.
-      // Triangulate polygon twice.
+      // Workaround for Godot bug. To prevent spurious error message,
+      // triangulate polygon before canvas_item_add_polygon, to see if
+      // it can be triangulated. Then, canvas_item_add_polygon will
+      // wastefully do a second triangulation before drawing. This
+      // prevents an error message when triangulate_polygon fails in
+      // canvas_item_add_polygon.
       tripool = geo->triangulate_polygon(clipped);
       if(tripool.size()) {
         colorpool.resize(nvert);
