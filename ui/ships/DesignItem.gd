@@ -55,6 +55,8 @@ func stat_summary(stats: Dictionary) -> Dictionary:
 		'max_speed':str(max_speed), 'weapon_range':str(round(max_range))
 	}
 
+
+
 func set_design(new_path: NodePath) -> bool:
 	$View/Port.render_target_update_mode = Viewport.UPDATE_ONCE
 	if old_path==new_path:
@@ -224,6 +226,7 @@ func _process(_delta):
 		return
 	$View.visible=true
 	$Info.visible=true
+	$View/Port.render_target_update_mode = Viewport.UPDATE_ONCE
 	
 	var info_width = max(rect_size.x*info_min_fraction,rect_size.x-rect_size.y)
 	var view_width = rect_size.x - info_width
