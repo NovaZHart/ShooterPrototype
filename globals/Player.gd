@@ -282,6 +282,9 @@ func apply_departure():
 	departed_hyperspace_position = hyperspace_position
 
 func go_back_to_departure():
+	if not departed_location:
+		push_error('Player never departed; using current player location as departure.')
+		apply_departure()
 	set_player_location(departed_location)
 	set_hyperspace_position(departed_hyperspace_position)
 

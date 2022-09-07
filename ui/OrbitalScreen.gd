@@ -12,6 +12,7 @@ var current_service: NodePath
 var axial_tilt: float = 0.0
 var planet_rotation: float = 0.0
 var planet_translation: Vector3 = Vector3(50,0,-86.6)
+var invalid_location = false
 export var camera_distance_ratio: float = 7
 export var space_background_scale: float = 0.333
 export var angular_velocity: float = 0.5
@@ -30,6 +31,7 @@ func _enter_tree():
 		# Cannot land here
 		push_error('ERROR: NULL PLANET INFO')
 		game_state.change_scene('res://ui/SpaceScreen.tscn')
+		invalid_location=true
 		return
 	planet=planet_info.make_planet(600,0)
 	planet_name = planet.display_name
@@ -41,6 +43,9 @@ func _enter_tree():
 	$View/Port.add_child(planet)
 
 func _ready():
+	if invalid_location:
+		push_warning('Skipping _ready due to invalid_location in OrbitalScreen')
+		return
 	camera_and_label(system_name,planet_name)
 	game_state.print_to_console("Reached destination "+planet_name+" in the "+system_name+" system\n")
 	#$View/Port/SpaceBackground.rotate_x(PI/2-0.575959)

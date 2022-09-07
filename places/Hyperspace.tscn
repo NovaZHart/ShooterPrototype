@@ -57,7 +57,7 @@ render_target_update_mode = 3
 transform = Transform( 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -40, 0 )
 plasma_seed = 333333333
 starfield_seed = 333333333
-plasma_color = Color( 0.0509804, 0.2, 0.054902, 1 )
+plasma_color = Color( 0.133333, 0.211765, 0.137255, 1 )
 hyperspace = true
 override_from = 2
 
