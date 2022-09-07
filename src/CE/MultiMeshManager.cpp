@@ -21,31 +21,36 @@ using namespace std;
 MeshInfo::MeshInfo(object_id id, const String &resource_path):
   floats(),
   old_floats(),
-  id(id),
-  resource_path(resource_path),
-  mesh_resource(),
-  mesh_rid(), multimesh_rid(), visual_rid(),
+  multimesh_rid(), visual_rid(),
   instance_count(0),
   visible_instance_count(0),
   last_frame_used(0),
+  visual_instance_transform(),
+  id(id),
+  resource_path(resource_path),
+  mesh_resource(),
+  mesh_rid(),
   invalid(false)
 {}
 
 MeshInfo::MeshInfo(object_id id, Ref<Mesh> mesh):
   floats(),
   old_floats(),
+  multimesh_rid(), visual_rid(),
+  instance_count(0),
+  visible_instance_count(0),
+  last_frame_used(0),
+  visual_instance_transform(),
   id(id),
   resource_path(mesh->get_path()),
   mesh_resource(mesh),
   preloaded_mesh(mesh),
-  mesh_rid(mesh->get_rid()), multimesh_rid(), visual_rid(),
-  instance_count(0),
-  visible_instance_count(0),
-  last_frame_used(0),
+  mesh_rid(mesh->get_rid()),
   invalid(false)
 {}
 
 MeshInfo::~MeshInfo() {
+  FAST_PROFILING_FUNCTION;
   bool have_multimesh = not multimesh_rid.is_valid();
   bool have_visual = not visual_rid.is_valid();
   if(have_multimesh or have_visual) {
@@ -56,7 +61,93 @@ MeshInfo::~MeshInfo() {
       server->free_rid(multimesh_rid);
   }
 }
-  
+
+bool MeshInfo::allocate_multimesh(VisualServer *visual_server,int count) {
+  FAST_PROFILING_FUNCTION;
+  if(multimesh_rid.is_valid())
+    deallocate_multimesh(visual_server);
+  multimesh_rid = visual_server->multimesh_create();
+  if(not multimesh_rid.is_valid()) {
+    // Could not create a multimesh, so do not display the mesh this frame.
+    Godot::print_error("Visual server returned an invalid rid when asked for a new multimesh.",__FUNCTION__,__FILE__,__LINE__);
+    return false;
+  }
+  visual_server->multimesh_set_mesh(multimesh_rid,mesh_rid);
+  instance_count=count;
+  visual_server->multimesh_allocate(multimesh_rid,instance_count,1,2,2);
+  return true;
+}
+
+void MeshInfo::deallocate_multimesh(VisualServer *visual_server) {
+  FAST_PROFILING_FUNCTION;
+  if(visual_rid.is_valid())
+    visual_server->free_rid(visual_rid);
+  if(multimesh_rid.is_valid())
+    visual_server->free_rid(multimesh_rid);
+  multimesh_rid = RID();
+  visual_rid = RID();
+}
+
+int MeshInfo::get_actual_instance_count(VisualServer *visual_server) const {
+  FAST_PROFILING_FUNCTION;
+  return visual_server->multimesh_get_instance_count(multimesh_rid);
+}
+
+bool MeshInfo::set_and_send_visible_instance_count(VisualServer *visual_server,int count) {
+  FAST_PROFILING_FUNCTION;
+  visual_server->multimesh_set_visible_instances(multimesh_rid,count);
+  return set_visible_instance_count(count);
+}
+
+bool MeshInfo::set_visible_instance_count(int count) {
+  visible_instance_count=count;
+  return true;
+}
+
+bool MeshInfo::set_as_bulk_array(VisualServer *visual_server) {
+  FAST_PROFILING_FUNCTION;
+  if(floats) {
+    int actual_count = get_actual_instance_count(visual_server);
+    if(actual_count!=instance_count) {
+      Godot::print_error("Multimesh instance count changed unexpectedly from "+str(instance_count)+" to "+str(actual_count)+". Skipping this multimesh in the current frame.",__FUNCTION__,__FILE__,__LINE__);
+      return false;
+    } else
+      visual_server->multimesh_set_as_bulk_array(multimesh_rid,*floats);
+  }
+  return true;
+}
+
+bool MeshInfo::allocate_visual(VisualServer *visual_server,RID scenario,int layer_mask) {
+  FAST_PROFILING_FUNCTION;
+  if(visual_rid.is_valid())
+    visual_server->free_rid(visual_rid);
+  visual_rid = visual_server->instance_create2(multimesh_rid,scenario);
+  if(not visual_rid.is_valid()) {
+    Godot::print_error("Visual server returned an invalid rid when asked for visual instance for a multimesh.",__FUNCTION__,__FILE__,__LINE__);
+    // Can't display this frame
+    return false;
+  }
+  visual_server->instance_set_layer_mask(visual_rid,layer_mask);
+  visual_server->instance_set_visible(visual_rid,true);
+  visual_server->instance_geometry_set_cast_shadows_setting(visual_rid,0);
+  visual_server->instance_set_transform(visual_rid,visual_instance_transform);
+  return true;
+}
+
+bool MeshInfo::set_scenario(VisualServer *visual_server,RID scenario) {
+  visual_server->instance_set_scenario(visual_rid,scenario);
+  return true;
+}
+
+bool MeshInfo::set_and_send_visual_instance_transform(VisualServer *visual_server,const Transform &transform) {
+  visual_instance_transform = transform;
+  visual_server->instance_set_transform(visual_rid,visual_instance_transform);
+  return true;
+}
+
+
+/**********************************************************************/
+
 VisibleContent::VisibleContent():
   ships_and_planets(),
   effects(),
@@ -66,6 +157,8 @@ VisibleContent::VisibleContent():
 {}
 
 VisibleContent::~VisibleContent() {}
+
+/**********************************************************************/
 
 MultiMeshManager::MultiMeshManager():
   idgen(),
@@ -153,19 +246,17 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
     pair<insteff_iterator,insteff_iterator> insteffs =
       instance_effects.equal_range(vit.first);
 
-    mesh_info.last_frame_used=v_frame;
+    mesh_info.set_last_frame_used(v_frame);
 
     // Make sure we have a multimesh with enough space
     if(!allocate_multimesh(mesh_info,count)) {
-      if(loud)
-        Godot::print_warning("allocate_multimesh failed",__FUNCTION__,__FILE__,__LINE__);
+      Godot::print_warning("allocate_multimesh failed",__FUNCTION__,__FILE__,__LINE__);
       continue;
     }
 
     // Make sure we have a visual instance
     if(!update_visual_instance(mesh_info,scenario,reset_scenario)) {
-      if(loud)
-        Godot::print_warning("update_visual_instance failed",__FUNCTION__,__FILE__,__LINE__);
+      Godot::print_warning("update_visual_instance failed",__FUNCTION__,__FILE__,__LINE__);
       continue;
     }
 
@@ -177,31 +268,27 @@ void MultiMeshManager::send_meshes_to_visual_server(real_t projectile_scale,RID 
     if(titer!=requested_transforms.end()) {
       Transform t = titer->second;
       requested_transforms.erase(titer);
-      mesh_info.visual_instance_transform = t;
-      visual_server->instance_set_transform(mesh_info.visual_rid,t);
-      Godot::print("Set transform for mesh "+str(vit.first)+" as "+str(t));
+      mesh_info.set_and_send_visual_instance_transform(visual_server,t);
+      if(loud)
+        Godot::print("Set transform for mesh "+str(vit.first)+" as "+str(t));
     }
 
-    int reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
-    if(reported_count!=mesh_info.instance_count) {
-      Godot::print_warning("Multimesh instance count changed unexpectedly. Should be "+str(mesh_info.instance_count)+" but is "+str(reported_count)+".",__FUNCTION__,__FILE__,__LINE__);
-    }
-    
     // Send the instance data.
-    visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,count);
-    mesh_info.visible_instance_count = count;
+    mesh_info.set_and_send_visible_instance_count(visual_server,count);
     if(loud)
       Godot::print("          ... mesh count is "+str(count));
-    visual_server->multimesh_set_as_bulk_array(mesh_info.multimesh_rid,floats);
+    mesh_info.set_as_bulk_array(visual_server);
   }
   if(loud && !(v_frame%600)) {
     int instances=0, meshes=0, multimeshes=0, visuals=0;
     for(auto &id_info : v_meshes) {
       MeshInfo &info = id_info.second;
-      instances += info.instance_count;
+      instances += info.get_instance_count();
       meshes += info.mesh_rid.is_valid();
-      multimeshes += info.multimesh_rid.is_valid();
-      visuals += info.visual_rid.is_valid();
+      if(info.have_multimesh())
+        multimeshes++;
+      if(info.have_visual())
+        visuals++;
     }
     Godot::print("MultiMeshManager counts: instances="+str(instances)+" meshes="+str(meshes)+" multimeshes="+str(multimeshes)+" visuals="+str(visuals));
   }
@@ -231,42 +318,18 @@ void MultiMeshManager::warn_invalid_mesh(MeshInfo &mesh,const String &why) {
 
 bool MultiMeshManager::allocate_multimesh(MeshInfo &mesh_info,int count) {
   FAST_PROFILING_FUNCTION;
-  if(not mesh_info.multimesh_rid.is_valid()) {
-    //Godot::print_warning("Creating a new multimesh",__FUNCTION__,__FILE__,__LINE__);
-    mesh_info.multimesh_rid = visual_server->multimesh_create();
-    if(not mesh_info.multimesh_rid.is_valid()) {
-      // Could not create a multimesh, so do not display the mesh this frame.
-      Godot::print_error("Visual server returned an invalid rid when asked for a new multimesh.",__FUNCTION__,__FILE__,__LINE__);
+  if(not mesh_info.have_multimesh()) {
+    if(!mesh_info.allocate_multimesh(visual_server,max(count*2,8)))
       return false;
-    }
-    visual_server->multimesh_set_mesh(mesh_info.multimesh_rid,mesh_info.mesh_rid);
-    mesh_info.instance_count = max(count,8);
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
-  }
-
-  int reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
-  if(reported_count!=mesh_info.instance_count) {
-    Godot::print_warning("Multimesh allocated instance count changed unexpectedly ("+str(mesh_info.instance_count)+"->"+str(reported_count)+")",__FUNCTION__,__FILE__,__LINE__);
-    mesh_info.instance_count=reported_count;
-  }
-  
-  if(mesh_info.instance_count < count) {
+  } else if(mesh_info.get_instance_count() < count) {
     //Godot::print_warning("Enlarging a multimesh",__FUNCTION__,__FILE__,__LINE__);
-    mesh_info.instance_count = count*1.3;
-    visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
-  } else if(mesh_info.instance_count > count*2.6) {
-    int new_count = max(static_cast<int>(count*1.3),8);
-    if(new_count<mesh_info.instance_count) {
+    return mesh_info.allocate_multimesh(visual_server,count*2);
+  } else if(mesh_info.get_instance_count() > count*4) {
+    int new_count = max(static_cast<int>(count*2),8);
+    if(new_count<mesh_info.get_instance_count()) {
       //Godot::print_warning("Shrinking a multimesh",__FUNCTION__,__FILE__,__LINE__);
-      mesh_info.instance_count = new_count;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,2,2);
+      return mesh_info.allocate_multimesh(visual_server,new_count);
     }
-  }
-
-  reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
-  if(reported_count!=mesh_info.instance_count) {
-    Godot::print_warning("Could not change multimesh allocated instance count. Requested "+str(mesh_info.instance_count)+" but got "+str(reported_count)+".",__FUNCTION__,__FILE__,__LINE__);
-    mesh_info.instance_count=reported_count;
   }
 
   return true;
@@ -274,19 +337,11 @@ bool MultiMeshManager::allocate_multimesh(MeshInfo &mesh_info,int count) {
 
 bool MultiMeshManager::update_visual_instance(MeshInfo &mesh_info,RID scenario,bool reset_scenario) {
   FAST_PROFILING_FUNCTION;
-  if(not mesh_info.visual_rid.is_valid()) {
-    mesh_info.visual_rid = visual_server->instance_create2(mesh_info.multimesh_rid,scenario);
-    if(not mesh_info.visual_rid.is_valid()) {
-      Godot::print_error("Visual server returned an invalid rid when asked for visual instance for a multimesh.",__FUNCTION__,__FILE__,__LINE__);
-      // Can't display this frame
-      return false;
-    }
-    visual_server->instance_set_layer_mask(mesh_info.visual_rid,EFFECTS_LIGHT_LAYER_MASK);
-    visual_server->instance_set_visible(mesh_info.visual_rid,true);
-    visual_server->instance_geometry_set_cast_shadows_setting(mesh_info.visual_rid,0);
-    visual_server->instance_set_transform(mesh_info.visual_rid,mesh_info.visual_instance_transform);
+  if(not mesh_info.have_visual()) {
+    //Godot::print_warning("Allocating a visual",__FUNCTION__,__FILE__,__LINE__);
+    return mesh_info.allocate_visual(visual_server,scenario,EFFECTS_LIGHT_LAYER_MASK);
   } else if(reset_scenario)
-    visual_server->instance_set_scenario(mesh_info.visual_rid,scenario);
+    return mesh_info.set_scenario(visual_server,scenario);
   return true;
 }
 
@@ -324,34 +379,15 @@ void MultiMeshManager::clear_all_multimeshes() {
 void MultiMeshManager::unused_multimesh(MeshInfo &mesh_info,bool force) {
   FAST_PROFILING_FUNCTION;
   // No instances in this multimesh. Should we delete it?
-  if(!mesh_info.visual_rid.is_valid() and !mesh_info.multimesh_rid.is_valid())
+  if(!mesh_info.have_visual() and !mesh_info.have_multimesh())
     return;
   
-  if(force or v_frame > mesh_info.last_frame_used+1200) {
-    if(mesh_info.visual_rid.is_valid())
-      visual_server->free_rid(mesh_info.visual_rid);
-    if(mesh_info.multimesh_rid.is_valid())
-      visual_server->free_rid(mesh_info.multimesh_rid);
-    mesh_info.multimesh_rid = RID();
-    mesh_info.visual_rid = RID();
-  }
-  if(not force and mesh_info.multimesh_rid.is_valid()) {
-    // Make sure unused multimeshes aren't too large.
-    if(mesh_info.instance_count>16) {
-      //Godot::print_warning("Shrinking an unused multimesh to minimum size",__FUNCTION__,__FILE__,__LINE__);
-      mesh_info.instance_count=8;
-      visual_server->multimesh_allocate(mesh_info.multimesh_rid,mesh_info.instance_count,1,0,2);
-    }
-    if(mesh_info.visible_instance_count)
-      visual_server->multimesh_set_visible_instances(mesh_info.multimesh_rid,0);
-
-    int reported_count=visual_server->multimesh_get_instance_count(mesh_info.multimesh_rid);
-    if(reported_count!=mesh_info.instance_count) {
-      Godot::print_warning("Could not change multimesh allocated instance count. Requested "+str(mesh_info.instance_count)+" but got "+str(reported_count)+".",__FUNCTION__,__FILE__,__LINE__);
-      mesh_info.instance_count=reported_count;
-    }
-  }
-  mesh_info.visible_instance_count=0;
+  if(force or v_frame > mesh_info.get_last_frame_used()+1200) {
+    //Godot::print_warning("Deallocating a multimesh due to age.",__FUNCTION__,__FILE__,__LINE__);
+    mesh_info.deallocate_multimesh(visual_server);
+    mesh_info.set_visible_instance_count(0);
+  } else
+    mesh_info.set_and_send_visible_instance_count(visual_server,0);
 }
 
 
@@ -362,8 +398,8 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
   
   // Change the float array so it is exactly as large as we need
   const int nfloat=20;
-  floats.resize(mesh_info.instance_count*nfloat);
-  int stop = mesh_info.instance_count*nfloat;
+  floats.resize(mesh_info.get_instance_count()*nfloat);
+  int stop = mesh_info.get_instance_count()*nfloat;
   PoolRealArray::Write writer = floats.write();
   real_t *dataptr = writer.ptr();
 
@@ -404,7 +440,6 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
       p_instance!=effects.second && i<stop;  p_instance++, i+=nfloat) {
     InstanceEffect &instance = p_instance->second;
     const Basis &b = instance.transform.basis;
-    //Basis b;
     const Vector3 &o = instance.transform.origin;
     const Color &c = instance.color_data;
     const Color &d = instance.instance_data;
@@ -430,7 +465,6 @@ void MultiMeshManager::pack_visuals(const pair<instlocs_iterator,instlocs_iterat
     dataptr[i + 19] = d.a;
   }
   
-  // Use identity transforms for unused instances.
   // Use identity transforms for unused instances.
   for(;i<stop;i+=nfloat) {
     dataptr[i + 0] = 1.0;

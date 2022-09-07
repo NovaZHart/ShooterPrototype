@@ -34,6 +34,7 @@
 #include "CE/ObjectIdGenerator.hpp"
 #include "CE/InstanceEffect.hpp"
 #include "hash_functions.hpp"
+#include "PropertyMacros.hpp"
 
 namespace godot {
   namespace CE {
@@ -45,15 +46,20 @@ namespace godot {
     private:
       std::shared_ptr<PoolRealArray> floats;
       std::shared_ptr<PoolRealArray> old_floats;
+      RID multimesh_rid, visual_rid;
+      int instance_count, visible_instance_count, last_frame_used;
+      Transform visual_instance_transform;
     public:
       const object_id id;
       const String resource_path;
       Ref<Resource> mesh_resource;
       Ref<Mesh> preloaded_mesh;
-      RID mesh_rid, multimesh_rid, visual_rid;
-      int instance_count, visible_instance_count, last_frame_used;
+      RID mesh_rid;
       bool invalid;
-      Transform visual_instance_transform;
+
+      MeshInfo(object_id,const String &);
+      MeshInfo(object_id,Ref<Mesh> mesh_ref);
+      ~MeshInfo();
 
       inline PoolRealArray &get_floats() {
         if(!floats)
@@ -63,10 +69,28 @@ namespace godot {
       inline void swap_floats() {
         std::swap(floats,old_floats);
       }
+
+      PROP_GETSET_VAL(int,last_frame_used);
+      PROP_GET_VAL(int,instance_count);
+      PROP_GET_VAL(int,visible_instance_count);
+      PROP_GET_REF(Transform,visual_instance_transform);
       
-      MeshInfo(object_id,const String &);
-      MeshInfo(object_id,Ref<Mesh> mesh_ref);
-      ~MeshInfo();
+      inline bool have_multimesh() const {
+        return multimesh_rid.is_valid();
+      }
+      inline bool have_visual() const {
+        return visual_rid.is_valid();
+      }
+
+      bool allocate_multimesh(VisualServer *server,int size);
+      bool allocate_visual(VisualServer *server,RID scenario,int layer_mask);
+      void deallocate_multimesh(VisualServer *server);
+      int get_actual_instance_count(VisualServer *server) const;
+      bool set_visible_instance_count(int count);
+      bool set_and_send_visible_instance_count(VisualServer *server,int count);
+      bool set_as_bulk_array(VisualServer *server);
+      bool set_scenario(VisualServer *server,RID scenario);
+      bool set_and_send_visual_instance_transform(VisualServer *server,const Transform &transform);
     };
 
   
