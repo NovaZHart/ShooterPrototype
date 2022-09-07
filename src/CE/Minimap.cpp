@@ -201,7 +201,8 @@ void Minimap::draw_asteroid_field_polygon(real_t r_min,real_t r_max,real_t start
 
   PoolVector2Array polypool;
   PoolColorArray colorpool;
-
+  PoolIntArray tripool;
+  
   // Find vertices for this polygon
   polypool.resize(vertices);
   {
@@ -233,14 +234,20 @@ void Minimap::draw_asteroid_field_polygon(real_t r_min,real_t r_max,real_t start
     PoolVector2Array clipped=within[i];
     if(clipped.size()>3) {
       int nvert=clipped.size();
-      colorpool.resize(nvert);
-      {
-        PoolColorArray::Write writer = colorpool.write();
-        Color *colors = writer.ptr();
-        for(int j=0;j<nvert;j++)
-          colors[j]=asteroid_field_color;
+      // Workaround for Godot bug to prevent spurious error message.
+      // Triangulate polygon twice.
+      tripool = geo->triangulate_polygon(clipped);
+      if(tripool.size()) {
+        colorpool.resize(nvert);
+        {
+          PoolColorArray::Write color_writer = colorpool.write();
+          Color *colors = color_writer.ptr();
+          for(int j=0;j<nvert;j++) {
+            colors[j]=asteroid_field_color;
+          }
+        }
+        visual_server->canvas_item_add_polygon(canvas,clipped,colorpool);
       }
-      visual_server->canvas_item_add_polygon(canvas,clipped,colorpool);
     }
   }
 }
