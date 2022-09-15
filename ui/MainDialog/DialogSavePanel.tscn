@@ -35,11 +35,11 @@ size_flags_vertical = 3
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 565.0
-margin_bottom = 20.0
+margin_bottom = 23.0
 enable_Saves = false
 
 [node name="Console" type="VSplitContainer" parent="All/Left"]
-margin_top = 24.0
+margin_top = 27.0
 margin_right = 565.0
 margin_bottom = 900.0
 size_flags_horizontal = 3
@@ -49,7 +49,7 @@ size_flags_vertical = 3
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 565.0
-margin_bottom = 432.0
+margin_bottom = 430.0
 initial_bbcode = ""
 follow_urls = false
 allow_input = false
@@ -57,9 +57,9 @@ allow_input = false
 [node name="Help" parent="All/Left/Console" instance=ExtResource( 1 )]
 anchor_right = 0.0
 anchor_bottom = 0.0
-margin_top = 444.0
+margin_top = 442.0
 margin_right = 565.0
-margin_bottom = 876.0
+margin_bottom = 873.0
 
 [node name="SaveLoadControl" parent="All" instance=ExtResource( 3 )]
 anchor_right = 0.0

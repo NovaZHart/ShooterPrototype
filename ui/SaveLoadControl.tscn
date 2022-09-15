@@ -20,61 +20,61 @@ ConfirmDialog = ExtResource( 3 )
 anchor_right = 0.0
 anchor_bottom = 0.0
 margin_right = 1600.0
-margin_bottom = 876.0
+margin_bottom = 869.0
 
 [node name="Center" type="CenterContainer" parent="."]
-margin_top = 880.0
+margin_top = 873.0
 margin_right = 1600.0
-margin_bottom = 900.0
+margin_bottom = 896.0
 
 [node name="Buttons" type="GridContainer" parent="Center"]
-margin_left = 669.0
-margin_right = 931.0
-margin_bottom = 20.0
+margin_left = 679.0
+margin_right = 921.0
+margin_bottom = 23.0
 columns = 7
 
 [node name="Load" type="Button" parent="Center/Buttons"]
-margin_right = 42.0
-margin_bottom = 20.0
+margin_right = 41.0
+margin_bottom = 23.0
 hint_tooltip = "Load this file."
 disabled = true
 text = "Load"
 
 [node name="HSeparator" type="HSeparator" parent="Center/Buttons"]
-margin_left = 46.0
-margin_right = 49.0
-margin_bottom = 20.0
+margin_left = 45.0
+margin_right = 48.0
+margin_bottom = 23.0
 
 [node name="Overwrite" type="Button" parent="Center/Buttons"]
-margin_left = 53.0
-margin_right = 128.0
-margin_bottom = 20.0
+margin_left = 52.0
+margin_right = 121.0
+margin_bottom = 23.0
 hint_tooltip = "Replace this file with a new save. This is irreversible!"
 disabled = true
 text = "Overwrite"
 
 [node name="HSeparator2" type="HSeparator" parent="Center/Buttons"]
-margin_left = 132.0
-margin_right = 135.0
-margin_bottom = 20.0
+margin_left = 125.0
+margin_right = 128.0
+margin_bottom = 23.0
 
 [node name="Delete" type="Button" parent="Center/Buttons"]
-margin_left = 139.0
-margin_right = 194.0
-margin_bottom = 20.0
+margin_left = 132.0
+margin_right = 180.0
+margin_bottom = 23.0
 hint_tooltip = "Delete the selected file. This is irreversible!"
 disabled = true
 text = "Delete"
 
 [node name="HSeparator3" type="HSeparator" parent="Center/Buttons"]
-margin_left = 198.0
-margin_right = 201.0
-margin_bottom = 20.0
+margin_left = 184.0
+margin_right = 187.0
+margin_bottom = 23.0
 
 [node name="Rescan" type="Button" parent="Center/Buttons"]
-margin_left = 205.0
-margin_right = 262.0
-margin_bottom = 20.0
+margin_left = 191.0
+margin_right = 242.0
+margin_bottom = 23.0
 hint_tooltip = "Re-read the saves directory and update the list."
 text = "Rescan"
 

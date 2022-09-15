@@ -227,6 +227,7 @@ func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
 
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
+	game_state.reset_state()
 	player_name = state['player_name']
 	money = state.get('money',PLAYER_STARTING_MONEY)
 	set_player_location(state['player_location'])

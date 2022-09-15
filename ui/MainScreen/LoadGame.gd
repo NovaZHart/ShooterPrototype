@@ -6,4 +6,6 @@ func _ready():
 
 func _input(event):
 	if event.is_action_pressed('ui_cancel'):
+		game_state.reset_state()
+		Player.reset_state()
 		game_state.call_deferred('change_scene','res://ui/MainScreen/MainScreen.tscn')
