@@ -2,6 +2,7 @@ extends Node
 
 const PLAYER_START_SHIP_DESIGN: String = 'thoroughbred_haruspex'
 const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/kindra'
+const PLAYER_STARTING_MONEY: int = 3800000
 
 var player_ship_design
 var system setget set_system,get_system
@@ -12,7 +13,7 @@ var player_name = 'FIXME'
 var hyperspace_position: Vector3 setget set_hyperspace_position
 var destination_system: NodePath = NodePath() setget set_destination_system
 var ship_combat_stats: Dictionary = {}
-var money: int = 3800000
+var money: int = PLAYER_STARTING_MONEY
 var markets: simple_tree.SimpleNode
 var ship_parts: simple_tree.SimpleNode
 var root: simple_tree.SimpleNode = simple_tree.SimpleNode.new()
@@ -21,6 +22,29 @@ var stored_system_path
 var stored_player_path
 var player_faction = 'initial_player_faction'
 signal destination_system_changed
+
+func reset_state():
+	money = PLAYER_STARTING_MONEY
+	
+	var start_node: NodePath = NodePath(PLAYER_START_LOCATION)
+	assert(game_state.tree.get_node_or_null(start_node))
+	var planet = game_state.systems.get_node_or_null(start_node)
+	assert(planet)
+	
+	set_player_location(planet.get_path())
+	assert(player_location)
+	assert(system)
+	
+	#var start_ship = game_state.ship_designs.get_node_or_null('godship')
+	var start_ship = game_state.ship_designs.get_node_or_null(PLAYER_START_SHIP_DESIGN)
+	assert(start_ship)
+	player_ship_design = start_ship
+	
+	var _discard = game_state.connect('universe_preload',self,'_on_universe_preload')
+	_discard = game_state.connect('universe_postload',self,'_on_universe_postload')
+	
+	ensure_markets_node(true)
+	ensure_ship_parts_node(true)
 
 func is_entering_from_rift() -> bool:
 	var node = game_state.systems.get_node_or_null(player_location)
@@ -204,7 +228,7 @@ func products_for_sale_at(planet_path: NodePath,include_all_commodities=false,
 
 func restore_state(state: Dictionary,restore_from_load_page = true):
 	player_name = state['player_name']
-	money = state.get('money',98000)
+	money = state.get('money',PLAYER_STARTING_MONEY)
 	set_player_location(state['player_location'])
 	if state.has('hyperspace_position'):
 		set_hyperspace_position(state['hyperspace_position'])
@@ -227,8 +251,8 @@ func restore_state(state: Dictionary,restore_from_load_page = true):
 	if player_tree_root:
 		tree.root = state['player_tree_root']
 		root = tree.root
-		markets = ensure_markets_node()
-		ship_parts = ensure_ship_parts_node()
+		markets = ensure_markets_node(false)
+		ship_parts = ensure_ship_parts_node(false)
 
 func _on_universe_preload():
 	stored_system_path = system.get_path() if system else NodePath()
@@ -415,9 +439,12 @@ func update_markets_at(path_in_universe: NodePath, dropoff: float = 0.7, scale: 
 			return market_node.products
 	return null
 
-func ensure_markets_node():
-	var markets_node = root.get_child_with_name('markets')
-	if not markets_node:
+func ensure_markets_node(reset: bool):
+	var markets_node
+	if not reset:
+		markets_node = root.get_child_with_name('markets')
+		reset = not markets_node
+	if reset:
 		markets_node = simple_tree.SimpleNode.new()
 		markets_node.name = 'markets'
 		if not root.add_child(markets_node):
@@ -425,9 +452,12 @@ func ensure_markets_node():
 	markets = markets_node
 	return markets
 
-func ensure_ship_parts_node():
-	var ship_parts_node = root.get_child_with_name('ship_parts')
-	if not ship_parts_node:
+func ensure_ship_parts_node(reset: bool):
+	var ship_parts_node
+	if not reset:
+		ship_parts_node = root.get_child_with_name('ship_parts')
+		reset = not ship_parts_node
+	if reset:
 		ship_parts_node = simple_tree.SimpleNode.new()
 		ship_parts_node.name = 'ship_parts'
 		if not root.add_child(ship_parts_node):
@@ -436,22 +466,4 @@ func ensure_ship_parts_node():
 	return ship_parts
 
 func _enter_tree():
-	var start_node: NodePath = NodePath(PLAYER_START_LOCATION)
-	assert(game_state.tree.get_node_or_null(start_node))
-	var planet = game_state.systems.get_node_or_null(start_node)
-	assert(planet)
-	
-	set_player_location(planet.get_path())
-	assert(player_location)
-	assert(system)
-	
-	#var start_ship = game_state.ship_designs.get_node_or_null('godship')
-	var start_ship = game_state.ship_designs.get_node_or_null(PLAYER_START_SHIP_DESIGN)
-	assert(start_ship)
-	player_ship_design = start_ship
-	
-	var _discard = game_state.connect('universe_preload',self,'_on_universe_preload')
-	_discard = game_state.connect('universe_postload',self,'_on_universe_postload')
-	
-	ensure_markets_node()
-	ensure_ship_parts_node()
+	reset_state()

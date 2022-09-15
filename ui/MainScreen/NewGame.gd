@@ -14,6 +14,8 @@ func maybe_start_game(player_name: String):
 	if not clipped:
 		$Message.text = 'Enter a name first!'
 		return
+	game_state.reset_state()
+	Player.reset_state()
 	Player.player_name = clipped
 	game_state.call_deferred('change_scene','res://ui/OrbitalScreen.tscn')
 
