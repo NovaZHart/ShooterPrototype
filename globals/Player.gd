@@ -4,6 +4,7 @@ const PLAYER_START_SHIP_DESIGN: String = 'thoroughbred_haruspex'
 const PLAYER_START_LOCATION: String = '/root/systems/seti-gamma/kindra'
 const PLAYER_STARTING_MONEY: int = 3800000
 
+var first_initialization: bool = true
 var player_ship_design
 var system setget set_system,get_system
 var player_location: NodePath = NodePath() setget set_player_location,get_player_location
@@ -40,8 +41,10 @@ func reset_state():
 	assert(start_ship)
 	player_ship_design = start_ship
 	
-	var _discard = game_state.connect('universe_preload',self,'_on_universe_preload')
-	_discard = game_state.connect('universe_postload',self,'_on_universe_postload')
+	if first_initialization:
+		var _discard = game_state.connect('universe_preload',self,'_on_universe_preload')
+		_discard = game_state.connect('universe_postload',self,'_on_universe_postload')
+		first_initialization = false
 	
 	ensure_markets_node(true)
 	ensure_ship_parts_node(true)
