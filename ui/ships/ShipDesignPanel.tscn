@@ -23,14 +23,14 @@ __meta__ = {
 
 [node name="Top" type="GridContainer" parent="All"]
 margin_right = 1600.0
-margin_bottom = 876.0
+margin_bottom = 873.0
 size_flags_horizontal = 3
 size_flags_vertical = 3
 columns = 2
 
 [node name="List" type="GridContainer" parent="All/Top"]
 margin_right = 1584.0
-margin_bottom = 876.0
+margin_bottom = 873.0
 mouse_filter = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
@@ -38,11 +38,11 @@ size_flags_vertical = 3
 [node name="Scroll" type="VScrollBar" parent="All/Top"]
 margin_left = 1588.0
 margin_right = 1600.0
-margin_bottom = 876.0
+margin_bottom = 873.0
 step = 1.0
 
 [node name="Buttons" type="GridContainer" parent="All"]
-margin_top = 880.0
+margin_top = 877.0
 margin_right = 1600.0
 margin_bottom = 900.0
 size_flags_horizontal = 3
@@ -52,42 +52,42 @@ __meta__ = {
 }
 
 [node name="Add" type="Button" parent="All/Buttons"]
-margin_right = 37.0
-margin_bottom = 20.0
+margin_right = 36.0
+margin_bottom = 23.0
 hint_tooltip = "Add the design you're currently editing as a new design."
 text = "Add"
 
 [node name="Change" type="Button" parent="All/Buttons"]
-margin_left = 41.0
-margin_right = 103.0
-margin_bottom = 20.0
+margin_left = 40.0
+margin_right = 96.0
+margin_bottom = 23.0
 hint_tooltip = "Replace this design with the one you're currently editing."
 text = "Replace"
 
 [node name="Remove" type="Button" parent="All/Buttons"]
-margin_left = 107.0
-margin_right = 171.0
-margin_bottom = 20.0
+margin_left = 100.0
+margin_right = 158.0
+margin_bottom = 23.0
 hint_tooltip = "Remove this design from the universe's ship design list."
 text = "Remove"
 
 [node name="Open" type="Button" parent="All/Buttons"]
-margin_left = 175.0
-margin_right = 222.0
-margin_bottom = 20.0
+margin_left = 162.0
+margin_right = 204.0
+margin_bottom = 23.0
 hint_tooltip = "Open this design so you can edit it."
 text = "Open"
 
 [node name="Cancel" type="Button" parent="All/Buttons"]
-margin_left = 226.0
-margin_right = 280.0
-margin_bottom = 20.0
+margin_left = 208.0
+margin_right = 258.0
+margin_bottom = 23.0
 text = "Cancel"
 
 [node name="Zoom" type="HScrollBar" parent="All/Buttons"]
-margin_left = 284.0
+margin_left = 262.0
 margin_right = 1600.0
-margin_bottom = 20.0
+margin_bottom = 23.0
 hint_tooltip = "Zoom"
 size_flags_horizontal = 3
 size_flags_vertical = 1

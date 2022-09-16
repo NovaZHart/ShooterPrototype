@@ -196,10 +196,7 @@ func _input(event):
 			return
 		var now = OS.get_ticks_msec()
 		if selected:
-			if now-last_click<double_click_time:
-				emit_signal('activate',design_path)
-			else:
-				deselect()
+			emit_signal('activate',design_path)
 		else:
 			select()
 		last_click=now
